@@ -47,31 +47,71 @@
       icon: '📦',
       url: '/picking.html',
       activo: true,
-      descripcion: 'Preparación de pedidos por ola',
+      tag: null,
+      descripcion: 'Preparación de pedidos por ola. Seguimiento en tiempo real de productividad, dotación y desvíos vs histórico.',
     },
     {
       id: 'reposicion',
       label: 'Reposición',
       icon: '🔄',
-      url: '/reposicion.html',
+      url: null,
       activo: false,
-      descripcion: 'Reposición de posiciones vacías',
+      tag: 'proximo',
+      descripcion: 'Reposición de posiciones vacías. Control de cobertura de racks y priorización de zonas críticas del almacén.',
     },
     {
       id: 'recepcion',
       label: 'Recepción',
       icon: '📥',
-      url: '/recepcion.html',
+      url: null,
       activo: false,
-      descripcion: 'Ingreso y control de mercadería',
+      tag: 'proximo',
+      descripcion: 'Ingreso y control de mercadería de proveedores. Gestión de muelles, verificación de cantidades y calidad.',
     },
     {
       id: 'planificacion',
       label: 'Planificación',
-      icon: '📊',
-      url: '/planificacion.html',
+      icon: '📅',
+      url: null,
       activo: false,
-      descripcion: 'Programación de olas y recursos',
+      tag: 'proximo',
+      descripcion: 'Programación de olas y asignación de dotación. Proyección de cierre de turno y gestión de recursos.',
+    },
+    {
+      id: 'mapa',
+      label: 'Mapa',
+      icon: '🗺️',
+      url: null,
+      activo: false,
+      tag: 'desarrollo',
+      descripcion: 'Slotting y layout del almacén. Distribución de posiciones, zonas, pasillos y asignación de familias de productos.',
+    },
+    {
+      id: 'control',
+      label: 'Control de Procesos',
+      icon: '🎛️',
+      url: null,
+      activo: false,
+      tag: 'desarrollo',
+      descripcion: 'Monitoreo integral de KPIs operativos. Tablero de gestión, alertas de proceso y tendencias del turno.',
+    },
+    {
+      id: 'trafico',
+      label: 'Tráfico',
+      icon: '🚛',
+      url: null,
+      activo: false,
+      tag: 'desarrollo',
+      descripcion: 'Gestión de entradas y salidas de transporte. Programación de muelles, control de flota y proveedores.',
+    },
+    {
+      id: 'generales',
+      label: 'Generales',
+      icon: '🏭',
+      url: null,
+      activo: false,
+      tag: 'desarrollo',
+      descripcion: 'Operaciones transversales del centro de distribución. Administración de recursos, mantenimiento y soporte operativo.',
     },
   ];
 
@@ -79,15 +119,19 @@
     const grid = document.getElementById('proceso-grid');
     grid.innerHTML = PROCESOS.map(p => {
       const cls = p.activo ? `proceso-card ${p.id} activo` : `proceso-card ${p.id} inactivo`;
-      const statusHtml = p.activo
-        ? `<div class="proceso-status"><span class="status-dot on"></span><span style="color:var(--accent)">En curso</span></div>`
-        : `<div class="proceso-status"><span class="status-dot off"></span><span class="proximo-tag">Próximamente</span></div>`;
+
+      let statusHtml;
+      if (p.activo) {
+        statusHtml = `<div class="proceso-status"><span class="status-dot on"></span><span style="color:var(--accent)">En curso</span></div>`;
+      } else if (p.tag === 'desarrollo') {
+        statusHtml = `<div class="proceso-status"><span class="status-dot off"></span><span class="desarrollo-tag">En desarrollo</span></div>`;
+      } else {
+        statusHtml = `<div class="proceso-status"><span class="status-dot off"></span><span class="proximo-tag">Próximamente</span></div>`;
+      }
 
       let kpiHtml = '';
       if (p.id === 'picking' && turnoData) {
-        const pct = turnoData.pct_avance != null
-          ? `<strong>${turnoData.pct_avance}%</strong> completado`
-          : '';
+        const pct = turnoData.pct_avance != null ? `<strong>${turnoData.pct_avance}%</strong> completado` : '';
         kpiHtml = pct
           ? `<div class="proceso-kpi">Turno ${turnoData.turno} · ${pct}</div>`
           : `<div class="proceso-kpi">Turno ${turnoData.turno || '—'} · en curso</div>`;

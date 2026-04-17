@@ -94,10 +94,16 @@ def _active_provider() -> str:
 def _extract_json(text: str) -> str:
     """Extrae el primer objeto JSON del texto, tolerando markdown y texto extra."""
     text = text.strip()
-    # Bloque ```json ... ```
+    if not text:
+        raise ValueError("Respuesta vacía del modelo")
+
+    # Bloque ```json ... ``` (solo si el contenido no está vacío)
     m = re.search(r"```(?:json)?\s*([\s\S]*?)```", text)
     if m:
-        return m.group(1).strip()
+        candidate = m.group(1).strip()
+        if candidate:
+            return candidate
+
     # Buscar primer { con su matching }
     start = text.find("{")
     if start >= 0:
@@ -109,7 +115,8 @@ def _extract_json(text: str) -> str:
                 depth -= 1
                 if depth == 0:
                     return text[start : i + 1]
-    return text
+
+    raise ValueError(f"No se encontró JSON en la respuesta: {text[:200]!r}")
 
 
 # ── Llamadas a IA ─────────────────────────────────────────────────────────────
@@ -162,13 +169,16 @@ async def _call_claude(system: str, messages: list) -> str:
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=1200,
+        max_tokens=2000,
         system=system,
         messages=messages,
     )
     elapsed = round(time.time() - t0, 2)
-    logger.info(f"[Claude] respuesta recibida en {elapsed}s")
-    return response.content[0].text
+    text = response.content[0].text if response.content else ""
+    logger.info(f"[Claude] respuesta recibida en {elapsed}s | stop={response.stop_reason} | chars={len(text)}")
+    if not text:
+        raise ValueError(f"Claude devolvio respuesta vacia (stop_reason={response.stop_reason})")
+    return text
 
 
 async def _call_azure(system: str, messages: list) -> str:
@@ -212,20 +222,6 @@ async def _call_ollama(system: str, messages: list) -> str:
     logger.info(f"[Ollama] respuesta recibida en {elapsed}s (modelo: {model})")
     return resp.json()["message"]["content"]
 
-
-def _build_fallback_chain(primary: str) -> list[str]:
-    """Devuelve lista ordenada de proveedores: primario + fallbacks configurados."""
-    all_providers = [
-        ("gemini", _gemini_configured()),
-        ("ollama", _ollama_configured()),
-        ("azure",  _azure_configured()),
-        ("claude", _claude_configured()),
-    ]
-    chain = [primary]
-    for pid, configured in all_providers:
-        if configured and pid != primary:
-            chain.append(pid)
-    return chain
 
 
 async def _call_ai(provider: str, system: str, messages: list) -> tuple[str, str]:
@@ -385,51 +381,40 @@ async def analyze(req: AnalyzeRequest):
         system = SYSTEM_ANALYZE
         logger.info("[/api/analyze] sin historico disponible, usando prompt basico")
 
-    # 3. Cadena de proveedores: primary → fallbacks
-    fallback_chain = _build_fallback_chain(provider)
-    last_error = None
+    # 3. Llamar al proveedor seleccionado (sin fallback automático)
+    raw_text = ""
+    try:
+        raw_text, model_used = await _call_ai(
+            provider,
+            system,
+            [{"role": "user", "content": context_completo}],
+        )
+        clean = _extract_json(raw_text)
+        parsed = json.loads(clean)
+        alerts = parsed.get("alerts", [])
 
-    for current_provider in fallback_chain:
-        try:
-            raw_text, model_used = await _call_ai(
-                current_provider,
-                system,
-                [{"role": "user", "content": context_completo}],
-            )
-            if current_provider != provider:
-                logger.info(f"[/api/analyze] usando fallback: {current_provider}")
+        if req.turno_id:
+            await _save_prediction(req.turno_id, alerts, provider, model_used)
 
-            # 4. Extraer JSON tolerante a markdown y texto extra
-            clean = _extract_json(raw_text)
-            parsed = json.loads(clean)
-            alerts = parsed.get("alerts", [])
+        return {
+            "alerts": alerts,
+            "resumen_turno": parsed.get("resumen_turno", ""),
+            "historico": hist["info"],
+            "provider_used": provider,
+            "model_used": model_used,
+        }
 
-            if req.turno_id:
-                await _save_prediction(req.turno_id, alerts, current_provider, model_used)
-
-            return {
-                "alerts": alerts,
-                "resumen_turno": parsed.get("resumen_turno", ""),
-                "historico": hist["info"],
-                "provider_used": current_provider,
-                "model_used": model_used,
-                "fallback": current_provider != provider,
-            }
-
-        except Exception as e:
-            last_error = e
-            logger.warning(f"[/api/analyze] {current_provider} fallo: {e}")
-            continue
-
-    logger.error(f"[/api/analyze] todos los proveedores fallaron. ultimo error: {last_error}")
-    return {
-        "alerts": [],
-        "resumen_turno": "",
-        "historico": hist.get("info", {}),
-        "provider_used": provider,
-        "model_used": "—",
-        "error": str(last_error),
-    }
+    except Exception as e:
+        raw_preview = f" | raw: {raw_text[:300]!r}" if raw_text else ""
+        logger.error(f"[/api/analyze] {provider} fallo: {e}{raw_preview}")
+        return {
+            "alerts": [],
+            "resumen_turno": "",
+            "historico": hist.get("info", {}),
+            "provider_used": provider,
+            "model_used": "—",
+            "error": str(e),
+        }
 
 
 @router.post("/chat")
@@ -445,23 +430,21 @@ async def chat(req: ChatRequest):
     history = [{"role": m.role, "content": m.content} for m in (req.history or [])]
     history.append({"role": "user", "content": req.message})
 
-    for current_provider in _build_fallback_chain(provider):
-        try:
-            reply, model_used = await _call_ai(current_provider, system, history)
-            return {
-                "reply": reply,
-                "provider_used": current_provider,
-                "model_used": model_used,
-            }
-        except Exception as e:
-            logger.warning(f"[/api/chat] {current_provider} fallo: {e}")
-            continue
-
-    return {
-        "reply": "No se pudo consultar la IA. Intenta de nuevo en unos segundos.",
-        "provider_used": provider,
-        "model_used": "—",
-    }
+    try:
+        reply, model_used = await _call_ai(provider, system, history)
+        return {
+            "reply": reply,
+            "provider_used": provider,
+            "model_used": model_used,
+        }
+    except Exception as e:
+        logger.error(f"[/api/chat] {provider} fallo: {e}")
+        return {
+            "reply": f"Error con {provider}: {e}. Seleccioná otro proveedor e intentá de nuevo.",
+            "provider_used": provider,
+            "model_used": "—",
+            "error": str(e),
+        }
 
 
 @router.get("/providers")

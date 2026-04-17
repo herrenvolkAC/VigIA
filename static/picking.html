@@ -1054,8 +1054,21 @@ function buildContext(d) {
   const olasDelTurno = EXCEL_DATA.olas.filter(o => o.turno === d.turno);
   const olasRest  = olasDelTurno.filter(o => o.num > d.olaNum).length;
 
+  const _now = new Date();
+  const nowMin = _now.getHours() * 60 + _now.getMinutes();
+  const iniMin = d.ini * 60;
+  const finMin = (d.fin === 24 ? 1440 : d.fin * 60);
+  const durMin = finMin - iniMin;
+  const transcurridos = Math.min(Math.max(0, nowMin - iniMin), durMin);
+  const restantes     = Math.max(0, finMin - nowMin);
+  const pctTiempo     = durMin > 0 ? Math.round(transcurridos / durMin * 100) : 0;
+  const estadoOla     = nowMin < iniMin ? 'OLA NO INICIADA'
+                      : nowMin >= finMin ? 'OLA CERRADA'
+                      : 'OLA EN CURSO';
+
   return `VIGIA · ESTADO OPERATIVO — CD Coto · Programa ${EXCEL_DATA.programa}
 Turno: ${d.turno} | ${d.label} (${d.ini}:00–${d.fin===24?'00:00':d.fin+':00'}) | ${nowStr()} hs
+TIEMPO DE OLA: ${transcurridos} min transcurridos / ${restantes} min restantes (${pctTiempo}% del tiempo de ola transcurrido) — ${estadoOla}
 
 BULTOS:
 - Programado: Secos ${fmt(d.progSecos)} + NOA ${fmt(d.progNOA)} = Total ${fmt(d.progTotal)}
@@ -1115,12 +1128,21 @@ async function runAiAnalysis(context) {
     actualizarSugerencias(d, rawResponse.historico || {});
     document.getElementById('ai-chat').style.display = 'block';
   } catch(e) {
-    console.warn('[IA] fallback local:', e.message);
+    console.warn('[IA] error:', e.message);
     if (!rawResponse) renderDebugResponse({ error: e.message });
-    setProviderStatus('error IA · análisis local', 'err');
-    runLocalAlerts();
-    actualizarSugerencias(d, {});
-    document.getElementById('ai-chat').style.display = 'block';
+    const providerLabel = (activeProvider || 'IA').toUpperCase();
+    setProviderStatus(providerLabel + ' · error', 'err');
+    aiAlerts = [];
+    document.getElementById('ai-alerts').innerHTML = `
+      <div class="ai-alert bad" style="text-align:center;padding:28px 24px;">
+        <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+        <div class="alert-title" style="margin-bottom:8px;">Error al consultar ${providerLabel}</div>
+        <div class="alert-detail" style="margin-bottom:16px;opacity:0.9;">${e.message || 'No se pudo obtener respuesta del proveedor de IA.'}</div>
+        <div class="alert-action" style="font-size:12px;">Seleccioná otro proveedor en la barra superior e intentá nuevamente.</div>
+      </div>`;
+    document.getElementById('resumen-turno-wrap').style.display = 'none';
+    document.getElementById('sugerencias-wrap').style.display = 'none';
+    return;
   }
   renderAiAlerts();
 }
