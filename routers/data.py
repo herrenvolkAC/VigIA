@@ -136,9 +136,16 @@ async def turno_activo():
         )
         movs = await cursor.fetchall()
 
+    movimientos = [dict(m) for m in movs]
+    total_ejecutado = sum((m.get("bultos_ejecutados") or 0) for m in movimientos)
+    objetivo_total = turno_dict.get("objetivo_total") or 0
+    turno_dict["total_ejecutado"] = total_ejecutado
+    turno_dict["pct_avance"] = round(total_ejecutado / objetivo_total * 100, 1) if objetivo_total else None
+    turno_dict["proceso"] = "picking"
+
     return {
         "turno": turno_dict,
-        "movimientos": [dict(m) for m in movs],
+        "movimientos": movimientos,
     }
 
 

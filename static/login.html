@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VigIA · Acceso</title>
+  <link rel="stylesheet" href="/css/vigia.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <section class="login-showcase">
+      <div class="login-brand-chip">
+      <img class="login-brand-icon" src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
+        <div class="login-brand-copy">
+          <div class="login-brand-kicker">Gemelo Operativo WMS</div>
+          <div class="login-logo">Vig<span>IA</span></div>
+        </div>
+      </div>
+
+      <div class="login-promo">
+        <h1 class="login-title">Supervisión operativa con visual Coto</h1>
+        <p class="login-subtitle">Accedé al tablero de picking, selector de procesos y seguimiento operativo con una interfaz más clara, más grande y más directa.</p>
+        <div class="login-highlight-row">
+          <span class="login-highlight">Picking en vivo</span>
+          <span class="login-highlight">Alertas IA</span>
+          <span class="login-highlight">Turno actual</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-panel">
+      <div class="login-panel-head">
+        <div class="login-panel-kicker">Ingreso</div>
+        <div class="login-panel-title">Entrar a VigIA</div>
+        <div class="login-panel-desc">Usá uno de los perfiles de prueba para continuar al selector de operación.</div>
+      </div>
+
+      <form class="login-form" id="login-form" onsubmit="doLogin(event)">
+        <div class="login-field">
+          <label>Usuario</label>
+          <input type="text" id="inp-user" placeholder="usuario" autocomplete="username" autofocus>
+        </div>
+        <div class="login-field">
+          <label>Contraseña</label>
+          <input type="password" id="inp-pass" placeholder="••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="login-submit">Ingresar</button>
+        <div class="login-error" id="login-error"></div>
+      </form>
+    </section>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const s = JSON.parse(sessionStorage.getItem('vigia_session') || 'null');
+    if (s) window.location.href = '/selector.html';
+  })();
+
+  const MOCK_USERS = [
+    { user: 'supervisor', pass: '1234', role: 'supervisor', name: 'Supervisor Turno' },
+    { user: 'jefe', pass: '1234', role: 'jefe', name: 'Jefe de Depósito' },
+    { user: 'admin', pass: '1234', role: 'admin', name: 'Administrador' },
+  ];
+
+  function doLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('inp-user').value.trim().toLowerCase();
+    const pass = document.getElementById('inp-pass').value;
+    const match = MOCK_USERS.find(u => u.user === user && u.pass === pass);
+
+    if (match) {
+      sessionStorage.setItem('vigia_session', JSON.stringify({
+        user: match.user,
+        role: match.role,
+        name: match.name,
+        loggedAt: new Date().toISOString(),
+      }));
+      window.location.href = '/selector.html';
+    } else {
+      const errEl = document.getElementById('login-error');
+      const formEl = document.getElementById('login-form');
+      errEl.textContent = 'Usuario o contraseña incorrectos.';
+      formEl.classList.remove('shake');
+      void formEl.offsetWidth;
+      formEl.classList.add('shake');
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VigIA · Gemelo Operativo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap');
+:root {
+  --bg:#f6f2ec; --surface:#ffffff; --surface-alt:#fff7f3; --border:#eed6cb;
+  --accent:#e40520; --accent-soft:#fff0f2; --accent2:#b40018; --warn:#cc7a00;
+  --warn-soft:#fff1d9; --danger-soft:#ffe7eb; --muted:#8e7b73; --text:#3d2b26;
+  --text-hi:#1f1411; --ai:#e40520; --ai-soft:#fff0f2; --shadow:0 22px 60px rgba(122,54,34,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:
+  radial-gradient(circle at top left, rgba(246,181,62,.16) 0, transparent 24%),
+  radial-gradient(circle at top right, rgba(228,5,32,.12) 0, transparent 28%),
+  linear-gradient(180deg, #fffdfa 0%, var(--bg) 100%);
+color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;padding:24px;}
+
+/* ── Header ── */
+header{display:grid;grid-template-columns:340px 1fr 430px;align-items:center;gap:28px;margin-bottom:18px;border:1px solid rgba(238,214,203,.95);background:rgba(255,255,255,.97);box-shadow:var(--shadow);border-radius:34px;padding:18px 32px 22px;backdrop-filter:blur(14px);}
+.brand{display:flex;align-items:center;gap:22px;}
+.brand-mark{width:138px;height:138px;object-fit:contain;border-radius:38px;background:linear-gradient(180deg,#fff 0%,#fff8f6 100%);padding:10px;border:4px solid var(--accent);box-shadow:0 0 0 12px rgba(228,5,32,.09),0 24px 48px rgba(228,5,32,.18);}
+.brand-copy{display:flex;flex-direction:column;gap:6px;}
+.brand-process{font-family:'Archivo Black','Arial Black',sans-serif;font-size:38px;font-weight:400;color:var(--text-hi);letter-spacing:-1.4px;line-height:1.18;padding-bottom:8px;}
+.brand-title{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0 22px;overflow:visible;min-height:156px;}
+.brand-wordmark{display:flex;align-items:flex-end;justify-content:center;gap:0;line-height:1;padding:0 0 24px;overflow:visible;filter:drop-shadow(0 12px 18px rgba(228,5,32,.10));}
+.brand-wordmark-vig,.brand-wordmark-ia{display:inline-block;font-family:'Archivo Black','Arial Black',sans-serif;font-weight:400;letter-spacing:-4.8px;line-height:1;overflow:visible;}
+.brand-wordmark-vig{font-size:98px;color:#168a59;padding-bottom:10px;}
+.brand-wordmark-ia{font-size:98px;color:var(--accent);}
+.brand-subtitle{font-size:11px;color:var(--muted);letter-spacing:2.6px;text-transform:uppercase;}
+.brand-title .brand-subtitle{margin-bottom:4px;}
+.header-logos{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.header-topline{display:flex;align-items:center;gap:14px;}
+.header-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;font-size:10px;color:var(--muted);}
+.partner-logo{height:44px;max-width:140px;object-fit:contain;padding:6px 10px;border-radius:14px;background:#fff;border:1px solid var(--border);box-shadow:0 8px 20px rgba(122,54,34,.08);}
+.badge{font-size:9px;padding:5px 10px;border-radius:999px;font-weight:700;letter-spacing:.8px;}
+.b-green{background:#fff2da;color:#9f5a00;}
+.b-ai{background:var(--ai);color:#fff;}
+.b-ai.azure{background:#0078d4;}
+.b-ai.gemini{background:#1a73e8;}
+.b-ai.ollama{background:#6b7280;}
+.b-pending{background:var(--ai-soft);color:var(--ai);}
+.b-live{background:var(--accent);color:#fff;}
+.clock{font-size:12px;color:var(--muted);padding:0;border-radius:0;background:transparent;border:none;white-space:nowrap;}
+.clock span{color:var(--accent);}
+
+/* ── Proveedor IA ── */
+.ai-provider-bar{display:flex;align-items:center;gap:10px;padding:14px 16px;background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:20px;margin-bottom:16px;flex-wrap:wrap;box-shadow:var(--shadow);}
+.ai-provider-bar label{font-size:10px;color:var(--ai);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+#provider-btns{display:flex;gap:6px;}
+.prov-btn{background:#fff;border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:6px 12px;border-radius:999px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.prov-btn:hover{border-color:var(--ai);color:var(--ai);}
+.prov-btn.active.claude{background:var(--ai-soft);border-color:var(--ai);color:var(--ai);}
+.prov-btn.active.azure{background:#e0f2fe;border-color:#0078d4;color:#0078d4;}
+.prov-btn.unconfigured{opacity:.45;cursor:not-allowed;}
+.prov-btn .check{color:var(--accent);font-size:9px;}
+#provider-status{font-size:10px;color:var(--muted);margin-left:auto;}
+#provider-status.ok{color:var(--accent);}
+#provider-status.err{color:var(--accent2);}
+#provider-status.loading{color:var(--ai);}
+
+/* ── Panel formulario ── */
+.form-panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow);}
+.form-header{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+.form-header:hover{background:var(--surface-alt);}
+.form-title{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;flex:1;}
+.form-chevron{font-size:12px;color:var(--muted);transition:transform .2s;}
+.form-chevron.open{transform:rotate(180deg);}
+.form-body{padding:18px;display:none;}
+.form-body.open{display:block;}
+.form-hint{margin:-4px 0 18px;font-size:12px;line-height:1.6;color:var(--muted);}
+
+/* Selector de ola */
+.ola-selector{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.ola-selector label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+.ola-btn{background:#fff;border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:6px 11px;border-radius:999px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.ola-btn:hover{border-color:var(--accent);color:var(--accent);}
+.ola-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+.ola-turno-tag{font-size:10px;padding:2px 8px;border-radius:2px;margin-left:8px;}
+.ola-turno-tag.Tarde{background:var(--warn-soft);color:var(--warn);border:1px solid #f5d28a;}
+.ola-turno-tag.Noche{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;}
+.ola-turno-tag.Mañana{background:var(--accent-soft);color:var(--accent);border:1px solid #a7e0da;}
+
+/* Grid de campos */
+.fields-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;margin-bottom:18px;}
+@media(max-width:900px){.fields-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.fields-grid{grid-template-columns:1fr;}}
+
+.field-group{display:flex;flex-direction:column;gap:5px;}
+.field-group.wide{grid-column:span 3;}
+@media(max-width:900px){.field-group.wide{grid-column:span 2;}}
+@media(max-width:560px){.field-group.wide{grid-column:span 1;}}
+
+.field-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.field-label .suggested{color:#8ca0b7;margin-left:4px;font-style:italic;}
+.field-input{background:#fff;border:1px solid var(--border);color:var(--text-hi);font-family:'DM Mono',monospace;font-size:13px;padding:9px 11px;border-radius:10px;outline:none;transition:border-color .2s, box-shadow .2s;width:100%;}
+.field-input:hover{border-color:#b9c7d8;}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(15,118,110,.08);}
+.field-input.auto{color:var(--muted);background:#f8fafc;cursor:default;}
+.field-input.modified{border-color:var(--warn);}
+.field-input.manual-input{background:#fffbeb;border-color:#f59e0b;border-width:2px;}
+.field-input.manual-input:focus{border-color:#d97706;box-shadow:0 0 0 4px rgba(245,158,11,.15);}
+.field-input.manual-input::placeholder{color:#b45309;opacity:.7;}
+.field-input.manual-empty{background:#fff7ed;border-color:#ef4444;border-width:2px;animation:pulse-red .6s ease;}
+@keyframes pulse-red{0%,100%{border-color:#ef4444}50%{border-color:#fca5a5}}
+.field-sep{grid-column:1/-1;height:1px;background:var(--border);margin:4px 0;}
+
+/* Fila de observaciones + botón */
+.form-actions{display:flex;align-items:flex-end;gap:10px;margin-top:4px;}
+.obs-wrap{flex:1;}
+.btn-calcular{background:var(--accent);color:#fff;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;padding:12px 22px;border:none;border-radius:999px;cursor:pointer;white-space:nowrap;letter-spacing:.5px;transition:opacity .2s,transform .2s;}
+.btn-calcular:hover{opacity:.92;transform:translateY(-1px);}
+.btn-calcular:disabled{opacity:.4;cursor:not-allowed;}
+.btn-reset{background:#fff;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:12px 14px;border:1px solid var(--border);border-radius:999px;cursor:pointer;white-space:nowrap;}
+.btn-reset:hover{color:var(--text);border-color:var(--text);}
+
+/* ── KPIs ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi.green::before{background:var(--accent);}
+.kpi.orange::before{background:var(--accent2);}
+.kpi.yellow::before{background:var(--warn);}
+.kpi.neutral::before{background:var(--muted);}
+.kpi-label{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--text-hi);line-height:1;}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:5px;}
+.kpi-sub.good{color:var(--accent);}
+.kpi-sub.warn{color:var(--warn);}
+.kpi-sub.bad{color:var(--accent2);}
+
+/* Estado vacío del dashboard */
+.dashboard-empty{display:flex;align-items:center;justify-content:center;padding:48px;font-size:12px;color:var(--muted);letter-spacing:.5px;border:1px dashed #c7d2e3;background:rgba(255,255,255,.78);border-radius:18px;margin-bottom:16px;text-align:center;line-height:1.8;}
+
+/* ── Layout principal ── */
+.main{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media(max-width:1100px){.main{grid-template-columns:1fr 1fr;}}
+@media(max-width:700px){.main{grid-template-columns:1fr;}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow);}
+.panel-title{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.panel-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.panel-title .ai-dot{width:6px;height:6px;border-radius:50%;background:var(--ai);animation:pulse 2s infinite;flex-shrink:0;}
+
+/* Barras */
+.bar-chart{display:flex;flex-direction:column;gap:14px;}
+.bar-row{display:grid;grid-template-columns:110px 1fr 70px;gap:10px;align-items:center;}
+.bar-label{font-size:13px;color:var(--text);}
+.bar-track{height:22px;background:#edf2f7;border-radius:999px;position:relative;overflow:hidden;}
+.bar-expected{position:absolute;top:0;left:0;height:100%;background:#dbe7f5;border-right:2px dashed #94a3b8;transition:width .8s ease;}
+.bar-actual{position:absolute;top:0;left:0;height:100%;border-radius:2px;transition:width 1s ease;}
+.bar-pct{font-size:12px;text-align:right;font-weight:500;}
+
+/* Olas */
+.olas-grid{display:flex;flex-direction:column;gap:6px;}
+.ola-row{display:grid;grid-template-columns:130px 1fr 80px 80px;gap:8px;align-items:center;padding:6px 8px;border-radius:4px;font-size:12px;}
+.ola-row.past{background:#f8fafc;border:1px solid #e2e8f0;}
+.ola-row.current{background:#f0fdf9;border:1px solid var(--accent);animation:pulse-border 2s infinite;}
+.ola-row.future{background:transparent;border:1px dashed #cbd5e1;opacity:.7;}
+.ola-name{color:var(--text-hi);font-size:11px;}
+.ola-bar-wrap{position:relative;height:16px;background:#edf2f7;border-radius:999px;overflow:hidden;}
+.ola-bar-exp{position:absolute;top:0;left:0;height:100%;background:#dbe7f5;border-right:1px dashed #94a3b8;}
+.ola-bar-act{position:absolute;top:0;left:0;height:100%;border-radius:2px;}
+.ola-prog{text-align:right;color:var(--muted);font-size:10px;}
+.ola-ejec{text-align:right;font-size:10px;}
+
+/* Proyección */
+.proj-box{background:#f0fdf9;border:1px solid #b7e2db;border-radius:14px;padding:12px;margin-top:14px;}
+.proj-title{font-size:9px;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;}
+.proj-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--text);}
+.proj-row span:last-child{color:var(--text-hi);font-weight:500;}
+
+/* Operarios */
+.ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.op-card{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:8px 10px;}
+.op-name{font-size:11px;color:var(--text-hi);margin-bottom:3px;}
+.op-stat{font-size:10px;color:var(--muted);}
+.op-bar-track{height:3px;background:#dbe7f5;border-radius:2px;margin-top:5px;}
+.op-bar-fill{height:100%;border-radius:2px;transition:width 1s ease;}
+
+/* Panel IA — full width */
+.ai-panel{background:var(--surface);border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:14px;}
+.ai-panel-header{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);background:rgba(255,255,255,.96);}
+.ai-tab{background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:14px 24px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;white-space:nowrap;}
+.ai-tab:hover{color:var(--accent);background:var(--accent-soft);}
+.ai-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-soft);font-weight:700;}
+.ai-tab .ai-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;flex-shrink:0;}
+.ai-tab-content{display:none;padding:24px;}
+.ai-tab-content.active{display:block;}
+
+/* Resumen del turno */
+.resumen-turno{background:linear-gradient(135deg,#1f1411 0%,#3d2b26 100%);color:#fff;border-radius:14px;padding:16px 22px;margin-bottom:20px;font-size:14px;line-height:1.6;display:flex;align-items:center;gap:14px;}
+.resumen-turno-icon{font-size:22px;flex-shrink:0;}
+.resumen-turno-text{flex:1;}
+.resumen-turno-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:.6;margin-bottom:4px;}
+
+/* Alertas grandes */
+.ai-alerts{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;}
+.ai-alert{border-radius:18px;padding:26px 28px;line-height:1.7;border:none;position:relative;overflow:hidden;}
+.ai-alert::before{content:'';position:absolute;top:0;left:0;width:6px;height:100%;}
+.ai-alert.bad{background:linear-gradient(135deg,#fff5f6 0%,#ffe8eb 100%);}
+.ai-alert.bad::before{background:var(--accent2);}
+.ai-alert.warn{background:linear-gradient(135deg,#fffcf0 0%,#fff4d5 100%);}
+.ai-alert.warn::before{background:var(--warn);}
+.ai-alert.ok{background:linear-gradient(135deg,#f2fff9 0%,#e0f9ee 100%);}
+.ai-alert.ok::before{background:#168a59;}
+.alert-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.alert-badge{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:999px;}
+.alert-badge.bad{background:var(--accent2);color:#fff;}
+.alert-badge.warn{background:var(--warn);color:#fff;}
+.alert-badge.ok{background:#168a59;color:#fff;}
+.alert-fuente{font-size:9px;color:var(--muted);letter-spacing:.5px;opacity:.8;}
+.alert-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--text-hi);margin-bottom:10px;line-height:1.25;}
+.alert-detail{font-size:13px;color:var(--text);line-height:1.75;margin-bottom:14px;}
+.alert-action{font-size:12.5px;background:rgba(0,0,0,.055);padding:12px 16px;border-radius:10px;color:var(--text-hi);line-height:1.65;}
+.alert-action::before{content:'→ ';font-weight:700;opacity:.6;}
+.alert-time{font-size:10px;color:var(--muted);margin-top:14px;opacity:.65;}
+
+/* Chat integrado */
+.ai-chat{margin-top:20px;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#fff;}
+.ai-chat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:all .2s;}
+.ai-chat-header:hover{background:var(--surface-alt);}
+.ai-chat-header.open{border-bottom-color:var(--border);}
+.ai-chat-title{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.ai-chat-chevron{font-size:11px;color:var(--muted);transition:transform .2s;}
+.ai-chat-chevron.open{transform:rotate(180deg);}
+.ai-chat-body{display:none;flex-direction:column;}
+.ai-chat-body.open{display:flex;}
+.chat-messages{min-height:80px;max-height:220px;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.chat-messages::-webkit-scrollbar{width:4px;}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.chat-msg{font-size:13px;line-height:1.6;max-width:88%;}
+.chat-msg.user{align-self:flex-end;background:var(--accent);color:#fff;padding:9px 14px;border-radius:16px 16px 4px 16px;}
+.chat-msg.ai{align-self:flex-start;background:#f4f4f4;color:var(--text-hi);padding:9px 14px;border-radius:16px 16px 16px 4px;}
+.chat-input-row{display:flex;border-top:1px solid var(--border);}
+.chat-input{flex:1;background:none;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:12px 16px;outline:none;}
+.chat-input::placeholder{color:var(--muted);}
+.chat-send{background:var(--accent);border:none;color:#fff;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;padding:12px 20px;cursor:pointer;transition:opacity .2s;letter-spacing:.5px;}
+.chat-send:hover{opacity:.88;}
+
+/* Debug tab */
+.debug-panel{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:900px){.debug-panel{grid-template-columns:1fr;}}
+.debug-block{display:flex;flex-direction:column;gap:6px;}
+.debug-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding-bottom:2px;border-bottom:1px solid var(--border);}
+.debug-pre{background:#1e1e2e;color:#cdd6f4;font-family:'DM Mono',monospace;font-size:10px;line-height:1.6;padding:12px;border-radius:10px;overflow:auto;max-height:320px;white-space:pre-wrap;word-break:break-all;}
+.debug-pre .key{color:#89b4fa;}
+.debug-pre .str{color:#a6e3a1;}
+.debug-pre .num{color:#fab387;}
+.debug-empty{font-size:11px;color:var(--muted);font-style:italic;padding:20px 0;}
+
+/* Chat */
+.chat-toggle{margin-top:12px;background:#fff;border:1px solid #bfdbfe;border-radius:14px;overflow:hidden;}
+.chat-toggle-btn{width:100%;background:none;border:none;color:var(--ai);font-family:'DM Mono',monospace;font-size:11px;padding:9px 14px;cursor:pointer;text-align:left;}
+.chat-toggle-btn:hover{background:#f8fbff;}
+.chat-body{display:none;flex-direction:column;border-top:1px solid #bfdbfe;}
+.chat-body.open{display:flex;}
+.chat-messages{height:160px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}
+.chat-messages::-webkit-scrollbar{width:4px;}
+.chat-messages::-webkit-scrollbar-thumb{background:#bfdbfe;border-radius:2px;}
+.chat-msg{font-size:11px;line-height:1.5;}
+.chat-msg.user{color:var(--text);text-align:right;}
+.chat-msg.ai{color:var(--text-hi);}
+.chat-msg.ai::before{content:'▸ ';color:var(--ai);}
+.chat-input-row{display:flex;border-top:1px solid #bfdbfe;}
+.chat-input{flex:1;background:none;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:7px 10px;outline:none;}
+.chat-input::placeholder{color:var(--muted);}
+.chat-send{background:none;border:none;border-left:1px solid #bfdbfe;color:var(--ai);font-family:'DM Mono',monospace;font-size:11px;padding:7px 12px;cursor:pointer;}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes pulse-border{0%,100%{border-color:var(--accent)}50%{border-color:#7ed6ca}}
+
+/* ── Sugerencias / chips ── */
+.sugerencias-wrap{margin:0 0 16px;padding:14px 16px;background:linear-gradient(135deg,#fff8f6 0%,#fff 100%);border:1px solid #f0d0c8;border-radius:14px;box-shadow:0 2px 8px rgba(228,5,32,.06);}
+.sugerencias-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.sugerencias-icon{font-size:13px;}
+.sugerencias-title{font-size:9px;color:var(--muted);letter-spacing:1.8px;text-transform:uppercase;font-weight:700;}
+.sugerencias-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#fff;border:1.5px solid #e8c8c2;border-radius:999px;font-size:10.5px;color:#5a3a34;cursor:pointer;transition:all .18s ease;white-space:nowrap;font-family:'DM Mono',monospace;font-weight:500;letter-spacing:.1px;box-shadow:0 1px 3px rgba(228,5,32,.08);user-select:none;}
+.chip::before{content:'›';font-size:13px;color:var(--accent);opacity:.7;transition:opacity .18s;}
+.chip:hover{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(228,5,32,.28);transform:translateY(-1px);}
+.chip:hover::before{color:#fff;opacity:1;}
+.chip:active{transform:scale(.97) translateY(0);box-shadow:0 1px 4px rgba(228,5,32,.2);}
+@media(max-width:900px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}header{flex-wrap:wrap}.header-logos{margin-left:0}}
+@media(max-width:980px){header{grid-template-columns:1fr;justify-items:center;text-align:center}.brand{justify-content:center}.header-logos{align-items:center}.header-status{justify-content:center}.header-topline{flex-wrap:wrap;justify-content:center}.brand-title{padding:0 0 14px;min-height:auto}.brand-wordmark-vig,.brand-wordmark-ia{font-size:84px;letter-spacing:-4px}.brand-wordmark{padding-bottom:20px}.brand-process{font-size:34px}}
+@media(max-width:560px){body{padding:14px}header{padding:16px}.brand-mark{width:104px;height:104px;border-radius:30px}.brand-copy{gap:3px}.brand-process{font-size:30px;padding-bottom:6px}.brand-wordmark-vig,.brand-wordmark-ia{font-size:64px;letter-spacing:-2.8px}.brand-wordmark-vig{padding-bottom:7px}.brand-wordmark{padding-bottom:16px}.partner-logo{height:36px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img class="brand-mark" src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
+    <div class="brand-copy">
+      <div class="brand-subtitle">CD Coto</div>
+      <div class="brand-process">Picking</div>
+    </div>
+  </div>
+  <div class="brand-title">
+    <div class="brand-subtitle">Gemelo operativo WMS</div>
+    <div class="brand-wordmark" aria-label="vigIA">
+      <span class="brand-wordmark-vig">vig</span><span class="brand-wordmark-ia">IA</span>
+    </div>
+  </div>
+  <div class="header-logos">
+    <div class="header-topline">
+      <img class="partner-logo" src="/resources/CotoLogo.svg" alt="Logo Coto">
+      <div class="clock">CD COTO &nbsp;|&nbsp; <span id="clock-time">--:--:--</span></div>
+    </div>
+    <div class="header-status">
+      <div class="badge b-green">Ingreso manual primero</div>
+      <div class="badge b-ai" id="ai-badge">CLAUDE</div>
+      <div id="status-badge" class="badge b-pending">LISTO PARA EDITAR</div>
+    </div>
+  </div>
+</header>
+
+<!-- Proveedor IA -->
+<div class="ai-provider-bar">
+  <label>🤖 PROVEEDOR IA</label>
+  <div id="provider-btns"><span style="font-size:11px;color:var(--muted)">cargando...</span></div>
+  <span id="provider-status">verificando...</span>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FORMULARIO DE DATOS DE OLA
+══════════════════════════════════════════ -->
+<div class="form-panel">
+  <div class="form-header" onclick="toggleForm()">
+    <span class="form-title">📋 Datos de la ola · ingreso manual</span>
+    <span id="form-ola-tag" style="font-size:10px;color:var(--muted)"></span>
+    <span class="form-chevron open" id="form-chevron">▲</span>
+  </div>
+
+  <div class="form-body open" id="form-body">
+
+    <!-- Selector de ola -->
+    <div class="ola-selector">
+      <label>OLA</label>
+      <div id="ola-btns"></div>
+      <span id="turno-tag" class="ola-turno-tag"></span>
+      <span style="font-size:10px;color:var(--muted);margin-left:auto" id="ola-horario"></span>
+    </div>
+    <div class="form-hint">
+      Cargá manualmente los datos de la ola actual. Cada campo arranca con la sugerencia tomada de la planilla `DatosModelo.xlsx`, pero podés editarla antes de calcular.
+    </div>
+
+    <!-- Campos -->
+    <div class="fields-grid" id="fields-grid">
+
+      <!-- Bultos programados -->
+      <div class="field-group">
+        <label class="field-label">Bultos Prog. Secos <span class="suggested" id="sug-prog-secos"></span></label>
+        <input class="field-input" type="number" id="f-prog-secos" oninput="onFieldChange()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Bultos Prog. NOA <span class="suggested" id="sug-prog-noa"></span></label>
+        <input class="field-input" type="number" id="f-prog-noa" oninput="onFieldChange()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Bultos Prog. Total</label>
+        <input class="field-input auto" type="number" id="f-prog-total" readonly tabindex="-1">
+      </div>
+
+      <div class="field-sep"></div>
+
+      <!-- Bultos ejecutados -->
+      <div class="field-group">
+        <label class="field-label">Bultos Ejec. Secos ✏ <span class="suggested" id="sug-ejec-secos"></span></label>
+        <input class="field-input manual-input" type="number" id="f-ejec-secos" placeholder="ingresar" oninput="onFieldChange()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Bultos Ejec. NOA ✏ <span class="suggested" id="sug-ejec-noa"></span></label>
+        <input class="field-input manual-input" type="number" id="f-ejec-noa" placeholder="ingresar" oninput="onFieldChange()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Bultos Ejec. Total</label>
+        <input class="field-input auto" type="number" id="f-ejec-total" readonly tabindex="-1">
+      </div>
+
+      <div class="field-sep"></div>
+
+      <!-- Dotación -->
+      <div class="field-group">
+        <label class="field-label">Dotación Programada <span class="suggested" id="sug-dot-prog"></span></label>
+        <input class="field-input" type="number" id="f-dot-prog" oninput="onFieldChange()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Dotación Real ✏ <span class="suggested" id="sug-dot-ejec"></span></label>
+        <input class="field-input manual-input" type="number" id="f-dot-ejec" placeholder="ingresar" oninput="onFieldChange()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Dif. Dotación</label>
+        <input class="field-input auto" type="number" id="f-dot-dif" readonly tabindex="-1">
+      </div>
+
+      <div class="field-sep"></div>
+
+      <!-- Productividad -->
+      <div class="field-group">
+        <label class="field-label">Prod. Prog. (bultos/op)</label>
+        <input class="field-input auto" type="text" id="f-prod-prog" readonly tabindex="-1" placeholder="—">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Prod. Real (bultos/op)</label>
+        <input class="field-input auto" type="text" id="f-prod-ejec" readonly tabindex="-1" placeholder="—">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Var. Productividad</label>
+        <input class="field-input auto" type="text" id="f-prod-var" readonly tabindex="-1" placeholder="—">
+      </div>
+
+    </div>
+
+    <!-- Observaciones + botón -->
+    <div class="form-actions">
+      <div class="obs-wrap">
+        <label class="field-label" style="margin-bottom:5px;display:block">Observaciones <span class="suggested" id="sug-obs"></span></label>
+        <input class="field-input" type="text" id="f-obs" placeholder="Ej: refuerzo de 4 operarios de secos a NOA" style="width:100%">
+      </div>
+      <button class="btn-reset" onclick="resetToSuggested()" title="Volver a valores sugeridos del Excel">↺ Sugeridos</button>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div id="campos-vacios-msg" style="display:none;font-size:11px;color:#b45309;background:#fff7ed;border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;white-space:nowrap;"></div>
+        <button class="btn-calcular" id="btn-calcular" onclick="calcularYAnalizar()">▶ Calcular y Analizar</button>
+      </div>
+    </div>
+
+  </div><!-- /form-body -->
+</div>
+
+<!-- ══════════════════════════════════════════
+     DASHBOARD (oculto hasta primer cálculo)
+══════════════════════════════════════════ -->
+<div id="dashboard-empty" class="dashboard-empty">
+  Completá los datos de la ola y presioná<br>
+  <strong style="color:var(--accent)">&nbsp;▶ Calcular y Analizar&nbsp;</strong><br>
+  para ver el estado operativo
+</div>
+
+<div id="dashboard" style="display:none">
+
+  <!-- KPIs -->
+  <div class="kpi-strip">
+    <div class="kpi green">
+      <div class="kpi-label">Bultos Preparados</div>
+      <div class="kpi-value" id="kpi-real">0</div>
+      <div class="kpi-sub" id="kpi-real-sub">ola actual</div>
+    </div>
+    <div class="kpi yellow">
+      <div class="kpi-label">Objetivo Acumulado</div>
+      <div class="kpi-value" id="kpi-exp">0</div>
+      <div class="kpi-sub">programado para la ola</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Desvío</div>
+      <div class="kpi-value" id="kpi-gap">0</div>
+      <div class="kpi-sub" id="kpi-gap-sub">bultos</div>
+    </div>
+    <div class="kpi neutral">
+      <div class="kpi-label">Proyección Cierre</div>
+      <div class="kpi-value" id="kpi-proj">0</div>
+      <div class="kpi-sub" id="kpi-proj-sub">del turno</div>
+    </div>
+  </div>
+
+  <!-- Panel IA — full width -->
+  <div class="ai-panel">
+    <div class="ai-panel-header">
+      <button class="ai-tab active" id="tab-btn-analysis" onclick="switchAiTab('analysis')">
+        <div class="ai-dot"></div>
+        Análisis IA · alertas
+      </button>
+      <button class="ai-tab" id="tab-btn-debug" onclick="switchAiTab('debug')">
+        ⬡ Debug API
+      </button>
+    </div>
+
+    <!-- Tab: Análisis -->
+    <div class="ai-tab-content active" id="tab-analysis">
+      <div id="resumen-turno-wrap" style="display:none" class="resumen-turno">
+        <span class="resumen-turno-icon">📊</span>
+        <div class="resumen-turno-text">
+          <div class="resumen-turno-label">Resumen del turno vs histórico</div>
+          <span id="resumen-turno-text"></span>
+        </div>
+      </div>
+      <div class="ai-alerts" id="ai-alerts">
+        <div class="debug-empty">Esperando análisis...</div>
+      </div>
+      <div id="sugerencias-wrap" class="sugerencias-wrap" style="display:none">
+        <div class="sugerencias-header">
+          <span class="sugerencias-icon">💬</span>
+          <span class="sugerencias-title">Preguntas sugeridas · tocá para consultar</span>
+        </div>
+        <div id="sugerencias-chips" class="sugerencias-chips"></div>
+      </div>
+      <div class="ai-chat" id="ai-chat" style="display:none">
+        <div class="ai-chat-header" id="chat-header" onclick="toggleChat()">
+          <span class="ai-chat-title"><span class="ai-dot"></span> Consultar sobre el turno</span>
+          <span class="ai-chat-chevron" id="chat-chevron">▼</span>
+        </div>
+        <div class="ai-chat-body" id="chat-body">
+          <div class="chat-messages" id="chat-messages"></div>
+          <div class="chat-input-row">
+            <input class="chat-input" id="chat-input" type="text"
+              placeholder="Escribí tu pregunta sobre el turno..."
+              onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="chat-send" onclick="sendChat()">Enviar ↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Debug -->
+    <div class="ai-tab-content" id="tab-debug">
+      <div class="debug-panel">
+        <div class="debug-block">
+          <div class="debug-label">→ Request enviado a la API</div>
+          <pre class="debug-pre" id="debug-request"><span class="debug-empty">Sin datos aún. Ejecutá Calcular y Analizar.</span></pre>
+        </div>
+        <div class="debug-block">
+          <div class="debug-label">← Response recibido de la API</div>
+          <pre class="debug-pre" id="debug-response"><span class="debug-empty">Sin datos aún.</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layout -->
+  <div class="main">
+
+    <!-- Sectores -->
+    <div class="panel">
+      <div class="panel-title">Bultos por sector · ejecutado vs programado</div>
+      <div class="bar-chart" id="bar-chart"></div>
+    </div>
+
+    <!-- Olas del turno -->
+    <div class="panel">
+      <div class="panel-title">Olas del turno · avance acumulado</div>
+      <div class="olas-grid" id="olas-grid"></div>
+      <div class="proj-box">
+        <div class="proj-title">▸ Proyección de cierre de turno</div>
+        <div class="proj-row"><span>Ritmo actual (bultos/op)</span><span id="proj-rate">—</span></div>
+        <div class="proj-row"><span>Dotación activa</span><span id="proj-dot">—</span></div>
+        <div class="proj-row"><span>Proyección total turno</span><span id="proj-total">—</span></div>
+        <div class="proj-row"><span>Brecha vs objetivo</span><span id="proj-gap">—</span></div>
+      </div>
+    </div>
+
+    <!-- Operarios -->
+    <div class="panel">
+      <div class="panel-title">Operarios · productividad estimada</div>
+      <div class="ops-grid" id="ops-grid"></div>
+    </div>
+
+  </div>
+
+</div><!-- /dashboard -->
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  DATOS DEL EXCEL (Programa 5441 — valores sugeridos por defecto)
+// ══════════════════════════════════════════════════════════════════
+const EXCEL_DATA = {
+  programa: '5441',
+  olas: [
+    { num:1,  label:'OLA 1',  turno:'Tarde',  ini:14, fin:16,
+      progSecos:12342, progNOA:2817,  ejecSecos:14273, ejecNOA:1670,
+      dotProg:48, dotEjec:60, prodProg:315.80, prodEjec:265.72, obs:'' },
+    { num:2,  label:'OLA 2',  turno:'Tarde',  ini:16, fin:18,
+      progSecos:13302, progNOA:1354,  ejecSecos:12654, ejecNOA:1965,
+      dotProg:48, dotEjec:60, prodProg:305.34, prodEjec:243.65, obs:'' },
+    { num:3,  label:'OLA 3',  turno:'Tarde',  ini:18, fin:20,
+      progSecos:10297, progNOA:986,   ejecSecos:10053, ejecNOA:1702,
+      dotProg:48, dotEjec:50, prodProg:235.07, prodEjec:235.10, obs:'' },
+    { num:4,  label:'OLA 4',  turno:'Tarde',  ini:20, fin:22,
+      progSecos:8733,  progNOA:1250,  ejecSecos:9877,  ejecNOA:1798,
+      dotProg:48, dotEjec:50, prodProg:207.98, prodEjec:233.50, obs:'' },
+    { num:5,  label:'OLA 5',  turno:'Noche',  ini:22, fin:24,
+      progSecos:13039, progNOA:1609,  ejecSecos:10012, ejecNOA:1381,
+      dotProg:47, dotEjec:55, prodProg:311.66, prodEjec:207.15,
+      obs:'Pasa 1 armador de refrigerados a secos' },
+    { num:6,  label:'OLA 6',  turno:'Noche',  ini:0,  fin:2,
+      progSecos:6667,  progNOA:2298,  ejecSecos:11276, ejecNOA:1520,
+      dotProg:47, dotEjec:55, prodProg:190.74, prodEjec:232.65, obs:'' },
+    { num:7,  label:'OLA 7',  turno:'Noche',  ini:2,  fin:4,
+      progSecos:11405, progNOA:1369,  ejecSecos:6870,  ejecNOA:1077,
+      dotProg:47, dotEjec:45, prodProg:271.80, prodEjec:176.60,
+      obs:'Se refuerza NOA con 4 operarios de secos' },
+    { num:8,  label:'OLA 8',  turno:'Noche',  ini:4,  fin:6,
+      progSecos:9775,  progNOA:516,   ejecSecos:9126,  ejecNOA:879,
+      dotProg:47, dotEjec:45, prodProg:218.95, prodEjec:222.33,
+      obs:'Los 4 operarios retornan a secos' },
+    { num:9,  label:'OLA 9',  turno:'Mañana', ini:6,  fin:8,
+      progSecos:15361, progNOA:1103,  ejecSecos:18008, ejecNOA:713,
+      dotProg:58, dotEjec:81, prodProg:283.86, prodEjec:231.12,
+      obs:'Pasan armadores de NOA, Refri a Secos y 1 maquinista de Refri' },
+    { num:10, label:'OLA 10', turno:'Mañana', ini:8,  fin:10,
+      progSecos:16929, progNOA:681,   ejecSecos:12666, ejecNOA:814,
+      dotProg:58, dotEjec:81, prodProg:303.63, prodEjec:166.42, obs:'' },
+    { num:11, label:'OLA 11', turno:'Mañana', ini:10, fin:12,
+      progSecos:12309, progNOA:905,   ejecSecos:16320, ejecNOA:1023,
+      dotProg:58, dotEjec:72, prodProg:227.83, prodEjec:240.88, obs:'' },
+    { num:12, label:'OLA 12', turno:'Mañana', ini:12, fin:14,
+      progSecos:12707, progNOA:1022,  ejecSecos:12658, ejecNOA:1682,
+      dotProg:58, dotEjec:71, prodProg:236.71, prodEjec:201.97, obs:'' },
+  ],
+  turnoTotales: {
+    Tarde:  { prog:51081, ejec:53992 },
+    Noche:  { prog:46678, ejec:42141 },
+    Mañana: { prog:61018, ejec:63884 },
+  }
+};
+
+// ── Estado ────────────────────────────────────────────────────────
+let selectedOla    = detectOlaActual();
+let activeProvider = 'claude';
+let providersLoaded = false;
+let aiAlerts       = [];
+let chatHistory    = [];
+let dashboardLive  = false;
+let currentFormData = null;  // datos confirmados más recientes
+
+const fmt   = n => Math.round(n).toLocaleString('es');
+const fmtF  = n => parseFloat(n).toFixed(1);
+const nowStr= () => { const n=new Date(); return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'); };
+
+// ── Detectar ola actual por hora ──────────────────────────────────
+function detectOlaActual() {
+  const h = new Date().getHours() + new Date().getMinutes()/60;
+  const idx = EXCEL_DATA.olas.findIndex(o => {
+    if (o.ini < o.fin) return h >= o.ini && h < o.fin;
+    return h >= o.ini || h < o.fin;
+  });
+  return idx >= 0 ? idx : 8; // default OLA 9 si no hay match
+}
+
+function initProviderBar() {
+  document.querySelector('.ai-provider-bar label').textContent = 'Proveedor IA';
+  const wrap = document.getElementById('provider-btns');
+  document.getElementById('ai-alerts').innerHTML =
+    '<div style="font-size:11px;color:var(--muted)">Todavía no se ejecutó ningún análisis.</div>';
+  wrap.innerHTML = '<span style="font-size:11px;color:var(--muted)">cargando...</span>';
+  updateAiBadge(activeProvider);
+  setProviderStatus('Listo para editar · sin consulta inicial', '');
+  loadProviders();
+}
+
+async function ensureProvidersLoaded() {
+  if (providersLoaded) return;
+  setProviderStatus('Verificando proveedores...', 'loading');
+  try {
+    const data = await fetch('/api/providers').then(r => r.json());
+    providersLoaded = true;
+    if (data.available?.some(p => p.id === activeProvider && p.configured)) {
+      data.active = activeProvider;
+    }
+    renderProviderBtns(data);
+  } catch (e) {
+    setProviderStatus('No se pudieron verificar proveedores', 'err');
+  }
+}
+
+// ── Inicializar formulario ────────────────────────────────────────
+function initForm() {
+  // Botones de ola
+  const wrap = document.getElementById('ola-btns');
+  wrap.innerHTML = '';
+  EXCEL_DATA.olas.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ola-btn' + (i === selectedOla ? ' active' : '');
+    btn.textContent = o.label;
+    btn.onclick = () => selectOla(i);
+    wrap.appendChild(btn);
+  });
+  loadOlaIntoForm(selectedOla);
+}
+
+function selectOla(idx) {
+  selectedOla = idx;
+  document.querySelectorAll('.ola-btn').forEach((b, i) => {
+    b.className = 'ola-btn' + (i === idx ? ' active' : '');
+  });
+  loadOlaIntoForm(idx);
+}
+
+function loadOlaIntoForm(idx) {
+  const o = EXCEL_DATA.olas[idx];
+  const finStr = o.fin === 24 ? '00:00' : o.fin + ':00';
+
+  // Tags de turno y horario
+  const turnoTag = document.getElementById('turno-tag');
+  turnoTag.textContent = o.turno;
+  turnoTag.className = 'ola-turno-tag ' + o.turno;
+  document.getElementById('ola-horario').textContent = o.ini + ':00 – ' + finStr;
+  document.getElementById('form-ola-tag').textContent = o.label + ' · ' + o.turno;
+
+  // Poblar campos con valores sugeridos (programados — vienen del Excel)
+  setField('f-prog-secos', o.progSecos, 'sug-prog-secos', o.progSecos);
+  setField('f-prog-noa',   o.progNOA,   'sug-prog-noa',   o.progNOA);
+  setField('f-dot-prog',   o.dotProg,   'sug-dot-prog',   o.dotProg);
+
+  // Campos de ingreso manual — siempre vacíos al cargar
+  clearManualField('f-ejec-secos', 'sug-ejec-secos', o.ejecSecos);
+  clearManualField('f-ejec-noa',   'sug-ejec-noa',   o.ejecNOA);
+  clearManualField('f-dot-ejec',   'sug-dot-ejec',   o.dotEjec);
+
+  document.getElementById('f-obs').value = o.obs || '';
+  document.getElementById('sug-obs').textContent = o.obs ? '(Excel: "'+o.obs+'")'  : '';
+
+  updateAutoFields();
+}
+
+function clearManualField(inputId, sugId, sugValue) {
+  const input = document.getElementById(inputId);
+  input.value = '';
+  input.classList.remove('modified', 'manual-empty');
+  input.classList.add('manual-input');
+  if (sugId) {
+    document.getElementById(sugId).textContent = '(Excel: ' + (Number.isInteger(sugValue) ? sugValue.toLocaleString('es') : parseFloat(sugValue).toFixed(1)) + ')';
+  }
+}
+
+function setField(inputId, value, sugId, sugValue) {
+  const input = document.getElementById(inputId);
+  input.value = value;
+  input.classList.remove('modified');
+  if (sugId) {
+    document.getElementById(sugId).textContent = '(Excel: ' + (Number.isInteger(sugValue) ? sugValue.toLocaleString('es') : parseFloat(sugValue).toFixed(1)) + ')';
+  }
+}
+
+function onFieldChange() {
+  updateAutoFields();
+  markModified();
+}
+
+function markModified() {
+  const o = EXCEL_DATA.olas[selectedOla];
+  // Solo marcan modified los campos que tienen valor sugerido del Excel (no los manuales)
+  const checks = [
+    ['f-prog-secos', o.progSecos],
+    ['f-prog-noa',   o.progNOA],
+    ['f-dot-prog',   o.dotProg],
+  ];
+  checks.forEach(([id, orig]) => {
+    const el = document.getElementById(id);
+    const v = parseFloat(el.value);
+    el.classList.toggle('modified', Math.abs(v - orig) > 0.5);
+  });
+}
+
+function updateAutoFields() {
+  const ps = parseFloat(document.getElementById('f-prog-secos').value) || 0;
+  const pn = parseFloat(document.getElementById('f-prog-noa').value) || 0;
+  const progTotal = ps + pn;
+  document.getElementById('f-prog-total').value = Math.round(progTotal);
+
+  // Ejec. Total: sólo mostrar si al menos uno de los manuales tiene valor
+  const esRaw = document.getElementById('f-ejec-secos').value;
+  const enRaw = document.getElementById('f-ejec-noa').value;
+  const es = parseFloat(esRaw) || 0;
+  const en = parseFloat(enRaw) || 0;
+  const ejecTotalEl = document.getElementById('f-ejec-total');
+  if (esRaw === '' && enRaw === '') {
+    ejecTotalEl.value = '';
+  } else {
+    ejecTotalEl.value = Math.round(es + en);
+  }
+  const ejecTotal = es + en;
+
+  const dp = parseFloat(document.getElementById('f-dot-prog').value) || 0;
+  const deRaw = document.getElementById('f-dot-ejec').value;
+  const de = parseFloat(deRaw) || 0;
+  document.getElementById('f-dot-dif').value = deRaw !== '' ? Math.round(de - dp) : '';
+
+  // Productividad — calculada automáticamente
+  const prodProgEl = document.getElementById('f-prod-prog');
+  const prodEjecEl = document.getElementById('f-prod-ejec');
+  const varEl = document.getElementById('f-prod-var');
+
+  const pp = (progTotal > 0 && dp > 0) ? progTotal / dp : null;
+  const pe = (ejecTotal > 0 && de > 0 && deRaw !== '') ? ejecTotal / de : null;
+
+  prodProgEl.value = pp !== null ? pp.toFixed(1) : '';
+  prodEjecEl.value = pe !== null ? pe.toFixed(1) : '';
+
+  if (pp !== null && pe !== null) {
+    const varP = pp > 0 ? ((pe - pp) / pp * 100) : 0;
+    varEl.value = (varP >= 0 ? '+' : '') + varP.toFixed(1) + '%';
+    varEl.style.color = varP >= 0 ? 'var(--accent)' : 'var(--accent2)';
+  } else {
+    varEl.value = '';
+    varEl.style.color = '';
+  }
+}
+
+function resetToSuggested() {
+  loadOlaIntoForm(selectedOla);
+}
+
+function toggleForm() {
+  const body  = document.getElementById('form-body');
+  const chev  = document.getElementById('form-chevron');
+  const open  = body.classList.contains('open');
+  body.style.display = open ? 'none' : 'block';
+  body.classList.toggle('open', !open);
+  chev.textContent = open ? '▼' : '▲';
+  chev.classList.toggle('open', !open);
+}
+
+// ── Leer formulario como objeto ───────────────────────────────────
+function readForm() {
+  const o = EXCEL_DATA.olas[selectedOla];
+  return {
+    olaIdx:    selectedOla,
+    olaNum:    o.num,
+    label:     o.label,
+    turno:     o.turno,
+    ini:       o.ini,
+    fin:       o.fin,
+    progSecos: parseFloat(document.getElementById('f-prog-secos').value) || 0,
+    progNOA:   parseFloat(document.getElementById('f-prog-noa').value)   || 0,
+    progTotal: parseFloat(document.getElementById('f-prog-total').value) || 0,
+    ejecSecos: parseFloat(document.getElementById('f-ejec-secos').value) || 0,
+    ejecNOA:   parseFloat(document.getElementById('f-ejec-noa').value)   || 0,
+    ejecTotal: parseFloat(document.getElementById('f-ejec-total').value) || 0,
+    dotProg:   parseFloat(document.getElementById('f-dot-prog').value)   || 0,
+    dotEjec:   parseFloat(document.getElementById('f-dot-ejec').value)   || 0,
+    prodProg:  parseFloat(document.getElementById('f-prod-prog').value)  || null,
+    prodEjec:  parseFloat(document.getElementById('f-prod-ejec').value)  || null,
+    obs:       document.getElementById('f-obs').value.trim(),
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CALCULAR Y ANALIZAR
+// ══════════════════════════════════════════════════════════════════
+async function calcularYAnalizar() {
+  // Validar campos manuales obligatorios
+  const manualFields = [
+    { id: 'f-ejec-secos', label: 'Bultos Ejec. Secos' },
+    { id: 'f-ejec-noa',   label: 'Bultos Ejec. NOA' },
+    { id: 'f-dot-ejec',   label: 'Dotación Real' },
+  ];
+  const vacios = manualFields.filter(f => document.getElementById(f.id).value.trim() === '');
+
+  if (vacios.length > 0) {
+    // Resaltar campos vacíos
+    manualFields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (el.value.trim() === '') {
+        el.classList.add('manual-empty');
+        el.classList.remove('manual-input');
+        setTimeout(() => { el.classList.remove('manual-empty'); el.classList.add('manual-input'); }, 2000);
+      }
+    });
+
+    // Mostrar mensaje de error
+    const errMsg = document.getElementById('campos-vacios-msg');
+    if (errMsg) {
+      errMsg.style.display = 'flex';
+      errMsg.textContent = '⚠ Completar: ' + vacios.map(f => f.label).join(', ');
+      setTimeout(() => { errMsg.style.display = 'none'; }, 4000);
+    }
+    return;
+  }
+
+  const btn = document.getElementById('btn-calcular');
+  btn.disabled = true;
+  btn.textContent = '⏳ Calculando...';
+
+  currentFormData = readForm();
+
+  // Mostrar dashboard
+  document.getElementById('dashboard-empty').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  dashboardLive = true;
+
+  // Actualizar badge
+  const badge = document.getElementById('status-badge');
+  badge.className = 'badge b-live';
+  badge.textContent = 'EN VIVO · ' + nowStr();
+
+  // Renderizar dashboard con los datos del formulario
+  renderDashboard(currentFormData);
+
+  // Colapsar formulario
+  const body = document.getElementById('form-body');
+  const chev = document.getElementById('form-chevron');
+  body.style.display = 'none';
+  body.classList.remove('open');
+  chev.textContent = '▼';
+  chev.classList.remove('open');
+
+  // Llamar a la IA
+  await runAiAnalysis(buildContext(currentFormData));
+
+  btn.disabled = false;
+  btn.textContent = '▶ Recalcular';
+}
+
+// ── Render del dashboard ──────────────────────────────────────────
+function renderDashboard(d) {
+  const gap  = d.ejecTotal - d.progTotal;
+  const t    = EXCEL_DATA.turnoTotales[d.turno];
+
+  // Proyección simple: si ejecTotal / progTotal ratio se mantiene para las olas restantes
+  const ratio    = d.progTotal > 0 ? d.ejecTotal / d.progTotal : 1;
+  const olasDelTurno = EXCEL_DATA.olas.filter(o => o.turno === d.turno);
+  const olasRest = olasDelTurno.filter(o => o.num > d.olaNum);
+  const restProg = olasRest.reduce((a, o) => a + o.progSecos + o.progNOA, 0);
+  const olasPast = olasDelTurno.filter(o => o.num < d.olaNum);
+  const pastEjec = olasPast.reduce((a, o) => a + o.ejecSecos + o.ejecNOA, 0);
+  const proyeccion = pastEjec + d.ejecTotal + restProg * ratio;
+  const objTurno   = t ? t.prog : d.progTotal * olasDelTurno.length;
+
+  // KPIs
+  document.getElementById('kpi-real').textContent     = fmt(d.ejecTotal);
+  document.getElementById('kpi-real-sub').textContent = 'turno ' + d.turno + ' · ' + d.label;
+  document.getElementById('kpi-exp').textContent      = fmt(d.progTotal);
+
+  const gEl  = document.getElementById('kpi-gap');
+  const gSub = document.getElementById('kpi-gap-sub');
+  gEl.textContent  = (gap>=0?'+':'') + fmt(gap);
+  gEl.style.color  = gap>=0 ? 'var(--accent)' : 'var(--accent2)';
+  gSub.className   = 'kpi-sub ' + (gap>=0 ? 'good' : 'bad');
+  gSub.textContent = gap>=0 ? 'por encima del objetivo' : 'por debajo del objetivo';
+
+  document.getElementById('kpi-proj').textContent = fmt(proyeccion);
+  const projDiff = proyeccion - objTurno;
+  const ps = document.getElementById('kpi-proj-sub');
+  ps.className   = 'kpi-sub ' + (projDiff>=0?'good':projDiff>=-objTurno*0.05?'warn':'bad');
+  ps.textContent = projDiff>=0
+    ? '✓ +'+fmt(projDiff)+' sobre objetivo'
+    : '⚠ déficit est. '+fmt(Math.abs(projDiff))+' bultos';
+
+  // Proyección box
+  document.getElementById('proj-rate').textContent  = fmtF(d.prodEjec) + ' b/op';
+  document.getElementById('proj-dot').textContent   = d.dotEjec + ' operarios';
+  document.getElementById('proj-total').textContent = fmt(proyeccion) + ' bultos';
+  const br = objTurno - proyeccion;
+  const gpe = document.getElementById('proj-gap');
+  gpe.textContent = br<=0 ? '+'+fmt(Math.abs(br))+' excedente' : fmt(br)+' faltantes';
+  gpe.style.color = br<=0 ? 'var(--accent)' : 'var(--accent2)';
+
+  // Barras sectores
+  renderBarras(d);
+
+  // Olas
+  renderOlas(d);
+
+  // Operarios
+  renderOperarios(d);
+}
+
+function renderBarras(d) {
+  const el = document.getElementById('bar-chart');
+  const rows = [
+    { name:'Secos', prog:d.progSecos, ejec:d.ejecSecos, color:'#00e5a0' },
+    { name:'NOA',   prog:d.progNOA,   ejec:d.ejecNOA,   color:'#00bcd4' },
+  ];
+  el.innerHTML = '';
+  rows.forEach(r => {
+    const max   = Math.max(r.prog, r.ejec) * 1.05 || 1;
+    const pProg = r.prog / max;
+    const pEjec = Math.min(r.ejec / max, 1.05);
+    const diff  = r.ejec - r.prog;
+    const color = diff >= 0 ? r.color : 'var(--accent2)';
+    const pct   = r.prog > 0 ? Math.round(r.ejec/r.prog*100) : 0;
+    el.innerHTML += `<div class="bar-row">
+      <div class="bar-label">${r.name}</div>
+      <div>
+        <div class="bar-track">
+          <div class="bar-expected" style="width:${pProg*100}%"></div>
+          <div class="bar-actual" style="width:${pEjec*100}%;background:${color};opacity:.85"></div>
+        </div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px">
+          ${fmt(r.ejec)} ejec / ${fmt(r.prog)} prog &nbsp;
+          <span style="color:${diff>=0?'var(--accent)':'var(--accent2)'}">${diff>=0?'+':''}${fmt(diff)}</span>
+        </div>
+      </div>
+      <div class="bar-pct" style="color:${color}">${pct}%</div>
+    </div>`;
+  });
+}
+
+function renderOlas(d) {
+  const el = document.getElementById('olas-grid');
+  const olasDelTurno = EXCEL_DATA.olas.filter(o => o.turno === d.turno);
+  el.innerHTML = '';
+  olasDelTurno.forEach(o => {
+    const isPast    = o.num < d.olaNum;
+    const isCurrent = o.num === d.olaNum;
+    const cls       = isPast ? 'past' : isCurrent ? 'current' : 'future';
+
+    let ejecDisplay, pAct, pExp, color;
+    if (isPast) {
+      const eT = o.ejecSecos + o.ejecNOA;
+      const pT = o.progSecos + o.progNOA;
+      pAct = Math.min(eT/pT, 1.1); pExp = 1;
+      color = eT >= pT ? 'var(--accent)' : 'var(--accent2)';
+      ejecDisplay = `<span style="color:${color}">${fmt(eT)}</span>`;
+    } else if (isCurrent) {
+      pAct = Math.min(d.ejecTotal/d.progTotal, 1.05); pExp = 1;
+      color = d.ejecTotal >= d.progTotal ? 'var(--accent)' : 'var(--accent2)';
+      ejecDisplay = `<span style="color:${color}">${fmt(d.ejecTotal)}</span>`;
+    } else {
+      pAct = 0; pExp = 1; color = 'var(--muted)';
+      ejecDisplay = `<span style="color:var(--muted)">${fmt(o.progSecos+o.progNOA)}</span>`;
+    }
+
+    const finStr = o.fin === 24 ? '00' : o.fin;
+    el.innerHTML += `<div class="ola-row ${cls}">
+      <div class="ola-name">${o.label} · ${o.ini}:00–${finStr}:00</div>
+      <div class="ola-bar-wrap">
+        <div class="ola-bar-exp" style="width:${pExp*100}%"></div>
+        <div class="ola-bar-act" style="width:${pAct*100}%;background:${color};opacity:.8"></div>
+      </div>
+      <div class="ola-prog">${fmt(o.progSecos+o.progNOA)}</div>
+      <div class="ola-ejec">${ejecDisplay}</div>
+    </div>`;
+  });
+}
+
+function renderOperarios(d) {
+  const el = document.getElementById('ops-grid');
+  el.innerHTML = '';
+  const n = Math.min(Math.max(Math.round(d.dotEjec), 1), 16);
+  const nombres = ['García J.','Rodríguez M.','López K.','Martínez S.','Fernández R.',
+                   'Díaz P.','Torres A.','Gómez C.','Núñez P.','Álvarez R.',
+                   'Peralta D.','Sosa M.','Herrera F.','Romero G.','Castro L.','Medina T.'];
+  for (let i = 0; i < n; i++) {
+    const base  = d.prodEjec || 220;
+    const perf  = Math.round(base * (0.88 + Math.random() * 0.24));
+    const pct   = Math.round(perf/base*100);
+    const color = perf>=base*0.95?'var(--accent)':perf>=base*0.80?'var(--warn)':'var(--accent2)';
+    el.innerHTML += `<div class="op-card">
+      <div class="op-name">${nombres[i]||'Op '+(i+1)}</div>
+      <div class="op-stat" style="color:${color}">${perf} b/op</div>
+      <div class="op-bar-track"><div class="op-bar-fill" style="width:${Math.min(pct,100)}%;background:${color}"></div></div>
+    </div>`;
+  }
+}
+
+// ── Contexto para IA ──────────────────────────────────────────────
+function buildContext(d) {
+  const gap       = d.ejecTotal - d.progTotal;
+  const varDot    = d.dotEjec - d.dotProg;
+  const varProd   = d.prodProg > 0 ? ((d.prodEjec - d.prodProg) / d.prodProg * 100) : 0;
+  const olasDelTurno = EXCEL_DATA.olas.filter(o => o.turno === d.turno);
+  const olasRest  = olasDelTurno.filter(o => o.num > d.olaNum).length;
+
+  return `VIGIA · ESTADO OPERATIVO — CD Coto · Programa ${EXCEL_DATA.programa}
+Turno: ${d.turno} | ${d.label} (${d.ini}:00–${d.fin===24?'00:00':d.fin+':00'}) | ${nowStr()} hs
+
+BULTOS:
+- Programado: Secos ${fmt(d.progSecos)} + NOA ${fmt(d.progNOA)} = Total ${fmt(d.progTotal)}
+- Ejecutado:  Secos ${fmt(d.ejecSecos)} + NOA ${fmt(d.ejecNOA)} = Total ${fmt(d.ejecTotal)}
+- Desvío: ${gap>=0?'+':''}${fmt(gap)} bultos (${(d.progTotal>0?(d.ejecTotal/d.progTotal*100).toFixed(1):0)}% del objetivo)
+
+DOTACIÓN:
+- Programada: ${d.dotProg} operarios
+- Real: ${d.dotEjec} operarios (${varDot>=0?'+':''}${varDot} vs programado)
+
+PRODUCTIVIDAD:
+- Programada: ${fmtF(d.prodProg)} bultos/operario
+- Real: ${fmtF(d.prodEjec)} bultos/operario (${varProd>=0?'+':''}${varProd.toFixed(1)}% vs programado)
+
+OLAS RESTANTES EN EL TURNO: ${olasRest}
+${d.obs ? 'OBSERVACIÓN: ' + d.obs : ''}`;
+}
+
+// ── IA ────────────────────────────────────────────────────────────
+async function runAiAnalysis(context) {
+  setProviderStatus('Analizando operación...', 'loading');
+  document.getElementById('ai-alerts').innerHTML = '<div class="debug-empty">⏳ Consultando IA...</div>';
+
+  const d = currentFormData || {};
+  const fechaHoy = new Date().toISOString().split('T')[0];
+  const requestPayload = {
+    provider: activeProvider,
+    context,
+    turno:   d.turno   || 'Tarde',
+    fecha:   fechaHoy,
+    ola_num: d.olaNum  || 1,
+  };
+  renderDebugRequest(requestPayload);
+
+  let rawResponse = null;
+  try {
+    const resp = await fetch('/api/analyze', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(requestPayload),
+    });
+    rawResponse = await resp.json();
+    renderDebugResponse(rawResponse);
+
+    if (rawResponse.error) throw new Error(rawResponse.error);
+    aiAlerts = (rawResponse.alerts || []).map(a => ({ ...a, time: nowStr(), source:'ia' }));
+    setProviderStatus((rawResponse.provider_used || activeProvider) + (rawResponse.fallback ? ' (fallback)' : '') + ' · ok', 'ok');
+
+    // Mostrar resumen del turno
+    const resumen = rawResponse.resumen_turno || '';
+    const resWrap = document.getElementById('resumen-turno-wrap');
+    if (resumen && resWrap) {
+      document.getElementById('resumen-turno-text').textContent = resumen;
+      resWrap.style.display = 'flex';
+    }
+
+    actualizarSugerencias(d, rawResponse.historico || {});
+    document.getElementById('ai-chat').style.display = 'block';
+  } catch(e) {
+    console.warn('[IA] fallback local:', e.message);
+    if (!rawResponse) renderDebugResponse({ error: e.message });
+    setProviderStatus('error IA · análisis local', 'err');
+    runLocalAlerts();
+    actualizarSugerencias(d, {});
+    document.getElementById('ai-chat').style.display = 'block';
+  }
+  renderAiAlerts();
+}
+
+function renderDebugRequest(payload) {
+  const el = document.getElementById('debug-request');
+  el.textContent = JSON.stringify(payload, null, 2);
+}
+
+function renderDebugResponse(data) {
+  const el = document.getElementById('debug-response');
+  el.textContent = JSON.stringify(data, null, 2);
+}
+
+function runLocalAlerts() {
+  if (!currentFormData) return;
+  const d   = currentFormData;
+  const gap = d.ejecTotal - d.progTotal;
+  const t   = EXCEL_DATA.turnoTotales[d.turno];
+  const alerts = [];
+
+  if (gap < -500)
+    alerts.push({severity:'bad', title:'Desvío crítico en la ola',
+      detail:`${fmt(Math.abs(gap))} bultos bajo el objetivo programado.`,
+      action:'Redistribuir dotación. Revisar causa de demora.'});
+  else if (gap < -100)
+    alerts.push({severity:'warn', title:'Desvío en desarrollo',
+      detail:`${fmt(Math.abs(gap))} bultos bajo lo esperado en esta ola.`,
+      action:'Monitorear ritmo en la próxima ola.'});
+  else
+    alerts.push({severity:'ok', title:'Ola dentro del objetivo',
+      detail:`Desvío ${gap>=0?'+':''}${fmt(gap)} bultos. Ritmo estable.`,
+      action:'Mantener dotación actual.'});
+
+  if (d.dotEjec < d.dotProg)
+    alerts.push({severity:'warn', title:'Dotación por debajo del plan',
+      detail:`${d.dotEjec} operarios reales vs ${d.dotProg} programados.`,
+      action:`Cubrir faltante de ${d.dotProg - d.dotEjec} operarios si es posible.`});
+
+  const varProd = d.prodProg > 0 ? (d.prodEjec - d.prodProg) / d.prodProg * 100 : 0;
+  if (varProd < -15)
+    alerts.push({severity:'warn', title:'Productividad por debajo del plan',
+      detail:`${fmtF(d.prodEjec)} b/op real vs ${fmtF(d.prodProg)} b/op programado (${varProd.toFixed(1)}%).`,
+      action:'Revisar causas: ausentismo, pausas no planificadas, congestión.'});
+
+  aiAlerts = alerts.map(a => ({...a, time: nowStr(), source:'local'}));
+  renderAiAlerts();
+}
+
+function renderAiAlerts() {
+  const el = document.getElementById('ai-alerts');
+  if (!aiAlerts.length) {
+    el.innerHTML = '<div class="debug-empty">Sin alertas activas.</div>';
+    return;
+  }
+  const SEV_LABEL = { bad:'⚠ Crítico', warn:'⚡ Atención', ok:'✓ OK' };
+  el.innerHTML = aiAlerts.map(a => `
+    <div class="ai-alert ${a.severity}">
+      <div class="alert-header">
+        <span class="alert-badge ${a.severity}">${SEV_LABEL[a.severity] || a.severity}</span>
+        <span class="alert-fuente">${a.source==='ia' ? '✦ IA · '+a.time : 'LOCAL · '+a.time}</span>
+      </div>
+      <div class="alert-title">${a.title}</div>
+      <div class="alert-detail">${a.detail}</div>
+      ${a.action ? `<div class="alert-action">${a.action}</div>` : ''}
+    </div>`).join('');
+}
+
+function switchAiTab(tab) {
+  ['analysis','debug'].forEach(t => {
+    document.getElementById('tab-btn-'+t).classList.toggle('active', t === tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+  });
+}
+
+// ── Proveedor IA ──────────────────────────────────────────────────
+async function loadProviders() {
+  try {
+    const data = await fetch('/api/providers').then(r => r.json());
+    activeProvider = data.active;
+    renderProviderBtns(data);
+  } catch(e) {
+    document.getElementById('provider-btns').innerHTML =
+      '<span style="font-size:11px;color:var(--accent2)">Backend no disponible</span>';
+    setProviderStatus('sin conexión', 'err');
+  }
+}
+
+function renderProviderBtns(data) {
+  providersLoaded = true;
+  const wrap = document.getElementById('provider-btns');
+  wrap.innerHTML = '';
+  data.available.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'prov-btn' +
+      (p.id === data.active ? ' active ' + p.id : '') +
+      (!p.configured ? ' unconfigured' : '');
+    btn.dataset.id = p.id;
+    btn.innerHTML  = (p.configured ? '<span class="check">✓</span> ' : '') + p.name;
+    btn.title      = p.configured ? p.name + ' — configurado' : p.name + ' — completar .env';
+    if (p.configured) btn.onclick = () => selectProvider(p.id, data.available);
+    wrap.appendChild(btn);
+  });
+  updateAiBadge(data.active);
+  const any = data.available.some(p => p.configured);
+  setProviderStatus(any ? data.active + ' listo' : 'sin proveedor configurado', any ? 'ok' : 'err');
+}
+
+function selectProvider(id) {
+  activeProvider = id;
+  document.querySelectorAll('.prov-btn').forEach(b => {
+    b.classList.remove('active','claude','azure','ollama');
+    if (b.dataset.id === id) b.classList.add('active', id);
+  });
+  updateAiBadge(id);
+  setProviderStatus(id + ' activo', 'ok');
+}
+
+function updateAiBadge(provider) {
+  const badge = document.getElementById('ai-badge');
+  if (provider === 'gemini')      { badge.className='badge b-ai gemini'; badge.textContent='GEMINI'; }
+  else if (provider === 'azure')  { badge.className='badge b-ai azure';  badge.textContent='AZURE GPT'; }
+  else if (provider === 'ollama') { badge.className='badge b-ai ollama'; badge.textContent='OLLAMA'; }
+  else                            { badge.className='badge b-ai';         badge.textContent='CLAUDE'; }
+}
+
+function setProviderStatus(text, cls) {
+  const el = document.getElementById('provider-status');
+  el.textContent = text;
+  el.className   = cls || '';
+}
+
+// ── Chat ──────────────────────────────────────────────────────────
+function toggleChat() {
+  const body   = document.getElementById('chat-body');
+  const header = document.getElementById('chat-header');
+  const chev   = document.getElementById('chat-chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+function openChat() {
+  const body   = document.getElementById('chat-body');
+  const header = document.getElementById('chat-header');
+  const chev   = document.getElementById('chat-chevron');
+  if (!body.classList.contains('open')) {
+    body.classList.add('open');
+    header.classList.add('open');
+    chev.classList.add('open');
+  }
+  document.getElementById('ai-chat').style.display = 'block';
+  document.getElementById('chat-input')?.focus();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg   = input.value.trim();
+  if (!msg) return;
+  await ensureProvidersLoaded();
+  input.value = '';
+  appendChat(msg, 'user');
+  chatHistory.push({ role:'user', content:msg });
+  appendChat('...', 'ai', 'typing');
+
+  const ctx = currentFormData ? buildContext(currentFormData) : 'Sin datos cargados aún.';
+  try {
+    const result = await fetch('/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ provider:activeProvider, message:msg, history:chatHistory.slice(0,-1), context:ctx }),
+    }).then(r => r.json());
+    chatHistory.push({ role:'assistant', content: result.reply });
+    document.getElementById('typing')?.remove();
+    appendChat(result.reply, 'ai');
+  } catch(e) {
+    document.getElementById('typing')?.remove();
+    appendChat('Error al consultar la IA.', 'ai');
+  }
+}
+
+function appendChat(t, r, id) {
+  const el = document.getElementById('chat-messages');
+  if (!el) return;
+  const d = document.createElement('div');
+  d.className = 'chat-msg ' + r;
+  d.textContent = t;
+  if (id) d.id = id;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+// ── Sugerencias de preguntas ──────────────────────────────────────
+function generarSugerenciasPreguntas(estado, historico) {
+  const DIAS = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+  const diaNombre = DIAS[historico.dia_semana ?? new Date().getDay() - 1] || 'hoy';
+
+  const base = [
+    '¿Vamos a cerrar el turno?',
+    '¿Cómo vamos vs el histórico de hoy?',
+    '¿Cuál es la ola más crítica?',
+  ];
+
+  const condicionales = [];
+  const gap = estado.ejecTotal - estado.progTotal;
+  if (gap < -500)
+    condicionales.push('¿Cuánto tiempo me queda para recuperar?');
+  if (estado.dotEjec && estado.dotProg && estado.dotEjec < estado.dotProg * 0.9)
+    condicionales.push('¿Qué impacto tiene la dotación baja?');
+  if (historico.prom_turno && estado.ejecTotal && estado.ejecTotal < historico.prom_turno * 0.8)
+    condicionales.push('¿Qué necesito para cerrar el turno?');
+
+  const historicas = [
+    `¿Cuál fue el mejor ${diaNombre} del año?`,
+    `¿Cómo cerraron los últimos ${diaNombre}s?`,
+  ];
+
+  return [...condicionales.slice(0,2), ...base.slice(0,2), ...historicas].slice(0,4);
+}
+
+function renderizarSugerencias(sugerencias) {
+  const wrap  = document.getElementById('sugerencias-wrap');
+  const chips = document.getElementById('sugerencias-chips');
+  if (!wrap || !chips) return;
+  wrap.style.display = sugerencias.length ? 'block' : 'none';
+  chips.innerHTML = sugerencias.map(p =>
+    `<button class="chip" onclick="enviarPregunta(${JSON.stringify(p)})">${p}</button>`
+  ).join('');
+}
+
+async function enviarPregunta(pregunta) {
+  openChat();
+  appendChat(pregunta, 'user');
+  chatHistory.push({ role:'user', content: pregunta });
+  appendChat('...', 'ai', 'typing');
+
+  const ctx = currentFormData ? buildContext(currentFormData) : 'Sin datos cargados aún.';
+  try {
+    const result = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: activeProvider, message: pregunta, history: chatHistory.slice(0,-1), context: ctx }),
+    }).then(r => r.json());
+    chatHistory.push({ role:'assistant', content: result.reply });
+    document.getElementById('typing')?.remove();
+    appendChat(result.reply, 'ai');
+  } catch(e) {
+    document.getElementById('typing')?.remove();
+    appendChat('Error al consultar la IA.', 'ai');
+  }
+}
+
+function actualizarSugerencias(estado, historico) {
+  window._estadoActual   = estado;
+  window._historicoActual = historico;
+  renderizarSugerencias(generarSugerenciasPreguntas(estado, historico));
+}
+
+// ── Reloj ─────────────────────────────────────────────────────────
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clock-time').textContent =
+    String(n.getHours()).padStart(2,'0')+':'+
+    String(n.getMinutes()).padStart(2,'0')+':'+
+    String(n.getSeconds()).padStart(2,'0');
+}
+
+// ── Inicio (sin cálculos automáticos) ────────────────────────────
+initProviderBar();
+initForm();
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>

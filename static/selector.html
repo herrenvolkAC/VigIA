@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VigIA · Selector de Operación</title>
+  <link rel="stylesheet" href="/css/vigia.css">
+</head>
+<body>
+
+<div id="vigia-header"></div>
+
+<div class="selector-page">
+  <section class="selector-hero">
+    <div class="selector-hero-main">
+      <div class="selector-hero-kicker">Centro de distribución</div>
+      <div class="selector-title">Seleccioná el proceso</div>
+      <div class="selector-sub">Elegí el módulo operativo que querés supervisar en este turno. Subimos jerarquía visual para que el nombre, el título y los íconos se lean más rápido.</div>
+      <div class="selector-hero-meta">
+        <span class="selector-meta-pill">Visual Coto</span>
+        <span class="selector-meta-pill">Navegación simple</span>
+        <span class="selector-meta-pill">Módulo activo destacado</span>
+      </div>
+    </div>
+    <div class="selector-hero-side">
+      <img class="selector-side-logo" src="/resources/CotoLogo.svg" alt="Logo Coto">
+      <div class="selector-side-title">Acceso rápido al tablero operativo</div>
+      <div class="selector-side-copy">Picking queda primero, con el ícono enmarcado y el nombre mucho más grande. Los demás procesos mantienen la misma estructura para que toda la navegación se sienta consistente.</div>
+    </div>
+  </section>
+
+  <div class="proceso-grid" id="proceso-grid"></div>
+</div>
+
+<script src="/js/vigia-core.js"></script>
+<script src="/js/vigia-nav.js"></script>
+<script>
+  const session = checkAuth();
+  if (!session) throw new Error('redirect');
+
+  initHeader('selector', { showClock: true });
+
+  const PROCESOS = [
+    {
+      id: 'picking',
+      label: 'Picking',
+      icon: '📦',
+      url: '/picking.html',
+      activo: true,
+      descripcion: 'Preparación de pedidos por ola',
+    },
+    {
+      id: 'reposicion',
+      label: 'Reposición',
+      icon: '🔄',
+      url: '/reposicion.html',
+      activo: false,
+      descripcion: 'Reposición de posiciones vacías',
+    },
+    {
+      id: 'recepcion',
+      label: 'Recepción',
+      icon: '📥',
+      url: '/recepcion.html',
+      activo: false,
+      descripcion: 'Ingreso y control de mercadería',
+    },
+    {
+      id: 'planificacion',
+      label: 'Planificación',
+      icon: '📊',
+      url: '/planificacion.html',
+      activo: false,
+      descripcion: 'Programación de olas y recursos',
+    },
+  ];
+
+  function renderCards(turnoData) {
+    const grid = document.getElementById('proceso-grid');
+    grid.innerHTML = PROCESOS.map(p => {
+      const cls = p.activo ? `proceso-card ${p.id} activo` : `proceso-card ${p.id} inactivo`;
+      const statusHtml = p.activo
+        ? `<div class="proceso-status"><span class="status-dot on"></span><span style="color:var(--accent)">En curso</span></div>`
+        : `<div class="proceso-status"><span class="status-dot off"></span><span class="proximo-tag">Próximamente</span></div>`;
+
+      let kpiHtml = '';
+      if (p.id === 'picking' && turnoData) {
+        const pct = turnoData.pct_avance != null
+          ? `<strong>${turnoData.pct_avance}%</strong> completado`
+          : '';
+        kpiHtml = pct
+          ? `<div class="proceso-kpi">Turno ${turnoData.turno} · ${pct}</div>`
+          : `<div class="proceso-kpi">Turno ${turnoData.turno || '—'} · en curso</div>`;
+      }
+
+      const content = `
+        <div class="proceso-icon-wrap"><span class="proceso-icon">${p.icon}</span></div>
+        <div class="proceso-nombre">${p.label}</div>
+        <div class="proceso-desc">${p.descripcion}</div>
+        ${statusHtml}
+        ${kpiHtml}
+      `;
+
+      return p.activo
+        ? `<a href="${p.url}" class="${cls}">${content}</a>`
+        : `<div class="${cls}">${content}</div>`;
+    }).join('');
+  }
+
+  async function loadTurno() {
+    try {
+      const res = await fetch('/api/turno/activo');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const turnoData = data?.turno || null;
+      renderCards(turnoData);
+    } catch {
+      renderCards(null);
+    }
+  }
+
+  loadTurno();
+</script>
+</body>
+</html>

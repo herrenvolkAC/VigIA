@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VigIA · Planificación</title>
+  <link rel="stylesheet" href="/css/vigia.css">
+</head>
+<body>
+<div id="vigia-header"></div>
+<div class="placeholder-page">
+  <span class="placeholder-icon">📊</span>
+  <div class="placeholder-title" style="color:var(--process-planif)">Planificación de Olas</div>
+  <div class="placeholder-msg">Este módulo está en desarrollo.<br>Próximamente disponible en VigIA.</div>
+  <a href="/selector.html" class="btn-back">← Volver al selector</a>
+</div>
+<script src="/js/vigia-core.js"></script>
+<script src="/js/vigia-nav.js"></script>
+<script>
+  const _session = checkAuth();
+  if (!_session) throw new Error('redirect');
+  initHeader('planificacion', { showClock: false });
+</script>
+</body>
+</html>

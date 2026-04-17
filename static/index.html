@@ -45,6 +45,7 @@ header h1{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:var
 .prov-btn:hover{border-color:var(--ai);color:var(--ai);}
 .prov-btn.active.claude{background:var(--ai-soft);border-color:var(--ai);color:var(--ai);}
 .prov-btn.active.azure{background:#e0f2fe;border-color:#0078d4;color:#0078d4;}
+.prov-btn.active.ollama{background:#f0e6ff;border-color:#8b5cf6;color:#8b5cf6;}
 .prov-btn.unconfigured{opacity:.45;cursor:not-allowed;}
 .prov-btn .check{color:var(--accent);font-size:9px;}
 #provider-status{font-size:10px;color:var(--muted);margin-left:auto;}
@@ -502,20 +503,11 @@ function initProviderBar() {
   const wrap = document.getElementById('provider-btns');
   document.getElementById('ai-alerts').innerHTML =
     '<div style="font-size:11px;color:var(--muted)">Todavía no se ejecutó ningún análisis.</div>';
-  wrap.innerHTML = '';
-  [
-    { id:'claude', name:'Claude (manual)' },
-    { id:'azure', name:'Azure OpenAI (manual)' },
-  ].forEach(p => {
-    const btn = document.createElement('button');
-    btn.className = 'prov-btn' + (p.id === activeProvider ? ' active ' + p.id : '');
-    btn.dataset.id = p.id;
-    btn.textContent = p.name;
-    btn.onclick = () => selectProvider(p.id);
-    wrap.appendChild(btn);
-  });
+  wrap.innerHTML = '<span style="font-size:11px;color:var(--muted)">cargando proveedores...</span>';
   updateAiBadge(activeProvider);
   setProviderStatus('Listo para editar · sin consulta inicial', '');
+  // Cargar proveedores dinámicamente desde el backend
+  loadProviders();
 }
 
 async function ensureProvidersLoaded() {
@@ -991,7 +983,7 @@ function renderProviderBtns(data) {
 function selectProvider(id) {
   activeProvider = id;
   document.querySelectorAll('.prov-btn').forEach(b => {
-    b.classList.remove('active','claude','azure');
+    b.classList.remove('active','claude','azure','ollama');
     if (b.dataset.id === id) b.classList.add('active', id);
   });
   updateAiBadge(id);
@@ -1001,6 +993,7 @@ function selectProvider(id) {
 function updateAiBadge(provider) {
   const badge = document.getElementById('ai-badge');
   if (provider === 'azure') { badge.className='badge b-ai azure'; badge.textContent='AZURE GPT'; }
+  else if (provider === 'ollama') { badge.className='badge b-ai'; badge.textContent='OLLAMA'; }
   else                       { badge.className='badge b-ai';       badge.textContent='CLAUDE'; }
 }
 

@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(pip show *)",
+      "Bash(python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload)",
+      "Bash(curl -s http://127.0.0.1:8000/api/providers)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('providers OK, active:', d['active']\\)\")",
+      "Bash(pkill -f uvicorn)",
+      "Bash(taskkill /F /IM python.exe /T)",
+      "Bash(python -m uvicorn main:app --host 127.0.0.1 --port 8000)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 5448 /F)",
+      "Bash(taskkill /PID 26012 /F)",
+      "Bash(taskkill /PID 5448 /F /T)",
+      "Bash(taskkill /PID 26012 /F /T)",
+      "Bash(cmd /c \"taskkill /PID 5448 /F /T && taskkill /PID 26012 /F /T\")",
+      "Bash(cmd /c \"taskkill /PID 5448 /F\")",
+      "Bash(cmd /c \"taskkill /PID 26012 /F\")",
+      "Bash(python -m uvicorn main:app --host 127.0.0.1 --port 8001)",
+      "Bash(pkill -f \"port 8001\" cd \"C:\\\\Ingenieria\\\\VigIA\")",
+      "Bash(cmd /c \"taskkill /PID 30116 /F\" sleep 2 cd \"C:\\\\Ingenieria\\\\VigIA\")"
+    ]
+  }
+}
