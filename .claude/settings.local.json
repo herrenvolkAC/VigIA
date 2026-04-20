@@ -20,7 +20,13 @@
       "Bash(python -m uvicorn main:app --host 127.0.0.1 --port 8001)",
       "Bash(pkill -f \"port 8001\" cd \"C:\\\\Ingenieria\\\\VigIA\")",
       "Bash(cmd /c \"taskkill /PID 30116 /F\" sleep 2 cd \"C:\\\\Ingenieria\\\\VigIA\")",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(head -600 /c/Ingenieria/VigIA/static/picking.html)",
+      "Bash(tail -n +601 /c/Ingenieria/VigIA/static/picking.html)",
+      "Read(//tmp/**)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(taskkill /PID 30804 /F)",
+      "Bash(kill -9 30804)"
     ]
   }
 }
