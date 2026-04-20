@@ -112,6 +112,12 @@ header{display:grid;grid-template-columns:340px 1fr 430px;align-items:center;gap
 .btn-calcular:disabled{opacity:.4;cursor:not-allowed;}
 @keyframes pulseHint{0%,100%{box-shadow:0 4px 14px rgba(228,5,32,.35);}50%{box-shadow:0 0 0 8px rgba(228,5,32,.22),0 4px 14px rgba(228,5,32,.35);transform:scale(1.04);}}
 .btn-calcular.pulse-hint{animation:pulseHint .55s ease-in-out 3;}
+/* Modo prueba / real */
+.modo-btn{font-size:10px;font-weight:700;padding:5px 14px;border-radius:999px;cursor:pointer;letter-spacing:.5px;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;}
+.modo-btn.prueba{background:#f1f5f9;color:var(--muted);border:1px solid var(--border);}
+.modo-btn.real{background:#dcfce7;color:#166534;border:1px solid #86efac;}
+/* Badge histórico en KPI proyección */
+.hist-badge{font-size:8px;background:rgba(255,255,255,.28);border-radius:4px;padding:1px 6px;letter-spacing:.5px;font-weight:700;vertical-align:middle;margin-left:5px;font-family:'Inter',sans-serif;}
 .btn-reset{background:#fff;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:12px 16px;border:1px solid var(--border);border-radius:999px;cursor:pointer;white-space:nowrap;}
 .btn-reset:hover{color:var(--text);border-color:var(--text);}
 
@@ -163,10 +169,10 @@ header{display:grid;grid-template-columns:340px 1fr 430px;align-items:center;gap
 .ola-ejec{text-align:right;font-size:10px;}
 
 /* Proyección */
-.proj-box{background:#f0fdf9;border:1px solid #b7e2db;border-radius:14px;padding:12px;margin-top:14px;}
-.proj-title{font-size:9px;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;}
-.proj-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--text);}
-.proj-row span:last-child{color:var(--text-hi);font-weight:500;}
+.proj-box{background:#f0fdf9;border:2px solid #4ade80;border-radius:14px;padding:14px;margin-top:14px;box-shadow:0 2px 8px rgba(74,222,128,.1);}
+.proj-title{font-size:11px;letter-spacing:1.5px;color:#166534;text-transform:uppercase;margin-bottom:10px;font-weight:700;}
+.proj-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;color:var(--text);}
+.proj-row span:last-child{color:var(--text-hi);font-weight:600;}
 
 /* Operarios */
 .ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -205,7 +211,7 @@ header{display:grid;grid-template-columns:340px 1fr 430px;align-items:center;gap
 .alert-badge.warn{background:var(--warn);color:#fff;}
 .alert-badge.ok{background:#168a59;color:#fff;}
 .alert-fuente{font-size:9px;color:var(--muted);letter-spacing:.5px;opacity:.8;}
-.alert-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--text-hi);margin-bottom:10px;line-height:1.25;}
+.alert-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:900;color:#000;margin-bottom:10px;line-height:1.25;letter-spacing:-0.3px;}
 .alert-detail{font-size:13px;color:var(--text);line-height:1.75;margin-bottom:14px;}
 .alert-action{font-size:12.5px;background:rgba(0,0,0,.055);padding:12px 16px;border-radius:10px;color:var(--text-hi);line-height:1.65;}
 .alert-action::before{content:'→ ';font-weight:700;opacity:.6;}
@@ -324,6 +330,9 @@ header{display:grid;grid-template-columns:340px 1fr 430px;align-items:center;gap
   <div class="form-header" onclick="toggleForm()">
     <span class="form-title">📋 Datos de la ola · ingreso manual</span>
     <span id="form-ola-tag" style="font-size:10px;color:var(--muted)"></span>
+    <button class="modo-btn prueba" id="modo-btn"
+            onclick="event.stopPropagation();toggleModoReal()"
+            title="PRUEBA: los cálculos NO se guardan en la BD">🧪 PRUEBA</button>
     <span class="form-chevron open" id="form-chevron">▲</span>
   </div>
 
@@ -616,6 +625,8 @@ let aiAlerts       = [];
 let chatHistory    = [];
 let dashboardLive  = false;
 let currentFormData = null;  // datos confirmados más recientes
+let historicoOlas   = {};    // {ola_num → prom_ejec} actualizado tras cada análisis IA
+let modoReal        = false; // false = prueba (sin guardar), true = datos reales (guarda en BD)
 
 const fmt   = n => Math.round(n).toLocaleString('es');
 const fmtF  = n => parseFloat(n).toFixed(1);
@@ -629,6 +640,84 @@ function detectOlaActual() {
     return h >= o.ini || h < o.fin;
   });
   return idx >= 0 ? idx : 8; // default OLA 9 si no hay match
+}
+
+// ── Modo Prueba / Real ────────────────────────────────────────────
+function toggleModoReal() {
+  modoReal = !modoReal;
+  const btn = document.getElementById('modo-btn');
+  if (modoReal) {
+    btn.className = 'modo-btn real';
+    btn.textContent = '✅ REAL';
+    btn.title = 'REAL: los datos se guardarán en la BD al analizar';
+  } else {
+    btn.className = 'modo-btn prueba';
+    btn.textContent = '🧪 PRUEBA';
+    btn.title = 'PRUEBA: los cálculos NO se guardan en la BD';
+  }
+}
+
+// ── Capa 3: Proyección histórica ──────────────────────────────────
+function updateProjectionHistorico(d) {
+  if (!d || Object.keys(historicoOlas).length === 0) return;
+
+  const olasDelTurno = EXCEL_DATA.olas.filter(o => o.turno === d.turno);
+  const olasPast     = olasDelTurno.filter(o => o.num < d.olaNum);
+  const olasRest     = olasDelTurno.filter(o => o.num > d.olaNum);
+
+  const pastEjec = olasPast.reduce((a, o) => a + o.ejecSecos + o.ejecNOA, 0);
+
+  // Para cada ola futura: usar promedio histórico si existe, sino ratio actual
+  let restEstim    = 0;
+  let usaHistorico = false;
+  const ratio = d.progTotal > 0 ? d.ejecTotal / d.progTotal : 1;
+  olasRest.forEach(o => {
+    const hist = historicoOlas[String(o.num)] ?? historicoOlas[o.num];
+    if (hist != null) {
+      restEstim += hist;
+      usaHistorico = true;
+    } else {
+      restEstim += (o.progSecos + o.progNOA) * ratio;
+    }
+  });
+
+  const proyeccion = pastEjec + d.ejecTotal + restEstim;
+  const objTurno   = EXCEL_DATA.turnoTotales[d.turno]?.prog || 0;
+  const gap        = proyeccion - objTurno;
+
+  // KPI Proyección Cierre
+  const projEl = document.getElementById('kpi-proj');
+  if (projEl) {
+    const badge = usaHistorico ? '<span class="hist-badge">HIST</span>' : '';
+    projEl.innerHTML = fmt(proyeccion) + (badge ? ' ' + badge : '');
+    const ps = document.getElementById('kpi-proj-sub');
+    if (ps) {
+      const projDiff = proyeccion - objTurno;
+      ps.className   = 'kpi-sub ' + (projDiff>=0?'good':projDiff>=-objTurno*0.05?'warn':'bad');
+      ps.textContent = projDiff>=0
+        ? '✓ +'+fmt(projDiff)+' sobre objetivo'
+        : '⚠ déficit est. '+fmt(Math.abs(projDiff))+' bultos';
+    }
+  }
+
+  // KPI Desvío (ola actual — no cambia, pero actualizamos card de proyección)
+  const gEl   = document.getElementById('kpi-gap');
+  const gCard = gEl ? gEl.closest('.kpi') : null;
+  // El desvío de ola no cambia; lo que refrescamos es el color del card proyección
+  const projCard = projEl ? projEl.closest('.kpi') : null;
+  if (projCard) {
+    projCard.className = 'kpi ' + (gap >= 0 ? 'green' : gap >= -objTurno * 0.05 ? 'yellow' : 'orange');
+  }
+
+  // Proyección box (panel inferior)
+  const ptEl = document.getElementById('proj-total');
+  if (ptEl) ptEl.textContent = fmt(proyeccion) + ' bultos';
+  const pgEl = document.getElementById('proj-gap');
+  if (pgEl) {
+    const br = objTurno - proyeccion;
+    pgEl.textContent = br<=0 ? '+'+fmt(Math.abs(br))+' excedente' : fmt(br)+' faltantes';
+    pgEl.style.color = br<=0 ? 'var(--accent)' : 'var(--accent2)';
+  }
 }
 
 function initProviderBar() {
@@ -684,11 +773,20 @@ function loadOlaIntoForm(idx) {
   const o = EXCEL_DATA.olas[idx];
   const finStr = o.fin === 24 ? '00:00' : o.fin + ':00';
 
-  // Tags de turno y horario
+  // Tags de turno y horario (incluir tiempo transcurrido)
   const turnoTag = document.getElementById('turno-tag');
   turnoTag.textContent = o.turno;
   turnoTag.className = 'ola-turno-tag ' + o.turno;
-  document.getElementById('ola-horario').textContent = o.ini + ':00 – ' + finStr;
+
+  const ahora = new Date();
+  const horaActual = ahora.getHours() + ahora.getMinutes() / 60;
+  let minTranscurridos = Math.round((horaActual - o.ini) * 60);
+  if (minTranscurridos < 0) minTranscurridos += 24 * 60; // cruzó medianoche
+  const horasT = Math.floor(minTranscurridos / 60);
+  const minT = minTranscurridos % 60;
+  const tiempoStr = horasT > 0 ? `${horasT}h ${minT}m` : `${minT}m`;
+
+  document.getElementById('ola-horario').textContent = o.ini + ':00 – ' + finStr + ' · ' + tiempoStr + ' transcurridos';
   document.getElementById('form-ola-tag').textContent = o.label + ' · ' + o.turno;
 
   // Poblar campos con valores sugeridos (programados — vienen del Excel)
@@ -1098,12 +1196,19 @@ async function runAiAnalysis(context) {
 
   const d = currentFormData || {};
   const fechaHoy = new Date().toISOString().split('T')[0];
+  // En modo prueba no enviamos turno_id → el backend no guarda la predicción
+  let turnoIdParaGuardar = null;
+  if (modoReal && d.turnoId) {
+    turnoIdParaGuardar = d.turnoId;
+  }
+
   const requestPayload = {
     provider: activeProvider,
     context,
-    turno:   d.turno   || 'Tarde',
-    fecha:   fechaHoy,
-    ola_num: d.olaNum  || 1,
+    turno:    d.turno   || 'Tarde',
+    fecha:    fechaHoy,
+    ola_num:  d.olaNum  || 1,
+    ...(turnoIdParaGuardar ? { turno_id: turnoIdParaGuardar } : {}),
   };
   renderDebugRequest(requestPayload);
 
@@ -1130,6 +1235,14 @@ async function runAiAnalysis(context) {
     }
 
     actualizarSugerencias(d, rawResponse.historico || {});
+
+    // Capa 3: guardar histórico de olas y refinar proyección
+    const olasHist = rawResponse.historico?.olas_hist;
+    if (olasHist && Object.keys(olasHist).length > 0) {
+      historicoOlas = olasHist;
+      updateProjectionHistorico(d);
+    }
+
     document.getElementById('ai-chat').style.display = 'block';
   } catch(e) {
     console.warn('[IA] error:', e.message);
