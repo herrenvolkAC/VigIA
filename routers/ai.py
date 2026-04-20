@@ -215,9 +215,16 @@ async def _call_ollama(system: str, messages: list) -> str:
         "messages": [{"role": "system", "content": system}] + messages,
         "stream": False,
     }
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        resp = await client.post(f"{ollama_url}/api/chat", json=payload)
-        resp.raise_for_status()
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            resp = await client.post(f"{ollama_url}/api/chat", json=payload)
+            resp.raise_for_status()
+    except httpx.ConnectError:
+        raise ValueError(f"Ollama no disponible: no se pudo conectar a {ollama_url}. Verificá que el servidor esté activo.")
+    except httpx.TimeoutException:
+        raise ValueError(f"Ollama no respondió en {int(TIMEOUT)}s. El servidor {ollama_url} puede estar caído o sobrecargado.")
+    except httpx.HTTPStatusError as e:
+        raise ValueError(f"Ollama devolvió error HTTP {e.response.status_code}: {e.response.text[:200]}")
     elapsed = round(time.time() - t0, 2)
     logger.info(f"[Ollama] respuesta recibida en {elapsed}s (modelo: {model})")
     return resp.json()["message"]["content"]
@@ -406,7 +413,8 @@ async def analyze(req: AnalyzeRequest):
 
     except Exception as e:
         raw_preview = f" | raw: {raw_text[:300]!r}" if raw_text else ""
-        logger.error(f"[/api/analyze] {provider} fallo: {e}{raw_preview}")
+        err_msg = str(e) or repr(e)
+        logger.error(f"[/api/analyze] {provider} fallo: {err_msg}{raw_preview}")
         return {
             "alerts": [],
             "resumen_turno": "",
@@ -438,9 +446,10 @@ async def chat(req: ChatRequest):
             "model_used": model_used,
         }
     except Exception as e:
-        logger.error(f"[/api/chat] {provider} fallo: {e}")
+        err_msg = str(e) or repr(e)
+        logger.error(f"[/api/chat] {provider} fallo: {err_msg}")
         return {
-            "reply": f"Error con {provider}: {e}. Seleccioná otro proveedor e intentá de nuevo.",
+            "reply": f"Error con {provider}: {err_msg}. Seleccioná otro proveedor e intentá de nuevo.",
             "provider_used": provider,
             "model_used": "—",
             "error": str(e),

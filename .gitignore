@@ -1,12 +1,29 @@
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.pyc
 
+# Variables de entorno y claves — NUNCA commitear
 .env
+.env.*
+!.env.example
+
+# Entornos virtuales
 .venv/
 venv/
+env/
 
+# Base de datos local
 *.db
 *.sqlite
 *.sqlite3
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
