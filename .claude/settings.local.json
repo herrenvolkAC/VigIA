@@ -128,7 +128,10 @@
       "Bash(curl -s http://localhost:9999/api/config/ia)",
       "Bash(curl -s \"http://localhost:9999/api/operarios\")",
       "Bash(curl -s \"http://localhost:9999/api/operarios/OP_00045/analisis/completo\")",
-      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d['analisis'].keys\\(\\)\\)\\)\")"
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d['analisis'].keys\\(\\)\\)\\)\")",
+      "Bash(python -c \"import openpyxl; print\\(openpyxl.__version__\\)\")",
+      "Bash(python make_excel.py)",
+      "Bash(del C:\\\\Ingenieria\\\\VigIA\\\\make_excel.py)"
     ]
   }
 }
