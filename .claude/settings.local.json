@@ -109,7 +109,26 @@
       "PowerShell(Get-NetTCPConnection -LocalPort 9999 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 2; Write-Host \"Listo\")",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Total:', d['total_alertas'], '| Cached:', d.get\\('cached'\\)\\)\")",
       "Bash(Get-NetTCPConnection -LocalPort 9999 -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object State, OwningProcess)"
+      "Bash(Select-Object State, OwningProcess)",
+      "Bash(npm list *)",
+      "Bash(npm install *)",
+      "Bash(node generate_pptx.js)",
+      "Bash(python \"C:\\\\Users\\\\207189\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\6716e849-5e5b-4603-a002-b785ce796631\\\\99ab17f8-2071-47fa-9fce-c15489cf6bab\\\\skills\\\\pptx\\\\scripts\\\\office\\\\soffice.py\" --headless --convert-to pdf \"C:\\\\Ingenieria\\\\VigIA\\\\VigIA_Presentacion.pptx\")",
+      "Bash(where soffice *)",
+      "Bash(where libreoffice *)",
+      "Read(//c/Program Files/LibreOffice/program/**)",
+      "Bash(python -c \"from pptx import Presentation; print\\('python-pptx available'\\)\")",
+      "Bash(python -m markitdown \"C:/Ingenieria/VigIA/VigIA_Presentacion.pptx\")",
+      "Bash(python -c \"import main; print\\('OK'\\)\")",
+      "Bash(curl -s http://localhost:9999/api/operarios/ranking)",
+      "Bash(pkill -f \"python main.py\")",
+      "Bash(taskkill /PID 29624 /F)",
+      "Bash(taskkill //PID 29624 //F)",
+      "Bash(curl -s http://localhost:9999/picking.html)",
+      "Bash(curl -s http://localhost:9999/api/config/ia)",
+      "Bash(curl -s \"http://localhost:9999/api/operarios\")",
+      "Bash(curl -s \"http://localhost:9999/api/operarios/OP_00045/analisis/completo\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d['analisis'].keys\\(\\)\\)\\)\")"
     ]
   }
 }

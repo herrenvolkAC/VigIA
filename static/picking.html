@@ -240,6 +240,105 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .chat-send{background:var(--green);border:none;color:#fff;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;padding:12px 20px;cursor:pointer;transition:opacity .2s;letter-spacing:.3px;}
 .chat-send:hover{opacity:.88;}
 
+/* ── Tabs principales ── */
+.main-tab-bar{display:flex;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.main-tab-btn{flex:1;background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;padding:16px 12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.2px;min-height:56px;}
+.main-tab-btn:hover{color:var(--green);background:var(--green-light);}
+.main-tab-btn.active{color:var(--green);border-bottom-color:var(--green);background:var(--green-light);font-weight:700;}
+.main-tab-btn.proxim{opacity:.55;cursor:default;}
+.main-tab-btn.proxim:hover{color:var(--muted);background:none;}
+.main-tab-content{display:none;}
+.main-tab-content.active{display:block;}
+@media(max-width:700px){.main-tab-btn{font-size:12px;padding:12px 6px;}}
+
+/* ── Próximamente ── */
+.proxim-card{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;background:var(--surface);border:1px dashed var(--border);border-radius:12px;text-align:center;gap:16px;}
+.proxim-icon{font-size:48px;opacity:.4;}
+.proxim-title{font-size:18px;font-weight:700;color:var(--muted);}
+.proxim-sub{font-size:13px;color:var(--muted);opacity:.7;}
+
+/* ── Overlay carga IA ── */
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse-ring{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(1.08);}}
+.ai-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.78);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.ai-overlay.visible{display:flex;}
+.ai-overlay-box{background:#fff;border-radius:24px;padding:52px 64px;text-align:center;max-width:440px;width:90%;box-shadow:0 32px 80px rgba(0,0,0,.35);}
+.ai-overlay-spinner{width:64px;height:64px;border:6px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 0.9s linear infinite;margin:0 auto 28px;}
+.ai-overlay-title{font-size:22px;font-weight:800;color:var(--text-hi);margin-bottom:12px;letter-spacing:-.3px;}
+.ai-overlay-sub{font-size:15px;color:var(--muted);line-height:1.65;margin-bottom:20px;}
+.ai-overlay-prov{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:7px 18px;border-radius:999px;background:var(--green-light);color:var(--green);border:1px solid var(--green);animation:pulse-ring 2s ease-in-out infinite;}
+.ai-overlay-warn{margin-top:16px;font-size:12px;color:var(--amber);background:var(--amber-light);border:1px solid #fcd34d;border-radius:8px;padding:8px 14px;}
+
+/* ── Sub-tabs Productividad ── */
+.sub-tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border);}
+.sub-tab-btn{background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;color:var(--muted);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:12px 20px;cursor:pointer;transition:all .2s;letter-spacing:.3px;text-transform:uppercase;}
+.sub-tab-btn:hover{color:var(--green);}
+.sub-tab-btn.active{color:var(--green);border-bottom-color:var(--green);font-weight:700;}
+.sub-tab-content{display:none;}
+.sub-tab-content.active{display:block;}
+
+/* ── Ranking ── */
+.ranking-header{display:grid;grid-template-columns:36px 1fr 90px 90px 90px 80px;gap:8px;padding:8px 12px;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700;border-bottom:2px solid var(--border);margin-bottom:4px;}
+.ranking-row{display:grid;grid-template-columns:36px 1fr 90px 90px 90px 80px;gap:8px;align-items:center;padding:10px 12px;border-radius:8px;font-size:13px;transition:background .15s;border:1px solid transparent;}
+.ranking-row:hover{background:var(--surface-alt);}
+.ranking-row.bad{background:#fef2f2;border-color:#fecaca;}
+.ranking-row.warn{background:var(--amber-light);border-color:#fcd34d;}
+.ranking-row.ok{background:#fff;}
+.ranking-pos{font-size:12px;font-weight:700;color:var(--muted);text-align:center;}
+.ranking-pos.top3{color:var(--green);font-size:14px;}
+.ranking-id{font-weight:600;color:var(--text-hi);}
+.ranking-val{text-align:right;font-weight:600;}
+.ranking-badge{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.5px;text-align:center;}
+.ranking-badge.ok{background:var(--ok-light);color:var(--ok);}
+.ranking-badge.warn{background:var(--amber-light);color:var(--amber);}
+.ranking-badge.bad{background:#fef2f2;color:var(--red);}
+@media(max-width:700px){.ranking-header,.ranking-row{grid-template-columns:32px 1fr 70px 70px 60px;}.ranking-row .ranking-vel{display:none;}.ranking-header .rh-vel{display:none;}}
+
+/* Recomendaciones tab — light theme */
+.recom-op-selector{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.recom-op-selector label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:600;white-space:nowrap;}
+.recom-op-selector select{background:#fff;border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:8px 12px;border-radius:8px;cursor:pointer;min-width:200px;}
+.recom-op-selector select:focus{outline:none;border-color:var(--green);}
+.recom-ai-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--green-light);border:1px solid var(--green);border-radius:8px;margin-bottom:16px;font-size:12px;flex-wrap:wrap;}
+.recom-ai-banner strong{color:var(--green);font-weight:700;}
+.recom-ai-banner span{color:var(--muted);margin-left:auto;}
+.recom-card-light{background:#fff;border:1px solid var(--border);border-radius:12px;border-top:4px solid var(--green);padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);animation:fadeInUp .35s ease both;}
+.recom-card-light.warn{border-top-color:var(--amber);}
+.recom-card-light.bad{border-top-color:var(--red);}
+.recom-card-title{font-size:15px;font-weight:700;color:var(--text-hi);margin-bottom:10px;line-height:1.35;}
+.recom-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:var(--green-light);color:var(--green);border:1px solid var(--green);margin-bottom:10px;}
+.recom-conf-wrap{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.recom-conf-label{font-size:11px;color:var(--muted);white-space:nowrap;}
+.recom-conf-track{flex:1;height:5px;background:var(--border);border-radius:4px;overflow:hidden;}
+.recom-conf-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+.recom-conf-val{font-size:12px;font-weight:700;color:var(--text-hi);white-space:nowrap;}
+.recom-desc{font-size:13px;color:var(--text);line-height:1.65;margin-bottom:12px;}
+.recom-accion{display:flex;gap:8px;align-items:flex-start;padding:10px 14px;background:var(--amber-light);border-radius:8px;margin-bottom:10px;border-left:3px solid var(--amber);}
+.recom-accion-text{font-size:13px;color:#92400e;line-height:1.5;}
+.recom-impacto{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--ok-light);border-radius:6px;font-size:12px;color:var(--ok);font-weight:600;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.recom-empty{padding:40px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:12px;}
+
+/* Comparativas tab — light theme */
+.comp-header-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.comp-op-select{background:#fff;border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;border-radius:8px;cursor:pointer;min-width:200px;}
+.comp-op-select:focus{outline:none;border-color:var(--green);}
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+@media(max-width:900px){.comp-grid{grid-template-columns:1fr;}}
+.comp-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.comp-card-title{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.comp-card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.comp-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:13px;}
+.comp-row:last-child{border-bottom:none;}
+.comp-row-label{color:var(--text);display:flex;align-items:center;gap:6px;}
+.comp-row-val{font-weight:700;color:var(--text-hi);}
+.comp-row-val.good{color:var(--ok);}
+.comp-row-val.warn{color:var(--amber);}
+.comp-row-val.bad{color:var(--red);}
+.comp-bar-wrap{display:flex;align-items:center;gap:8px;}
+.comp-bar-track{flex:1;height:8px;background:var(--surface-alt);border-radius:4px;overflow:hidden;min-width:80px;}
+.comp-bar-fill{height:100%;border-radius:4px;transition:width .8s ease;}
+
 /* Debug tab */
 .debug-panel{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:900px){.debug-panel{grid-template-columns:1fr;}}
@@ -323,6 +422,17 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
   <div id="provider-btns"><span style="font-size:11px;color:var(--muted)">cargando...</span></div>
   <span id="provider-status">verificando...</span>
 </div>
+
+<!-- Tabs principales -->
+<div class="main-tab-bar">
+  <button class="main-tab-btn active" id="mtab-btn-plan" onclick="switchMainTab('plan')">📦 Cumplimiento de Plan</button>
+  <button class="main-tab-btn" id="mtab-btn-productividad" onclick="switchMainTab('productividad')">👷 Productividad</button>
+  <button class="main-tab-btn proxim" id="mtab-btn-errores" onclick="void(0)">⚠️ Errores <span style="font-size:10px;font-weight:500;opacity:.7;">Próximamente</span></button>
+  <button class="main-tab-btn proxim" id="mtab-btn-accidentes" onclick="void(0)">🚨 Accidentes <span style="font-size:10px;font-weight:500;opacity:.7;">Próximamente</span></button>
+</div>
+
+<!-- Tab 1: Cumplimiento de Plan -->
+<div id="mtab-plan" class="main-tab-content active">
 
 <!-- ══════════════════════════════════════════
      FORMULARIO DE DATOS DE OLA
@@ -476,7 +586,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
         Análisis IA · alertas
       </button>
       <button class="ai-tab" id="tab-btn-debug" onclick="switchAiTab('debug')">
-        ⬡ Debug API
+        ⬡ Debug
       </button>
     </div>
 
@@ -562,6 +672,59 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
   </div>
 
 </div><!-- /dashboard -->
+
+</div><!-- /mtab-plan -->
+
+<!-- Tab 2: Productividad -->
+<div id="mtab-productividad" class="main-tab-content">
+  <div class="sub-tab-bar">
+    <button class="sub-tab-btn active" id="stab-btn-ranking" onclick="switchProdTab('ranking')">🏆 Ranking</button>
+    <button class="sub-tab-btn" id="stab-btn-comparativa" onclick="switchProdTab('comparativa')">📊 Comparativa</button>
+    <button class="sub-tab-btn" id="stab-btn-sugerencias" onclick="switchProdTab('sugerencias')">💡 Sugerencias IA</button>
+  </div>
+
+  <!-- Sub-tab: Ranking -->
+  <div id="stab-ranking" class="sub-tab-content active">
+    <div id="ranking-container">
+      <div class="recom-empty">Cargando ranking de operarios...</div>
+    </div>
+  </div>
+
+  <!-- Sub-tab: Comparativa -->
+  <div id="stab-comparativa" class="sub-tab-content">
+    <div class="recom-op-selector">
+      <label>Operario:</label>
+      <select id="comp2-operario-sel" onchange="cargarComparativa2()">
+        <option value="">Seleccioná un operario...</option>
+      </select>
+      <button onclick="cargarComparativa2()" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;">Comparar</button>
+    </div>
+    <div id="comp2-container"><div class="recom-empty">Seleccioná un operario para ver su comparativa.</div></div>
+  </div>
+
+  <!-- Sub-tab: Sugerencias -->
+  <div id="stab-sugerencias" class="sub-tab-content">
+    <div id="suger-container"><div class="recom-empty">Cargando operarios bajo estándar...</div></div>
+  </div>
+</div>
+
+<!-- Tab 3: Errores -->
+<div id="mtab-errores" class="main-tab-content">
+  <div class="proxim-card">
+    <div class="proxim-icon">⚠️</div>
+    <div class="proxim-title">Módulo de Errores</div>
+    <div class="proxim-sub">En desarrollo — disponible en próxima versión</div>
+  </div>
+</div>
+
+<!-- Tab 4: Accidentes -->
+<div id="mtab-accidentes" class="main-tab-content">
+  <div class="proxim-card">
+    <div class="proxim-icon">🚨</div>
+    <div class="proxim-title">Módulo de Accidentes</div>
+    <div class="proxim-sub">En desarrollo — disponible en próxima versión</div>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════════════════════════
@@ -1190,8 +1353,23 @@ OLAS RESTANTES EN EL TURNO: ${olasRest}
 ${d.obs ? 'OBSERVACIÓN: ' + d.obs : ''}`;
 }
 
+// ── Overlay carga IA ─────────────────────────────────────────────
+function showAiLoading(title, sub) {
+  const prov = activeProvider || 'ia';
+  const labels = {claude:'✨ Claude AI',ollama:'🖥 Ollama (Local)',gemini:'🌐 Gemini',azure:'☁ Azure OpenAI'};
+  document.getElementById('ai-overlay-title').textContent = title || 'Consultando IA...';
+  document.getElementById('ai-overlay-sub').textContent = sub || 'Por favor esperá. El análisis se está procesando.';
+  document.getElementById('ai-overlay-prov').textContent = labels[prov] || ('🤖 ' + prov.toUpperCase());
+  document.getElementById('ai-overlay-warn').style.display = prov === 'ollama' ? 'block' : 'none';
+  document.getElementById('ai-loading-overlay').classList.add('visible');
+}
+function hideAiLoading() {
+  document.getElementById('ai-loading-overlay').classList.remove('visible');
+}
+
 // ── IA ────────────────────────────────────────────────────────────
 async function runAiAnalysis(context) {
+  showAiLoading('Analizando operación...', 'Calculando proyección, historial y alertas del turno.');
   setProviderStatus('Analizando operación...', 'loading');
   document.getElementById('ai-alerts').innerHTML = '<div class="debug-empty">⏳ Consultando IA...</div>';
 
@@ -1260,8 +1438,10 @@ async function runAiAnalysis(context) {
       </div>`;
     document.getElementById('resumen-turno-wrap').style.display = 'none';
     document.getElementById('sugerencias-wrap').style.display = 'none';
+    hideAiLoading();
     return;
   }
+  hideAiLoading();
   renderAiAlerts();
 }
 
@@ -1329,11 +1509,412 @@ function renderAiAlerts() {
     </div>`).join('');
 }
 
+// ── Tabs principales ─────────────────────────────────────────────
+function switchMainTab(tab) {
+  ['plan','productividad'].forEach(t => {
+    document.getElementById('mtab-btn-'+t).classList.toggle('active', t === tab);
+    document.getElementById('mtab-'+t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'productividad') {
+    cargarRanking();
+    poblarSelectoresProductividad();
+  }
+}
+
+// ── Sub-tabs Productividad ────────────────────────────────────────
+function switchProdTab(tab) {
+  ['ranking','comparativa','sugerencias'].forEach(t => {
+    document.getElementById('stab-btn-'+t).classList.toggle('active', t === tab);
+    document.getElementById('stab-'+t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'sugerencias') cargarSugerencias();
+}
+
+// ── Ranking ───────────────────────────────────────────────────────
+async function cargarRanking() {
+  const container = document.getElementById('ranking-container');
+  if (!container) return;
+  if (container.dataset.loaded === '1') return;
+
+  container.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;"><div style="width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div>Cargando ranking...</div>';
+
+  try {
+    const data = await fetch('/api/operarios/ranking').then(r => r.json());
+    if (!data.operarios || data.operarios.length === 0) {
+      container.innerHTML = '<div class="recom-empty">Sin datos de operarios para hoy.</div>';
+      return;
+    }
+
+    const bajoEstandar = data.operarios.filter(o => o.bajo_estandar).length;
+    let html = `
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+        <div style="padding:10px 16px;background:var(--ok-light);border:1px solid var(--ok);border-radius:8px;font-size:13px;color:var(--ok);font-weight:600;">
+          👷 ${data.total} operarios activos
+        </div>
+        ${bajoEstandar > 0 ? `<div style="padding:10px 16px;background:#fef2f2;border:1px solid var(--red);border-radius:8px;font-size:13px;color:var(--red);font-weight:600;">⚠️ ${bajoEstandar} bajo estándar</div>` : ''}
+      </div>
+      <div class="ranking-header">
+        <span>#</span><span>Operario</span>
+        <span style="text-align:right">Picks</span>
+        <span class="rh-vel" style="text-align:right">Vel. prom.</span>
+        <span style="text-align:right">Tasa error</span>
+        <span style="text-align:right">Estado</span>
+      </div>`;
+
+    data.operarios.forEach((op, idx) => {
+      const pos = idx + 1;
+      const velColor = op.vel_promedio > 40 ? 'var(--red)' : op.vel_promedio > 32 ? 'var(--amber)' : 'var(--ok)';
+      const errColor = op.tasa_error > 5 ? 'var(--red)' : op.tasa_error > 3 ? 'var(--amber)' : 'var(--ok)';
+      html += `
+        <div class="ranking-row ${op.estado}">
+          <span class="ranking-pos ${pos <= 3 ? 'top3' : ''}">${pos <= 3 ? ['🥇','🥈','🥉'][pos-1] : pos}</span>
+          <span class="ranking-id">${op.operario_id}</span>
+          <span class="ranking-val">${op.picks.toLocaleString()}</span>
+          <span class="ranking-val ranking-vel" style="color:${velColor}">${op.vel_promedio}s</span>
+          <span class="ranking-val" style="color:${errColor}">${op.tasa_error}%</span>
+          <span class="ranking-badge ${op.estado}">${op.estado === 'ok' ? '✓ OK' : op.estado === 'warn' ? '⚡ Atención' : '⚠ Crítico'}</span>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+    container.dataset.loaded = '1';
+  } catch(e) {
+    container.innerHTML = `<div class="recom-empty" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+// ── Sugerencias bajo estándar ─────────────────────────────────────
+async function cargarSugerencias() {
+  const container = document.getElementById('suger-container');
+  if (!container || container.dataset.loaded === '1') return;
+
+  container.innerHTML = '';
+  showAiLoading('Identificando operarios bajo estándar...', 'Analizando ranking de productividad.');
+
+  try {
+    const ranking = await fetch('/api/operarios/ranking').then(r => r.json());
+    const bajos = (ranking.operarios || []).filter(o => o.bajo_estandar).slice(0, 5);
+
+    if (bajos.length === 0) {
+      hideAiLoading();
+      container.innerHTML = '<div class="recom-empty">✅ Todos los operarios están dentro del estándar.</div>';
+      return;
+    }
+
+    let html = `<div style="padding:10px 16px;background:#fef2f2;border:1px solid var(--red);border-radius:8px;font-size:13px;color:var(--red);font-weight:600;margin-bottom:20px;">⚠️ ${bajos.length} operario${bajos.length > 1 ? 's' : ''} bajo estándar</div>`;
+    container.innerHTML = html + '<div id="suger-cards"></div>';
+
+    const cardsEl = document.getElementById('suger-cards');
+    for (let i = 0; i < bajos.length; i++) {
+      const op = bajos[i];
+      showAiLoading(
+        `Generando sugerencias ${i + 1} de ${bajos.length}...`,
+        `Analizando operario ${op.operario_id} con IA.`
+      );
+      try {
+        const data = await fetch(`/api/recomendaciones/${op.operario_id}/enriquecido?provider=${activeProvider}`).then(r => r.json());
+        const recs = (data.recomendaciones || []).slice(0, 2);
+        let cardHtml = `<div style="margin-bottom:20px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;background:var(--surface-alt);border-radius:8px;border-left:4px solid ${op.estado==='bad'?'var(--red)':'var(--amber)'};">
+          <span style="font-weight:700;color:var(--text-hi);">${op.operario_id}</span>
+          <span class="ranking-badge ${op.estado}" style="margin-left:4px;">${op.estado==='bad'?'⚠ Crítico':'⚡ Atención'}</span>
+          <span style="font-size:12px;color:var(--muted);margin-left:auto;">Vel: ${op.vel_promedio}s · Error: ${op.tasa_error}%</span>
+        </div>`;
+        recs.forEach(rec => {
+          cardHtml += `<div class="recom-card-light ${op.estado==='bad'?'bad':'warn'}" style="margin-left:16px;">
+            <div class="recom-card-title">${rec.titulo}</div>
+            <div class="recom-desc">${rec.descripcion}</div>
+            <div class="recom-accion"><div class="recom-accion-text">⚡ ${rec.accion}</div></div>
+            <div class="recom-impacto">💰 ${rec.impacto}</div>
+          </div>`;
+        });
+        cardHtml += '</div>';
+        cardsEl.innerHTML += cardHtml;
+      } catch(e) {
+        cardsEl.innerHTML += `<div class="recom-empty" style="color:var(--muted);margin-bottom:12px;">Sin sugerencias para ${op.operario_id}</div>`;
+      }
+    }
+    hideAiLoading();
+    container.dataset.loaded = '1';
+  } catch(e) {
+    hideAiLoading();
+    container.innerHTML = `<div class="recom-empty" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+// ── Comparativa (sub-tab productividad) ──────────────────────────
+async function poblarSelectoresProductividad() {
+  const sel = document.getElementById('comp2-operario-sel');
+  if (!sel || sel.options.length > 1) return;
+  try {
+    const data = await fetch('/api/operarios').then(r => r.json());
+    (data.operarios || []).forEach(op => {
+      const opt = document.createElement('option');
+      opt.value = op.operario_id;
+      opt.textContent = op.operario_id + (op.nombre ? ' — ' + op.nombre : '');
+      sel.appendChild(opt);
+    });
+  } catch(e) {}
+}
+
+async function cargarComparativa2() {
+  const opId = document.getElementById('comp2-operario-sel').value;
+  const container = document.getElementById('comp2-container');
+  if (!opId || !container) return;
+
+  container.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;"><div style="width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div>Calculando comparativa...</div>';
+
+  try {
+    const analisis = await fetch(`/api/operarios/${opId}/analisis/completo`).then(r => r.json());
+    const an = analisis.analisis || analisis;
+
+    // Campos reales del endpoint /analisis/completo
+    const sku    = an.correlacion_sku_operario || {};
+    const patron = an.patron_semanal           || {};
+    const pausa  = an.recuperacion_pausa       || {};
+    const zscore = an.anomalia_zscore          || {};
+
+    const skuTop      = (sku.skus_expertos || [])[0] || null;
+    const velProm     = sku.velocidad_promedio_seg != null ? sku.velocidad_promedio_seg.toFixed(1) + ' s/pick' : '—';
+    const especialPct = sku.especialidad_pct != null ? sku.especialidad_pct.toFixed(0) + '%' : '—';
+
+    const mejorDia   = patron.dia_mas_fuerte || '—';
+    const peorDia    = patron.dia_mas_debil  || '—';
+    const variacion  = patron.variacion_pct  != null ? patron.variacion_pct.toFixed(1) + '%' : '—';
+    const varClass   = (patron.variacion_pct || 0) > 20 ? 'warn' : 'good';
+
+    const recPct    = pausa.promedio_recuperacion_pct != null ? pausa.promedio_recuperacion_pct.toFixed(1) + '%' : '—';
+    const recClass  = (pausa.promedio_recuperacion_pct || 0) >= 50 ? 'good' : (pausa.promedio_recuperacion_pct || 0) >= 20 ? 'warn' : 'bad';
+    const nPausas   = pausa.pausas_analizadas ?? '—';
+    const efectivas = pausa.pausas_efectivas  ?? '—';
+    const mejorTipo = pausa.mejor_tipo_pausa  || '—';
+
+    const anomalos  = zscore.picks_anomalos   ?? '—';
+    const analizados= zscore.picks_analizados ?? '—';
+    const pctAnom   = zscore.porcentaje_anomalas != null ? zscore.porcentaje_anomalas.toFixed(1) + '%' : '—';
+    const razon     = zscore.razon_probable   || '—';
+    const confianza = zscore.confianza_pct    != null ? zscore.confianza_pct.toFixed(0) + '%' : '—';
+    const anomClass = (zscore.porcentaje_anomalas || 0) > 10 ? 'bad' : (zscore.porcentaje_anomalas || 0) > 3 ? 'warn' : 'good';
+
+    container.innerHTML = `
+      <div style="margin-bottom:16px;padding:12px 16px;background:var(--green-light);border:1px solid var(--green);border-radius:10px;font-size:13px;color:var(--green);font-weight:600;">
+        📊 Análisis: <strong>${opId}</strong>
+      </div>
+      <div class="comp-grid">
+        <div class="comp-card">
+          <div class="comp-card-title">Velocidad y Especialización SKU</div>
+          <div class="comp-row"><span class="comp-row-label">Vel. promedio</span><span class="comp-row-val">${velProm}</span></div>
+          <div class="comp-row"><span class="comp-row-label">SKU más fuerte</span><span class="comp-row-val good">${skuTop ? skuTop.sku_id : '—'}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Vel. en SKU top</span><span class="comp-row-val good">${skuTop ? skuTop.velocidad_seg.toFixed(1)+' s/pick' : '—'}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Especialidad</span><span class="comp-row-val">${especialPct}</span></div>
+          ${sku.recomendacion ? `<div style="margin-top:10px;font-size:11px;color:var(--muted);font-style:italic;line-height:1.5;">${sku.recomendacion}</div>` : ''}
+        </div>
+        <div class="comp-card">
+          <div class="comp-card-title">Patrón Semanal</div>
+          <div class="comp-row"><span class="comp-row-label">Mejor día</span><span class="comp-row-val good">${mejorDia}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Peor día</span><span class="comp-row-val warn">${peorDia}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Variación semana</span><span class="comp-row-val ${varClass}">${variacion}</span></div>
+          ${patron.recomendacion ? `<div style="margin-top:10px;font-size:11px;color:var(--muted);font-style:italic;line-height:1.5;">${patron.recomendacion}</div>` : ''}
+        </div>
+        <div class="comp-card">
+          <div class="comp-card-title">Recuperación tras Pausas</div>
+          <div class="comp-row"><span class="comp-row-label">Recuperación prom.</span><span class="comp-row-val ${recClass}">${recPct}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Pausas analizadas</span><span class="comp-row-val">${nPausas}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Pausas efectivas</span><span class="comp-row-val good">${efectivas}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Mejor tipo pausa</span><span class="comp-row-val">${mejorTipo}</span></div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-card-title">Anomalías Detectadas</div>
+          <div class="comp-row"><span class="comp-row-label">Picks anómalos</span><span class="comp-row-val ${anomClass}">${anomalos} / ${analizados}</span></div>
+          <div class="comp-row"><span class="comp-row-label">% anomalías</span><span class="comp-row-val ${anomClass}">${pctAnom}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Razón probable</span><span class="comp-row-val">${razon}</span></div>
+          <div class="comp-row"><span class="comp-row-label">Confianza análisis</span><span class="comp-row-val">${confianza}</span></div>
+        </div>
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="recom-empty" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+// ── ai-panel tabs (Cumplimiento de Plan) ─────────────────────────
 function switchAiTab(tab) {
   ['analysis','debug'].forEach(t => {
     document.getElementById('tab-btn-'+t).classList.toggle('active', t === tab);
     document.getElementById('tab-'+t).classList.toggle('active', t === tab);
   });
+}
+
+// ── Recomendaciones tab ───────────────────────────────────────────
+async function populateRecomOpSelector() {
+  const sel = document.getElementById('recom-operario-sel');
+  if (sel.options.length > 1) return; // ya poblado
+  try {
+    const data = await fetch('/api/operarios').then(r => r.json());
+    (data.operarios || []).forEach(op => {
+      const opt = document.createElement('option');
+      opt.value = op.operario_id;
+      opt.textContent = op.operario_id + (op.nombre ? ' — ' + op.nombre : '');
+      sel.appendChild(opt);
+    });
+    // También poblar el selector de comparativas
+    const sel2 = document.getElementById('comp-operario-sel');
+    if (sel2.options.length === 1) {
+      (data.operarios || []).forEach(op => {
+        const opt = document.createElement('option');
+        opt.value = op.operario_id;
+        opt.textContent = op.operario_id + (op.nombre ? ' — ' + op.nombre : '');
+        sel2.appendChild(opt);
+      });
+    }
+  } catch(e) { console.warn('Error cargando operarios:', e); }
+}
+
+async function populateCompOpSelector() {
+  const sel = document.getElementById('comp-operario-sel');
+  if (sel.options.length > 1) return;
+  await populateRecomOpSelector();
+}
+
+async function cargarRecomendacionesPicking() {
+  const opId = document.getElementById('recom-operario-sel').value;
+  const container = document.getElementById('recom-container-picking');
+  if (!opId) return;
+
+  container.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;"><div style="width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div>Generando recomendaciones con IA...</div>';
+
+  try {
+    const data = await fetch(`/api/recomendaciones/${opId}/enriquecido`).then(r => r.json());
+    if (!data.recomendaciones || data.recomendaciones.length === 0) {
+      container.innerHTML = '<div class="recom-empty">✅ Sin recomendaciones activas — operario en buen estado.</div>';
+      return;
+    }
+    const genTime = (data.generation_time_ms / 1000).toFixed(1);
+    const cached = data.cached ? ' · caché' : '';
+    let html = `<div class="recom-ai-banner"><strong>✨ ${data.powered_by || 'IA'}</strong><span>⏱ ${genTime}s${cached} · ${data.recomendaciones.length} recomendaciones</span></div>`;
+
+    const SEV = { caida_progresiva:'bad', tasa_error:'bad', reduccion_errores:'bad', patron_semanal:'warn', recuperacion_pausa:'warn', gestion_pausas:'warn', especializacion:'', anomalia:'warn' };
+    data.recomendaciones.forEach((rec, i) => {
+      const sev = SEV[(rec.tipo||'').toLowerCase().replace(/\s/g,'_')] || '';
+      const conf = rec.confianza || 80;
+      const confColor = conf >= 85 ? 'var(--ok)' : conf >= 70 ? 'var(--amber)' : 'var(--red)';
+      html += `
+        <div class="recom-card-light ${sev}" style="animation-delay:${i*.1}s">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:10px;">
+            <div class="recom-card-title">${rec.titulo}</div>
+            <span class="recom-chip">${rec.tipo || 'insight'}</span>
+          </div>
+          <div class="recom-conf-wrap">
+            <span class="recom-conf-label">Confianza IA</span>
+            <div class="recom-conf-track"><div class="recom-conf-fill" style="width:${conf}%;background:${confColor};"></div></div>
+            <span class="recom-conf-val" style="color:${confColor}">${conf}%</span>
+          </div>
+          <div class="recom-desc">${rec.descripcion}</div>
+          <div class="recom-accion"><div class="recom-accion-text">⚡ ${rec.accion}</div></div>
+          <div class="recom-impacto">💰 ${rec.impacto}</div>
+        </div>`;
+    });
+    container.innerHTML = html;
+  } catch(e) {
+    container.innerHTML = `<div class="recom-empty" style="color:var(--red);">Error cargando recomendaciones: ${e.message}</div>`;
+  }
+}
+
+// ── Comparativas tab ──────────────────────────────────────────────
+async function cargarComparativasPicking() {
+  const opId = document.getElementById('comp-operario-sel').value;
+  const container = document.getElementById('comp-container-picking');
+  if (!opId) return;
+
+  container.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px;"><div style="width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div>Calculando comparativa...</div>';
+
+  try {
+    const [analisis, todos] = await Promise.all([
+      fetch(`/api/operarios/${opId}/analisis/completo`).then(r => r.json()),
+      fetch('/api/operarios').then(r => r.json())
+    ]);
+
+    const op = (todos.operarios || []).find(o => o.operario_id === opId) || {};
+    const an = analisis.analisis || analisis;
+
+    // Extraer métricas clave
+    const caida = an.caida_progresiva || {};
+    const sku = an.correlacion_sku || {};
+    const pausa = an.recuperacion_pausa || {};
+    const patron = an.patron_semanal || {};
+    const zscore = an.anomalia_zscore || {};
+
+    const sev = v => v >= 85 ? 'good' : v >= 65 ? 'warn' : 'bad';
+    const bar = (val, max=100, color='var(--green)') =>
+      `<div class="comp-bar-wrap"><div class="comp-bar-track"><div class="comp-bar-fill" style="width:${Math.min(val,100)}%;background:${color};"></div></div></div>`;
+
+    container.innerHTML = `
+      <div style="margin-bottom:16px;padding:12px 16px;background:var(--green-light);border:1px solid var(--green);border-radius:10px;font-size:13px;color:var(--green);font-weight:600;">
+        📊 Análisis comparativo: <strong>${opId}</strong>${op.nombre ? ' — '+op.nombre : ''}
+      </div>
+      <div class="comp-grid">
+        <div class="comp-card">
+          <div class="comp-card-title">Caída de productividad</div>
+          <div class="comp-row">
+            <span class="comp-row-label">Porcentaje de caída</span>
+            <span class="comp-row-val ${sev(100-(caida.porcentaje_caida||0))}">${caida.porcentaje_caida != null ? caida.porcentaje_caida.toFixed(1)+'%' : '—'}</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-row-label">Severidad</span>
+            <span class="comp-row-val ${caida.severidad === 'CRÍTICA' ? 'bad' : caida.severidad === 'ALTA' ? 'warn' : 'good'}">${caida.severidad || '—'}</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-row-label">Picks inicio vs fin turno</span>
+            <span class="comp-row-val">${caida.picks_inicio != null ? caida.picks_inicio+' → '+caida.picks_fin : '—'}</span>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-card-title">Especialización por SKU</div>
+          <div class="comp-row">
+            <span class="comp-row-label">SKU más fuerte</span>
+            <span class="comp-row-val good">${sku.sku_top || '—'}</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-row-label">Velocidad en SKU top</span>
+            <span class="comp-row-val">${sku.velocidad_sku_top != null ? sku.velocidad_sku_top.toFixed(1)+' seg/pick' : '—'}</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-row-label">Ventaja vs promedio</span>
+            <span class="comp-row-val good">${sku.ventaja_pct != null ? '+'+sku.ventaja_pct.toFixed(1)+'%' : '—'}</span>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-card-title">Recuperación tras pausas</div>
+          <div class="comp-row">
+            <span class="comp-row-label">Recuperación post-pausa</span>
+            <span class="comp-row-val ${sev(pausa.pct_recuperacion||0)}">${pausa.pct_recuperacion != null ? pausa.pct_recuperacion.toFixed(1)+'%' : '—'}</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-row-label">Pausas analizadas</span>
+            <span class="comp-row-val">${pausa.n_pausas != null ? pausa.n_pausas : '—'}</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-row-label">Tiempo promedio pausa</span>
+            <span class="comp-row-val">${pausa.duracion_promedio != null ? pausa.duracion_promedio.toFixed(0)+' min' : '—'}</span>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-card-title">Patrón semanal / Anomalías</div>
+          <div class="comp-row">
+            <span class="comp-row-label">Mejor día de la semana</span>
+            <span class="comp-row-val good">${patron.mejor_dia || '—'}</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-row-label">Variabilidad semanal</span>
+            <span class="comp-row-val ${sev(100-(patron.variabilidad||0))}">${patron.variabilidad != null ? patron.variabilidad.toFixed(1)+'%' : '—'}</span>
+          </div>
+          <div class="comp-row">
+            <span class="comp-row-label">Z-score actual</span>
+            <span class="comp-row-val ${Math.abs(zscore.zscore||0) > 2 ? 'bad' : 'good'}">${zscore.zscore != null ? zscore.zscore.toFixed(2) : '—'}</span>
+          </div>
+        </div>
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="recom-empty" style="color:var(--red);">Error cargando comparativa: ${e.message}</div>`;
+  }
 }
 
 // ── Proveedor IA ──────────────────────────────────────────────────
@@ -1548,5 +2129,16 @@ initForm();
 setInterval(updateClock, 1000);
 updateClock();
 </script>
+
+<!-- Overlay carga IA -->
+<div class="ai-overlay" id="ai-loading-overlay">
+  <div class="ai-overlay-box">
+    <div class="ai-overlay-spinner"></div>
+    <div class="ai-overlay-title" id="ai-overlay-title">Consultando IA...</div>
+    <div class="ai-overlay-sub" id="ai-overlay-sub">Por favor esperá. El análisis se está procesando.</div>
+    <div class="ai-overlay-prov" id="ai-overlay-prov">🤖 IA</div>
+    <div class="ai-overlay-warn" id="ai-overlay-warn" style="display:none;">⏱ Con Ollama puede demorar hasta 2 minutos en hardware compartido</div>
+  </div>
+</div>
 </body>
 </html>

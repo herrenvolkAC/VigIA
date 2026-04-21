@@ -322,6 +322,76 @@ async def listar_operarios():
 
 
 # ============================================================================
+# RANKING DE OPERARIOS - debe estar ANTES de /operarios/{operario_id}
+# ============================================================================
+
+@router.get("/operarios/ranking")
+async def get_operarios_ranking(dias: int = 1):
+    """
+    Ranking de productividad de todos los operarios.
+    Retorna picks, velocidad, tasa de error y estado (ok/warn/bad) para cada operario.
+    Sorted by picks DESC. Marca como bajo estándar si vel>35s o error>3%.
+    """
+    import aiosqlite
+    from pathlib import Path
+
+    try:
+        DB_PATH = Path(__file__).parent.parent / "vigia.db"
+        async with aiosqlite.connect(str(DB_PATH)) as db:
+            db.row_factory = aiosqlite.Row
+            fecha_desde = (datetime.now() - __import__('datetime').timedelta(days=dias)).strftime('%Y-%m-%d')
+
+            cursor = await db.execute("""
+                SELECT
+                    operario_id,
+                    COUNT(*) as picks,
+                    COUNT(CASE WHEN estado = 'error' THEN 1 END) as errores,
+                    AVG(tiempo_segundos) as vel_promedio,
+                    COUNT(CASE WHEN estado = 'error' THEN 1 END) * 100.0 / COUNT(*) as tasa_error
+                FROM picks_operario
+                WHERE fecha >= ?
+                GROUP BY operario_id
+                HAVING picks >= 5
+                ORDER BY picks DESC
+            """, (fecha_desde,))
+            rows = await cursor.fetchall()
+
+        operarios = []
+        for r in rows:
+            vel = round(r['vel_promedio'] or 0, 1)
+            tasa = round(r['tasa_error'] or 0, 1)
+            picks = r['picks'] or 0
+
+            if vel > 40 or tasa > 5:
+                estado = "bad"
+            elif vel > 32 or tasa > 3:
+                estado = "warn"
+            else:
+                estado = "ok"
+
+            operarios.append({
+                "operario_id": r['operario_id'],
+                "picks": picks,
+                "errores": r['errores'] or 0,
+                "vel_promedio": vel,
+                "tasa_error": tasa,
+                "estado": estado,
+                "bajo_estandar": estado in ("bad", "warn")
+            })
+
+        return {
+            "operarios": operarios,
+            "total": len(operarios),
+            "bajo_estandar": sum(1 for o in operarios if o["bajo_estandar"]),
+            "dias_analizados": dias,
+            "generated_at": datetime.now().isoformat()
+        }
+
+    except Exception as e:
+        return {"operarios": [], "total": 0, "error": str(e)}
+
+
+# ============================================================================
 # DETALLE DE OPERARIO - Info completa + últimos picks
 # ============================================================================
 

@@ -47,8 +47,8 @@ if not exist .env (
 )
 
 echo  Iniciando servidor...
-echo  Acceso local:  http://localhost:8080
-echo  Acceso red:    http://TU-IP-LOCAL:8080
+echo  Acceso local:  http://localhost:9999
+echo  Acceso red:    http://TU-IP-LOCAL:9999
 echo.
 echo  Presiona Ctrl+C para detener el servidor.
 echo.
