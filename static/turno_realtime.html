@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VigIA - Monitor Turno Real-Time</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #404060;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(120deg, #00d4ff, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background: #00d4ff;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(64, 64, 96, 0.5);
+            border: 1px solid #404060;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #a0a0c0;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(120deg, #00d4ff, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-sub {
+            font-size: 12px;
+            color: #808090;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: rgba(64, 64, 96, 0.5);
+            border: 1px solid #404060;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .chart-container h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #00d4ff;
+        }
+
+        .canvas-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .events-panel {
+            background: rgba(64, 64, 96, 0.5);
+            border: 1px solid #404060;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .events-panel h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #00d4ff;
+        }
+
+        .event-item {
+            padding: 12px;
+            background: rgba(0, 212, 255, 0.05);
+            border-left: 3px solid #00d4ff;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .event-time {
+            color: #a0a0c0;
+            font-size: 10px;
+        }
+
+        .event-content {
+            color: #e0e0e0;
+            margin-top: 4px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            background: #00d4ff;
+            border-radius: 50%;
+            animation: spinner 1s infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes spinner {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .connection-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        .connection-status.disconnected {
+            background: rgba(255, 100, 100, 0.1);
+            border-color: #ff6464;
+            color: #ff6464;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>VigIA - Monitor Turno</h1>
+                <p id="turnoInfo" style="color: #a0a0c0; font-size: 14px; margin-top: 5px;">Conectando...</p>
+            </div>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span id="connectionStatus" class="connection-status disconnected">Desconectado</span>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Picks Generados</div>
+                <div class="metric-value" id="picksCount">0</div>
+                <div class="metric-sub" id="picksPerMin">0 picks/min</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Bultos Totales</div>
+                <div class="metric-value" id="bultosCount">0</div>
+                <div class="metric-sub" id="bultosPerHour">0 bultos/hora</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Operarios Activos</div>
+                <div class="metric-value" id="operariosCount">0</div>
+                <div class="metric-sub" id="operariosList">—</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Tiempo Promedio</div>
+                <div class="metric-value" id="tiempoPromedio">0s</div>
+                <div class="metric-sub" id="tiempoDetalle">—</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3>Picks por Minuto</h3>
+                <div class="canvas-container">
+                    <canvas id="picksChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h3>Bultos Acumulados</h3>
+                <div class="canvas-container">
+                    <canvas id="bultosChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="events-panel">
+            <h3>Eventos en Vivo</h3>
+            <div id="eventsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const WS_URL = `ws://${window.location.host}/ws/turno/`;
+        let ws = null;
+        let turnoId = new URLSearchParams(window.location.search).get('turno_id') || 'TURNO_DEMO_' + new Date().toISOString().split('T')[0];
+
+        // Historiales para gráficos
+        let picksHistory = [];
+        let bultosHistory = [];
+        let timestamps = [];
+        let operariosActivos = new Set();
+        let stats = {
+            picks: 0,
+            bultos: 0,
+            tiempoPromedio: 0
+        };
+
+        // Gráficos
+        let picksChart = null;
+        let bultosChart = null;
+
+        function initCharts() {
+            const ctxPicks = document.getElementById('picksChart').getContext('2d');
+            const ctxBultos = document.getElementById('bultosChart').getContext('2d');
+
+            picksChart = new Chart(ctxPicks, {
+                type: 'line',
+                data: {
+                    labels: timestamps,
+                    datasets: [{
+                        label: 'Picks/min',
+                        data: picksHistory,
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#00d4ff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#a0a0c0' } },
+                        x: { grid: { display: false }, ticks: { color: '#a0a0c0' } }
+                    }
+                }
+            });
+
+            bultosChart = new Chart(ctxBultos, {
+                type: 'line',
+                data: {
+                    labels: timestamps,
+                    datasets: [{
+                        label: 'Bultos Acumulados',
+                        data: bultosHistory,
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#00ff88'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#a0a0c0' } },
+                        x: { grid: { display: false }, ticks: { color: '#a0a0c0' } }
+                    }
+                }
+            });
+        }
+
+        function connectWebSocket() {
+            ws = new WebSocket(WS_URL + turnoId);
+
+            ws.onopen = () => {
+                console.log('[WS] Conectado al turno:', turnoId);
+                document.getElementById('connectionStatus').textContent = 'Conectado';
+                document.getElementById('connectionStatus').classList.remove('disconnected');
+                document.getElementById('turnoInfo').textContent = `Turno: ${turnoId}`;
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleMessage(message);
+            };
+
+            ws.onerror = (error) => {
+                console.error('[WS ERROR]', error);
+                document.getElementById('connectionStatus').textContent = 'Error de conexión';
+                document.getElementById('connectionStatus').classList.add('disconnected');
+            };
+
+            ws.onclose = () => {
+                console.log('[WS] Desconectado');
+                document.getElementById('connectionStatus').textContent = 'Desconectado';
+                document.getElementById('connectionStatus').classList.add('disconnected');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function handleMessage(message) {
+            const tipo = message.tipo;
+
+            if (tipo === 'pick_creado') {
+                handlePickCreado(message.pick);
+            } else if (tipo === 'estadisticas') {
+                handleEstadisticas(message.datos);
+            } else if (tipo === 'analisis_actualizado') {
+                handleAnalisisActualizado(message);
+            }
+        }
+
+        function handlePickCreado(pick) {
+            stats.picks++;
+            stats.bultos += pick.cantidad_bultos;
+            operariosActivos.add(pick.operario_id);
+
+            updateMetrics();
+            addEvent(`<strong>${pick.operario_nombre}</strong> - Ola ${pick.ola_id}`, `${pick.cantidad_bultos} bulto(s) - ${pick.tiempo_segundos}s`);
+        }
+
+        function handleEstadisticas(datos) {
+            stats.picks = datos.picks_generados || stats.picks;
+            stats.bultos = datos.bultos_totales || stats.bultos;
+            stats.tiempoPromedio = datos.tiempo_promedio_seg || 0;
+
+            operariosActivos.clear();
+            if (datos.operarios_activos) {
+                // Aquí podríamos iterar sobre operarios si tenemos sus IDs
+            }
+
+            updateMetrics();
+            updateCharts();
+            addEvent('Estadísticas Actualizadas', `${datos.picks_generados} picks, ${datos.bultos_totales} bultos`);
+        }
+
+        function handleAnalisisActualizado(message) {
+            const resultado = message.resultado;
+            const tipoAnalisis = message.analisis_tipo;
+            addEvent(`Análisis: ${tipoAnalisis}`, JSON.stringify(resultado).substring(0, 60) + '...');
+        }
+
+        function updateMetrics() {
+            document.getElementById('picksCount').textContent = stats.picks.toLocaleString();
+            document.getElementById('bultosCount').textContent = stats.bultos.toLocaleString();
+            document.getElementById('operariosCount').textContent = operariosActivos.size;
+            document.getElementById('tiempoPromedio').textContent = `${stats.tiempoPromedio.toFixed(1)}s`;
+            document.getElementById('operariosDetalle').textContent = Array.from(operariosActivos).slice(0, 3).join(', ');
+        }
+
+        function updateCharts() {
+            const now = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+            if (timestamps.length > 20) {
+                timestamps.shift();
+                picksHistory.shift();
+                bultosHistory.shift();
+            }
+
+            timestamps.push(now);
+            picksHistory.push(Math.random() * 10 + 5); // Simulado
+            bultosHistory.push(stats.bultos);
+
+            if (picksChart) {
+                picksChart.data.labels = timestamps;
+                picksChart.data.datasets[0].data = picksHistory;
+                picksChart.update('none');
+            }
+
+            if (bultosChart) {
+                bultosChart.data.labels = timestamps;
+                bultosChart.data.datasets[0].data = bultosHistory;
+                bultosChart.update('none');
+            }
+        }
+
+        function addEvent(title, description) {
+            const eventsList = document.getElementById('eventsList');
+            const eventEl = document.createElement('div');
+            eventEl.className = 'event-item';
+            const now = new Date().toLocaleTimeString('es-ES');
+            eventEl.innerHTML = `
+                <div class="event-time">${now}</div>
+                <div class="event-content"><strong>${title}</strong><br/>${description}</div>
+            `;
+            eventsList.insertBefore(eventEl, eventsList.firstChild);
+
+            // Limitar a últimos 20 eventos
+            while (eventsList.children.length > 20) {
+                eventsList.removeChild(eventsList.lastChild);
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@
       "name": "vigia",
       "runtimeExecutable": "python",
       "runtimeArgs": ["main.py"],
-      "port": 8080
+      "port": 9999
     }
   ]
 }

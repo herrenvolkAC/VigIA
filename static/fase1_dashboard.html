@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VigIA FASE 1 - Dashboard Alarmas + Productividad</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --surface-alt: #f1f5f9;
+            --border: #e2e8f0;
+            --green: #1a7a3c;
+            --green-light: #e8f5ed;
+            --red: #c0392b;
+            --red-light: #fdecea;
+            --amber: #d97706;
+            --amber-light: #fffbeb;
+            --muted: #64748b;
+            --text: #334155;
+            --text-hi: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 24px;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg, #0f4c2a 0%, var(--green) 100%);
+            color: white;
+            padding: 20px 28px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        /* NAVEGACION PANTALLAS */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-hi);
+            border-bottom-color: var(--green);
+        }
+
+        .tab-btn.active {
+            color: var(--green);
+            border-bottom-color: var(--green);
+        }
+
+        /* PANTALLAS */
+        .pantalla {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .pantalla.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* GRID PRINCIPAL */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .grid.wide {
+            grid-template-columns: 1fr;
+        }
+
+        /* CARDS KPI */
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-hi);
+            margin-bottom: 8px;
+        }
+
+        .kpi-sub {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* ALERTAS */
+        .alertas-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .alertas-header {
+            background: var(--surface-alt);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--text-hi);
+        }
+
+        .alerta-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .alerta-item:last-child {
+            border-bottom: none;
+        }
+
+        .alerta-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+
+        .alerta-badge.critica {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .alerta-badge.alta {
+            background: var(--amber-light);
+            color: var(--amber);
+        }
+
+        .alerta-content {
+            flex: 1;
+        }
+
+        .alerta-nombre {
+            font-weight: 600;
+            color: var(--text-hi);
+            margin-bottom: 4px;
+        }
+
+        .alerta-desc {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .alerta-sugerencia {
+            font-size: 12px;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        /* TABLA */
+        .tabla-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .tabla {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .tabla th {
+            background: var(--surface-alt);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-hi);
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tabla td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tabla tr:hover {
+            background: var(--surface-alt);
+        }
+
+        .tabla tr:last-child td {
+            border-bottom: none;
+        }
+
+        .estado-ok {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .estado-bajo {
+            color: var(--amber);
+            font-weight: 600;
+        }
+
+        .estado-critico {
+            color: var(--red);
+            font-weight: 600;
+        }
+
+        /* LOADER */
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 16px;
+            }
+
+            header {
+                padding: 16px 20px;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                font-size: 12px;
+            }
+
+            .tab-btn {
+                padding: 10px 12px;
+            }
+
+            .kpi-value {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>VigIA FASE 1 - Dashboard Alarmas + Productividad</h1>
+        <p>Monitoreo en tiempo real | Turno TARDE 2026-04-20</p>
+    </header>
+
+    <!-- NAVEGACION -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="mostrarPantalla('p1')">
+            1. Dashboard Turno
+        </button>
+        <button class="tab-btn" onclick="mostrarPantalla('p2')">
+            2. Detalle Ola
+        </button>
+        <button class="tab-btn" onclick="mostrarPantalla('p3')">
+            3. Config Estándares
+        </button>
+        <button class="tab-btn" onclick="mostrarPantalla('p4')">
+            4. Comparativas
+        </button>
+    </div>
+
+    <!-- PANTALLA 1: DASHBOARD TURNO -->
+    <div id="p1" class="pantalla active">
+        <h2 style="margin-bottom: 20px; color: var(--text-hi);">Dashboard Turno Actual</h2>
+
+        <!-- KPIs -->
+        <div class="grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Objetivo Turno</div>
+                <div class="kpi-value" id="kpi-objetivo">-</div>
+                <div class="kpi-sub">Bultos programados</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Ejecutados</div>
+                <div class="kpi-value" id="kpi-ejecutados">-</div>
+                <div class="kpi-sub">Bultos reales</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">% Ejecucion</div>
+                <div class="kpi-value" id="kpi-pct">-</div>
+                <div class="kpi-sub">Avance del turno</div>
+            </div>
+        </div>
+
+        <!-- SELECTOR OLAS -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px;">
+            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">Selecciona Ola para detalles:</h3>
+            <div id="selector-olas" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
+
+        <!-- ALERTAS CRITICAS -->
+        <div>
+            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">Alertas Críticas</h3>
+            <div id="alertas-container" class="alertas-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 12px;">Cargando alertas...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 2: DETALLE OLA -->
+    <div id="p2" class="pantalla">
+        <h2 style="margin-bottom: 20px; color: var(--text-hi);">Detalle Ola - Operarios</h2>
+
+        <!-- Info OLA -->
+        <div class="grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Ola</div>
+                <div class="kpi-value" id="p2-ola-num">-</div>
+                <div class="kpi-sub" id="p2-ola-estado">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Operarios</div>
+                <div class="kpi-value" id="p2-operarios-count">-</div>
+                <div class="kpi-sub">Asignados</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Productividad Prom</div>
+                <div class="kpi-value" id="p2-prod-prom">-</div>
+                <div class="kpi-sub" id="p2-prod-desvio">-</div>
+            </div>
+        </div>
+
+        <!-- Selector OLA -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px;">
+            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">Selecciona Ola:</h3>
+            <div id="selector-olas-p2" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
+
+        <!-- TABLA OPERARIOS -->
+        <div>
+            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">Operarios - Productividad Actual</h3>
+            <div id="tabla-operarios-container" class="tabla-container loading">
+                <div style="padding: 40px 20px; text-align: center;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 12px; color: var(--muted);">Cargando operarios...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 3: CONFIG ESTÁNDARES -->
+    <div id="p3" class="pantalla">
+        <h2 style="margin-bottom: 20px; color: var(--text-hi);">Configurar Estándares por Sector</h2>
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px;">
+            <p style="color: var(--muted); margin-bottom: 28px;">Ajusta los estándares de productividad (bultos/hora):</p>
+            <div id="config-estándares-content" class="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 12px;">Cargando configuración...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA 4: COMPARATIVAS -->
+    <div id="p4" class="pantalla">
+        <h2 style="margin-bottom: 20px; color: var(--text-hi);">Comparativas OLA 2</h2>
+
+        <div class="grid wide">
+            <!-- TOP PERFORMERS -->
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+                <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">TOP 3 Performers</h3>
+                <div id="p4-top-performers" class="loading">
+                    <div class="spinner" style="margin: 0 auto;"></div>
+                </div>
+            </div>
+
+            <!-- BOTTOM PERFORMERS -->
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+                <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">BOTTOM 3 Performers</h3>
+                <div id="p4-bottom-performers" class="loading">
+                    <div class="spinner" style="margin: 0 auto;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SELECTOR OLA P4 -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px;">
+            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">Selecciona otra ola:</h3>
+            <div id="selector-olas-p4" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        // Toggle pantallas
+        function mostrarPantalla(id) {
+            document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
+
+            // Cargar datos según pantalla
+            if (id === 'p1') cargarDashboard();
+            else if (id === 'p2') cargarDetalleOla();
+            else if (id === 'p3') cargarConfigEstándares();
+            else if (id === 'p4') cargarComparativas();
+        }
+
+        // PANTALLA 1: DASHBOARD
+        async function cargarDashboard() {
+            try {
+                // Cargar turno actual
+                const turnoRes = await fetch(API_BASE + '/turnos/1');
+                if (!turnoRes.ok) throw new Error('No hay turno activo');
+
+                // Para demo, cargar olas directamente
+                const olasRes = await fetch(API_BASE + '/olas/1');
+                const olas = await olasRes.json();
+
+                // Calcular KPIs
+                let totalObjetivo = 0, totalEjecutados = 0;
+                olas.forEach(ola => {
+                    totalObjetivo += ola.bultos_programados;
+                    totalEjecutados += ola.bultos_ejecutados;
+                });
+
+                const pct = totalObjetivo > 0 ? ((totalEjecutados / totalObjetivo) * 100).toFixed(1) : 0;
+
+                document.getElementById('kpi-objetivo').textContent = totalObjetivo.toLocaleString();
+                document.getElementById('kpi-ejecutados').textContent = totalEjecutados.toLocaleString();
+                document.getElementById('kpi-pct').textContent = pct + '%';
+
+                // Selector olas
+                const selectorHtml = olas.map(ola => `
+                    <button class="tab-btn" style="padding: 8px 12px;" onclick="cargarAlertasOla('${ola.ola_id}')">
+                        OLA ${ola.numero_ola} (${ola.bultos_ejecutados}/${ola.bultos_programados})
+                    </button>
+                `).join('');
+                document.getElementById('selector-olas').innerHTML = selectorHtml;
+
+                // Cargar alertas de OLA 2 (la que está en curso)
+                cargarAlertasOla(olas[1]?.ola_id || 'OLA_2_TARDE_20_04');
+
+            } catch (error) {
+                console.error('Error cargando dashboard:', error);
+                document.getElementById('alertas-container').innerHTML = `
+                    <div style="padding: 20px; color: var(--muted);">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function cargarAlertasOla(olaId) {
+            try {
+                const res = await fetch(API_BASE + `/olas/${olaId}/alertas`);
+                const data = await res.json();
+
+                let html = '';
+                if (data.cantidad_alertas === 0) {
+                    html = '<div style="padding: 20px; text-align: center; color: var(--muted);">Sin alertas - Todo en parámetros normales</div>';
+                } else {
+                    html = `<div class="alertas-header">
+                        ${data.cantidad_alertas} alerta(s) detectada(s)
+                    </div>`;
+
+                    data.alertas.forEach(alerta => {
+                        html += `
+                            <div class="alerta-item">
+                                <div class="alerta-badge ${alerta.severidad.toLowerCase()}">
+                                    ${alerta.severidad}
+                                </div>
+                                <div class="alerta-content">
+                                    <div class="alerta-nombre">${alerta.operario_nombre}</div>
+                                    <div class="alerta-desc">${alerta.valor_actual} bul/h vs ${alerta.estandar} estándar (${alerta.desvio_pct.toFixed(1)}%)</div>
+                                    <div class="alerta-sugerencia">${alerta.sugerencia}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                document.getElementById('alertas-container').innerHTML = html;
+            } catch (error) {
+                console.error('Error cargando alertas:', error);
+            }
+        }
+
+        // PANTALLA 2: DETALLE OLA
+        let olasListaP2 = [];
+        let olaActualP2 = '';
+
+        async function cargarDetalleOla() {
+            try {
+                // Cargar olas
+                const olasRes = await fetch(API_BASE + '/olas/1');
+                olasListaP2 = await olasRes.json();
+
+                // Crear selector
+                const selectorHtml = olasListaP2.map(ola => `
+                    <button class="tab-btn" style="padding: 8px 12px;" onclick="cargarOperariosOla('${ola.ola_id}')">
+                        OLA ${ola.numero_ola}
+                    </button>
+                `).join('');
+                document.getElementById('selector-olas-p2').innerHTML = selectorHtml;
+
+                // Cargar primera ola (OLA 2 - en curso)
+                cargarOperariosOla(olasListaP2[1]?.ola_id || 'OLA_2_TARDE_20_04');
+
+            } catch (error) {
+                console.error('Error en P2:', error);
+            }
+        }
+
+        async function cargarOperariosOla(olaId) {
+            try {
+                olaActualP2 = olaId;
+
+                // Obtener info de la ola
+                const olaInfo = olasListaP2.find(o => o.ola_id === olaId);
+                if (olaInfo) {
+                    document.getElementById('p2-ola-num').textContent = olaInfo.numero_ola;
+                    document.getElementById('p2-ola-estado').textContent = olaInfo.estado;
+                }
+
+                // Obtener operarios
+                const operariosRes = await fetch(API_BASE + `/olas/${olaId}/operarios`);
+                const operarios = await operariosRes.json();
+
+                // Calcular productividad promedio
+                const promProd = operarios.reduce((sum, op) => sum + op.productividad, 0) / operarios.length;
+                const desvio = ((promProd - 250) / 250 * 100).toFixed(1);
+
+                document.getElementById('p2-operarios-count').textContent = operarios.length;
+                document.getElementById('p2-prod-prom').textContent = promProd.toFixed(0);
+                document.getElementById('p2-prod-desvio').textContent = `${desvio > 0 ? '+' : ''}${desvio}% vs est.`;
+
+                // Generar tabla
+                let tablaHtml = `
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th>Operario</th>
+                                <th>Bultos</th>
+                                <th>Productividad</th>
+                                <th>Est.</th>
+                                <th>Desvío</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                operarios.forEach(op => {
+                    const colorEstado = op.estado_productividad === 'ok'
+                        ? 'estado-ok'
+                        : op.estado_productividad === 'bajo'
+                        ? 'estado-bajo'
+                        : 'estado-critico';
+
+                    tablaHtml += `
+                        <tr>
+                            <td><strong>${op.nombre}</strong></td>
+                            <td>${op.bultos_reales}</td>
+                            <td>${op.productividad}</td>
+                            <td>${op.estandar}</td>
+                            <td>${op.desvio_pct > 0 ? '+' : ''}${op.desvio_pct}%</td>
+                            <td><span class="${colorEstado}">${op.estado_productividad.toUpperCase()}</span></td>
+                        </tr>
+                    `;
+                });
+
+                tablaHtml += `
+                        </tbody>
+                    </table>
+                `;
+
+                document.getElementById('tabla-operarios-container').innerHTML = tablaHtml;
+
+            } catch (error) {
+                console.error('Error cargando operarios:', error);
+                document.getElementById('tabla-operarios-container').innerHTML = `
+                    <div style="padding: 20px; color: var(--text-hi); text-align: center;">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // PANTALLA 3: CONFIG ESTÁNDARES
+        async function cargarConfigEstándares() {
+            try {
+                const secosRes = await fetch(API_BASE + '/estandares/Secos');
+                const secos = await secosRes.json();
+
+                const noaRes = await fetch(API_BASE + '/estandares/NOA');
+                const noa = await noaRes.json();
+
+                let html = `
+                    <div style="display: grid; gap: 28px;">
+                        <!-- SECOS -->
+                        <div style="border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--surface-alt);">
+                            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">SECTOR: SECOS</h3>
+
+                            <div style="margin-bottom: 18px;">
+                                <label style="display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; font-weight: 600;">
+                                    Bultos por hora: <span id="p3-secos-valor">${secos.bultos_por_hora}</span>
+                                </label>
+                                <input type="range" id="p3-secos-input" min="100" max="400" value="${secos.bultos_por_hora}"
+                                    style="width: 100%; height: 8px; border-radius: 5px; background: var(--border); outline: none;"
+                                    onchange="cambiarEstandar('Secos', this.value)">
+                                <div style="font-size: 12px; color: var(--muted); margin-top: 8px;">
+                                    Rango sugerido: 200-300
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 18px;">
+                                <label style="display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; font-weight: 600;">
+                                    Bultos totales por turno: ${secos.bultos_turno_total}
+                                </label>
+                                <div style="font-size: 12px; color: var(--muted);">
+                                    Basado en: ${secos.bultos_por_hora} bul/h × 8 horas = ${secos.bultos_turno_total}
+                                </div>
+                            </div>
+
+                            <div style="font-size: 12px; color: var(--muted); background: var(--bg); padding: 12px; border-radius: 8px;">
+                                Actualizado: ${new Date(secos.actualizado_en).toLocaleString('es-AR')}
+                            </div>
+                        </div>
+
+                        <!-- NOA -->
+                        <div style="border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--surface-alt);">
+                            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-hi);">SECTOR: NOA</h3>
+
+                            <div style="margin-bottom: 18px;">
+                                <label style="display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; font-weight: 600;">
+                                    Bultos por hora: <span id="p3-noa-valor">${noa.bultos_por_hora}</span>
+                                </label>
+                                <input type="range" id="p3-noa-input" min="20" max="150" value="${noa.bultos_por_hora}"
+                                    style="width: 100%; height: 8px; border-radius: 5px; background: var(--border); outline: none;"
+                                    onchange="cambiarEstandar('NOA', this.value)">
+                                <div style="font-size: 12px; color: var(--muted); margin-top: 8px;">
+                                    Rango sugerido: 50-80
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 18px;">
+                                <label style="display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; font-weight: 600;">
+                                    Bultos totales por turno: ${noa.bultos_turno_total}
+                                </label>
+                                <div style="font-size: 12px; color: var(--muted);">
+                                    Basado en: ${noa.bultos_por_hora} bul/h × 8 horas = ${noa.bultos_turno_total}
+                                </div>
+                            </div>
+
+                            <div style="font-size: 12px; color: var(--muted); background: var(--bg); padding: 12px; border-radius: 8px;">
+                                Actualizado: ${new Date(noa.actualizado_en).toLocaleString('es-AR')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--border);">
+                        <p style="font-size: 12px; color: var(--muted); line-height: 1.6;">
+                            Nota: Los cambios afectan los cálculos de alertas inmediatamente.
+                        </p>
+                    </div>
+                `;
+
+                document.getElementById('config-estándares-content').innerHTML = html;
+
+            } catch (error) {
+                console.error('Error en P3:', error);
+            }
+        }
+
+        async function cambiarEstandar(sector, valor) {
+            try {
+                // Actualizar valor en UI
+                const spanId = sector === 'Secos' ? 'p3-secos-valor' : 'p3-noa-valor';
+                document.getElementById(spanId).textContent = valor;
+
+                // Calcular turno_total (valor * 8 horas)
+                const bultos_turno = parseInt(valor) * 8;
+
+                // POST a API
+                const res = await fetch(API_BASE + `/estandares/${sector}?bultos_por_hora=${valor}&bultos_turno_total=${bultos_turno}`, {
+                    method: 'POST'
+                });
+
+                if (res.ok) {
+                    console.log(`Estándar ${sector} actualizado a ${valor} bul/h`);
+                }
+            } catch (error) {
+                console.error('Error actualizando estándar:', error);
+            }
+        }
+
+        // PANTALLA 4: COMPARATIVAS
+        let olasListaP4 = [];
+
+        async function cargarComparativas() {
+            try {
+                // Cargar olas
+                const olasRes = await fetch(API_BASE + '/olas/1');
+                olasListaP4 = await olasRes.json();
+
+                // Crear selector
+                const selectorHtml = olasListaP4.map(ola => `
+                    <button class="tab-btn" style="padding: 8px 12px;" onclick="cargarComparativasOla('${ola.ola_id}')">
+                        OLA ${ola.numero_ola}
+                    </button>
+                `).join('');
+                document.getElementById('selector-olas-p4').innerHTML = selectorHtml;
+
+                // Cargar comparativas de OLA 2
+                cargarComparativasOla('OLA_2_TARDE_20_04');
+
+            } catch (error) {
+                console.error('Error en P4:', error);
+            }
+        }
+
+        async function cargarComparativasOla(olaId) {
+            try {
+                const res = await fetch(API_BASE + `/olas/${olaId}/comparativas`);
+                const data = await res.json();
+
+                // TOP performers
+                let topHtml = '';
+                data.top_performers.forEach((op, idx) => {
+                    topHtml += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-hi);">${idx + 1}. ${op.nombre}</div>
+                                <div style="font-size: 12px; color: var(--muted);">${op.operario_id}</div>
+                            </div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--green);">
+                                ${op.productividad} bul/h
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // BOTTOM performers
+                let bottomHtml = '';
+                data.bottom_performers.forEach((op, idx) => {
+                    bottomHtml += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-hi);">${idx + 1}. ${op.nombre}</div>
+                                <div style="font-size: 12px; color: var(--muted);">${op.operario_id}</div>
+                            </div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--red);">
+                                ${op.productividad} bul/h
+                            </div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('p4-top-performers').innerHTML = topHtml;
+                document.getElementById('p4-bottom-performers').innerHTML = bottomHtml;
+
+            } catch (error) {
+                console.error('Error cargando comparativas:', error);
+                document.getElementById('p4-top-performers').innerHTML = `<div style="color: var(--muted);">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Cargar dashboard al abrir
+        window.addEventListener('load', cargarDashboard);
+    </script>
+</body>
+</html>

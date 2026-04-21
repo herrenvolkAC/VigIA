@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VigIA - Config & Recomendaciones</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(64, 64, 96, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .tab-button {
+            padding: 14px 28px;
+            background: transparent;
+            border: none;
+            color: #a0a0c0;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: #00d4ff;
+            border-bottom-color: #00d4ff;
+        }
+
+        .tab-button:hover {
+            color: #00d4ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: rgba(64, 64, 96, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            font-size: 22px;
+            color: #00d4ff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-group {
+            margin-bottom: 25px;
+        }
+
+        .config-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            font-weight: 600;
+            font-size: 15px;
+            text-transform: uppercase;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .value-display {
+            min-width: 60px;
+            padding: 8px 12px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 6px;
+            color: #00d4ff;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 15px 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .select-control {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            background: rgba(64, 64, 96, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #00d4ff, #00ff88);
+            border: none;
+            border-radius: 8px;
+            color: #1e1e2e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .button.secondary {
+            background: transparent;
+            border: 2px solid #00d4ff;
+            color: #00d4ff;
+            margin-left: 10px;
+        }
+
+        .button.secondary:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        /* RECOMENDACIONES */
+        /* === RECOMENDACIONES CARDS === */
+        .ai-header-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: linear-gradient(90deg, rgba(0,212,255,0.12), rgba(0,212,255,0.04));
+            border: 1px solid rgba(0,212,255,0.25);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .ai-header-banner .ai-badge {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .ai-header-banner .ai-time {
+            color: #606080;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        .recom-card {
+            position: relative;
+            background: rgba(30, 30, 50, 0.7);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 0;
+            margin-bottom: 18px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            opacity: 0;
+            animation: slideUp 0.4s ease forwards;
+        }
+
+        .recom-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.13);
+        }
+
+        .recom-card-accent {
+            height: 3px;
+            width: 100%;
+        }
+
+        .recom-card-body {
+            padding: 20px 22px 16px;
+        }
+
+        .recom-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+            gap: 12px;
+        }
+
+        .recom-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .tipo-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .recom-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #e8e8f0;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .recom-desc-v2 {
+            font-size: 15px;
+            color: #8080a0;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .confidence-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .confidence-label {
+            font-size: 13px;
+            color: #606080;
+            white-space: nowrap;
+        }
+
+        .confidence-track {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .confidence-value {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .accion-box {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            background: rgba(255,200,0,0.07);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,200,0,0.15);
+        }
+
+        .accion-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .accion-text {
+            font-size: 15px;
+            color: #d4c060;
+            line-height: 1.5;
+        }
+
+        .impacto-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(0,255,136,0.05);
+            border-radius: 6px;
+            border: 1px solid rgba(0,255,136,0.12);
+        }
+
+        .impacto-label {
+            font-size: 13px;
+            color: #00ff88;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .impacto-text {
+            font-size: 14px;
+            color: #60c090;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .recom-action {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .action-button {
+            padding: 8px 16px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 6px;
+            color: #00ff88;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-button:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        /* OPERARIO SELECTOR */
+        .selector-section {
+            margin-bottom: 25px;
+        }
+
+        select {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            background: rgba(64, 64, 96, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* ALERTAS */
+        .alerta-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .alerta-critica {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+
+        .alerta-alta {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .alerta-normal {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .slider-container {
+                flex-direction: column;
+            }
+
+            .recom-item {
+                flex-direction: column;
+            }
+
+            .recom-action {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00d4ff;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 212, 255, 0.2);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .refresh-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            background: rgba(64,64,96,0.3);
+            border-radius: 8px;
+            font-size: 12px;
+            color: #a0a0c0;
+        }
+        .refresh-bar button {
+            padding: 5px 14px;
+            background: rgba(0,212,255,0.15);
+            color: #00d4ff;
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .refresh-bar button:hover { background: rgba(0,212,255,0.3); }
+        .refresh-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media print {
+            body { background: white; color: #222; padding: 0; }
+            .header, .tabs, .card:not(.print-card), #reportes .card:first-child,
+            .button, .refresh-bar, #reportes-acciones { display: none !important; }
+            .tab-content { display: block !important; }
+            #config, #recomendaciones, #alertas { display: none !important; }
+            #reportes { display: block !important; }
+            .print-card { border: 1px solid #ccc !important; background: white !important; color: #222 !important; }
+            .print-card h2, .print-card h3 { color: #333 !important; }
+            .print-card p, .print-card li { color: #444 !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Configuración & Recomendaciones</h1>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div id="ia-badge" style="display: flex; align-items: center; gap: 7px; padding: 6px 14px; background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.25); border-radius: 20px; font-size: 13px;">
+                    <span style="color:#606080;">Motor IA:</span>
+                    <span id="ia-label" style="color:#00d4ff; font-weight:600;">cargando...</span>
+                </div>
+                <div style="font-size: 13px; color: #a0a0c0;">Actualizado: <span id="update-time">--:--</span></div>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="mostrarTab('config')">⚙️ Configuración</button>
+            <button class="tab-button" onclick="mostrarTab('recomendaciones')">💡 Recomendaciones</button>
+            <button class="tab-button" onclick="mostrarTab('alertas')">🔔 Alertas</button>
+            <button class="tab-button" onclick="mostrarTab('reportes')">📊 Reportes</button>
+        </div>
+
+        <!-- TAB 1: CONFIGURACIÓN -->
+        <div id="config" class="tab-content active">
+            <div class="card">
+                <h2>📏 Umbrales de Severidad - Caída Progresiva</h2>
+
+                <div class="config-group">
+                    <label>Crítica (>):</label>
+                    <div class="slider-container">
+                        <input type="range" id="caida-critica" min="10" max="30" value="20" onchange="updateValue(this)">
+                        <span class="value-display" id="caida-critica-val">20%</span>
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label>Alta (>):</label>
+                    <div class="slider-container">
+                        <input type="range" id="caida-alta" min="5" max="25" value="15" onchange="updateValue(this)">
+                        <span class="value-display" id="caida-alta-val">15%</span>
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label>Media (>):</label>
+                    <div class="slider-container">
+                        <input type="range" id="caida-media" min="1" max="20" value="10" onchange="updateValue(this)">
+                        <span class="value-display" id="caida-media-val">10%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📏 Umbrales de Severidad - Otros</h2>
+
+                <div class="config-group">
+                    <label>Tasa Error Máxima Aceptable (%):</label>
+                    <div class="slider-container">
+                        <input type="range" id="error-maximo" min="1" max="10" value="5" onchange="updateValue(this)">
+                        <span class="value-display" id="error-maximo-val">5%</span>
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label>Velocidad Mínima Aceptable (seg/pick):</label>
+                    <div class="slider-container">
+                        <input type="range" id="vel-minima" min="20" max="40" value="28" onchange="updateValue(this)">
+                        <span class="value-display" id="vel-minima-val">28s</span>
+                    </div>
+                </div>
+
+                <div class="config-group">
+                    <label>Especialización Mínima para Detectar (+%):</label>
+                    <div class="slider-container">
+                        <input type="range" id="esp-minima" min="10" max="50" value="20" onchange="updateValue(this)">
+                        <span class="value-display" id="esp-minima-val">20%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔔 Alertas Activas</h2>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="alert-caida" checked>
+                        <label for="alert-caida">Caída Progresiva</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="alert-error" checked>
+                        <label for="alert-error">Tasa Error Alta</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="alert-especialidad" checked>
+                        <label for="alert-especialidad">Especialización</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="alert-pausa" checked>
+                        <label for="alert-pausa">Recuperación Pausa</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="alert-anomalia" checked>
+                        <label for="alert-anomalia">Anomalía Z-Score</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📧 Configuración de Reportes</h2>
+
+                <div class="config-group">
+                    <label>Email Destino:</label>
+                    <input type="email" style="width: 100%; max-width: 400px; padding: 10px; background: rgba(64, 64, 96, 0.8); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 8px; color: #e0e0e0;" id="email-destino" placeholder="supervisor@coto.com.ar">
+                </div>
+
+                <div class="config-group">
+                    <label>Frecuencia de Reporte:</label>
+                    <select id="freq-reporte">
+                        <option value="diario">Diario (cada mañana)</option>
+                        <option value="semanal">Semanal (lunes mañana)</option>
+                        <option value="mensual">Mensual (primer día del mes)</option>
+                    </select>
+                </div>
+
+                <div class="config-group">
+                    <label>Incluir en Reporte:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="rep-ranking" checked>
+                            <label for="rep-ranking">Ranking</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="rep-graficos" checked>
+                            <label for="rep-graficos">Gráficos</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="rep-anomalias" checked>
+                            <label for="rep-anomalias">Anomalías</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="rep-recomendaciones" checked>
+                            <label for="rep-recomendaciones">Recomendaciones</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="button" onclick="guardarConfig()">💾 Guardar Configuración</button>
+                <button class="button secondary" onclick="resetearConfig()">↻ Restaurar Defaults</button>
+            </div>
+        </div>
+
+        <!-- TAB 2: RECOMENDACIONES -->
+        <div id="recomendaciones" class="tab-content">
+            <div class="selector-section">
+                <label style="display: block; margin-bottom: 10px; color: #00d4ff; font-weight: 600;">Seleccionar Operario:</label>
+                <select id="operario-selector" onchange="cargarRecomendaciones()">
+                    <option value="">Cargando...</option>
+                </select>
+            </div>
+
+            <div id="recomendaciones-container"></div>
+        </div>
+
+        <!-- TAB 3: ALERTAS -->
+        <div id="alertas" class="tab-content">
+            <div class="refresh-bar">
+                <button id="btn-refresh-alertas" onclick="cargarAlertas()">🔄 Refrescar Alertas</button>
+                <span>Última consulta: <span id="alertas-last-update">—</span></span>
+                <span style="color: #6060a0; margin-left: auto;">⚠️ Cada consulta usa tokens de IA — refrescar manualmente</span>
+            </div>
+            <div class="card">
+                <h2>🔔 Alertas Activas del Último Turno</h2>
+                <div id="alertas-container"></div>
+            </div>
+        </div>
+
+        <!-- TAB 4: REPORTES -->
+        <div id="reportes" class="tab-content">
+            <div class="card">
+                <h2>📊 Generar Reportes</h2>
+
+                <div class="config-group">
+                    <label>Tipo de Reporte:</label>
+                    <select id="tipo-reporte">
+                        <option value="diario">Diario</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="mensual">Mensual</option>
+                    </select>
+                </div>
+
+                <div class="config-group">
+                    <label>Formato:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="fmt-json" checked>
+                            <label for="fmt-json">JSON</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="fmt-pdf" checked>
+                            <label for="fmt-pdf">PDF</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="fmt-excel" checked>
+                            <label for="fmt-excel">Excel</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reportes-acciones" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="button" onclick="generarReporte()">📥 Generar Reporte</button>
+                    <button class="button secondary" id="btn-export-pdf" onclick="exportarPDF()" style="display:none;">🖨️ Descargar PDF</button>
+                </div>
+            </div>
+
+            <div id="reporte-container"></div>
+
+            <div class="card">
+                <h2>📧 Reportes Recientes</h2>
+                <div style="color: #a0a0c0; font-size: 13px;">
+                    <div style="padding: 12px; border-bottom: 1px solid rgba(0, 212, 255, 0.1);">
+                        📄 Reporte Diario 19/04/2026 - <span style="color: #00ff88;">PDF</span>, <span style="color: #00ff88;">Excel</span>
+                    </div>
+                    <div style="padding: 12px; border-bottom: 1px solid rgba(0, 212, 255, 0.1);">
+                        📄 Reporte Semanal 15/04/2026 - <span style="color: #00ff88;">PDF</span>, <span style="color: #00ff88;">Excel</span>
+                    </div>
+                    <div style="padding: 12px;">
+                        📄 Reporte Mensual Marzo - <span style="color: #00ff88;">PDF</span>, <span style="color: #00ff88;">Excel</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // TAB SWITCHING
+        function mostrarTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Load data for tab
+            if (tabName === 'recomendaciones') {
+                cargarOperarios();
+            } else if (tabName === 'alertas') {
+                cargarAlertas();
+            }
+        }
+
+        // CONFIG FUNCTIONS
+        function updateValue(slider) {
+            const valueDisplay = document.getElementById(slider.id + '-val');
+            const suffix = slider.id.includes('vel') || slider.id.includes('minima') ? 's' : '%';
+            valueDisplay.textContent = slider.value + suffix;
+        }
+
+        function guardarConfig() {
+            const config = {
+                caida_critica: document.getElementById('caida-critica').value,
+                caida_alta: document.getElementById('caida-alta').value,
+                caida_media: document.getElementById('caida-media').value,
+                error_maximo: document.getElementById('error-maximo').value,
+                vel_minima: document.getElementById('vel-minima').value,
+                esp_minima: document.getElementById('esp-minima').value,
+                alertas: {
+                    caida: document.getElementById('alert-caida').checked,
+                    error: document.getElementById('alert-error').checked,
+                    especialidad: document.getElementById('alert-especialidad').checked,
+                    pausa: document.getElementById('alert-pausa').checked,
+                    anomalia: document.getElementById('alert-anomalia').checked
+                },
+                email_destino: document.getElementById('email-destino').value,
+                frecuencia_reporte: document.getElementById('freq-reporte').value,
+                reportes: {
+                    ranking: document.getElementById('rep-ranking').checked,
+                    graficos: document.getElementById('rep-graficos').checked,
+                    anomalias: document.getElementById('rep-anomalias').checked,
+                    recomendaciones: document.getElementById('rep-recomendaciones').checked
+                }
+            };
+
+            fetch('/api/config/guardar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            }).then(r => r.json()).then(data => {
+                alert('✅ Configuración guardada');
+                document.getElementById('update-time').textContent = new Date().toLocaleTimeString();
+            });
+        }
+
+        function resetearConfig() {
+            if (confirm('¿Restaurar configuración por defecto?')) {
+                document.getElementById('caida-critica').value = 20;
+                document.getElementById('caida-alta').value = 15;
+                document.getElementById('caida-media').value = 10;
+                document.getElementById('error-maximo').value = 5;
+                document.getElementById('vel-minima').value = 28;
+                document.getElementById('esp-minima').value = 20;
+
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+
+                document.querySelectorAll('input[type="range"]').forEach(slider => updateValue(slider));
+
+                guardarConfig();
+            }
+        }
+
+        // RECOMENDACIONES
+        async function cargarOperarios() {
+            const resp = await fetch('/api/operarios');
+            const data = await resp.json();
+            const selector = document.getElementById('operario-selector');
+            selector.innerHTML = '<option value="">Seleccionar operario...</option>';
+
+            data.operarios.forEach(op => {
+                const option = document.createElement('option');
+                option.value = op.operario_id;
+                option.textContent = op.operario_id + ' - ' + op.nombre;
+                selector.appendChild(option);
+            });
+        }
+
+        // Provider leído del backend (AI_PROVIDER en .env) — no editable por el usuario
+        let _activeProvider = 'claude';
+
+        async function initProvider() {
+            try {
+                const resp = await fetch('/api/config/ia');
+                const data = await resp.json();
+                _activeProvider = data.provider || 'claude';
+                const labelEl = document.getElementById('ia-label');
+                if (labelEl) labelEl.textContent = data.label || data.provider;
+            } catch (e) {
+                console.warn('No se pudo leer proveedor IA:', e);
+            }
+        }
+
+        function getProvider() {
+            return _activeProvider;
+        }
+
+        function getProviderLabel(provider) {
+            const labels = {
+                claude: 'Claude AI (Anthropic)',
+                ollama: 'Ollama (Local)',
+                gemini: 'Gemini (Google)',
+                azure: 'Azure OpenAI'
+            };
+            return labels[provider] || provider;
+        }
+
+        async function cargarRecomendaciones() {
+            const operarioId = document.getElementById('operario-selector').value;
+            if (!operarioId) return;
+
+            const provider = getProvider();
+            const container = document.getElementById('recomendaciones-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando recomendaciones con IA...</div>';
+
+            try {
+                // Usar endpoint enriquecido con IA
+                const resp = await fetch(`/api/recomendaciones/${operarioId}/enriquecido?provider=${provider}`);
+                const data = await resp.json();
+
+                if (data.recomendaciones.length === 0) {
+                    container.innerHTML = '<div class="card"><p style="color: #00ff88;">✅ No hay recomendaciones. Operario en buen estado.</p></div>';
+                    return;
+                }
+
+                // Paleta por tipo de recomendación
+                const TIPOS = {
+                    patron_semanal:    { icon: '📅', color: '#7c3aed', bg: 'rgba(124,58,237,0.15)', label: 'Patrón Semanal' },
+                    gestion_pausas:    { icon: '☕', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', label: 'Gestión Pausas' },
+                    recuperacion_pausa:{ icon: '☕', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', label: 'Recuperación' },
+                    tasa_error:        { icon: '🎯', color: '#ef4444', bg: 'rgba(239,68,68,0.15)',  label: 'Tasa Error' },
+                    reduccion_errores: { icon: '🎯', color: '#ef4444', bg: 'rgba(239,68,68,0.15)',  label: 'Tasa Error' },
+                    caida_progresiva:  { icon: '📉', color: '#ff4757', bg: 'rgba(255,71,87,0.15)',  label: 'Caída Progresiva' },
+                    especializacion:   { icon: '⭐', color: '#00ff88', bg: 'rgba(0,255,136,0.12)',  label: 'Especialización' },
+                    anomalia:          { icon: '⚠️', color: '#ffa502', bg: 'rgba(255,165,2,0.15)',  label: 'Anomalía' },
+                };
+                const DEFAULT_TIPO = { icon: '💡', color: '#00d4ff', bg: 'rgba(0,212,255,0.12)', label: 'Insight' };
+
+                const genTime = (data.generation_time_ms / 1000).toFixed(1);
+                const poweredBy = data.powered_by || getProviderLabel(provider);
+                const modelUsed = data.model_used || provider;
+                const fromCache = data.cached ? ' · 📦 caché' : '';
+                let html = `
+                    <div class="ai-header-banner">
+                        <span style="font-size:18px;">✨</span>
+                        <span class="ai-badge">Potenciado por ${poweredBy}</span>
+                        <span style="color:#6060a0; font-size:12px;">${data.total_recomendaciones} recomendaciones generadas</span>
+                        <span class="ai-time">⏱ ${genTime}s · ${modelUsed}${fromCache}</span>
+                    </div>`;
+
+                data.recomendaciones.forEach((rec, idx) => {
+                    const confianza = rec.confianza || 80;
+                    const tipoKey = (rec.tipo || '').toLowerCase().replace(/\s/g, '_');
+                    const t = TIPOS[tipoKey] || DEFAULT_TIPO;
+                    const confColor = confianza >= 85 ? '#00ff88' : confianza >= 70 ? '#ffa502' : '#ff4757';
+
+                    html += `
+                        <div class="recom-card" style="animation-delay: ${idx * 0.12}s;">
+                            <div class="recom-card-accent" style="background: linear-gradient(90deg, ${t.color}, transparent);"></div>
+                            <div class="recom-card-body">
+                                <div class="recom-card-header">
+                                    <div>
+                                        <div class="recom-title">${rec.titulo}</div>
+                                    </div>
+                                    <div class="recom-card-meta">
+                                        <span class="tipo-chip" style="background:${t.bg}; color:${t.color}; border: 1px solid ${t.color}40;">
+                                            ${t.icon} ${t.label}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="confidence-bar-wrap">
+                                    <span class="confidence-label">Confianza IA</span>
+                                    <div class="confidence-track">
+                                        <div class="confidence-fill" style="width:${confianza}%; background: linear-gradient(90deg, ${confColor}80, ${confColor});"></div>
+                                    </div>
+                                    <span class="confidence-value" style="color:${confColor};">${confianza}%</span>
+                                </div>
+
+                                <div class="recom-desc-v2">${rec.descripcion}</div>
+
+                                <div class="accion-box">
+                                    <span class="accion-icon">⚡</span>
+                                    <span class="accion-text">${rec.accion}</span>
+                                </div>
+
+                                <div class="impacto-row">
+                                    <span class="impacto-label">💰 IMPACTO</span>
+                                    <span class="impacto-text">${rec.impacto}</span>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = '<div class="card"><p style="color: #ff4757;">Error cargando recomendaciones: ' + error.message + '</p></div>';
+            }
+        }
+
+        function tomarAccion(accion) {
+            alert('Acción: ' + accion + '\nImplementación en desarrollo');
+        }
+
+        // ALERTAS
+        async function cargarAlertas() {
+            const container = document.getElementById('alertas-container');
+            if (!container) {
+                console.error('No se encontró alertas-container');
+                return;
+            }
+
+            const provider = getProvider();
+            const btn = document.getElementById('btn-refresh-alertas');
+            if (btn) btn.disabled = true;
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando alertas con análisis de causa raíz...</div>';
+
+            try {
+                // Usar endpoint enriquecido con selección de proveedor IA
+                const resp = await fetch(`/api/alertas/enriquecidas?dias=1&provider=${provider}`);
+                const data = await resp.json();
+
+                const ts = new Date().toLocaleTimeString();
+                const tsEl = document.getElementById('alertas-last-update');
+                if (tsEl) tsEl.textContent = ts;
+                if (btn) btn.disabled = false;
+
+                if (!data.alertas || data.alertas.length === 0) {
+                    container.innerHTML = '<div style="padding: 20px; text-align: center; background: rgba(0, 255, 136, 0.1); border-radius: 8px; margin-top: 10px;"><p style="color: #00ff88; font-size: 16px; margin: 0;">✅ Sin alertas activas</p></div>';
+                    return;
+                }
+
+                const poweredByA = data.powered_by || getProviderLabel(provider);
+                const fromCacheA = data.cached ? ' · 📦 caché' : '';
+                let html = `<div style="margin-bottom: 15px; padding: 12px; background: rgba(0, 212, 255, 0.1); border-radius: 8px; font-size: 12px; color: #00d4ff;">
+                    🤖 <strong>Análisis de Causa Raíz — ${poweredByA}</strong> | ${data.generation_time_ms}ms${fromCacheA}
+                </div>`;
+
+                html += '<div style="margin-top: 10px;">';
+                data.alertas.forEach((alerta, idx) => {
+                    html += `
+                        <div style="padding: 15px; border: 1px solid rgba(0, 212, 255, 0.1); margin-bottom: 10px; border-radius: 8px; background: rgba(64, 64, 96, 0.3);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #e0e0e0; margin-bottom: 5px;">${alerta.titulo}</div>
+                                    <div style="font-size: 12px; color: #a0a0c0;">Operario: <strong>${alerta.operario_id}</strong> | Valor actual: <strong>${alerta.valor_actual.toFixed(1)}%</strong></div>
+                                </div>
+                                <span class="alerta-badge ${alerta.severidad === 'CRÍTICA' ? 'alerta-critica' : alerta.severidad === 'ALTA' ? 'alerta-alta' : 'alerta-normal'}" style="margin-left: 10px; white-space: nowrap;">
+                                    ${alerta.severidad}
+                                </span>
+                            </div>
+
+                            <!-- CAUSAS PROBABLES -->
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 212, 255, 0.1);">
+                                <div style="font-size: 11px; color: #ffc800; font-weight: 600; margin-bottom: 8px;">🔍 ANÁLISIS DE CAUSA RAÍZ (Claude AI)</div>
+                                ${alerta.causas_probables && alerta.causas_probables.length > 0 ?
+                                    alerta.causas_probables.map(causa => `
+                                        <div style="background: rgba(255, 200, 0, 0.08); padding: 10px; margin-bottom: 8px; border-left: 3px solid #ffc800; border-radius: 4px;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                                <div style="font-weight: 600; color: #ffc800;">Causa ${causa.numero}: ${causa.causa}</div>
+                                                <span style="background: rgba(255, 200, 0, 0.3); color: #ffc800; padding: 2px 8px; border-radius: 4px; font-size: 10px;">
+                                                    ${causa.probabilidad}% confianza
+                                                </span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #a0a0c0; margin-left: 5px;">
+                                                📋 ${causa.investigacion}
+                                            </div>
+                                        </div>
+                                    `).join('')
+                                    : '<div style="color: #a0a0c0; font-size: 11px;">No hay análisis de causa disponible</div>'
+                                }
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error cargando alertas:', error);
+                if (btn) btn.disabled = false;
+                container.innerHTML = '<p style="color: #ff4757;">❌ Error cargando alertas: ' + error.message + '</p>';
+            }
+        }
+
+        // REPORTES
+        function exportarPDF() {
+            window.print();
+        }
+
+        async function generarReporte() {
+            const tipo = document.getElementById('tipo-reporte').value;
+            const provider = getProvider();
+            const reporteContainer = document.getElementById('reporte-container');
+
+            if (!reporteContainer) return;
+
+            document.getElementById('btn-export-pdf').style.display = 'none';
+            reporteContainer.innerHTML = '<div class="loading"><div class="spinner"></div>Generando Resumen Ejecutivo con IA...</div>';
+
+            try {
+                // Obtener el resumen enriquecido con IA seleccionada
+                const respEnriquecido = await fetch(`/api/reportes/enriquecido?tipo=${tipo}&provider=${provider}`);
+                const dataEnriquecido = await respEnriquecido.json();
+
+                const poweredByR = dataEnriquecido.powered_by || getProviderLabel(provider);
+                const fromCacheR = dataEnriquecido.cached ? ' · 📦 caché' : '';
+                let html = `<div style="margin-bottom: 20px; padding: 15px; background: rgba(0, 212, 255, 0.1); border-radius: 8px; font-size: 13px; color: #00d4ff;">
+                    🔮 <strong>Resumen Ejecutivo — ${poweredByR}</strong> | ${dataEnriquecido.generation_time_ms}ms${fromCacheR}
+                </div>`;
+
+                // Mostrar resumen ejecutivo
+                if (dataEnriquecido.resumen_ejecutivo) {
+                    const r = dataEnriquecido.resumen_ejecutivo;
+                    html += `
+                        <div class="card print-card">
+                            <h2 style="color: #00ff88; margin-bottom: 15px;">📊 ${r.titulo}</h2>
+
+                            <div style="background: rgba(0, 255, 136, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #00ff88;">
+                                <p style="color: #e0e0e0; line-height: 1.6; margin: 0;">${r.narrativa}</p>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="color: #00d4ff; margin-bottom: 15px;">💡 Top Insights</h3>
+                                ${r.top_insights && r.top_insights.map((insight, idx) => `
+                                    <div style="background: rgba(64, 64, 96, 0.3); padding: 15px; margin-bottom: 12px; border-radius: 8px; border-left: 4px solid
+                                        ${insight.urgencia === 'CRÍTICA' ? '#ff4757' : insight.urgencia === 'ALTA' ? '#ffa502' : '#00d4ff'};">
+                                        <div style="font-weight: 600; color: #e0e0e0; margin-bottom: 8px;">
+                                            ${idx + 1}. ${insight.insight}
+                                        </div>
+                                        <div style="font-size: 12px; color: #a0a0c0; margin-bottom: 8px;">
+                                            💰 Impacto: $${insight.impacto_pesos ? insight.impacto_pesos.toLocaleString() : '0'}
+                                        </div>
+                                        <div style="font-size: 12px; color: #00ff88;">
+                                            ✓ Recomendación: ${insight.recomendacion}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            ${r.tendencias && r.tendencias.length > 0 ? `
+                                <div style="margin-bottom: 20px;">
+                                    <h3 style="color: #00d4ff; margin-bottom: 15px;">📈 Tendencias Detectadas</h3>
+                                    <ul style="list-style: none; padding: 0;">
+                                        ${r.tendencias.map(t => `
+                                            <li style="padding: 10px; color: #a0a0c0; border-left: 3px solid #ffc800; margin-bottom: 8px; padding-left: 12px;">
+                                                ${t}
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+
+                            ${r.prioridades_mañana && r.prioridades_mañana.length > 0 ? `
+                                <div>
+                                    <h3 style="color: #ff4757; margin-bottom: 15px;">⚡ Prioridades Mañana</h3>
+                                    <ul style="list-style: none; padding: 0;">
+                                        ${r.prioridades_mañana.map(p => `
+                                            <li style="padding: 10px; color: #e0e0e0; border-left: 3px solid #ff4757; margin-bottom: 8px; padding-left: 12px;">
+                                                ${p}
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                reporteContainer.innerHTML = html;
+
+                // Mostrar botón PDF ahora que hay contenido para imprimir
+                document.getElementById('btn-export-pdf').style.display = 'inline-block';
+
+            } catch (error) {
+                console.error('Error:', error);
+                reporteContainer.innerHTML = '<p style="color: #ff4757;">Error generando reporte: ' + error.message + '</p>';
+            }
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', function() {
+            initProvider();
+            cargarOperarios();
+            document.getElementById('update-time').textContent = new Date().toLocaleTimeString();
+            // Las alertas se cargan solo cuando el usuario navega al tab o hace clic en Refrescar
+        });
+    </script>
+</body>
+</html>

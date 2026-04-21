@@ -17,6 +17,9 @@ from dotenv import load_dotenv
 from db.schema import init_db
 from routers.ai import router as ai_router
 from routers.data import router as data_router
+from routers.turnos import router as turnos_router
+from routers.operarios import router as operarios_router
+from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
 load_dotenv(override=True)
@@ -59,6 +62,9 @@ app = FastAPI(
 
 app.include_router(ai_router, prefix="/api")
 app.include_router(data_router, prefix="/api")
+app.include_router(turnos_router)
+app.include_router(operarios_router)
+app.include_router(websocket_router)
 
 # Archivos estáticos — css, js y resources
 app.mount("/css",       StaticFiles(directory=STATIC_DIR / "css"),  name="css")
@@ -74,6 +80,7 @@ _PAGES = [
     "/recepcion",    "recepcion.html",
     "/reposicion",   "reposicion.html",
     "/planificacion","planificacion.html",
+    "/fase1",        "fase1_dashboard.html",
 ]
 
 @app.get("/",              include_in_schema=False)
@@ -102,6 +109,39 @@ async def page_reposicion():   return FileResponse(STATIC_DIR / "reposicion.html
 @app.get("/planificacion.html",include_in_schema=False)
 @app.get("/planificacion",     include_in_schema=False)
 async def page_planificacion():return FileResponse(STATIC_DIR / "planificacion.html")
+
+@app.get("/fase1.html",        include_in_schema=False)
+@app.get("/fase1",             include_in_schema=False)
+async def page_fase1():        return FileResponse(STATIC_DIR / "fase1_dashboard.html")
+
+@app.get("/turno_realtime.html", include_in_schema=False)
+@app.get("/turno_realtime",      include_in_schema=False)
+async def page_turno_realtime(): return FileResponse(STATIC_DIR / "turno_realtime.html")
+
+@app.get("/detalle_operario.html", include_in_schema=False)
+@app.get("/detalle_operario",      include_in_schema=False)
+async def page_detalle_operario(): return FileResponse(STATIC_DIR / "detalle_operario.html")
+
+@app.get("/comparativas.html",   include_in_schema=False)
+@app.get("/comparativas",        include_in_schema=False)
+async def page_comparativas():   return FileResponse(STATIC_DIR / "comparativas.html")
+
+@app.get("/config_y_recomendaciones.html", include_in_schema=False)
+@app.get("/config_y_recomendaciones",      include_in_schema=False)
+async def page_config_y_recomendaciones(): return FileResponse(STATIC_DIR / "config_y_recomendaciones.html")
+
+
+@app.get("/api/config/ia", include_in_schema=False)
+async def config_ia():
+    """Expone el proveedor IA activo (sin claves). Configurar via AI_PROVIDER en .env."""
+    provider = os.getenv("AI_PROVIDER", "claude")
+    labels = {
+        "claude": "Claude AI (Anthropic)",
+        "ollama": "Ollama (Local)",
+        "gemini": "Gemini (Google)",
+        "azure": "Azure OpenAI",
+    }
+    return JSONResponse({"provider": provider, "label": labels.get(provider, provider)})
 
 
 # ── Turno activo con campo proceso (v3) ───────────────────────────────────────
@@ -140,5 +180,5 @@ async def turno_activo_v3():
 
 # ── Arranque ──────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=False)
+    uvicorn.run("main:app", host="0.0.0.0", port=9999, reload=False)
   

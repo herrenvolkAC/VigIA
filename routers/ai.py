@@ -61,7 +61,7 @@ SYSTEM_CHAT = (
     "Solo usas datos del contexto operativo. No inventas informacion."
 )
 
-TIMEOUT = 60.0
+TIMEOUT = float(os.getenv("AI_TIMEOUT", "300"))  # default 5 min — configurable en .env
 
 
 # ── Helpers de configuración ──────────────────────────────────────────────────
@@ -163,13 +163,13 @@ async def _call_gemini(system: str, messages: list) -> str:
     return data["candidates"][0]["content"]["parts"][0]["text"]
 
 
-async def _call_claude(system: str, messages: list) -> str:
+async def _call_claude(system: str, messages: list, max_tokens: int = 4096) -> str:
     import anthropic
     t0 = time.time()
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=2000,
+        max_tokens=max_tokens,
         system=system,
         messages=messages,
     )

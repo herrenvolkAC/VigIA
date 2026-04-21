@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VigIA - Panel Comparativas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(64, 64, 96, 0.5);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .header-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .info-badge {
+            padding: 8px 16px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            color: #00ff88;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* GRID LAYOUT */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* CARDS */
+        .card {
+            background: rgba(64, 64, 96, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 212, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .card h2 {
+            font-size: 18px;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            font-size: 20px;
+        }
+
+        /* CLUSTER CARDS */
+        .cluster-card {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .cluster-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cluster-high .cluster-name {
+            color: #00ff88;
+        }
+
+        .cluster-mid .cluster-name {
+            color: #ffc107;
+        }
+
+        .cluster-learning .cluster-name {
+            color: #ff6b6b;
+        }
+
+        .cluster-count {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cluster-stats {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 13px;
+            color: #a0a0c0;
+        }
+
+        .stat-value {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .cluster-toppers {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .topper {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #e0e0e0;
+        }
+
+        /* SCATTER PLOT CONTAINER */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container-tall {
+            height: 500px;
+        }
+
+        /* BENCHMARK SECTION */
+        .benchmark-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .benchmark-item {
+            background: rgba(64, 64, 96, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .benchmark-item h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .benchmark-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+        }
+
+        .benchmark-row:last-child {
+            border-bottom: none;
+        }
+
+        .benchmark-label {
+            color: #a0a0c0;
+        }
+
+        .benchmark-value {
+            font-weight: 600;
+            color: #00ff88;
+        }
+
+        .benchmark-negative {
+            color: #ff6b6b;
+        }
+
+        .benchmark-positive {
+            color: #00ff88;
+        }
+
+        /* OPERARIO SELECTOR */
+        .selector-section {
+            margin-bottom: 30px;
+        }
+
+        .selector-section label {
+            display: block;
+            margin-bottom: 10px;
+            color: #00d4ff;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        select {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            background: rgba(64, 64, 96, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:hover {
+            border-color: rgba(0, 212, 255, 0.6);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .grid-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .benchmark-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .header-info {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .card h2 {
+                justify-content: center;
+            }
+
+            .cluster-stats {
+                text-align: center;
+            }
+
+            .stat-row {
+                justify-content: center;
+                gap: 20px;
+            }
+        }
+
+        /* LOADING STATE */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #00d4ff;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 212, 255, 0.2);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* SECTION TITLE */
+        .section-title {
+            font-size: 20px;
+            color: #00d4ff;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🎯 Panel Comparativas</h1>
+            <div class="header-info">
+                <div class="info-badge">
+                    <span class="status-dot"></span>
+                    Datos en Vivo
+                </div>
+                <div class="info-badge" id="operarios-count">
+                    10 Operarios
+                </div>
+            </div>
+        </div>
+
+        <!-- CLUSTERING VISUALIZATION -->
+        <div class="section-title">Clustering de Operarios</div>
+        <div class="card">
+            <h2><span class="card-icon">📊</span> Distribución de Performance</h2>
+            <p style="font-size: 12px; color: #a0a0c0; margin-bottom: 15px;">
+                Scatter plot mostrando todos los operarios posicionados por picks totales vs velocidad promedio.
+                El tamaño de los puntos representa la cantidad de bultos completados.
+            </p>
+            <div class="chart-container chart-container-tall">
+                <canvas id="scatterChart"></canvas>
+            </div>
+        </div>
+
+        <!-- CLUSTERS SUMMARY -->
+        <div class="section-title">Resumen de Clusters</div>
+        <div class="grid-3">
+            <!-- HIGH PERFORMERS -->
+            <div class="card cluster-card cluster-high">
+                <div class="cluster-name">🌟 High Performers</div>
+                <div class="cluster-count" id="high-count">3</div>
+                <div class="cluster-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Score Promedio:</span>
+                        <span class="stat-value" id="high-score">85.5</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Picks Promedio:</span>
+                        <span class="stat-value" id="high-picks">5,200</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Velocidad:</span>
+                        <span class="stat-value" id="high-vel">24.3s</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Tasa Error:</span>
+                        <span class="stat-value" id="high-error">2.1%</span>
+                    </div>
+                </div>
+                <div class="cluster-toppers">
+                    <div style="font-size: 12px; color: #a0a0c0; margin-bottom: 8px;">Top Performers:</div>
+                    <div id="high-toppers"></div>
+                </div>
+            </div>
+
+            <!-- MID RANGE -->
+            <div class="card cluster-card cluster-mid">
+                <div class="cluster-name">📈 Mid Range</div>
+                <div class="cluster-count" id="mid-count">4</div>
+                <div class="cluster-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Score Promedio:</span>
+                        <span class="stat-value" id="mid-score">65.2</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Picks Promedio:</span>
+                        <span class="stat-value" id="mid-picks">3,850</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Velocidad:</span>
+                        <span class="stat-value" id="mid-vel">28.7s</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Tasa Error:</span>
+                        <span class="stat-value" id="mid-error">3.4%</span>
+                    </div>
+                </div>
+                <div class="cluster-toppers">
+                    <div style="font-size: 12px; color: #a0a0c0; margin-bottom: 8px;">Destacados:</div>
+                    <div id="mid-toppers"></div>
+                </div>
+            </div>
+
+            <!-- LEARNING -->
+            <div class="card cluster-card cluster-learning">
+                <div class="cluster-name">🚀 Learning</div>
+                <div class="cluster-count" id="learning-count">3</div>
+                <div class="cluster-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Score Promedio:</span>
+                        <span class="stat-value" id="learning-score">42.8</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Picks Promedio:</span>
+                        <span class="stat-value" id="learning-picks">1,950</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Velocidad:</span>
+                        <span class="stat-value" id="learning-vel">35.2s</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Tasa Error:</span>
+                        <span class="stat-value" id="learning-error">5.2%</span>
+                    </div>
+                </div>
+                <div class="cluster-toppers">
+                    <div style="font-size: 12px; color: #a0a0c0; margin-bottom: 8px;">Potencial:</div>
+                    <div id="learning-toppers"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BENCHMARK SECTION -->
+        <div class="section-title">Benchmark Individual</div>
+        <div class="selector-section">
+            <label for="operario-selector">Seleccionar Operario:</label>
+            <select id="operario-selector" onchange="cargarBenchmark()">
+                <option value="">Cargando...</option>
+            </select>
+        </div>
+
+        <div class="benchmark-grid">
+            <div class="card">
+                <h3>📊 Métricas del Operario</h3>
+                <div class="benchmark-row">
+                    <span class="benchmark-label">Total Picks:</span>
+                    <span class="benchmark-value" id="op-picks">0</span>
+                </div>
+                <div class="benchmark-row">
+                    <span class="benchmark-label">Velocidad Promedio:</span>
+                    <span class="benchmark-value" id="op-vel">0s</span>
+                </div>
+                <div class="benchmark-row">
+                    <span class="benchmark-label">Tasa Error:</span>
+                    <span class="benchmark-value" id="op-error">0%</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>👥 Promedio del Grupo</h3>
+                <div class="benchmark-row">
+                    <span class="benchmark-label">Total Picks:</span>
+                    <span class="benchmark-value" id="group-picks">0</span>
+                </div>
+                <div class="benchmark-row">
+                    <span class="benchmark-label">Velocidad Promedio:</span>
+                    <span class="benchmark-value" id="group-vel">0s</span>
+                </div>
+                <div class="benchmark-row">
+                    <span class="benchmark-label">Tasa Error:</span>
+                    <span class="benchmark-value" id="group-error">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPARATIVA -->
+        <div class="card">
+            <h2><span class="card-icon">📈</span> Diferencias vs Grupo</h2>
+            <div class="benchmark-row">
+                <span class="benchmark-label">Picks:</span>
+                <span class="benchmark-value" id="diff-picks">+0%</span>
+            </div>
+            <div class="benchmark-row">
+                <span class="benchmark-label">Velocidad:</span>
+                <span class="benchmark-value" id="diff-vel">0%</span>
+            </div>
+            <div class="benchmark-row">
+                <span class="benchmark-label">Tasa Error:</span>
+                <span class="benchmark-value" id="diff-error">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scatterChart = null;
+        let allMetricas = [];
+
+        // ====== FUNCIONES PRINCIPALES ======
+
+        async function cargarDatos() {
+            console.log("[COMPARATIVAS] Cargando datos...");
+
+            try {
+                // Cargar métricas de todos los operarios
+                const metricsResp = await fetch("/api/comparativas/metricas");
+                const metricsData = await metricsResp.json();
+                allMetricas = metricsData.metricas || [];
+
+                // Cargar clustering
+                const clustersResp = await fetch("/api/comparativas/clusters");
+                const clustersData = await clustersResp.json();
+
+                // Actualizar UI
+                document.getElementById("operarios-count").textContent = allMetricas.length + " Operarios";
+
+                mostrarClusters(clustersData.clusters);
+                mostrarScatter(clustersData.all_scored);
+                cargarSelectores();
+
+                console.log("[COMPARATIVAS] Datos cargados: " + allMetricas.length + " operarios");
+            } catch (error) {
+                console.error("[ERROR]", error);
+            }
+        }
+
+        function mostrarClusters(clusters) {
+            // HIGH PERFORMERS
+            const high = clusters.high_performers;
+            document.getElementById("high-count").textContent = high.count;
+            document.getElementById("high-score").textContent = high.stats.avg_score;
+            document.getElementById("high-picks").textContent = high.stats.avg_picks.toLocaleString();
+            document.getElementById("high-vel").textContent = high.stats.avg_vel + "s";
+            document.getElementById("high-error").textContent = high.stats.avg_error.toFixed(1) + "%";
+
+            let highToppers = "";
+            high.operarios.forEach(op => {
+                highToppers += `<div class="topper">⭐ ${op.operario_id} (${op.score})</div>`;
+            });
+            document.getElementById("high-toppers").innerHTML = highToppers;
+
+            // MID RANGE
+            const mid = clusters.mid_range;
+            document.getElementById("mid-count").textContent = mid.count;
+            document.getElementById("mid-score").textContent = mid.stats.avg_score;
+            document.getElementById("mid-picks").textContent = mid.stats.avg_picks.toLocaleString();
+            document.getElementById("mid-vel").textContent = mid.stats.avg_vel + "s";
+            document.getElementById("mid-error").textContent = mid.stats.avg_error.toFixed(1) + "%";
+
+            let midToppers = "";
+            mid.operarios.forEach(op => {
+                midToppers += `<div class="topper">📈 ${op.operario_id} (${op.score})</div>`;
+            });
+            document.getElementById("mid-toppers").innerHTML = midToppers;
+
+            // LEARNING
+            const learning = clusters.learning;
+            document.getElementById("learning-count").textContent = learning.count;
+            document.getElementById("learning-score").textContent = learning.stats.avg_score;
+            document.getElementById("learning-picks").textContent = learning.stats.avg_picks.toLocaleString();
+            document.getElementById("learning-vel").textContent = learning.stats.avg_vel + "s";
+            document.getElementById("learning-error").textContent = learning.stats.avg_error.toFixed(1) + "%";
+
+            let learningToppers = "";
+            learning.operarios.forEach(op => {
+                learningToppers += `<div class="topper">🚀 ${op.operario_id} (${op.score})</div>`;
+            });
+            document.getElementById("learning-toppers").innerHTML = learningToppers;
+        }
+
+        function mostrarScatter(scoredOperarios) {
+            // Preparar datos para scatter
+            const datasets = [
+                {
+                    label: "High Performers",
+                    data: scoredOperarios.slice(0, Math.ceil(scoredOperarios.length * 0.33)).map(op => ({
+                        x: op.velocidad_promedio,
+                        y: op.total_picks,
+                        r: Math.sqrt(op.total_picks) / 10
+                    })),
+                    backgroundColor: "rgba(0, 255, 136, 0.7)",
+                    borderColor: "#00ff88",
+                    borderWidth: 2
+                },
+                {
+                    label: "Mid Range",
+                    data: scoredOperarios.slice(
+                        Math.ceil(scoredOperarios.length * 0.33),
+                        Math.ceil(scoredOperarios.length * 0.67)
+                    ).map(op => ({
+                        x: op.velocidad_promedio,
+                        y: op.total_picks,
+                        r: Math.sqrt(op.total_picks) / 10
+                    })),
+                    backgroundColor: "rgba(255, 193, 7, 0.7)",
+                    borderColor: "#ffc107",
+                    borderWidth: 2
+                },
+                {
+                    label: "Learning",
+                    data: scoredOperarios.slice(Math.ceil(scoredOperarios.length * 0.67)).map(op => ({
+                        x: op.velocidad_promedio,
+                        y: op.total_picks,
+                        r: Math.sqrt(op.total_picks) / 10
+                    })),
+                    backgroundColor: "rgba(255, 107, 107, 0.7)",
+                    borderColor: "#ff6b6b",
+                    borderWidth: 2
+                }
+            ];
+
+            const ctx = document.getElementById("scatterChart").getContext("2d");
+
+            if (scatterChart) {
+                scatterChart.destroy();
+            }
+
+            scatterChart = new Chart(ctx, {
+                type: "bubble",
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: "#a0a0c0", usePointStyle: true, padding: 20 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: "linear",
+                            position: "bottom",
+                            title: {
+                                display: true,
+                                text: "Velocidad Promedio (segundos)",
+                                color: "#a0a0c0"
+                            },
+                            grid: { color: "rgba(255, 255, 255, 0.05)" },
+                            ticks: { color: "#a0a0c0" }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Total Picks",
+                                color: "#a0a0c0"
+                            },
+                            grid: { color: "rgba(255, 255, 255, 0.05)" },
+                            ticks: { color: "#a0a0c0" }
+                        }
+                    }
+                }
+            });
+        }
+
+        function cargarSelectores() {
+            const selector = document.getElementById("operario-selector");
+            selector.innerHTML = '<option value="">Seleccionar operario...</option>';
+
+            allMetricas.forEach(op => {
+                const option = document.createElement("option");
+                option.value = op.operario_id;
+                option.textContent = op.display_id + " - " + op.total_picks + " picks";
+                selector.appendChild(option);
+            });
+
+            // Cargar primer operario
+            if (allMetricas.length > 0) {
+                selector.value = allMetricas[0].operario_id;
+                cargarBenchmark();
+            }
+        }
+
+        async function cargarBenchmark() {
+            const operarioId = document.getElementById("operario-selector").value;
+            if (!operarioId) return;
+
+            try {
+                const resp = await fetch(`/api/comparativas/benchmark/${operarioId}`);
+                const data = await resp.json();
+
+                // Operario
+                document.getElementById("op-picks").textContent = data.operario.total_picks.toLocaleString();
+                document.getElementById("op-vel").textContent = data.operario.velocidad_promedio + "s";
+                document.getElementById("op-error").textContent = data.operario.tasa_error_pct.toFixed(1) + "%";
+
+                // Grupo
+                document.getElementById("group-picks").textContent = Math.round(data.grupo.total_picks_promedio).toLocaleString();
+                document.getElementById("group-vel").textContent = data.grupo.velocidad_promedio + "s";
+                document.getElementById("group-error").textContent = data.grupo.tasa_error_pct.toFixed(1) + "%";
+
+                // Diferencias
+                const diffPicksEl = document.getElementById("diff-picks");
+                const diffPicksVal = data.comparativa.picks_diferencia_pct;
+                diffPicksEl.textContent = (diffPicksVal > 0 ? "+" : "") + diffPicksVal.toFixed(1) + "%";
+                diffPicksEl.className = diffPicksVal >= 0 ? "benchmark-value benchmark-positive" : "benchmark-value benchmark-negative";
+
+                const diffVelEl = document.getElementById("diff-vel");
+                const diffVelVal = data.comparativa.velocidad_diferencia_pct;
+                diffVelEl.textContent = (diffVelVal > 0 ? "+" : "") + diffVelVal.toFixed(1) + "%";
+                diffVelEl.className = diffVelVal >= 0 ? "benchmark-value benchmark-positive" : "benchmark-value benchmark-negative";
+
+                const diffErrorEl = document.getElementById("diff-error");
+                const diffErrorVal = data.comparativa.error_diferencia_pct;
+                diffErrorEl.textContent = (diffErrorVal > 0 ? "+" : "") + diffErrorVal.toFixed(1) + "%";
+                diffErrorEl.className = diffErrorVal >= 0 ? "benchmark-value benchmark-negative" : "benchmark-value benchmark-positive";
+
+            } catch (error) {
+                console.error("[ERROR]", error);
+            }
+        }
+
+        // ====== INIT ======
+        window.addEventListener("load", cargarDatos);
+
+        // Recargar cada 30 segundos
+        setInterval(cargarDatos, 30000);
+    </script>
+</body>
+</html>
