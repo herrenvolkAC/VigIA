@@ -19,6 +19,7 @@ env/
 *.db
 *.sqlite
 *.sqlite3
+vigia.db
 
 # IDEs
 .vscode/
