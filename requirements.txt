@@ -4,3 +4,4 @@ python-dotenv
 anthropic
 httpx
 aiosqlite
+oracledb

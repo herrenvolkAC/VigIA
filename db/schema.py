@@ -142,6 +142,81 @@ CREATE TABLE IF NOT EXISTS historico_olas (
 );
 """
 
+CREATE_PRODUCTIVIDAD_ANALISIS_RUNS = """
+CREATE TABLE IF NOT EXISTS productividad_analisis_runs (
+    run_id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    rango_key             TEXT NOT NULL UNIQUE,
+    fecha_desde           TEXT NOT NULL,
+    fecha_hasta           TEXT NOT NULL,
+    source_name           TEXT DEFAULT 'oracle_productiva',
+    source_rows_count     INTEGER DEFAULT 0,
+    resumen_hash          TEXT,
+    resumen_json          TEXT,
+    ia_provider           TEXT,
+    ia_model              TEXT,
+    ia_prompt_version     TEXT,
+    ia_summary_hash       TEXT,
+    ia_json               TEXT,
+    oracle_cached_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ia_generated_at       DATETIME,
+    created_at            DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at            DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_PRODUCTIVIDAD_ANALISIS_OPERARIO = """
+CREATE TABLE IF NOT EXISTS productividad_analisis_operario (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id                INTEGER NOT NULL REFERENCES productividad_analisis_runs(run_id) ON DELETE CASCADE,
+    operario              TEXT NOT NULL,
+    movimientos           INTEGER DEFAULT 0,
+    cantidad_total        REAL DEFAULT 0,
+    peso_total            REAL DEFAULT 0,
+    pallets_unicos        INTEGER DEFAULT 0,
+    horas_activas         REAL DEFAULT 0,
+    productividad_general REAL DEFAULT 0,
+    movimientos_por_hora  REAL DEFAULT 0,
+    desvio_vs_promedio_pct REAL DEFAULT 0,
+    estado                TEXT
+);
+"""
+
+CREATE_PRODUCTIVIDAD_ANALISIS_OPERARIO_ZONA = """
+CREATE TABLE IF NOT EXISTS productividad_analisis_operario_zona (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id                INTEGER NOT NULL REFERENCES productividad_analisis_runs(run_id) ON DELETE CASCADE,
+    operario              TEXT NOT NULL,
+    zona                  TEXT NOT NULL,
+    movimientos           INTEGER DEFAULT 0,
+    cantidad_total        REAL DEFAULT 0,
+    peso_total            REAL DEFAULT 0,
+    horas_activas         REAL DEFAULT 0,
+    productividad         REAL DEFAULT 0
+);
+"""
+
+CREATE_PRODUCTIVIDAD_ANALISIS_ZONA = """
+CREATE TABLE IF NOT EXISTS productividad_analisis_zona (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id                INTEGER NOT NULL REFERENCES productividad_analisis_runs(run_id) ON DELETE CASCADE,
+    zona                  TEXT NOT NULL,
+    movimientos           INTEGER DEFAULT 0,
+    cantidad_total        REAL DEFAULT 0,
+    peso_total            REAL DEFAULT 0,
+    operarios             INTEGER DEFAULT 0,
+    horas_activas         REAL DEFAULT 0,
+    productividad         REAL DEFAULT 0
+);
+"""
+
+CREATE_PRODUCTIVIDAD_ANALISIS_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_productividad_runs_fechas ON productividad_analisis_runs(fecha_desde, fecha_hasta)",
+    "CREATE INDEX IF NOT EXISTS idx_productividad_operario_run ON productividad_analisis_operario(run_id, operario)",
+    "CREATE INDEX IF NOT EXISTS idx_productividad_operario_hist ON productividad_analisis_operario(operario, run_id)",
+    "CREATE INDEX IF NOT EXISTS idx_productividad_operario_zona_hist ON productividad_analisis_operario_zona(operario, zona, run_id)",
+    "CREATE INDEX IF NOT EXISTS idx_productividad_zona_hist ON productividad_analisis_zona(zona, run_id)",
+]
+
 
 async def init_db():
     """Crea las tablas si no existen."""
@@ -158,10 +233,19 @@ async def init_db():
         await db.execute(CREATE_ASIGNACIONES_OLA)
         await db.execute(CREATE_ESTANDARES_SECTOR)
         await db.execute(CREATE_HISTORICO_OLAS)
+        await db.execute(CREATE_PRODUCTIVIDAD_ANALISIS_RUNS)
+        await db.execute(CREATE_PRODUCTIVIDAD_ANALISIS_OPERARIO)
+        await db.execute(CREATE_PRODUCTIVIDAD_ANALISIS_OPERARIO_ZONA)
+        await db.execute(CREATE_PRODUCTIVIDAD_ANALISIS_ZONA)
+        for statement in CREATE_PRODUCTIVIDAD_ANALISIS_INDEXES:
+            await db.execute(statement)
 
         await db.commit()
     print(f"[DB] Base de datos inicializada: {DB_PATH}")
-    print(f"[DB] OK - Tablas FASE 1 creadas: olas, operarios, asignaciones_ola, estandares_sector, historico_olas")
+    print(
+        "[DB] OK - Tablas creadas: olas, operarios, asignaciones_ola, "
+        "estandares_sector, historico_olas, productividad_analisis_*"
+    )
 
 
 async def get_db():

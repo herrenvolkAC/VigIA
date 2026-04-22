@@ -342,14 +342,28 @@ async def get_operarios_ranking(dias: int = 1):
             fecha_desde = (datetime.now() - __import__('datetime').timedelta(days=dias)).strftime('%Y-%m-%d')
 
             cursor = await db.execute("""
+                WITH picks_ranked AS (
+                    SELECT
+                        operario_id,
+                        estado,
+                        tiempo_segundos,
+                        (strftime('%s', timestamp) - strftime('%s', LAG(timestamp) OVER (
+                            PARTITION BY operario_id
+                            ORDER BY timestamp
+                        ))) as delta_seg
+                    FROM picks_operario
+                    WHERE fecha >= ?
+                )
                 SELECT
                     operario_id,
                     COUNT(*) as picks,
                     COUNT(CASE WHEN estado = 'error' THEN 1 END) as errores,
-                    AVG(tiempo_segundos) as vel_promedio,
+                    COALESCE(
+                        AVG(tiempo_segundos),
+                        AVG(CASE WHEN delta_seg > 0 AND delta_seg < 600 THEN delta_seg END)
+                    ) as vel_promedio,
                     COUNT(CASE WHEN estado = 'error' THEN 1 END) * 100.0 / COUNT(*) as tasa_error
-                FROM picks_operario
-                WHERE fecha >= ?
+                FROM picks_ranked
                 GROUP BY operario_id
                 HAVING picks >= 5
                 ORDER BY picks DESC

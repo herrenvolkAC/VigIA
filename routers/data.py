@@ -159,3 +159,83 @@ async def listar_turnos(limit: int = 20):
         )
         rows = await cursor.fetchall()
     return {"turnos": [dict(r) for r in rows]}
+
+
+@router.get("/cumplimiento/ultimo")
+async def get_cumplimiento_ultimo():
+    """
+    Devuelve la ultima foto disponible de cumplimiento por ola usando historico_olas.
+    La respuesta esta pensada para hidratar picking.html.
+    """
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+
+        cursor = await db.execute("SELECT MAX(fecha) as fecha FROM historico_olas")
+        row = await cursor.fetchone()
+        fecha = row["fecha"] if row else None
+
+        if not fecha:
+            return {"fecha": None, "programa": None, "olas": [], "turnoTotales": {}}
+
+        cursor = await db.execute(
+            """
+            SELECT
+                ola_num,
+                ola_label,
+                turno,
+                hora_ini,
+                hora_fin,
+                prog_secos,
+                prog_noa,
+                ejec_secos,
+                ejec_noa,
+                dot_prog,
+                dot_ejec,
+                prod_prog,
+                prod_ejec
+            FROM historico_olas
+            WHERE fecha = ?
+            ORDER BY ola_num
+            """,
+            (fecha,),
+        )
+        rows = await cursor.fetchall()
+
+    olas = []
+    turno_totales = {}
+    for r in rows:
+        turno = r["turno"]
+        prog_total = round((r["prog_secos"] or 0) + (r["prog_noa"] or 0))
+        ejec_total = round((r["ejec_secos"] or 0) + (r["ejec_noa"] or 0))
+        ini = int(str(r["hora_ini"]).split(":")[0])
+        fin = int(str(r["hora_fin"]).split(":")[0])
+
+        olas.append({
+            "num": r["ola_num"],
+            "label": r["ola_label"] or f"OLA {r['ola_num']}",
+            "turno": turno,
+            "ini": ini,
+            "fin": fin,
+            "progSecos": round(r["prog_secos"] or 0),
+            "progNOA": round(r["prog_noa"] or 0),
+            "progTotal": prog_total,
+            "ejecSecos": round(r["ejec_secos"] or 0),
+            "ejecNOA": round(r["ejec_noa"] or 0),
+            "ejecTotal": ejec_total,
+            "dotProg": r["dot_prog"] or 0,
+            "dotEjec": r["dot_ejec"] or 0,
+            "prodProg": round(r["prod_prog"] or 0, 2),
+            "prodEjec": round(r["prod_ejec"] or 0, 2),
+            "obs": "",
+        })
+
+        turno_totales.setdefault(turno, {"prog": 0, "ejec": 0})
+        turno_totales[turno]["prog"] += prog_total
+        turno_totales[turno]["ejec"] += ejec_total
+
+    return {
+        "fecha": fecha,
+        "programa": f"Historico {fecha}",
+        "olas": olas,
+        "turnoTotales": turno_totales,
+    }

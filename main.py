@@ -19,6 +19,7 @@ from routers.ai import router as ai_router
 from routers.data import router as data_router
 from routers.turnos import router as turnos_router
 from routers.operarios import router as operarios_router
+from routers.productividad_analisis import router as productividad_analisis_router
 from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ app.include_router(ai_router, prefix="/api")
 app.include_router(data_router, prefix="/api")
 app.include_router(turnos_router)
 app.include_router(operarios_router)
+app.include_router(productividad_analisis_router)
 app.include_router(websocket_router)
 
 # Archivos estáticos — css, js y resources
