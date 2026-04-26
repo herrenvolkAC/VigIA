@@ -3,6 +3,21 @@
 Sistema de monitoreo de operaciones de picking en tiempo real con análisis por IA.
 Soporta **Claude (Anthropic)** y **Azure OpenAI** como proveedores de IA intercambiables.
 
+## MÃ³dulo: Sugerencias Plantel Operativo
+
+Dentro de `picking.html` ahora existe el tab **Sugerencias Plantel Operativo**.
+
+El flujo permite:
+- seleccionar turno,
+- cargar bultos por `SECTOR SECOS` y `VARIOS NO ALIMENTOS`,
+- calcular una sugerencia de asignaciÃ³n de plantel contra baseline,
+- proyectar capacidad grupal y hora estimada de fin,
+- guardar escenarios `What If`.
+
+Fuente de datos:
+- prioriza histÃ³rico Oracle con mapping de almacÃ©n desde `VW_UBICACIONES_DIVISION`,
+- si Oracle no estÃ¡ disponible, usa fallback local sobre `vigia.db`.
+
 ---
 
 ## Requisitos

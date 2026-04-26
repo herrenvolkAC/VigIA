@@ -209,12 +209,255 @@ CREATE TABLE IF NOT EXISTS productividad_analisis_zona (
 );
 """
 
+CREATE_CUMPLIMIENTO_ONLINE_SNAPSHOTS = """
+CREATE TABLE IF NOT EXISTS cumplimiento_online_snapshots (
+    snapshot_id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    turno_key            TEXT NOT NULL,
+    turno_label          TEXT NOT NULL,
+    turno_inicio         TEXT NOT NULL,
+    bloque_desde         TEXT NOT NULL,
+    bloque_hasta         TEXT NOT NULL,
+    oracle_rows_count    INTEGER DEFAULT 0,
+    rows_json            TEXT,
+    resumen_json         TEXT,
+    ia_provider          TEXT,
+    ia_model             TEXT,
+    ia_prompt_version    TEXT,
+    ia_sugerencia        TEXT,
+    ia_generated_at      TEXT,
+    created_at           DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at           DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(turno_key, turno_inicio, bloque_hasta)
+);
+"""
+
+CREATE_PLANTEL_SCENARIOS = """
+CREATE TABLE IF NOT EXISTS plantel_scenarios (
+    scenario_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre                 TEXT NOT NULL,
+    turno_key              TEXT NOT NULL,
+    turno_label            TEXT NOT NULL,
+    hora_inicio            TEXT NOT NULL,
+    hora_fin               TEXT NOT NULL,
+    dotacion_total         INTEGER DEFAULT 0,
+    estado                 TEXT DEFAULT 'generado',
+    source_name            TEXT DEFAULT 'oracle_productiva',
+    request_json           TEXT,
+    result_json            TEXT,
+    ia_provider            TEXT,
+    ia_model               TEXT,
+    ia_prompt_version      TEXT,
+    ia_json                TEXT,
+    created_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at             DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_PLANTEL_SCENARIO_ALMACEN = """
+CREATE TABLE IF NOT EXISTS plantel_scenario_almacen (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    scenario_id            INTEGER NOT NULL REFERENCES plantel_scenarios(scenario_id) ON DELETE CASCADE,
+    almacen                TEXT NOT NULL,
+    bultos_turno           REAL DEFAULT 0,
+    lineas_turno           REAL DEFAULT 0,
+    dotacion_sugerida      INTEGER DEFAULT 0,
+    capacidad_equipo       REAL DEFAULT 0,
+    productividad_grupal   REAL DEFAULT 0,
+    hora_fin_estimada      TEXT,
+    cobertura_pct          REAL DEFAULT 0,
+    riesgo                 TEXT,
+    baseline_dotacion      INTEGER DEFAULT 0,
+    baseline_capacidad     REAL DEFAULT 0,
+    baseline_hora_fin      TEXT,
+    baseline_cobertura_pct REAL DEFAULT 0,
+    created_at             DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_PLANTEL_SCENARIO_ASIGNACION = """
+CREATE TABLE IF NOT EXISTS plantel_scenario_asignacion (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    scenario_id            INTEGER NOT NULL REFERENCES plantel_scenarios(scenario_id) ON DELETE CASCADE,
+    operario_id            TEXT NOT NULL,
+    operario_nombre        TEXT,
+    tipo_asignacion        TEXT NOT NULL,
+    almacen                TEXT NOT NULL,
+    score_total            REAL DEFAULT 0,
+    capacidad_estimada     REAL DEFAULT 0,
+    penalizacion           REAL DEFAULT 0,
+    motivo_principal       TEXT,
+    detalle_json           TEXT,
+    created_at             DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_PLANTEL_SCENARIO_METRICA = """
+CREATE TABLE IF NOT EXISTS plantel_scenario_metrica (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    scenario_id            INTEGER NOT NULL REFERENCES plantel_scenarios(scenario_id) ON DELETE CASCADE,
+    metrica_key            TEXT NOT NULL,
+    metrica_valor          REAL,
+    detalle                TEXT,
+    created_at             DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_PLANTEL_HISTORY_CACHE = """
+CREATE TABLE IF NOT EXISTS plantel_history_cache (
+    cache_id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    turno_key               TEXT NOT NULL,
+    history_days            INTEGER NOT NULL,
+    source_name             TEXT NOT NULL,
+    payload_json            TEXT NOT NULL,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(turno_key, history_days, source_name)
+);
+"""
+
+CREATE_PLANTEL_MOVIMIENTOS_HIST = """
+CREATE TABLE IF NOT EXISTS plantel_movimientos_hist (
+    row_uid                 TEXT PRIMARY KEY,
+    fecha                   DATE NOT NULL,
+    fh_movimiento           TEXT NOT NULL,
+    turno_key               TEXT NOT NULL,
+    operario_id             TEXT NOT NULL,
+    operario_nombre         TEXT,
+    zona_origen             TEXT,
+    almacen                 TEXT NOT NULL,
+    cantidad                REAL DEFAULT 0,
+    peso_registrado         REAL DEFAULT 0,
+    nro_pallet              TEXT,
+    source_name             TEXT DEFAULT 'oracle_productiva',
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_UBICACIONES_ORACLE = """
+CREATE TABLE IF NOT EXISTS ubicaciones_oracle (
+    ubicacion_id            TEXT PRIMARY KEY,
+    snapshot_source         TEXT,
+    snapshot_loaded_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    cempresa                TEXT,
+    calmacen                TEXT,
+    czonalma                TEXT NOT NULL,
+    cpasillo                TEXT NOT NULL,
+    chuecopa                INTEGER NOT NULL,
+    cdigcont                TEXT,
+    nnivelal                INTEGER,
+    nposlarg                INTEGER,
+    cumdimen                TEXT,
+    qaltubic                REAL,
+    qancubic                REAL,
+    qlarubic                REAL,
+    cunmpeso                TEXT,
+    qpmaxubi                REAL,
+    cumvolum                TEXT,
+    qvmaxubi                REAL,
+    xpropubi                TEXT,
+    xtipsubi                TEXT,
+    xubilimi                TEXT,
+    fultrecu                TEXT,
+    copultre                TEXT,
+    xsitubic                TEXT,
+    xblqrecu                TEXT,
+    cconsign                TEXT,
+    qpalaltu                REAL,
+    qpalprof                REAL,
+    crotacio                TEXT,
+    qpesoact                REAL,
+    qvoluact                REAL,
+    qpalactu                REAL,
+    xsetrasp                TEXT,
+    xserotos                TEXT,
+    fcreareg                TEXT,
+    fmodireg                TEXT,
+    copecrea                TEXT,
+    codinuti                TEXT,
+    pasifisi                TEXT,
+    ggercome                TEXT,
+    qpemaxpa                REAL,
+    qaltubpi                REAL,
+    ubicacion_codigo        TEXT NOT NULL
+);
+"""
+
+CREATE_PICKING_ANALYSIS_CACHE_RUNS = """
+CREATE TABLE IF NOT EXISTS picking_analysis_cache_runs (
+    cache_run_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha                   DATE NOT NULL,
+    turno_key               TEXT NOT NULL,
+    turno_label             TEXT NOT NULL,
+    fecha_desde             TEXT NOT NULL,
+    fecha_hasta             TEXT NOT NULL,
+    source_name             TEXT DEFAULT 'oracle_productiva',
+    source_rows_count       INTEGER DEFAULT 0,
+    resumen_hash            TEXT,
+    ia_provider             TEXT,
+    ia_model                TEXT,
+    ia_prompt_version       TEXT,
+    ia_summary_hash         TEXT,
+    ia_json                 TEXT,
+    ia_generated_at         DATETIME,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(fecha, turno_key)
+);
+"""
+
+CREATE_PICKING_ANALYSIS_CACHE_ROWS = """
+CREATE TABLE IF NOT EXISTS picking_analysis_cache_rows (
+    row_uid                  TEXT PRIMARY KEY,
+    cache_run_id             INTEGER NOT NULL REFERENCES picking_analysis_cache_runs(cache_run_id) ON DELETE CASCADE,
+    fecha                    DATE NOT NULL,
+    turno_key                TEXT NOT NULL,
+    fh_movimiento            TEXT NOT NULL,
+    copecrea                 TEXT NOT NULL,
+    operario                 TEXT,
+    almacen                  TEXT,
+    zona_origen              TEXT,
+    ubic_origen              TEXT,
+    nro_pallet               TEXT,
+    cantidad                 REAL DEFAULT 0,
+    peso                     REAL DEFAULT 0,
+    referencia               TEXT,
+    created_at               DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_CUMPLIMIENTO_ONLINE_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_cumpl_online_turno_inicio ON cumplimiento_online_snapshots(turno_key, turno_inicio, bloque_hasta)",
+]
+
 CREATE_PRODUCTIVIDAD_ANALISIS_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_productividad_runs_fechas ON productividad_analisis_runs(fecha_desde, fecha_hasta)",
     "CREATE INDEX IF NOT EXISTS idx_productividad_operario_run ON productividad_analisis_operario(run_id, operario)",
     "CREATE INDEX IF NOT EXISTS idx_productividad_operario_hist ON productividad_analisis_operario(operario, run_id)",
     "CREATE INDEX IF NOT EXISTS idx_productividad_operario_zona_hist ON productividad_analisis_operario_zona(operario, zona, run_id)",
     "CREATE INDEX IF NOT EXISTS idx_productividad_zona_hist ON productividad_analisis_zona(zona, run_id)",
+]
+
+CREATE_PLANTEL_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_plantel_scenarios_turno_created ON plantel_scenarios(turno_key, created_at DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_plantel_almacen_scenario ON plantel_scenario_almacen(scenario_id, almacen)",
+    "CREATE INDEX IF NOT EXISTS idx_plantel_asignacion_scenario_tipo ON plantel_scenario_asignacion(scenario_id, tipo_asignacion)",
+    "CREATE INDEX IF NOT EXISTS idx_plantel_metrica_scenario_key ON plantel_scenario_metrica(scenario_id, metrica_key)",
+    "CREATE INDEX IF NOT EXISTS idx_plantel_history_cache_lookup ON plantel_history_cache(turno_key, history_days, source_name, updated_at)",
+    "CREATE INDEX IF NOT EXISTS idx_plantel_mov_hist_turno_fecha ON plantel_movimientos_hist(turno_key, fecha, fh_movimiento)",
+    "CREATE INDEX IF NOT EXISTS idx_plantel_mov_hist_almacen ON plantel_movimientos_hist(almacen, fecha)",
+    "CREATE INDEX IF NOT EXISTS idx_plantel_mov_hist_operario ON plantel_movimientos_hist(operario_id, fecha)",
+]
+
+CREATE_UBICACIONES_ORACLE_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_ubicaciones_oracle_zona_pasillo_hueco_pos ON ubicaciones_oracle(czonalma, cpasillo, chuecopa, nposlarg)",
+    "CREATE INDEX IF NOT EXISTS idx_ubicaciones_oracle_codigo ON ubicaciones_oracle(ubicacion_codigo)",
+    "CREATE INDEX IF NOT EXISTS idx_ubicaciones_oracle_tipo_nivel ON ubicaciones_oracle(xtipsubi, nnivelal)",
+]
+
+CREATE_PICKING_ANALYSIS_CACHE_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_picking_cache_runs_fecha_turno ON picking_analysis_cache_runs(fecha, turno_key, updated_at)",
+    "CREATE INDEX IF NOT EXISTS idx_picking_cache_rows_lookup ON picking_analysis_cache_rows(fecha, turno_key, fh_movimiento)",
+    "CREATE INDEX IF NOT EXISTS idx_picking_cache_rows_operario ON picking_analysis_cache_rows(copecrea, fecha, turno_key)",
 ]
 
 
@@ -237,14 +480,48 @@ async def init_db():
         await db.execute(CREATE_PRODUCTIVIDAD_ANALISIS_OPERARIO)
         await db.execute(CREATE_PRODUCTIVIDAD_ANALISIS_OPERARIO_ZONA)
         await db.execute(CREATE_PRODUCTIVIDAD_ANALISIS_ZONA)
+        await db.execute(CREATE_CUMPLIMIENTO_ONLINE_SNAPSHOTS)
+        await db.execute(CREATE_PLANTEL_SCENARIOS)
+        await db.execute(CREATE_PLANTEL_SCENARIO_ALMACEN)
+        await db.execute(CREATE_PLANTEL_SCENARIO_ASIGNACION)
+        await db.execute(CREATE_PLANTEL_SCENARIO_METRICA)
+        await db.execute(CREATE_PLANTEL_HISTORY_CACHE)
+        await db.execute(CREATE_PLANTEL_MOVIMIENTOS_HIST)
+        await db.execute(CREATE_UBICACIONES_ORACLE)
+        await db.execute(CREATE_PICKING_ANALYSIS_CACHE_RUNS)
+        await db.execute(CREATE_PICKING_ANALYSIS_CACHE_ROWS)
+        async with db.execute("PRAGMA table_info(picking_analysis_cache_runs)") as cur:
+            picking_cache_cols = {row[1] for row in await cur.fetchall()}
+        if "resumen_hash" not in picking_cache_cols:
+            await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN resumen_hash TEXT")
+        if "ia_provider" not in picking_cache_cols:
+            await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN ia_provider TEXT")
+        if "ia_model" not in picking_cache_cols:
+            await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN ia_model TEXT")
+        if "ia_prompt_version" not in picking_cache_cols:
+            await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN ia_prompt_version TEXT")
+        if "ia_summary_hash" not in picking_cache_cols:
+            await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN ia_summary_hash TEXT")
+        if "ia_json" not in picking_cache_cols:
+            await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN ia_json TEXT")
+        if "ia_generated_at" not in picking_cache_cols:
+            await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN ia_generated_at DATETIME")
         for statement in CREATE_PRODUCTIVIDAD_ANALISIS_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_CUMPLIMIENTO_ONLINE_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_PLANTEL_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_UBICACIONES_ORACLE_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_PICKING_ANALYSIS_CACHE_INDEXES:
             await db.execute(statement)
 
         await db.commit()
     print(f"[DB] Base de datos inicializada: {DB_PATH}")
     print(
         "[DB] OK - Tablas creadas: olas, operarios, asignaciones_ola, "
-        "estandares_sector, historico_olas, productividad_analisis_*"
+        "estandares_sector, historico_olas, productividad_analisis_*, plantel_*"
     )
 
 

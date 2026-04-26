@@ -20,6 +20,7 @@ from routers.data import router as data_router
 from routers.turnos import router as turnos_router
 from routers.operarios import router as operarios_router
 from routers.productividad_analisis import router as productividad_analisis_router
+from routers.plantel_operativo import router as plantel_operativo_router
 from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -66,6 +67,7 @@ app.include_router(data_router, prefix="/api")
 app.include_router(turnos_router)
 app.include_router(operarios_router)
 app.include_router(productividad_analisis_router)
+app.include_router(plantel_operativo_router)
 app.include_router(websocket_router)
 
 # Archivos estáticos — css, js y resources
@@ -78,7 +80,8 @@ _PAGES = [
     "/",             "index.html",
     "/login",        "login.html",
     "/selector",     "selector.html",
-    "/picking",      "picking.html",
+    "/picking",      "produccion.html",
+    "/produccion",   "produccion.html",
     "/recepcion",    "recepcion.html",
     "/reposicion",   "reposicion.html",
     "/planificacion","planificacion.html",
@@ -96,9 +99,11 @@ async def page_login():        return FileResponse(STATIC_DIR / "login.html")
 @app.get("/selector",      include_in_schema=False)
 async def page_selector():     return FileResponse(STATIC_DIR / "selector.html")
 
-@app.get("/picking.html",  include_in_schema=False)
-@app.get("/picking",       include_in_schema=False)
-async def page_picking():      return FileResponse(STATIC_DIR / "picking.html")
+@app.get("/picking.html",     include_in_schema=False)
+@app.get("/picking",          include_in_schema=False)
+@app.get("/produccion.html",  include_in_schema=False)
+@app.get("/produccion",       include_in_schema=False)
+async def page_picking():      return FileResponse(STATIC_DIR / "produccion.html")
 
 @app.get("/recepcion.html",    include_in_schema=False)
 @app.get("/recepcion",         include_in_schema=False)

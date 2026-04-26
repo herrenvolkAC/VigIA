@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="icon" type="image/png" href="/resources/APPLogo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VigIA · Gemelo Operativo</title>
@@ -20,7 +21,18 @@ body{background:linear-gradient(135deg,#1e1e2e 0%,#2d2d44 100%);color:var(--text
 /* ── Header / Topbar ── */
 header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:28px;margin-bottom:0;border:1px solid rgba(0,212,255,.12);background:rgba(64,64,96,.48);box-shadow:var(--shadow);border-radius:14px;padding:0 28px;height:72px;backdrop-filter:blur(10px);}
 .brand{display:flex;align-items:center;gap:16px;}
-.brand-mark{width:40px;height:40px;object-fit:contain;border-radius:0;background:none;padding:0;border:none;box-shadow:none;filter:brightness(0) invert(1);}
+.brand-mark{
+  width:92px;
+  height:52px;
+  object-fit:contain;
+  object-position:center;
+  border-radius:12px;
+  background:rgba(255,255,255,.96);
+  padding:4px 8px;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+  filter:none;
+}
 .brand-copy{display:flex;flex-direction:column;gap:2px;}
 .brand-process{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:#f3f6ff;letter-spacing:0.5px;line-height:1;padding-bottom:0;}
 .brand-title{display:none;}
@@ -46,6 +58,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 /* ── Proveedor IA ── */
 .ai-provider-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;flex-wrap:wrap;box-shadow:var(--shadow);backdrop-filter:blur(10px);}
 .ai-provider-bar label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;font-weight:700;}
+.ai-provider-bar{display:none;}
 #provider-btns{display:flex;gap:8px;}
 .prov-btn{background:rgba(30,30,50,.72);border:1px solid rgba(255,255,255,.08);color:#dce3f5;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;}
 .prov-btn:hover{border-color:#00d4ff;color:#00d4ff;}
@@ -70,15 +83,28 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .form-hint{margin:-4px 0 18px;font-size:12px;line-height:1.6;color:#aeb5cc;}
 
 /* Selector de ola */
-.ola-selector{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
-.ola-selector label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;font-weight:700;}
+.ola-selector{display:grid;grid-template-columns:auto 1fr auto auto;align-items:start;gap:8px 12px;margin-bottom:18px;}
+.ola-selector label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;font-weight:700;padding-top:10px;}
+.ola-btn-groups{display:grid;gap:10px;min-width:0;}
+.ola-btn-row{display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:start;}
+.ola-row-label{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#a9b6d3;padding-top:8px;}
+.ola-row-buttons{display:flex;flex-wrap:wrap;gap:8px;}
 .ola-btn{background:rgba(30,30,50,.72);border:1px solid rgba(255,255,255,.08);color:#dce3f5;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .ola-btn:hover{border-color:#00d4ff;color:#00d4ff;}
 .ola-btn.active{background:var(--green-light);color:var(--green);border-color:var(--green);}
 .ola-turno-tag{font-size:10px;padding:2px 8px;border-radius:6px;margin-left:8px;font-weight:500;}
 .ola-turno-tag.Tarde{background:var(--amber-light);color:var(--amber);border:1px solid #fcd34d;}
 .ola-turno-tag.Noche{background:var(--cyan-light);color:var(--cyan);border:1px solid #67e8f9;}
-.ola-turno-tag.Mañana{background:var(--green-light);color:var(--green);border:1px solid #86efac;}
+.ola-turno-tag.Manana{background:var(--green-light);color:var(--green);border:1px solid #86efac;}
+@media(max-width:1200px){
+  .ola-selector{grid-template-columns:1fr;}
+  .ola-selector label{padding-top:0;}
+  .ola-turno-tag{margin-left:0;}
+}
+@media(max-width:760px){
+  .ola-btn-row{grid-template-columns:1fr;}
+  .ola-row-label{padding-top:0;}
+}
 
 /* Grid de campos */
 .fields-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;margin-bottom:18px;}
@@ -193,30 +219,30 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .ai-tab-content.active{display:block;}
 
 /* Resumen del turno */
-.resumen-turno{background:linear-gradient(135deg,rgba(0,212,255,.16) 0%,rgba(124,58,237,.18) 100%);color:#fff;border-radius:14px;padding:16px 22px;margin-bottom:20px;font-size:14px;line-height:1.6;display:flex;align-items:center;gap:14px;border:1px solid rgba(0,212,255,.18);}
-.resumen-turno-icon{font-size:22px;flex-shrink:0;}
+.resumen-turno{background:radial-gradient(circle at top right,rgba(111,211,255,.16),transparent 42%),linear-gradient(135deg,rgba(33,51,86,.94) 0%,rgba(52,54,110,.94) 100%);color:#f4f7ff;border-radius:18px;padding:18px 22px;margin-bottom:22px;font-size:14px;line-height:1.7;display:flex;align-items:flex-start;gap:14px;border:1px solid rgba(111,211,255,.26);box-shadow:0 18px 38px rgba(6,12,28,.26);}
+.resumen-turno-icon{font-size:22px;flex-shrink:0;width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);}
 .resumen-turno-text{flex:1;}
-.resumen-turno-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:.6;margin-bottom:4px;}
+.resumen-turno-label{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#8ddcfb;font-weight:800;margin-bottom:6px;}
 
 /* Alertas grandes */
 .ai-alerts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:16px;}
 @media(max-width:1100px){.ai-alerts{grid-template-columns:1fr;}}
-.ai-alert{border-radius:14px;padding:22px 24px;line-height:1.7;background:rgba(30,30,50,.78);border:1px solid rgba(255,255,255,.08);border-top-width:4px;box-shadow:0 12px 28px rgba(0,0,0,.2);position:relative;overflow:visible;}
+.ai-alert{border-radius:18px;padding:22px 24px;line-height:1.72;background:linear-gradient(180deg,rgba(31,36,64,.96) 0%,rgba(23,27,49,.96) 100%);border:1px solid rgba(255,255,255,.08);border-top-width:4px;box-shadow:0 16px 34px rgba(5,10,24,.24);position:relative;overflow:hidden;}
 .ai-alert::before{display:none;}
-.ai-alert.bad{border-top-color:var(--red);}
-.ai-alert.warn{border-top-color:var(--amber);}
-.ai-alert.ok{border-top-color:var(--ok);}
+.ai-alert.bad{border-top-color:#ff6b81;background:radial-gradient(circle at top right,rgba(255,107,129,.18),transparent 36%),linear-gradient(180deg,rgba(66,28,42,.96) 0%,rgba(42,24,35,.96) 100%);}
+.ai-alert.warn{border-top-color:#ffbf47;background:radial-gradient(circle at top right,rgba(255,191,71,.18),transparent 34%),linear-gradient(180deg,rgba(72,53,20,.96) 0%,rgba(46,36,17,.96) 100%);}
+.ai-alert.ok{border-top-color:#2ce29c;background:radial-gradient(circle at top right,rgba(44,226,156,.18),transparent 36%),linear-gradient(180deg,rgba(19,58,48,.96) 0%,rgba(16,37,36,.96) 100%);}
 .alert-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.alert-badge{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:6px;}
-.alert-badge.bad{background:var(--red);color:#fff;}
-.alert-badge.warn{background:var(--amber);color:#fff;}
-.alert-badge.ok{background:var(--ok);color:#fff;}
-.alert-fuente{font-size:9px;color:#a0a0c0;letter-spacing:.5px;opacity:.8;}
-.alert-title{font-family:'Inter',sans-serif;font-size:20px;font-weight:800;color:var(--text-hi);margin-bottom:10px;line-height:1.25;letter-spacing:-0.3px;}
-.alert-detail{font-size:13px;color:#dce3f5;line-height:1.75;margin-bottom:14px;}
-.alert-action{font-size:12.5px;background:rgba(255,255,255,.05);padding:12px 16px;border-radius:10px;color:var(--text-hi);line-height:1.65;}
+.alert-badge{font-size:10px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:1px solid transparent;}
+.alert-badge.bad{background:rgba(255,107,129,.18);border-color:rgba(255,107,129,.32);color:#ffd6dd;}
+.alert-badge.warn{background:rgba(255,191,71,.18);border-color:rgba(255,191,71,.34);color:#ffe7b1;}
+.alert-badge.ok{background:rgba(44,226,156,.18);border-color:rgba(44,226,156,.34);color:#cbffe8;}
+.alert-fuente{font-size:10px;color:#c7cde0;letter-spacing:.4px;opacity:.82;}
+.alert-title{font-family:'Inter',sans-serif;font-size:30px;font-weight:800;color:#f8fbff;margin-bottom:12px;line-height:1.15;letter-spacing:-0.7px;}
+.alert-detail{font-size:13px;color:#edf2ff;line-height:1.8;margin-bottom:16px;}
+.alert-action{font-size:12.5px;background:rgba(255,255,255,.08);padding:13px 16px;border-radius:12px;color:#f7f9ff;line-height:1.7;border:1px solid rgba(255,255,255,.08);}
 .alert-action::before{content:'→ ';font-weight:700;opacity:.6;}
-.alert-time{font-size:10px;color:#a0a0c0;margin-top:14px;opacity:.65;}
+.alert-time{font-size:10px;color:#d6dcee;margin-top:14px;opacity:.7;}
 
 /* Chat integrado */
 .ai-chat{margin-top:20px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:rgba(30,30,50,.72);}
@@ -290,6 +316,114 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .analisis-btn.sec{background:transparent;color:#00d4ff;border:1px solid rgba(0,212,255,.45);box-shadow:none;}
 .analisis-status{font-size:12px;color:#a0a0c0;}
 .analisis-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.online-shell{background:linear-gradient(135deg,#1e1e2e 0%,#2d2d44 100%);border-radius:18px;padding:18px;border:1px solid rgba(0,212,255,.12);box-shadow:0 18px 50px rgba(15,23,42,.18);}
+.online-toolbar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px;padding:16px 18px;background:rgba(64,64,96,.42);border:1px solid rgba(0,212,255,.18);border-radius:14px;backdrop-filter:blur(10px);}
+.online-btn{padding:12px 18px;background:linear-gradient(135deg,#f8fbff,#c8f1ff);border:1px solid rgba(111,211,255,.4);border-radius:10px;color:#16344b;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 8px 22px rgba(111,211,255,.16);text-transform:uppercase;letter-spacing:.4px;}
+.online-btn:hover{transform:translateY(-1px);}
+.online-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.online-status{font-size:12px;color:#a0a0c0;}
+.online-field{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.online-field label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.online-field input,.online-field select{background:rgba(64,64,96,.8);border:1px solid rgba(0,212,255,.22);color:#e8e8f0;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:10px 12px;border-radius:8px;outline:none;}
+.online-field input:focus,.online-field select:focus{border-color:#00d4ff;box-shadow:0 0 0 4px rgba(0,212,255,.08);}
+.online-filters{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px;margin-bottom:18px;padding:16px 18px;background:rgba(64,64,96,.28);border:1px solid rgba(0,212,255,.14);border-radius:14px;}
+.online-filters .online-field{min-width:0;}
+.online-quick-filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-6px 0 18px;}
+.online-quick-label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.online-quick-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#dce3f5;font-size:12px;font-weight:700;cursor:pointer;}
+.online-quick-chip.active{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.28);color:#7ddfff;}
+.online-grid-wrap{border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:visible;background:rgba(30,30,50,.4);}
+.online-grid{width:100%;border-collapse:collapse;min-width:1800px;}
+.online-grid thead th{position:sticky;top:0;background:#273b58;color:#7ddfff;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:800;padding:12px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;}
+.online-grid tbody td{padding:12px;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px;color:#dce3f5;vertical-align:top;}
+.online-grid tbody tr:nth-child(even){background:rgba(36,36,58,.45);}
+.online-operario-link{background:none;border:none;color:#8ddcfb;font:inherit;font-weight:700;cursor:pointer;padding:0;text-align:left;}
+.online-operario-link:hover{text-decoration:underline;}
+.online-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border:1px solid transparent;}
+.online-chip.online{background:rgba(0,255,136,.12);color:#00ff88;border-color:rgba(0,255,136,.24);}
+.online-chip.inactivo{background:rgba(255,184,0,.12);color:#ffd36d;border-color:rgba(255,184,0,.24);}
+.online-level-dot{display:inline-block;width:12px;height:12px;border-radius:999px;box-shadow:0 0 0 3px rgba(255,255,255,.04);}
+.online-level-dot.ok{background:#00ff88;}
+.online-level-dot.warn{background:#ffb800;}
+.online-level-dot.bad{background:#ff6b6b;}
+.online-level-dot.none{background:#7b879c;}
+.online-meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.online-meta-panel{padding:14px 16px;border-radius:14px;background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);}
+.online-meta-label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+.online-meta-value{font-size:26px;font-weight:800;color:#f3f6ff;}
+.online-meta-sub{font-size:12px;color:#aab4cb;margin-top:4px;line-height:1.6;}
+.online-highlights{margin-bottom:18px;padding:16px 18px;border-radius:14px;background:linear-gradient(135deg,rgba(0,212,255,.10),rgba(0,255,136,.08));border:1px solid rgba(0,212,255,.18);}
+.online-highlights-title{font-size:11px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:800;margin-bottom:12px;}
+.online-highlights-list{display:grid;gap:10px;}
+.online-score-panel{margin-bottom:18px;padding:16px 18px;border-radius:14px;background:rgba(28,37,58,.88);border:1px solid rgba(125,223,255,.14);}
+.online-score-title{font-size:11px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:800;margin-bottom:10px;}
+.online-score-text{font-size:13px;color:#dce3f5;line-height:1.65;}
+.online-score-text strong{color:#ffffff;}
+.online-score-formula{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;background:rgba(125,223,255,.10);border:1px solid rgba(125,223,255,.15);font-weight:700;color:#bfefff;}
+.online-highlight-item{padding:12px 14px;border-radius:12px;background:rgba(30,30,50,.62);border:1px solid rgba(255,255,255,.08);color:#dce3f5;line-height:1.6;}
+.online-detail-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.78);z-index:9998;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px);}
+.online-detail-overlay.visible{display:flex;}
+.online-detail-modal{width:min(1120px,96vw);max-height:88vh;overflow:auto;background:linear-gradient(135deg,#1e1e2e 0%,#2d2d44 100%);border:1px solid rgba(0,212,255,.18);border-radius:20px;box-shadow:0 32px 80px rgba(0,0,0,.35);padding:22px;}
+.online-detail-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;}
+.online-detail-title{font-size:22px;font-weight:800;color:#f3f6ff;}
+.online-detail-sub{font-size:13px;color:#aab4cb;line-height:1.6;margin-top:6px;}
+.online-detail-close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#f3f6ff;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+.online-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+.online-detail-card{padding:14px 16px;border-radius:14px;background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);}
+.online-detail-card strong{display:block;color:#7ddfff;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.online-detail-card span{font-size:24px;font-weight:800;color:#f3f6ff;}
+.online-detail-table{width:100%;border-collapse:collapse;min-width:760px;}
+.online-detail-table th,.online-detail-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;color:#dce3f5;vertical-align:top;}
+.online-detail-table th{position:sticky;top:0;background:#273b58;color:#7ddfff;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:800;}
+@media(max-width:900px){.online-detail-grid{grid-template-columns:1fr;}}
+.online-meta{display:grid;gap:12px;margin-bottom:16px;}
+.online-meta-card{padding:14px 16px;border-radius:14px;background:rgba(64,64,96,.36);border:1px solid rgba(0,212,255,.16);color:#dce3f5;}
+.online-meta-card strong{color:#8ddcfb;}
+.online-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.online-kpi{background:rgba(64,64,96,.4);border:1px solid rgba(0,212,255,.18);border-radius:14px;padding:18px;}
+.online-kpi-label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px;}
+.online-kpi-value{font-size:28px;font-weight:800;color:#f3f6ff;line-height:1;}
+.online-kpi-sub{font-size:12px;color:#a0a0c0;margin-top:8px;}
+.online-suggestion{background:linear-gradient(135deg,rgba(0,212,255,.16),rgba(124,58,237,.16) 50%,rgba(0,255,136,.14));border:1px solid rgba(0,212,255,.24);border-radius:16px;padding:22px;margin-bottom:16px;box-shadow:0 16px 40px rgba(0,0,0,.2);}
+.online-suggestion-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.online-suggestion-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.24);font-size:11px;font-weight:800;color:#7ddfff;letter-spacing:.5px;text-transform:uppercase;}
+.online-suggestion-provider{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:12px;color:#dce3f5;}
+.online-suggestion-provider strong{color:#00ff88;}
+.online-suggestion-text{font-size:28px;font-weight:800;line-height:1.2;color:#f3f6ff;letter-spacing:-.6px;}
+.online-suggestion-expand{margin-top:14px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;}
+.online-suggestion-toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:11px;font-weight:700;color:#dce3f5;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;}
+.online-suggestion-detail{display:none;margin-top:12px;padding:14px 16px;border-radius:12px;background:rgba(15,23,42,.28);border:1px solid rgba(255,255,255,.08);font-size:14px;line-height:1.7;color:#e9effd;}
+.online-suggestion-detail.visible{display:block;}
+.online-summary{background:rgba(64,64,96,.36);border:1px solid rgba(0,212,255,.16);border-radius:14px;padding:18px;color:#dce3f5;line-height:1.75;}
+.online-disabled-note{padding:18px;border-radius:14px;background:rgba(120,90,12,.16);border:1px solid rgba(255,200,0,.18);color:#f6e6b0;font-size:13px;line-height:1.7;}
+@media(max-width:1100px){.online-kpis{grid-template-columns:repeat(2,1fr);}}
+.picking-analysis-shell{display:grid;gap:16px;}
+.picking-analysis-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:2px;}
+.picking-analysis-status{font-size:12px;color:#a0a0c0;}
+.picking-analysis-card{padding:16px 18px;border-radius:14px;background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);}
+.picking-analysis-card-title{font-size:11px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:800;margin-bottom:10px;}
+.picking-analysis-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.picking-analysis-kpi{background:rgba(64,64,96,.36);border:1px solid rgba(0,212,255,.16);border-radius:14px;padding:16px;}
+.picking-analysis-kpi strong{display:block;font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.picking-analysis-kpi span{display:block;font-size:24px;font-weight:800;color:#f3f6ff;}
+.picking-analysis-table{width:100%;border-collapse:collapse;min-width:1280px;}
+.picking-analysis-table th,.picking-analysis-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;color:#dce3f5;vertical-align:top;}
+.picking-analysis-table th{position:sticky;top:0;background:#273b58;color:#7ddfff;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:800;}
+.picking-analysis-sort{background:none;border:none;color:inherit;font:inherit;font-weight:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:6px;}
+.picking-analysis-sort:hover{color:#bfefff;}
+.picking-analysis-sort-indicator{font-size:10px;color:#bfefff;}
+.picking-analysis-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border:1px solid transparent;}
+.picking-analysis-chip.good{background:rgba(0,255,136,.12);color:#00ff88;border-color:rgba(0,255,136,.24);}
+.picking-analysis-chip.warn{background:rgba(255,184,0,.12);color:#ffd36d;border-color:rgba(255,184,0,.24);}
+.picking-analysis-chip.bad{background:rgba(255,107,107,.12);color:#ff8f8f;border-color:rgba(255,107,107,.24);}
+.picking-analysis-list{display:grid;gap:10px;}
+.picking-analysis-item{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#dce3f5;line-height:1.6;}
+.picking-analysis-formula{display:grid;gap:10px;}
+.picking-analysis-formula code{display:block;padding:12px 14px;border-radius:12px;background:rgba(15,23,42,.35);border:1px solid rgba(125,223,255,.14);color:#ccefff;font-family:Consolas,'Courier New',monospace;font-size:12px;white-space:pre-wrap;}
+.picking-analysis-ia{padding:18px;border-radius:16px;background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(0,255,136,.10));border:1px solid rgba(0,212,255,.18);}
+.picking-analysis-ia h4{margin:0 0 10px;font-size:22px;color:#f3f6ff;}
+.picking-analysis-ia p{margin:0 0 14px;color:#dce3f5;line-height:1.7;}
+@media(max-width:1200px){.picking-analysis-kpis{grid-template-columns:repeat(2,1fr);}}
 .analisis-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
 .analisis-kpi{background:rgba(64,64,96,.4);border:1px solid rgba(0,212,255,.18);border-radius:14px;padding:18px;backdrop-filter:blur(10px);}
 .analisis-kpi-label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px;}
@@ -478,6 +612,66 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .debug-pre .num{color:#fab387;}
 .debug-empty{font-size:11px;color:var(--muted);font-style:italic;padding:20px 0;}
 
+/* Plantel operativo */
+.plantel-shell{display:grid;gap:16px;}
+.plantel-toolbar{display:grid;grid-template-columns:repeat(5,minmax(140px,1fr));gap:12px;align-items:end;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
+.plantel-field{display:flex;flex-direction:column;gap:6px;}
+.plantel-field label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.plantel-field input,.plantel-field select{background:rgba(64,64,96,.8);border:1px solid rgba(0,212,255,.22);color:#e8e8f0;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:10px 12px;border-radius:8px;outline:none;}
+.plantel-field input:focus,.plantel-field select:focus{border-color:#00d4ff;box-shadow:0 0 0 4px rgba(0,212,255,.08);}
+.plantel-actions{display:flex;gap:10px;align-items:end;flex-wrap:wrap;}
+.plantel-btn{background:linear-gradient(135deg,#00d4ff,#00ff88);color:#1e1e2e;font-family:'Inter',sans-serif;font-size:12px;font-weight:800;padding:11px 18px;border:none;border-radius:10px;cursor:pointer;letter-spacing:.3px;text-transform:uppercase;box-shadow:0 10px 24px rgba(0,212,255,.22);}
+.plantel-btn.sec{background:transparent;color:#00d4ff;border:1px solid rgba(0,212,255,.35);box-shadow:none;}
+.plantel-btn:disabled{opacity:.45;cursor:not-allowed;}
+.plantel-status{font-size:12px;color:#c5d0e7;padding:12px 14px;border-radius:12px;background:rgba(30,30,50,.72);border:1px solid rgba(255,255,255,.08);}
+.plantel-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.plantel-kpi{background:rgba(30,30,50,.72);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;}
+.plantel-kpi-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#7ddfff;font-weight:700;margin-bottom:8px;}
+.plantel-kpi-value{font-size:28px;font-weight:800;color:#f3f6ff;}
+.plantel-kpi-sub{font-size:12px;color:#aab4cb;margin-top:6px;line-height:1.6;}
+.plantel-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;}
+.plantel-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
+.plantel-card-title{font-size:11px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.plantel-card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.plantel-table{display:grid;gap:10px;}
+.plantel-row{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:10px;align-items:start;padding:12px 14px;border-radius:12px;background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);}
+.plantel-row.head{background:rgba(0,212,255,.08);font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;border-color:rgba(0,212,255,.2);}
+.plantel-cell-main{font-weight:700;color:#f3f6ff;}
+.plantel-cell-sub{font-size:11px;color:#aab4cb;margin-top:4px;line-height:1.5;}
+.plantel-risk{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;}
+.plantel-risk.bajo{background:rgba(0,255,136,.12);color:#00ff88;border:1px solid rgba(0,255,136,.24);}
+.plantel-risk.medio{background:rgba(255,184,0,.12);color:#ffcf66;border:1px solid rgba(255,184,0,.24);}
+.plantel-risk.alto{background:rgba(255,107,107,.12);color:#ff9a9a;border:1px solid rgba(255,107,107,.24);}
+.plantel-explain{display:grid;gap:12px;}
+.plantel-explain-item{padding:14px 16px;border-radius:12px;background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);line-height:1.7;color:#dce3f5;}
+.plantel-explain-item strong{color:#f3f6ff;}
+.plantel-assignment-list{display:grid;gap:10px;max-height:620px;overflow:auto;padding-right:4px;}
+.plantel-assignment{padding:12px 14px;border-radius:12px;background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);}
+.plantel-assignment-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.plantel-operator{font-weight:700;color:#f3f6ff;}
+.plantel-badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;background:rgba(0,212,255,.12);color:#7ddfff;border:1px solid rgba(0,212,255,.24);}
+.plantel-penalty{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;background:rgba(255,184,0,.12);color:#ffd36d;border:1px solid rgba(255,184,0,.22);}
+.plantel-scenarios{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.plantel-scenario-card{padding:14px 16px;border-radius:12px;background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);}
+.plantel-scenario-card strong{display:block;color:#f3f6ff;margin-bottom:6px;}
+.plantel-empty{padding:28px;text-align:center;color:#a0a0c0;font-size:13px;border:1px dashed rgba(0,212,255,.22);border-radius:12px;background:rgba(64,64,96,.22);}
+.plantel-grid-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.plantel-grid-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.plantel-grid-filter{display:flex;align-items:center;gap:8px;}
+.plantel-grid-filter label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.plantel-grid-filter select{background:rgba(64,64,96,.8);border:1px solid rgba(0,212,255,.22);color:#e8e8f0;font-family:'Inter',sans-serif;font-size:12px;padding:8px 10px;border-radius:8px;}
+.plantel-export-btn{background:transparent;color:#00d4ff;border:1px solid rgba(0,212,255,.3);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+.plantel-export-btn:hover{background:rgba(0,212,255,.08);}
+.plantel-oper-grid{border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:visible;}
+.plantel-oper-head,.plantel-oper-row{display:grid;grid-template-columns:1.2fr 1.2fr .9fr .7fr .8fr 1.8fr;gap:10px;align-items:start;padding:12px 14px;min-width:980px;}
+.plantel-oper-head{background:rgba(0,212,255,.08);font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.plantel-oper-row{background:rgba(30,30,50,.68);border-top:1px solid rgba(255,255,255,.06);}
+.plantel-oper-row:nth-child(even){background:rgba(36,36,58,.72);}
+.plantel-oper-cell{color:#dce3f5;font-size:12px;line-height:1.5;}
+.plantel-oper-cell strong{color:#f3f6ff;}
+@media(max-width:1200px){.plantel-toolbar{grid-template-columns:repeat(2,minmax(160px,1fr));}.plantel-grid{grid-template-columns:1fr;}}
+@media(max-width:800px){.plantel-kpis{grid-template-columns:repeat(2,1fr);}.plantel-row{grid-template-columns:1fr;}.plantel-toolbar{grid-template-columns:1fr;}.plantel-oper-head,.plantel-oper-row{grid-template-columns:1fr;}}
+
 /* Chat */
 .chat-toggle{margin-top:12px;background:rgba(30,30,50,.72);border:1px solid rgba(0,212,255,.18);border-radius:14px;overflow:hidden;}
 .chat-toggle-btn{width:100%;background:none;border:none;color:var(--ai);font-family:'DM Mono',monospace;font-size:11px;padding:9px 14px;cursor:pointer;text-align:left;}
@@ -500,19 +694,19 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 @keyframes pulse-border{0%,100%{border-color:var(--green)}50%{border-color:#86efac}}
 
 /* ── Sugerencias / chips ── */
-.sugerencias-wrap{margin:0 0 16px;padding:14px 16px;background:linear-gradient(135deg,var(--green-light) 0%,#fff 100%);border:1px solid #c8e6c9;border-radius:12px;box-shadow:0 1px 3px rgba(26,122,60,.08);}
+.sugerencias-wrap{margin:0 0 16px;padding:14px 16px;background:linear-gradient(135deg,rgba(223,247,240,.96) 0%,rgba(241,246,249,.98) 100%);border:1px solid rgba(78,184,142,.34);border-radius:16px;box-shadow:0 12px 28px rgba(8,26,24,.08);}
 .sugerencias-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .sugerencias-icon{font-size:13px;}
 .sugerencias-title{font-size:9px;color:var(--muted);letter-spacing:1.8px;text-transform:uppercase;font-weight:700;}
 .sugerencias-chips{display:flex;flex-wrap:wrap;gap:7px;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#fff;border:1.5px solid #c8e6c9;border-radius:8px;font-size:11px;color:var(--green);cursor:pointer;transition:all .18s ease;white-space:nowrap;font-family:'Inter',sans-serif;font-weight:500;letter-spacing:.1px;box-shadow:0 1px 3px rgba(26,122,60,.08);user-select:none;}
-.chip::before{content:'›';font-size:13px;color:var(--green);opacity:.7;transition:opacity .18s;}
-.chip:hover{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 3px 10px rgba(26,122,60,.25);transform:translateY(-1px);}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.96);border:1px solid rgba(78,184,142,.28);border-radius:999px;font-size:11px;color:#16664d;cursor:pointer;transition:all .18s ease;white-space:nowrap;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:.1px;box-shadow:0 6px 16px rgba(16,40,32,.08);user-select:none;}
+.chip::before{content:'›';font-size:13px;color:#1d8c69;opacity:.82;transition:opacity .18s;}
+.chip:hover{background:#1d8c69;border-color:#1d8c69;color:#fff;box-shadow:0 10px 22px rgba(29,140,105,.28);transform:translateY(-1px);}
 .chip:hover::before{color:#fff;opacity:1;}
 .chip:active{transform:scale(.97) translateY(0);box-shadow:0 1px 4px rgba(26,122,60,.15);}
 @media(max-width:900px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}header{flex-wrap:wrap}.header-logos{margin-left:0}}
 @media(max-width:980px){header{grid-template-columns:1fr;justify-items:center;text-align:center}.brand{justify-content:center}.header-logos{align-items:center}.header-status{justify-content:center}.header-topline{flex-wrap:wrap;justify-content:center}.brand-title{padding:0 0 14px;min-height:auto}.brand-wordmark-vig,.brand-wordmark-ia{font-size:84px;letter-spacing:-4px}.brand-wordmark{padding-bottom:20px}.brand-process{font-size:34px}}
-@media(max-width:560px){body{padding:14px}header{padding:16px}.brand-mark{width:104px;height:104px;border-radius:30px}.brand-copy{gap:3px}.brand-process{font-size:30px;padding-bottom:6px}.brand-wordmark-vig,.brand-wordmark-ia{font-size:64px;letter-spacing:-2.8px}.brand-wordmark-vig{padding-bottom:7px}.brand-wordmark{padding-bottom:16px}.partner-logo{height:36px}}
+@media(max-width:560px){body{padding:14px}header{padding:16px}.brand-mark{width:80px;height:46px;border-radius:10px;padding:4px 6px}.brand-copy{gap:3px}.brand-process{font-size:30px;padding-bottom:6px}.brand-wordmark-vig,.brand-wordmark-ia{font-size:64px;letter-spacing:-2.8px}.brand-wordmark-vig{padding-bottom:7px}.brand-wordmark{padding-bottom:16px}.partner-logo{height:36px}}
 </style>
 </head>
 <body>
@@ -522,7 +716,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
     <img class="brand-mark" src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
     <div class="brand-copy">
       <div class="brand-subtitle">CD Coto</div>
-      <div class="brand-process">Picking</div>
+      <div class="brand-process">Producción</div>
     </div>
   </div>
   <div class="brand-title">
@@ -555,6 +749,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 <div class="main-tab-bar">
   <button class="main-tab-btn active" id="mtab-btn-plan" onclick="switchMainTab('plan')">📦 Cumplimiento de Plan</button>
   <button class="main-tab-btn" id="mtab-btn-productividad" onclick="switchMainTab('productividad')">👷 Productividad</button>
+  <button class="main-tab-btn" id="mtab-btn-plantel" onclick="switchMainTab('plantel')">🧩 Sugerencias Plantel Operativo</button>
   <button class="main-tab-btn proxim" id="mtab-btn-errores" onclick="void(0)">⚠️ Errores <span style="font-size:10px;font-weight:500;opacity:.7;">Próximamente</span></button>
   <button class="main-tab-btn proxim" id="mtab-btn-accidentes" onclick="void(0)">🚨 Accidentes <span style="font-size:10px;font-weight:500;opacity:.7;">Próximamente</span></button>
 </div>
@@ -580,7 +775,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
     <!-- Selector de ola -->
     <div class="ola-selector">
       <label>OLA</label>
-      <div id="ola-btns"></div>
+      <div id="ola-btns" class="ola-btn-groups"></div>
       <span id="turno-tag" class="ola-turno-tag"></span>
       <span style="font-size:10px;color:var(--muted);margin-left:auto" id="ola-horario"></span>
     </div>
@@ -806,64 +1001,180 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 <!-- Tab 2: Productividad -->
 <div id="mtab-productividad" class="main-tab-content">
   <div class="sub-tab-bar">
-    <button class="sub-tab-btn" id="stab-btn-analisis" onclick="switchProdTab('analisis')">🧠 Analisis</button>
-    <button class="sub-tab-btn active" id="stab-btn-ranking" onclick="switchProdTab('ranking')">🏆 Ranking</button>
-    <button class="sub-tab-btn" id="stab-btn-comparativa" onclick="switchProdTab('comparativa')">📊 Comparativa</button>
-    <button class="sub-tab-btn" id="stab-btn-sugerencias" onclick="switchProdTab('sugerencias')">💡 Sugerencias IA</button>
+    <button class="sub-tab-btn active" id="stab-btn-online" onclick="switchProdTab('online')">📡 Productividad On Line</button>
+    <button class="sub-tab-btn" id="stab-btn-picking-ia" onclick="switchProdTab('picking-ia')">🧠 Análisis Picking con IA</button>
+    <button class="sub-tab-btn" id="stab-btn-base-explanation" onclick="switchProdTab('base-explanation')">🧮 Cálculo base</button>
   </div>
 
-  <!-- Sub-tab: Analisis -->
-  <div id="stab-analisis" class="sub-tab-content">
-    <div id="analisis-export-scope">
-    <div class="analisis-toolbar">
-      <div class="analisis-field">
-        <label>Fecha y hora desde</label>
-        <input type="datetime-local" id="analisis-fecha-desde">
+<div class="online-shell">
+    <div class="online-toolbar">
+      <div class="online-field">
+        <label>Fecha</label>
+        <input type="date" id="prod-online-date">
       </div>
-      <div class="analisis-field">
-        <label>Fecha y hora hasta</label>
-        <input type="datetime-local" id="analisis-fecha-hasta">
+      <div class="online-field">
+        <label>Turno</label>
+        <select id="prod-online-turno"></select>
       </div>
-      <div class="analisis-actions">
-        <button class="analisis-btn" id="analisis-run-btn" onclick="cargarAnalisisProductividad()">Generar analisis</button>
-        <button class="analisis-btn" id="analisis-export-btn" onclick="exportarAnalisisPDF()" disabled>Exportar PDF</button>
-        <button class="analisis-btn sec" onclick="limpiarAnalisisProductividad()">Limpiar</button>
+      <button class="online-btn" id="btn-online-turno" onclick="runProductividadOnline()">Consultar online</button>
+      <button class="online-btn" id="btn-picking-base" onclick="runPickingAnalysisBase()">Consultar dataset base</button>
+      <button class="online-btn" id="btn-picking-ia-run" onclick="runPickingAnalysisIa()" disabled>Ejecutar IA</button>
+      <div class="online-status" id="online-tab-status">Elegí fecha y turno. Este mismo panel alimenta la consulta online y el análisis base de picking.</div>
+    </div>
+    <div class="online-filters">
+      <div class="online-field">
+        <label>Buscar operario</label>
+        <input type="text" id="prod-online-filter-operario" placeholder="Legajo o nombre" oninput="onProductividadFiltersChange()">
       </div>
-      <div class="analisis-status" id="analisis-status">Seleccioná un rango y ejecutá el análisis a demanda.</div>
+      <div class="online-field">
+        <label>Almacén</label>
+        <select id="prod-online-filter-almacen" onchange="onProductividadFiltersChange()">
+          <option value="ALL">Todos</option>
+        </select>
+      </div>
+      <div class="online-field">
+        <label>Operación</label>
+        <select id="prod-online-filter-operacion" onchange="onProductividadFiltersChange()">
+          <option value="ALL">Todas</option>
+        </select>
+      </div>
+      <div class="online-field">
+        <label>Actividad últimos 10 min</label>
+        <select id="prod-online-filter-estado" onchange="onProductividadFiltersChange()">
+          <option value="ALL">Todos</option>
+          <option value="ONLINE">ONLINE</option>
+          <option value="INACTIVO">INACTIVO</option>
+        </select>
+      </div>
     </div>
 
-    <div id="analisis-results">
-      <div class="analisis-empty">Todavía no se ejecutó el análisis de productividad.</div>
+    <div id="stab-online" class="sub-tab-content active">
+      <div id="online-tab-results">
+        <div class="analisis-empty">Todavía no se ejecutó la consulta de productividad on line.</div>
+      </div>
     </div>
-    </div>
-  </div>
 
-  <!-- Sub-tab: Ranking -->
-  <div id="stab-ranking" class="sub-tab-content active">
-    <div id="ranking-container">
-      <div class="recom-empty">Cargando ranking de operarios...</div>
+    <div id="stab-picking-ia" class="sub-tab-content">
+      <div class="picking-analysis-shell">
+        <div class="picking-analysis-status" id="picking-analysis-status">Usá los botones del panel superior para calcular productividad base, dificultad y lectura IA.</div>
+        <div id="picking-analysis-results">
+          <div class="analisis-empty">Todavía no se ejecutó el análisis base de picking.</div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- Sub-tab: Comparativa -->
-  <div id="stab-comparativa" class="sub-tab-content">
-    <div class="recom-op-selector">
-      <label>Operario:</label>
-      <select id="comp2-operario-sel" onchange="cargarComparativa2()">
-        <option value="">Seleccioná un operario...</option>
-      </select>
-      <button onclick="cargarComparativa2()" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;">Comparar</button>
+    <div id="stab-base-explanation" class="sub-tab-content">
+      <div id="picking-base-explanation">
+        <div class="analisis-empty">Todavía no hay cálculo base generado para explicar.</div>
+      </div>
     </div>
-    <div id="comp2-container"><div class="recom-empty">Seleccioná un operario para ver su comparativa.</div></div>
-  </div>
-
-  <!-- Sub-tab: Sugerencias -->
-  <div id="stab-sugerencias" class="sub-tab-content">
-    <div id="suger-container"><div class="recom-empty">Cargando operarios bajo estándar...</div></div>
   </div>
 </div>
 
-<!-- Tab 3: Errores -->
+<!-- Tab 3: Plantel Operativo -->
+<div id="mtab-plantel" class="main-tab-content">
+  <div class="plantel-shell">
+    <div class="plantel-toolbar">
+      <div class="plantel-field">
+        <label>Turno</label>
+        <select id="plantel-turno"></select>
+      </div>
+      <div class="plantel-field">
+        <label>SECTOR SECOS · Bultos a preparar</label>
+        <input id="plantel-bultos-secos" type="number" min="0" step="1" value="12000">
+      </div>
+      <div class="plantel-field">
+        <label>VARIOS NO ALIMENTOS · Bultos a preparar</label>
+        <input id="plantel-bultos-noa" type="number" min="0" step="1" value="1800">
+      </div>
+      <div class="plantel-field">
+        <label>Nombre escenario</label>
+        <input id="plantel-scenario-name" type="text" placeholder="Escenario base turno tarde">
+      </div>
+      <div class="plantel-field">
+        <label>Histórico</label>
+        <select id="plantel-force-refresh">
+          <option value="0">Usar cache local si existe</option>
+          <option value="1">Forzar recálculo</option>
+        </select>
+      </div>
+      <div class="plantel-actions">
+        <button class="plantel-btn" id="plantel-run-btn" onclick="runPlantelScenario()">Calcular plantel óptimo</button>
+        <button class="plantel-btn sec" onclick="resetPlantelForm()">Reset</button>
+      </div>
+    </div>
+
+    <div class="plantel-status" id="plantel-status">Elegí el turno, cargá los bultos y tocá calcular. El sistema te va a decir cuánta gente hace falta y con qué plantel conviene cubrir ese trabajo.</div>
+
+    <div class="plantel-kpis" id="plantel-kpis">
+      <div class="plantel-kpi">
+        <div class="plantel-kpi-label">Turno</div>
+        <div class="plantel-kpi-value">—</div>
+        <div class="plantel-kpi-sub">Esperando cálculo</div>
+      </div>
+      <div class="plantel-kpi">
+        <div class="plantel-kpi-label">Personas necesarias</div>
+        <div class="plantel-kpi-value">—</div>
+        <div class="plantel-kpi-sub">Todavía sin calcular</div>
+      </div>
+      <div class="plantel-kpi">
+        <div class="plantel-kpi-label">Disponibles</div>
+        <div class="plantel-kpi-value">—</div>
+        <div class="plantel-kpi-sub">Gente con historial en ese turno</div>
+      </div>
+      <div class="plantel-kpi">
+        <div class="plantel-kpi-label">Brecha</div>
+        <div class="plantel-kpi-value">—</div>
+        <div class="plantel-kpi-sub">Diferencia entre lo necesario y lo que se puede cubrir</div>
+      </div>
+    </div>
+
+    <div class="plantel-grid">
+      <div class="plantel-card">
+        <div class="plantel-card-title">Plan por almacén</div>
+        <div id="plantel-summary-table" class="plantel-empty">Todavía no se ejecutó una planificación.</div>
+      </div>
+      <div class="plantel-card">
+        <div class="plantel-card-title">Lectura IA del turno</div>
+        <div id="plantel-explanations" class="plantel-empty">Acá vas a ver una lectura simple del turno, alertas y la acción recomendada.</div>
+      </div>
+    </div>
+
+    <div class="plantel-grid">
+      <div class="plantel-card">
+        <div class="plantel-card-title">Plantel sugerido</div>
+        <div class="plantel-grid-toolbar">
+          <div class="plantel-grid-filter">
+            <label for="plantel-grid-filter">Almacén</label>
+            <select id="plantel-grid-filter" onchange="renderPlantelOperationalGrid()">
+              <option value="ALL">Todos</option>
+              <option value="SECTOR SECOS">SECTOR SECOS</option>
+              <option value="VARIOS NO ALIMENTOS">VARIOS NO ALIMENTOS</option>
+            </select>
+          </div>
+          <div class="plantel-grid-actions">
+            <button class="plantel-export-btn" onclick="exportPlantelAssignmentsCsv()">Exportar CSV</button>
+          </div>
+        </div>
+        <div id="plantel-operational-grid" class="plantel-empty">Todavía no hay plantel sugerido calculado.</div>
+      </div>
+      <div class="plantel-card">
+        <div class="plantel-card-title">Detalle del armado</div>
+        <div id="plantel-assignments" class="plantel-empty">Todavía no hay un armado para mostrar.</div>
+      </div>
+    </div>
+
+    <div class="plantel-grid">
+      <div class="plantel-card">
+        <div class="plantel-card-title">Escenarios guardados</div>
+        <div id="plantel-scenarios" class="plantel-empty">Todavía no hay escenarios guardados.</div>
+      </div>
+      <div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab 4: Errores -->
 <div id="mtab-errores" class="main-tab-content">
   <div class="proxim-card">
     <div class="proxim-icon">⚠️</div>
@@ -872,7 +1183,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
   </div>
 </div>
 
-<!-- Tab 4: Accidentes -->
+<!-- Tab 5: Accidentes -->
 <div id="mtab-accidentes" class="main-tab-content">
   <div class="proxim-card">
     <div class="proxim-icon">🚨</div>
@@ -966,6 +1277,17 @@ let analisisProductividadCache = null;
 let analisisProductividadLoading = false;
 let analisisProductividadIaLoading = false;
 let analisisProductividadIaCache = null;
+let onlineTurnoState = null;
+let productividadOnlineResult = null;
+let pickingAnalysisBaseResult = null;
+let pickingAnalysisBaseKey = '';
+let pickingAnalysisIaResult = null;
+let pickingAnalysisLoading = false;
+let pickingAnalysisIaLoading = false;
+let pickingAnalysisSort = { key: 'ranking_ajustado', direction: 'asc' };
+let plantelTurns = [];
+let plantelLastResult = null;
+let plantelLoading = false;
 
 const fmt   = n => Math.round(n).toLocaleString('es');
 const fmtF  = n => parseFloat(n).toFixed(1);
@@ -979,6 +1301,979 @@ function detectOlaActual() {
     return h >= o.ini || h < o.fin;
   });
   return idx >= 0 ? idx : 8; // default OLA 9 si no hay match
+}
+
+function turnoKey(turno) {
+  const raw = String(turno || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (raw.includes('man')) return 'manana';
+  if (raw.includes('tar')) return 'tarde';
+  if (raw.includes('noc')) return 'noche';
+  return raw;
+}
+
+function turnoLabel(turno) {
+  const key = turnoKey(turno);
+  if (key === 'manana') return 'Mañana';
+  if (key === 'tarde') return 'Tarde';
+  if (key === 'noche') return 'Noche';
+  return turno || '';
+}
+
+function turnoTagClass(turno) {
+  const key = turnoKey(turno);
+  if (key === 'manana') return 'Manana';
+  if (key === 'tarde') return 'Tarde';
+  if (key === 'noche') return 'Noche';
+  return turno || '';
+}
+
+function updateOnlineTurnoStatus(payload) {
+  const el = document.getElementById('online-tab-status');
+  if (!el) return;
+  if (!payload) {
+    el.textContent = 'Tomará el turno de la ola seleccionada en pantalla y cerrará al último corte de 15 minutos.';
+    return;
+  }
+  const origen = payload.oracle_usado ? 'Oracle + cache local' : 'Cache local';
+  const refresco = payload.sin_actualizacion_productiva
+    ? `Sin actualización nueva. Se mantiene la sugerencia del corte ${payload.corte_hasta || '—'}.`
+    : `${payload.bloques_nuevos || 0} bloque(s) nuevos incorporados hasta ${payload.corte_hasta || '—'}.`;
+  el.textContent = `Turno ${payload.turno || '—'} · inicio ${payload.turno_inicio || '—'} · ${origen}. ${refresco}`;
+}
+
+function mergeOnlineTurnoData(payload) {
+  if (!payload || !Array.isArray(payload.olas)) return;
+  const turno = payload.turno;
+  EXCEL_DATA.olas = EXCEL_DATA.olas.map(ola => {
+    if (turnoKey(ola.turno) !== turnoKey(turno)) return ola;
+    const updated = payload.olas.find(item => Number(item.num) === Number(ola.num));
+    if (!updated) return ola;
+    return {
+      ...ola,
+      turno: updated.turno || ola.turno,
+      ejecSecos: updated.ejecSecos ?? ola.ejecSecos,
+      ejecNOA: updated.ejecNOA ?? ola.ejecNOA,
+      ejecTotal: updated.ejecTotal ?? ola.ejecTotal,
+      dotEjec: updated.dotEjec ?? ola.dotEjec,
+      prodEjec: updated.prodEjec ?? ola.prodEjec,
+      obs: updated.obs ?? ola.obs,
+    };
+  });
+  EXCEL_DATA.turnoTotales = {
+    ...EXCEL_DATA.turnoTotales,
+    ...(payload.turnoTotales || {}),
+  };
+}
+
+function fillFormWithOnlineSelected(selected) {
+  if (!selected) return;
+  const setManual = (inputId, sugId, value) => {
+    const input = document.getElementById(inputId);
+    const suggestion = document.getElementById(sugId);
+    if (input) {
+      input.value = value ?? '';
+      input.classList.remove('manual-empty');
+      input.classList.add('manual-input');
+    }
+    if (suggestion) {
+      suggestion.textContent = `(Oracle: ${(value ?? 0).toLocaleString ? value.toLocaleString('es-AR') : value})`;
+    }
+  };
+  setManual('f-ejec-secos', 'sug-ejec-secos', selected.ejecSecos || 0);
+  setManual('f-ejec-noa', 'sug-ejec-noa', selected.ejecNOA || 0);
+  setManual('f-dot-ejec', 'sug-dot-ejec', selected.dotEjec || 0);
+  document.getElementById('f-obs').value = selected.obs || '';
+  updateAutoFields();
+}
+
+function getProductividadOnlineTurnConfig(turnoKeyValue) {
+  const key = turnoKey(turnoKeyValue);
+  if (key === 'manana') return { label: 'Mañana', inicio: '06:00:00', fin: '14:00:00' };
+  if (key === 'tarde') return { label: 'Tarde', inicio: '14:00:00', fin: '22:00:00' };
+  return { label: 'Noche', inicio: '22:00:00', fin: '06:00:00' };
+}
+
+function buildProductividadOnlineRange() {
+  const fecha = document.getElementById('prod-online-date')?.value || '';
+  const turno = document.getElementById('prod-online-turno')?.value || '';
+  if (!fecha || !turno) return null;
+  const cfg = getProductividadOnlineTurnConfig(turno);
+  const desde = `${fecha} ${cfg.inicio}`;
+  let hastaDate = fecha;
+  if (turnoKey(turno) === 'noche') {
+    const base = new Date(`${fecha}T00:00:00`);
+    base.setDate(base.getDate() + 1);
+    hastaDate = base.toISOString().slice(0, 10);
+  }
+  const hasta = `${hastaDate} ${cfg.fin}`;
+  return {
+    fecha,
+    turno,
+    turno_label: cfg.label,
+    fecha_desde: desde,
+    fecha_hasta: hasta,
+  };
+}
+
+function populateProductividadOnlineFilter(id, items, allLabel) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const current = el.value || 'ALL';
+  const normalizedItems = (items || []).map(item => String(item || '').toUpperCase());
+  el.innerHTML = [`<option value="ALL">${allLabel}</option>`]
+    .concat(normalizedItems.map(item => `<option value="${item}">${item}</option>`))
+    .join('');
+  el.value = Array.from(el.options).some(opt => opt.value === current) ? current : 'ALL';
+}
+
+function getFilteredProductividadOnlineRows() {
+  const rows = Array.isArray(productividadOnlineResult?.rows) ? productividadOnlineResult.rows : [];
+  const operario = (document.getElementById('prod-online-filter-operario')?.value || '').trim().toLowerCase();
+  const almacen = document.getElementById('prod-online-filter-almacen')?.value || 'ALL';
+  const operacion = document.getElementById('prod-online-filter-operacion')?.value || 'ALL';
+  const estado = document.getElementById('prod-online-filter-estado')?.value || 'ALL';
+  const levelOrder = { ok: 0, warn: 1, bad: 2, none: 3 };
+  return rows.filter(row => {
+    if (operario) {
+      const hayMatch = String(row.operario || '').toLowerCase().includes(operario)
+        || String(row.copecrea || '').toLowerCase().includes(operario);
+      if (!hayMatch) return false;
+    }
+    if (almacen !== 'ALL' && row.almacen !== almacen) return false;
+    if (operacion !== 'ALL' && String(row.operacion || '').toUpperCase() !== operacion) return false;
+    if (estado !== 'ALL' && row.estado !== estado) return false;
+    return true;
+  }).sort((a, b) => {
+    const scoreCmp = Number(b.score || 0) - Number(a.score || 0);
+    if (scoreCmp !== 0) return scoreCmp;
+    const levelCmp = (levelOrder[a.nivel_hoy || 'none'] ?? 9) - (levelOrder[b.nivel_hoy || 'none'] ?? 9);
+    if (levelCmp !== 0) return levelCmp;
+    const rankCmp = Number(a.ranking_operacion || 999999) - Number(b.ranking_operacion || 999999);
+    if (rankCmp !== 0) return rankCmp;
+    const participationCmp = Number(b.participacion_pct || 0) - Number(a.participacion_pct || 0);
+    if (participationCmp !== 0) return participationCmp;
+    const perfCmp = Number(b.cantidad_hora || 0) - Number(a.cantidad_hora || 0);
+    if (perfCmp !== 0) return perfCmp;
+    return String(a.operario || '').localeCompare(String(b.operario || ''), 'es');
+  });
+}
+
+function onProductividadFiltersChange() {
+  renderProductividadOnlineGrid();
+  renderPickingAnalysisBase();
+}
+
+function getFilteredPickingAnalysisRows() {
+  const rows = Array.isArray(pickingAnalysisBaseResult?.rows) ? pickingAnalysisBaseResult.rows : [];
+  const operario = (document.getElementById('prod-online-filter-operario')?.value || '').trim().toLowerCase();
+  const almacen = document.getElementById('prod-online-filter-almacen')?.value || 'ALL';
+  const operacion = document.getElementById('prod-online-filter-operacion')?.value || 'ALL';
+  const filtered = rows
+    .filter(row => {
+      if (operario) {
+        const hayMatch = String(row.operario || '').toLowerCase().includes(operario)
+          || String(row.copecrea || '').toLowerCase().includes(operario);
+        if (!hayMatch) return false;
+      }
+      if (almacen !== 'ALL' && String(row.almacen_principal || '').toUpperCase() !== almacen) {
+        return false;
+      }
+      if (operacion !== 'ALL' && operacion !== 'PICKING') {
+        return false;
+      }
+      return true;
+    });
+
+  const { key, direction } = pickingAnalysisSort || { key: 'ranking_ajustado', direction: 'asc' };
+  const dir = direction === 'desc' ? -1 : 1;
+  return filtered.sort((a, b) => {
+    const av = key === 'delta_ranking'
+      ? ((Number(a?.delta_ranking) || 0) || (Number(a?.ranking_bruto) - Number(a?.ranking_ajustado)))
+      : a?.[key];
+    const bv = key === 'delta_ranking'
+      ? ((Number(b?.delta_ranking) || 0) || (Number(b?.ranking_bruto) - Number(b?.ranking_ajustado)))
+      : b?.[key];
+    const aNum = Number(av);
+    const bNum = Number(bv);
+    if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+      if (aNum !== bNum) return (aNum - bNum) * dir;
+    } else {
+      const cmp = String(av ?? '').localeCompare(String(bv ?? ''), 'es');
+      if (cmp !== 0) return cmp * dir;
+    }
+    return Number(a.ranking_ajustado || 999999) - Number(b.ranking_ajustado || 999999);
+  });
+}
+
+function getPickingAnalysisCacheKey(range) {
+  if (!range) return '';
+  return `${range.fecha}|${String(range.turno || '').toLowerCase()}`;
+}
+
+function setPickingAnalysisSort(key) {
+  if (!key) return;
+  if (pickingAnalysisSort.key === key) {
+    pickingAnalysisSort.direction = pickingAnalysisSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    pickingAnalysisSort = { key, direction: key === 'operario' || key === 'almacen_principal' || key === 'zona_principal' ? 'asc' : 'desc' };
+  }
+  renderPickingAnalysisBase();
+}
+
+function buildProductividadOnlineHighlights(data) {
+  const rows = Array.isArray(data?.rows) ? data.rows : [];
+  if (!rows.length) return ['No hay datos para resumir en este rango.'];
+
+  const byOperario = new Map();
+  const byAlmacen = new Map();
+
+  rows.forEach(row => {
+    const legajo = String(row.copecrea || '').trim() || 'SIN LEGAJO';
+    const almacen = String(row.almacen || 'SIN MAPEAR').trim();
+    const operario = String(row.operario || legajo).trim();
+    const estado = String(row.estado || 'INACTIVO').toUpperCase();
+    const cantidadHora = Number(row.cantidad_hora || 0);
+
+    const currentOp = byOperario.get(legajo) || {
+      legajo,
+      operario,
+      almacen,
+      online: false,
+      bestCantidadHora: 0,
+      bestOperacion: '',
+      rows: 0,
+    };
+    currentOp.rows += 1;
+    if (cantidadHora >= currentOp.bestCantidadHora) {
+      currentOp.bestCantidadHora = cantidadHora;
+      currentOp.bestOperacion = String(row.operacion || '').trim();
+    }
+    if (estado === 'ONLINE') currentOp.online = true;
+    byOperario.set(legajo, currentOp);
+
+    const currentAlmacen = byAlmacen.get(almacen) || {
+      almacen,
+      online: new Set(),
+      inactivos: new Set(),
+      total: new Set(),
+    };
+    currentAlmacen.total.add(legajo);
+    if (estado === 'ONLINE') {
+      currentAlmacen.online.add(legajo);
+      currentAlmacen.inactivos.delete(legajo);
+    } else if (!currentAlmacen.online.has(legajo)) {
+      currentAlmacen.inactivos.add(legajo);
+    }
+    byAlmacen.set(almacen, currentAlmacen);
+  });
+
+  const operarios = Array.from(byOperario.values());
+  const almacenes = Array.from(byAlmacen.values()).map(item => ({
+    almacen: item.almacen,
+    online: item.online.size,
+    inactivos: item.inactivos.size,
+    total: item.total.size,
+  }));
+
+  const highlights = [];
+  const totalOperarios = operarios.length;
+  const onlineCount = operarios.filter(item => item.online).length;
+  const inactivosCount = totalOperarios - onlineCount;
+
+  highlights.push(`Se encontraron ${totalOperarios} personas distintas en este turno. ${onlineCount} tuvieron movimiento en los últimos 10 minutos y ${inactivosCount} no registraron movimiento reciente.`);
+
+  const almacenMasActivo = [...almacenes].sort((a, b) => b.online - a.online)[0];
+  if (almacenMasActivo) {
+    highlights.push(`${almacenMasActivo.almacen} es el almacén con más gente moviéndose ahora: ${almacenMasActivo.online} personas con actividad reciente.`);
+  }
+
+  const almacenMasQuieto = [...almacenes].sort((a, b) => b.inactivos - a.inactivos)[0];
+  if (almacenMasQuieto && almacenMasQuieto.inactivos > 0) {
+    highlights.push(`Ojo con ${almacenMasQuieto.almacen}: es donde más gente aparece sin movimiento reciente (${almacenMasQuieto.inactivos} personas).`);
+  }
+
+  const topOperarios = operarios
+    .filter(item => item.online && item.bestCantidadHora > 0)
+    .sort((a, b) => b.bestCantidadHora - a.bestCantidadHora)
+    .slice(0, 3);
+  if (topOperarios.length) {
+    highlights.push(`Los que mejor ritmo muestran ahora son ${topOperarios.map(item => `${item.operario} en ${item.bestOperacion || 'su operación actual'} (${Math.round(item.bestCantidadHora).toLocaleString('es-AR')} por hora)`).join(', ')}.`);
+  }
+
+  const porcentajeQuietos = totalOperarios > 0 ? (inactivosCount / totalOperarios) * 100 : 0;
+  if (porcentajeQuietos >= 40) {
+    highlights.push('Hay bastante gente sin movimiento reciente. Conviene revisar si están esperando tarea, reponiendo o frenados.');
+  }
+
+  return highlights.slice(0, 4);
+}
+
+function buildProductividadOnlineOperationChips(data) {
+  const rows = Array.isArray(data?.rows) ? data.rows : [];
+  const map = new Map();
+  rows.forEach(row => {
+    const operacion = String(row.operacion || '').toUpperCase().trim();
+    const legajo = String(row.copecrea || '').trim();
+    if (!operacion || !legajo) return;
+    if (!map.has(operacion)) {
+      map.set(operacion, new Set());
+    }
+    map.get(operacion).add(legajo);
+  });
+  return [...map.entries()]
+    .map(([operacion, operarios]) => ({ operacion, count: operarios.size }))
+    .sort((a, b) => b.count - a.count || a.operacion.localeCompare(b.operacion, 'es'))
+    .slice(0, 5);
+}
+
+function enrichProductividadOnlineRows(data) {
+  const rows = Array.isArray(data?.rows) ? data.rows : [];
+  const parseSqlDateTime = (value) => {
+    if (!value) return null;
+    const normalized = String(value).trim().replace(' ', 'T');
+    const dt = new Date(normalized);
+    return Number.isNaN(dt.getTime()) ? null : dt;
+  };
+  const shiftStart = parseSqlDateTime(data?.fecha_desde);
+  const shiftEnd = parseSqlDateTime(data?.fecha_hasta);
+  const now = new Date();
+  const effectiveNow = shiftStart && shiftEnd
+    ? new Date(Math.min(Math.max(now.getTime(), shiftStart.getTime()), shiftEnd.getTime()))
+    : null;
+  const elapsedShiftHours = shiftStart && effectiveNow
+    ? Math.max((effectiveNow.getTime() - shiftStart.getTime()) / 3600000, 0)
+    : 0;
+  const totalShiftHours = shiftStart && shiftEnd
+    ? Math.max((shiftEnd.getTime() - shiftStart.getTime()) / 3600000, 0)
+    : 0;
+  const byOperacion = new Map();
+  rows.forEach(row => {
+    const operacion = String(row.operacion || '').toUpperCase().trim();
+    if (!byOperacion.has(operacion)) byOperacion.set(operacion, []);
+    byOperacion.get(operacion).push(row);
+  });
+
+  byOperacion.forEach(opRows => {
+    const avg = opRows.reduce((acc, row) => acc + Number(row.cantidad_hora || 0), 0) / Math.max(opRows.length, 1);
+    const totalCantidadOperacion = opRows.reduce((acc, row) => acc + Number(row.cantidad_total || 0), 0);
+    opRows
+      .forEach(row => {
+        row.promedio_operacion = Number(avg.toFixed(2));
+        row.participacion_pct = totalCantidadOperacion > 0
+          ? Number(((Number(row.cantidad_total || 0) / totalCantidadOperacion) * 100).toFixed(2))
+          : 0;
+        row.productividad_hora_actual = Number(Number(row.cantidad_hora || 0).toFixed(2));
+        const activeHours = Number(row.hs_totales || 0);
+        const activityRatio = elapsedShiftHours > 0
+          ? Math.min(Math.max(activeHours / elapsedShiftHours, 0), 1)
+          : 0;
+        row.productividad_hora_proyectada = Number((row.productividad_hora_actual * activityRatio).toFixed(2));
+        row.cantidad_total_actual = Number(Number(row.cantidad_total || 0).toFixed(2));
+        row.cantidad_total_proyectada = totalShiftHours > 0
+          ? Number((row.productividad_hora_proyectada * totalShiftHours).toFixed(2))
+          : row.cantidad_total_actual;
+        const ultimoMovDt = parseSqlDateTime(row.ultimo_mov);
+        row.minutos_desde_ultimo_mov = ultimoMovDt
+          ? Math.max(Math.round((now.getTime() - ultimoMovDt.getTime()) / 60000), 0)
+          : null;
+        const ratioVsPromedio = avg > 0 ? (Number(row.cantidad_hora || 0) / avg) : 0;
+        row.ratio_vs_promedio = Number(ratioVsPromedio.toFixed(2));
+        const ratioCap = Math.min(Math.max(ratioVsPromedio, 0), 2);
+        const performanceScore = (ratioCap / 2) * 70;
+        const participationScore = Math.min(Math.max(row.participacion_pct || 0, 0), 100) * 0.30;
+        row.score = Number((performanceScore + participationScore).toFixed(1));
+        if (avg <= 0) {
+          row.nivel_hoy = 'warn';
+          row.nivel_hoy_texto = 'Sin referencia';
+        } else if (Number(row.cantidad_hora || 0) >= avg) {
+          row.nivel_hoy = 'ok';
+          row.nivel_hoy_texto = 'Verde';
+        } else if (Number(row.cantidad_hora || 0) >= avg * 0.8) {
+          row.nivel_hoy = 'warn';
+          row.nivel_hoy_texto = 'Amarillo';
+        } else {
+          row.nivel_hoy = 'bad';
+          row.nivel_hoy_texto = 'Rojo';
+        }
+      });
+    opRows
+      .sort((a, b) => Number(b.score || 0) - Number(a.score || 0) || Number(b.cantidad_hora || 0) - Number(a.cantidad_hora || 0) || String(a.operario || '').localeCompare(String(b.operario || ''), 'es'))
+      .forEach((row, index) => {
+        row.ranking_operacion = index + 1;
+      });
+  });
+
+  rows.sort((a, b) => {
+    const scoreCmp = Number(b.score || 0) - Number(a.score || 0);
+    if (scoreCmp !== 0) return scoreCmp;
+    const rankCmp = Number(a.ranking_operacion || 999999) - Number(b.ranking_operacion || 999999);
+    if (rankCmp !== 0) return rankCmp;
+    const opCmp = String(a.operacion || '').localeCompare(String(b.operacion || ''), 'es');
+    if (opCmp !== 0) return opCmp;
+    return String(a.operario || '').localeCompare(String(b.operario || ''), 'es');
+  });
+}
+
+function setProductividadOnlineOperacion(value) {
+  const select = document.getElementById('prod-online-filter-operacion');
+  if (!select) return;
+  select.value = value || 'ALL';
+  renderProductividadOnlineGrid();
+}
+
+function bindProductividadOnlineOperationChips() {
+  const chips = document.querySelectorAll('[data-online-operacion]');
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      setProductividadOnlineOperacion(chip.getAttribute('data-online-operacion') || 'ALL');
+    });
+  });
+}
+
+function bindProductividadOnlineOperarioLinks() {
+  const buttons = document.querySelectorAll('[data-online-legajo]');
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      openProductividadOnlineOperarioDetail(button.getAttribute('data-online-legajo') || '');
+    });
+  });
+}
+
+function openProductividadOnlineOperarioDetail(legajo) {
+  const data = productividadOnlineResult;
+  const overlay = document.getElementById('online-detail-overlay');
+  const body = document.getElementById('online-detail-body');
+  if (!data || !overlay || !body) return;
+
+  const rows = (data.detail_rows || []).filter(row => String(row.copecrea || '').trim() === String(legajo || '').trim());
+  const resumenRows = (data.rows || []).filter(row => String(row.copecrea || '').trim() === String(legajo || '').trim());
+  if (!rows.length) {
+    body.innerHTML = '<div class="analisis-empty">No hay detalle para ese operario.</div>';
+    overlay.classList.add('visible');
+    return;
+  }
+
+  const operarioNombre = rows[0].operario || legajo;
+  const totalCantidad = rows.reduce((acc, row) => acc + Number(row.cantidad || 0), 0);
+  const totalPeso = rows.reduce((acc, row) => acc + Number(row.peso || 0), 0);
+  const operaciones = [...new Set(rows.map(row => String(row.operacion || '').toUpperCase()).filter(Boolean))];
+  const rankingTexto = resumenRows
+    .map(row => `${row.operacion}: #${row.ranking_operacion || '—'} · score ${Number(row.score || 0).toLocaleString('es-AR')} · participa ${Number(row.participacion_pct || 0).toLocaleString('es-AR')}%`)
+    .join(' · ');
+
+  body.innerHTML = `
+    <div class="online-detail-top">
+      <div>
+        <div class="online-detail-title">${operarioNombre}</div>
+        <div class="online-detail-sub">Legajo ${legajo} · ${operaciones.join(' · ') || 'Sin operación'}<br>${rankingTexto || 'Sin ranking disponible'}</div>
+      </div>
+      <button type="button" class="online-detail-close" onclick="closeProductividadOnlineOperarioDetail()">Cerrar</button>
+    </div>
+    <div class="online-detail-grid">
+      <div class="online-detail-card"><strong>Acciones</strong><span>${rows.length.toLocaleString('es-AR')}</span></div>
+      <div class="online-detail-card"><strong>Cantidad total</strong><span>${Math.round(totalCantidad).toLocaleString('es-AR')}</span></div>
+      <div class="online-detail-card"><strong>Peso total</strong><span>${Math.round(totalPeso).toLocaleString('es-AR')}</span></div>
+    </div>
+    <div class="online-grid-wrap">
+      <table class="online-detail-table">
+        <thead>
+          <tr>
+            <th>Fecha hora</th>
+            <th>Almacén</th>
+            <th>Operación</th>
+            <th>Pallet</th>
+            <th>Cantidad</th>
+            <th>Peso</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `
+            <tr>
+              <td>${row.fh_movimiento || '—'}</td>
+              <td>${row.almacen || 'SIN MAPEAR'}</td>
+              <td>${String(row.operacion || '—').toUpperCase()}</td>
+              <td>${row.nro_pallet || '—'}</td>
+              <td>${Number(row.cantidad || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.peso || 0).toLocaleString('es-AR')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  overlay.classList.add('visible');
+}
+
+function closeProductividadOnlineOperarioDetail() {
+  document.getElementById('online-detail-overlay')?.classList.remove('visible');
+}
+
+function renderProductividadOnlineGrid() {
+  const container = document.getElementById('online-tab-results');
+  if (!container) return;
+  const data = productividadOnlineResult;
+  if (!data) {
+    container.innerHTML = '<div class="analisis-empty">Todavía no se ejecutó la consulta de productividad on line.</div>';
+    return;
+  }
+
+  const rows = getFilteredProductividadOnlineRows();
+  const summary = data.summary || {};
+  const visibleOperarios = new Set(rows.map(row => String(row.copecrea || '').trim()).filter(Boolean)).size;
+  const highlights = buildProductividadOnlineHighlights(data);
+  const operationChips = buildProductividadOnlineOperationChips(data);
+  const currentOperacion = document.getElementById('prod-online-filter-operacion')?.value || 'ALL';
+  const onlineColumnHelp = {
+    ranking: 'Ubicación del operario dentro de su misma operación, ordenado por el score calculado para ese grupo.',
+    almacen: 'Almacén o sector donde se registró la actividad del operario.',
+    legajo: 'Número de legajo del operario.',
+    operario: 'Nombre del operario. Al hacer click se abre el detalle de sus movimientos.',
+    operacion: 'Tipo de tarea registrada en Oracle para ese operario.',
+    score: 'Indicador interno que combina ritmo y peso real dentro de la operación para ordenar mejor a los operarios.',
+    participacion: 'Porcentaje del volumen total de esa operación que movió este operario en el rango consultado.',
+    prodActual: 'Bultos por hora considerando el tiempo en que el operario estuvo efectivamente activo.',
+    prodProyectada: 'Ritmo del operario bajado al turno completo según su nivel de actividad dentro del rango.',
+    cantidadActual: 'Bultos que ya movió el operario en el rango consultado.',
+    cantidadProyectada: 'Bultos que podría mover al cierre del turno si mantiene el comportamiento actual.',
+    promOperacion: 'Promedio de bultos por hora de todos los operarios de esa misma operación en el rango consultado.',
+    nivelHoy: 'Semáforo visual respecto del promedio de su misma operación.',
+    primerMov: 'Hora del primer movimiento registrado para ese operario y operación.',
+    ultimoMov: 'Hora del último movimiento registrado para ese operario y operación.',
+    minActivos: 'Minutos transcurridos entre el primer y el último movimiento registrado.',
+    lineas: 'Cantidad de registros o líneas de movimiento tomadas para ese resumen.',
+    pesoTotal: 'Peso total registrado en los movimientos del operario para esa operación.',
+    pallets: 'Cantidad de pallets distintos involucrados en esos movimientos.',
+    hsTotales: 'Horas activas acumuladas estimadas a partir de los movimientos registrados.',
+    kgHora: 'Productividad del operario medida en kilos por hora.',
+    minDesdeUltimo: 'Minutos transcurridos desde el último movimiento registrado hasta ahora.',
+  };
+  const helpTh = (label, helpKey) => `<th title="${onlineColumnHelp[helpKey] || ''}">${label}</th>`;
+  const formatOnlyTime = (value) => {
+    const text = String(value || '').trim();
+    if (!text) return '—';
+    const parts = text.split(' ');
+    return parts.length >= 2 ? parts[1].slice(0, 8) : text.slice(11, 19) || text;
+  };
+  container.innerHTML = `
+    <div class="online-meta-card" style="margin-bottom:16px;">
+      <strong>Rango consultado:</strong> ${data.fecha_desde || '—'} a ${data.fecha_hasta || '—'}
+    </div>
+    <div class="online-quick-filters">
+      <span class="online-quick-label">Operaciones más activas</span>
+      <button type="button" class="online-quick-chip ${currentOperacion === 'ALL' ? 'active' : ''}" data-online-operacion="ALL">TODAS</button>
+      ${operationChips.map(item => `
+        <button
+          type="button"
+          class="online-quick-chip ${currentOperacion === item.operacion ? 'active' : ''}"
+          data-online-operacion="${item.operacion.replace(/"/g, '&quot;')}"
+        >${item.operacion} (${item.count})</button>
+      `).join('')}
+    </div>
+    <div class="online-highlights">
+      <div class="online-highlights-title">Lo más destacado</div>
+      <div class="online-highlights-list">
+        ${highlights.map(item => `<div class="online-highlight-item">${item}</div>`).join('')}
+      </div>
+    </div>
+    <div class="online-score-panel">
+      <div class="online-score-title">Cómo se arma el score</div>
+      <div class="online-score-text">
+        Este <strong>score</strong> junta dos miradas: <strong>qué ritmo tuvo el operario</strong> y <strong>cuánto peso real tuvo dentro de esa operación</strong>. La idea es que no suba arriba de todo alguien que hizo muy poco trabajo pero justo le dio una tasa alta.
+        <br><br>
+        <strong>Ejemplo:</strong> si el operario A movió muchos bultos en poco tiempo y además hizo una parte importante del trabajo de esa operación, su score sube. Si el operario B también tuvo buen ritmo, pero movió muy poco comparado con el resto del equipo, su score no sube tanto.
+        <br><br>
+        En resumen, el score busca marcar mejor a los que <strong>trabajaron rápido y además aportaron volumen de verdad</strong> dentro de su operación.
+      </div>
+    </div>
+    <div class="online-meta-grid">
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Filas</div>
+        <div class="online-meta-value">${(summary.filas || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">Cada fila es una combinación de operario y operación</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Operarios únicos</div>
+        <div class="online-meta-value">${(summary.operarios_unicos || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">Personas distintas encontradas en ese turno</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Con movimiento (10 min)</div>
+        <div class="online-meta-value">${(summary.online || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">Operarios con último movimiento en los últimos 10 minutos</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Mostrando</div>
+        <div class="online-meta-value">${rows.length.toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">${visibleOperarios.toLocaleString('es-AR')} operarios únicos después de aplicar filtros</div>
+      </div>
+    </div>
+    <div class="online-grid-wrap">
+      <table class="online-grid">
+        <thead>
+          <tr>
+            ${helpTh('Ranking', 'ranking')}
+            ${helpTh('Almacén', 'almacen')}
+            ${helpTh('Legajo', 'legajo')}
+            ${helpTh('Operario', 'operario')}
+            ${helpTh('Operación', 'operacion')}
+            ${helpTh('Score', 'score')}
+            ${helpTh('Participación', 'participacion')}
+            ${helpTh('Prod./hora actual', 'prodActual')}
+            ${helpTh('Prod./hora proj. turno', 'prodProyectada')}
+            ${helpTh('Cantidad actual', 'cantidadActual')}
+            ${helpTh('Cantidad proj. turno', 'cantidadProyectada')}
+            ${helpTh('Prom. operación', 'promOperacion')}
+            ${helpTh('Nivel hoy', 'nivelHoy')}
+            ${helpTh('Primer mov.', 'primerMov')}
+            ${helpTh('Último mov.', 'ultimoMov')}
+            ${helpTh('Min. activos', 'minActivos')}
+            ${helpTh('Líneas', 'lineas')}
+            ${helpTh('Peso total', 'pesoTotal')}
+            ${helpTh('Pallets', 'pallets')}
+            ${helpTh('Hs. totales', 'hsTotales')}
+            ${helpTh('Kg/hora', 'kgHora')}
+            ${helpTh('Minutos desde último movimiento', 'minDesdeUltimo')}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.length ? rows.map(row => `
+            <tr>
+              <td>#${row.ranking_operacion || '—'}</td>
+              <td>${row.almacen || 'SIN MAPEAR'}</td>
+              <td>${row.copecrea || '—'}</td>
+              <td><button type="button" class="online-operario-link" data-online-legajo="${String(row.copecrea || '').replace(/"/g, '&quot;')}">${row.operario || '—'}</button></td>
+              <td>${String(row.operacion || '—').toUpperCase()}</td>
+              <td>${Number(row.score || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.participacion_pct || 0).toLocaleString('es-AR')}%</td>
+              <td>${Number(row.productividad_hora_actual || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.productividad_hora_proyectada || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.cantidad_total_actual || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.cantidad_total_proyectada || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.promedio_operacion || 0).toLocaleString('es-AR')}</td>
+              <td><span class="online-level-dot ${row.nivel_hoy || 'none'}" title="${row.nivel_hoy_texto || 'Sin referencia'}"></span></td>
+              <td>${formatOnlyTime(row.primer_mov)}</td>
+              <td>${formatOnlyTime(row.ultimo_mov)}</td>
+              <td>${Number(row.minutos_activos || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.lineas || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.peso_total || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.pallets_distintos || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.hs_totales || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.kg_hora || 0).toLocaleString('es-AR')}</td>
+              <td>${row.minutos_desde_ultimo_mov == null ? '—' : row.minutos_desde_ultimo_mov.toLocaleString('es-AR')}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="22" class="analisis-empty">No hay filas para mostrar con los filtros actuales.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+  bindProductividadOnlineOperationChips();
+  bindProductividadOnlineOperarioLinks();
+}
+
+async function runProductividadOnline() {
+  const btn = document.getElementById('btn-online-turno');
+  const status = document.getElementById('online-tab-status');
+  const range = buildProductividadOnlineRange();
+  if (!btn || !status) return;
+  if (!range) {
+    status.textContent = 'Completá fecha y turno antes de consultar.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Consultando...';
+  status.textContent = `Consultando ${range.turno_label} desde ${range.fecha_desde} hasta ${range.fecha_hasta}...`;
+  productividadOnlineResult = null;
+  const container = document.getElementById('online-tab-results');
+  if (container) {
+    container.innerHTML = '<div class="analisis-empty">Consultando Oracle y preparando la grilla...</div>';
+  }
+  let timeoutId = null;
+
+  try {
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), 45000);
+    const params = new URLSearchParams({
+      fecha: range.fecha,
+      turno: range.turno,
+    });
+    const resp = await fetch(`/api/productividad/online?${params.toString()}`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo consultar productividad on line.');
+
+    productividadOnlineResult = data;
+    enrichProductividadOnlineRows(productividadOnlineResult);
+    populateProductividadOnlineFilter('prod-online-filter-almacen', data.filters?.almacenes || [], 'Todos');
+    populateProductividadOnlineFilter('prod-online-filter-operacion', data.filters?.operaciones || [], 'Todas');
+    renderProductividadOnlineGrid();
+    status.textContent = `Consulta lista para ${data.turno || range.turno_label}. ${data.summary?.filas || 0} filas encontradas.`;
+  } catch (err) {
+    productividadOnlineResult = null;
+    if (container) {
+      container.innerHTML = `<div class="analisis-empty" style="color:var(--red);border-color:#fecaca;">${err.name === 'AbortError' ? 'La consulta tardó demasiado y se canceló para no dejar la pantalla clavada.' : (err.message || 'No se pudo consultar productividad on line.')}</div>`;
+    }
+    status.textContent = err.name === 'AbortError'
+      ? 'La consulta tardó demasiado. Probá de nuevo en un rato.'
+      : (err.message || 'No se pudo consultar productividad on line.');
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+    btn.disabled = false;
+    btn.textContent = 'Consultar online';
+  }
+}
+
+function renderPickingBaseExplanation() {
+  const container = document.getElementById('picking-base-explanation');
+  if (!container) return;
+  const explanation = pickingAnalysisBaseResult?.explanation;
+  if (!explanation) {
+    container.innerHTML = '<div class="analisis-empty">Todavía no hay cálculo base generado para explicar.</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="picking-analysis-card">
+      <div class="picking-analysis-card-title">Cómo se calcula este V0</div>
+      <div class="picking-analysis-formula">
+        <div class="picking-analysis-item"><strong>Métrica principal:</strong> ${escapeHtml(explanation.metrica_principal || 'cantidad/hora')}</div>
+        ${(explanation.formulas || []).map(item => `<code>${escapeHtml(item)}</code>`).join('')}
+        <div class="picking-analysis-card-title">Supuestos explícitos</div>
+        <div class="picking-analysis-list">
+          ${(explanation.supuestos || []).map(item => `<div class="picking-analysis-item">${escapeHtml(item)}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPickingAnalysisBase() {
+  const container = document.getElementById('picking-analysis-results');
+  if (!container) return;
+  const data = pickingAnalysisBaseResult;
+  if (!data) {
+    container.innerHTML = '<div class="analisis-empty">Todavía no se ejecutó el análisis base de picking.</div>';
+    renderPickingBaseExplanation();
+    return;
+  }
+
+  const summary = data.summary || {};
+  const rows = getFilteredPickingAnalysisRows();
+  const insights = data.insights || {};
+  const sourceName = String(data.cache?.source_name || summary.source_name || '').toLowerCase();
+  const sourceLabel = sourceName === 'sqlite_cache' ? 'Cache local' : 'Oracle';
+  const sortIndicator = (key) => pickingAnalysisSort.key === key
+    ? `<span class="picking-analysis-sort-indicator">${pickingAnalysisSort.direction === 'asc' ? '↑' : '↓'}</span>`
+    : '';
+  const sortTh = (label, key, title = '') => `<button type="button" class="picking-analysis-sort" onclick="setPickingAnalysisSort('${key}')"${title ? ` title="${escapeHtml(title)}"` : ''}>${label}${sortIndicator(key)}</button>`;
+  const difficultyExplain = 'Índice dif. = dificultad total / líneas. La dificultad total suma base 1 por fila + cantidad*0.08 + peso*0.03 + bonos por cambio de ubicación, pasillo y zona.';
+  const deltaRankValue = (row) => {
+    const explicit = Number(row?.delta_ranking);
+    if (!Number.isNaN(explicit)) return explicit;
+    const bruto = Number(row?.ranking_bruto);
+    const ajustado = Number(row?.ranking_ajustado);
+    if (!Number.isNaN(bruto) && !Number.isNaN(ajustado)) return bruto - ajustado;
+    return 0;
+  };
+  const renderLuck = (value) => {
+    if (value <= -10) return '<span class="picking-analysis-chip bad">Difícil</span>';
+    if (value >= 10) return '<span class="picking-analysis-chip good">Favorable</span>';
+    return '<span class="picking-analysis-chip warn">Pareja</span>';
+  };
+
+  container.innerHTML = `
+    <div class="picking-analysis-kpis">
+      <div class="picking-analysis-kpi"><strong>Operarios</strong><span>${Number(summary.operarios || 0).toLocaleString('es-AR')}</span></div>
+      <div class="picking-analysis-kpi"><strong>Movimientos</strong><span>${Number(summary.movimientos || 0).toLocaleString('es-AR')}</span></div>
+      <div class="picking-analysis-kpi"><strong>Cantidad/h promedio</strong><span>${Number(summary.cantidad_hora_promedio || 0).toLocaleString('es-AR')}</span></div>
+      <div class="picking-analysis-kpi"><strong>Dificultad promedio</strong><span>${Number(summary.dificultad_promedio || 0).toLocaleString('es-AR')}</span></div>
+      <div class="picking-analysis-kpi"><strong>Distancia estimada</strong><span>${Number(summary.distancia_estimada_total_m || 0).toLocaleString('es-AR')}</span><div class="online-meta-sub" style="margin-top:8px;">Fuente: ${escapeHtml(sourceLabel)}</div></div>
+    </div>
+    ${pickingAnalysisIaResult?.analisis ? `
+      <div class="picking-analysis-ia" style="margin:16px 0 0;">
+        <h4>${escapeHtml(pickingAnalysisIaResult.analisis.resumen || 'Lectura IA')}</h4>
+        <p style="font-size:12px;color:#bfefff;margin-bottom:10px;">${pickingAnalysisIaResult?.cache?.ia_cache_hit ? 'Lectura IA recuperada desde cache local.' : 'Lectura IA generada en esta ejecución.'}</p>
+        <p>${(pickingAnalysisIaResult.analisis.hallazgos || []).map(item => `• ${escapeHtml(item)}`).join('<br>')}</p>
+        <p>${(pickingAnalysisIaResult.analisis.recomendaciones || []).map(item => `• ${escapeHtml(item)}`).join('<br>')}</p>
+      </div>
+    ` : ''}
+    <div class="picking-analysis-card" style="margin-top:16px;">
+      <div class="picking-analysis-card-title">Ranking ajustado de picking</div>
+      <div class="online-grid-wrap">
+        <table class="picking-analysis-table">
+          <thead>
+            <tr>
+              <th>${sortTh('Rank aj.', 'ranking_ajustado')}</th>
+              <th>${sortTh('Rank bruto', 'ranking_bruto')}</th>
+              <th>${sortTh('Δ rank', 'delta_ranking', 'Diferencia = ranking bruto - ranking ajustado. Positivo: mejora al ajustar por dificultad. Negativo: cae al ajustar.')}</th>
+              <th>${sortTh('Operario', 'operario')}</th>
+              <th>${sortTh('Almacén', 'almacen_principal')}</th>
+              <th>${sortTh('Zona', 'zona_principal')}</th>
+              <th>${sortTh('Prod. bruta', 'cantidad_hora', 'Productividad bruta medida como cantidad total / horas activas.')}</th>
+              <th>${sortTh('Prod. ajustada', 'productividad_ajustada')}</th>
+              <th>${sortTh('Índice dif.', 'indice_dificultad', difficultyExplain)}</th>
+              <th>${sortTh('Suerte', 'suerte_asignacion_pct')}</th>
+              <th>${sortTh('Dist. est.', 'distancia_estimada_m')}</th>
+              <th>${sortTh('Cantidad total', 'cantidad_total')}</th>
+              <th>${sortTh('Peso total', 'peso_total')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              ${(() => {
+                const deltaRank = deltaRankValue(row);
+                return `
+              <tr>
+                <td>${Number(row.ranking_ajustado || 0).toLocaleString('es-AR')}</td>
+                <td>${Number(row.ranking_bruto || 0).toLocaleString('es-AR')}</td>
+                <td title="Diferencia = ranking bruto - ranking ajustado. Positivo: mejora al ajustar. Negativo: cae al ajustar.">
+                  <span style="color:${deltaRank > 0 ? '#00ff88' : deltaRank < 0 ? '#ff8f8f' : '#dce3f5'};font-weight:800;">
+                    ${deltaRank > 0 ? '+' : ''}${Number(deltaRank || 0).toLocaleString('es-AR')}
+                  </span>
+                </td>
+                <td>${escapeHtml(row.operario || row.copecrea || '—')}<br><span style="font-size:11px;color:#9fb0cc">${escapeHtml(row.copecrea || '')}</span></td>
+                <td>${escapeHtml(row.almacen_principal || 'SIN MAPEAR')}</td>
+                <td>${escapeHtml(row.zona_principal || 'SIN DATO')}</td>
+                <td title="${escapeHtml(`Productividad bruta = cantidad total / horas activas. ${Number(row.cantidad_total || 0).toLocaleString('es-AR')} / ${Number(row.hs_totales || 0).toLocaleString('es-AR')} = ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')}`)}">${Number(row.cantidad_hora || 0).toLocaleString('es-AR')}</td>
+                <td title="${escapeHtml(`Productividad ajustada = productividad bruta * factor de dificultad. ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')} * ${Number(row.factor_dificultad || 0).toLocaleString('es-AR')} = ${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}. Índice dif.: ${Number(row.indice_dificultad || 0).toLocaleString('es-AR')} | Dificultad promedio turno: ${Number(summary.dificultad_promedio || 0).toLocaleString('es-AR')}`)}">${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}</td>
+                <td title="${escapeHtml(`${difficultyExplain} Operario: ${row.operario || row.copecrea || ''}. Dificultad total ${Number(row.dificultad_total || 0).toLocaleString('es-AR')} en ${Number(row.lineas || 0).toLocaleString('es-AR')} líneas.`)}">${Number(row.indice_dificultad || 0).toLocaleString('es-AR')}</td>
+                <td>${renderLuck(Number(row.suerte_asignacion_pct || 0))}<div style="margin-top:6px;font-size:11px;color:#aab4cb">${Number(row.suerte_asignacion_pct || 0).toLocaleString('es-AR')}%</div></td>
+                <td>${Number(row.distancia_estimada_m || 0).toLocaleString('es-AR')} m</td>
+                <td>${Number(row.cantidad_total || 0).toLocaleString('es-AR')}</td>
+                <td>${Number(row.peso_total || 0).toLocaleString('es-AR')}</td>
+              </tr>
+                `;
+              })()}
+            `).join('') || `<tr><td colspan="13" class="analisis-empty">No hay filas para los filtros actuales.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  renderPickingBaseExplanation();
+}
+
+async function runPickingAnalysisBase() {
+  if (pickingAnalysisLoading) return;
+  const btn = document.getElementById('btn-picking-base');
+  const iaBtn = document.getElementById('btn-picking-ia-run');
+  const status = document.getElementById('picking-analysis-status');
+  const range = buildProductividadOnlineRange();
+  const cacheKey = getPickingAnalysisCacheKey(range);
+  if (!btn || !status) return;
+  if (!range) {
+    status.textContent = 'Completá fecha y turno antes de consultar el análisis base.';
+    return;
+  }
+
+  if (pickingAnalysisBaseResult && pickingAnalysisBaseKey === cacheKey) {
+    renderPickingAnalysisBase();
+    if (iaBtn) iaBtn.disabled = false;
+    status.textContent = `Análisis base ya cargado para ${range.turno_label}. Se reutiliza el dataset local sin volver a consultar Oracle.`;
+    return;
+  }
+
+  pickingAnalysisLoading = true;
+  pickingAnalysisIaResult = null;
+  if (iaBtn) iaBtn.disabled = true;
+  btn.disabled = true;
+  btn.textContent = 'Consultando...';
+  status.textContent = `Armando cálculo base de picking para ${range.turno_label}...`;
+  const container = document.getElementById('picking-analysis-results');
+  if (container) {
+    container.innerHTML = '<div class="analisis-empty">Consultando Oracle, ubicaciones locales y calculando dificultad base...</div>';
+  }
+
+  try {
+    const params = new URLSearchParams({ fecha: range.fecha, turno: range.turno });
+    const resp = await fetch(`/api/productividad/picking/base?${params.toString()}`);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo generar el análisis base.');
+    pickingAnalysisBaseResult = data;
+    pickingAnalysisBaseKey = cacheKey;
+    populateProductividadOnlineFilter('prod-online-filter-almacen', data.filters?.almacenes || [], 'Todos');
+    const operacionSel = document.getElementById('prod-online-filter-operacion');
+    if (operacionSel && !['ALL', 'PICKING'].includes(String(operacionSel.value || 'ALL').toUpperCase())) {
+      operacionSel.value = 'PICKING';
+    }
+    renderPickingAnalysisBase();
+    const sourceLabel = String(data.cache?.source_name || data.summary?.source_name || '') === 'sqlite_cache' ? 'cache local' : 'Oracle';
+    status.textContent = `Análisis base listo desde ${sourceLabel}. ${data.summary?.operarios || 0} operarios evaluados. No se volverá a consultar Oracle para este turno salvo refresh forzado.`;
+    if (iaBtn) iaBtn.disabled = false;
+  } catch (err) {
+    pickingAnalysisBaseResult = null;
+    pickingAnalysisBaseKey = '';
+    if (container) {
+      container.innerHTML = `<div class="analisis-empty" style="color:var(--red);border-color:#fecaca;">${escapeHtml(err.message || 'No se pudo generar el análisis base.')}</div>`;
+    }
+    renderPickingBaseExplanation();
+    status.textContent = err.message || 'No se pudo generar el análisis base.';
+  } finally {
+    pickingAnalysisLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Consultar dataset base';
+  }
+}
+
+async function runPickingAnalysisIa() {
+  if (pickingAnalysisIaLoading || !pickingAnalysisBaseResult) return;
+  const btn = document.getElementById('btn-picking-ia-run');
+  const status = document.getElementById('picking-analysis-status');
+  if (!btn || !status) return;
+
+  pickingAnalysisIaLoading = true;
+  btn.disabled = true;
+  btn.textContent = 'Ejecutando IA...';
+  status.textContent = 'Generando lectura IA sobre el cálculo base ya armado.';
+
+  try {
+    const resp = await fetch('/api/productividad/picking/ia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ analisis_base: pickingAnalysisBaseResult }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo ejecutar la IA.');
+    pickingAnalysisIaResult = data;
+    renderPickingAnalysisBase();
+    status.textContent = data?.cache?.ia_cache_hit
+      ? `Lectura IA recuperada desde cache local con ${String(data.provider || '').toUpperCase() || 'IA'}.`
+      : `Lectura IA lista con ${String(data.provider || '').toUpperCase() || 'IA'}.`;
+  } catch (err) {
+    status.textContent = err.message || 'No se pudo ejecutar la IA.';
+  } finally {
+    pickingAnalysisIaLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Ejecutar IA';
+  }
+}
+
+async function initProductividadOnlineModule() {
+  if (!plantelTurns.length) {
+    await loadPlantelTurnos();
+  }
+  const turnoSel = document.getElementById('prod-online-turno');
+  const dateInput = document.getElementById('prod-online-date');
+  if (turnoSel && !turnoSel.options.length) {
+    turnoSel.innerHTML = plantelTurns.map(t => `<option value="${t.turno_key}">${t.turno_label} · ${t.hora_inicio} - ${t.hora_fin}</option>`).join('');
+  }
+  if (dateInput && !dateInput.value) {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    dateInput.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  }
+  const selected = EXCEL_DATA.olas[selectedOla];
+  if (turnoSel && selected) {
+    turnoSel.value = turnoKey(selected.turno);
+  }
+  switchProdTab('online');
+}
+
+async function actualizarTurnoOnline() {
+  await runProductividadOnline();
 }
 
 // ── Modo Prueba / Real ────────────────────────────────────────────
@@ -1090,12 +2385,34 @@ function initForm() {
   // Botones de ola
   const wrap = document.getElementById('ola-btns');
   wrap.innerHTML = '';
-  EXCEL_DATA.olas.forEach((o, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'ola-btn' + (i === selectedOla ? ' active' : '');
-    btn.textContent = o.label;
-    btn.onclick = () => selectOla(i);
-    wrap.appendChild(btn);
+  const groups = [
+    { key: 'manana', label: 'Turno mañana' },
+    { key: 'tarde', label: 'Turno tarde' },
+    { key: 'noche', label: 'Turno noche' },
+  ];
+  groups.forEach(group => {
+    const row = document.createElement('div');
+    row.className = 'ola-btn-row';
+
+    const rowLabel = document.createElement('div');
+    rowLabel.className = 'ola-row-label';
+    rowLabel.textContent = group.label;
+    row.appendChild(rowLabel);
+
+    const buttons = document.createElement('div');
+    buttons.className = 'ola-row-buttons';
+    EXCEL_DATA.olas.forEach((o, i) => {
+      if (turnoKey(o.turno) !== group.key) return;
+      const btn = document.createElement('button');
+      btn.className = 'ola-btn' + (i === selectedOla ? ' active' : '');
+      btn.textContent = `${o.ini}:00 a ${o.fin === 24 ? '00:00' : o.fin + ':00'} ${o.label}`;
+      btn.onclick = () => selectOla(i);
+      buttons.appendChild(btn);
+    });
+
+    if (!buttons.children.length) return;
+    row.appendChild(buttons);
+    wrap.appendChild(row);
   });
   loadOlaIntoForm(selectedOla);
 }
@@ -1106,6 +2423,7 @@ function selectOla(idx) {
     b.className = 'ola-btn' + (i === idx ? ' active' : '');
   });
   loadOlaIntoForm(idx);
+  resetPlantelForm();
 }
 
 function loadOlaIntoForm(idx) {
@@ -1114,8 +2432,8 @@ function loadOlaIntoForm(idx) {
 
   // Tags de turno y horario (incluir tiempo transcurrido)
   const turnoTag = document.getElementById('turno-tag');
-  turnoTag.textContent = o.turno;
-  turnoTag.className = 'ola-turno-tag ' + o.turno;
+  turnoTag.textContent = turnoLabel(o.turno);
+  turnoTag.className = 'ola-turno-tag ' + turnoTagClass(o.turno);
 
   const ahora = new Date();
   const horaActual = ahora.getHours() + ahora.getMinutes() / 60;
@@ -1126,7 +2444,7 @@ function loadOlaIntoForm(idx) {
   const tiempoStr = horasT > 0 ? `${horasT}h ${minT}m` : `${minT}m`;
 
   document.getElementById('ola-horario').textContent = o.ini + ':00 – ' + finStr + ' · ' + tiempoStr + ' transcurridos';
-  document.getElementById('form-ola-tag').textContent = o.label + ' · ' + o.turno;
+  document.getElementById('form-ola-tag').textContent = o.label + ' · ' + turnoLabel(o.turno);
 
   // Poblar campos con valores sugeridos (programados — vienen del Excel)
   setField('f-prog-secos', o.progSecos, 'sug-prog-secos', o.progSecos);
@@ -1137,6 +2455,10 @@ function loadOlaIntoForm(idx) {
   clearManualField('f-ejec-secos', 'sug-ejec-secos', o.ejecSecos);
   clearManualField('f-ejec-noa',   'sug-ejec-noa',   o.ejecNOA);
   clearManualField('f-dot-ejec',   'sug-dot-ejec',   o.dotEjec);
+
+  if (onlineTurnoState && turnoKey(onlineTurnoState.turno) === turnoKey(o.turno)) {
+    fillFormWithOnlineSelected(o);
+  }
 
   document.getElementById('f-obs').value = o.obs || '';
   document.getElementById('sug-obs').textContent = o.obs ? '(Excel: "'+o.obs+'")'  : '';
@@ -1557,7 +2879,6 @@ async function runAiAnalysis(context) {
   }
 
   const requestPayload = {
-    provider: activeProvider,
     context,
     turno:    d.turno   || 'Tarde',
     fecha:    fechaHoy,
@@ -1686,23 +3007,430 @@ function renderAiAlerts() {
 
 // ── Tabs principales ─────────────────────────────────────────────
 function switchMainTab(tab) {
-  ['plan','productividad'].forEach(t => {
+  ['plan','productividad','plantel'].forEach(t => {
     document.getElementById('mtab-btn-'+t).classList.toggle('active', t === tab);
     document.getElementById('mtab-'+t).classList.toggle('active', t === tab);
   });
   if (tab === 'productividad') {
-    cargarRanking();
-    poblarSelectoresProductividad();
+    initProductividadOnlineModule();
+  }
+  if (tab === 'plantel') {
+    initPlantelModule();
   }
 }
 
 // ── Sub-tabs Productividad ────────────────────────────────────────
 function switchProdTab(tab) {
-  ['analisis','ranking','comparativa','sugerencias'].forEach(t => {
-    document.getElementById('stab-btn-'+t).classList.toggle('active', t === tab);
-    document.getElementById('stab-'+t).classList.toggle('active', t === tab);
-  });
-  if (tab === 'sugerencias') cargarSugerencias();
+  const onlineBtn = document.getElementById('stab-btn-online');
+  const pickingIaBtn = document.getElementById('stab-btn-picking-ia');
+  const explanationBtn = document.getElementById('stab-btn-base-explanation');
+  const onlineTab = document.getElementById('stab-online');
+  const pickingIaTab = document.getElementById('stab-picking-ia');
+  const explanationTab = document.getElementById('stab-base-explanation');
+  if (onlineBtn) onlineBtn.classList.toggle('active', tab === 'online');
+  if (pickingIaBtn) pickingIaBtn.classList.toggle('active', tab === 'picking-ia');
+  if (explanationBtn) explanationBtn.classList.toggle('active', tab === 'base-explanation');
+  if (onlineTab) onlineTab.classList.toggle('active', tab === 'online');
+  if (pickingIaTab) pickingIaTab.classList.toggle('active', tab === 'picking-ia');
+  if (explanationTab) explanationTab.classList.toggle('active', tab === 'base-explanation');
+}
+
+// ── Plantel Operativo ─────────────────────────────────────────────
+async function loadPlantelTurnos() {
+  try {
+    const resp = await fetch('/api/plantel/turnos');
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudieron cargar los turnos.');
+    plantelTurns = Array.isArray(data.turnos) ? data.turnos : [];
+  } catch (err) {
+    console.warn('Plantel: usando turnos por fallback.', err);
+    plantelTurns = [
+      { turno_key: 'tarde', turno_label: 'Tarde', hora_inicio: '14:00', hora_fin: '22:00' },
+      { turno_key: 'noche', turno_label: 'Noche', hora_inicio: '22:00', hora_fin: '06:00' },
+      { turno_key: 'manana', turno_label: 'Mañana', hora_inicio: '06:00', hora_fin: '14:00' },
+    ];
+  }
+
+  const sel = document.getElementById('plantel-turno');
+  if (!sel) return;
+  sel.innerHTML = plantelTurns.map(t => `<option value="${t.turno_key}">${t.turno_label} · ${t.hora_inicio} - ${t.hora_fin}</option>`).join('');
+}
+
+function resetPlantelForm() {
+  const selected = EXCEL_DATA.olas[selectedOla];
+  const turnoSel = document.getElementById('plantel-turno');
+  const secosInput = document.getElementById('plantel-bultos-secos');
+  const noaInput = document.getElementById('plantel-bultos-noa');
+  const nameInput = document.getElementById('plantel-scenario-name');
+  const refreshSel = document.getElementById('plantel-force-refresh');
+  if (selected && turnoSel) turnoSel.value = turnoKey(selected.turno);
+  if (selected && secosInput) secosInput.value = Math.round(selected.progSecos || 0);
+  if (selected && noaInput) noaInput.value = Math.round(selected.progNOA || 0);
+  if (refreshSel) refreshSel.value = '0';
+  if (nameInput) {
+    const tLabel = selected ? turnoLabel(selected.turno) : 'Turno';
+    nameInput.value = `Escenario base ${String(tLabel).toLowerCase()}`;
+  }
+}
+
+function describeRisk(value) {
+  const risk = String(value || '').toLowerCase();
+  if (risk === 'alto') return 'puede quedar corto';
+  if (risk === 'medio') return 'llega justo';
+  return 'debería alcanzar';
+}
+
+function describeDiff(current, baseline) {
+  const delta = Number(current || 0) - Number(baseline || 0);
+  if (delta > 5) return 'mejor';
+  if (delta < -5) return 'peor';
+  return 'parecido';
+}
+
+function simpleDiffText(current, baseline) {
+  const delta = Number(current || 0) - Number(baseline || 0);
+  if (delta > 5) return `Con esta sugerencia queda mejor que con el reparto simple (+${delta.toFixed(1)} puntos).`;
+  if (delta < -5) return `Con esta sugerencia queda peor que con el reparto simple (${delta.toFixed(1)} puntos).`;
+  return 'Con esta sugerencia queda muy parecido al reparto simple.';
+}
+
+function describePriority(score) {
+  const value = Number(score || 0);
+  if (value >= 45) return 'alta';
+  if (value >= 25) return 'media';
+  return 'baja';
+}
+
+function describePenalty(value) {
+  return Number(value || 0) > 0 ? 'requiere apoyo' : 'sin problema';
+}
+
+function describeCoveragePlan(item) {
+  const faltante = Number(item?.faltante_personas || 0);
+  const cobertura = Number(item?.cobertura_pct || 0);
+  if (faltante > 0) return `faltan ${faltante} personas para cubrir todo`;
+  if (cobertura < 95) return 'va a quedar justo';
+  return 'quedaría cubierto';
+}
+
+function describeGap(value) {
+  const gap = Number(value || 0);
+  if (gap > 0) return `faltan ${gap}`;
+  if (gap < 0) return `sobran ${Math.abs(gap)}`;
+  return 'sin brecha';
+}
+
+function renderPlantelKPIs(data) {
+  const wrap = document.getElementById('plantel-kpis');
+  if (!wrap || !data || !data.summary) return;
+  const summary = data.summary;
+  const gap = Number(summary.brecha_personas || 0);
+  wrap.innerHTML = `
+    <div class="plantel-kpi">
+      <div class="plantel-kpi-label">Turno</div>
+      <div class="plantel-kpi-value">${summary.turno || '—'}</div>
+      <div class="plantel-kpi-sub">${summary.rango_horario || '—'} · corrida ${summary.scenario_id || 'nueva'}</div>
+    </div>
+    <div class="plantel-kpi">
+      <div class="plantel-kpi-label">Personas necesarias</div>
+      <div class="plantel-kpi-value">${summary.personas_necesarias_total || 0}</div>
+      <div class="plantel-kpi-sub">${Math.round(summary.demanda_total_bultos || 0).toLocaleString('es-AR')} bultos a cubrir en total</div>
+    </div>
+    <div class="plantel-kpi">
+      <div class="plantel-kpi-label">Disponibles</div>
+      <div class="plantel-kpi-value">${summary.personas_disponibles_turno || 0}</div>
+      <div class="plantel-kpi-sub">Gente con historial en este turno · se planifican ${summary.personas_planificadas_total || 0}</div>
+    </div>
+    <div class="plantel-kpi">
+      <div class="plantel-kpi-label">Brecha</div>
+      <div class="plantel-kpi-value">${gap > 0 ? `-${gap}` : '0'}</div>
+      <div class="plantel-kpi-sub">${gap > 0 ? 'Falta gente para cubrir todo el trabajo cargado' : 'Se puede cubrir la necesidad estimada del turno'}</div>
+    </div>
+  `;
+}
+
+function renderPlantelSummaryTable(data) {
+  const wrap = document.getElementById('plantel-summary-table');
+  if (!wrap) return;
+  const almacenes = Array.isArray(data?.almacenes) ? data.almacenes : [];
+  if (!almacenes.length) {
+    wrap.className = 'plantel-empty';
+    wrap.textContent = 'Todavía no se ejecutó una sugerencia.';
+    return;
+  }
+  wrap.className = 'plantel-table';
+  wrap.innerHTML = `
+    <div class="plantel-row head">
+      <div>Almacén</div>
+      <div>Trabajo cargado</div>
+      <div>Gente necesaria</div>
+      <div>Plantel sugerido</div>
+      <div>Cómo queda</div>
+    </div>
+    ${almacenes.map(item => `
+      <div class="plantel-row">
+        <div>
+          <div class="plantel-cell-main">${item.almacen}</div>
+          <div class="plantel-cell-sub">${item.projection_days_sampled || 0} jornadas parecidas usadas para estimar</div>
+        </div>
+        <div>
+          <div class="plantel-cell-main">${Math.round(item.bultos_turno || 0).toLocaleString('es-AR')} bultos</div>
+          <div class="plantel-cell-sub">${Math.round(item.capacidad_por_persona_historica || 0).toLocaleString('es-AR')} bultos por persona en jornadas comparables</div>
+        </div>
+        <div>
+          <div class="plantel-cell-main">${item.personas_necesarias || 0} personas</div>
+          <div class="plantel-cell-sub">Es la dotación estimada para sacar ese volumen en el turno</div>
+        </div>
+        <div>
+          <div class="plantel-cell-main">${item.dotacion_sugerida || 0} personas</div>
+          <div class="plantel-cell-sub">${Math.round(item.capacidad_equipo || 0).toLocaleString('es-AR')} bultos posibles con este equipo</div>
+        </div>
+        <div>
+          <div class="plantel-cell-main">${describeCoveragePlan(item)}</div>
+          <div class="plantel-cell-sub">${describeRisk(item.riesgo)} · cierre estimado ${item.hora_fin_estimada || '—'}</div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderPlantelExplanations(data) {
+  const wrap = document.getElementById('plantel-explanations');
+  if (!wrap) return;
+  const exp = data?.explanations || {};
+  const summary = data?.summary || {};
+  const almacenes = Array.isArray(exp.almacenes) ? exp.almacenes : [];
+  const whatIf = Array.isArray(exp.what_if) ? exp.what_if : [];
+  const alertas = Array.isArray(exp.alertas) ? exp.alertas : [];
+  wrap.className = 'plantel-explain';
+  wrap.innerHTML = `
+    <div class="plantel-explain-item"><strong>Lectura IA</strong><br>${exp.summary || 'Sin explicación disponible.'}</div>
+    <div class="plantel-explain-item"><strong>Acción recomendada</strong><br>${exp.accion_principal || 'Revisar la brecha del turno y cubrir primero el almacén más exigido.'}</div>
+    <div class="plantel-explain-item"><strong>Cómo se calcula</strong><br>${summary.projection_basis || 'La proyección se hace con el historial disponible del turno.'}</div>
+    ${alertas.length ? `<div class="plantel-explain-item"><strong>Alertas</strong><br>${alertas.map(item => `• ${item}`).join('<br>')}</div>` : ''}
+    ${almacenes.map(item => `<div class="plantel-explain-item"><strong>${item.almacen}</strong><br>${item.explicacion}</div>`).join('')}
+    <div class="plantel-explain-item"><strong>Pruebas rápidas</strong><br>${whatIf.map(item => `• ${item}`).join('<br>') || '• Cambiar bultos y recalcular.'}</div>
+  `;
+}
+
+function getPlantelFilteredAssignments() {
+  const assignments = Array.isArray(plantelLastResult?.suggested_assignments) ? [...plantelLastResult.suggested_assignments] : [];
+  const filterValue = document.getElementById('plantel-grid-filter')?.value || 'ALL';
+  return assignments
+    .filter(item => filterValue === 'ALL' || item.almacen === filterValue)
+    .sort((a, b) => {
+      const almacenCmp = String(a.almacen || '').localeCompare(String(b.almacen || ''), 'es');
+      if (almacenCmp !== 0) return almacenCmp;
+      return String(a.operario_nombre || a.operario_id || '').localeCompare(String(b.operario_nombre || b.operario_id || ''), 'es');
+    });
+}
+
+function renderPlantelOperationalGrid() {
+  const wrap = document.getElementById('plantel-operational-grid');
+  if (!wrap) return;
+  const assignments = getPlantelFilteredAssignments();
+  if (!assignments.length) {
+    wrap.className = 'plantel-empty';
+    wrap.textContent = 'Todavía no hay asignación operativa calculada para ese filtro.';
+    return;
+  }
+  wrap.className = 'plantel-oper-grid';
+  wrap.innerHTML = `
+    <div class="plantel-oper-head">
+      <div>Operario</div>
+      <div>Mandar a</div>
+      <div>Aporte estimado</div>
+      <div>Prioridad</div>
+      <div>Ojo</div>
+      <div>Por qué</div>
+    </div>
+    ${assignments.map(item => `
+      <div class="plantel-oper-row">
+        <div class="plantel-oper-cell"><strong>${item.operario_nombre || item.operario_id}</strong><br>${item.operario_id || ''}</div>
+        <div class="plantel-oper-cell">${item.almacen || '—'}</div>
+        <div class="plantel-oper-cell">${Math.round(item.capacidad_estimada || 0).toLocaleString('es-AR')} bultos</div>
+        <div class="plantel-oper-cell">${describePriority(item.score)}</div>
+        <div class="plantel-oper-cell">${describePenalty(item.penalizacion)}</div>
+        <div class="plantel-oper-cell">${item.motivo_principal || item.explicacion_ia || '—'}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function exportPlantelAssignmentsCsv() {
+  const assignments = getPlantelFilteredAssignments();
+  if (!assignments.length) {
+    const status = document.getElementById('plantel-status');
+    if (status) status.textContent = 'No hay filas para exportar con el filtro actual.';
+    return;
+  }
+
+  const rows = [
+    ['Operario', 'Operario ID', 'Mandar a', 'Aporte estimado', 'Prioridad', 'Ojo', 'Por qué'],
+    ...assignments.map(item => [
+      item.operario_nombre || '',
+      item.operario_id || '',
+      item.almacen || '',
+      String(Math.round(item.capacidad_estimada || 0)),
+      describePriority(item.score),
+      describePenalty(item.penalizacion),
+      (item.motivo_principal || item.explicacion_ia || '').replace(/\r?\n/g, ' '),
+    ]),
+  ];
+
+  const csv = rows
+    .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';'))
+    .join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const turno = plantelLastResult?.summary?.turno_key || 'turno';
+  a.href = url;
+  a.download = `plantel_operativo_${turno}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function renderPlantelAssignments(data) {
+  const wrap = document.getElementById('plantel-assignments');
+  if (!wrap) return;
+  const assignments = Array.isArray(data?.suggested_assignments) ? data.suggested_assignments : [];
+  if (!assignments.length) {
+    wrap.className = 'plantel-empty';
+    wrap.textContent = 'Todavía no hay armado calculado.';
+    return;
+  }
+  wrap.className = 'plantel-assignment-list';
+  wrap.innerHTML = assignments.map(item => `
+    <div class="plantel-assignment">
+      <div class="plantel-assignment-top">
+        <div>
+          <div class="plantel-operator">${item.operario_nombre || item.operario_id}</div>
+          <div class="plantel-cell-sub">${item.operario_id}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+          <span class="plantel-badge">${item.almacen}</span>
+          ${Number(item.penalizacion || 0) > 0 ? `<span class="plantel-penalty">${describePenalty(item.penalizacion)}</span>` : ''}
+        </div>
+      </div>
+      <div class="plantel-cell-sub">Prioridad ${describePriority(item.score)} · aporte estimado ${Math.round(item.capacidad_estimada || 0).toLocaleString('es-AR')} bultos en el turno</div>
+      <div class="plantel-cell-sub">${item.explicacion_ia || item.motivo_principal || 'Sin detalle'}</div>
+    </div>
+  `).join('');
+}
+
+function renderPlantelScenarios(items) {
+  const wrap = document.getElementById('plantel-scenarios');
+  if (!wrap) return;
+  const escenarios = Array.isArray(items) ? items : [];
+  if (!escenarios.length) {
+    wrap.className = 'plantel-empty';
+    wrap.textContent = 'Todavía no hay escenarios guardados.';
+    return;
+  }
+  wrap.className = 'plantel-scenarios';
+  wrap.innerHTML = escenarios.map(item => `
+    <div class="plantel-scenario-card">
+      <strong>${item.nombre || 'Escenario'}</strong>
+      <div class="plantel-cell-sub">${item.turno_label || '—'} · ${item.hora_inicio || '—'} - ${item.hora_fin || '—'}</div>
+      <div class="plantel-cell-sub">Necesarias: ${item.summary?.personas_necesarias_total || 0} · disponibles: ${item.summary?.personas_disponibles_turno || 0}</div>
+      <div class="plantel-cell-sub">Brecha: ${item.summary?.brecha_personas || 0}</div>
+      <div class="plantel-cell-sub">${item.created_at || ''}</div>
+    </div>
+  `).join('');
+}
+
+async function loadPlantelScenarios() {
+  try {
+    const resp = await fetch('/api/plantel/escenarios');
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudieron cargar los escenarios.');
+    renderPlantelScenarios(data.escenarios || []);
+  } catch (err) {
+    console.warn('Plantel: no se pudieron cargar escenarios.', err);
+  }
+}
+
+function renderPlantelResult(data) {
+  plantelLastResult = data;
+  renderPlantelKPIs(data);
+  renderPlantelSummaryTable(data);
+  renderPlantelExplanations(data);
+  renderPlantelOperationalGrid();
+  renderPlantelAssignments(data);
+}
+
+async function runPlantelScenario() {
+  if (plantelLoading) return;
+  const turnoSel = document.getElementById('plantel-turno');
+  const status = document.getElementById('plantel-status');
+  const runBtn = document.getElementById('plantel-run-btn');
+  if (!turnoSel || !status || !runBtn) return;
+
+  const payload = {
+    turno: turnoSel.value,
+    scenario_name: document.getElementById('plantel-scenario-name')?.value || '',
+    force_refresh: document.getElementById('plantel-force-refresh')?.value === '1',
+    almacenes: [
+      {
+        almacen: 'SECTOR SECOS',
+        bultos_turno: Number(document.getElementById('plantel-bultos-secos')?.value || 0),
+        lineas_turno: 0,
+      },
+      {
+        almacen: 'VARIOS NO ALIMENTOS',
+        bultos_turno: Number(document.getElementById('plantel-bultos-noa')?.value || 0),
+        lineas_turno: 0,
+      },
+    ],
+  };
+
+  plantelLoading = true;
+  runBtn.disabled = true;
+  status.textContent = 'Calculando cuánta gente hace falta y armando el mejor plantel posible para ese turno...';
+  let timeoutId = null;
+  try {
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), 45000);
+    const resp = await fetch('/api/plantel/sugerencias', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo armar la sugerencia.');
+    renderPlantelResult(data);
+    await loadPlantelScenarios();
+    status.textContent = `Listo. Para ${data.summary?.turno || '—'} se estiman ${data.summary?.personas_necesarias_total || 0} personas y se pudo armar un plantel de ${data.summary?.personas_planificadas_total || 0}.`;
+  } catch (err) {
+    status.textContent = err.name === 'AbortError'
+      ? 'Tardó demasiado y se frenó para que la pantalla no quede clavada.'
+      : (err.message || 'Se produjo un error al armar la sugerencia.');
+    const summaryEl = document.getElementById('plantel-summary-table');
+    if (summaryEl) {
+      summaryEl.className = 'plantel-empty';
+      summaryEl.textContent = err.name === 'AbortError'
+        ? 'Tardó demasiado. Probá de nuevo en un rato.'
+        : (err.message || 'Se produjo un error.');
+    }
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+    plantelLoading = false;
+    runBtn.disabled = false;
+  }
+}
+
+async function initPlantelModule() {
+  if (!plantelTurns.length) {
+    await loadPlantelTurnos();
+    resetPlantelForm();
+  }
+  await loadPlantelScenarios();
 }
 
 function toInputLocalValue(date) {
@@ -2060,8 +3788,8 @@ function renderAnalisisProductividadV2(data, aiData) {
           <div class="analisis-row ${op.estado || ''}">
             <div class="analisis-op">${op.operario}</div>
             <div class="analisis-zonas">
-              ${(op.zonas || []).slice(0,3).map(z => `${z.zona}: ${z.productividad}/h`).join(' Â· ') || 'Sin zonas'}
-              ${op.historico ? `<div style="margin-top:6px;color:${op.historico.delta_vs_promedio_pct >= 0 ? 'var(--green)' : '#fca5a5'};font-size:11px;">Hist.: ${(op.historico.promedio_productividad || 0).toLocaleString('es-AR')} /h Â· ${op.historico.delta_vs_promedio_pct >= 0 ? '+' : ''}${(op.historico.delta_vs_promedio_pct || 0).toLocaleString('es-AR')}%</div>` : ''}
+              ${(op.zonas || []).slice(0,3).map(z => `${z.zona}: ${z.productividad}/h`).join(' · ') || 'Sin zonas'}
+              ${op.historico ? `<div style="margin-top:6px;color:${op.historico.delta_vs_promedio_pct >= 0 ? 'var(--green)' : '#fca5a5'};font-size:11px;">Hist.: ${(op.historico.promedio_productividad || 0).toLocaleString('es-AR')} /h · ${op.historico.delta_vs_promedio_pct >= 0 ? '+' : ''}${(op.historico.delta_vs_promedio_pct || 0).toLocaleString('es-AR')}%</div>` : ''}
             </div>
             <div class="analisis-metric">${(op.productividad_general || 0).toLocaleString('es-AR')} /h</div>
             <div class="analisis-metric">${(op.cantidad_total || 0).toLocaleString('es-AR')}</div>
@@ -2084,8 +3812,8 @@ function renderAnalisisProductividadV2(data, aiData) {
           <div class="analisis-row">
             <div class="analisis-op">${z.zona}</div>
             <div class="analisis-zonas">
-              ${z.operarios} operarios Â· ${z.movimientos} movimientos Â· ${z.horas_activas || 0} h activas
-              ${z.historico ? `<div style="margin-top:6px;color:${z.historico.delta_vs_promedio_pct >= 0 ? 'var(--green)' : '#fca5a5'};font-size:11px;">Hist.: ${(z.historico.promedio_productividad || 0).toLocaleString('es-AR')} /h Â· ${z.historico.delta_vs_promedio_pct >= 0 ? '+' : ''}${(z.historico.delta_vs_promedio_pct || 0).toLocaleString('es-AR')}%</div>` : ''}
+              ${z.operarios} operarios · ${z.movimientos} movimientos · ${z.horas_activas || 0} h activas
+              ${z.historico ? `<div style="margin-top:6px;color:${z.historico.delta_vs_promedio_pct >= 0 ? 'var(--green)' : '#fca5a5'};font-size:11px;">Hist.: ${(z.historico.promedio_productividad || 0).toLocaleString('es-AR')} /h · ${z.historico.delta_vs_promedio_pct >= 0 ? '+' : ''}${(z.historico.delta_vs_promedio_pct || 0).toLocaleString('es-AR')}%</div>` : ''}
             </div>
             <div class="analisis-metric">${(z.productividad || 0).toLocaleString('es-AR')} /h</div>
             <div class="analisis-metric">${(z.cantidad_total || 0).toLocaleString('es-AR')}</div>
@@ -2109,7 +3837,7 @@ function renderAnalisisProductividadV2(data, aiData) {
         ${[...bajos, ...altos.filter(item => !bajos.some(low => low.operario === item.operario))].slice(0,10).map(item => `
           <div class="analisis-row ${item.delta_pct < 0 ? 'bad' : 'ok'}">
             <div class="analisis-op">${item.operario}</div>
-            <div class="analisis-zonas">${item.ventanas} ventanas historicas Â· ${item.delta_pct >= 0 ? '+' : ''}${item.delta_pct.toLocaleString('es-AR')}%</div>
+            <div class="analisis-zonas">${item.ventanas} ventanas historicas · ${item.delta_pct >= 0 ? '+' : ''}${item.delta_pct.toLocaleString('es-AR')}%</div>
             <div class="analisis-metric">${(item.actual || 0).toLocaleString('es-AR')} /h</div>
             <div class="analisis-metric">${(item.promedio_historico || 0).toLocaleString('es-AR')} /h</div>
           </div>
@@ -2132,7 +3860,7 @@ function renderAnalisisProductividadV2(data, aiData) {
         ${[...bajas, ...altas.filter(item => !bajas.some(low => low.zona === item.zona))].slice(0,10).map(item => `
           <div class="analisis-row ${item.delta_pct < 0 ? 'bad' : 'ok'}">
             <div class="analisis-op">${item.zona}</div>
-            <div class="analisis-zonas">${item.ventanas} ventanas historicas Â· ${item.delta_pct >= 0 ? '+' : ''}${item.delta_pct.toLocaleString('es-AR')}%</div>
+            <div class="analisis-zonas">${item.ventanas} ventanas historicas · ${item.delta_pct >= 0 ? '+' : ''}${item.delta_pct.toLocaleString('es-AR')}%</div>
             <div class="analisis-metric">${(item.actual || 0).toLocaleString('es-AR')} /h</div>
             <div class="analisis-metric">${(item.promedio_historico || 0).toLocaleString('es-AR')} /h</div>
           </div>
@@ -2146,7 +3874,7 @@ function renderAnalisisProductividadV2(data, aiData) {
       <div class="analisis-ia-hero">
         <div class="analisis-ia-topline">
           <span class="analisis-ia-badge">Analisis IA prioritario</span>
-          <span class="analisis-ia-provider">Motor: <strong>${iaProvider}</strong> Â· ${iaModel}${iaCacheHit ? ' Â· caché' : ''}</span>
+          <span class="analisis-ia-provider">Motor: <strong>${iaProvider}</strong> · ${iaModel}${iaCacheHit ? ' · caché' : ''}</span>
           ${showInlineIaLoading ? '<span class="analisis-ia-live">IA en ejecucion</span>' : ''}
         </div>
         <div class="analisis-ia-title">Lectura ejecutiva del rendimiento operativo</div>
@@ -2276,7 +4004,7 @@ async function cargarAnalisisProductividad() {
     const iaResp = await fetch('/api/productividad/analisis/ia', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider: activeProvider, resumen_interno: interno }),
+      body: JSON.stringify({ resumen_interno: interno }),
     });
     const ia = await iaResp.json();
     if (!iaResp.ok) throw new Error(ia.detail || 'No se pudo generar el analisis IA.');
@@ -2379,7 +4107,7 @@ async function cargarSugerencias() {
         `Analizando operario ${op.operario_id} con IA.`
       );
       try {
-        const data = await fetch(`/api/recomendaciones/${op.operario_id}/enriquecido?provider=${activeProvider}`).then(r => r.json());
+        const data = await fetch(`/api/recomendaciones/${op.operario_id}/enriquecido`).then(r => r.json());
         const recs = (data.recomendaciones || []).slice(0, 2);
         let cardHtml = `<div style="margin-bottom:20px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;background:var(--surface-alt);border-radius:8px;border-left:4px solid ${op.estado==='bad'?'var(--red)':'var(--amber)'};">
           <span style="font-weight:700;color:var(--text-hi);">${op.operario_id}</span>
@@ -2754,6 +4482,55 @@ function setProviderStatus(text, cls) {
   el.className   = cls || '';
 }
 
+// Proveedor IA fijo por configuracion backend (.env)
+function initProviderBar() {
+  document.getElementById('ai-alerts').innerHTML =
+    '<div style="font-size:11px;color:var(--muted)">Todavia no se ejecuto ningun analisis.</div>';
+  updateAiBadge(activeProvider);
+  setProviderStatus('Proveedor fijo por configuracion', '');
+  loadProviders();
+}
+
+async function ensureProvidersLoaded() {
+  if (providersLoaded) return;
+  setProviderStatus('Leyendo proveedor configurado...', 'loading');
+  try {
+    const data = await fetch('/api/config/ia').then(r => r.json());
+    activeProvider = (data.provider || activeProvider || 'claude').toLowerCase();
+    providersLoaded = true;
+    updateAiBadge(activeProvider);
+    setProviderStatus((data.label || activeProvider) + ' fijo por .env', 'ok');
+  } catch (e) {
+    providersLoaded = true;
+    setProviderStatus('No se pudo leer configuracion IA', 'err');
+  }
+}
+
+async function loadProviders() {
+  try {
+    const data = await fetch('/api/config/ia').then(r => r.json());
+    activeProvider = (data.provider || activeProvider || 'claude').toLowerCase();
+    providersLoaded = true;
+    updateAiBadge(activeProvider);
+    setProviderStatus((data.label || activeProvider) + ' fijo por .env', 'ok');
+  } catch(e) {
+    providersLoaded = true;
+    setProviderStatus('sin conexion', 'err');
+  }
+}
+
+function renderProviderBtns(data) {
+  activeProvider = (data.active || data.provider || activeProvider || 'claude').toLowerCase();
+  providersLoaded = true;
+  updateAiBadge(activeProvider);
+  setProviderStatus(activeProvider + ' fijo por .env', 'ok');
+}
+
+function selectProvider() {
+  updateAiBadge(activeProvider);
+  setProviderStatus('Proveedor fijo por .env', 'ok');
+}
+
 // ── Chat ──────────────────────────────────────────────────────────
 function toggleChat() {
   const body   = document.getElementById('chat-body');
@@ -2793,7 +4570,7 @@ async function sendChat() {
     const result = await fetch('/api/chat', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ provider:activeProvider, message:msg, history:chatHistory.slice(0,-1), context:ctx }),
+      body: JSON.stringify({ message:msg, history:chatHistory.slice(0,-1), context:ctx }),
     }).then(r => r.json());
     chatHistory.push({ role:'assistant', content: result.reply });
     document.getElementById('typing')?.remove();
@@ -2864,7 +4641,7 @@ async function enviarPregunta(pregunta) {
     const result = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider: activeProvider, message: pregunta, history: chatHistory.slice(0,-1), context: ctx }),
+      body: JSON.stringify({ message: pregunta, history: chatHistory.slice(0,-1), context: ctx }),
     }).then(r => r.json());
     chatHistory.push({ role:'assistant', content: result.reply });
     document.getElementById('typing')?.remove();
@@ -2896,7 +4673,11 @@ function updateClock() {
   selectedOla = detectOlaActual();
   initProviderBar();
   initForm();
+  await loadPlantelTurnos();
+  resetPlantelForm();
+  await loadPlantelScenarios();
   initAnalisisProductividadDefaults();
+  switchMainTab('productividad');
   setInterval(updateClock, 1000);
   updateClock();
 })();
@@ -2910,6 +4691,11 @@ function updateClock() {
     <div class="ai-overlay-sub" id="ai-overlay-sub">Por favor esperá. El análisis se está procesando.</div>
     <div class="ai-overlay-prov" id="ai-overlay-prov">🤖 IA</div>
     <div class="ai-overlay-warn" id="ai-overlay-warn" style="display:none;">⏱ Con Ollama puede demorar hasta 2 minutos en hardware compartido</div>
+  </div>
+</div>
+<div class="online-detail-overlay" id="online-detail-overlay" onclick="if(event.target===this) closeProductividadOnlineOperarioDetail()">
+  <div class="online-detail-modal">
+    <div id="online-detail-body"></div>
   </div>
 </div>
 </body>
