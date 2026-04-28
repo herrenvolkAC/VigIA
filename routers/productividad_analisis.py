@@ -342,6 +342,11 @@ def _turn_range_for_date(fecha: str, turno: str) -> tuple[str, str, str]:
     )
 
 
+def _turn_finished(fecha_hasta: str, now: datetime | None = None) -> bool:
+    end_dt = _parse_dt(fecha_hasta, "fecha_hasta")
+    return end_dt <= (now or datetime.now())
+
+
 def _safe_float(value: Any) -> float:
     if value is None:
         return 0.0
@@ -416,6 +421,27 @@ def _picking_cache_row_uid(
         fh_movimiento or "",
         copecrea or "",
         ubic_origen or "",
+        nro_pallet or "",
+        f"{cantidad:.4f}",
+    ])
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _online_cache_row_uid(
+    fecha: str,
+    turno_key: str,
+    fh_movimiento: str,
+    copecrea: str,
+    operacion: str,
+    nro_pallet: str,
+    cantidad: float,
+) -> str:
+    raw = "|".join([
+        fecha or "",
+        turno_key or "",
+        fh_movimiento or "",
+        copecrea or "",
+        operacion or "",
         nro_pallet or "",
         f"{cantidad:.4f}",
     ])
@@ -1566,6 +1592,137 @@ async def _update_picking_cache_run_ia(
         await db.commit()
 
 
+async def _get_cached_productividad_online_rows(fecha: str, turno_key: str) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT r.*
+            FROM productividad_online_cache_rows r
+            JOIN productividad_online_cache_runs run
+              ON run.cache_run_id = r.cache_run_id
+            WHERE run.fecha = ? AND run.turno_key = ?
+            ORDER BY r.fh_movimiento, r.copecrea, r.operacion
+            """,
+            (fecha, turno_key),
+        ) as cur:
+            async for row in cur:
+                rows.append(
+                    {
+                        "ALMACEN": row["almacen"],
+                        "COPECREA": row["copecrea"],
+                        "OPERARIO": row["operario"],
+                        "OPERACION": row["operacion"],
+                        "FH_MOVIMIENTO": row["fh_movimiento"],
+                        "ZONA_ORIGEN": row["zona_origen"],
+                        "UBIC_ORIGEN": row["ubic_origen"],
+                        "NRO_PALLET": row["nro_pallet"],
+                        "CANTIDAD": row["cantidad"],
+                        "PESO": row["peso"],
+                    }
+                )
+    return rows
+
+
+async def _get_productividad_online_cache_run(fecha: str, turno_key: str) -> aiosqlite.Row | None:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT *
+            FROM productividad_online_cache_runs
+            WHERE fecha = ? AND turno_key = ?
+            LIMIT 1
+            """,
+            (fecha, turno_key),
+        ) as cur:
+            return await cur.fetchone()
+
+
+async def _store_cached_productividad_online_rows(
+    *,
+    fecha: str,
+    turno_key: str,
+    turno_label: str,
+    fecha_desde: str,
+    fecha_hasta: str,
+    rows: list[dict[str, Any]],
+) -> int:
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA foreign_keys = ON")
+        existing = await db.execute(
+            "SELECT cache_run_id FROM productividad_online_cache_runs WHERE fecha = ? AND turno_key = ?",
+            (fecha, turno_key),
+        )
+        existing_row = await existing.fetchone()
+        if existing_row:
+            cache_run_id = existing_row[0]
+            await db.execute(
+                "DELETE FROM productividad_online_cache_rows WHERE cache_run_id = ?",
+                (cache_run_id,),
+            )
+            await db.execute(
+                """
+                UPDATE productividad_online_cache_runs
+                SET turno_label = ?,
+                    fecha_desde = ?,
+                    fecha_hasta = ?,
+                    source_rows_count = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE cache_run_id = ?
+                """,
+                (turno_label, fecha_desde, fecha_hasta, len(rows), cache_run_id),
+            )
+        else:
+            cursor = await db.execute(
+                """
+                INSERT INTO productividad_online_cache_runs (
+                    fecha, turno_key, turno_label, fecha_desde, fecha_hasta, source_rows_count
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (fecha, turno_key, turno_label, fecha_desde, fecha_hasta, len(rows)),
+            )
+            cache_run_id = cursor.lastrowid
+
+        payload = []
+        for row in rows:
+            fh_movimiento = str(row.get("FH_MOVIMIENTO") or "")
+            copecrea = _safe_str(row.get("COPECREA"), "")
+            operacion = _normalize_operacion_name(_safe_str(row.get("OPERACION"), ""))
+            nro_pallet = _safe_str(row.get("NRO_PALLET"), "")
+            cantidad = _safe_float(row.get("CANTIDAD"))
+            payload.append(
+                (
+                    _online_cache_row_uid(fecha, turno_key, fh_movimiento, copecrea, operacion, nro_pallet, cantidad),
+                    cache_run_id,
+                    fecha,
+                    turno_key,
+                    fh_movimiento,
+                    copecrea,
+                    _safe_str(row.get("OPERARIO"), ""),
+                    operacion,
+                    _safe_str(row.get("ALMACEN"), "SIN MAPEAR"),
+                    _safe_str(row.get("ZONA_ORIGEN"), ""),
+                    _safe_str(row.get("UBIC_ORIGEN"), ""),
+                    nro_pallet,
+                    cantidad,
+                    _safe_float(row.get("PESO")),
+                )
+            )
+        await db.executemany(
+            """
+            INSERT OR REPLACE INTO productividad_online_cache_rows (
+                row_uid, cache_run_id, fecha, turno_key, fh_movimiento, copecrea, operario,
+                operacion, almacen, zona_origen, ubic_origen, nro_pallet, cantidad, peso
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            payload,
+        )
+        await db.commit()
+    return len(payload)
+
+
 async def _load_ubicaciones_oracle_map() -> dict[str, dict[str, Any]]:
     mapping: dict[str, dict[str, Any]] = {}
     async with aiosqlite.connect(DB_PATH) as db:
@@ -1615,9 +1772,11 @@ def _build_picking_row_difficulty(
 
 async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: bool = False) -> dict[str, Any]:
     turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
-    detail_rows = [] if force_refresh else await _get_cached_picking_analysis_rows(fecha, turno_key)
-    source_name = "sqlite_cache" if detail_rows else "oracle_productiva"
-    if not detail_rows:
+    turno_finalizado = _turn_finished(fecha_hasta)
+    cached_run = await _get_picking_cache_run_row(fecha, turno_key) if turno_finalizado else None
+    detail_rows = await _get_cached_picking_analysis_rows(fecha, turno_key) if cached_run else []
+    source_name = "sqlite_cache" if cached_run else "oracle_productiva"
+    if not cached_run:
         detail_rows = await asyncio.to_thread(
             query_productive_db_picking_analysis_detail,
             fecha_desde,
@@ -1927,6 +2086,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         "cache": {
             "source_name": source_name,
             "force_refresh": force_refresh,
+            "turno_finalizado": turno_finalizado,
         },
     }
     resumen_hash = _hash_payload(payload)
@@ -1937,6 +2097,228 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         resumen_hash=resumen_hash,
     )
     return payload
+
+
+async def _load_picking_detail_for_turn(fecha: str, turno: str) -> tuple[str, str, str, bool, str, list[dict[str, Any]]]:
+    turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
+    turno_finalizado = _turn_finished(fecha_hasta)
+    cached_run = await _get_picking_cache_run_row(fecha, turno_key) if turno_finalizado else None
+    detail_rows = await _get_cached_picking_analysis_rows(fecha, turno_key) if cached_run else []
+    source_name = "sqlite_cache" if cached_run else "oracle_productiva"
+    if not cached_run:
+        detail_rows = await asyncio.to_thread(
+            query_productive_db_picking_analysis_detail,
+            fecha_desde,
+            fecha_hasta,
+        )
+        await _store_cached_picking_analysis_rows(
+            fecha=fecha,
+            turno_key=turno_key,
+            turno_label=_turn_label(turno_key),
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
+            rows=detail_rows,
+            source_name="oracle_productiva",
+        )
+    return turno_key, fecha_desde, fecha_hasta, turno_finalizado, source_name, detail_rows
+
+
+def _hour_slots(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    start = _parse_dt(fecha_desde, "fecha_desde").replace(minute=0, second=0)
+    end = _parse_dt(fecha_hasta, "fecha_hasta")
+    slots = []
+    cursor = start
+    while cursor < end:
+        next_hour = cursor + timedelta(hours=1)
+        slots.append(
+            {
+                "key": cursor.strftime("%Y-%m-%d %H:00:00"),
+                "label": cursor.strftime("%H"),
+                "desde": cursor.strftime("%Y-%m-%d %H:%M:%S"),
+                "hasta": min(next_hour, end).strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
+        cursor = next_hour
+    return slots
+
+
+def _hourly_confidence(movimientos: int, minutos_observados: float) -> str:
+    if movimientos >= 8 and minutos_observados >= 30:
+        return "alta"
+    if movimientos >= 4 and minutos_observados >= 15:
+        return "media"
+    return "baja"
+
+
+def _build_picking_hourly_productivity(
+    *,
+    fecha: str,
+    turno_key: str,
+    fecha_desde: str,
+    fecha_hasta: str,
+    turno_finalizado: bool,
+    source_name: str,
+    detail_rows: list[dict[str, Any]],
+    almacen_filter: str = "ALL",
+) -> dict[str, Any]:
+    hours = _hour_slots(fecha_desde, fecha_hasta)
+    hour_keys = {item["key"] for item in hours}
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    operarios: dict[str, dict[str, Any]] = {}
+    almacenes = set()
+    total_bultos = 0.0
+    total_movimientos = 0
+
+    selected_almacen = _safe_str(almacen_filter, "ALL").upper()
+    for raw in detail_rows:
+        fh_text = str(raw.get("FH_MOVIMIENTO") or "")
+        if not fh_text:
+            continue
+        fh_dt = _parse_dt(fh_text.replace("T", " ")[:19], "fh_movimiento")
+        hour_key = fh_dt.replace(minute=0, second=0).strftime("%Y-%m-%d %H:00:00")
+        if hour_key not in hour_keys:
+            continue
+
+        legajo = _safe_str(raw.get("COPECREA"), "Sin legajo")
+        nombre = _safe_str(raw.get("OPERARIO"), legajo)
+        almacen = _safe_str(raw.get("ALMACEN"), "SIN MAPEAR")
+        if selected_almacen != "ALL" and almacen.upper() != selected_almacen:
+            continue
+        cantidad = round(_safe_float(raw.get("CANTIDAD")), 2)
+        almacenes.add(almacen)
+        total_bultos += cantidad
+        total_movimientos += 1
+
+        op = operarios.setdefault(
+            legajo,
+            {
+                "copecrea": legajo,
+                "operario": nombre,
+                "total_bultos": 0.0,
+                "movimientos": 0,
+                "horas_con_movimiento": 0,
+            },
+        )
+        op["total_bultos"] += cantidad
+        op["movimientos"] += 1
+
+        current = grouped.setdefault(
+            (legajo, hour_key),
+            {
+                "hour_key": hour_key,
+                "bultos": 0.0,
+                "movimientos": 0,
+                "primer_mov_dt": fh_dt,
+                "ultimo_mov_dt": fh_dt,
+            },
+        )
+        current["bultos"] += cantidad
+        current["movimientos"] += 1
+        if fh_dt < current["primer_mov_dt"]:
+            current["primer_mov_dt"] = fh_dt
+        if fh_dt > current["ultimo_mov_dt"]:
+            current["ultimo_mov_dt"] = fh_dt
+
+    rows = []
+    observed_bultos = 0.0
+    observed_minutes = 0.0
+    active_cells = 0
+    peak_hour = {"label": "", "bultos": 0.0}
+    hour_totals = {item["key"]: 0.0 for item in hours}
+
+    for (legajo, hour_key), cell in grouped.items():
+        hour_totals[hour_key] += cell["bultos"]
+
+    for hour in hours:
+        if hour_totals[hour["key"]] > peak_hour["bultos"]:
+            peak_hour = {"label": hour["label"], "bultos": round(hour_totals[hour["key"]], 2)}
+
+    for legajo, op in operarios.items():
+        cells = {}
+        for hour in hours:
+            raw_cell = grouped.get((legajo, hour["key"]))
+            if not raw_cell:
+                cells[hour["key"]] = {
+                    "hour_key": hour["key"],
+                    "bultos": 0.0,
+                    "movimientos": 0,
+                    "prod_calendario": 0.0,
+                    "ritmo_observado": None,
+                    "minutos_observados": 0.0,
+                    "confianza": "baja",
+                    "primer_mov": "",
+                    "ultimo_mov": "",
+                }
+                continue
+
+            minutos = round(max((raw_cell["ultimo_mov_dt"] - raw_cell["primer_mov_dt"]).total_seconds() / 60, 0.0), 1)
+            ritmo = round(raw_cell["bultos"] / minutos * 60, 2) if minutos > 0 else None
+            if raw_cell["movimientos"] > 0:
+                active_cells += 1
+                op["horas_con_movimiento"] += 1
+            if ritmo is not None:
+                observed_bultos += raw_cell["bultos"]
+                observed_minutes += minutos
+            cells[hour["key"]] = {
+                "hour_key": hour["key"],
+                "bultos": round(raw_cell["bultos"], 2),
+                "movimientos": raw_cell["movimientos"],
+                "prod_calendario": round(raw_cell["bultos"], 2),
+                "ritmo_observado": ritmo,
+                "minutos_observados": minutos,
+                "confianza": _hourly_confidence(raw_cell["movimientos"], minutos),
+                "primer_mov": raw_cell["primer_mov_dt"].strftime("%Y-%m-%d %H:%M:%S"),
+                "ultimo_mov": raw_cell["ultimo_mov_dt"].strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        rows.append(
+            {
+                "copecrea": op["copecrea"],
+                "operario": op["operario"],
+                "total_bultos": round(op["total_bultos"], 2),
+                "movimientos": op["movimientos"],
+                "horas_con_movimiento": op["horas_con_movimiento"],
+                "promedio_calendario_hora_activa": round(op["total_bultos"] / max(op["horas_con_movimiento"], 1), 2),
+                "cells": cells,
+            }
+        )
+
+    rows.sort(key=lambda item: (-item["total_bultos"], item["operario"]))
+    ritmo_promedio = round(observed_bultos / observed_minutes * 60, 2) if observed_minutes > 0 else 0.0
+    return {
+        "fecha": fecha,
+        "turno": _turn_label(turno_key),
+        "turno_key": turno_key,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "hours": hours,
+        "rows": rows,
+        "summary": {
+            "operarios": len(rows),
+            "movimientos": total_movimientos,
+            "bultos_total": round(total_bultos, 2),
+            "horas": len(hours),
+            "celdas_activas": active_cells,
+            "promedio_bultos_hora_activa": round(total_bultos / max(active_cells, 1), 2),
+            "ritmo_observado_promedio": ritmo_promedio,
+            "hora_pico": peak_hour,
+            "source_name": source_name,
+            "turno_finalizado": turno_finalizado,
+        },
+        "filters": {
+            "almacenes": sorted(almacenes),
+            "operaciones": ["PICKING"],
+            "almacen_actual": selected_almacen,
+        },
+        "cache": {
+            "source_name": source_name,
+            "hourly_cache_hit": source_name == "sqlite_cache",
+            "turno_finalizado": turno_finalizado,
+        },
+        "notes": [
+            "El ritmo observado es estimado: usa primer y ultimo movimiento registrado dentro de cada hora.",
+            "La tabla de origen registra eventos con fecha/hora y bultos, no duracion real por traspaso.",
+        ],
+    }
 
 
 def _build_picking_ia_context(analisis_base: dict[str, Any]) -> str:
@@ -2004,6 +2386,34 @@ async def get_picking_base_analysis(
         raise HTTPException(status_code=500, detail=f"No se pudo generar el analisis base de picking: {exc}")
 
 
+@router.get("/picking/por-hora")
+async def get_picking_hourly_productivity(
+    fecha: str = Query(..., description="YYYY-MM-DD"),
+    turno: str = Query(..., description="MaÃ±ana, Tarde o Noche"),
+    almacen: str = Query("ALL", description="Almacen a filtrar o ALL"),
+):
+    try:
+        turno_key, fecha_desde, fecha_hasta, turno_finalizado, source_name, detail_rows = await _load_picking_detail_for_turn(
+            fecha,
+            turno,
+        )
+        return _build_picking_hourly_productivity(
+            fecha=fecha,
+            turno_key=turno_key,
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
+            turno_finalizado=turno_finalizado,
+            source_name=source_name,
+            detail_rows=detail_rows,
+            almacen_filter=almacen,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Error generando productividad por hora de picking")
+        raise HTTPException(status_code=500, detail=f"No se pudo generar productividad por hora: {exc}")
+
+
 @router.post("/picking/ia")
 async def post_picking_analysis_ia(req: PickingAnalisisIARequest):
     provider = (req.provider or os.getenv("AI_PROVIDER", "claude")).lower()
@@ -2011,9 +2421,25 @@ async def post_picking_analysis_ia(req: PickingAnalisisIARequest):
         summary = req.analisis_base.get("summary", {}) if isinstance(req.analisis_base, dict) else {}
         fecha = _safe_str(req.analisis_base.get("fecha"), "")
         turno_key = _safe_str(req.analisis_base.get("turno_key"), "")
+        fecha_hasta = _safe_str(req.analisis_base.get("fecha_hasta"), "")
+        turno_finalizado = _turn_finished(fecha_hasta) if fecha_hasta else False
         summary_hash = _safe_str(req.analisis_base.get("cache", {}).get("summary_hash"), "") or _hash_payload(req.analisis_base)
         if fecha and turno_key:
             cached_row = await _get_picking_cache_run_row(fecha, turno_key)
+            if turno_finalizado and cached_row and cached_row["ia_json"]:
+                cached_payload = json.loads(cached_row["ia_json"])
+                cached_payload["cache"] = {
+                    "ia_cache_hit": True,
+                    "ia_generated_at": cached_row["ia_generated_at"],
+                    "turno_finalizado": True,
+                }
+                logger.info(
+                    "[picking-ia] Cache finalizado fecha=%s turno=%s provider_original=%s",
+                    fecha,
+                    turno_key,
+                    cached_row["ia_provider"],
+                )
+                return cached_payload
             if (
                 cached_row
                 and cached_row["ia_json"]
@@ -2025,6 +2451,7 @@ async def post_picking_analysis_ia(req: PickingAnalisisIARequest):
                 cached_payload["cache"] = {
                     "ia_cache_hit": True,
                     "ia_generated_at": cached_row["ia_generated_at"],
+                    "turno_finalizado": turno_finalizado,
                 }
                 logger.info(
                     "[picking-ia] Cache hit fecha=%s turno=%s provider=%s",
@@ -2056,6 +2483,7 @@ async def post_picking_analysis_ia(req: PickingAnalisisIARequest):
             "analisis": parsed,
             "cache": {
                 "ia_cache_hit": False,
+                "turno_finalizado": turno_finalizado,
             },
         }
         if fecha and turno_key:
@@ -2084,21 +2512,43 @@ async def get_productividad_online(
 ):
     turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
     allowed_operations = _allowed_online_operations()
+    turno_finalizado = _turn_finished(fecha_hasta)
+    cached_run = await _get_productividad_online_cache_run(fecha, turno_key) if turno_finalizado else None
+    detail_rows = await _get_cached_productividad_online_rows(fecha, turno_key) if cached_run else []
+    source_name = "sqlite_cache" if cached_run else "oracle_productiva"
 
-    logger.info(
-        "[productividad-online] Consultando Oracle turno=%s rango=%s..%s",
-        _turn_label(turno_key),
-        fecha_desde,
-        fecha_hasta,
-    )
-    try:
-        detail_rows = await asyncio.to_thread(query_productive_db_online, fecha_desde, fecha_hasta)
-        logger.info("[productividad-online] Oracle OK: %s movimientos", len(detail_rows))
-    except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-    except Exception as exc:
-        logger.exception("Error consultando productividad online")
-        raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle: {exc}")
+    if cached_run:
+        logger.info(
+            "[productividad-online] Cache hit turno finalizado=%s rango=%s..%s rows=%s",
+            _turn_label(turno_key),
+            fecha_desde,
+            fecha_hasta,
+            len(detail_rows),
+        )
+    else:
+        logger.info(
+            "[productividad-online] Consultando Oracle turno=%s rango=%s..%s finalizado=%s",
+            _turn_label(turno_key),
+            fecha_desde,
+            fecha_hasta,
+            turno_finalizado,
+        )
+        try:
+            detail_rows = await asyncio.to_thread(query_productive_db_online, fecha_desde, fecha_hasta)
+            await _store_cached_productividad_online_rows(
+                fecha=fecha,
+                turno_key=turno_key,
+                turno_label=_turn_label(turno_key),
+                fecha_desde=fecha_desde,
+                fecha_hasta=fecha_hasta,
+                rows=detail_rows,
+            )
+            logger.info("[productividad-online] Oracle OK: %s movimientos guardados en cache", len(detail_rows))
+        except RuntimeError as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+        except Exception as exc:
+            logger.exception("Error consultando productividad online")
+            raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle: {exc}")
 
     normalized_rows = []
     normalized_detail_rows = []
@@ -2237,6 +2687,13 @@ async def get_productividad_online(
             "inactivos": len(operarios_unicos - operarios_online),
             "almacenes": len(almacenes),
             "operaciones": len(operaciones),
+            "source_name": source_name,
+            "turno_finalizado": turno_finalizado,
+        },
+        "cache": {
+            "source_name": source_name,
+            "online_cache_hit": source_name == "sqlite_cache",
+            "turno_finalizado": turno_finalizado,
         },
         "filters": {
             "almacenes": sorted(almacenes),

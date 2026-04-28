@@ -425,6 +425,41 @@ CREATE TABLE IF NOT EXISTS picking_analysis_cache_rows (
 );
 """
 
+CREATE_PRODUCTIVIDAD_ONLINE_CACHE_RUNS = """
+CREATE TABLE IF NOT EXISTS productividad_online_cache_runs (
+    cache_run_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha                   DATE NOT NULL,
+    turno_key               TEXT NOT NULL,
+    turno_label             TEXT NOT NULL,
+    fecha_desde             TEXT NOT NULL,
+    fecha_hasta             TEXT NOT NULL,
+    source_rows_count       INTEGER DEFAULT 0,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(fecha, turno_key)
+);
+"""
+
+CREATE_PRODUCTIVIDAD_ONLINE_CACHE_ROWS = """
+CREATE TABLE IF NOT EXISTS productividad_online_cache_rows (
+    row_uid                  TEXT PRIMARY KEY,
+    cache_run_id             INTEGER NOT NULL REFERENCES productividad_online_cache_runs(cache_run_id) ON DELETE CASCADE,
+    fecha                    DATE NOT NULL,
+    turno_key                TEXT NOT NULL,
+    fh_movimiento            TEXT NOT NULL,
+    copecrea                 TEXT NOT NULL,
+    operario                 TEXT,
+    operacion                TEXT,
+    almacen                  TEXT,
+    zona_origen              TEXT,
+    ubic_origen              TEXT,
+    nro_pallet               TEXT,
+    cantidad                 REAL DEFAULT 0,
+    peso                     REAL DEFAULT 0,
+    created_at               DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
 CREATE_CUMPLIMIENTO_ONLINE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_cumpl_online_turno_inicio ON cumplimiento_online_snapshots(turno_key, turno_inicio, bloque_hasta)",
 ]
@@ -460,6 +495,12 @@ CREATE_PICKING_ANALYSIS_CACHE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_picking_cache_rows_operario ON picking_analysis_cache_rows(copecrea, fecha, turno_key)",
 ]
 
+CREATE_PRODUCTIVIDAD_ONLINE_CACHE_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_prod_online_cache_runs_fecha_turno ON productividad_online_cache_runs(fecha, turno_key, updated_at)",
+    "CREATE INDEX IF NOT EXISTS idx_prod_online_cache_rows_lookup ON productividad_online_cache_rows(fecha, turno_key, fh_movimiento)",
+    "CREATE INDEX IF NOT EXISTS idx_prod_online_cache_rows_operario ON productividad_online_cache_rows(copecrea, fecha, turno_key)",
+]
+
 
 async def init_db():
     """Crea las tablas si no existen."""
@@ -490,6 +531,8 @@ async def init_db():
         await db.execute(CREATE_UBICACIONES_ORACLE)
         await db.execute(CREATE_PICKING_ANALYSIS_CACHE_RUNS)
         await db.execute(CREATE_PICKING_ANALYSIS_CACHE_ROWS)
+        await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_RUNS)
+        await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_ROWS)
         async with db.execute("PRAGMA table_info(picking_analysis_cache_runs)") as cur:
             picking_cache_cols = {row[1] for row in await cur.fetchall()}
         if "resumen_hash" not in picking_cache_cols:
@@ -515,6 +558,8 @@ async def init_db():
         for statement in CREATE_UBICACIONES_ORACLE_INDEXES:
             await db.execute(statement)
         for statement in CREATE_PICKING_ANALYSIS_CACHE_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_PRODUCTIVIDAD_ONLINE_CACHE_INDEXES:
             await db.execute(statement)
 
         await db.commit()
