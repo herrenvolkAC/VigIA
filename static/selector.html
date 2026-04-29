@@ -15,7 +15,7 @@
     <div class="selector-hero-main">
       <div class="selector-hero-kicker">Centro de distribución</div>
       <div class="selector-title">Seleccioná el proceso</div>
-      <div class="selector-sub">Elegí el módulo operativo que querés supervisar en este turno. Subimos jerarquía visual para que el nombre, el título y los íconos se lean más rápido.</div>
+      <div class="selector-sub">Elegí la pantalla operativa que querés supervisar en este turno. Picking se abre por módulo para que cada equipo llegue directo al tablero que necesita.</div>
       <div class="selector-hero-meta">
         <span class="selector-meta-pill">Visual Coto</span>
         <span class="selector-meta-pill">Navegación simple</span>
@@ -24,8 +24,8 @@
     </div>
     <div class="selector-hero-side">
       <img class="selector-side-logo" src="/resources/CotoLogo.svg" alt="Logo Coto">
-      <div class="selector-side-title">Acceso rápido al tablero operativo</div>
-      <div class="selector-side-copy">Picking queda primero, con el ícono enmarcado y el nombre mucho más grande. Los demás procesos mantienen la misma estructura para que toda la navegación se sienta consistente.</div>
+      <div class="selector-side-title">Acceso rápido por pantalla</div>
+      <div class="selector-side-copy">El selector queda como puerta de entrada. Las tarjetas activas abren una vista concreta y las tarjetas futuras marcan los procesos que todavía no tienen pantalla propia.</div>
     </div>
   </section>
 
@@ -42,13 +42,22 @@
 
   const PROCESOS = [
     {
-      id: 'picking',
-      label: 'Picking',
-      icon: '📦',
-      url: '/produccion.html',
+      id: 'productividad',
+      label: 'Productividad',
+      icon: '👷',
+      url: '/productividad.html',
       activo: true,
       tag: null,
-      descripcion: 'Preparación de pedidos por ola. Seguimiento en tiempo real de productividad, dotación y desvíos vs histórico.',
+      descripcion: 'Productividad online, ranking por operario, análisis de dificultad de picking y lectura por hora.',
+    },
+    {
+      id: 'planificacion',
+      label: 'Planificación',
+      icon: '📅',
+      url: '/planificacion.html',
+      activo: true,
+      tag: null,
+      descripcion: 'Cumplimiento de plan por ola y sugerencia de plantel óptimo para cubrir la operación.',
     },
     {
       id: 'reposicion',
@@ -67,15 +76,6 @@
       activo: false,
       tag: 'proximo',
       descripcion: 'Ingreso y control de mercadería de proveedores. Gestión de muelles, verificación de cantidades y calidad.',
-    },
-    {
-      id: 'planificacion',
-      label: 'Planificación',
-      icon: '📅',
-      url: null,
-      activo: false,
-      tag: 'proximo',
-      descripcion: 'Programación de olas y asignación de dotación. Proyección de cierre de turno y gestión de recursos.',
     },
     {
       id: 'mapa',
@@ -130,7 +130,7 @@
       }
 
       let kpiHtml = '';
-      if (p.id === 'picking' && turnoData) {
+      if ((p.id === 'productividad' || p.id === 'planificacion') && turnoData) {
         const pct = turnoData.pct_avance != null ? `<strong>${turnoData.pct_avance}%</strong> completado` : '';
         kpiHtml = pct
           ? `<div class="proceso-kpi">Turno ${turnoData.turno} · ${pct}</div>`

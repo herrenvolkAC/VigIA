@@ -590,6 +590,8 @@ body {
 .proceso-card.recepcion::before    { background: var(--process-recepcion); }
 .proceso-card.reposicion::before   { background: var(--process-reposicion); }
 .proceso-card.planificacion::before{ background: var(--process-planif); }
+.proceso-card.productividad::before{ background: var(--process-control); }
+.proceso-card.plantel::before      { background: var(--process-mapa); }
 .proceso-card.mapa::before         { background: var(--process-mapa); }
 .proceso-card.control::before      { background: var(--process-control); }
 .proceso-card.trafico::before      { background: var(--process-trafico); }
@@ -624,6 +626,8 @@ body {
 .proceso-card.recepcion    .proceso-icon-wrap { border-color: var(--process-recepcion);  box-shadow: 0 0 0 9px rgba(242,143,22,.12),  0 14px 32px rgba(242,143,22,.16); }
 .proceso-card.reposicion   .proceso-icon-wrap { border-color: var(--process-reposicion); box-shadow: 0 0 0 9px rgba(30,157,116,.12),  0 14px 32px rgba(30,157,116,.16); }
 .proceso-card.planificacion .proceso-icon-wrap { border-color: var(--process-planif);    box-shadow: 0 0 0 9px rgba(194,69,152,.12),  0 14px 32px rgba(194,69,152,.16); }
+.proceso-card.productividad .proceso-icon-wrap { border-color: var(--process-control);   box-shadow: 0 0 0 9px rgba(8,145,178,.12),   0 14px 32px rgba(8,145,178,.16); }
+.proceso-card.plantel      .proceso-icon-wrap { border-color: var(--process-mapa);       box-shadow: 0 0 0 9px rgba(59,130,246,.12),  0 14px 32px rgba(59,130,246,.16); }
 .proceso-card.mapa         .proceso-icon-wrap { border-color: var(--process-mapa);       box-shadow: 0 0 0 9px rgba(59,130,246,.12),  0 14px 32px rgba(59,130,246,.16); }
 .proceso-card.control      .proceso-icon-wrap { border-color: var(--process-control);    box-shadow: 0 0 0 9px rgba(8,145,178,.12),   0 14px 32px rgba(8,145,178,.16); }
 .proceso-card.trafico      .proceso-icon-wrap { border-color: var(--process-trafico);    box-shadow: 0 0 0 9px rgba(217,119,6,.12),   0 14px 32px rgba(217,119,6,.16); }

@@ -1538,6 +1538,20 @@ async def _get_picking_cache_run_row(fecha: str, turno_key: str) -> aiosqlite.Ro
             return await cur.fetchone()
 
 
+def _picking_cache_is_complete_for_closed_turn(cached_run: aiosqlite.Row | None, fecha_hasta: str) -> bool:
+    if not cached_run:
+        return False
+    if _safe_str(cached_run["fecha_hasta"], "") != fecha_hasta:
+        return False
+    updated_at = _safe_str(cached_run["updated_at"], "")
+    if not updated_at:
+        return False
+    try:
+        return _parse_dt(updated_at, "cache_updated_at") >= _parse_dt(fecha_hasta, "fecha_hasta")
+    except HTTPException:
+        return False
+
+
 async def _update_picking_cache_run_hash(
     *,
     fecha: str,
@@ -1774,6 +1788,8 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
     turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
     turno_finalizado = _turn_finished(fecha_hasta)
     cached_run = await _get_picking_cache_run_row(fecha, turno_key) if turno_finalizado else None
+    if cached_run and not _picking_cache_is_complete_for_closed_turn(cached_run, fecha_hasta):
+        cached_run = None
     detail_rows = await _get_cached_picking_analysis_rows(fecha, turno_key) if cached_run else []
     source_name = "sqlite_cache" if cached_run else "oracle_productiva"
     if not cached_run:
@@ -2103,6 +2119,8 @@ async def _load_picking_detail_for_turn(fecha: str, turno: str) -> tuple[str, st
     turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
     turno_finalizado = _turn_finished(fecha_hasta)
     cached_run = await _get_picking_cache_run_row(fecha, turno_key) if turno_finalizado else None
+    if cached_run and not _picking_cache_is_complete_for_closed_turn(cached_run, fecha_hasta):
+        cached_run = None
     detail_rows = await _get_cached_picking_analysis_rows(fecha, turno_key) if cached_run else []
     source_name = "sqlite_cache" if cached_run else "oracle_productiva"
     if not cached_run:
@@ -2321,6 +2339,218 @@ def _build_picking_hourly_productivity(
     }
 
 
+def _date_range_days(fecha_desde: str, fecha_hasta: str) -> list[str]:
+    start = datetime.strptime(fecha_desde, "%Y-%m-%d").date()
+    end = datetime.strptime(fecha_hasta, "%Y-%m-%d").date()
+    if end < start:
+        raise HTTPException(status_code=400, detail="La fecha hasta no puede ser anterior a la fecha desde.")
+    total_days = (end - start).days + 1
+    if total_days > 45:
+        raise HTTPException(status_code=400, detail="El rango historico no puede superar 45 dias.")
+    return [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(total_days)]
+
+
+def _turn_hour_slots(turno_key: str) -> list[dict[str, Any]]:
+    if turno_key == "manana":
+        hours = list(range(6, 14))
+    elif turno_key == "tarde":
+        hours = list(range(14, 22))
+    else:
+        hours = [22, 23, 0, 1, 2, 3, 4, 5]
+    return [
+        {
+            "key": f"{hour:02d}",
+            "label": f"{hour:02d}",
+            "desde": f"{hour:02d}:00",
+            "hasta": f"{(hour + 1) % 24:02d}:00",
+        }
+        for hour in hours
+    ]
+
+
+def _build_picking_hourly_historical_productivity(
+    *,
+    fecha_desde_rango: str,
+    fecha_hasta_rango: str,
+    turno_key: str,
+    source_name: str,
+    detail_rows: list[dict[str, Any]],
+    dias_consultados: int,
+    almacen_filter: str = "ALL",
+) -> dict[str, Any]:
+    hours = _turn_hour_slots(turno_key)
+    hour_keys = {item["key"] for item in hours}
+    selected_almacen = _safe_str(almacen_filter, "ALL").upper()
+
+    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
+    operarios: dict[str, dict[str, Any]] = {}
+    almacenes = set()
+    total_bultos = 0.0
+    total_movimientos = 0
+
+    for raw in detail_rows:
+        fh_text = str(raw.get("FH_MOVIMIENTO") or "")
+        if not fh_text:
+            continue
+        fh_dt = _parse_dt(fh_text.replace("T", " ")[:19], "fh_movimiento")
+        day_key = fh_dt.strftime("%Y-%m-%d")
+        hour_key = f"{fh_dt.hour:02d}"
+        if hour_key not in hour_keys:
+            continue
+
+        legajo = _safe_str(raw.get("COPECREA"), "Sin legajo")
+        nombre = _safe_str(raw.get("OPERARIO"), legajo)
+        almacen = _safe_str(raw.get("ALMACEN"), "SIN MAPEAR")
+        if selected_almacen != "ALL" and almacen.upper() != selected_almacen:
+            continue
+
+        cantidad = round(_safe_float(raw.get("CANTIDAD")), 2)
+        almacenes.add(almacen)
+        total_bultos += cantidad
+        total_movimientos += 1
+
+        op = operarios.setdefault(
+            legajo,
+            {
+                "copecrea": legajo,
+                "operario": nombre,
+                "total_bultos": 0.0,
+                "movimientos": 0,
+                "dias_con_datos": set(),
+            },
+        )
+        op["total_bultos"] += cantidad
+        op["movimientos"] += 1
+        op["dias_con_datos"].add(day_key)
+
+        cell = grouped.setdefault(
+            (legajo, hour_key, day_key),
+            {
+                "bultos": 0.0,
+                "movimientos": 0,
+                "primer_mov_dt": fh_dt,
+                "ultimo_mov_dt": fh_dt,
+            },
+        )
+        cell["bultos"] += cantidad
+        cell["movimientos"] += 1
+        if fh_dt < cell["primer_mov_dt"]:
+            cell["primer_mov_dt"] = fh_dt
+        if fh_dt > cell["ultimo_mov_dt"]:
+            cell["ultimo_mov_dt"] = fh_dt
+
+    rows = []
+    active_cells = 0
+    peak_hour = {"label": "", "bultos": 0.0}
+    hour_totals = {item["key"]: 0.0 for item in hours}
+
+    by_operator_hour: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for (legajo, hour_key, _day_key), cell in grouped.items():
+        by_operator_hour[(legajo, hour_key)].append(cell)
+        hour_totals[hour_key] += cell["bultos"]
+
+    for hour in hours:
+        if hour_totals[hour["key"]] > peak_hour["bultos"]:
+            peak_hour = {"label": hour["label"], "bultos": round(hour_totals[hour["key"]], 2)}
+
+    for legajo, op in operarios.items():
+        cells = {}
+        horas_con_movimiento = 0
+        for hour in hours:
+            day_cells = by_operator_hour.get((legajo, hour["key"]), [])
+            if not day_cells:
+                cells[hour["key"]] = {
+                    "hour_key": hour["key"],
+                    "bultos": 0.0,
+                    "bultos_total": 0.0,
+                    "movimientos": 0,
+                    "prod_calendario": 0.0,
+                    "ritmo_observado": None,
+                    "minutos_observados": 0.0,
+                    "dias_con_datos": 0,
+                    "confianza": "baja",
+                    "primer_mov": "",
+                    "ultimo_mov": "",
+                }
+                continue
+
+            dias_con_datos = len(day_cells)
+            bultos_total = round(sum(item["bultos"] for item in day_cells), 2)
+            movimientos = sum(item["movimientos"] for item in day_cells)
+            minutos_observados = round(
+                sum(max((item["ultimo_mov_dt"] - item["primer_mov_dt"]).total_seconds() / 60, 0.0) for item in day_cells),
+                1,
+            )
+            promedio_hora = round(bultos_total / max(dias_con_datos, 1), 2)
+            ritmo = round(bultos_total / minutos_observados * 60, 2) if minutos_observados > 0 else None
+            active_cells += 1
+            horas_con_movimiento += 1
+            cells[hour["key"]] = {
+                "hour_key": hour["key"],
+                "bultos": promedio_hora,
+                "bultos_total": bultos_total,
+                "movimientos": movimientos,
+                "prod_calendario": promedio_hora,
+                "ritmo_observado": ritmo,
+                "minutos_observados": minutos_observados,
+                "dias_con_datos": dias_con_datos,
+                "confianza": _hourly_confidence(movimientos, minutos_observados),
+                "primer_mov": min(item["primer_mov_dt"] for item in day_cells).strftime("%Y-%m-%d %H:%M:%S"),
+                "ultimo_mov": max(item["ultimo_mov_dt"] for item in day_cells).strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        rows.append(
+            {
+                "copecrea": op["copecrea"],
+                "operario": op["operario"],
+                "total_bultos": round(op["total_bultos"], 2),
+                "movimientos": op["movimientos"],
+                "horas_con_movimiento": horas_con_movimiento,
+                "dias_con_datos": len(op["dias_con_datos"]),
+                "promedio_calendario_hora_activa": round(op["total_bultos"] / max(horas_con_movimiento, 1), 2),
+                "cells": cells,
+            }
+        )
+
+    rows.sort(key=lambda item: (-item["total_bultos"], item["operario"]))
+    return {
+        "modo": "historico",
+        "fecha_desde_rango": fecha_desde_rango,
+        "fecha_hasta_rango": fecha_hasta_rango,
+        "fecha_desde": fecha_desde_rango,
+        "fecha_hasta": fecha_hasta_rango,
+        "turno": _turn_label(turno_key),
+        "turno_key": turno_key,
+        "hours": hours,
+        "rows": rows,
+        "summary": {
+            "operarios": len(rows),
+            "movimientos": total_movimientos,
+            "bultos_total": round(total_bultos, 2),
+            "dias_consultados": dias_consultados,
+            "horas": len(hours),
+            "celdas_activas": active_cells,
+            "promedio_bultos_hora_activa": round(total_bultos / max(active_cells, 1), 2),
+            "hora_pico": peak_hour,
+            "source_name": source_name,
+            "turno_finalizado": True,
+        },
+        "filters": {
+            "almacenes": sorted(almacenes),
+            "operaciones": ["PICKING"],
+            "almacen_actual": selected_almacen,
+        },
+        "cache": {
+            "source_name": source_name,
+            "hourly_cache_hit": "sqlite_cache" in source_name and "oracle_productiva" not in source_name,
+            "turno_finalizado": True,
+        },
+        "notes": [
+            "Modo historico: cada celda muestra el promedio de bultos de esa hora en los dias con datos.",
+            "El tooltip conserva bultos totales, movimientos y dias con datos para dar contexto.",
+        ],
+    }
+
+
 def _build_picking_ia_context(analisis_base: dict[str, Any]) -> str:
     summary = analisis_base.get("summary", {})
     rows = analisis_base.get("rows", [])[:8]
@@ -2412,6 +2642,51 @@ async def get_picking_hourly_productivity(
     except Exception as exc:
         logger.exception("Error generando productividad por hora de picking")
         raise HTTPException(status_code=500, detail=f"No se pudo generar productividad por hora: {exc}")
+
+
+@router.get("/picking/por-hora/historico")
+async def get_picking_hourly_historical_productivity(
+    fecha_desde: str = Query(..., description="YYYY-MM-DD"),
+    fecha_hasta: str = Query(..., description="YYYY-MM-DD"),
+    turno: str = Query(..., description="Mañana, Tarde o Noche"),
+    almacen: str = Query("ALL", description="Almacen a filtrar o ALL"),
+):
+    try:
+        turno_key = _normalize_turno(turno)
+        dias = _date_range_days(fecha_desde, fecha_hasta)
+        all_rows: list[dict[str, Any]] = []
+        sources = set()
+        for fecha in dias:
+            _turno_key, _desde, _hasta, _finalizado, source_name, detail_rows = await _load_picking_detail_for_turn(
+                fecha,
+                turno_key,
+            )
+            all_rows.extend(detail_rows)
+            sources.add(source_name)
+
+        if not sources:
+            source_name = "sin_datos"
+        elif len(sources) == 1:
+            source_name = next(iter(sources))
+        else:
+            source_name = "+".join(sorted(sources))
+
+        return _build_picking_hourly_historical_productivity(
+            fecha_desde_rango=fecha_desde,
+            fecha_hasta_rango=fecha_hasta,
+            turno_key=turno_key,
+            source_name=source_name,
+            detail_rows=all_rows,
+            dias_consultados=len(dias),
+            almacen_filter=almacen,
+        )
+    except HTTPException:
+        raise
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Error generando productividad por hora historica de picking")
+        raise HTTPException(status_code=500, detail=f"No se pudo generar productividad por hora historica: {exc}")
 
 
 @router.post("/picking/ia")

@@ -80,8 +80,9 @@ _PAGES = [
     "/",             "index.html",
     "/login",        "login.html",
     "/selector",     "selector.html",
-    "/picking",      "produccion.html",
-    "/produccion",   "produccion.html",
+    "/productividad","productividad.html",
+    "/picking",      "productividad.html",
+    "/produccion",   "productividad.html",
     "/recepcion",    "recepcion.html",
     "/reposicion",   "reposicion.html",
     "/planificacion","planificacion.html",
@@ -103,7 +104,11 @@ async def page_selector():     return FileResponse(STATIC_DIR / "selector.html")
 @app.get("/picking",          include_in_schema=False)
 @app.get("/produccion.html",  include_in_schema=False)
 @app.get("/produccion",       include_in_schema=False)
-async def page_picking():      return FileResponse(STATIC_DIR / "produccion.html")
+async def page_picking():      return FileResponse(STATIC_DIR / "productividad.html")
+
+@app.get("/productividad.html", include_in_schema=False)
+@app.get("/productividad",      include_in_schema=False)
+async def page_productividad():  return FileResponse(STATIC_DIR / "productividad.html")
 
 @app.get("/recepcion.html",    include_in_schema=False)
 @app.get("/recepcion",         include_in_schema=False)

@@ -4,7 +4,7 @@
 <link rel="icon" type="image/png" href="/resources/APPLogo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VigIA · Planificación</title>
+<title>VigIA · Productividad</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 :root {
@@ -318,6 +318,8 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .analisis-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
 .online-shell{background:linear-gradient(135deg,#1e1e2e 0%,#2d2d44 100%);border-radius:18px;padding:18px;border:1px solid rgba(0,212,255,.12);box-shadow:0 18px 50px rgba(15,23,42,.18);}
 .online-toolbar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px;padding:16px 18px;background:rgba(64,64,96,.42);border:1px solid rgba(0,212,255,.18);border-radius:14px;backdrop-filter:blur(10px);}
+.online-action-group{display:none;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+.online-action-group.active{display:flex;}
 .online-btn{padding:12px 18px;background:linear-gradient(135deg,#f8fbff,#c8f1ff);border:1px solid rgba(111,211,255,.4);border-radius:10px;color:#16344b;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 8px 22px rgba(111,211,255,.16);text-transform:uppercase;letter-spacing:.4px;}
 .online-btn:hover{transform:translateY(-1px);}
 .online-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
@@ -326,6 +328,8 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .online-field label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
 .online-field input,.online-field select{background:rgba(64,64,96,.8);border:1px solid rgba(0,212,255,.22);color:#e8e8f0;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:10px 12px;border-radius:8px;outline:none;}
 .online-field input:focus,.online-field select:focus{border-color:#00d4ff;box-shadow:0 0 0 4px rgba(0,212,255,.08);}
+.online-field.compact{min-width:128px;}
+.online-field.hidden{display:none;}
 .online-filters{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px;margin-bottom:18px;padding:16px 18px;background:rgba(64,64,96,.28);border:1px solid rgba(0,212,255,.14);border-radius:14px;}
 .online-filters .online-field{min-width:0;}
 .online-quick-filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-6px 0 18px;}
@@ -441,6 +445,45 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .hourly-confidence.baja{background:rgba(255,255,255,.08);color:#b8c2d8;border-color:rgba(255,255,255,.12);}
 .hourly-legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 0;color:#aab4cb;font-size:12px;}
 .hourly-legend-swatch{width:34px;height:12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);}
+.hourly-view-tabs{display:flex;gap:0;margin:16px 0;border-bottom:1px solid rgba(0,212,255,.18);}
+.hourly-view-tab{background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-1px;color:#a0a0c0;font-family:'Inter',sans-serif;font-size:12px;font-weight:800;padding:10px 16px;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;}
+.hourly-view-tab:hover{color:#00d4ff;}
+.hourly-view-tab.active{color:#00d4ff;border-bottom-color:#00d4ff;}
+.hourly-view-panel{display:none;}
+.hourly-view-panel.active{display:block;}
+.hourly-dashboard-grid{display:grid;grid-template-columns:minmax(280px,.85fr) 1.15fr;gap:14px;margin-bottom:14px;}
+.hourly-dashboard-card{background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;}
+.hourly-dashboard-title{font-size:11px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:800;margin-bottom:12px;}
+.hourly-status-donut-wrap{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;}
+.hourly-status-donut{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 0 0 18px rgba(30,30,50,.86);}
+.hourly-status-donut strong{font-size:24px;color:#f3f6ff;line-height:1;}
+.hourly-status-donut span{display:block;font-size:10px;color:#a0a0c0;margin-top:4px;text-align:center;}
+.hourly-status-list{display:grid;gap:8px;}
+.hourly-status-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:12px;color:#dce3f5;}
+.hourly-status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;}
+.hourly-alert-table{width:100%;border-collapse:collapse;min-width:760px;}
+.hourly-alert-table th,.hourly-alert-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;color:#dce3f5;vertical-align:middle;}
+.hourly-alert-table th{color:#7ddfff;text-transform:uppercase;letter-spacing:.7px;font-size:9px;font-weight:800;background:rgba(39,59,88,.86);position:sticky;top:0;}
+.hourly-sort-btn{background:none;border:none;color:inherit;font:inherit;font-weight:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:5px;}
+.hourly-sort-btn:hover{color:#bfefff;}
+.hourly-sort-mark{font-size:9px;color:#bfefff;}
+.hourly-alert-wrap{overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:12px;}
+.hourly-state-chip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.35px;border:1px solid transparent;white-space:nowrap;}
+.hourly-state-chip.ok{background:rgba(0,255,136,.12);color:#00ff88;border-color:rgba(0,255,136,.24);}
+.hourly-state-chip.watch{background:rgba(255,184,0,.13);color:#ffd36d;border-color:rgba(255,184,0,.25);}
+.hourly-state-chip.bad{background:rgba(255,107,107,.13);color:#ff9a9a;border-color:rgba(255,107,107,.25);}
+.hourly-state-chip.he{background:rgba(0,212,255,.12);color:#7ddfff;border-color:rgba(0,212,255,.28);}
+.hourly-bars{display:grid;gap:9px;}
+.hourly-bar-row{display:grid;grid-template-columns:minmax(110px,180px) 1fr 52px;gap:10px;align-items:center;font-size:12px;color:#dce3f5;}
+.hourly-bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#f3f6ff;}
+.hourly-bar-track{height:18px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.06);}
+.hourly-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#00d4ff,#ffb800);}
+.hourly-hour-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:8px;align-items:end;min-height:132px;}
+.hourly-hour-bar{display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;min-width:0;}
+.hourly-hour-bar-fill{width:100%;max-width:42px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#00ff88,#00d4ff);min-height:4px;border:1px solid rgba(255,255,255,.12);}
+.hourly-hour-bar-value{font-size:10px;color:#f3f6ff;font-weight:800;line-height:1;}
+.hourly-hour-bar-label{font-size:9px;color:#a0a0c0;}
+@media(max-width:1100px){.hourly-dashboard-grid{grid-template-columns:1fr;}.hourly-status-donut-wrap{grid-template-columns:130px 1fr;}}
 @media(max-width:1200px){.picking-analysis-kpis{grid-template-columns:repeat(2,1fr);}}
 .analisis-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
 .analisis-kpi{background:rgba(64,64,96,.4);border:1px solid rgba(0,212,255,.18);border-radius:14px;padding:18px;backdrop-filter:blur(10px);}
@@ -734,7 +777,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
     <img class="brand-mark" src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
     <div class="brand-copy">
       <div class="brand-subtitle">CD Coto</div>
-      <div class="brand-process">Planificación</div>
+      <div class="brand-process">Productividad</div>
     </div>
   </div>
   <div class="brand-title">
@@ -763,354 +806,104 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
   <span id="provider-status">verificando...</span>
 </div>
 
-<!-- Pantalla: Planificacion -->
+<!-- Pantalla: Productividad -->
 <div class="main-tab-bar">
-  <button class="main-tab-btn active" id="mtab-btn-plan" onclick="switchMainTab('plan')">Cumplimiento de Plan</button>
-  <button class="main-tab-btn" id="mtab-btn-plantel" onclick="switchMainTab('plantel')">Sugerencia Plantel Óptimo</button>
+  <button class="main-tab-btn active" id="mtab-btn-productividad" onclick="switchMainTab('productividad')">Productividad</button>
 </div>
-<!-- Tab 1: Cumplimiento de Plan -->
-<div id="mtab-plan" class="main-tab-content active">
-
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     FORMULARIO DE DATOS DE OLA
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
-<div class="form-panel">
-  <div class="form-header" onclick="toggleForm()">
-    <span class="form-title">📋 Datos de la ola · ingreso manual</span>
-    <span id="form-ola-tag" style="font-size:10px;color:var(--muted)"></span>
-    <button class="modo-btn prueba" id="modo-btn"
-            onclick="event.stopPropagation();toggleModoReal()"
-            title="PRUEBA: los cálculos NO se guardan en la BD">🧪 PRUEBA</button>
-    <span class="form-chevron open" id="form-chevron">▲</span>
+<!-- Tab 2: Productividad -->
+<div id="mtab-productividad" class="main-tab-content active">
+  <div class="sub-tab-bar">
+    <button class="sub-tab-btn active" id="stab-btn-online" onclick="switchProdTab('online')">📡 Productividad On Line</button>
+    <button class="sub-tab-btn" id="stab-btn-picking-ia" onclick="switchProdTab('picking-ia')">🧠 Análisis Picking con IA</button>
+    <button class="sub-tab-btn" id="stab-btn-hourly" onclick="switchProdTab('hourly')">Productividad por hora</button>
+    <button class="sub-tab-btn" id="stab-btn-base-explanation" onclick="switchProdTab('base-explanation')">🧮 Cálculo base</button>
   </div>
 
-  <div class="form-body open" id="form-body">
-
-    <!-- Selector de ola -->
-    <div class="ola-selector">
-      <label>OLA</label>
-      <div id="ola-btns" class="ola-btn-groups"></div>
-      <span id="turno-tag" class="ola-turno-tag"></span>
-      <span style="font-size:10px;color:var(--muted);margin-left:auto" id="ola-horario"></span>
-    </div>
-    <div class="form-hint">
-      Cargá manualmente los datos de la ola actual. Cada campo arranca con la sugerencia tomada de la planilla `DatosModelo.xlsx`, pero podés editarla antes de calcular.
-    </div>
-
-    <!-- Campos -->
-    <div class="fields-grid" id="fields-grid">
-
-      <!-- Bultos programados -->
-      <div class="field-group">
-        <label class="field-label">Bultos Prog. Secos <span class="suggested" id="sug-prog-secos"></span></label>
-        <input class="field-input" type="number" id="f-prog-secos" oninput="onFieldChange()">
+<div class="online-shell">
+    <div class="online-toolbar">
+      <div class="online-field" id="prod-online-date-wrap">
+        <label>Fecha</label>
+        <input type="date" id="prod-online-date">
       </div>
-      <div class="field-group">
-        <label class="field-label">Bultos Prog. NOA <span class="suggested" id="sug-prog-noa"></span></label>
-        <input class="field-input" type="number" id="f-prog-noa" oninput="onFieldChange()">
+      <div class="online-field compact hidden" id="hourly-date-from-wrap">
+        <label>Desde</label>
+        <input type="date" id="hourly-date-from" onchange="onHourlyRangeChange()">
       </div>
-      <div class="field-group">
-        <label class="field-label">Bultos Prog. Total</label>
-        <input class="field-input auto" type="number" id="f-prog-total" readonly tabindex="-1">
+      <div class="online-field compact hidden" id="hourly-date-to-wrap">
+        <label>Hasta</label>
+        <input type="date" id="hourly-date-to" onchange="onHourlyRangeChange()">
       </div>
-
-      <div class="field-sep"></div>
-
-      <!-- Bultos ejecutados -->
-      <div class="field-group">
-        <label class="field-label">Bultos Ejec. Secos âœ <span class="suggested" id="sug-ejec-secos"></span></label>
-        <input class="field-input manual-input" type="number" id="f-ejec-secos" placeholder="ingresar" oninput="onFieldChange()">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Bultos Ejec. NOA âœ <span class="suggested" id="sug-ejec-noa"></span></label>
-        <input class="field-input manual-input" type="number" id="f-ejec-noa" placeholder="ingresar" oninput="onFieldChange()">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Bultos Ejec. Total</label>
-        <input class="field-input auto" type="number" id="f-ejec-total" readonly tabindex="-1">
-      </div>
-
-      <div class="field-sep"></div>
-
-      <!-- Dotación -->
-      <div class="field-group">
-        <label class="field-label">Dotación Programada <span class="suggested" id="sug-dot-prog"></span></label>
-        <input class="field-input" type="number" id="f-dot-prog" oninput="onFieldChange()">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Dotación Real âœ <span class="suggested" id="sug-dot-ejec"></span></label>
-        <input class="field-input manual-input" type="number" id="f-dot-ejec" placeholder="ingresar" oninput="onFieldChange()">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Dif. Dotación</label>
-        <input class="field-input auto" type="number" id="f-dot-dif" readonly tabindex="-1">
-      </div>
-
-      <div class="field-sep"></div>
-
-      <!-- Productividad -->
-      <div class="field-group">
-        <label class="field-label">Prod. Prog. (bultos/op)</label>
-        <input class="field-input auto" type="text" id="f-prod-prog" readonly tabindex="-1" placeholder="—">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Prod. Real (bultos/op)</label>
-        <input class="field-input auto" type="text" id="f-prod-ejec" readonly tabindex="-1" placeholder="—">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Var. Productividad</label>
-        <input class="field-input auto" type="text" id="f-prod-var" readonly tabindex="-1" placeholder="—">
-      </div>
-
-    </div>
-
-    <!-- Observaciones + botón -->
-    <div class="form-actions">
-      <div class="obs-wrap">
-        <label class="field-label" style="margin-bottom:5px;display:block">Observaciones <span class="suggested" id="sug-obs"></span></label>
-        <input class="field-input" type="text" id="f-obs" placeholder="Ej: refuerzo de 4 operarios de secos a NOA" style="width:100%">
-      </div>
-      <button class="btn-reset" onclick="resetToSuggested()" title="Volver a valores sugeridos del Excel">↺ Sugeridos</button>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-        <div id="campos-vacios-msg" style="display:none;font-size:11px;color:#b45309;background:#fff7ed;border:1px solid #f59e0b;border-radius:8px;padding:6px 12px;white-space:nowrap;"></div>
-        <button class="btn-calcular" id="btn-calcular" onclick="calcularYAnalizar()">▶ Calcular y Analizar</button>
-      </div>
-    </div>
-
-  </div><!-- /form-body -->
-</div>
-
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-     DASHBOARD (oculto hasta primer cálculo)
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
-<div id="dashboard-empty" class="dashboard-empty">
-  Completá los datos de la ola y presioná<br>
-  <strong style="color:var(--accent)">&nbsp;▶ Calcular y Analizar&nbsp;</strong><br>
-  para ver el estado operativo
-</div>
-
-<div id="dashboard" style="display:none">
-
-  <!-- KPIs -->
-  <div class="kpi-strip">
-    <div class="kpi green">
-      <div class="kpi-label">Bultos Preparados</div>
-      <div class="kpi-value" id="kpi-real">0</div>
-      <div class="kpi-sub" id="kpi-real-sub">ola actual</div>
-    </div>
-    <div class="kpi yellow">
-      <div class="kpi-label">Objetivo Acumulado</div>
-      <div class="kpi-value" id="kpi-exp">0</div>
-      <div class="kpi-sub">programado para la ola</div>
-    </div>
-    <div class="kpi orange">
-      <div class="kpi-label">Desvío</div>
-      <div class="kpi-value" id="kpi-gap">0</div>
-      <div class="kpi-sub" id="kpi-gap-sub">bultos</div>
-    </div>
-    <div class="kpi neutral">
-      <div class="kpi-label">Proyección Cierre</div>
-      <div class="kpi-value" id="kpi-proj">0</div>
-      <div class="kpi-sub" id="kpi-proj-sub">del turno</div>
-    </div>
-  </div>
-
-  <!-- Panel IA — full width -->
-  <div class="ai-panel">
-    <div class="ai-panel-header">
-      <button class="ai-tab active" id="tab-btn-analysis" onclick="switchAiTab('analysis')">
-        <div class="ai-dot"></div>
-        Análisis IA · alertas
-      </button>
-      <button class="ai-tab" id="tab-btn-debug" onclick="switchAiTab('debug')">
-        ⬡ Debug
-      </button>
-    </div>
-
-    <!-- Tab: Análisis -->
-    <div class="ai-tab-content active" id="tab-analysis">
-      <div id="resumen-turno-wrap" style="display:none" class="resumen-turno">
-        <span class="resumen-turno-icon">📊</span>
-        <div class="resumen-turno-text">
-          <div class="resumen-turno-label">Resumen del turno vs histórico</div>
-          <span id="resumen-turno-text"></span>
-        </div>
-      </div>
-      <div class="ai-alerts" id="ai-alerts">
-        <div class="debug-empty">Esperando análisis...</div>
-      </div>
-      <div id="sugerencias-wrap" class="sugerencias-wrap" style="display:none">
-        <div class="sugerencias-header">
-          <span class="sugerencias-icon">💬</span>
-          <span class="sugerencias-title">Preguntas sugeridas · tocá para consultar</span>
-        </div>
-        <div id="sugerencias-chips" class="sugerencias-chips"></div>
-      </div>
-      <div class="ai-chat" id="ai-chat" style="display:none">
-        <div class="ai-chat-header" id="chat-header" onclick="toggleChat()">
-          <span class="ai-chat-title"><span class="ai-dot"></span> Consultar sobre el turno</span>
-          <span class="ai-chat-chevron" id="chat-chevron">▼</span>
-        </div>
-        <div class="ai-chat-body" id="chat-body">
-          <div class="chat-messages" id="chat-messages"></div>
-          <div class="chat-input-row">
-            <input class="chat-input" id="chat-input" type="text"
-              placeholder="Escribí tu pregunta sobre el turno..."
-              onkeydown="if(event.key==='Enter')sendChat()">
-            <button class="chat-send" onclick="sendChat()">Enviar ↑</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab: Debug -->
-    <div class="ai-tab-content" id="tab-debug">
-      <div class="debug-panel">
-        <div class="debug-block">
-          <div class="debug-label">→ Request enviado a la API</div>
-          <pre class="debug-pre" id="debug-request"><span class="debug-empty">Sin datos aún. Ejecutá Calcular y Analizar.</span></pre>
-        </div>
-        <div class="debug-block">
-          <div class="debug-label">â† Response recibido de la API</div>
-          <pre class="debug-pre" id="debug-response"><span class="debug-empty">Sin datos aún.</span></pre>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Layout -->
-  <div class="main">
-
-    <!-- Sectores -->
-    <div class="panel">
-      <div class="panel-title">Bultos por sector · ejecutado vs programado</div>
-      <div class="bar-chart" id="bar-chart"></div>
-    </div>
-
-    <!-- Olas del turno -->
-    <div class="panel">
-      <div class="panel-title">Olas del turno · avance acumulado</div>
-      <div class="olas-grid" id="olas-grid"></div>
-      <div class="proj-box">
-        <div class="proj-title">▸ Proyección de cierre de turno</div>
-        <div class="proj-row"><span>Ritmo actual (bultos/op)</span><span id="proj-rate">—</span></div>
-        <div class="proj-row"><span>Dotación activa</span><span id="proj-dot">—</span></div>
-        <div class="proj-row"><span>Proyección total turno</span><span id="proj-total">—</span></div>
-        <div class="proj-row"><span>Brecha vs objetivo</span><span id="proj-gap">—</span></div>
-      </div>
-    </div>
-
-    <!-- Operarios -->
-    <div class="panel">
-      <div class="panel-title">Operarios · productividad estimada</div>
-      <div class="ops-grid" id="ops-grid"></div>
-    </div>
-
-  </div>
-
-</div><!-- /dashboard -->
-
-</div><!-- /mtab-plan -->
-
-<!-- Tab 3: Plantel Operativo -->
-<div id="mtab-plantel" class="main-tab-content">
-  <div class="plantel-shell">
-    <div class="plantel-toolbar">
-      <div class="plantel-field">
+      <div class="online-field">
         <label>Turno</label>
-        <select id="plantel-turno"></select>
+        <select id="prod-online-turno"></select>
       </div>
-      <div class="plantel-field">
-        <label>SECTOR SECOS · Bultos a preparar</label>
-        <input id="plantel-bultos-secos" type="number" min="0" step="1" value="12000">
+      <div class="online-action-group active" id="actions-online">
+        <button class="online-btn" id="btn-online-turno" onclick="runProductividadOnline()">Consultar online</button>
       </div>
-      <div class="plantel-field">
-        <label>VARIOS NO ALIMENTOS · Bultos a preparar</label>
-        <input id="plantel-bultos-noa" type="number" min="0" step="1" value="1800">
+      <div class="online-action-group" id="actions-picking-ia">
+        <button class="online-btn" id="btn-picking-base" onclick="runPickingAnalysisBase()">Consultar dataset base</button>
+        <button class="online-btn" id="btn-picking-ia-run" onclick="runPickingAnalysisIa()" disabled>Ejecutar IA</button>
       </div>
-      <div class="plantel-field">
-        <label>Nombre escenario</label>
-        <input id="plantel-scenario-name" type="text" placeholder="Escenario base turno tarde">
+      <div class="online-action-group" id="actions-hourly">
+        <button class="online-btn" id="btn-hourly-run" onclick="runProductividadHourly()">Generar por hora</button>
       </div>
-      <div class="plantel-field">
-        <label>Histórico</label>
-        <select id="plantel-force-refresh">
-          <option value="0">Usar cache local si existe</option>
-          <option value="1">Forzar recálculo</option>
+      <div class="online-status" id="online-tab-status">Elegí fecha y turno. Este mismo panel alimenta la consulta online y el análisis base de picking.</div>
+    </div>
+    <div class="online-filters">
+      <div class="online-field">
+        <label>Buscar operario</label>
+        <input type="text" id="prod-online-filter-operario" placeholder="Legajo o nombre" oninput="onProductividadFiltersChange()">
+      </div>
+      <div class="online-field">
+        <label>Almacén</label>
+        <select id="prod-online-filter-almacen" onchange="onProductividadFiltersChange()">
+          <option value="ALL">Todos</option>
         </select>
       </div>
-      <div class="plantel-actions">
-        <button class="plantel-btn" id="plantel-run-btn" onclick="runPlantelScenario()">Calcular plantel óptimo</button>
-        <button class="plantel-btn sec" onclick="resetPlantelForm()">Reset</button>
+      <div class="online-field">
+        <label>Operación</label>
+        <select id="prod-online-filter-operacion" onchange="onProductividadFiltersChange()">
+          <option value="ALL">Todas</option>
+        </select>
+      </div>
+      <div class="online-field">
+        <label>Posible HE</label>
+        <select id="hourly-he-filter" onchange="onProductividadHourlyHeFilterChange()">
+          <option value="ALL">Todos</option>
+          <option value="ONLY">Solo posible HE</option>
+          <option value="EXCLUDE">Excluir posible HE</option>
+        </select>
       </div>
     </div>
 
-    <div class="plantel-status" id="plantel-status">Elegí el turno, cargá los bultos y tocá calcular. El sistema te va a decir cuánta gente hace falta y con qué plantel conviene cubrir ese trabajo.</div>
-
-    <div class="plantel-kpis" id="plantel-kpis">
-      <div class="plantel-kpi">
-        <div class="plantel-kpi-label">Turno</div>
-        <div class="plantel-kpi-value">—</div>
-        <div class="plantel-kpi-sub">Esperando cálculo</div>
-      </div>
-      <div class="plantel-kpi">
-        <div class="plantel-kpi-label">Personas necesarias</div>
-        <div class="plantel-kpi-value">—</div>
-        <div class="plantel-kpi-sub">Todavía sin calcular</div>
-      </div>
-      <div class="plantel-kpi">
-        <div class="plantel-kpi-label">Disponibles</div>
-        <div class="plantel-kpi-value">—</div>
-        <div class="plantel-kpi-sub">Gente con historial en ese turno</div>
-      </div>
-      <div class="plantel-kpi">
-        <div class="plantel-kpi-label">Brecha</div>
-        <div class="plantel-kpi-value">—</div>
-        <div class="plantel-kpi-sub">Diferencia entre lo necesario y lo que se puede cubrir</div>
+    <div id="stab-online" class="sub-tab-content active">
+      <div id="online-tab-results">
+        <div class="analisis-empty">Todavía no se ejecutó la consulta de productividad on line.</div>
       </div>
     </div>
 
-    <div class="plantel-grid">
-      <div class="plantel-card">
-        <div class="plantel-card-title">Plan por almacén</div>
-        <div id="plantel-summary-table" class="plantel-empty">Todavía no se ejecutó una planificación.</div>
-      </div>
-      <div class="plantel-card">
-        <div class="plantel-card-title">Lectura IA del turno</div>
-        <div id="plantel-explanations" class="plantel-empty">Acá vas a ver una lectura simple del turno, alertas y la acción recomendada.</div>
-      </div>
-    </div>
-
-    <div class="plantel-grid">
-      <div class="plantel-card">
-        <div class="plantel-card-title">Plantel sugerido</div>
-        <div class="plantel-grid-toolbar">
-          <div class="plantel-grid-filter">
-            <label for="plantel-grid-filter">Almacén</label>
-            <select id="plantel-grid-filter" onchange="renderPlantelOperationalGrid()">
-              <option value="ALL">Todos</option>
-              <option value="SECTOR SECOS">SECTOR SECOS</option>
-              <option value="VARIOS NO ALIMENTOS">VARIOS NO ALIMENTOS</option>
-            </select>
-          </div>
-          <div class="plantel-grid-actions">
-            <button class="plantel-export-btn" onclick="exportPlantelAssignmentsCsv()">Exportar CSV</button>
-          </div>
+    <div id="stab-picking-ia" class="sub-tab-content">
+      <div class="picking-analysis-shell">
+        <div class="picking-analysis-status" id="picking-analysis-status">Usá los botones del panel superior para calcular productividad base, dificultad y lectura IA.</div>
+        <div id="picking-analysis-results">
+          <div class="analisis-empty">Todavía no se ejecutó el análisis base de picking.</div>
         </div>
-        <div id="plantel-operational-grid" class="plantel-empty">Todavía no hay plantel sugerido calculado.</div>
-      </div>
-      <div class="plantel-card">
-        <div class="plantel-card-title">Detalle del armado</div>
-        <div id="plantel-assignments" class="plantel-empty">Todavía no hay un armado para mostrar.</div>
       </div>
     </div>
 
-    <div class="plantel-grid">
-      <div class="plantel-card">
-        <div class="plantel-card-title">Escenarios guardados</div>
-        <div id="plantel-scenarios" class="plantel-empty">Todavía no hay escenarios guardados.</div>
+    <div id="stab-hourly" class="sub-tab-content">
+      <div class="picking-analysis-shell">
+        <div class="picking-analysis-status" id="hourly-status">Usá Generar por hora para ver el heatmap de Picking por operario y franja horaria.</div>
+        <div id="hourly-results">
+          <div class="analisis-empty">Todavía no se generó la productividad por hora.</div>
+        </div>
       </div>
-      <div></div>
+    </div>
+
+    <div id="stab-base-explanation" class="sub-tab-content">
+      <div id="picking-base-explanation">
+        <div class="analisis-empty">Todavía no hay cálculo base generado para explicar.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1211,6 +1004,10 @@ let pickingAnalysisSort = { key: 'ranking_ajustado', direction: 'asc' };
 let productividadHourlyResult = null;
 let productividadHourlyKey = '';
 let productividadHourlyLoading = false;
+let productividadHourlyMode = 'day';
+let productividadHourlyView = 'dashboard';
+let productividadHourlyAlertSort = { key: 'actionScore', direction: 'desc' };
+let productividadHourlyHeFilter = 'ALL';
 let plantelTurns = [];
 let plantelLastResult = null;
 let plantelLoading = false;
@@ -1340,6 +1137,75 @@ function buildProductividadOnlineRange() {
     fecha_hasta: hasta,
     turno_finalizado: new Date(hasta.replace(' ', 'T')) <= new Date(),
   };
+}
+
+function getProductividadHourlyMode() {
+  const desde = document.getElementById('hourly-date-from')?.value || '';
+  const hasta = document.getElementById('hourly-date-to')?.value || '';
+  if (desde && hasta && desde !== hasta) return 'historical';
+  return 'day';
+}
+
+function setDateInputValue(id, date) {
+  const input = document.getElementById(id);
+  if (!input || input.value) return;
+  const pad = n => String(n).padStart(2, '0');
+  input.value = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+
+function buildProductividadHourlyRange() {
+  const desde = document.getElementById('hourly-date-from')?.value || '';
+  const hasta = document.getElementById('hourly-date-to')?.value || '';
+  const turno = document.getElementById('prod-online-turno')?.value || '';
+  if (!desde || !hasta || !turno) return null;
+  if (hasta < desde) return null;
+  if (desde === hasta) {
+    const cfg = getProductividadOnlineTurnConfig(turno);
+    let hastaDate = desde;
+    if (turnoKey(turno) === 'noche') {
+      const base = new Date(`${desde}T00:00:00`);
+      base.setDate(base.getDate() + 1);
+      hastaDate = base.toISOString().slice(0, 10);
+    }
+    const fechaHasta = `${hastaDate} ${cfg.fin}`;
+    return {
+      fecha: desde,
+      turno,
+      turno_label: cfg.label,
+      fecha_desde: `${desde} ${cfg.inicio}`,
+      fecha_hasta: fechaHasta,
+      turno_finalizado: new Date(fechaHasta.replace(' ', 'T')) <= new Date(),
+    };
+  }
+  return {
+    fecha_desde: desde,
+    fecha_hasta: hasta,
+    turno,
+    turno_label: turnoLabel(turno),
+  };
+}
+
+function onHourlyRangeChange(resetResults = true) {
+  productividadHourlyMode = getProductividadHourlyMode();
+  const historical = productividadHourlyMode === 'historical';
+  const status = document.getElementById('hourly-status');
+  if (status) {
+    status.textContent = historical
+      ? 'Rango de varios días seleccionado. Usá Generar histórico para ver promedios por hora.'
+      : 'Misma fecha desde/hasta seleccionada. Usá Generar por hora para ver el turno elegido.';
+  }
+  const btn = document.getElementById('btn-hourly-run');
+  if (btn) btn.textContent = historical ? 'Generar histórico' : 'Generar por hora';
+  if (document.getElementById('stab-hourly')?.classList.contains('active')) {
+    updateProductividadToolbarStatus('hourly');
+  }
+  if (resetResults) {
+    resetProductividadHourlyUi(
+      historical
+        ? 'Rango de varios días seleccionado. Generá el histórico para ver promedios por hora.'
+        : 'Misma fecha desde/hasta seleccionada. Generá por hora para ver el turno elegido.'
+    );
+  }
 }
 
 function resetPickingAnalysisUi(message) {
@@ -2117,11 +1983,55 @@ function renderPickingAnalysisBase() {
 function getFilteredProductividadHourlyRows() {
   const rows = Array.isArray(productividadHourlyResult?.rows) ? productividadHourlyResult.rows : [];
   const operario = (document.getElementById('prod-online-filter-operario')?.value || '').trim().toLowerCase();
-  if (!operario) return rows;
-  return rows.filter(row =>
-    String(row.operario || '').toLowerCase().includes(operario)
-    || String(row.copecrea || '').toLowerCase().includes(operario)
-  );
+  const hours = Array.isArray(productividadHourlyResult?.hours) ? productividadHourlyResult.hours : [];
+  const heFilter = getProductividadHourlyHeFilter();
+  return rows.filter(row => {
+    const matchesOperario = !operario
+      || String(row.operario || '').toLowerCase().includes(operario)
+      || String(row.copecrea || '').toLowerCase().includes(operario);
+    if (!matchesOperario) return false;
+    if (heFilter === 'ALL') return true;
+    const he = detectPossibleHourlyOvertime(row, hours);
+    return heFilter === 'ONLY' ? he.isHe : !he.isHe;
+  });
+}
+
+function getProductividadHourlyHeFilter() {
+  return document.getElementById('hourly-he-filter')?.value || productividadHourlyHeFilter || 'ALL';
+}
+
+function onProductividadHourlyHeFilterChange() {
+  productividadHourlyHeFilter = getProductividadHourlyHeFilter();
+  if (productividadHourlyResult && !productividadHourlyLoading) {
+    renderProductividadHourlyGrid();
+  }
+}
+
+function renderHourlyHeChip(he) {
+  return he?.isHe ? `<span class="hourly-state-chip he">${he.label}</span>` : '';
+}
+
+function detectPossibleHourlyOvertime(row, hours) {
+  const activeIndexes = hours
+    .map((hour, index) => {
+      const cell = row.cells?.[hour.key] || {};
+      return (Number(cell.bultos || 0) > 0 || Number(cell.movimientos || 0) > 0) ? index : -1;
+    })
+    .filter(index => index >= 0);
+  if (!activeIndexes.length || activeIndexes.length > 4) {
+    return { isHe: false, label: '', side: '' };
+  }
+  const first = Math.min(...activeIndexes);
+  const last = Math.max(...activeIndexes);
+  const contiguous = activeIndexes.length === (last - first + 1);
+  if (!contiguous) return { isHe: false, label: '', side: '' };
+  if (first === 0 && last <= 3) {
+    return { isHe: true, label: 'Posible HE inicio', side: 'inicio' };
+  }
+  if (last === hours.length - 1 && first >= Math.max(hours.length - 4, 0)) {
+    return { isHe: true, label: 'Posible HE cierre', side: 'cierre' };
+  }
+  return { isHe: false, label: '', side: '' };
 }
 
 function hourlyCellColor(value, maxValue) {
@@ -2130,6 +2040,271 @@ function hourlyCellColor(value, maxValue) {
   if (ratio < .35) return `rgba(28, 118, 206, ${0.22 + ratio * 0.55})`;
   if (ratio < .70) return `rgba(255, 184, 0, ${0.18 + ratio * 0.45})`;
   return `rgba(0, 255, 136, ${0.18 + ratio * 0.42})`;
+}
+
+function switchHourlyView(view) {
+  productividadHourlyView = view === 'heatmap' ? 'heatmap' : 'dashboard';
+  document.getElementById('hourly-view-btn-dashboard')?.classList.toggle('active', productividadHourlyView === 'dashboard');
+  document.getElementById('hourly-view-btn-heatmap')?.classList.toggle('active', productividadHourlyView === 'heatmap');
+  document.getElementById('hourly-view-dashboard')?.classList.toggle('active', productividadHourlyView === 'dashboard');
+  document.getElementById('hourly-view-heatmap')?.classList.toggle('active', productividadHourlyView === 'heatmap');
+}
+
+function sortProductividadHourlyAlerts(key) {
+  if (productividadHourlyAlertSort.key === key) {
+    productividadHourlyAlertSort.direction = productividadHourlyAlertSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    productividadHourlyAlertSort = {
+      key,
+      direction: ['operario', 'estado', 'bestHour', 'lastHour'].includes(key) ? 'asc' : 'desc',
+    };
+  }
+  renderProductividadHourlyGrid();
+}
+
+function hourlySortButton(key, label) {
+  const active = productividadHourlyAlertSort.key === key;
+  const mark = active ? (productividadHourlyAlertSort.direction === 'asc' ? '▲' : '▼') : '';
+  return `<button class="hourly-sort-btn" onclick="sortProductividadHourlyAlerts('${key}')">${label}<span class="hourly-sort-mark">${mark}</span></button>`;
+}
+
+function getHourlyAlertSortValue(item, key) {
+  const stateOrder = { inactive: 1, empty: 1, concentrated: 2, drop: 3, low_coverage: 4, ok: 9 };
+  if (key === 'operario') return String(item.row.operario || item.row.copecrea || '').toLowerCase();
+  if (key === 'estado') return stateOrder[item.state.key] || 99;
+  if (key === 'possibleHe') return item.possibleHe?.isHe ? (item.possibleHe.side === 'inicio' ? 1 : 2) : 9;
+  if (key === 'total') return item.total;
+  if (key === 'movimientos') return item.movimientos;
+  if (key === 'activeHours') return item.activeHours;
+  if (key === 'bestShare') return item.bestShare;
+  if (key === 'bestHour') return item.bestHour === '—' ? 99 : Number(item.bestHour);
+  if (key === 'lastHour') return item.lastHour === '—' ? 99 : Number(item.lastHour);
+  return item.actionScore;
+}
+
+function sortHourlyAlerts(metrics) {
+  const { key, direction } = productividadHourlyAlertSort;
+  const factor = direction === 'asc' ? 1 : -1;
+  return [...metrics].sort((a, b) => {
+    const av = getHourlyAlertSortValue(a, key);
+    const bv = getHourlyAlertSortValue(b, key);
+    if (typeof av === 'string' || typeof bv === 'string') {
+      const cmp = String(av).localeCompare(String(bv), 'es');
+      if (cmp !== 0) return cmp * factor;
+    } else if (Number(av) !== Number(bv)) {
+      return (Number(av) - Number(bv)) * factor;
+    }
+    return b.actionScore - a.actionScore || b.total - a.total;
+  });
+}
+
+function buildHourlyFilteredSummary(rows, hours) {
+  const hourTotals = hours.map(hour => ({
+    key: hour.key,
+    label: hour.label,
+    bultos: rows.reduce((sum, row) => sum + Number(row.cells?.[hour.key]?.bultos || 0), 0),
+  }));
+  const bultosTotal = rows.reduce((sum, row) => sum + Number(row.total_bultos || 0), 0);
+  const movimientos = rows.reduce((sum, row) => sum + Number(row.movimientos || 0), 0);
+  const celdasActivas = rows.reduce((sum, row) => (
+    sum + hours.filter(hour => {
+      const cell = row.cells?.[hour.key] || {};
+      return Number(cell.bultos || 0) > 0 || Number(cell.movimientos || 0) > 0;
+    }).length
+  ), 0);
+  const horaPico = hourTotals.reduce(
+    (best, item) => item.bultos > best.bultos ? item : best,
+    { label: '—', bultos: 0 }
+  );
+  return {
+    operarios: rows.length,
+    bultos_total: bultosTotal,
+    movimientos,
+    celdas_activas: celdasActivas,
+    promedio_bultos_hora_activa: bultosTotal / Math.max(celdasActivas, 1),
+    hora_pico: horaPico,
+  };
+}
+
+function getHourlyMetricRows(rows, hours, isHistorical = false, isClosedDay = false) {
+  const lastObservedIndex = rows.reduce((maxIndex, row) => {
+    hours.forEach((hour, index) => {
+      const cell = row.cells?.[hour.key] || {};
+      if (Number(cell.bultos || 0) > 0 || Number(cell.movimientos || 0) > 0) {
+        maxIndex = Math.max(maxIndex, index);
+      }
+    });
+    return maxIndex;
+  }, -1);
+  const evaluationEndIndex = (isHistorical || isClosedDay)
+    ? Math.max(hours.length - 1, 0)
+    : Math.max(lastObservedIndex, 0);
+  const inactiveLabel = isClosedDay ? 'Sin actividad final' : 'Sin movimiento';
+
+  return rows.map(row => {
+    const values = hours.map((hour, index) => {
+      const cell = row.cells?.[hour.key] || {};
+      const bultos = Number(cell.bultos || 0);
+      return { hour, index, bultos, movimientos: Number(cell.movimientos || 0), cell };
+    });
+    const active = values.filter(item => item.bultos > 0 || item.movimientos > 0);
+    const total = Number(row.total_bultos || 0);
+    const best = values.reduce((acc, item) => item.bultos > acc.bultos ? item : acc, { index: -1, bultos: 0, hour: null });
+    const bestShare = total > 0 ? best.bultos / total * 100 : 0;
+    const coverage = hours.length ? active.length / hours.length * 100 : 0;
+    const afterPeak = values.filter(item => item.index > best.index && item.index <= evaluationEndIndex);
+    const afterActive = afterPeak.filter(item => item.bultos > 0);
+    const afterAvg = afterPeak.length ? afterPeak.reduce((sum, item) => sum + item.bultos, 0) / afterPeak.length : 0;
+    const lastActive = active.length ? active[active.length - 1] : null;
+    const inactiveTail = lastActive ? Math.max(evaluationEndIndex - lastActive.index, 0) : evaluationEndIndex + 1;
+    let state = { key: 'ok', label: 'OK', cls: 'ok', score: 0 };
+
+    if (total <= 0) {
+      state = { key: 'empty', label: 'Sin datos', cls: 'bad', score: 100 };
+    } else if (!isHistorical && inactiveTail >= 2) {
+      state = { key: 'inactive', label: inactiveLabel, cls: 'bad', score: 85 + inactiveTail };
+    } else if (bestShare >= 65 && total >= 20) {
+      state = { key: 'concentrated', label: 'Concentrado', cls: 'watch', score: 70 + bestShare / 10 };
+    } else if (best.index >= 0 && afterPeak.length >= 2 && afterActive.length <= 1 && best.bultos >= 10) {
+      state = { key: 'drop', label: 'Caída', cls: 'watch', score: 62 };
+    } else if (isHistorical && coverage <= 35 && total >= 20) {
+      state = { key: 'low_coverage', label: 'Poca cobertura', cls: 'watch', score: 58 };
+    }
+
+    const actionScore = Math.round(state.score + Math.max(bestShare - 45, 0) + Math.max(45 - coverage, 0) / 2);
+    const possibleHe = detectPossibleHourlyOvertime(row, hours);
+    return {
+      row,
+      values,
+      total,
+      movimientos: Number(row.movimientos || 0),
+      activeHours: active.length,
+      bestHour: best.hour?.label || '—',
+      bestBultos: best.bultos || 0,
+      bestShare,
+      coverage,
+      afterAvg,
+      lastHour: lastActive?.hour?.label || '—',
+      inactiveTail,
+      state,
+      possibleHe,
+      actionScore,
+    };
+  }).sort((a, b) => b.actionScore - a.actionScore || b.total - a.total);
+}
+
+function renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum) {
+  const isHistorical = data.modo === 'historico';
+  const isClosedDay = !isHistorical && Boolean(data.summary?.turno_finalizado || data.cache?.turno_finalizado);
+  const metrics = getHourlyMetricRows(rows, hours, isHistorical, isClosedDay);
+  const visibleMetrics = metrics.filter(item => item.total > 0);
+  const statusCounts = visibleMetrics.reduce((acc, item) => {
+    acc[item.state.key] = (acc[item.state.key] || 0) + 1;
+    return acc;
+  }, {});
+  const totalVisible = Math.max(visibleMetrics.length, 1);
+  const ok = statusCounts.ok || 0;
+  const concentrated = statusCounts.concentrated || 0;
+  const drop = (statusCounts.drop || 0) + (statusCounts.low_coverage || 0);
+  const inactive = (statusCounts.inactive || 0) + (statusCounts.empty || 0);
+  const okDeg = ok / totalVisible * 360;
+  const concentratedDeg = concentrated / totalVisible * 360;
+  const dropDeg = drop / totalVisible * 360;
+  const donutBg = `conic-gradient(#00ff88 0 ${okDeg}deg, #ffb800 ${okDeg}deg ${okDeg + concentratedDeg + dropDeg}deg, #ff6b6b ${okDeg + concentratedDeg + dropDeg}deg 360deg)`;
+  const topAlerts = sortHourlyAlerts(metrics);
+  const concentrationTop = [...visibleMetrics].sort((a, b) => b.bestShare - a.bestShare);
+  const hourTotals = hours.map(hour => ({
+    hour,
+    total: rows.reduce((sum, row) => sum + Number(row.cells?.[hour.key]?.bultos || 0), 0),
+  }));
+  const maxHourTotal = Math.max(...hourTotals.map(item => item.total), 0);
+  const maxShare = Math.max(...concentrationTop.map(item => item.bestShare), 1);
+
+  return `
+    <div class="hourly-dashboard-grid">
+      <div class="hourly-dashboard-card">
+        <div class="hourly-dashboard-title">Estados operativos</div>
+        <div class="hourly-status-donut-wrap">
+          <div class="hourly-status-donut" style="background:${donutBg}">
+            <div><strong>${fmtNum(visibleMetrics.length)}</strong><span>operarios</span></div>
+          </div>
+          <div class="hourly-status-list">
+            <div class="hourly-status-row"><span><i class="hourly-status-dot" style="background:#00ff88"></i>OK</span><strong>${fmtNum(ok)}</strong></div>
+            <div class="hourly-status-row"><span><i class="hourly-status-dot" style="background:#ffb800"></i>Concentrado / caída</span><strong>${fmtNum(concentrated + drop)}</strong></div>
+            <div class="hourly-status-row"><span><i class="hourly-status-dot" style="background:#ff6b6b"></i>${isClosedDay ? 'Sin actividad final' : 'Sin movimiento'}</span><strong>${fmtNum(inactive)}</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="hourly-dashboard-card">
+        <div class="hourly-dashboard-title">Total Picking por hora</div>
+        <div class="hourly-hour-bars">
+          ${hourTotals.map(item => {
+            const pct = maxHourTotal > 0 ? Math.max(item.total / maxHourTotal * 100, 4) : 4;
+            return `
+              <div class="hourly-hour-bar" title="${escapeHtml(`${item.hour.label}:00 hs | ${fmtNum(item.total)} bultos`)}">
+                <div class="hourly-hour-bar-value">${fmtNum(item.total)}</div>
+                <div class="hourly-hour-bar-fill" style="height:${pct}px"></div>
+                <div class="hourly-hour-bar-label">${item.hour.label}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="hourly-dashboard-grid">
+      <div class="hourly-dashboard-card">
+        <div class="hourly-dashboard-title">Concentración por operario</div>
+        <div class="hourly-bars">
+          ${concentrationTop.map(item => `
+            <div class="hourly-bar-row" title="${escapeHtml(`${item.row.operario || item.row.copecrea || ''}: ${fmtNum(item.bestShare)}% de sus bultos en la mejor hora (${item.bestHour}:00)`)}">
+              <div class="hourly-bar-label">${escapeHtml(item.row.operario || item.row.copecrea || '—')}</div>
+              <div class="hourly-bar-track"><div class="hourly-bar-fill" style="width:${Math.min(item.bestShare / maxShare * 100, 100)}%"></div></div>
+              <strong>${fmtNum(item.bestShare)}%</strong>
+            </div>
+          `).join('') || '<div class="analisis-empty">No hay operarios para graficar.</div>'}
+        </div>
+      </div>
+      <div class="hourly-dashboard-card">
+        <div class="hourly-dashboard-title">Ranking de acción rápida</div>
+        <div class="online-meta-sub" style="margin-bottom:10px;color:#d9e8ff;">
+          ${isHistorical ? 'Lectura histórica: prioriza concentración y cobertura repetida por hora.' : isClosedDay ? 'Lectura de turno cerrado: prioriza cortes antes del cierre, concentración y caídas después del pico.' : 'Lectura del turno: prioriza últimos bloques sin actividad, concentración y caídas después del pico.'}
+        </div>
+        <div class="hourly-alert-wrap">
+          <table class="hourly-alert-table">
+            <thead>
+              <tr>
+                <th>${hourlySortButton('operario', 'Operario')}</th>
+                <th>${hourlySortButton('estado', 'Estado')}</th>
+                <th>${hourlySortButton('possibleHe', 'Posible HE')}</th>
+                <th>${hourlySortButton('total', 'Bultos')}</th>
+                <th>${hourlySortButton('movimientos', 'Mov.')}</th>
+                <th>${hourlySortButton('activeHours', 'Horas act.')}</th>
+                <th>${hourlySortButton('bestShare', '% mejor hora')}</th>
+                <th>${hourlySortButton('bestHour', 'Mejor hora')}</th>
+                <th>${hourlySortButton('lastHour', 'Última act.')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${topAlerts.map(item => `
+                <tr>
+                  <td><strong>${escapeHtml(item.row.operario || item.row.copecrea || '—')}</strong><br><span style="font-size:10px;color:#9fb0cc">${escapeHtml(item.row.copecrea || '')}</span></td>
+                  <td><span class="hourly-state-chip ${item.state.cls}">${item.state.label}</span></td>
+                  <td>${renderHourlyHeChip(item.possibleHe) || '<span style="color:#8fa0bc">—</span>'}</td>
+                  <td>${fmtNum(item.total)}</td>
+                  <td>${fmtNum(item.movimientos)}</td>
+                  <td>${fmtNum(item.activeHours)} / ${fmtNum(hours.length)}</td>
+                  <td>${fmtNum(item.bestShare)}%</td>
+                  <td>${item.bestHour === '—' ? '—' : `${escapeHtml(item.bestHour)}:00`}</td>
+                  <td>${escapeHtml(item.lastHour)}${item.lastHour !== '—' ? ':00' : ''}</td>
+                </tr>
+              `).join('') || `<tr><td colspan="9" class="analisis-empty">No hay operarios para mostrar con el filtro actual.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderProductividadHourlyGrid() {
@@ -2141,27 +2316,47 @@ function renderProductividadHourlyGrid() {
     return;
   }
 
-  const summary = data.summary || {};
   const hours = Array.isArray(data.hours) ? data.hours : [];
   const rows = getFilteredProductividadHourlyRows();
+  const summary = buildHourlyFilteredSummary(rows, hours);
   const allCells = rows.flatMap(row => hours.map(hour => Number(row.cells?.[hour.key]?.bultos || 0)));
   const maxBultos = Math.max(...allCells, 0);
   const sourceLabel = data.cache?.hourly_cache_hit ? 'cache local' : 'Oracle';
+  const isHistorical = data.modo === 'historico';
   const fmtNum = value => Number(value || 0).toLocaleString('es-AR');
   const fmtMaybe = value => value == null ? '—' : Number(value || 0).toLocaleString('es-AR');
+  const metricLabel = isHistorical ? 'Promedio por hora' : 'Prom. celda activa';
+  const titleText = isHistorical ? 'Productividad por hora histórica · Picking' : 'Productividad por hora · Picking';
+  const rangeText = isHistorical
+    ? `Rango histórico ${data.fecha_desde_rango || data.fecha_desde || '—'} a ${data.fecha_hasta_rango || data.fecha_hasta || '—'} · ${fmtNum(summary.dias_consultados)} días consultados · Fuente: ${sourceLabel}.`
+    : `Rango ${data.fecha_desde || '—'} a ${data.fecha_hasta || '—'} · Fuente: ${sourceLabel}. El ritmo observado se estima con primer y último movimiento de la hora.`;
+  const helpText = isHistorical
+    ? 'Cómo leerlo: el número grande es el promedio de bultos preparados por ese operario en esa hora, usando solo los días del rango donde tuvo actividad en esa franja. Abajo se muestra cuántos días aportaron datos y el total acumulado de bultos.'
+    : 'Cómo leerlo: el número grande son los bultos preparados en esa hora del turno elegido. Abajo se muestra la productividad de esa hora y el ritmo efectivo estimado por actividad registrada.';
 
   container.innerHTML = `
     <div class="picking-analysis-kpis">
       <div class="picking-analysis-kpi"><strong>Operarios</strong><span>${fmtNum(summary.operarios)}</span></div>
       <div class="picking-analysis-kpi"><strong>Bultos</strong><span>${fmtNum(summary.bultos_total)}</span></div>
       <div class="picking-analysis-kpi"><strong>Movimientos</strong><span>${fmtNum(summary.movimientos)}</span></div>
-      <div class="picking-analysis-kpi"><strong>Prom. celda activa</strong><span>${fmtNum(summary.promedio_bultos_hora_activa)}</span></div>
+      <div class="picking-analysis-kpi"><strong>${metricLabel}</strong><span>${fmtNum(summary.promedio_bultos_hora_activa)}</span></div>
       <div class="picking-analysis-kpi"><strong>Hora pico</strong><span>${summary.hora_pico?.label || '—'}</span><div class="online-meta-sub">${fmtNum(summary.hora_pico?.bultos)} bultos</div></div>
     </div>
-    <div class="picking-analysis-card" style="margin-top:16px;">
-      <div class="picking-analysis-card-title">Productividad por hora · Picking</div>
+    <div class="hourly-view-tabs">
+      <button class="hourly-view-tab" id="hourly-view-btn-dashboard" onclick="switchHourlyView('dashboard')">Dashboard operativo</button>
+      <button class="hourly-view-tab" id="hourly-view-btn-heatmap" onclick="switchHourlyView('heatmap')">Heatmap por hora</button>
+    </div>
+    <div class="hourly-view-panel" id="hourly-view-dashboard">
+      ${renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum)}
+    </div>
+    <div class="hourly-view-panel" id="hourly-view-heatmap">
+    <div class="picking-analysis-card">
+      <div class="picking-analysis-card-title">${titleText}</div>
       <div class="online-meta-sub" style="margin-bottom:12px;">
-        Rango ${data.fecha_desde || '—'} a ${data.fecha_hasta || '—'} · Fuente: ${sourceLabel}. El ritmo observado se estima con primer y último movimiento de la hora.
+        ${rangeText}
+      </div>
+      <div class="online-meta-sub" style="margin-bottom:12px;color:#d9e8ff;">
+        ${helpText}
       </div>
       <div class="hourly-heatmap-wrap">
         <table class="hourly-heatmap">
@@ -2177,16 +2372,19 @@ function renderProductividadHourlyGrid() {
                 <td class="hourly-operator-cell">
                   <div class="hourly-operator-name">${escapeHtml(row.operario || row.copecrea || '—')}</div>
                   <div class="hourly-operator-sub">${escapeHtml(row.copecrea || '')} · ${fmtNum(row.total_bultos)} bultos · ${fmtNum(row.movimientos)} mov.</div>
+                  <div style="margin-top:4px;">${renderHourlyHeChip(detectPossibleHourlyOvertime(row, hours))}</div>
                 </td>
                 ${hours.map(hour => {
                   const cell = row.cells?.[hour.key] || {};
                   const bultos = Number(cell.bultos || 0);
-                  const title = `${row.operario || row.copecrea || ''} | ${hour.label}:00 | bultos ${fmtNum(bultos)} | mov. ${fmtNum(cell.movimientos)} | min obs. ${fmtNum(cell.minutos_observados)} | ritmo obs. ${fmtMaybe(cell.ritmo_observado)}`;
+                  const title = isHistorical
+                    ? `${row.operario || row.copecrea || ''} | ${hour.label}:00 hs | Promedio mostrado: ${fmtNum(bultos)} bultos por hora | Se calcula como ${fmtNum(cell.bultos_total)} bultos totales / ${fmtNum(cell.dias_con_datos)} día(s) con actividad en esa hora | Movimientos WMS registrados: ${fmtNum(cell.movimientos)} | Ritmo efectivo estimado: ${fmtMaybe(cell.ritmo_observado)} b/h`
+                    : `${row.operario || row.copecrea || ''} | ${hour.label}:00 hs | Bultos preparados: ${fmtNum(bultos)} | Movimientos WMS registrados: ${fmtNum(cell.movimientos)} | Minutos observados: ${fmtNum(cell.minutos_observados)} | Ritmo efectivo estimado: ${fmtMaybe(cell.ritmo_observado)} b/h`;
                   return `
                     <td>
                       <div class="hourly-cell ${bultos ? '' : 'empty'}" style="background:${hourlyCellColor(bultos, maxBultos)}" title="${escapeHtml(title)}">
                         <div class="hourly-cell-main">${bultos ? fmtNum(bultos) : '—'}</div>
-                        <div class="hourly-cell-sub">${bultos ? `${fmtNum(cell.prod_calendario)} b/h<br>${fmtMaybe(cell.ritmo_observado)} ef/h` : 'sin mov.'}</div>
+                        <div class="hourly-cell-sub">${bultos ? (isHistorical ? `${fmtNum(cell.dias_con_datos)} día(s)<br>${fmtNum(cell.bultos_total)} bultos total` : `${fmtNum(cell.prod_calendario)} b/h<br>${fmtMaybe(cell.ritmo_observado)} efectivo`) : 'sin actividad'}</div>
                       </div>
                     </td>
                   `;
@@ -2197,42 +2395,58 @@ function renderProductividadHourlyGrid() {
         </table>
       </div>
       <div class="hourly-legend">
-        <span>Color: bultos por hora calendario</span>
+        <span>Color: ${isHistorical ? 'promedio histórico de bultos/hora' : 'bultos por hora calendario'}</span>
         <span class="hourly-legend-swatch" style="background:rgba(28,118,206,.65);"></span><span>Bajo</span>
         <span class="hourly-legend-swatch" style="background:rgba(255,184,0,.65);"></span><span>Medio</span>
         <span class="hourly-legend-swatch" style="background:rgba(0,255,136,.65);"></span><span>Alto</span>
       </div>
     </div>
+    </div>
   `;
+  switchHourlyView(productividadHourlyView);
 }
 
 async function runProductividadHourly() {
   if (productividadHourlyLoading) return;
   const btn = document.getElementById('btn-hourly-run');
   const status = document.getElementById('hourly-status');
-  const range = buildProductividadOnlineRange();
+  const mode = getProductividadHourlyMode();
+  const range = buildProductividadHourlyRange();
   if (!btn || !status) return;
   if (!range) {
-    status.textContent = 'Completá fecha y turno antes de generar productividad por hora.';
+    status.textContent = mode === 'historical'
+      ? 'Completá fecha desde, fecha hasta y turno antes de generar el histórico por hora.'
+      : 'Completá fecha desde, fecha hasta y turno antes de generar productividad por hora.';
     return;
   }
 
   const almacen = document.getElementById('prod-online-filter-almacen')?.value || 'ALL';
-  const cacheKey = `${getPickingAnalysisCacheKey(range)}|${almacen}`;
+  const cacheKey = mode === 'historical'
+    ? `${range.fecha_desde}|${range.fecha_hasta}|${range.turno}|${almacen}|historical`
+    : `${getPickingAnalysisCacheKey(range)}|${almacen}`;
   productividadHourlyLoading = true;
   productividadHourlyResult = null;
   productividadHourlyKey = '';
   btn.disabled = true;
   btn.textContent = 'Generando...';
-  status.textContent = `Armando heatmap de Picking para ${range.turno_label}. Se ocultan resultados anteriores mientras carga...`;
+  status.textContent = mode === 'historical'
+    ? `Armando heatmap histórico de Picking para ${range.turno_label}. Se ocultan resultados anteriores mientras carga...`
+    : `Armando heatmap de Picking para ${range.turno_label}. Se ocultan resultados anteriores mientras carga...`;
   const container = document.getElementById('hourly-results');
   if (container) {
-    container.innerHTML = '<div class="analisis-empty">Buscando cache local o consultando Oracle según estado del turno, y agrupando por hora...</div>';
+    container.innerHTML = mode === 'historical'
+      ? '<div class="analisis-empty">Recorriendo días del rango, usando cache local cuando exista y agrupando promedio histórico por hora...</div>'
+      : '<div class="analisis-empty">Buscando cache local o consultando Oracle según estado del turno, y agrupando por hora...</div>';
   }
 
   try {
-    const params = new URLSearchParams({ fecha: range.fecha, turno: range.turno, almacen });
-    const resp = await fetch(`/api/productividad/picking/por-hora?${params.toString()}`);
+    const params = mode === 'historical'
+      ? new URLSearchParams({ fecha_desde: range.fecha_desde, fecha_hasta: range.fecha_hasta, turno: range.turno, almacen })
+      : new URLSearchParams({ fecha: range.fecha, turno: range.turno, almacen });
+    const endpoint = mode === 'historical'
+      ? '/api/productividad/picking/por-hora/historico'
+      : '/api/productividad/picking/por-hora';
+    const resp = await fetch(`${endpoint}?${params.toString()}`);
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.detail || 'No se pudo generar productividad por hora.');
     productividadHourlyResult = data;
@@ -2242,7 +2456,9 @@ async function runProductividadHourly() {
       ? 'Turno finalizado: queda conservado localmente.'
       : 'Turno activo: se refrescará contra Oracle en cada ejecución.';
     renderProductividadHourlyGrid();
-    status.textContent = `Productividad por hora lista desde ${sourceLabel}. ${data.summary?.operarios || 0} operarios, ${Number(data.summary?.bultos_total || 0).toLocaleString('es-AR')} bultos. ${cacheRule}`;
+    status.textContent = mode === 'historical'
+      ? `Productividad por hora histórica lista desde ${sourceLabel}. ${data.summary?.dias_consultados || 0} días, ${data.summary?.operarios || 0} operarios, ${Number(data.summary?.bultos_total || 0).toLocaleString('es-AR')} bultos.`
+      : `Productividad por hora lista desde ${sourceLabel}. ${data.summary?.operarios || 0} operarios, ${Number(data.summary?.bultos_total || 0).toLocaleString('es-AR')} bultos. ${cacheRule}`;
   } catch (err) {
     productividadHourlyResult = null;
     productividadHourlyKey = '';
@@ -2253,7 +2469,7 @@ async function runProductividadHourly() {
   } finally {
     productividadHourlyLoading = false;
     btn.disabled = false;
-    btn.textContent = 'Generar por hora';
+    btn.textContent = mode === 'historical' ? 'Generar histórico' : 'Generar por hora';
   }
 }
 
@@ -2374,6 +2590,10 @@ async function initProductividadOnlineModule() {
     const pad = n => String(n).padStart(2, '0');
     dateInput.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
   }
+  const today = new Date();
+  setDateInputValue('hourly-date-to', today);
+  setDateInputValue('hourly-date-from', today);
+  onHourlyRangeChange();
   [turnoSel, dateInput].forEach(el => {
     if (el && !el.dataset.prodRangeBound) {
       el.dataset.prodRangeBound = '1';
@@ -3143,10 +3363,10 @@ function renderAiAlerts() {
 
 // ── Tabs principales ─────────────────────────────────────────────
 function getInitialMainTab() {
-  const validTabs = new Set(['plan', 'plantel']);
+  const validTabs = new Set(['productividad']);
   const params = new URLSearchParams(window.location.search);
   const requested = params.get('tab') || params.get('modulo') || window.location.hash.replace('#', '');
-  return validTabs.has(requested) ? requested : 'plan';
+  return validTabs.has(requested) ? requested : 'productividad';
 }
 
 function switchMainTab(tab) {
@@ -3183,6 +3403,30 @@ function switchProdTab(tab) {
   if (pickingIaTab) pickingIaTab.classList.toggle('active', tab === 'picking-ia');
   if (hourlyTab) hourlyTab.classList.toggle('active', tab === 'hourly');
   if (explanationTab) explanationTab.classList.toggle('active', tab === 'base-explanation');
+  document.getElementById('actions-online')?.classList.toggle('active', tab === 'online');
+  document.getElementById('actions-picking-ia')?.classList.toggle('active', tab === 'picking-ia');
+  document.getElementById('actions-hourly')?.classList.toggle('active', tab === 'hourly');
+  document.getElementById('prod-online-date-wrap')?.classList.toggle('hidden', tab === 'hourly');
+  document.getElementById('hourly-date-from-wrap')?.classList.toggle('hidden', tab !== 'hourly');
+  document.getElementById('hourly-date-to-wrap')?.classList.toggle('hidden', tab !== 'hourly');
+  if (tab === 'hourly') onHourlyRangeChange(false);
+  updateProductividadToolbarStatus(tab);
+}
+
+function updateProductividadToolbarStatus(tab) {
+  const status = document.getElementById('online-tab-status');
+  if (!status) return;
+  if (tab === 'online') {
+    status.textContent = 'Consultá productividad online para el día y turno seleccionados.';
+  } else if (tab === 'picking-ia') {
+    status.textContent = 'Consultá el dataset base de Picking y luego ejecutá IA sobre ese resultado.';
+  } else if (tab === 'hourly') {
+    status.textContent = getProductividadHourlyMode() === 'historical'
+      ? 'Generá productividad por hora histórica para el rango, turno y filtros seleccionados.'
+      : 'Generá productividad por hora para el día y turno seleccionados.';
+  } else if (tab === 'base-explanation') {
+    status.textContent = 'El cálculo base se muestra como explicación; no requiere ejecutar una consulta desde este tab.';
+  }
 }
 
 // ── Plantel Operativo ─────────────────────────────────────────────
@@ -4822,14 +5066,9 @@ function updateClock() {
 
 // ── Inicio (sin cálculos automáticos) ────────────────────────────
 (async function bootstrap() {
-  await loadCumplimientoData();
-  selectedOla = detectOlaActual();
   initProviderBar();
-  initForm();
-  await loadPlantelTurnos();
-  resetPlantelForm();
-  await loadPlantelScenarios();
-  switchMainTab(getInitialMainTab());
+  initAnalisisProductividadDefaults();
+  switchMainTab('productividad');
   setInterval(updateClock, 1000);
   updateClock();
 })();
