@@ -460,6 +460,20 @@ CREATE TABLE IF NOT EXISTS productividad_online_cache_rows (
 );
 """
 
+CREATE_PRODUCTIVIDAD_HOURLY_IA_CACHE = """
+CREATE TABLE IF NOT EXISTS productividad_hourly_ia_cache (
+    cache_key               TEXT PRIMARY KEY,
+    provider                TEXT NOT NULL,
+    model_used              TEXT,
+    prompt_version          TEXT NOT NULL,
+    summary_hash            TEXT NOT NULL,
+    request_json            TEXT NOT NULL,
+    ia_json                 TEXT NOT NULL,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
 CREATE_CUMPLIMIENTO_ONLINE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_cumpl_online_turno_inicio ON cumplimiento_online_snapshots(turno_key, turno_inicio, bloque_hasta)",
 ]
@@ -501,6 +515,10 @@ CREATE_PRODUCTIVIDAD_ONLINE_CACHE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_prod_online_cache_rows_operario ON productividad_online_cache_rows(copecrea, fecha, turno_key)",
 ]
 
+CREATE_PRODUCTIVIDAD_HOURLY_IA_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_prod_hourly_ia_lookup ON productividad_hourly_ia_cache(provider, prompt_version, summary_hash, updated_at)",
+]
+
 
 async def init_db():
     """Crea las tablas si no existen."""
@@ -533,6 +551,7 @@ async def init_db():
         await db.execute(CREATE_PICKING_ANALYSIS_CACHE_ROWS)
         await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_RUNS)
         await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_ROWS)
+        await db.execute(CREATE_PRODUCTIVIDAD_HOURLY_IA_CACHE)
         async with db.execute("PRAGMA table_info(picking_analysis_cache_runs)") as cur:
             picking_cache_cols = {row[1] for row in await cur.fetchall()}
         if "resumen_hash" not in picking_cache_cols:
@@ -560,6 +579,8 @@ async def init_db():
         for statement in CREATE_PICKING_ANALYSIS_CACHE_INDEXES:
             await db.execute(statement)
         for statement in CREATE_PRODUCTIVIDAD_ONLINE_CACHE_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_PRODUCTIVIDAD_HOURLY_IA_INDEXES:
             await db.execute(statement)
 
         await db.commit()

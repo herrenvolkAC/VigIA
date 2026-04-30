@@ -257,6 +257,20 @@ SYSTEM_PICKING_ANALISIS_IA = (
 )
 
 PICKING_ANALISIS_IA_PROMPT_VERSION = "picking-ia-v1"
+HOURLY_TREND_IA_PROMPT_VERSION = "hourly-trend-v1"
+
+SYSTEM_HOURLY_TREND_IA = (
+    "Sos un supervisor operativo senior de un centro de distribucion.\n"
+    "Recibis un resumen ya calculado de productividad por hora de Picking.\n"
+    "Tu objetivo es explicar tendencia del turno en lenguaje de supervisor: corto, claro y accionable.\n"
+    "No inventes causas. Si algo no se puede saber, deci 'validar'.\n"
+    "Foco principal: horas pico, horas bajas, y si la baja parece masiva o concentrada en pocos operarios.\n"
+    "Responde SOLO con JSON valido, sin markdown ni texto extra:\n"
+    '{"titulo":"frase corta",'
+    '"bullets":["bullet 1","bullet 2","bullet 3","bullet 4"],'
+    '"validar":["validacion 1","validacion 2"]}\n'
+    "Maximo 4 bullets y maximo 2 validaciones. Cada texto debe ser breve."
+)
 
 
 class AnalisisIARequest(BaseModel):
@@ -268,6 +282,12 @@ class AnalisisIARequest(BaseModel):
 class PickingAnalisisIARequest(BaseModel):
     provider: str | None = None
     analisis_base: dict[str, Any]
+    force_refresh: bool = False
+
+
+class HourlyTrendIARequest(BaseModel):
+    provider: str | None = None
+    resumen: dict[str, Any]
     force_refresh: bool = False
 
 
@@ -1606,6 +1626,74 @@ async def _update_picking_cache_run_ia(
         await db.commit()
 
 
+async def _get_hourly_trend_ia_cache(cache_key: str) -> aiosqlite.Row | None:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT *
+            FROM productividad_hourly_ia_cache
+            WHERE cache_key = ?
+            LIMIT 1
+            """,
+            (cache_key,),
+        ) as cur:
+            return await cur.fetchone()
+
+
+async def _store_hourly_trend_ia_cache(
+    *,
+    cache_key: str,
+    provider: str,
+    model_used: str,
+    summary_hash: str,
+    request_payload: dict[str, Any],
+    ia_payload: dict[str, Any],
+) -> None:
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            """
+            INSERT INTO productividad_hourly_ia_cache (
+                cache_key, provider, model_used, prompt_version, summary_hash,
+                request_json, ia_json, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(cache_key) DO UPDATE SET
+                provider = excluded.provider,
+                model_used = excluded.model_used,
+                prompt_version = excluded.prompt_version,
+                summary_hash = excluded.summary_hash,
+                request_json = excluded.request_json,
+                ia_json = excluded.ia_json,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (
+                cache_key,
+                provider,
+                model_used,
+                HOURLY_TREND_IA_PROMPT_VERSION,
+                summary_hash,
+                _canonical_json(request_payload),
+                _canonical_json(ia_payload),
+            ),
+        )
+        await db.commit()
+
+
+def _build_hourly_trend_ia_context(resumen: dict[str, Any]) -> str:
+    return "\n".join(
+        [
+            "ANALISIS DE TENDENCIA PRODUCTIVIDAD POR HORA",
+            f"Contexto: {json.dumps(resumen.get('contexto', {}), ensure_ascii=False)}",
+            f"KPIs: {json.dumps(resumen.get('kpis', {}), ensure_ascii=False)}",
+            f"Horas: {json.dumps(resumen.get('horas', []), ensure_ascii=False)}",
+            f"Diagnostico local: {json.dumps(resumen.get('diagnostico_local', {}), ensure_ascii=False)}",
+            f"Alertas: {json.dumps(resumen.get('alertas', {}), ensure_ascii=False)}",
+            "Redacta en lenguaje de supervisor, sin tecnicismos innecesarios.",
+        ]
+    )
+
+
 async def _get_cached_productividad_online_rows(fecha: str, turno_key: str) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     async with aiosqlite.connect(DB_PATH) as db:
@@ -2778,6 +2866,60 @@ async def post_picking_analysis_ia(req: PickingAnalisisIARequest):
     except Exception as exc:
         logger.exception("Error generando lectura IA de picking")
         raise HTTPException(status_code=500, detail=f"No se pudo generar la lectura IA de picking: {exc}")
+
+
+@router.post("/picking/por-hora/tendencia-ia")
+async def post_picking_hourly_trend_ia(req: HourlyTrendIARequest):
+    provider = (req.provider or os.getenv("AI_PROVIDER", "claude")).lower()
+    try:
+        if not isinstance(req.resumen, dict) or not req.resumen:
+            raise HTTPException(status_code=400, detail="resumen es requerido.")
+        summary_hash = _hash_payload(req.resumen)
+        cache_key = hashlib.sha256(
+            f"{provider}|{HOURLY_TREND_IA_PROMPT_VERSION}|{summary_hash}".encode("utf-8")
+        ).hexdigest()
+        cached_row = await _get_hourly_trend_ia_cache(cache_key)
+        if cached_row and not req.force_refresh:
+            cached_payload = json.loads(cached_row["ia_json"])
+            cached_payload["cache"] = {
+                "ia_cache_hit": True,
+                "ia_generated_at": cached_row["updated_at"],
+            }
+            return cached_payload
+
+        context = _build_hourly_trend_ia_context(req.resumen)
+        raw_text, model_used = await _call_ai(
+            provider,
+            SYSTEM_HOURLY_TREND_IA,
+            [{"role": "user", "content": context}],
+        )
+        parsed = json.loads(_extract_json(raw_text))
+        payload = {
+            "provider": provider,
+            "model_used": model_used,
+            "analisis": parsed,
+            "cache": {
+                "ia_cache_hit": False,
+            },
+        }
+        await _store_hourly_trend_ia_cache(
+            cache_key=cache_key,
+            provider=provider,
+            model_used=model_used,
+            summary_hash=summary_hash,
+            request_payload=req.resumen,
+            ia_payload={
+                "provider": provider,
+                "model_used": model_used,
+                "analisis": parsed,
+            },
+        )
+        return payload
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error generando tendencia IA por hora")
+        raise HTTPException(status_code=500, detail=f"No se pudo generar la tendencia IA por hora: {exc}")
 
 
 @router.get("/online")

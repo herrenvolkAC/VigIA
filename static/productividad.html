@@ -5,6 +5,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VigIA · Productividad</title>
+<script>
+(function() {
+  try {
+    const saved = localStorage.getItem('vigia-produccion-style') || 'actual';
+    document.documentElement.setAttribute('data-prod-style', saved === 'flowops' ? 'flowops' : 'actual');
+  } catch (e) {
+    document.documentElement.setAttribute('data-prod-style', 'actual');
+  }
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 :root {
@@ -483,6 +493,10 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .hourly-hour-bar-fill{width:100%;max-width:42px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#00ff88,#00d4ff);min-height:4px;border:1px solid rgba(255,255,255,.12);}
 .hourly-hour-bar-value{font-size:10px;color:#f3f6ff;font-weight:800;line-height:1;}
 .hourly-hour-bar-label{font-size:9px;color:#a0a0c0;}
+.hourly-ia-panel{margin:14px 0;padding:16px 18px;border-radius:14px;background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(0,255,136,.08));border:1px solid rgba(0,212,255,.2);}
+.hourly-ia-title{font-size:12px;color:#f3f6ff;font-weight:900;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;}
+.hourly-ia-list{display:grid;gap:8px;color:#dce3f5;font-size:13px;line-height:1.45;}
+.hourly-ia-meta{margin-top:10px;font-size:11px;color:#9fb0cc;}
 @media(max-width:1100px){.hourly-dashboard-grid{grid-template-columns:1fr;}.hourly-status-donut-wrap{grid-template-columns:130px 1fr;}}
 @media(max-width:1200px){.picking-analysis-kpis{grid-template-columns:repeat(2,1fr);}}
 .analisis-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
@@ -765,6 +779,212 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .chip:hover{background:#1d8c69;border-color:#1d8c69;color:#fff;box-shadow:0 10px 22px rgba(29,140,105,.28);transform:translateY(-1px);}
 .chip:hover::before{color:#fff;opacity:1;}
 .chip:active{transform:scale(.97) translateY(0);box-shadow:0 1px 4px rgba(26,122,60,.15);}
+
+/* ── Selector de estilo ── */
+.style-switcher{display:flex;align-items:center;gap:6px;padding:4px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:rgba(30,30,50,.6);}
+.style-switcher-label{font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#7ddfff;margin:0 4px 0 6px;}
+.style-switch-btn{border:0;border-radius:999px;padding:7px 12px;background:transparent;color:#a0a0c0;font-family:'Inter',sans-serif;font-size:11px;font-weight:800;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.style-switch-btn:hover{color:#f3f6ff;background:rgba(255,255,255,.08);}
+.style-switch-btn.active{background:linear-gradient(135deg,#00d4ff,#00ff88);color:#1e1e2e;box-shadow:0 8px 20px rgba(0,212,255,.18);}
+
+/* ── Tema alternativo: Claro ── */
+html[data-prod-style="flowops"] {
+  --bg:#eef1f4;
+  --surface:#ffffff;
+  --surface-alt:#f7f7f8;
+  --border:#d9dde3;
+  --green:#168a59;
+  --green-light:#e9fff5;
+  --cyan:#e30613;
+  --cyan-light:#fff5f5;
+  --red:#e30613;
+  --red-light:#fff5f5;
+  --purple:#343a40;
+  --purple-light:#eceff3;
+  --amber:#d97706;
+  --amber-light:#fff2da;
+  --ok:#168a59;
+  --ok-light:#e9fff5;
+  --accent:#e30613;
+  --accent-soft:#f5d7da;
+  --accent2:#343a40;
+  --warn:#cc7a00;
+  --warn-soft:#fff2da;
+  --danger-soft:#fff5f5;
+  --muted:#64748b;
+  --text:#2f3640;
+  --text-hi:#111827;
+  --ai:#e30613;
+  --ai-soft:#fff5f5;
+  --shadow:0 18px 40px rgba(52,58,64,.08);
+}
+html[data-prod-style="flowops"] body{
+  background:
+    radial-gradient(circle at top, rgba(227,6,19,.07), transparent 38%),
+    linear-gradient(180deg,#f6f6f7 0%,#eef1f4 100%);
+  color:var(--text);
+  font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+}
+html[data-prod-style="flowops"] header{
+  border-color:var(--border);
+  background:rgba(255,255,255,.95);
+  box-shadow:0 8px 24px rgba(52,58,64,.06);
+  border-radius:0;
+  margin:-24px -24px 24px;
+  padding:0 30px;
+  height:76px;
+  backdrop-filter:blur(14px);
+}
+html[data-prod-style="flowops"] .brand-mark{
+  width:58px;
+  height:58px;
+  border-radius:18px;
+  padding:8px;
+  background:#fff;
+  border:2px solid #e30613;
+  box-shadow:0 0 0 5px rgba(227,6,19,.07), 0 12px 26px rgba(227,6,19,.14);
+}
+html[data-prod-style="flowops"] .brand-subtitle,
+html[data-prod-style="flowops"] .field-label,
+html[data-prod-style="flowops"] .online-field label,
+html[data-prod-style="flowops"] .panel-title,
+html[data-prod-style="flowops"] .form-title,
+html[data-prod-style="flowops"] .sugerencias-title{
+  color:#64748b;
+  letter-spacing:.16em;
+}
+html[data-prod-style="flowops"] .brand-process{color:#343a40;font-size:18px;letter-spacing:0;}
+html[data-prod-style="flowops"] .partner-logo{background:#fff;border:1px solid var(--border);height:30px;}
+html[data-prod-style="flowops"] .clock{color:#64748b;}
+html[data-prod-style="flowops"] .clock span{color:#343a40;}
+html[data-prod-style="flowops"] .style-switcher{border-color:var(--border);background:#f7f7f8;}
+html[data-prod-style="flowops"] .style-switcher-label{color:#64748b;}
+html[data-prod-style="flowops"] .style-switch-btn{color:#64748b;}
+html[data-prod-style="flowops"] .style-switch-btn:hover{background:#eceff3;color:#343a40;}
+html[data-prod-style="flowops"] .style-switch-btn.active{background:#e30613;color:#fff;box-shadow:0 10px 24px rgba(227,6,19,.18);}
+html[data-prod-style="flowops"] .badge,
+html[data-prod-style="flowops"] .main-tab-btn,
+html[data-prod-style="flowops"] .sub-tab-btn,
+html[data-prod-style="flowops"] .online-btn,
+html[data-prod-style="flowops"] .btn-calcular,
+html[data-prod-style="flowops"] .btn-reset,
+html[data-prod-style="flowops"] .prov-btn,
+html[data-prod-style="flowops"] .hourly-sort-btn,
+html[data-prod-style="flowops"] .chip{
+  border-radius:999px;
+  font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+  letter-spacing:0;
+  text-transform:none;
+}
+html[data-prod-style="flowops"] .main-tab-bar,
+html[data-prod-style="flowops"] .sub-tab-bar,
+html[data-prod-style="flowops"] .online-shell,
+html[data-prod-style="flowops"] .online-toolbar,
+html[data-prod-style="flowops"] .online-filters,
+html[data-prod-style="flowops"] .form-panel,
+html[data-prod-style="flowops"] .panel,
+html[data-prod-style="flowops"] .kpi,
+html[data-prod-style="flowops"] .picking-analysis-card,
+html[data-prod-style="flowops"] .online-meta-card,
+html[data-prod-style="flowops"] .analisis-card,
+html[data-prod-style="flowops"] .hourly-ia-box,
+html[data-prod-style="flowops"] .picking-analysis-shell,
+html[data-prod-style="flowops"] .dashboard-empty,
+html[data-prod-style="flowops"] .analisis-empty,
+html[data-prod-style="flowops"] .sugerencias-wrap{
+  background:#fff;
+  border-color:var(--border);
+  box-shadow:var(--shadow);
+  backdrop-filter:none;
+}
+html[data-prod-style="flowops"] .online-toolbar,
+html[data-prod-style="flowops"] .online-filters,
+html[data-prod-style="flowops"] .form-header{
+  background:#f7f7f8;
+}
+html[data-prod-style="flowops"] .main-tab-btn.active,
+html[data-prod-style="flowops"] .sub-tab-btn.active,
+html[data-prod-style="flowops"] .online-btn,
+html[data-prod-style="flowops"] .btn-calcular{
+  background:#e30613;
+  color:#fff;
+  border-color:#e30613;
+  box-shadow:0 12px 28px rgba(227,6,19,.18);
+}
+html[data-prod-style="flowops"] .main-tab-btn:not(.active),
+html[data-prod-style="flowops"] .sub-tab-btn:not(.active),
+html[data-prod-style="flowops"] .btn-reset,
+html[data-prod-style="flowops"] .prov-btn{
+  background:#fff;
+  color:#343a40;
+  border-color:var(--border);
+}
+html[data-prod-style="flowops"] .main-tab-btn:not(.active):hover,
+html[data-prod-style="flowops"] .sub-tab-btn:not(.active):hover,
+html[data-prod-style="flowops"] .btn-reset:hover,
+html[data-prod-style="flowops"] .prov-btn:hover{
+  background:#eceff3;
+  color:#343a40;
+  border-color:#cbd5e1;
+}
+html[data-prod-style="flowops"] .field-input,
+html[data-prod-style="flowops"] .online-field input,
+html[data-prod-style="flowops"] .online-field select,
+html[data-prod-style="flowops"] textarea,
+html[data-prod-style="flowops"] select,
+html[data-prod-style="flowops"] input{
+  background:#fff;
+  color:#111827;
+  border-color:#d9dde3;
+  box-shadow:none;
+}
+html[data-prod-style="flowops"] .field-input:focus,
+html[data-prod-style="flowops"] .online-field input:focus,
+html[data-prod-style="flowops"] .online-field select:focus{
+  border-color:#e30613;
+  box-shadow:0 0 0 4px rgba(227,6,19,.08);
+}
+html[data-prod-style="flowops"] table,
+html[data-prod-style="flowops"] .online-table,
+html[data-prod-style="flowops"] .online-detail-table{
+  color:#334155;
+}
+html[data-prod-style="flowops"] th{
+  color:#64748b;
+  background:#f7f7f8;
+}
+html[data-prod-style="flowops"] td{
+  border-color:#e5e7eb;
+}
+html[data-prod-style="flowops"] .kpi-value,
+html[data-prod-style="flowops"] .analisis-kpi-value,
+html[data-prod-style="flowops"] .online-detail-title{
+  color:#111827;
+  text-shadow:none;
+}
+html[data-prod-style="flowops"] .kpi{border-top-color:#e30613;}
+html[data-prod-style="flowops"] .kpi.green{border-top-color:#168a59;}
+html[data-prod-style="flowops"] .kpi.yellow{border-top-color:#d97706;}
+html[data-prod-style="flowops"] .kpi.orange{border-top-color:#e30613;}
+html[data-prod-style="flowops"] .chip{
+  background:#fff;
+  border-color:#d9dde3;
+  color:#343a40;
+  box-shadow:none;
+}
+html[data-prod-style="flowops"] .chip:hover{
+  background:#e30613;
+  border-color:#e30613;
+  color:#fff;
+  box-shadow:0 10px 24px rgba(227,6,19,.18);
+}
+html[data-prod-style="flowops"] .online-detail-modal,
+html[data-prod-style="flowops"] .ai-overlay-box{
+  background:#fff;
+  color:#2f3640;
+  border-color:var(--border);
+  box-shadow:var(--shadow);
+}
 @media(max-width:900px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}header{flex-wrap:wrap}.header-logos{margin-left:0}}
 @media(max-width:980px){header{grid-template-columns:1fr;justify-items:center;text-align:center}.brand{justify-content:center}.header-logos{align-items:center}.header-status{justify-content:center}.header-topline{flex-wrap:wrap;justify-content:center}.brand-title{padding:0 0 14px;min-height:auto}.brand-wordmark-vig,.brand-wordmark-ia{font-size:84px;letter-spacing:-4px}.brand-wordmark{padding-bottom:20px}.brand-process{font-size:34px}}
 @media(max-width:560px){body{padding:14px}header{padding:16px}.brand-mark{width:80px;height:46px;border-radius:10px;padding:4px 6px}.brand-copy{gap:3px}.brand-process{font-size:30px;padding-bottom:6px}.brand-wordmark-vig,.brand-wordmark-ia{font-size:64px;letter-spacing:-2.8px}.brand-wordmark-vig{padding-bottom:7px}.brand-wordmark{padding-bottom:16px}.partner-logo{height:36px}}
@@ -790,6 +1010,11 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
     <div class="header-topline">
       <img class="partner-logo" src="/resources/CotoLogo.svg" alt="Logo Coto">
       <div class="clock">CD COTO &nbsp;|&nbsp; <span id="clock-time">--:--:--</span></div>
+    </div>
+    <div class="style-switcher" aria-label="Selector de estilo de pantalla">
+      <span class="style-switcher-label">Estilo</span>
+      <button type="button" class="style-switch-btn" data-style-option="actual" onclick="setProductionStyle('actual')">Oscuro</button>
+      <button type="button" class="style-switch-btn" data-style-option="flowops" onclick="setProductionStyle('flowops')">Claro</button>
     </div>
     <div class="header-status">
       <div class="badge b-green">Ingreso manual primero</div>
@@ -846,6 +1071,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
       </div>
       <div class="online-action-group" id="actions-hourly">
         <button class="online-btn" id="btn-hourly-run" onclick="runProductividadHourly()">Generar por hora</button>
+        <button class="online-btn" id="btn-hourly-ia-run" onclick="runProductividadHourlyTrendIa()" disabled>Analizar tendencia IA</button>
       </div>
       <div class="online-status" id="online-tab-status">Elegí fecha y turno. Este mismo panel alimenta la consulta online y el análisis base de picking.</div>
     </div>
@@ -1008,6 +1234,8 @@ let productividadHourlyMode = 'day';
 let productividadHourlyView = 'dashboard';
 let productividadHourlyAlertSort = { key: 'actionScore', direction: 'desc' };
 let productividadHourlyHeFilter = 'ALL';
+let productividadHourlyTrendIaResult = null;
+let productividadHourlyTrendIaLoading = false;
 let plantelTurns = [];
 let plantelLastResult = null;
 let plantelLoading = false;
@@ -1227,6 +1455,9 @@ function resetPickingAnalysisUi(message) {
 function resetProductividadHourlyUi(message) {
   productividadHourlyResult = null;
   productividadHourlyKey = '';
+  productividadHourlyTrendIaResult = null;
+  const iaBtn = document.getElementById('btn-hourly-ia-run');
+  if (iaBtn) iaBtn.disabled = true;
   const results = document.getElementById('hourly-results');
   const status = document.getElementById('hourly-status');
   if (results) {
@@ -1281,6 +1512,7 @@ function getFilteredProductividadOnlineRows() {
 }
 
 function onProductividadFiltersChange() {
+  productividadHourlyTrendIaResult = null;
   renderProductividadOnlineGrid();
   renderPickingAnalysisBase();
   renderProductividadHourlyGrid();
@@ -2002,6 +2234,7 @@ function getProductividadHourlyHeFilter() {
 
 function onProductividadHourlyHeFilterChange() {
   productividadHourlyHeFilter = getProductividadHourlyHeFilter();
+  productividadHourlyTrendIaResult = null;
   if (productividadHourlyResult && !productividadHourlyLoading) {
     renderProductividadHourlyGrid();
   }
@@ -2123,6 +2356,74 @@ function buildHourlyFilteredSummary(rows, hours) {
     celdas_activas: celdasActivas,
     promedio_bultos_hora_activa: bultosTotal / Math.max(celdasActivas, 1),
     hora_pico: horaPico,
+  };
+}
+
+function buildHourlyTrendIaSummary(data, rows, hours, summary) {
+  const isHistorical = data.modo === 'historico';
+  const isClosedDay = !isHistorical && Boolean(data.summary?.turno_finalizado || data.cache?.turno_finalizado);
+  const metrics = getHourlyMetricRows(rows, hours, isHistorical, isClosedDay);
+  const hourRows = hours.map(hour => {
+    const bultos = rows.reduce((sum, row) => sum + Number(row.cells?.[hour.key]?.bultos || 0), 0);
+    const activos = rows.filter(row => {
+      const cell = row.cells?.[hour.key] || {};
+      return Number(cell.bultos || 0) > 0 || Number(cell.movimientos || 0) > 0;
+    }).length;
+    return {
+      hora: `${hour.label}:00`,
+      bultos: Math.round(bultos),
+      operarios_activos: activos,
+      promedio_por_activo: activos > 0 ? Math.round(bultos / activos) : 0,
+    };
+  });
+  const maxBultos = Math.max(...hourRows.map(item => item.bultos), 0);
+  const avgHour = hourRows.length ? hourRows.reduce((sum, item) => sum + item.bultos, 0) / hourRows.length : 0;
+  const horasPico = hourRows.filter(item => maxBultos > 0 && item.bultos >= maxBultos * .85).map(item => item.hora);
+  const horasBajas = hourRows.filter(item => item.bultos > 0 && item.bultos <= avgHour * .65).map(item => item.hora);
+  const peakIndex = hourRows.findIndex(item => item.bultos === maxBultos);
+  const postPeakMetrics = metrics.map(item => {
+    const before = item.values.filter(v => v.index <= peakIndex).reduce((sum, v) => sum + v.bultos, 0);
+    const afterValues = item.values.filter(v => v.index > peakIndex);
+    const after = afterValues.reduce((sum, v) => sum + v.bultos, 0);
+    const beforeAvg = before / Math.max(peakIndex + 1, 1);
+    const afterAvg = after / Math.max(afterValues.length, 1);
+    const dropPct = beforeAvg > 0 ? (beforeAvg - afterAvg) / beforeAvg * 100 : 0;
+    return { operario: item.row.operario || item.row.copecrea || '', dropPct, beforeAvg, afterAvg };
+  }).filter(item => item.dropPct >= 45 && item.beforeAvg >= 5);
+  const caidaMasiva = metrics.length ? postPeakMetrics.length / metrics.length >= .35 : false;
+
+  return {
+    contexto: {
+      modo: isHistorical ? 'historico' : 'dia',
+      fecha_desde: data.fecha_desde_rango || data.fecha || data.fecha_desde,
+      fecha_hasta: data.fecha_hasta_rango || data.fecha || data.fecha_hasta,
+      turno: data.turno || '',
+      filtros: {
+        almacen: data.filters?.almacen_actual || 'ALL',
+        posible_he: getProductividadHourlyHeFilter(),
+      },
+    },
+    kpis: {
+      operarios: summary.operarios,
+      bultos_total: Math.round(summary.bultos_total || 0),
+      movimientos: Math.round(summary.movimientos || 0),
+      hora_pico: summary.hora_pico?.label ? `${summary.hora_pico.label}:00` : '',
+      bultos_hora_pico: Math.round(summary.hora_pico?.bultos || 0),
+    },
+    horas: hourRows,
+    diagnostico_local: {
+      horas_pico: horasPico,
+      horas_bajas: horasBajas,
+      operarios_con_caida_post_pico: postPeakMetrics.length,
+      total_operarios_evaluados: metrics.length,
+      tipo_caida_estimado: caidaMasiva ? 'muchos operarios bajan produccion' : 'pocos operarios explican la baja',
+      top_caidas: postPeakMetrics.sort((a, b) => b.dropPct - a.dropPct).slice(0, 8),
+    },
+    alertas: {
+      posibles_he: metrics.filter(item => item.possibleHe?.isHe).length,
+      concentrados: metrics.filter(item => item.state.key === 'concentrated').length,
+      sin_actividad_final: metrics.filter(item => item.state.key === 'inactive').length,
+    },
   };
 }
 
@@ -2307,6 +2608,24 @@ function renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum) {
   `;
 }
 
+function renderProductividadHourlyTrendIa() {
+  if (!productividadHourlyTrendIaResult) return '';
+  const analisis = productividadHourlyTrendIaResult.analisis || {};
+  const bullets = Array.isArray(analisis.bullets) ? analisis.bullets.slice(0, 4) : [];
+  const validar = Array.isArray(analisis.validar) ? analisis.validar.slice(0, 2) : [];
+  const cacheText = productividadHourlyTrendIaResult.cache?.ia_cache_hit ? 'cache local' : 'IA nueva';
+  return `
+    <div class="hourly-ia-panel">
+      <div class="hourly-ia-title">${escapeHtml(analisis.titulo || 'Lectura IA de tendencia')}</div>
+      <div class="hourly-ia-list">
+        ${bullets.map(item => `<div>• ${escapeHtml(item)}</div>`).join('')}
+        ${validar.length ? `<div><strong>Validar:</strong> ${validar.map(escapeHtml).join(' · ')}</div>` : ''}
+      </div>
+      <div class="hourly-ia-meta">Fuente: ${cacheText} · ${escapeHtml(String(productividadHourlyTrendIaResult.provider || 'IA').toUpperCase())}</div>
+    </div>
+  `;
+}
+
 function renderProductividadHourlyGrid() {
   const container = document.getElementById('hourly-results');
   if (!container) return;
@@ -2342,6 +2661,7 @@ function renderProductividadHourlyGrid() {
       <div class="picking-analysis-kpi"><strong>${metricLabel}</strong><span>${fmtNum(summary.promedio_bultos_hora_activa)}</span></div>
       <div class="picking-analysis-kpi"><strong>Hora pico</strong><span>${summary.hora_pico?.label || '—'}</span><div class="online-meta-sub">${fmtNum(summary.hora_pico?.bultos)} bultos</div></div>
     </div>
+    ${renderProductividadHourlyTrendIa()}
     <div class="hourly-view-tabs">
       <button class="hourly-view-tab" id="hourly-view-btn-dashboard" onclick="switchHourlyView('dashboard')">Dashboard operativo</button>
       <button class="hourly-view-tab" id="hourly-view-btn-heatmap" onclick="switchHourlyView('heatmap')">Heatmap por hora</button>
@@ -2451,6 +2771,9 @@ async function runProductividadHourly() {
     if (!resp.ok) throw new Error(data.detail || 'No se pudo generar productividad por hora.');
     productividadHourlyResult = data;
     productividadHourlyKey = cacheKey;
+    productividadHourlyTrendIaResult = null;
+    const iaBtn = document.getElementById('btn-hourly-ia-run');
+    if (iaBtn) iaBtn.disabled = false;
     const sourceLabel = data.cache?.hourly_cache_hit ? 'cache local' : 'Oracle';
     const cacheRule = data.cache?.turno_finalizado
       ? 'Turno finalizado: queda conservado localmente.'
@@ -2470,6 +2793,49 @@ async function runProductividadHourly() {
     productividadHourlyLoading = false;
     btn.disabled = false;
     btn.textContent = mode === 'historical' ? 'Generar histórico' : 'Generar por hora';
+  }
+}
+
+async function runProductividadHourlyTrendIa() {
+  if (productividadHourlyTrendIaLoading || !productividadHourlyResult) return;
+  const btn = document.getElementById('btn-hourly-ia-run');
+  const status = document.getElementById('hourly-status');
+  if (!btn || !status) return;
+
+  const data = productividadHourlyResult;
+  const hours = Array.isArray(data.hours) ? data.hours : [];
+  const rows = getFilteredProductividadHourlyRows();
+  const summary = buildHourlyFilteredSummary(rows, hours);
+  if (!rows.length) {
+    status.textContent = 'No hay filas visibles para analizar con IA.';
+    return;
+  }
+
+  productividadHourlyTrendIaLoading = true;
+  btn.disabled = true;
+  btn.textContent = 'Analizando IA...';
+  status.textContent = 'Analizando tendencia de horas pico y horas bajas. Si ya existe cache, no consume tokens.';
+
+  try {
+    const resumen = buildHourlyTrendIaSummary(data, rows, hours, summary);
+    const resp = await fetch('/api/productividad/picking/por-hora/tendencia-ia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: activeProvider, resumen }),
+    });
+    const payload = await resp.json();
+    if (!resp.ok) throw new Error(payload.detail || 'No se pudo analizar la tendencia con IA.');
+    productividadHourlyTrendIaResult = payload;
+    renderProductividadHourlyGrid();
+    status.textContent = payload.cache?.ia_cache_hit
+      ? 'Lectura IA recuperada desde cache local.'
+      : 'Lectura IA de tendencia lista y guardada en cache local.';
+  } catch (err) {
+    status.textContent = err.message || 'No se pudo analizar la tendencia con IA.';
+  } finally {
+    productividadHourlyTrendIaLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Analizar tendencia IA';
   }
 }
 
@@ -5055,6 +5421,35 @@ function actualizarSugerencias(estado, historico) {
   renderizarSugerencias(generarSugerenciasPreguntas(estado, historico));
 }
 
+// ── Selector de estilo de produccion ─────────────────────────────
+function normalizeProductionStyle(style) {
+  return style === 'flowops' ? 'flowops' : 'actual';
+}
+
+function setProductionStyle(style) {
+  const normalized = normalizeProductionStyle(style);
+  document.documentElement.setAttribute('data-prod-style', normalized);
+  try {
+    localStorage.setItem('vigia-produccion-style', normalized);
+  } catch (e) {}
+
+  document.querySelectorAll('[data-style-option]').forEach(btn => {
+    const isActive = btn.getAttribute('data-style-option') === normalized;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+}
+
+function initProductionStyleSelector() {
+  let saved = 'actual';
+  try {
+    saved = localStorage.getItem('vigia-produccion-style') || document.documentElement.getAttribute('data-prod-style') || 'actual';
+  } catch (e) {
+    saved = document.documentElement.getAttribute('data-prod-style') || 'actual';
+  }
+  setProductionStyle(saved);
+}
+
 // ── Reloj ─────────────────────────────────────────────────────────
 function updateClock() {
   const n = new Date();
@@ -5066,6 +5461,7 @@ function updateClock() {
 
 // ── Inicio (sin cálculos automáticos) ────────────────────────────
 (async function bootstrap() {
+  initProductionStyleSelector();
   initProviderBar();
   initAnalisisProductividadDefaults();
   switchMainTab('productividad');
