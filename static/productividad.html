@@ -2124,7 +2124,7 @@ function renderPickingAnalysisBase() {
     ? `<span class="picking-analysis-sort-indicator">${pickingAnalysisSort.direction === 'asc' ? '↑' : '↓'}</span>`
     : '';
   const sortTh = (label, key, title = '') => `<button type="button" class="picking-analysis-sort" onclick="setPickingAnalysisSort('${key}')"${title ? ` title="${escapeHtml(title)}"` : ''}>${label}${sortIndicator(key)}</button>`;
-  const difficultyExplain = 'Ãndice dif. = dificultad total / líneas. La dificultad total suma base 1 por fila + cantidad*0.08 + peso*0.03 + bonos por cambio de ubicación, pasillo y zona.';
+  const difficultyExplain = 'Ãndice dif. = dificultad total / líneas. La dificultad total suma base 1 por fila + cantidad*0.08 + peso*0.03 + bonos por cambio de ubicación, pasillo y zona. Los saltos no son metros físicos.';
   const deltaRankValue = (row) => {
     const explicit = Number(row?.delta_ranking);
     if (!Number.isNaN(explicit)) return explicit;
@@ -2145,7 +2145,7 @@ function renderPickingAnalysisBase() {
       <div class="picking-analysis-kpi"><strong>Movimientos</strong><span>${Number(summary.movimientos || 0).toLocaleString('es-AR')}</span></div>
       <div class="picking-analysis-kpi"><strong>Cantidad/h promedio</strong><span>${Number(summary.cantidad_hora_promedio || 0).toLocaleString('es-AR')}</span></div>
       <div class="picking-analysis-kpi"><strong>Dificultad promedio</strong><span>${Number(summary.dificultad_promedio || 0).toLocaleString('es-AR')}</span></div>
-      <div class="picking-analysis-kpi"><strong>Distancia estimada</strong><span>${Number(summary.distancia_estimada_total_m || 0).toLocaleString('es-AR')}</span><div class="online-meta-sub" style="margin-top:8px;">Fuente: ${escapeHtml(sourceLabel)}</div></div>
+      <div class="picking-analysis-kpi"><strong>Saltos estimados</strong><span>${Number(summary.saltos_recorrido_total ?? summary.distancia_estimada_total_m ?? 0).toLocaleString('es-AR')}</span><div class="online-meta-sub" style="margin-top:8px;">Fuente: ${escapeHtml(sourceLabel)}</div></div>
     </div>
     ${pickingAnalysisIaResult?.analisis ? `
       <div class="picking-analysis-ia" style="margin:16px 0 0;">
@@ -2171,7 +2171,7 @@ function renderPickingAnalysisBase() {
               <th>${sortTh('Prod. ajustada', 'productividad_ajustada')}</th>
               <th>${sortTh('Ãndice dif.', 'indice_dificultad', difficultyExplain)}</th>
               <th>${sortTh('Suerte', 'suerte_asignacion_pct')}</th>
-              <th>${sortTh('Dist. est.', 'distancia_estimada_m')}</th>
+              <th>${sortTh('Saltos', 'saltos_recorrido', 'Saltos estimados entre ubicaciones. No representan metros físicos.')}</th>
               <th>${sortTh('Cantidad total', 'cantidad_total')}</th>
               <th>${sortTh('Peso total', 'peso_total')}</th>
             </tr>
@@ -2196,7 +2196,7 @@ function renderPickingAnalysisBase() {
                 <td title="${escapeHtml(`Productividad ajustada = productividad bruta * factor de dificultad. ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')} * ${Number(row.factor_dificultad || 0).toLocaleString('es-AR')} = ${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}. Ãndice dif.: ${Number(row.indice_dificultad || 0).toLocaleString('es-AR')} | Dificultad promedio turno: ${Number(summary.dificultad_promedio || 0).toLocaleString('es-AR')}`)}">${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}</td>
                 <td title="${escapeHtml(`${difficultyExplain} Operario: ${row.operario || row.copecrea || ''}. Dificultad total ${Number(row.dificultad_total || 0).toLocaleString('es-AR')} en ${Number(row.lineas || 0).toLocaleString('es-AR')} líneas.`)}">${Number(row.indice_dificultad || 0).toLocaleString('es-AR')}</td>
                 <td>${renderLuck(Number(row.suerte_asignacion_pct || 0))}<div style="margin-top:6px;font-size:11px;color:#aab4cb">${Number(row.suerte_asignacion_pct || 0).toLocaleString('es-AR')}%</div></td>
-                <td>${Number(row.distancia_estimada_m || 0).toLocaleString('es-AR')} m</td>
+                <td>${Number(row.saltos_recorrido ?? row.distancia_estimada_m ?? 0).toLocaleString('es-AR')}</td>
                 <td>${Number(row.cantidad_total || 0).toLocaleString('es-AR')}</td>
                 <td>${Number(row.peso_total || 0).toLocaleString('es-AR')}</td>
               </tr>

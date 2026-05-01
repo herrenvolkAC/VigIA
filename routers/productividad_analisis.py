@@ -1902,7 +1902,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
     zonas = set()
     total_cantidad = 0.0
     total_peso = 0.0
-    total_distancia = 0.0
+    total_saltos = 0.0
     total_dificultad = 0.0
     detail_normalized = []
 
@@ -1938,6 +1938,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
                 "prev_ubic": "",
                 "prev_zona": "",
                 "prev_pasillo": "",
+                "saltos_recorrido": 0.0,
                 "distancia_estimada_m": 0.0,
                 "cambios_ubicacion": 0,
                 "dificultad_total": 0.0,
@@ -1953,7 +1954,10 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         location_changed = bool(current["prev_ubic"] and ubic_origen and current["prev_ubic"] != ubic_origen)
         zone_changed = bool(current["prev_zona"] and zona_origen and current["prev_zona"] != zona_origen)
         passillo_changed = bool(current["prev_pasillo"] and cpasillo and current["prev_pasillo"] != cpasillo)
-        distance_m = 1.0 if location_changed else 0.0
+        # Es una unidad operacional de salto entre ubicaciones, no metros fisicos.
+        # El calculo queda deliberadamente conservador hasta configurar sentidos
+        # de circulacion por pasillo/zona.
+        saltos_recorrido = 1.0 if location_changed else 0.0
         difficulty = _build_picking_row_difficulty(
             cantidad=cantidad,
             peso=peso,
@@ -1965,7 +1969,8 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         current["lineas"] += 1
         current["cantidad_total"] += cantidad
         current["peso_total"] += peso
-        current["distancia_estimada_m"] += distance_m
+        current["saltos_recorrido"] += saltos_recorrido
+        current["distancia_estimada_m"] += saltos_recorrido
         current["dificultad_total"] += difficulty
         current["almacenes"][almacen] += 1
         current["zonas"][zona_origen] += 1
@@ -2000,7 +2005,8 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
             "nro_pallet": pallet,
             "cantidad": cantidad,
             "peso": peso,
-            "distancia_estimada_m": distance_m,
+            "saltos_recorrido": saltos_recorrido,
+            "distancia_estimada_m": saltos_recorrido,
             "dificultad_fila": difficulty,
         }
         current["detail_rows"].append(detail_item)
@@ -2010,7 +2016,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         zonas.add(zona_origen)
         total_cantidad += cantidad
         total_peso += peso
-        total_distancia += distance_m
+        total_saltos += saltos_recorrido
         total_dificultad += difficulty
 
     rows = []
@@ -2039,7 +2045,8 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
                 "hs_totales": hs_totales,
                 "cantidad_hora": cantidad_hora,
                 "kg_hora": kg_hora,
-                "distancia_estimada_m": round(current["distancia_estimada_m"], 2),
+                "saltos_recorrido": round(current["saltos_recorrido"], 2),
+                "distancia_estimada_m": round(current["saltos_recorrido"], 2),
                 "cambios_ubicacion": current["cambios_ubicacion"],
                 "dificultad_total": round(current["dificultad_total"], 2),
                 "indice_dificultad": dificultad_promedio,
@@ -2140,7 +2147,8 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         "metrica_principal": "cantidad/hora",
         "supuestos": [
             "Cada fila de Picking se toma como una accion registrada.",
-            "La distancia estimada suma 1 metro cuando el operario cambia de ubicacion entre dos picks consecutivos.",
+            "Los saltos de recorrido suman 1 salto cuando el operario cambia de ubicacion entre dos picks consecutivos; no son metros fisicos.",
+            "El sentido de circulacion por pasillo todavia no se aplica hasta contar con una regla/configuracion confiable de pasillos ascendentes y descendentes.",
             "La productividad ajustada toma la cantidad/hora y la normaliza por la dificultad promedio asignada.",
             "La suerte de asignacion es relativa al promedio del turno consultado.",
             "Los coeficientes 0.08 para cantidad y 0.03 para peso son ponderaciones heuristicas iniciales del V0; no representan todavia una calibracion estadistica cerrada del negocio.",
@@ -2168,7 +2176,8 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
             "movimientos": len(detail_normalized),
             "cantidad_total": round(total_cantidad, 2),
             "peso_total": round(total_peso, 2),
-            "distancia_estimada_total_m": round(total_distancia, 2),
+            "saltos_recorrido_total": round(total_saltos, 2),
+            "distancia_estimada_total_m": round(total_saltos, 2),
             "dificultad_promedio": round(avg_difficulty, 2),
             "cantidad_hora_promedio": round(avg_cantidad_hora, 2),
             "almacenes": len(almacenes),
