@@ -2027,6 +2027,7 @@ function renderPickingAnalysisBase() {
     : '';
   const sortTh = (label, key, title = '') => `<button type="button" class="picking-analysis-sort" onclick="setPickingAnalysisSort('${key}')"${title ? ` title="${escapeHtml(title)}"` : ''}>${label}${sortIndicator(key)}</button>`;
   const difficultyExplain = 'Ãndice dif. = dificultad total / líneas. La dificultad total suma base 1 por fila + cantidad*0.08 + peso*0.03 + bonos por cambio de ubicación, pasillo y zona. Los saltos no son metros físicos.';
+  const consolidationExplain = 'Bultos/línea mide consolidación. Más bultos por línea implica mejor suerte operativa: una parada resuelve más bultos.';
   const deltaRankValue = (row) => {
     const explicit = Number(row?.delta_ranking);
     if (!Number.isNaN(explicit)) return explicit;
@@ -2047,6 +2048,7 @@ function renderPickingAnalysisBase() {
       <div class="picking-analysis-kpi"><strong>Movimientos</strong><span>${Number(summary.movimientos || 0).toLocaleString('es-AR')}</span></div>
       <div class="picking-analysis-kpi"><strong>Cantidad/h promedio</strong><span>${Number(summary.cantidad_hora_promedio || 0).toLocaleString('es-AR')}</span></div>
       <div class="picking-analysis-kpi"><strong>Dificultad promedio</strong><span>${Number(summary.dificultad_promedio || 0).toLocaleString('es-AR')}</span></div>
+      <div class="picking-analysis-kpi"><strong>Bultos/línea prom.</strong><span>${Number(summary.bultos_por_linea_promedio || 0).toLocaleString('es-AR')}</span></div>
       <div class="picking-analysis-kpi"><strong>Saltos estimados</strong><span>${Number(summary.saltos_recorrido_total ?? summary.distancia_estimada_total_m ?? 0).toLocaleString('es-AR')}</span><div class="online-meta-sub" style="margin-top:8px;">Fuente: ${escapeHtml(sourceLabel)}</div></div>
     </div>
     ${pickingAnalysisIaResult?.analisis ? `
@@ -2072,7 +2074,8 @@ function renderPickingAnalysisBase() {
               <th>${sortTh('Prod. bruta', 'cantidad_hora', 'Productividad bruta medida como cantidad total / horas activas.')}</th>
               <th>${sortTh('Prod. ajustada', 'productividad_ajustada')}</th>
               <th>${sortTh('Ãndice dif.', 'indice_dificultad', difficultyExplain)}</th>
-              <th>${sortTh('Suerte', 'suerte_asignacion_pct')}</th>
+              <th>${sortTh('Bultos/línea', 'bultos_por_linea', consolidationExplain)}</th>
+              <th>${sortTh('Suerte', 'suerte_asignacion_pct', 'Suerte total = suerte por dificultad + suerte por consolidación de bultos por línea.')}</th>
               <th>${sortTh('Saltos', 'saltos_recorrido', 'Saltos estimados entre ubicaciones. No representan metros físicos.')}</th>
               <th>${sortTh('Cantidad total', 'cantidad_total')}</th>
               <th>${sortTh('Peso total', 'peso_total')}</th>
@@ -2095,16 +2098,17 @@ function renderPickingAnalysisBase() {
                 <td>${escapeHtml(row.almacen_principal || 'SIN MAPEAR')}</td>
                 <td>${escapeHtml(row.zona_principal || 'SIN DATO')}</td>
                 <td title="${escapeHtml(`Productividad bruta = cantidad total / horas activas. ${Number(row.cantidad_total || 0).toLocaleString('es-AR')} / ${Number(row.hs_totales || 0).toLocaleString('es-AR')} = ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')}`)}">${Number(row.cantidad_hora || 0).toLocaleString('es-AR')}</td>
-                <td title="${escapeHtml(`Productividad ajustada = productividad bruta * factor de dificultad. ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')} * ${Number(row.factor_dificultad || 0).toLocaleString('es-AR')} = ${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}. Ãndice dif.: ${Number(row.indice_dificultad || 0).toLocaleString('es-AR')} | Dificultad promedio turno: ${Number(summary.dificultad_promedio || 0).toLocaleString('es-AR')}`)}">${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}</td>
+                <td title="${escapeHtml(`Productividad ajustada = productividad bruta * factor dificultad * factor consolidación. ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')} * ${Number(row.factor_dificultad || 0).toLocaleString('es-AR')} * ${Number(row.factor_consolidacion || 0).toLocaleString('es-AR')} = ${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}. Ãndice dif.: ${Number(row.indice_dificultad || 0).toLocaleString('es-AR')} | Bultos/línea: ${Number(row.bultos_por_linea || 0).toLocaleString('es-AR')} | Promedio turno: ${Number(summary.bultos_por_linea_promedio || 0).toLocaleString('es-AR')}`)}">${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}</td>
                 <td title="${escapeHtml(`${difficultyExplain} Operario: ${row.operario || row.copecrea || ''}. Dificultad total ${Number(row.dificultad_total || 0).toLocaleString('es-AR')} en ${Number(row.lineas || 0).toLocaleString('es-AR')} líneas.`)}">${Number(row.indice_dificultad || 0).toLocaleString('es-AR')}</td>
-                <td>${renderLuck(Number(row.suerte_asignacion_pct || 0))}<div style="margin-top:6px;font-size:11px;color:#aab4cb">${Number(row.suerte_asignacion_pct || 0).toLocaleString('es-AR')}%</div></td>
+                <td title="${escapeHtml(consolidationExplain)}">${Number(row.bultos_por_linea || 0).toLocaleString('es-AR')}</td>
+                <td title="${escapeHtml(`Dificultad: ${Number(row.suerte_dificultad_pct || 0).toLocaleString('es-AR')}% | Consolidación: ${Number(row.suerte_consolidacion_pct || 0).toLocaleString('es-AR')}%`)}">${renderLuck(Number(row.suerte_asignacion_pct || 0))}<div style="margin-top:6px;font-size:11px;color:#aab4cb">${Number(row.suerte_asignacion_pct || 0).toLocaleString('es-AR')}%</div><div style="margin-top:4px;font-size:10px;color:#7f8aa3">Dif. ${Number(row.suerte_dificultad_pct || 0).toLocaleString('es-AR')}% · Cons. ${Number(row.suerte_consolidacion_pct || 0).toLocaleString('es-AR')}%</div></td>
                 <td>${Number(row.saltos_recorrido ?? row.distancia_estimada_m ?? 0).toLocaleString('es-AR')}</td>
                 <td>${Number(row.cantidad_total || 0).toLocaleString('es-AR')}</td>
                 <td>${Number(row.peso_total || 0).toLocaleString('es-AR')}</td>
               </tr>
                 `;
               })()}
-            `).join('') || `<tr><td colspan="13" class="analisis-empty">No hay filas para los filtros actuales.</td></tr>`}
+            `).join('') || `<tr><td colspan="14" class="analisis-empty">No hay filas para los filtros actuales.</td></tr>`}
           </tbody>
         </table>
       </div>

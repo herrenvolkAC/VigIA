@@ -434,6 +434,14 @@ CREATE TABLE IF NOT EXISTS productividad_online_cache_runs (
     fecha_desde             TEXT NOT NULL,
     fecha_hasta             TEXT NOT NULL,
     source_rows_count       INTEGER DEFAULT 0,
+    evaluacion_json         TEXT,
+    evaluacion_hash         TEXT,
+    ia_provider             TEXT,
+    ia_model                TEXT,
+    ia_prompt_version       TEXT,
+    ia_summary_hash         TEXT,
+    ia_json                 TEXT,
+    ia_generated_at         DATETIME,
     created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(fecha, turno_key)
@@ -568,6 +576,20 @@ async def init_db():
             await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN ia_json TEXT")
         if "ia_generated_at" not in picking_cache_cols:
             await db.execute("ALTER TABLE picking_analysis_cache_runs ADD COLUMN ia_generated_at DATETIME")
+        async with db.execute("PRAGMA table_info(productividad_online_cache_runs)") as cur:
+            online_cache_cols = {row[1] for row in await cur.fetchall()}
+        for column_name, column_type in {
+            "evaluacion_json": "TEXT",
+            "evaluacion_hash": "TEXT",
+            "ia_provider": "TEXT",
+            "ia_model": "TEXT",
+            "ia_prompt_version": "TEXT",
+            "ia_summary_hash": "TEXT",
+            "ia_json": "TEXT",
+            "ia_generated_at": "DATETIME",
+        }.items():
+            if column_name not in online_cache_cols:
+                await db.execute(f"ALTER TABLE productividad_online_cache_runs ADD COLUMN {column_name} {column_type}")
         for statement in CREATE_PRODUCTIVIDAD_ANALISIS_INDEXES:
             await db.execute(statement)
         for statement in CREATE_CUMPLIMIENTO_ONLINE_INDEXES:

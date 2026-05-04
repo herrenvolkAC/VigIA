@@ -420,6 +420,50 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .picking-analysis-kpi{background:rgba(64,64,96,.36);border:1px solid rgba(0,212,255,.16);border-radius:14px;padding:16px;}
 .picking-analysis-kpi strong{display:block;font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
 .picking-analysis-kpi span{display:block;font-size:24px;font-weight:800;color:#f3f6ff;}
+.turno-eval-kpis{grid-template-columns:repeat(3,minmax(0,1fr));}
+.turno-eval-kpi{position:relative;overflow:hidden;min-height:116px;border-radius:8px;background:linear-gradient(180deg,rgba(15,23,42,.72),rgba(20,26,44,.86));}
+.turno-eval-kpi::before{content:'';position:absolute;left:0;top:0;right:0;height:3px;background:#64748b;}
+.turno-eval-kpi.good{border-color:rgba(0,255,136,.34);box-shadow:inset 0 0 0 1px rgba(0,255,136,.08);}
+.turno-eval-kpi.good::before{background:#00ff88;}
+.turno-eval-kpi.bad{border-color:rgba(255,107,107,.38);box-shadow:inset 0 0 0 1px rgba(255,107,107,.08);}
+.turno-eval-kpi.bad::before{background:#ff6b6b;}
+.turno-eval-kpi.neutral{border-color:rgba(0,212,255,.18);}
+.turno-eval-kpi.neutral::before{background:#00d4ff;}
+.turno-eval-kpi strong{color:#91a8d0;}
+.turno-eval-kpi.good .kpi-delta{color:#00ff88;}
+.turno-eval-kpi.bad .kpi-delta{color:#ff8a8a;}
+.turno-eval-kpi.neutral .kpi-delta{color:#7ddfff;}
+.turno-kpi-head{position:relative;z-index:1;}
+.turno-card-spark{width:128px;height:32px;margin-top:12px;display:block;opacity:.96;}
+.turno-card-spark .spark-line{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+.turno-card-spark .spark-area{opacity:.12;}
+.turno-card-spark .spark-dot{stroke:#101626;stroke-width:2;}
+.turno-trend-card{position:relative;overflow:hidden;border-radius:10px;margin-bottom:16px;padding:16px 18px;background:linear-gradient(180deg,rgba(15,23,42,.74),rgba(20,26,44,.9));border:1px solid rgba(0,212,255,.16);}
+.turno-trend-card.good{border-color:rgba(0,255,136,.34);}
+.turno-trend-card.bad{border-color:rgba(255,107,107,.36);}
+.turno-trend-card.neutral{border-color:rgba(0,212,255,.22);}
+.turno-trend-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.turno-trend-title{font-size:11px;color:#91a8d0;text-transform:uppercase;letter-spacing:1px;font-weight:800;}
+.turno-trend-value{font-size:12px;font-weight:800;}
+.turno-trend-value.good{color:#00ff88;}
+.turno-trend-value.bad{color:#ff8a8a;}
+.turno-trend-value.neutral{color:#7ddfff;}
+.turno-trend-chart{width:100%;height:128px;display:block;}
+.turno-trend-grid{stroke:rgba(255,255,255,.08);stroke-width:1;}
+.turno-trend-line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+.turno-trend-area{opacity:.12;}
+.turno-trend-point{stroke:#101626;stroke-width:3;}
+.turno-trend-labels{display:flex;justify-content:space-between;color:#95a3bd;font-size:10px;margin-top:6px;}
+.turno-ai-list{display:grid;gap:7px;}
+.turno-ai-row{border-left:4px solid #64748b;border-radius:0;padding:10px 12px;background:rgba(15,23,42,.38);border-top:1px solid rgba(255,255,255,.06);border-right:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);font-size:12px;line-height:1.45;color:#dce3f5;}
+.turno-ai-row.good{border-left-color:#00ff88;background:rgba(0,255,136,.09);color:#a7f3c9;}
+.turno-ai-row.warn{border-left-color:#ffb000;background:rgba(255,176,0,.10);color:#ffd98a;}
+.turno-ai-row.bad{border-left-color:#ff4d4d;background:rgba(255,77,77,.10);color:#ffaaa5;}
+.turno-ai-row strong{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:inherit;}
+.turno-impact{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;}
+.turno-impact.positivo{background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.24);}
+.turno-impact.negativo{background:rgba(255,107,107,.1);color:#ff8a8a;border:1px solid rgba(255,107,107,.24);}
+.turno-impact.neutro{background:rgba(125,223,255,.08);color:#7ddfff;border:1px solid rgba(125,223,255,.18);}
 .picking-analysis-table{width:100%;border-collapse:collapse;min-width:1280px;}
 .picking-analysis-table th,.picking-analysis-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;color:#dce3f5;vertical-align:top;}
 .picking-analysis-table th{position:sticky;top:0;background:#273b58;color:#7ddfff;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:800;}
@@ -453,15 +497,86 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .hourly-confidence.alta{background:rgba(0,255,136,.16);color:#00ff88;border-color:rgba(0,255,136,.28);}
 .hourly-confidence.media{background:rgba(255,184,0,.16);color:#ffd36d;border-color:rgba(255,184,0,.28);}
 .hourly-confidence.baja{background:rgba(255,255,255,.08);color:#b8c2d8;border-color:rgba(255,255,255,.12);}
+.hourly-cell-clickable { cursor: pointer; }
+.hourly-cell-clickable:hover { outline: 2px solid rgba(0,212,255,.6); outline-offset: -2px; }
+.hcell-modal-overlay { position:fixed;inset:0;z-index:9999;background:rgba(10,10,20,.75);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px; }
+.hcell-modal { background:#1e1e2e;border:1px solid rgba(0,212,255,.2);border-radius:14px;width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.5); }
+.hcell-modal-header { display:flex;align-items:flex-start;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid rgba(0,212,255,.12);flex-shrink:0; }
+.hcell-modal-title { font-size:15px;font-weight:800;color:#f3f6ff; }
+.hcell-modal-sub { font-size:11px;color:#7ddfff;margin-top:3px; }
+.hcell-modal-close { background:transparent;border:1px solid rgba(255,255,255,.12);color:#a0a0c0;font-size:13px;width:26px;height:26px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s; }
+.hcell-modal-close:hover { border-color:#ff6b6b;color:#ff6b6b; }
+.hcell-modal-body { padding:18px 22px;overflow-y:auto;flex:1; }
+.hcell-section { margin-bottom:16px; }
+.hcell-section-title { font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px; }
+.hcell-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.hcell-stat { background:rgba(64,64,96,.38);border:1px solid rgba(0,212,255,.1);border-radius:8px;padding:10px 12px; }
+.hcell-stat-label { font-size:10px;color:#7ddfff;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px; }
+.hcell-stat-value { font-size:18px;font-weight:800;color:#f3f6ff; }
+.hcell-stat-sub { font-size:10px;color:#a0a0c0;margin-top:2px; }
+.hcell-compare-bar { display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;margin-bottom:6px; }
+.hcell-compare-label { font-size:11px;color:#c8d0e8; }
+.hcell-compare-val { font-size:11px;font-weight:700;color:#f3f6ff;text-align:right; }
+.hcell-rank-chip { display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(0,212,255,.12);color:#00d4ff;border:1px solid rgba(0,212,255,.25); }
+.turno-report-btn { background: linear-gradient(135deg,#7c3aed,#00d4ff); color: #fff; font-family: 'Inter',sans-serif; font-size: 12px; font-weight: 700; padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer; letter-spacing: .3px; transition: opacity .2s; margin-left: auto; display: block; }
+.turno-report-btn:hover { opacity: .88; }
+.turno-report-overlay { position:fixed;inset:0;z-index:9998;background:rgba(10,10,20,.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px; }
+.turno-report-modal { background:#1a1a2e;border:1px solid rgba(124,58,237,.3);border-radius:16px;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6); }
+.turno-report-modal-header { display:flex;align-items:center;justify-content:space-between;padding:18px 24px 14px;border-bottom:1px solid rgba(124,58,237,.2);flex-shrink:0; }
+.turno-report-modal-title { font-size:15px;font-weight:800;color:#f3f6ff; }
+.turno-report-modal-body { padding:0;overflow-y:auto;flex:1; }
+.turno-report-modal-actions { display:flex;gap:8px;padding:14px 24px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;flex-wrap:wrap; }
+.turno-report-modal-actions .online-btn { flex:1;min-width:120px;text-align:center; }
+.report-preview { padding:24px;font-family:'Inter',sans-serif;font-size:13px;color:#d8def0;line-height:1.7; }
+.report-header { background:linear-gradient(135deg,#1e1e2e,#2d1b4e);border-radius:10px;padding:20px;margin-bottom:20px;border:1px solid rgba(124,58,237,.2); }
+.report-header h1 { font-size:18px;font-weight:800;color:#f3f6ff;margin-bottom:4px; }
+.report-header .report-meta { font-size:11px;color:#a0a0c0; }
+.report-kpis { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px; }
+.report-kpi { background:rgba(64,64,96,.4);border:1px solid rgba(0,212,255,.12);border-radius:8px;padding:12px;text-align:center; }
+.report-kpi-label { font-size:9px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px; }
+.report-kpi-value { font-size:20px;font-weight:800;color:#f3f6ff; }
+.report-kpi-sub { font-size:10px;color:#a0a0c0;margin-top:2px; }
+.report-section-title { font-size:10px;color:#7ddfff;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin:16px 0 8px;border-bottom:1px solid rgba(0,212,255,.12);padding-bottom:4px; }
+.report-hallazgo { display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05); }
+.report-hallazgo-icon { font-size:16px;flex-shrink:0; }
+.report-hallazgo-text { font-size:12px;color:#c8d0e8;line-height:1.6; }
+.report-hora-bars { display:flex;align-items:flex-end;gap:4px;height:60px;margin:8px 0; }
+.report-hora-bar { flex:1;background:rgba(0,212,255,.25);border-radius:3px 3px 0 0;min-height:4px;position:relative; }
+.report-hora-bar.peak { background:rgba(0,255,136,.5); }
+.report-hora-bar-label { font-size:8px;color:#606080;text-align:center;margin-top:3px; }
+.report-table { width:100%;border-collapse:collapse;font-size:11px;margin-top:6px; }
+.report-table th { text-align:left;padding:6px 8px;font-size:9px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid rgba(0,212,255,.15); }
+.report-table td { padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.05);color:#c8d0e8; }
 .hourly-legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 0;color:#aab4cb;font-size:12px;}
 .hourly-legend-swatch{width:34px;height:12px;border-radius:999px;border:1px solid rgba(255,255,255,.14);}
+.hourly-color-guide{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:8px;margin:10px 0 12px;}
+.hourly-color-guide-item{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(15,23,42,.22);font-size:11px;color:#c8d5ee;line-height:1.35;}
+.hourly-color-guide-item strong{display:block;color:#f3f6ff;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px;}
+.hourly-color-guide-note{font-size:11px;color:#9fb0cc;line-height:1.45;margin:-2px 0 12px;}
+@media(max-width:900px){.hourly-color-guide{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.hourly-color-guide{grid-template-columns:1fr;}}
 .hourly-view-tabs{display:flex;gap:0;margin:16px 0;border-bottom:1px solid rgba(0,212,255,.18);}
 .hourly-view-tab{background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-1px;color:#a0a0c0;font-family:'Inter',sans-serif;font-size:12px;font-weight:800;padding:10px 16px;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;}
 .hourly-view-tab:hover{color:#00d4ff;}
 .hourly-view-tab.active{color:#00d4ff;border-bottom-color:#00d4ff;}
 .hourly-view-panel{display:none;}
 .hourly-view-panel.active{display:block;}
+.hourly-glosario { margin: 8px 0 12px; }
+.hourly-glosario summary { font-size: 11px; color: #7ddfff; cursor: pointer; user-select: none; letter-spacing: .5px; }
+.hourly-glosario summary:hover { color: #00d4ff; }
+.hourly-glosario-body { margin-top: 8px; padding: 12px; background: rgba(0,212,255,.06); border: 1px solid rgba(0,212,255,.14); border-radius: 8px; }
+.hourly-glosario-body p { font-size: 11px; color: #aeb5cc; margin-bottom: 6px; line-height: 1.5; }
+.hourly-glosario-body p:last-child { margin-bottom: 0; }
+.hourly-glosario-body strong { color: #d8def0; }
+.hourly-op-link { color: inherit; text-decoration: none; cursor: pointer; }
+.hourly-op-link:hover strong { color: #00d4ff; text-decoration: underline; }
+.hourly-metric-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.hourly-metric-label { font-size: 10px; color: #7ddfff; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+.hourly-metric-btn { background: rgba(30,30,50,.72); border: 1px solid rgba(255,255,255,.08); color: #dce3f5; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 8px; cursor: pointer; transition: all .2s; }
+.hourly-metric-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+.hourly-metric-btn.active { background: rgba(0,212,255,.12); border-color: #00d4ff; color: #00d4ff; }
 .hourly-dashboard-grid{display:grid;grid-template-columns:minmax(280px,.85fr) 1.15fr;gap:14px;margin-bottom:14px;}
+.hourly-dashboard-full { margin-bottom: 14px; }
 .hourly-dashboard-card{background:rgba(30,30,50,.68);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;}
 .hourly-dashboard-title{font-size:11px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:800;margin-bottom:12px;}
 .hourly-status-donut-wrap{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;}
@@ -483,6 +598,7 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .hourly-state-chip.watch{background:rgba(255,184,0,.13);color:#ffd36d;border-color:rgba(255,184,0,.25);}
 .hourly-state-chip.bad{background:rgba(255,107,107,.13);color:#ff9a9a;border-color:rgba(255,107,107,.25);}
 .hourly-state-chip.he{background:rgba(0,212,255,.12);color:#7ddfff;border-color:rgba(0,212,255,.28);}
+.hourly-state-chip.neutral-watch { background: rgba(160,160,192,.1); color: #a0a0c0; border: 1px solid rgba(160,160,192,.25); }
 .hourly-bars{display:grid;gap:9px;}
 .hourly-bar-row{display:grid;grid-template-columns:minmax(110px,180px) 1fr 52px;gap:10px;align-items:center;font-size:12px;color:#dce3f5;}
 .hourly-bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#f3f6ff;}
@@ -499,6 +615,14 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .hourly-ia-meta{margin-top:10px;font-size:11px;color:#9fb0cc;}
 @media(max-width:1100px){.hourly-dashboard-grid{grid-template-columns:1fr;}.hourly-status-donut-wrap{grid-template-columns:130px 1fr;}}
 @media(max-width:1200px){.picking-analysis-kpis{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:1200px){.turno-eval-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:680px){.turno-eval-kpis{grid-template-columns:1fr;}}
+.kpi-delta { font-size: 10px; margin-top: 4px; font-weight: 700; letter-spacing: .3px; }
+.kpi-delta.good { color: #00ff88; }
+.kpi-delta.bad { color: #ff6b6b; }
+.kpi-delta.neutral { color: #a0a0c0; }
+.hourly-hist-leyenda { font-size: 10px; color: #7ddfff; margin-top: 6px; letter-spacing: .3px; }
+.hourly-hist-leyenda.muted { color: #606080; font-style: italic; }
 .analisis-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
 .analisis-kpi{background:rgba(64,64,96,.4);border:1px solid rgba(0,212,255,.18);border-radius:14px;padding:18px;backdrop-filter:blur(10px);}
 .analisis-kpi-label{font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px;}
@@ -520,6 +644,27 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .analisis-zonas{font-size:12px;color:#aeb5cc;line-height:1.6;}
 .analisis-metric{text-align:right;font-weight:700;color:#00ff88;}
 .analisis-empty{padding:28px;border:1px dashed rgba(0,212,255,.24);border-radius:14px;color:#a0a0c0;text-align:center;background:rgba(64,64,96,.28);}
+/* ── Modal operario picking-ia ── */
+.picking-op-modal { background: #1e1e2e; border: 1px solid rgba(0,212,255,.2); border-radius: 16px; width: 100%; max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(0,0,0,.5); }
+.picking-op-modal-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid rgba(0,212,255,.12); flex-shrink: 0; }
+.picking-op-modal-name { font-size: 16px; font-weight: 800; color: #f3f6ff; }
+.picking-op-modal-sub { font-size: 11px; color: #7ddfff; margin-top: 3px; letter-spacing: .3px; }
+.picking-op-modal-close { background: transparent; border: 1px solid rgba(255,255,255,.12); color: #a0a0c0; font-size: 14px; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .2s; }
+.picking-op-modal-close:hover { border-color: #ff6b6b; color: #ff6b6b; }
+.picking-op-modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.op-modal-section { margin-bottom: 20px; padding-left: 12px; border-left: 3px solid rgba(0,212,255,.3); }
+.op-modal-section.good { border-left-color: #00ff88; }
+.op-modal-section.bad { border-left-color: #ff6b6b; }
+.op-modal-section.warn { border-left-color: #ffb800; }
+.op-modal-section-title { font-size: 10px; color: #7ddfff; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+.op-modal-section p { font-size: 12px; color: #c8d0e8; line-height: 1.7; margin-bottom: 4px; }
+.op-modal-section p strong { color: #f3f6ff; }
+.op-modal-chip { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
+.op-modal-chip.good { background: rgba(0,255,136,.12); color: #00ff88; border: 1px solid rgba(0,255,136,.25); }
+.op-modal-chip.bad { background: rgba(255,107,107,.12); color: #ff6b6b; border: 1px solid rgba(255,107,107,.25); }
+.op-modal-chip.neutral { background: rgba(160,160,192,.1); color: #a0a0c0; border: 1px solid rgba(160,160,192,.2); }
+.picking-op-link { color: #00d4ff; cursor: pointer; text-decoration: none; font-weight: 600; }
+.picking-op-link:hover { text-decoration: underline; color: #7ddfff; }
 .analisis-ia-hero{position:relative;background:linear-gradient(135deg,rgba(0,212,255,.16),rgba(124,58,237,.16) 48%,rgba(0,255,136,.14));border:1px solid rgba(0,212,255,.28);border-radius:16px;padding:24px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.28);}
 .analisis-ia-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at top right,rgba(0,212,255,.18),transparent 38%);pointer-events:none;}
 .analisis-ia-topline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
@@ -1038,8 +1183,8 @@ html[data-prod-style="flowops"] .ai-overlay-box{
 <!-- Tab 2: Productividad -->
 <div id="mtab-productividad" class="main-tab-content active">
   <div class="sub-tab-bar">
-    <button class="sub-tab-btn active" id="stab-btn-online" onclick="switchProdTab('online')">📡 Productividad On Line</button>
-    <button class="sub-tab-btn" id="stab-btn-picking-ia" onclick="switchProdTab('picking-ia')">🧠 Análisis Picking con IA</button>
+    <button class="sub-tab-btn active" id="stab-btn-online" onclick="switchProdTab('online')">Evaluación de turno</button>
+    <button class="sub-tab-btn" id="stab-btn-picking-ia" onclick="switchProdTab('picking-ia')">Suerte y dificultad</button>
     <button class="sub-tab-btn" id="stab-btn-hourly" onclick="switchProdTab('hourly')">Productividad por hora</button>
     <button class="sub-tab-btn" id="stab-btn-base-explanation" onclick="switchProdTab('base-explanation')">🧮 Cálculo base</button>
   </div>
@@ -1063,17 +1208,18 @@ html[data-prod-style="flowops"] .ai-overlay-box{
         <select id="prod-online-turno"></select>
       </div>
       <div class="online-action-group active" id="actions-online">
-        <button class="online-btn" id="btn-online-turno" onclick="runProductividadOnline()">Consultar online</button>
+        <button class="online-btn" id="btn-online-turno" onclick="runTurnoEvaluation()">Evaluar turno</button>
+        <button class="online-btn" id="btn-online-ia-run" onclick="runTurnoEvaluationIa()" disabled>Explicar con IA</button>
       </div>
       <div class="online-action-group" id="actions-picking-ia">
-        <button class="online-btn" id="btn-picking-base" onclick="runPickingAnalysisBase()">Consultar dataset base</button>
+        <button class="online-btn" id="btn-picking-base" onclick="runPickingAnalysisBase()">Consultar suerte</button>
         <button class="online-btn" id="btn-picking-ia-run" onclick="runPickingAnalysisIa()" disabled>Ejecutar IA</button>
       </div>
       <div class="online-action-group" id="actions-hourly">
         <button class="online-btn" id="btn-hourly-run" onclick="runProductividadHourly()">Generar por hora</button>
-        <button class="online-btn" id="btn-hourly-ia-run" onclick="runProductividadHourlyTrendIa()" disabled>Analizar tendencia IA</button>
+        <button class="online-btn" id="btn-hourly-ia-run" onclick="runProductividadHourlyTrendIa()" disabled>Generar acciones IA</button>
       </div>
-      <div class="online-status" id="online-tab-status">Elegí fecha y turno. Este mismo panel alimenta la consulta online y el análisis base de picking.</div>
+      <div class="online-status" id="online-tab-status">Elegí un turno finalizado para comparar el resultado contra histórico local.</div>
     </div>
     <div class="online-filters">
       <div class="online-field">
@@ -1086,7 +1232,7 @@ html[data-prod-style="flowops"] .ai-overlay-box{
           <option value="ALL">Todos</option>
         </select>
       </div>
-      <div class="online-field">
+      <div class="online-field" id="online-field-operacion">
         <label>Operación</label>
         <select id="prod-online-filter-operacion" onchange="onProductividadFiltersChange()">
           <option value="ALL">Todas</option>
@@ -1104,13 +1250,13 @@ html[data-prod-style="flowops"] .ai-overlay-box{
 
     <div id="stab-online" class="sub-tab-content active">
       <div id="online-tab-results">
-        <div class="analisis-empty">Todavía no se ejecutó la consulta de productividad on line.</div>
+        <div class="analisis-empty">Todavía no se evaluó el turno. Este análisis se consolida cuando el turno está vencido.</div>
       </div>
     </div>
 
     <div id="stab-picking-ia" class="sub-tab-content">
       <div class="picking-analysis-shell">
-        <div class="picking-analysis-status" id="picking-analysis-status">Usá los botones del panel superior para calcular productividad base, dificultad y lectura IA.</div>
+        <div class="picking-analysis-status" id="picking-analysis-status">Usá los botones del panel superior para calcular productividad base, dificultad y acciones IA.</div>
         <div id="picking-analysis-results">
           <div class="analisis-empty">Todavía no se ejecutó el análisis base de picking.</div>
         </div>
@@ -1221,6 +1367,13 @@ let analisisProductividadIaLoading = false;
 let analisisProductividadIaCache = null;
 let onlineTurnoState = null;
 let productividadOnlineResult = null;
+let productividadOnlineIaResult = null;
+let productividadOnlineIaLoading = false;
+let actividadCompletaLoading = false;
+let turnoEvaluationResult = null;
+let turnoEvaluationIaResult = null;
+let turnoEvaluationLoading = false;
+let turnoEvaluationIaLoading = false;
 let pickingAnalysisBaseResult = null;
 let pickingAnalysisBaseKey = '';
 let pickingAnalysisIaResult = null;
@@ -1234,6 +1387,8 @@ let productividadHourlyMode = 'day';
 let productividadHourlyView = 'dashboard';
 let productividadHourlyAlertSort = { key: 'actionScore', direction: 'desc' };
 let productividadHourlyHeFilter = 'ALL';
+let productividadHourlyMetric = 'bultos';
+let productividadHourlyHistoricoCache = {};
 let productividadHourlyTrendIaResult = null;
 let productividadHourlyTrendIaLoading = false;
 let plantelTurns = [];
@@ -1512,6 +1667,7 @@ function getFilteredProductividadOnlineRows() {
 }
 
 function onProductividadFiltersChange() {
+  productividadOnlineIaResult = null;
   productividadHourlyTrendIaResult = null;
   renderProductividadOnlineGrid();
   renderPickingAnalysisBase();
@@ -1863,6 +2019,205 @@ function closeProductividadOnlineOperarioDetail() {
   document.getElementById('online-detail-overlay')?.classList.remove('visible');
 }
 
+function formatTurnoDelta(delta) {
+  if (delta === null || delta === undefined || Number.isNaN(Number(delta))) return 'sin base';
+  const n = Number(delta);
+  const sign = n > 0 ? '+' : '';
+  return `${sign}${n.toLocaleString('es-AR')}%`;
+}
+
+function turnoDeltaClass(delta, positiveWhenHigher = true) {
+  if (delta === null || delta === undefined || Math.abs(Number(delta)) < 5) return 'neutral';
+  const positive = Number(delta) > 0;
+  return positive === positiveWhenHigher ? 'good' : 'bad';
+}
+
+function renderTurnoTrendChart(data, metricKey = 'bultos_hora_turno') {
+  const current = data.current || {};
+  const history = Array.isArray(data.historical_turns) ? [...data.historical_turns] : [];
+  const points = history
+    .sort((a, b) => String(a.fecha || '').localeCompare(String(b.fecha || '')))
+    .map(item => ({ label: String(item.fecha || '').slice(5), value: Number(item[metricKey] || 0), current: false }));
+  points.push({ label: 'Hoy', value: Number(current[metricKey] || 0), current: true });
+  if (points.length < 2) {
+    return '';
+  }
+  const comp = data.comparisons?.[metricKey] || {};
+  const cls = turnoDeltaClass(comp.delta_pct, true);
+  const color = cls === 'good' ? '#00ff88' : cls === 'bad' ? '#ff6b6b' : '#00d4ff';
+  const width = 640;
+  const height = 128;
+  const padX = 18;
+  const padY = 14;
+  const values = points.map(p => p.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = Math.max(max - min, 1);
+  const coords = points.map((p, i) => {
+    const x = padX + (points.length === 1 ? 0 : i * ((width - padX * 2) / (points.length - 1)));
+    const y = height - padY - ((p.value - min) / span) * (height - padY * 2);
+    return { ...p, x: Math.round(x), y: Math.round(y) };
+  });
+  const line = coords.map(p => `${p.x},${p.y}`).join(' ');
+  const area = `${padX},${height - padY} ${line} ${width - padX},${height - padY}`;
+  const firstLabel = points[0]?.label || '';
+  const lastHistLabel = points.length > 1 ? points[points.length - 2]?.label || '' : '';
+  return `
+    <div class="turno-trend-card ${cls}">
+      <div class="turno-trend-head">
+        <div>
+          <div class="turno-trend-title">Tendencia histórica · bultos/hora turno</div>
+          <div class="online-meta-sub">El último punto es el turno evaluado. Color según cierre vs histórico.</div>
+        </div>
+        <div class="turno-trend-value ${cls}">${formatTurnoDelta(comp.delta_pct)} vs hist.</div>
+      </div>
+      <svg class="turno-trend-chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+        <line class="turno-trend-grid" x1="${padX}" y1="${padY}" x2="${width - padX}" y2="${padY}"></line>
+        <line class="turno-trend-grid" x1="${padX}" y1="${height / 2}" x2="${width - padX}" y2="${height / 2}"></line>
+        <line class="turno-trend-grid" x1="${padX}" y1="${height - padY}" x2="${width - padX}" y2="${height - padY}"></line>
+        <polygon class="turno-trend-area" points="${area}" fill="${color}"></polygon>
+        <polyline class="turno-trend-line" points="${line}" stroke="${color}"></polyline>
+        ${coords.map((p, idx) => `<circle class="turno-trend-point" cx="${p.x}" cy="${p.y}" r="${p.current ? 5 : 3}" fill="${p.current ? color : 'rgba(216,222,240,.7)'}"><title>${escapeHtml(p.label)} · ${p.value.toLocaleString('es-AR')}</title></circle>`).join('')}
+      </svg>
+      <div class="turno-trend-labels"><span>${escapeHtml(firstLabel)}</span><span>${escapeHtml(lastHistLabel)}</span><strong>Hoy</strong></div>
+    </div>
+  `;
+}
+
+function renderTurnoCardSpark(data, metricKey, cls) {
+  const current = data.current || {};
+  const history = Array.isArray(data.historical_turns) ? [...data.historical_turns] : [];
+  const points = history
+    .sort((a, b) => String(a.fecha || '').localeCompare(String(b.fecha || '')))
+    .map(item => Number(item[metricKey] || 0))
+    .filter(value => Number.isFinite(value));
+  points.push(Number(current[metricKey] || 0));
+  if (points.length < 2) return '';
+  const width = 128;
+  const height = 32;
+  const pad = 3;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const span = Math.max(max - min, 1);
+  const color = cls === 'good' ? '#00ff88' : cls === 'bad' ? '#ffb000' : '#00d4ff';
+  const coords = points.map((value, i) => {
+    const x = pad + (points.length === 1 ? 0 : i * ((width - pad * 2) / (points.length - 1)));
+    const y = height - pad - ((value - min) / span) * (height - pad * 2);
+    return `${Math.round(x)},${Math.round(y)}`;
+  });
+  const line = coords.join(' ');
+  const [lastX, lastY] = coords[coords.length - 1].split(',').map(Number);
+  const area = `${pad},${height - pad} ${line} ${width - pad},${height - pad}`;
+  return `
+    <svg class="turno-card-spark" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+      <polygon class="spark-area" points="${area}" fill="${color}"></polygon>
+      <polyline class="spark-line" points="${line}" stroke="${color}"></polyline>
+      <circle class="spark-dot" cx="${lastX}" cy="${lastY}" r="3" fill="${color}"></circle>
+    </svg>
+  `;
+}
+
+function renderTurnoEvaluationIa(result) {
+  const analisis = result?.analisis || null;
+  if (!analisis) return '';
+  const cacheText = result?.cache?.ia_cache_hit ? 'cache local' : 'IA nueva';
+  const factores = Array.isArray(analisis.factores) ? analisis.factores : [];
+  const acciones = Array.isArray(analisis.acciones) ? analisis.acciones : [];
+  const estado = analisis.resultado?.estado || turnoEvaluationResult?.estado || 'similar';
+  const cls = estado === 'mejor' ? 'good' : estado === 'peor' ? 'bad' : 'warn';
+  const topFactores = factores.slice(0, 4);
+  const topAcciones = acciones.slice(0, 2);
+  const impactClass = impact => impact === 'positivo' ? 'good' : impact === 'negativo' ? 'bad' : 'warn';
+  const resumenTitle = estado === 'mejor' ? 'BUENO' : estado === 'peor' ? 'ALERTA' : 'ESTABLE';
+  return `
+    <div class="picking-analysis-card" style="margin-bottom:16px;">
+      <div class="picking-analysis-card-title">Explicación IA del cierre · ${escapeHtml(cacheText)}</div>
+      <div class="turno-ai-list">
+        <div class="turno-ai-row ${cls}"><strong>${resumenTitle}</strong> — ${escapeHtml(analisis.resultado?.resumen || analisis.resultado?.titular || '')}</div>
+        ${topFactores.map(f => `<div class="turno-ai-row ${impactClass(f.impacto)}"><strong>${escapeHtml(f.nombre || 'Factor')}</strong> — ${escapeHtml(f.dato || f.explicacion || '')}</div>`).join('')}
+        ${topAcciones.map(a => `<div class="turno-ai-row bad"><strong>ACCIÓN</strong> — ${escapeHtml(a.accion || '')}${a.porque ? ` <span class="online-meta-sub">${escapeHtml(a.porque || '')}</span>` : ''}</div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderTurnoEvaluation() {
+  const container = document.getElementById('online-tab-results');
+  if (!container) return;
+  const data = turnoEvaluationResult;
+  if (!data) {
+    container.innerHTML = '<div class="analisis-empty">Todavía no se evaluó el turno. Este análisis se consolida cuando el turno está vencido.</div>';
+    return;
+  }
+  const current = data.current || {};
+  const baseline = data.baseline || {};
+  const comparisons = data.comparisons || {};
+  const factors = Array.isArray(data.factors) ? data.factors : [];
+  const estadoLabel = {
+    mejor: 'Mejor que el histórico',
+    peor: 'Peor que el histórico',
+    similar: 'Similar al histórico',
+    sin_base: 'Sin base suficiente',
+  }[data.estado] || 'Evaluación calculada';
+  const kpi = (label, key, opts = {}) => {
+    const comp = comparisons[key] || {};
+    const cls = turnoDeltaClass(comp.delta_pct, opts.positiveWhenHigher !== false);
+    const actual = Number(comp.actual ?? current[key] ?? 0);
+    const historico = Number(comp.historico ?? baseline[key] ?? 0);
+    return `
+      <div class="picking-analysis-kpi turno-eval-kpi ${cls}">
+        <div class="turno-kpi-head">
+          <strong>${label}</strong>
+          <span>${actual.toLocaleString('es-AR')}</span>
+          <div class="kpi-delta ${cls}">${formatTurnoDelta(comp.delta_pct)} vs hist.</div>
+          <div class="online-meta-sub">Hist.: ${historico.toLocaleString('es-AR')}</div>
+        </div>
+        ${renderTurnoCardSpark(data, key, cls)}
+      </div>`;
+  };
+  container.innerHTML = `
+    <div class="online-meta-card" style="margin-bottom:16px;">
+      <strong>${escapeHtml(estadoLabel)}</strong> · ${escapeHtml(data.turno || '')} · ${escapeHtml(data.fecha || '')}<br>
+      Comparado contra ${Number(baseline.turnos || 0).toLocaleString('es-AR')} turno(s) cerrado(s) del mismo turno en cache local.
+    </div>
+    ${renderTurnoEvaluationIa(turnoEvaluationIaResult)}
+    ${renderTurnoTrendChart(data)}
+    <div class="picking-analysis-kpis turno-eval-kpis">
+      ${kpi('Bultos/hora turno', 'bultos_hora_turno')}
+      ${kpi('Movimientos/hora', 'movimientos_hora_turno')}
+      ${kpi('Bultos/línea', 'bultos_por_linea')}
+      ${kpi('Kg/movimiento', 'kg_por_movimiento', { positiveWhenHigher: false })}
+      ${kpi('Operarios', 'operarios')}
+      ${kpi('Bultos/operario', 'bultos_por_operario')}
+    </div>
+    <div class="picking-analysis-card" style="margin-top:16px;">
+      <div class="picking-analysis-card-title">Factores matemáticos</div>
+      <div class="online-grid-wrap">
+        <table class="picking-analysis-table">
+          <thead><tr><th>Factor</th><th>Impacto</th><th>Actual</th><th>Histórico</th><th>Diferencia</th></tr></thead>
+          <tbody>
+            ${factors.map(f => `
+              <tr>
+                <td>${escapeHtml(f.nombre || f.key || '—')}</td>
+                <td><span class="turno-impact ${escapeHtml(f.impacto || 'neutro')}">${escapeHtml(f.impacto || 'neutro')}</span></td>
+                <td>${Number(f.actual || 0).toLocaleString('es-AR')}</td>
+                <td>${Number(f.historico || 0).toLocaleString('es-AR')}</td>
+                <td>${formatTurnoDelta(f.delta_pct)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="picking-analysis-card" style="margin-top:16px;">
+      <div class="picking-analysis-card-title">Mix de operaciones del turno</div>
+      <div class="online-highlights-list">
+        ${(current.mix_operaciones || []).map(op => `<div class="online-highlight-item">${escapeHtml(op.operacion || '—')}: <strong>${Number(op.bultos || 0).toLocaleString('es-AR')}</strong> bultos (${Number(op.bultos_pct || 0).toLocaleString('es-AR')}%)</div>`).join('') || '<div class="analisis-empty">Sin operaciones para mostrar.</div>'}
+      </div>
+    </div>
+  `;
+}
+
 function renderProductividadOnlineGrid() {
   const container = document.getElementById('online-tab-results');
   if (!container) return;
@@ -1930,6 +2285,7 @@ function renderProductividadOnlineGrid() {
         ${highlights.map(item => `<div class="online-highlight-item">${item}</div>`).join('')}
       </div>
     </div>
+    ${productividadOnlineIaResult?.analisis ? renderOperationalAiActions(productividadOnlineIaResult, 'Acciones online IA') : ''}
     <div class="online-score-panel">
       <div class="online-score-title">Cómo se arma el score</div>
       <div class="online-score-text">
@@ -2025,7 +2381,230 @@ function renderProductividadOnlineGrid() {
   bindProductividadOnlineOperarioLinks();
 }
 
-async function runProductividadOnline() {
+function buildProductividadOnlineIaSummary() {
+  const data = productividadOnlineResult || {};
+  const rows = getFilteredProductividadOnlineRows();
+  const byOperacion = {};
+  rows.forEach(row => {
+    const op = String(row.operacion || 'SIN OPERACION').toUpperCase();
+    if (!byOperacion[op]) byOperacion[op] = { operacion: op, filas: 0, bajo: 0, inactivos: 0 };
+    byOperacion[op].filas++;
+    if (row.nivel_hoy === 'bad') byOperacion[op].bajo++;
+    if (Number(row.minutos_desde_ultimo_mov || 0) >= 10) byOperacion[op].inactivos++;
+  });
+  const casos = rows
+    .map(row => ({
+      almacen: row.almacen || 'SIN MAPEAR',
+      operacion: String(row.operacion || '').toUpperCase(),
+      copecrea: row.copecrea || '',
+      operario: row.operario || row.copecrea || '',
+      ranking_operacion: row.ranking_operacion || null,
+      score: Number(row.score || 0),
+      participacion_pct: Number(row.participacion_pct || 0),
+      productividad_hora_actual: Number(row.productividad_hora_actual || 0),
+      cantidad_total_actual: Number(row.cantidad_total_actual || 0),
+      promedio_operacion: Number(row.promedio_operacion || 0),
+      nivel_hoy: row.nivel_hoy || 'none',
+      ultimo_mov: row.ultimo_mov || '',
+      minutos_desde_ultimo_mov: row.minutos_desde_ultimo_mov,
+      minutos_activos: Number(row.minutos_activos || 0),
+      lineas: Number(row.lineas || 0),
+    }))
+    .sort((a, b) => {
+      const inactiveA = Number(a.minutos_desde_ultimo_mov || 0) >= 10 ? 1 : 0;
+      const inactiveB = Number(b.minutos_desde_ultimo_mov || 0) >= 10 ? 1 : 0;
+      if (inactiveA !== inactiveB) return inactiveB - inactiveA;
+      const badA = a.nivel_hoy === 'bad' ? 1 : 0;
+      const badB = b.nivel_hoy === 'bad' ? 1 : 0;
+      if (badA !== badB) return badB - badA;
+      return Number(b.cantidad_total_actual || 0) - Number(a.cantidad_total_actual || 0);
+    })
+    .slice(0, 12);
+
+  return {
+    contexto: {
+      fecha: data.fecha || '',
+      turno: data.turno || '',
+      filtros: {
+        almacen: document.getElementById('prod-online-filter-almacen')?.value || 'ALL',
+        operacion: document.getElementById('prod-online-filter-operacion')?.value || 'ALL',
+        operario: document.getElementById('prod-online-filter-operario')?.value || '',
+      },
+    },
+    summary: {
+      filas_visibles: rows.length,
+      operarios_visibles: new Set(rows.map(row => String(row.copecrea || '').trim()).filter(Boolean)).size,
+      source_name: data.cache?.source_name || data.summary?.source_name || '',
+    },
+    operaciones: Object.values(byOperacion).sort((a, b) => b.bajo + b.inactivos - (a.bajo + a.inactivos)).slice(0, 8),
+    casos,
+  };
+}
+
+async function runProductividadOnlineIa() {
+  if (productividadOnlineIaLoading || !productividadOnlineResult) return;
+  const btn = document.getElementById('btn-online-ia-run');
+  const status = document.getElementById('online-tab-status');
+  if (!btn || !status) return;
+  const rows = getFilteredProductividadOnlineRows();
+  if (!rows.length) {
+    status.textContent = 'No hay filas visibles para generar acciones IA.';
+    return;
+  }
+
+  productividadOnlineIaLoading = true;
+  productividadOnlineIaResult = null;
+  btn.disabled = true;
+  btn.textContent = 'Generando acciones...';
+  status.textContent = 'Generando acciones operativas sobre la consulta online visible.';
+  renderProductividadOnlineGrid();
+
+  try {
+    const resumen = buildProductividadOnlineIaSummary();
+    const resp = await fetch('/api/productividad/online/acciones-ia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: activeProvider, resumen }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudieron generar acciones IA online.');
+    productividadOnlineIaResult = data;
+    renderProductividadOnlineGrid();
+    status.textContent = `Acciones IA online listas con ${String(data.provider || '').toUpperCase() || 'IA'}.`;
+  } catch (err) {
+    status.textContent = err.message || 'No se pudieron generar acciones IA online.';
+  } finally {
+    productividadOnlineIaLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Generar acciones IA';
+  }
+}
+
+async function runTurnoEvaluation() {
+  if (turnoEvaluationLoading) return;
+  const btn = document.getElementById('btn-online-turno');
+  const iaBtn = document.getElementById('btn-online-ia-run');
+  const status = document.getElementById('online-tab-status');
+  const range = buildProductividadOnlineRange();
+  if (!btn || !status) return;
+  if (!range) {
+    status.textContent = 'Completá fecha y turno antes de evaluar.';
+    return;
+  }
+
+  turnoEvaluationLoading = true;
+  turnoEvaluationResult = null;
+  turnoEvaluationIaResult = null;
+  if (iaBtn) iaBtn.disabled = true;
+  btn.disabled = true;
+  btn.textContent = 'Evaluando...';
+  status.textContent = `Evaluando ${range.turno_label} contra histórico local. Si el turno no venció, se informará en pantalla.`;
+  const container = document.getElementById('online-tab-results');
+  if (container) {
+    container.innerHTML = '<div class="analisis-empty">Calculando cierre de turno, comparando contra histórico cacheado y preparando explicación...</div>';
+  }
+
+  try {
+    const params = new URLSearchParams({ fecha: range.fecha, turno: range.turno });
+    const resp = await fetch(`/api/productividad/turno/evaluacion?${params.toString()}`);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo evaluar el turno.');
+    turnoEvaluationResult = data;
+    renderTurnoEvaluation();
+    if (iaBtn) iaBtn.disabled = false;
+    status.textContent = `Evaluación lista para ${data.turno || range.turno_label}. Histórico comparable: ${Number(data.baseline?.turnos || 0).toLocaleString('es-AR')} turno(s).`;
+  } catch (err) {
+    if (container) {
+      container.innerHTML = `<div class="analisis-empty" style="color:var(--red);border-color:#fecaca;">${escapeHtml(err.message || 'No se pudo evaluar el turno.')}</div>`;
+    }
+    status.textContent = err.message || 'No se pudo evaluar el turno.';
+  } finally {
+    turnoEvaluationLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Evaluar turno';
+  }
+}
+
+async function runTurnoEvaluationIa() {
+  if (turnoEvaluationIaLoading || !turnoEvaluationResult) return;
+  const btn = document.getElementById('btn-online-ia-run');
+  const status = document.getElementById('online-tab-status');
+  if (!btn || !status) return;
+
+  turnoEvaluationIaLoading = true;
+  btn.disabled = true;
+  btn.textContent = 'Explicando...';
+  status.textContent = 'Generando explicación IA del cierre. Si ya existe cache compatible, no vuelve a consumir tokens.';
+  try {
+    const resp = await fetch('/api/productividad/turno/evaluacion-ia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: activeProvider, evaluacion: turnoEvaluationResult }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo generar la explicación IA.');
+    turnoEvaluationIaResult = data;
+    renderTurnoEvaluation();
+    status.textContent = data.cache?.ia_cache_hit
+      ? 'Explicación IA recuperada desde cache local.'
+      : 'Explicación IA lista y guardada en cache local.';
+  } catch (err) {
+    status.textContent = err.message || 'No se pudo generar la explicación IA.';
+  } finally {
+    turnoEvaluationIaLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Explicar con IA';
+  }
+}
+
+function syncHourlyRangeWithOnlineDate() {
+  const fecha = document.getElementById('prod-online-date')?.value || '';
+  if (!fecha) return;
+  const fromInput = document.getElementById('hourly-date-from');
+  const toInput = document.getElementById('hourly-date-to');
+  if (fromInput) fromInput.value = fecha;
+  if (toInput) toInput.value = fecha;
+  onHourlyRangeChange(false);
+}
+
+async function runActividadCompleta() {
+  if (actividadCompletaLoading) return;
+  const btn = document.getElementById('btn-online-turno');
+  const status = document.getElementById('online-tab-status');
+  const range = buildProductividadOnlineRange();
+  if (!btn || !status) return;
+  if (!range) {
+    status.textContent = 'Completá fecha y turno antes de consultar la actividad.';
+    return;
+  }
+
+  actividadCompletaLoading = true;
+  btn.disabled = true;
+  btn.textContent = 'Consultando actividad...';
+  status.textContent = `Consultando actividad completa para ${range.turno_label}: online, dataset base y productividad por hora.`;
+  syncHourlyRangeWithOnlineDate();
+
+  try {
+    await runProductividadOnline({ suppressPrimaryButton: true });
+    await runPickingAnalysisBase();
+    await runProductividadHourly();
+    const modulosListos = [
+      productividadOnlineResult ? 'online' : null,
+      pickingAnalysisBaseResult ? 'dataset base' : null,
+      productividadHourlyResult ? 'por hora' : null,
+    ].filter(Boolean);
+    status.textContent = modulosListos.length === 3
+      ? `Actividad completa lista para ${range.turno_label}: online, dataset base y productividad por hora.`
+      : `Consulta finalizada para ${range.turno_label}. Listo: ${modulosListos.join(', ') || 'sin módulos completos'}. Revisá cada pestaña para ver el detalle.`;
+  } finally {
+    actividadCompletaLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Evaluar turno';
+  }
+}
+
+async function runProductividadOnline(options = {}) {
+  const suppressPrimaryButton = Boolean(options.suppressPrimaryButton);
   const btn = document.getElementById('btn-online-turno');
   const status = document.getElementById('online-tab-status');
   const range = buildProductividadOnlineRange();
@@ -2035,10 +2614,15 @@ async function runProductividadOnline() {
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = 'Consultando...';
+  if (!suppressPrimaryButton) {
+    btn.disabled = true;
+    btn.textContent = 'Consultando...';
+  }
   status.textContent = `Consultando ${range.turno_label} desde ${range.fecha_desde} hasta ${range.fecha_hasta}. La grilla anterior se ocultÃƒ³ para evitar confusiones...`;
   productividadOnlineResult = null;
+  productividadOnlineIaResult = null;
+  const iaBtn = document.getElementById('btn-online-ia-run');
+  if (iaBtn) iaBtn.disabled = true;
   const container = document.getElementById('online-tab-results');
   if (container) {
     container.innerHTML = '<div class="analisis-empty">Buscando datos locales o consultando Oracle segÃƒºn estado del turno...</div>';
@@ -2064,6 +2648,7 @@ async function runProductividadOnline() {
     populateProductividadOnlineFilter('prod-online-filter-almacen', data.filters?.almacenes || [], 'Todos');
     populateProductividadOnlineFilter('prod-online-filter-operacion', data.filters?.operaciones || [], 'Todas');
     renderProductividadOnlineGrid();
+    if (iaBtn) iaBtn.disabled = false;
     const sourceLabel = data.cache?.online_cache_hit ? 'cache local' : 'Oracle';
     status.textContent = `Consulta lista para ${data.turno || range.turno_label} desde ${sourceLabel}. ${data.summary?.filas || 0} filas encontradas.`;
   } catch (err) {
@@ -2076,8 +2661,10 @@ async function runProductividadOnline() {
       : (err.message || 'No se pudo consultar productividad on line.');
   } finally {
     if (timeoutId) clearTimeout(timeoutId);
-    btn.disabled = false;
-    btn.textContent = 'Consultar online';
+    if (!suppressPrimaryButton) {
+      btn.disabled = false;
+      btn.textContent = 'Evaluar turno';
+    }
   }
 }
 
@@ -2105,6 +2692,237 @@ function renderPickingBaseExplanation() {
   `;
 }
 
+function buildOperarioExplanationHtml(row, summary) {
+  const fmt  = x => (x === null || x === undefined || x === '') ? '—' : Number(x || 0).toLocaleString('es-AR');
+  const fmtF = n => Number(n || 0).toFixed(1);
+  const nombre = row.operario || row.copecrea || '—';
+  const sections = [];
+
+  // ── Bloque 1: Lo que hizo este turno ──
+  let s1 = `<strong>${escapeHtml(nombre)}</strong> preparó <strong>${fmt(row.cantidad_total)} bultos</strong> (${fmt(row.lineas)} movimientos) en <strong>${fmtF(row.hs_totales)} horas</strong>, a un ritmo de <strong>${fmtF(row.cantidad_hora)} bultos por hora</strong>.`;
+  let s1Extra = '';
+  if (Number(row.lineas || 0) > 0 && Number(row.peso_total || 0) > 0) {
+    s1Extra = `<p>En total movió <strong>${fmt(row.peso_total)} kg</strong> (${fmtF(row.kg_hora)} kg/h).</p>`;
+  }
+  sections.push(`<div class="op-modal-section">
+    <div class="op-modal-section-title">Lo que hizo este turno</div>
+    <p>${s1}</p>
+    ${s1Extra}
+  </div>`);
+
+  // ── Bloque 2: ¿Le tocó una asignación exigente? ──
+  const avgCantLinea      = row.lineas > 0 ? (row.cantidad_total || 0) / row.lineas : 0;
+  const avgPesoLinea      = row.lineas > 0 ? (row.peso_total     || 0) / row.lineas : 0;
+  const locationChangeRate = row.lineas > 0 ? ((row.cambios_ubicacion || 0) / row.lineas) : 0;
+
+  const turnoLineas    = summary.lineas_total || (summary.operarios * (row.lineas || 1));
+  const turnoCantLinea = (turnoLineas > 0 && summary.cantidad_total)
+    ? summary.cantidad_total / turnoLineas : avgCantLinea;
+  const turnoPesoLinea = (turnoLineas > 0 && summary.peso_total)
+    ? summary.peso_total / turnoLineas : avgPesoLinea;
+  const turnoCambioUbicacion = Number(summary.movimientos || 0) > 0
+    ? Number(summary.saltos_recorrido_total ?? summary.distancia_estimada_total_m ?? 0) / Number(summary.movimientos || 1)
+    : locationChangeRate;
+
+  const tieneMasPeso          = avgPesoLinea > turnoPesoLinea * 1.15;
+  const tieneMenosPeso        = avgPesoLinea < turnoPesoLinea * 0.85 && avgPesoLinea > 0;
+  const tieneMejorConsolidacion = avgCantLinea > turnoCantLinea * 1.15;
+  const tienePeorConsolidacion  = avgCantLinea < turnoCantLinea * 0.85 && avgCantLinea > 0;
+  const tieneMuchosMovimientos = locationChangeRate > Math.max(turnoCambioUbicacion * 1.10, 0.98) && row.lineas > 10;
+  const tienePocosMovimientos  = locationChangeRate < turnoCambioUbicacion * 0.85 && row.lineas > 10;
+  const suerte                 = Number(row.suerte_asignacion_pct || 0);
+  const asignacionDificil      = suerte <= -8;
+  const asignacionFacil        = suerte >= 8;
+
+  let s2Header = '';
+  if (asignacionDificil)  s2Header = '<strong>Sí, fue un turno más exigente que el promedio.</strong>';
+  else if (asignacionFacil) s2Header = '<strong>La asignación fue más cómoda que la del resto del turno.</strong>';
+  else                    s2Header = '<strong>La asignación fue similar a la del resto del turno.</strong>';
+
+  const causas = [];
+  if (tieneMasPeso) {
+    causas.push(`Trabajó con productos más pesados: en promedio ${fmtF(avgPesoLinea)} kg por movimiento, contra ${fmtF(turnoPesoLinea)} kg del turno en general.`);
+  }
+  if (tieneMenosPeso && asignacionFacil) {
+    causas.push(`Los productos que le tocaron eran más livianos que la media del turno (${fmtF(avgPesoLinea)} kg por movimiento vs ${fmtF(turnoPesoLinea)} kg promedio).`);
+  }
+  if (tienePeorConsolidacion) {
+    causas.push(`Tuvo menor consolidación: ${fmtF(avgCantLinea)} bultos por línea vs ${fmtF(turnoCantLinea)} del turno. Eso implica más paradas para preparar el mismo volumen.`);
+  }
+  if (tieneMejorConsolidacion) {
+    causas.push(`Tuvo mejor consolidación: ${fmtF(avgCantLinea)} bultos por línea vs ${fmtF(turnoCantLinea)} del turno. Eso juega a favor porque una parada resolvió más bultos.`);
+  }
+  if (tieneMuchosMovimientos) {
+    causas.push(`Cambió de ubicación algo más que el promedio del turno: ${Math.round(locationChangeRate * 100)}% de sus movimientos vs ${Math.round(turnoCambioUbicacion * 100)}% general.`);
+  }
+  if (tienePocosMovimientos && asignacionFacil) {
+    causas.push(`Cambió de ubicación menos que el promedio del turno (${Math.round(locationChangeRate * 100)}% vs ${Math.round(turnoCambioUbicacion * 100)}%), lo que ayudó a la asignación.`);
+  }
+  const pallets = Number(row.pallets_distintos || 0);
+  if (pallets > 5 && asignacionDificil) {
+    causas.push(`Trabajó sobre ${pallets} pallets distintos, lo que implica más desplazamiento.`);
+  }
+
+  let s2Causas = '';
+  if (causas.length === 0) {
+    s2Causas = `<p>No se detecta un factor dominante. La dificultad estuvo distribuida entre distintos aspectos del trabajo (volumen, peso y desplazamiento).</p>`;
+  } else {
+    s2Causas = `<ul style="margin:6px 0 0 16px;padding:0;">${causas.map(c => `<li style="margin-bottom:4px;">${c}</li>`).join('')}</ul>`;
+  }
+
+  const sec2Class = `op-modal-section${asignacionDificil ? ' warn' : asignacionFacil ? ' good' : ''}`;
+  sections.push(`<div class="${sec2Class}">
+    <div class="op-modal-section-title">¿Le tocó una asignación exigente?</div>
+    <p>${s2Header}</p>
+    ${s2Causas}
+  </div>`);
+
+  // ── Bloque 3: ¿Dónde quedó en el ranking? ──
+  const rankAj    = Number(row.ranking_ajustado || 0);
+  const rankBruto = Number(row.ranking_bruto    || 0);
+  const delta     = Number(row.delta_ranking    || 0);
+  const totalOps  = Number(summary.operarios    || 0);
+  const gapAj     = Number(row.gap_vs_promedio_ajustado_pct || 0);
+
+  let s3Lines = [`Quedó en el puesto <strong>#${fmt(rankAj)}</strong> de <strong>${fmt(totalOps)}</strong> operarios del turno.`];
+  if (delta > 0) {
+    s3Lines.push(`Como tuvo una asignación más difícil, al ajustar por dificultad mejoró <strong>${fmt(delta)} lugar${delta !== 1 ? 'es' : ''}</strong> respecto al ranking de velocidad pura (donde estaba en el #${fmt(rankBruto)}).`);
+  } else if (delta < 0) {
+    s3Lines.push(`Como tuvo una asignación más cómoda, al ajustar por dificultad cedió <strong>${fmt(Math.abs(delta))} lugar${Math.abs(delta) !== 1 ? 'es' : ''}</strong> respecto al ranking de velocidad pura (donde estaba en el #${fmt(rankBruto)}).`);
+  } else {
+    s3Lines.push('El ajuste por dificultad no cambió su posición.');
+  }
+
+  let s3Gap = '';
+  let chipGap = '';
+  if (gapAj > 5) {
+    s3Gap  = `Produjo <strong>${fmtF(gapAj)}%</strong> más que el promedio del turno.`;
+    chipGap = `<span class="op-modal-chip good">+${fmtF(gapAj)}%</span>`;
+  } else if (gapAj < -5) {
+    s3Gap  = `Produjo <strong>${fmtF(Math.abs(gapAj))}%</strong> menos que el promedio del turno.`;
+    chipGap = `<span class="op-modal-chip bad">${fmtF(gapAj)}%</span>`;
+  } else {
+    s3Gap  = 'Estuvo en línea con el promedio del turno.';
+    chipGap = `<span class="op-modal-chip neutral">${fmtF(gapAj)}%</span>`;
+  }
+
+  const sec3Class = `op-modal-section${gapAj > 5 ? ' good' : gapAj < -5 ? ' bad' : ''}`;
+  sections.push(`<div class="${sec3Class}">
+    <div class="op-modal-section-title">¿Dónde quedó en el ranking?</div>
+    ${s3Lines.map(l => `<p>${l}</p>`).join('')}
+    <p>${s3Gap} ${chipGap}</p>
+  </div>`);
+
+  // ── Bloque 4: Comparado con sus turnos anteriores ──
+  if (row.historico != null) {
+    const hist    = row.historico;
+    const pct     = Number(hist.porcentaje || 0);
+    const promH   = hist.promedio_historico;
+    const actualH = hist.actual;
+    let s4Text = '';
+    if (pct >= 0) {
+      s4Text = `Hoy estuvo <strong>${fmtF(pct)}%</strong> por encima de su propio promedio histórico (${promH} u/h usual → ${actualH} u/h hoy).`;
+    } else {
+      s4Text = `Hoy estuvo <strong>${fmtF(Math.abs(pct))}%</strong> por debajo de su propio promedio histórico (${promH} u/h usual → ${actualH} u/h hoy).`;
+    }
+    const sec4Class = `op-modal-section ${pct >= 0 ? 'good' : 'bad'}`;
+    sections.push(`<div class="${sec4Class}">
+      <div class="op-modal-section-title">Comparado con sus turnos anteriores</div>
+      <p>${s4Text}</p>
+    </div>`);
+  }
+
+  return sections.join('');
+}
+
+function openPickingOperarioModal(copecrea) {
+  const data = pickingAnalysisBaseResult;
+  if (!data) return;
+  const row = (data.rows || []).find(r => String(r.copecrea) === String(copecrea));
+  if (!row) return;
+  const summary = data.summary || {};
+
+  const html = buildOperarioExplanationHtml(row, summary);
+
+  const modal = document.createElement('div');
+  modal.id = 'picking-op-modal-overlay';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(10,10,20,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div class="picking-op-modal">
+      <div class="picking-op-modal-header">
+        <div>
+          <div class="picking-op-modal-name">${escapeHtml(row.operario || row.copecrea || '—')}</div>
+          <div class="picking-op-modal-sub">Legajo ${escapeHtml(String(row.copecrea || ''))} · ${escapeHtml(row.almacen_principal || '')} · Zona ${escapeHtml(row.zona_principal || '')}</div>
+        </div>
+        <button class="picking-op-modal-close" onclick="closePickingOperarioModal()">✕</button>
+      </div>
+      <div class="picking-op-modal-body">
+        ${html}
+      </div>
+    </div>
+  `;
+  modal.addEventListener('click', e => { if (e.target === modal) closePickingOperarioModal(); });
+  document.body.appendChild(modal);
+  document.addEventListener('keydown', _pickingModalEscHandler);
+}
+
+function closePickingOperarioModal() {
+  document.getElementById('picking-op-modal-overlay')?.remove();
+  document.removeEventListener('keydown', _pickingModalEscHandler);
+}
+
+function _pickingModalEscHandler(e) {
+  if (e.key === 'Escape') closePickingOperarioModal();
+}
+
+function getOperationalAiActions(aiResult) {
+  const analisis = aiResult?.analisis || {};
+  if (Array.isArray(analisis.acciones)) {
+    return analisis.acciones.slice(0, 3);
+  }
+  const legacy = [
+    ...(Array.isArray(analisis.recomendaciones) ? analisis.recomendaciones : []),
+    ...(Array.isArray(analisis.bullets) ? analisis.bullets : []),
+  ].slice(0, 3);
+  return legacy.map(item => ({
+    prioridad: 'media',
+    accion: String(item || ''),
+    mirar: 'Operacion filtrada',
+    tipo: 'sin_evidencia',
+    porque: 'Respuesta generada con formato anterior.',
+    urgencia: 'proxima_hora',
+  }));
+}
+
+function renderOperationalAiActions(aiResult, title) {
+  const actions = getOperationalAiActions(aiResult);
+  if (!actions.length) return '';
+  const cacheText = aiResult?.cache?.ia_cache_hit ? 'cache local' : 'IA nueva';
+  const priorityOrder = { alta: 0, media: 1, baja: 2 };
+  const sorted = [...actions].sort((a, b) => (priorityOrder[a.prioridad] ?? 9) - (priorityOrder[b.prioridad] ?? 9));
+  const rowClass = action => action.prioridad === 'alta' ? 'bad' : action.prioridad === 'media' ? 'warn' : 'good';
+  const label = action => {
+    const prioridad = String(action.prioridad || 'media').toUpperCase();
+    const urgencia = action.urgencia === 'ahora' ? 'AHORA' : 'PRÓXIMA HORA';
+    return `${prioridad} · ${urgencia}`;
+  };
+  return `
+    <div class="picking-analysis-card" style="margin:16px 0 0;">
+      <div class="picking-analysis-card-title">${escapeHtml(title || 'Acciones IA')} · ${escapeHtml(cacheText)}</div>
+      <div class="turno-ai-list">
+        ${sorted.map(action => `
+          <div class="turno-ai-row ${rowClass(action)}">
+            <strong>${escapeHtml(label(action))}</strong> — ${escapeHtml(action.accion || 'Validar el caso con supervisor de piso.')}
+            <div class="online-meta-sub" style="margin-top:4px;">
+              ${escapeHtml(action.mirar || 'Operación filtrada')} · ${escapeHtml(action.tipo || 'sin_evidencia')} · ${escapeHtml(action.porque || 'Sin dato clave disponible.')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
 function renderPickingAnalysisBase() {
   const container = document.getElementById('picking-analysis-results');
   if (!container) return;
@@ -2125,6 +2943,7 @@ function renderPickingAnalysisBase() {
     : '';
   const sortTh = (label, key, title = '') => `<button type="button" class="picking-analysis-sort" onclick="setPickingAnalysisSort('${key}')"${title ? ` title="${escapeHtml(title)}"` : ''}>${label}${sortIndicator(key)}</button>`;
   const difficultyExplain = 'Ãndice dif. = dificultad total / líneas. La dificultad total suma base 1 por fila + cantidad*0.08 + peso*0.03 + bonos por cambio de ubicación, pasillo y zona. Los saltos no son metros físicos.';
+  const consolidationExplain = 'Bultos/línea mide consolidación. Más bultos por línea implica mejor suerte operativa: una parada resuelve más bultos.';
   const deltaRankValue = (row) => {
     const explicit = Number(row?.delta_ranking);
     if (!Number.isNaN(explicit)) return explicit;
@@ -2145,16 +2964,10 @@ function renderPickingAnalysisBase() {
       <div class="picking-analysis-kpi"><strong>Movimientos</strong><span>${Number(summary.movimientos || 0).toLocaleString('es-AR')}</span></div>
       <div class="picking-analysis-kpi"><strong>Cantidad/h promedio</strong><span>${Number(summary.cantidad_hora_promedio || 0).toLocaleString('es-AR')}</span></div>
       <div class="picking-analysis-kpi"><strong>Dificultad promedio</strong><span>${Number(summary.dificultad_promedio || 0).toLocaleString('es-AR')}</span></div>
+      <div class="picking-analysis-kpi"><strong>Bultos/línea prom.</strong><span>${Number(summary.bultos_por_linea_promedio || 0).toLocaleString('es-AR')}</span></div>
       <div class="picking-analysis-kpi"><strong>Saltos estimados</strong><span>${Number(summary.saltos_recorrido_total ?? summary.distancia_estimada_total_m ?? 0).toLocaleString('es-AR')}</span><div class="online-meta-sub" style="margin-top:8px;">Fuente: ${escapeHtml(sourceLabel)}</div></div>
     </div>
-    ${pickingAnalysisIaResult?.analisis ? `
-      <div class="picking-analysis-ia" style="margin:16px 0 0;">
-        <h4>${escapeHtml(pickingAnalysisIaResult.analisis.resumen || 'Lectura IA')}</h4>
-        <p style="font-size:12px;color:#bfefff;margin-bottom:10px;">${pickingAnalysisIaResult?.cache?.ia_cache_hit ? 'Lectura IA recuperada desde cache local.' : 'Lectura IA generada en esta ejecución.'}</p>
-        <p>${(pickingAnalysisIaResult.analisis.hallazgos || []).map(item => `• ${escapeHtml(item)}`).join('<br>')}</p>
-        <p>${(pickingAnalysisIaResult.analisis.recomendaciones || []).map(item => `• ${escapeHtml(item)}`).join('<br>')}</p>
-      </div>
-    ` : ''}
+    ${pickingAnalysisIaResult?.analisis ? renderOperationalAiActions(pickingAnalysisIaResult, 'Acciones operativas IA') : ''}
     <div class="picking-analysis-card" style="margin-top:16px;">
       <div class="picking-analysis-card-title">Ranking ajustado de picking</div>
       <div class="online-grid-wrap">
@@ -2170,7 +2983,8 @@ function renderPickingAnalysisBase() {
               <th>${sortTh('Prod. bruta', 'cantidad_hora', 'Productividad bruta medida como cantidad total / horas activas.')}</th>
               <th>${sortTh('Prod. ajustada', 'productividad_ajustada')}</th>
               <th>${sortTh('Ãndice dif.', 'indice_dificultad', difficultyExplain)}</th>
-              <th>${sortTh('Suerte', 'suerte_asignacion_pct')}</th>
+              <th>${sortTh('Bultos/línea', 'bultos_por_linea', consolidationExplain)}</th>
+              <th>${sortTh('Suerte', 'suerte_asignacion_pct', 'Suerte total = suerte por dificultad + suerte por consolidación de bultos por línea.')}</th>
               <th>${sortTh('Saltos', 'saltos_recorrido', 'Saltos estimados entre ubicaciones. No representan metros físicos.')}</th>
               <th>${sortTh('Cantidad total', 'cantidad_total')}</th>
               <th>${sortTh('Peso total', 'peso_total')}</th>
@@ -2189,20 +3003,26 @@ function renderPickingAnalysisBase() {
                     ${deltaRank > 0 ? '+' : ''}${Number(deltaRank || 0).toLocaleString('es-AR')}
                   </span>
                 </td>
-                <td>${escapeHtml(row.operario || row.copecrea || '—')}<br><span style="font-size:11px;color:#9fb0cc">${escapeHtml(row.copecrea || '')}</span></td>
+                <td>
+                  <a class="picking-op-link" onclick="openPickingOperarioModal('${escapeHtml(String(row.copecrea||''))}')">
+                    ${escapeHtml(row.operario || row.copecrea || '—')}
+                  </a>
+                  <br><span style="font-size:11px;color:#9fb0cc">${escapeHtml(row.copecrea || '')}</span>
+                </td>
                 <td>${escapeHtml(row.almacen_principal || 'SIN MAPEAR')}</td>
                 <td>${escapeHtml(row.zona_principal || 'SIN DATO')}</td>
                 <td title="${escapeHtml(`Productividad bruta = cantidad total / horas activas. ${Number(row.cantidad_total || 0).toLocaleString('es-AR')} / ${Number(row.hs_totales || 0).toLocaleString('es-AR')} = ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')}`)}">${Number(row.cantidad_hora || 0).toLocaleString('es-AR')}</td>
-                <td title="${escapeHtml(`Productividad ajustada = productividad bruta * factor de dificultad. ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')} * ${Number(row.factor_dificultad || 0).toLocaleString('es-AR')} = ${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}. Ãndice dif.: ${Number(row.indice_dificultad || 0).toLocaleString('es-AR')} | Dificultad promedio turno: ${Number(summary.dificultad_promedio || 0).toLocaleString('es-AR')}`)}">${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}</td>
+                <td title="${escapeHtml(`Productividad ajustada = productividad bruta * factor dificultad * factor consolidación. ${Number(row.cantidad_hora || 0).toLocaleString('es-AR')} * ${Number(row.factor_dificultad || 0).toLocaleString('es-AR')} * ${Number(row.factor_consolidacion || 0).toLocaleString('es-AR')} = ${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}. Ãndice dif.: ${Number(row.indice_dificultad || 0).toLocaleString('es-AR')} | Bultos/línea: ${Number(row.bultos_por_linea || 0).toLocaleString('es-AR')} | Promedio turno: ${Number(summary.bultos_por_linea_promedio || 0).toLocaleString('es-AR')}`)}">${Number(row.productividad_ajustada || 0).toLocaleString('es-AR')}</td>
                 <td title="${escapeHtml(`${difficultyExplain} Operario: ${row.operario || row.copecrea || ''}. Dificultad total ${Number(row.dificultad_total || 0).toLocaleString('es-AR')} en ${Number(row.lineas || 0).toLocaleString('es-AR')} líneas.`)}">${Number(row.indice_dificultad || 0).toLocaleString('es-AR')}</td>
-                <td>${renderLuck(Number(row.suerte_asignacion_pct || 0))}<div style="margin-top:6px;font-size:11px;color:#aab4cb">${Number(row.suerte_asignacion_pct || 0).toLocaleString('es-AR')}%</div></td>
+                <td title="${escapeHtml(consolidationExplain)}">${Number(row.bultos_por_linea || 0).toLocaleString('es-AR')}</td>
+                <td title="${escapeHtml(`Dificultad: ${Number(row.suerte_dificultad_pct || 0).toLocaleString('es-AR')}% | Consolidación: ${Number(row.suerte_consolidacion_pct || 0).toLocaleString('es-AR')}%`)}">${renderLuck(Number(row.suerte_asignacion_pct || 0))}<div style="margin-top:6px;font-size:11px;color:#aab4cb">${Number(row.suerte_asignacion_pct || 0).toLocaleString('es-AR')}%</div><div style="margin-top:4px;font-size:10px;color:#7f8aa3">Dif. ${Number(row.suerte_dificultad_pct || 0).toLocaleString('es-AR')}% · Cons. ${Number(row.suerte_consolidacion_pct || 0).toLocaleString('es-AR')}%</div></td>
                 <td>${Number(row.saltos_recorrido ?? row.distancia_estimada_m ?? 0).toLocaleString('es-AR')}</td>
                 <td>${Number(row.cantidad_total || 0).toLocaleString('es-AR')}</td>
                 <td>${Number(row.peso_total || 0).toLocaleString('es-AR')}</td>
               </tr>
                 `;
               })()}
-            `).join('') || `<tr><td colspan="13" class="analisis-empty">No hay filas para los filtros actuales.</td></tr>`}
+            `).join('') || `<tr><td colspan="14" class="analisis-empty">No hay filas para los filtros actuales.</td></tr>`}
           </tbody>
         </table>
       </div>
@@ -2302,7 +3122,14 @@ function hourlySortButton(key, label) {
 }
 
 function getHourlyAlertSortValue(item, key) {
-  const stateOrder = { inactive: 1, empty: 1, concentrated: 2, drop: 3, low_coverage: 4, ok: 9 };
+  const stateOrder = {
+    empty: 1, inactive: 1,
+    pulso_corto: 2,
+    concentrated_aislado: 3, drop: 3,
+    low_coverage: 4, low_volume: 5,
+    concentrated_pico: 6,
+    ok: 9,
+  };
   if (key === 'operario') return String(item.row.operario || item.row.copecrea || '').toLowerCase();
   if (key === 'estado') return stateOrder[item.state.key] || 99;
   if (key === 'possibleHe') return item.possibleHe?.isHe ? (item.possibleHe.side === 'inicio' ? 1 : 2) : 9;
@@ -2442,6 +3269,25 @@ function getHourlyMetricRows(rows, hours, isHistorical = false, isClosedDay = fa
     : Math.max(lastObservedIndex, 0);
   const inactiveLabel = isClosedDay ? 'Sin actividad final' : 'Sin movimiento';
 
+  // Hora pico colectiva del almacén (franja con más bultos totales)
+  const hourTotalsForPeak = hours.map(hour => ({
+    key: hour.key,
+    total: rows.reduce((s, r) => s + Number(r.cells?.[hour.key]?.bultos || 0), 0),
+  }));
+  const horaPicoAlmacenKey = hourTotalsForPeak.reduce(
+    (best, h) => h.total > best.total ? h : best,
+    { key: '', total: 0 }
+  ).key;
+
+  // Umbral de bajo volumen: percentil 25 de bultos totales
+  const sortedTotals = rows
+    .map(r => Number(r.total_bultos || 0))
+    .filter(v => v > 0)
+    .sort((a, b) => a - b);
+  const umbralZonaP25 = sortedTotals.length
+    ? sortedTotals[Math.floor(sortedTotals.length * 0.25)]
+    : 0;
+
   return rows.map(row => {
     const values = hours.map((hour, index) => {
       const cell = row.cells?.[hour.key] || {};
@@ -2464,12 +3310,26 @@ function getHourlyMetricRows(rows, hours, isHistorical = false, isClosedDay = fa
       state = { key: 'empty', label: 'Sin datos', cls: 'bad', score: 100 };
     } else if (!isHistorical && inactiveTail >= 2) {
       state = { key: 'inactive', label: inactiveLabel, cls: 'bad', score: 85 + inactiveTail };
+    } else if (active.length === 1) {
+      state = { key: 'pulso_corto', label: 'Pulso corto', cls: 'watch', score: 80 };
     } else if (bestShare >= 65 && total >= 20) {
-      state = { key: 'concentrated', label: 'Concentrado', cls: 'watch', score: 70 + bestShare / 10 };
-    } else if (best.index >= 0 && afterPeak.length >= 2 && afterActive.length <= 1 && best.bultos >= 10) {
+      const isColectivo = best.hour && best.hour.key === horaPicoAlmacenKey;
+      if (isColectivo) {
+        state = { key: 'concentrated_pico', label: 'Pico colectivo', cls: 'neutral-watch', score: 30 };
+      } else {
+        state = { key: 'concentrated_aislado', label: 'Concentrado', cls: 'watch', score: 70 + bestShare / 10 };
+      }
+    } else if (
+      best.index >= 0 &&
+      afterPeak.length >= 2 &&
+      afterActive.length <= 1 &&
+      best.bultos >= Math.max(5, total * 0.30)
+    ) {
       state = { key: 'drop', label: 'Caída', cls: 'watch', score: 62 };
+    } else if (total > 0 && umbralZonaP25 > 0 && total < umbralZonaP25) {
+      state = { key: 'low_volume', label: 'Bajo volumen', cls: 'neutral-watch', score: 25 };
     } else if (isHistorical && coverage <= 35 && total >= 20) {
-      state = { key: 'low_coverage', label: 'Poca cobertura', cls: 'watch', score: 58 };
+      state = { key: 'low_coverage', label: 'Poca cobertura', cls: 'neutral-watch', score: 58 };
     }
 
     const actionScore = Math.round(state.score + Math.max(bestShare - 45, 0) + Math.max(45 - coverage, 0) / 2);
@@ -2494,6 +3354,68 @@ function getHourlyMetricRows(rows, hours, isHistorical = false, isClosedDay = fa
   }).sort((a, b) => b.actionScore - a.actionScore || b.total - a.total);
 }
 
+function goToOnlineFilteredByOperario(legajo, nombre) {
+  const filterInput = document.getElementById('prod-online-filter-operario');
+  if (filterInput) filterInput.value = legajo || nombre || '';
+  switchProdTab('online');
+  onProductividadFiltersChange();
+  if (!productividadOnlineResult) {
+    const status = document.getElementById('online-tab-status');
+    if (status) status.textContent = 'Ejecutá "Evaluar turno" para ver el cierre y luego abrí los detalles operativos desde las otras solapas.';
+  }
+}
+
+function buildHourlyRefuerzoSugerencia(metrics) {
+  // Agrupar métricas por almacén
+  const byAlmacen = {};
+  metrics.forEach(item => {
+    const alm = item.row.almacen_principal || 'SIN MAPEAR';
+    if (!byAlmacen[alm]) byAlmacen[alm] = { items: [], issues: 0 };
+    byAlmacen[alm].items.push(item);
+    const isIssue = ['drop','inactive','concentrated_aislado','pulso_corto'].includes(item.state.key);
+    if (isIssue) byAlmacen[alm].issues++;
+  });
+
+  // Zona con más issues (mínimo 2 para mostrar sugerencia)
+  const almacenes = Object.entries(byAlmacen);
+  if (almacenes.length < 2) return null;
+  const [zonaCriticaNombre, zonaCriticaData] = almacenes
+    .filter(([, d]) => d.issues >= 2)
+    .sort((a, b) => b[1].issues - a[1].issues)[0] || [];
+  if (!zonaCriticaNombre) return null;
+
+  // Candidatos: de otras zonas, estado ok o concentrated_pico, sobre el promedio de su zona
+  const candidatos = [];
+  almacenes.forEach(([alm, data]) => {
+    if (alm === zonaCriticaNombre) return;
+    const almAvg = data.items.reduce((s,i) => s + i.total, 0) / Math.max(data.items.length, 1);
+    data.items.forEach(item => {
+      const isDisponible = item.state.key === 'ok' || item.state.key === 'concentrated_pico';
+      const sobreMeta = item.total >= almAvg;
+      const libreAhora = item.inactiveTail >= 1;
+      if (isDisponible && (sobreMeta || libreAhora)) {
+        candidatos.push({
+          item,
+          zona_origen: alm,
+          motivo: libreAhora ? 'Cerró su carga' : 'Sobre el promedio de su zona',
+          score: (libreAhora ? 20 : 0) + (sobreMeta ? item.total : 0),
+        });
+      }
+    });
+  });
+
+  candidatos.sort((a, b) => b.score - a.score);
+  const topCandidatos = candidatos.slice(0, 3);
+  const issueBreakdown = {
+    drop: zonaCriticaData.items.filter(i => i.state.key === 'drop').length,
+    inactive: zonaCriticaData.items.filter(i => i.state.key === 'inactive').length,
+    pulso: zonaCriticaData.items.filter(i => i.state.key === 'pulso_corto').length,
+    concentrado: zonaCriticaData.items.filter(i => i.state.key === 'concentrated_aislado').length,
+  };
+
+  return { zonaCritica: zonaCriticaNombre, issues: zonaCriticaData.issues, breakdown: issueBreakdown, candidatos: topCandidatos };
+}
+
 function renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum) {
   const isHistorical = data.modo === 'historico';
   const isClosedDay = !isHistorical && Boolean(data.summary?.turno_finalizado || data.cache?.turno_finalizado);
@@ -2505,14 +3427,18 @@ function renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum) {
   }, {});
   const totalVisible = Math.max(visibleMetrics.length, 1);
   const ok = statusCounts.ok || 0;
-  const concentrated = statusCounts.concentrated || 0;
-  const drop = (statusCounts.drop || 0) + (statusCounts.low_coverage || 0);
+  const atencion = (statusCounts.concentrated_aislado || 0) +
+                   (statusCounts.drop || 0) +
+                   (statusCounts.pulso_corto || 0) +
+                   (statusCounts.low_coverage || 0) +
+                   (statusCounts.low_volume || 0) +
+                   (statusCounts.concentrated_pico || 0);
   const inactive = (statusCounts.inactive || 0) + (statusCounts.empty || 0);
   const okDeg = ok / totalVisible * 360;
-  const concentratedDeg = concentrated / totalVisible * 360;
-  const dropDeg = drop / totalVisible * 360;
-  const donutBg = `conic-gradient(#00ff88 0 ${okDeg}deg, #ffb800 ${okDeg}deg ${okDeg + concentratedDeg + dropDeg}deg, #ff6b6b ${okDeg + concentratedDeg + dropDeg}deg 360deg)`;
+  const atencionDeg = atencion / totalVisible * 360;
+  const donutBg = `conic-gradient(#00ff88 0 ${okDeg}deg, #ffb800 ${okDeg}deg ${okDeg + atencionDeg}deg, #ff6b6b ${okDeg + atencionDeg}deg 360deg)`;
   const topAlerts = sortHourlyAlerts(metrics);
+  const sugerencia = buildHourlyRefuerzoSugerencia(metrics);
   const concentrationTop = [...visibleMetrics].sort((a, b) => b.bestShare - a.bestShare);
   const hourTotals = hours.map(hour => ({
     hour,
@@ -2522,6 +3448,95 @@ function renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum) {
   const maxShare = Math.max(...concentrationTop.map(item => item.bestShare), 1);
 
   return `
+    <div class="hourly-dashboard-full">
+      <div class="hourly-dashboard-card">
+        <div class="hourly-dashboard-title">Ranking de atención</div>
+        <div class="online-meta-sub" style="margin-bottom:10px;color:#d9e8ff;">
+          ${isHistorical ? 'Lectura histórica: prioriza concentración y cobertura repetida por hora.' : isClosedDay ? 'Lectura de turno cerrado: prioriza cortes antes del cierre, concentración y caídas después del pico.' : 'Lectura del turno: prioriza últimos bloques sin actividad, concentración y caídas después del pico.'}
+        </div>
+        <div class="hourly-alert-wrap">
+          <table class="hourly-alert-table">
+            <thead>
+              <tr>
+                <th>${hourlySortButton('operario', 'Operario')}</th>
+                <th>${hourlySortButton('estado', 'Estado')}</th>
+                <th>${hourlySortButton('possibleHe', 'Posible HE')}</th>
+                <th>${hourlySortButton('total', 'Bultos')}</th>
+                <th>${hourlySortButton('movimientos', 'Mov.')}</th>
+                <th>${hourlySortButton('activeHours', 'Horas act.')}</th>
+                <th>${hourlySortButton('bestShare', '% mejor hora')}</th>
+                <th>${hourlySortButton('bestHour', 'Mejor hora')}</th>
+                <th>${hourlySortButton('lastHour', 'Última act.')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${topAlerts.slice(0, 8).map(item => `
+                <tr>
+                  <td><a class="hourly-op-link" onclick="goToOnlineFilteredByOperario('${escapeHtml(item.row.copecrea||'')}','${escapeHtml(item.row.operario||item.row.copecrea||'')}')" title="Ver detalle online"><strong>${escapeHtml(item.row.operario || item.row.copecrea || '—')}</strong></a><br><span style="font-size:10px;color:#9fb0cc">${escapeHtml(item.row.copecrea || '')}</span></td>
+                  <td><span class="hourly-state-chip ${item.state.cls}">${item.state.label}</span></td>
+                  <td>${renderHourlyHeChip(item.possibleHe) || '<span style="color:#8fa0bc">—</span>'}</td>
+                  <td>${fmtNum(item.total)}</td>
+                  <td>${fmtNum(item.movimientos)}</td>
+                  <td>${fmtNum(item.activeHours)} / ${fmtNum(hours.length)}</td>
+                  <td>${fmtNum(item.bestShare)}%</td>
+                  <td>${item.bestHour === '—' ? '—' : `${escapeHtml(item.bestHour)}:00`}</td>
+                  <td>${escapeHtml(item.lastHour)}${item.lastHour !== '—' ? ':00' : ''}</td>
+                </tr>
+              `).join('') || `<tr><td colspan="9" class="analisis-empty">No hay operarios para mostrar con el filtro actual.</td></tr>`}
+              ${topAlerts.slice(8).map(item => `
+                <tr class="hourly-ranking-extra" style="display:none">
+                  <td><a class="hourly-op-link" onclick="goToOnlineFilteredByOperario('${escapeHtml(item.row.copecrea||'')}','${escapeHtml(item.row.operario||item.row.copecrea||'')}')" title="Ver detalle online"><strong>${escapeHtml(item.row.operario || item.row.copecrea || '—')}</strong></a><br><span style="font-size:10px;color:#9fb0cc">${escapeHtml(item.row.copecrea || '')}</span></td>
+                  <td><span class="hourly-state-chip ${item.state.cls}">${item.state.label}</span></td>
+                  <td>${renderHourlyHeChip(item.possibleHe) || '<span style="color:#8fa0bc">—</span>'}</td>
+                  <td>${fmtNum(item.total)}</td>
+                  <td>${fmtNum(item.movimientos)}</td>
+                  <td>${fmtNum(item.activeHours)} / ${fmtNum(hours.length)}</td>
+                  <td>${fmtNum(item.bestShare)}%</td>
+                  <td>${item.bestHour === '—' ? '—' : `${escapeHtml(item.bestHour)}:00`}</td>
+                  <td>${escapeHtml(item.lastHour)}${item.lastHour !== '—' ? ':00' : ''}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          ${topAlerts.length > 8 ? `<button class="online-btn" style="margin:8px auto;display:block;" onclick="this.closest('.hourly-alert-wrap').querySelectorAll('.hourly-ranking-extra').forEach(r=>r.style.display='');this.style.display='none'">Ver todos (${topAlerts.length})</button>` : ''}
+        </div>
+      </div>
+    </div>
+
+    ${sugerencia ? `
+    <div class="hourly-dashboard-full">
+      <div class="hourly-dashboard-card">
+        <div class="hourly-dashboard-title">Sugerencia de refuerzos</div>
+        <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:12px;color:#ffb800;font-weight:700;margin-bottom:6px;">⚠ Zona crítica: ${escapeHtml(sugerencia.zonaCritica)}</div>
+            <div style="font-size:11px;color:#aeb5cc;line-height:1.8;">
+              ${sugerencia.breakdown.inactive ? `• ${sugerencia.breakdown.inactive} sin actividad<br>` : ''}
+              ${sugerencia.breakdown.drop ? `• ${sugerencia.breakdown.drop} con caída de ritmo<br>` : ''}
+              ${sugerencia.breakdown.pulso ? `• ${sugerencia.breakdown.pulso} con pulso corto<br>` : ''}
+              ${sugerencia.breakdown.concentrado ? `• ${sugerencia.breakdown.concentrado} concentrados (aislados)<br>` : ''}
+            </div>
+          </div>
+          <div style="flex:2;min-width:260px;">
+            ${sugerencia.candidatos.length ? `
+              <div style="font-size:10px;color:#7ddfff;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px;">Candidatos a refuerzo</div>
+              ${sugerencia.candidatos.map(c => `
+                <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(0,212,255,.08);">
+                  <div style="flex:1;">
+                    <strong style="font-size:12px;color:#f3f6ff;">${escapeHtml(c.item.row.operario || c.item.row.copecrea || '—')}</strong>
+                    <span style="font-size:10px;color:#a0a0c0;margin-left:6px;">${escapeHtml(c.zona_origen)}</span>
+                  </div>
+                  <div style="font-size:10px;color:#7ddfff;">${escapeHtml(c.motivo)}</div>
+                </div>
+              `).join('')}
+              <div style="font-size:11px;color:#606080;margin-top:8px;">Sugerencia automática — validar con el supervisor antes de actuar.</div>
+            ` : '<div style="font-size:11px;color:#606080;">No se detectaron candidatos disponibles en otras zonas.</div>'}
+          </div>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
     <div class="hourly-dashboard-grid">
       <div class="hourly-dashboard-card">
         <div class="hourly-dashboard-title">Estados operativos</div>
@@ -2531,7 +3546,7 @@ function renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum) {
           </div>
           <div class="hourly-status-list">
             <div class="hourly-status-row"><span><i class="hourly-status-dot" style="background:#00ff88"></i>OK</span><strong>${fmtNum(ok)}</strong></div>
-            <div class="hourly-status-row"><span><i class="hourly-status-dot" style="background:#ffb800"></i>Concentrado / caída</span><strong>${fmtNum(concentrated + drop)}</strong></div>
+            <div class="hourly-status-row"><span><i class="hourly-status-dot" style="background:#ffb800"></i>Requieren atención</span><strong>${fmtNum(atencion)}</strong></div>
             <div class="hourly-status-row"><span><i class="hourly-status-dot" style="background:#ff6b6b"></i>${isClosedDay ? 'Sin actividad final' : 'Sin movimiento'}</span><strong>${fmtNum(inactive)}</strong></div>
           </div>
         </div>
@@ -2553,7 +3568,7 @@ function renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum) {
       </div>
     </div>
 
-    <div class="hourly-dashboard-grid">
+    <div class="hourly-dashboard-full">
       <div class="hourly-dashboard-card">
         <div class="hourly-dashboard-title">Concentración por operario</div>
         <div class="hourly-bars">
@@ -2566,65 +3581,382 @@ function renderProductividadHourlyDashboardHtml(data, rows, hours, fmtNum) {
           `).join('') || '<div class="analisis-empty">No hay operarios para graficar.</div>'}
         </div>
       </div>
-      <div class="hourly-dashboard-card">
-        <div class="hourly-dashboard-title">Ranking de acción rápida</div>
-        <div class="online-meta-sub" style="margin-bottom:10px;color:#d9e8ff;">
-          ${isHistorical ? 'Lectura histórica: prioriza concentración y cobertura repetida por hora.' : isClosedDay ? 'Lectura de turno cerrado: prioriza cortes antes del cierre, concentración y caídas después del pico.' : 'Lectura del turno: prioriza últimos bloques sin actividad, concentración y caídas después del pico.'}
-        </div>
-        <div class="hourly-alert-wrap">
-          <table class="hourly-alert-table">
-            <thead>
-              <tr>
-                <th>${hourlySortButton('operario', 'Operario')}</th>
-                <th>${hourlySortButton('estado', 'Estado')}</th>
-                <th>${hourlySortButton('possibleHe', 'Posible HE')}</th>
-                <th>${hourlySortButton('total', 'Bultos')}</th>
-                <th>${hourlySortButton('movimientos', 'Mov.')}</th>
-                <th>${hourlySortButton('activeHours', 'Horas act.')}</th>
-                <th>${hourlySortButton('bestShare', '% mejor hora')}</th>
-                <th>${hourlySortButton('bestHour', 'Mejor hora')}</th>
-                <th>${hourlySortButton('lastHour', 'Última act.')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${topAlerts.map(item => `
-                <tr>
-                  <td><strong>${escapeHtml(item.row.operario || item.row.copecrea || '—')}</strong><br><span style="font-size:10px;color:#9fb0cc">${escapeHtml(item.row.copecrea || '')}</span></td>
-                  <td><span class="hourly-state-chip ${item.state.cls}">${item.state.label}</span></td>
-                  <td>${renderHourlyHeChip(item.possibleHe) || '<span style="color:#8fa0bc">—</span>'}</td>
-                  <td>${fmtNum(item.total)}</td>
-                  <td>${fmtNum(item.movimientos)}</td>
-                  <td>${fmtNum(item.activeHours)} / ${fmtNum(hours.length)}</td>
-                  <td>${fmtNum(item.bestShare)}%</td>
-                  <td>${item.bestHour === '—' ? '—' : `${escapeHtml(item.bestHour)}:00`}</td>
-                  <td>${escapeHtml(item.lastHour)}${item.lastHour !== '—' ? ':00' : ''}</td>
-                </tr>
-              `).join('') || `<tr><td colspan="9" class="analisis-empty">No hay operarios para mostrar con el filtro actual.</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   `;
 }
 
 function renderProductividadHourlyTrendIa() {
   if (!productividadHourlyTrendIaResult) return '';
-  const analisis = productividadHourlyTrendIaResult.analisis || {};
-  const bullets = Array.isArray(analisis.bullets) ? analisis.bullets.slice(0, 4) : [];
-  const validar = Array.isArray(analisis.validar) ? analisis.validar.slice(0, 2) : [];
-  const cacheText = productividadHourlyTrendIaResult.cache?.ia_cache_hit ? 'cache local' : 'IA nueva';
-  return `
-    <div class="hourly-ia-panel">
-      <div class="hourly-ia-title">${escapeHtml(analisis.titulo || 'Lectura IA de tendencia')}</div>
-      <div class="hourly-ia-list">
-        ${bullets.map(item => `<div>• ${escapeHtml(item)}</div>`).join('')}
-        ${validar.length ? `<div><strong>Validar:</strong> ${validar.map(escapeHtml).join(' · ')}</div>` : ''}
-      </div>
-      <div class="hourly-ia-meta">Fuente: ${cacheText} · ${escapeHtml(String(productividadHourlyTrendIaResult.provider || 'IA').toUpperCase())}</div>
-    </div>
-  `;
+  return renderOperationalAiActions(productividadHourlyTrendIaResult, 'Acciones por hora IA');
 }
+
+function switchHourlyMetric(metric) {
+  productividadHourlyMetric = metric;
+  document.querySelectorAll('.hourly-metric-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.metric === metric);
+  });
+  if (productividadHourlyResult && !productividadHourlyLoading) {
+    renderProductividadHourlyGrid();
+  }
+}
+
+function buildTurnoReportData() {
+  const data = productividadHourlyResult;
+  if (!data) return null;
+  const hours = data.hours || [];
+  const rows = data.rows || [];
+  const summary = data.summary || {};
+  const iaResult = productividadHourlyTrendIaResult;
+  const fmt = n => Number(n||0).toLocaleString('es-AR');
+  const fmtF = n => Number(n||0).toFixed(1);
+
+  // Métricas para hallazgos
+  const isHistorical = data.modo === 'historico';
+  const isClosedDay = !isHistorical && Boolean(data.summary?.turno_finalizado || data.cache?.turno_finalizado);
+  const metrics = getHourlyMetricRows(rows, hours, isHistorical, isClosedDay);
+  const issues = metrics.filter(m => ['drop','inactive','pulso_corto','concentrated_aislado'].includes(m.state.key));
+  const destacados = metrics.filter(m => m.state.key === 'ok').sort((a,b) => b.total - a.total);
+  const posiblesHE = metrics.filter(m => m.possibleHe?.isHe);
+
+  // Distribución horaria
+  const hourTotals = hours.map(h => ({
+    label: h.label,
+    total: rows.reduce((s, r) => s + Number(r.cells?.[h.key]?.bultos || 0), 0),
+  }));
+  const maxHour = hourTotals.reduce((m, h) => h.total > m.total ? h : m, { total: 0, label: '—' });
+
+  // Hallazgos (máx 3: 2 negativos + 1 positivo)
+  const hallazgos = [];
+  issues.slice(0, 2).forEach(m => {
+    const nombre = m.row.operario || m.row.copecrea || '—';
+    const desc = m.state.key === 'drop'
+      ? `${nombre} — caída de ritmo después del pico de la ${m.bestHour}:00 hs.`
+      : m.state.key === 'inactive'
+        ? `${nombre} — sin actividad registrada en el tramo final del turno.`
+        : m.state.key === 'pulso_corto'
+          ? `${nombre} — sólo registró actividad en una franja horaria.`
+          : `${nombre} — actividad concentrada en una sola hora (${m.bestHour}:00 hs).`;
+    hallazgos.push({ tipo: 'negativo', texto: desc });
+  });
+  if (destacados.length) {
+    const top = destacados[0];
+    hallazgos.push({ tipo: 'positivo', texto: `${top.row.operario || top.row.copecrea || '—'} fue el operario más productivo del turno con ${fmt(top.total)} bultos preparados.` });
+  }
+
+  // Acciones IA (si disponibles) o texto local
+  const resumenIA = getOperationalAiActions(iaResult)
+    .map(action => `${action.urgencia === 'ahora' ? 'Ahora' : 'Próxima hora'}: ${action.accion} (${action.mirar}).`)
+    .slice(0, 3);
+  const resumenLocal = [
+    `Turno ${data.turno || ''} del ${data.fecha || ''}.`,
+    `Se prepararon ${fmt(summary.bultos_total)} bultos con ${fmt(summary.operarios)} operarios activos.`,
+    maxHour.total > 0 ? `El pico operativo fue a las ${maxHour.label}:00 hs con ${fmt(maxHour.total)} bultos.` : '',
+  ].filter(Boolean);
+
+  return {
+    turno: data.turno || '',
+    fecha: data.fecha || '',
+    summary, hourTotals, maxHour, hallazgos,
+    posiblesHE: posiblesHE.length,
+    issues: issues.length,
+    topAtencion: issues.slice(0, 5),
+    resumen: resumenIA.length ? resumenIA : resumenLocal,
+    fmt, fmtF,
+  };
+}
+
+function buildReportPreviewHtml(rpt) {
+  const { turno, fecha, summary, hourTotals, maxHour, hallazgos, posiblesHE, topAtencion, resumen, fmt, fmtF } = rpt;
+  const maxHourTotal = Math.max(...hourTotals.map(h => h.total), 1);
+
+  return `
+    <div class="report-preview">
+      <div class="report-header">
+        <h1>Informe de Turno · ${escapeHtml(turno)} · ${escapeHtml(fecha)}</h1>
+        <div class="report-meta">Generado ${new Date().toLocaleString('es-AR')} · VigIA Productividad</div>
+      </div>
+      <div class="report-kpis">
+        <div class="report-kpi"><div class="report-kpi-label">Bultos preparados</div><div class="report-kpi-value">${fmt(summary.bultos_total)}</div></div>
+        <div class="report-kpi"><div class="report-kpi-label">Operarios activos</div><div class="report-kpi-value">${fmt(summary.operarios)}</div></div>
+        <div class="report-kpi"><div class="report-kpi-label">Hora pico</div><div class="report-kpi-value">${escapeHtml(maxHour.label)}:00</div><div class="report-kpi-sub">${fmt(maxHour.total)} bultos</div></div>
+        <div class="report-kpi"><div class="report-kpi-label">Prom. bultos/hora activa</div><div class="report-kpi-value">${fmtF(summary.promedio_bultos_hora_activa)}</div></div>
+        <div class="report-kpi"><div class="report-kpi-label">Movimientos</div><div class="report-kpi-value">${fmt(summary.movimientos)}</div></div>
+        <div class="report-kpi"><div class="report-kpi-label">Posibles HE</div><div class="report-kpi-value">${posiblesHE}</div></div>
+      </div>
+      <div class="report-section-title">Resumen del turno</div>
+      ${resumen.map(b => `<p style="margin-bottom:6px;font-size:12px;color:#c8d0e8;">• ${escapeHtml(b)}</p>`).join('')}
+      <div class="report-section-title">Distribución horaria</div>
+      <div class="report-hora-bars">
+        ${hourTotals.map(h => `
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+            <div class="report-hora-bar${h.label === maxHour.label ? ' peak' : ''}"
+                 style="height:${Math.max(Math.round(h.total/maxHourTotal*56),4)}px;width:100%;"
+                 title="${escapeHtml(h.label)}:00 — ${fmt(h.total)} bultos"></div>
+            <div class="report-hora-bar-label">${escapeHtml(h.label)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="report-section-title">Hallazgos del turno</div>
+      ${hallazgos.map(h => `
+        <div class="report-hallazgo">
+          <div class="report-hallazgo-icon">${h.tipo === 'positivo' ? '✅' : '⚠️'}</div>
+          <div class="report-hallazgo-text">${escapeHtml(h.texto)}</div>
+        </div>`).join('') || '<p style="font-size:12px;color:#606080;">Sin hallazgos destacados.</p>'}
+      ${topAtencion.length ? `
+        <div class="report-section-title">Operarios para seguimiento</div>
+        <table class="report-table">
+          <thead><tr><th>Operario</th><th>Estado</th><th>Bultos</th><th>Última act.</th></tr></thead>
+          <tbody>
+            ${topAtencion.map(m => `<tr>
+              <td><strong>${escapeHtml(m.row.operario || m.row.copecrea || '—')}</strong></td>
+              <td>${escapeHtml(m.state.label)}</td>
+              <td>${fmt(m.total)}</td>
+              <td>${escapeHtml(m.lastHour)}${m.lastHour !== '—' ? ':00' : ''}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>` : ''}
+    </div>`;
+}
+
+function buildReportTextoPlano(rpt) {
+  const { turno, fecha, summary, maxHour, hallazgos, posiblesHE, fmt, fmtF } = rpt;
+  const lines = [
+    `INFORME DE TURNO · ${turno.toUpperCase()} · ${fecha}`,
+    `Generado: ${new Date().toLocaleString('es-AR')}`,
+    '',
+    `RESUMEN`,
+    `Bultos preparados: ${fmt(summary.bultos_total)}`,
+    `Operarios activos: ${fmt(summary.operarios)}`,
+    `Hora pico: ${maxHour.label}:00 hs (${fmt(maxHour.total)} bultos)`,
+    `Promedio bultos/hora activa: ${fmtF(summary.promedio_bultos_hora_activa)}`,
+    `Posibles HE detectadas: ${posiblesHE}`,
+    '',
+    `HALLAZGOS`,
+    ...hallazgos.map(h => `${h.tipo === 'positivo' ? '✓' : '!'} ${h.texto}`),
+    '',
+    `---`,
+    `VigIA Productividad`,
+  ];
+  return lines.join('\n');
+}
+
+function buildReportWhatsappShort(rpt) {
+  const { turno, fecha, summary, maxHour, hallazgos, posiblesHE, fmt } = rpt;
+  const negativo = hallazgos.filter(h => h.tipo === 'negativo').slice(0,2);
+  const positivo = hallazgos.find(h => h.tipo === 'positivo');
+  const lines = [
+    `📊 *Informe Picking · ${turno} · ${fecha}*`,
+    '',
+    `Bultos: *${fmt(summary.bultos_total)}* · Operarios: *${fmt(summary.operarios)}*`,
+    `Pico: *${maxHour.label}:00 hs* (${fmt(maxHour.total)} bultos)`,
+    posiblesHE > 0 ? `Posibles HE: ${posiblesHE}` : '',
+    '',
+    negativo.length ? `⚠️ *Para seguimiento:*\n${negativo.map(h => `• ${h.texto}`).join('\n')}` : '',
+    positivo ? `✅ ${positivo.texto}` : '',
+    '',
+    `_VigIA Productividad_`,
+  ].filter(l => l !== '').join('\n');
+  return lines;
+}
+
+function openTurnoReportModal() {
+  const rpt = buildTurnoReportData();
+  if (!rpt) return;
+
+  const sinIA = !productividadHourlyTrendIaResult;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'turno-report-overlay';
+  overlay.className = 'turno-report-overlay';
+  overlay.innerHTML = `
+    <div class="turno-report-modal">
+      <div class="turno-report-modal-header">
+        <span class="turno-report-modal-title">Informe de turno · ${escapeHtml(rpt.turno)} · ${escapeHtml(rpt.fecha)}</span>
+        <button class="hcell-modal-close" onclick="closeTurnoReportModal()">✕</button>
+      </div>
+      ${sinIA ? `<div style="padding:10px 24px;background:rgba(255,184,0,.08);border-bottom:1px solid rgba(255,184,0,.15);font-size:11px;color:#ffb800;">
+        Tip: ejecutá "Generar acciones IA" antes de generar el informe para incluir acciones operativas.
+      </div>` : ''}
+      <div class="turno-report-modal-body" id="turno-report-preview">
+        ${buildReportPreviewHtml(rpt)}
+      </div>
+      <div class="turno-report-modal-actions">
+        <button class="online-btn" onclick="copyReportToClipboard()">📋 Copiar</button>
+        <button class="online-btn" onclick="sendReportByEmail()">📧 Correo</button>
+        <button class="online-btn" onclick="sendReportByWhatsapp()">💬 WhatsApp</button>
+        <button class="online-btn" onclick="downloadReportHtml()">📥 Descargar</button>
+        <button class="online-btn" onclick="closeTurnoReportModal()">Cerrar</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeTurnoReportModal(); });
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown', _reportEscHandler);
+}
+
+function closeTurnoReportModal() {
+  document.getElementById('turno-report-overlay')?.remove();
+  document.removeEventListener('keydown', _reportEscHandler);
+}
+function _reportEscHandler(e) { if (e.key === 'Escape') closeTurnoReportModal(); }
+
+async function copyReportToClipboard() {
+  const rpt = buildTurnoReportData();
+  if (!rpt) return;
+  try {
+    const htmlContent = buildReportPreviewHtml(rpt);
+    const textContent = buildReportTextoPlano(rpt);
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'text/html': new Blob([htmlContent], { type: 'text/html' }),
+        'text/plain': new Blob([textContent], { type: 'text/plain' }),
+      })
+    ]);
+    const btn = document.querySelector('.turno-report-modal-actions .online-btn');
+    const orig = btn?.textContent;
+    if (btn) { btn.textContent = '✓ Copiado'; setTimeout(() => { if(btn) btn.textContent = orig; }, 2000); }
+  } catch {
+    const rpt2 = buildTurnoReportData();
+    navigator.clipboard.writeText(buildReportTextoPlano(rpt2)).catch(() => {});
+  }
+}
+
+function sendReportByEmail() {
+  const rpt = buildTurnoReportData();
+  if (!rpt) return;
+  const subject = encodeURIComponent(`Informe Picking · ${rpt.turno} · ${rpt.fecha}`);
+  const body = encodeURIComponent(buildReportTextoPlano(rpt));
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+function sendReportByWhatsapp() {
+  const rpt = buildTurnoReportData();
+  if (!rpt) return;
+  const text = encodeURIComponent(buildReportWhatsappShort(rpt));
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+function downloadReportHtml() {
+  const rpt = buildTurnoReportData();
+  if (!rpt) return;
+  const styleBlock = `<style>body{background:#1e1e2e;font-family:'Inter',sans-serif;padding:24px;}.report-preview,.report-header,.report-kpis,.report-kpi,.report-kpi-label,.report-kpi-value,.report-kpi-sub,.report-section-title,.report-hallazgo,.report-hallazgo-icon,.report-hallazgo-text,.report-hora-bars,.report-hora-bar,.report-hora-bar-label,.report-table th,.report-table td{box-sizing:border-box}</style>`;
+  const fullHtml = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Informe ${rpt.turno} ${rpt.fecha}</title>${styleBlock}</head><body>${buildReportPreviewHtml(rpt)}</body></html>`;
+  const blob = new Blob([fullHtml], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `informe_picking_${rpt.turno.toLowerCase().replace(/\s/g,'_')}_${rpt.fecha}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function openHourlyCellDetail(legajo, hourKey) {
+  const data = productividadHourlyResult;
+  if (!data) return;
+  const hours = data.hours || [];
+  const rows = data.rows || [];
+  const row = rows.find(r => String(r.copecrea) === String(legajo));
+  if (!row) return;
+  const cell = row.cells?.[hourKey];
+  if (!cell || !Number(cell.bultos)) return;
+  const hour = hours.find(h => h.key === hourKey);
+  const isHistorical = data.modo === 'historico';
+  const fmt = n => Number(n||0).toLocaleString('es-AR');
+  const fmtF = n => Number(n||0).toFixed(1);
+
+  // Comparativa operario vs sus otras horas
+  const opHours = hours.map(h => ({ h, bultos: Number(row.cells?.[h.key]?.bultos || 0) }));
+  const opActivos = opHours.filter(x => x.bultos > 0);
+  const opMax = opActivos.reduce((m, x) => x.bultos > m.bultos ? x : m, { bultos: 0, h: null });
+  const opAvg = opActivos.length ? opActivos.reduce((s,x) => s+x.bultos, 0) / opActivos.length : 0;
+  const opRank = [...opActivos].sort((a,b) => b.bultos - a.bultos).findIndex(x => x.h.key === hourKey) + 1;
+
+  // Comparativa vs resto de operarios en esa hora
+  const hourPeers = rows.map(r => Number(r.cells?.[hourKey]?.bultos || 0)).filter(v => v > 0);
+  const hourAvg = hourPeers.length ? hourPeers.reduce((s,v) => s+v, 0) / hourPeers.length : 0;
+  const hourRank = [...hourPeers].sort((a,b) => b-a).indexOf(Number(cell.bultos)) + 1;
+  const thisBultos = Number(cell.bultos);
+
+  const confChip = cell.confianza === 'alta'
+    ? '<span class="hcell-rank-chip" style="background:rgba(0,255,136,.1);color:#00ff88;border-color:rgba(0,255,136,.25)">Confianza alta</span>'
+    : cell.confianza === 'media'
+      ? '<span class="hcell-rank-chip" style="background:rgba(255,184,0,.1);color:#ffb800;border-color:rgba(255,184,0,.25)">Confianza media</span>'
+      : '<span class="hcell-rank-chip" style="background:rgba(255,107,107,.1);color:#ff6b6b;border-color:rgba(255,107,107,.25)">Confianza baja</span>';
+
+  const vsOpAvg = opAvg > 0 ? Math.round((thisBultos - opAvg) / opAvg * 100) : 0;
+  const vsHourAvg = hourAvg > 0 ? Math.round((thisBultos - hourAvg) / hourAvg * 100) : 0;
+  const deltaColor = p => p > 5 ? '#00ff88' : p < -5 ? '#ff6b6b' : '#a0a0c0';
+  const deltaArrow = p => p > 5 ? '↑' : p < -5 ? '↓' : '≈';
+
+  const detailRows = isHistorical ? `
+    <div class="hcell-section">
+      <div class="hcell-section-title">Detalle histórico</div>
+      <div class="hcell-grid">
+        <div class="hcell-stat"><div class="hcell-stat-label">Días con datos</div><div class="hcell-stat-value">${fmt(cell.dias_con_datos)}</div></div>
+        <div class="hcell-stat"><div class="hcell-stat-label">Bultos total acumulado</div><div class="hcell-stat-value">${fmt(cell.bultos_total)}</div></div>
+      </div>
+    </div>` : `
+    <div class="hcell-section">
+      <div class="hcell-section-title">Actividad registrada</div>
+      <div class="hcell-grid">
+        <div class="hcell-stat"><div class="hcell-stat-label">Primer movimiento</div><div class="hcell-stat-value" style="font-size:13px">${(cell.primer_mov||'—').slice(11,16)}</div></div>
+        <div class="hcell-stat"><div class="hcell-stat-label">Último movimiento</div><div class="hcell-stat-value" style="font-size:13px">${(cell.ultimo_mov||'—').slice(11,16)}</div></div>
+        <div class="hcell-stat"><div class="hcell-stat-label">Minutos observados</div><div class="hcell-stat-value">${fmtF(cell.minutos_observados)}</div><div class="hcell-stat-sub">entre primer y último mov.</div></div>
+        <div class="hcell-stat"><div class="hcell-stat-label">Ritmo efectivo</div><div class="hcell-stat-value">${cell.ritmo_observado != null ? fmtF(cell.ritmo_observado) : '—'}</div><div class="hcell-stat-sub">b/h estimados</div></div>
+      </div>
+    </div>`;
+
+  const html = `
+    <div class="hcell-section">
+      <div class="hcell-section-title">Esta hora</div>
+      <div class="hcell-grid">
+        <div class="hcell-stat"><div class="hcell-stat-label">Bultos preparados</div><div class="hcell-stat-value">${fmt(thisBultos)}</div></div>
+        <div class="hcell-stat"><div class="hcell-stat-label">Movimientos WMS</div><div class="hcell-stat-value">${fmt(cell.movimientos)}</div></div>
+      </div>
+      <div style="margin-top:8px">${confChip}</div>
+    </div>
+    ${detailRows}
+    <div class="hcell-section">
+      <div class="hcell-section-title">vs otras horas del mismo operario</div>
+      <div class="hcell-compare-bar"><span class="hcell-compare-label">Promedio del operario (horas activas)</span><span class="hcell-compare-val">${fmtF(opAvg)} blt</span></div>
+      <div class="hcell-compare-bar"><span class="hcell-compare-label">Mejor hora del operario</span><span class="hcell-compare-val">${fmt(opMax.bultos)} blt (${opMax.h?.label||'—'}:00)</span></div>
+      <div class="hcell-compare-bar"><span class="hcell-compare-label">Esta hora en su ranking personal</span><span class="hcell-compare-val">#${opRank} de ${opActivos.length}</span></div>
+      <div class="hcell-compare-bar"><span class="hcell-compare-label">Diferencia vs su promedio</span><span class="hcell-compare-val" style="color:${deltaColor(vsOpAvg)}">${deltaArrow(vsOpAvg)} ${vsOpAvg > 0 ? '+' : ''}${vsOpAvg}%</span></div>
+    </div>
+    <div class="hcell-section">
+      <div class="hcell-section-title">vs resto de operarios en esta hora</div>
+      <div class="hcell-compare-bar"><span class="hcell-compare-label">Promedio del grupo en esta hora</span><span class="hcell-compare-val">${fmtF(hourAvg)} blt</span></div>
+      <div class="hcell-compare-bar"><span class="hcell-compare-label">Posición en esta hora</span><span class="hcell-compare-val">#${hourRank} de ${hourPeers.length}</span></div>
+      <div class="hcell-compare-bar"><span class="hcell-compare-label">Diferencia vs promedio de la hora</span><span class="hcell-compare-val" style="color:${deltaColor(vsHourAvg)}">${deltaArrow(vsHourAvg)} ${vsHourAvg > 0 ? '+' : ''}${vsHourAvg}%</span></div>
+    </div>
+    ${typeof goToOnlineFilteredByOperario === 'function' ? `
+    <div style="margin-top:4px">
+      <button class="online-btn" onclick="closeHourlyCellDetail();goToOnlineFilteredByOperario('${escapeHtml(String(legajo))}','${escapeHtml(row.operario||'')}')">Ver detalle online →</button>
+    </div>` : ''}
+  `;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'hcell-modal-overlay';
+  overlay.className = 'hcell-modal-overlay';
+  overlay.innerHTML = `
+    <div class="hcell-modal">
+      <div class="hcell-modal-header">
+        <div>
+          <div class="hcell-modal-title">${escapeHtml(row.operario || row.copecrea || '—')} · ${hour?.label||'—'}:00 hs</div>
+          <div class="hcell-modal-sub">Legajo ${escapeHtml(String(row.copecrea||''))} · ${isHistorical ? 'Vista histórica' : 'Turno actual'}</div>
+        </div>
+        <button class="hcell-modal-close" onclick="closeHourlyCellDetail()">✕</button>
+      </div>
+      <div class="hcell-modal-body">${html}</div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeHourlyCellDetail(); });
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown', _hcellEscHandler);
+}
+
+function closeHourlyCellDetail() {
+  document.getElementById('hcell-modal-overlay')?.remove();
+  document.removeEventListener('keydown', _hcellEscHandler);
+}
+function _hcellEscHandler(e) { if (e.key === 'Escape') closeHourlyCellDetail(); }
 
 function renderProductividadHourlyGrid() {
   const container = document.getElementById('hourly-results');
@@ -2636,14 +3968,34 @@ function renderProductividadHourlyGrid() {
   }
 
   const hours = Array.isArray(data.hours) ? data.hours : [];
-  const rows = getFilteredProductividadHourlyRows();
-  const summary = buildHourlyFilteredSummary(rows, hours);
-  const allCells = rows.flatMap(row => hours.map(hour => Number(row.cells?.[hour.key]?.bultos || 0)));
-  const maxBultos = Math.max(...allCells, 0);
+  let rows = getFilteredProductividadHourlyRows();
   const sourceLabel = data.cache?.hourly_cache_hit ? 'cache local' : 'Oracle';
   const isHistorical = data.modo === 'historico';
   const fmtNum = value => Number(value || 0).toLocaleString('es-AR');
   const fmtMaybe = value => value == null ? '—' : Number(value || 0).toLocaleString('es-AR');
+  const metricLabels = { bultos: 'bultos', ritmo: 'ritmo b/h', minutos: 'minutos activos' };
+  const heatmapMetricLabel = metricLabels[productividadHourlyMetric] || metricLabels.bultos;
+  function getHeatmapMetricValue(cell) {
+    if (productividadHourlyMetric === 'ritmo') return Number(cell?.ritmo_observado || 0);
+    if (productividadHourlyMetric === 'minutos') return Number(cell?.minutos_observados || 0);
+    return Number(cell?.bultos || 0);
+  }
+  function getHeatmapRowSortScore(row) {
+    const values = hours.map(hour => getHeatmapMetricValue(row.cells?.[hour.key] || {}));
+    const max = Math.max(...values, 0);
+    const total = values.reduce((acc, value) => acc + value, 0);
+    return { max, total };
+  }
+  rows = [...rows].sort((a, b) => {
+    const scoreA = getHeatmapRowSortScore(a);
+    const scoreB = getHeatmapRowSortScore(b);
+    if (scoreB.max !== scoreA.max) return scoreB.max - scoreA.max;
+    if (scoreB.total !== scoreA.total) return scoreB.total - scoreA.total;
+    return String(a.operario || a.copecrea || '').localeCompare(String(b.operario || b.copecrea || ''), 'es');
+  });
+  const summary = buildHourlyFilteredSummary(rows, hours);
+  const allCells = rows.flatMap(row => hours.map(hour => getHeatmapMetricValue(row.cells?.[hour.key] || {})));
+  const maxHeatmapValue = Math.max(...allCells, 0);
   const metricLabel = isHistorical ? 'Promedio por hora' : 'Prom. celda activa';
   const titleText = isHistorical ? 'Productividad por hora histórica · Picking' : 'Productividad por hora · Picking';
   const rangeText = isHistorical
@@ -2652,15 +4004,46 @@ function renderProductividadHourlyGrid() {
   const helpText = isHistorical
     ? 'Cómo leerlo: el número grande es el promedio de bultos preparados por ese operario en esa hora, usando solo los días del rango donde tuvo actividad en esa franja. Abajo se muestra cuántos días aportaron datos y el total acumulado de bultos.'
     : 'Cómo leerlo: el número grande son los bultos preparados en esa hora del turno elegido. Abajo se muestra la productividad de esa hora y el ritmo efectivo estimado por actividad registrada.';
+  const colorMetricText = isHistorical && productividadHourlyMetric === 'bultos'
+    ? 'promedio histórico de bultos de esa hora'
+    : heatmapMetricLabel;
+
+  const cacheKey2 = `${data.turno_key||data.turno||''}||${(data.filters?.almacen_actual||'ALL')}`;
+  const histCache = !isHistorical ? productividadHourlyHistoricoCache[cacheKey2] : null;
+
+  function calcDelta(actual, historico) {
+    if (historico == null || historico === 0) return null;
+    return Math.round((actual - historico) / Math.abs(historico) * 100);
+  }
+  function renderDelta(pct) {
+    if (pct === null) return '';
+    const cls = pct > 3 ? 'good' : pct < -3 ? 'bad' : 'neutral';
+    const arrow = pct > 3 ? '↑' : pct < -3 ? '↓' : '≈';
+    const sign = pct > 0 ? '+' : '';
+    return `<div class="kpi-delta ${cls}">${arrow} ${sign}${pct}% vs hist.</div>`;
+  }
+
+  const histLeyenda = histCache
+    ? `<div class="hourly-hist-leyenda">Comparando con histórico ${histCache.fecha_desde} → ${histCache.fecha_hasta}</div>`
+    : `<div class="hourly-hist-leyenda muted">Cargá un histórico en esta misma sub-tab para activar comparativas.</div>`;
+
+  const showReportBtn = !isHistorical && Boolean(data.summary?.turno_finalizado || data.cache?.turno_finalizado);
+  const reportBtnHtml = showReportBtn
+    ? `<div style="display:flex;justify-content:flex-end;margin-top:10px;">
+         <button class="turno-report-btn" onclick="openTurnoReportModal()">📋 Generar informe de turno</button>
+       </div>`
+    : '';
 
   container.innerHTML = `
     <div class="picking-analysis-kpis">
-      <div class="picking-analysis-kpi"><strong>Operarios</strong><span>${fmtNum(summary.operarios)}</span></div>
-      <div class="picking-analysis-kpi"><strong>Bultos</strong><span>${fmtNum(summary.bultos_total)}</span></div>
-      <div class="picking-analysis-kpi"><strong>Movimientos</strong><span>${fmtNum(summary.movimientos)}</span></div>
-      <div class="picking-analysis-kpi"><strong>${metricLabel}</strong><span>${fmtNum(summary.promedio_bultos_hora_activa)}</span></div>
+      <div class="picking-analysis-kpi"><strong>Operarios</strong><span>${fmtNum(summary.operarios)}</span>${renderDelta(calcDelta(summary.operarios, histCache?.summary?.operarios))}</div>
+      <div class="picking-analysis-kpi"><strong>Bultos</strong><span>${fmtNum(summary.bultos_total)}</span>${renderDelta(calcDelta(summary.bultos_total, histCache?.summary?.bultos_total))}</div>
+      <div class="picking-analysis-kpi"><strong>Movimientos</strong><span>${fmtNum(summary.movimientos)}</span>${renderDelta(calcDelta(summary.movimientos, histCache?.summary?.movimientos))}</div>
+      <div class="picking-analysis-kpi"><strong>${metricLabel}</strong><span>${fmtNum(summary.promedio_bultos_hora_activa)}</span>${renderDelta(calcDelta(summary.promedio_bultos_hora_activa, histCache?.summary?.promedio_bultos_hora_activa))}</div>
       <div class="picking-analysis-kpi"><strong>Hora pico</strong><span>${summary.hora_pico?.label || '—'}</span><div class="online-meta-sub">${fmtNum(summary.hora_pico?.bultos)} bultos</div></div>
     </div>
+    ${histLeyenda}
+    ${reportBtnHtml}
     ${renderProductividadHourlyTrendIa()}
     <div class="hourly-view-tabs">
       <button class="hourly-view-tab" id="hourly-view-btn-dashboard" onclick="switchHourlyView('dashboard')">Dashboard operativo</button>
@@ -2675,9 +4058,35 @@ function renderProductividadHourlyGrid() {
       <div class="online-meta-sub" style="margin-bottom:12px;">
         ${rangeText}
       </div>
+      <details class="hourly-glosario">
+        <summary>ⓘ Glosario de métricas</summary>
+        <div class="hourly-glosario-body">
+          <p><strong>Bultos preparados:</strong> total acumulado en la franja horaria.</p>
+          <p><strong>Ritmo (b/h):</strong> estimación de bultos por hora calculada entre el primer y último movimiento registrado en la celda. Mide actividad efectiva, no calendario completo.</p>
+          <p><strong>Confianza:</strong> Alta (≥8 mov. y ≥30 min.) / Media (≥4 mov. y ≥15 min.) / Baja (resto).</p>
+          <p><strong>Posible HE:</strong> detección heurística de actividad únicamente en los primeros o últimos bloques del rango horario del turno.</p>
+        </div>
+      </details>
       <div class="online-meta-sub" style="margin-bottom:12px;color:#d9e8ff;">
         ${helpText}
       </div>
+      <div class="hourly-color-guide" aria-label="Criterio de colores del heatmap">
+        <div class="hourly-color-guide-item"><span class="hourly-legend-swatch" style="background:rgba(255,255,255,.08);"></span><span><strong>Gris</strong>Sin actividad WMS registrada en esa celda.</span></div>
+        <div class="hourly-color-guide-item"><span class="hourly-legend-swatch" style="background:rgba(28,118,206,.65);"></span><span><strong>Azul</strong>Baja intensidad relativa: hasta 35% del máximo visible.</span></div>
+        <div class="hourly-color-guide-item"><span class="hourly-legend-swatch" style="background:rgba(255,184,0,.65);"></span><span><strong>Amarillo</strong>Intensidad media: entre 35% y 70% del máximo visible.</span></div>
+        <div class="hourly-color-guide-item"><span class="hourly-legend-swatch" style="background:rgba(0,255,136,.65);"></span><span><strong>Verde</strong>Alta intensidad relativa: 70% o más del máximo visible.</span></div>
+      </div>
+      <div class="hourly-color-guide-note">
+        El color compara ${colorMetricText} contra la celda más alta de la consulta visible y cambia cuando cambiás el selector. Las filas se ordenan por mayor intensidad de esa misma métrica. No significa bueno/malo por sí solo; para decidir mirá volumen, confianza, zona y contexto del turno.
+      </div>
+      ${(() => {
+        const metricButtons = ['bultos','ritmo','minutos'].map(m => {
+          const labels = { bultos: 'Bultos', ritmo: 'Ritmo b/h', minutos: 'Minutos activos' };
+          const isActive = productividadHourlyMetric === m;
+          return `<button class="hourly-metric-btn${isActive ? ' active' : ''}" data-metric="${m}" onclick="switchHourlyMetric('${m}')">${labels[m]}</button>`;
+        }).join('');
+        return `<div class="hourly-metric-toggle"><span class="hourly-metric-label">Mostrar:</span>${metricButtons}</div>`;
+      })()}
       <div class="hourly-heatmap-wrap">
         <table class="hourly-heatmap">
           <thead>
@@ -2697,14 +4106,24 @@ function renderProductividadHourlyGrid() {
                 ${hours.map(hour => {
                   const cell = row.cells?.[hour.key] || {};
                   const bultos = Number(cell.bultos || 0);
+                  const heatmapValue = getHeatmapMetricValue(cell);
                   const title = isHistorical
-                    ? `${row.operario || row.copecrea || ''} | ${hour.label}:00 hs | Promedio mostrado: ${fmtNum(bultos)} bultos por hora | Se calcula como ${fmtNum(cell.bultos_total)} bultos totales / ${fmtNum(cell.dias_con_datos)} día(s) con actividad en esa hora | Movimientos WMS registrados: ${fmtNum(cell.movimientos)} | Ritmo efectivo estimado: ${fmtMaybe(cell.ritmo_observado)} b/h`
-                    : `${row.operario || row.copecrea || ''} | ${hour.label}:00 hs | Bultos preparados: ${fmtNum(bultos)} | Movimientos WMS registrados: ${fmtNum(cell.movimientos)} | Minutos observados: ${fmtNum(cell.minutos_observados)} | Ritmo efectivo estimado: ${fmtMaybe(cell.ritmo_observado)} b/h`;
+                    ? `${row.operario || row.copecrea || ''} | ${hour.label}:00 hs | Color por ${heatmapMetricLabel}, relativo al máximo visible | Promedio mostrado: ${fmtNum(bultos)} bultos por hora | Se calcula como ${fmtNum(cell.bultos_total)} bultos totales / ${fmtNum(cell.dias_con_datos)} día(s) con actividad en esa hora | Movimientos WMS registrados: ${fmtNum(cell.movimientos)} | Ritmo efectivo estimado: ${fmtMaybe(cell.ritmo_observado)} b/h`
+                    : `${row.operario || row.copecrea || ''} | ${hour.label}:00 hs | Color por ${heatmapMetricLabel}, relativo al máximo visible | Bultos preparados: ${fmtNum(bultos)} | Movimientos WMS registrados: ${fmtNum(cell.movimientos)} | Minutos observados: ${fmtNum(cell.minutos_observados)} | Ritmo efectivo estimado: ${fmtMaybe(cell.ritmo_observado)} b/h`;
+                  const metricMain = productividadHourlyMetric === 'ritmo'
+                    ? (cell.ritmo_observado != null ? `${fmtMaybe(cell.ritmo_observado)}` : '—')
+                    : productividadHourlyMetric === 'minutos'
+                      ? (cell.minutos_observados > 0 ? `${fmtNum(Math.round(cell.minutos_observados))}` : '—')
+                      : (bultos ? fmtNum(bultos) : '—');
+                  const metricSub = productividadHourlyMetric !== 'bultos' && bultos
+                    ? (isHistorical ? `${fmtNum(cell.dias_con_datos)} día(s)` : `${fmtNum(bultos)} blt`)
+                    : (bultos ? (isHistorical ? `${fmtNum(cell.dias_con_datos)} día(s)` : `${fmtMaybe(cell.ritmo_observado) ?? '—'} b/h efectivo`) : 'sin actividad');
+                  const onclickAttr = bultos ? ` onclick="openHourlyCellDetail('${escapeHtml(String(row.copecrea||''))}','${escapeHtml(hour.key)}')"` : '';
                   return `
                     <td>
-                      <div class="hourly-cell ${bultos ? '' : 'empty'}" style="background:${hourlyCellColor(bultos, maxBultos)}" title="${escapeHtml(title)}">
-                        <div class="hourly-cell-main">${bultos ? fmtNum(bultos) : '—'}</div>
-                        <div class="hourly-cell-sub">${bultos ? (isHistorical ? `${fmtNum(cell.dias_con_datos)} día(s)<br>${fmtNum(cell.bultos_total)} bultos total` : `${fmtNum(cell.prod_calendario)} b/h<br>${fmtMaybe(cell.ritmo_observado)} efectivo`) : 'sin actividad'}</div>
+                      <div class="hourly-cell${bultos ? ' hourly-cell-clickable' : ' empty'}" style="background:${hourlyCellColor(heatmapValue, maxHeatmapValue)}" title="${escapeHtml(title)}"${onclickAttr}>
+                        <div class="hourly-cell-main">${metricMain}</div>
+                        <div class="hourly-cell-sub">${metricSub}</div>
                       </div>
                     </td>
                   `;
@@ -2715,10 +4134,7 @@ function renderProductividadHourlyGrid() {
         </table>
       </div>
       <div class="hourly-legend">
-        <span>Color: ${isHistorical ? 'promedio histórico de bultos/hora' : 'bultos por hora calendario'}</span>
-        <span class="hourly-legend-swatch" style="background:rgba(28,118,206,.65);"></span><span>Bajo</span>
-        <span class="hourly-legend-swatch" style="background:rgba(255,184,0,.65);"></span><span>Medio</span>
-        <span class="hourly-legend-swatch" style="background:rgba(0,255,136,.65);"></span><span>Alto</span>
+        <span>Escala relativa por ${heatmapMetricLabel}: gris sin dato · azul bajo · amarillo medio · verde alto</span>
       </div>
     </div>
     </div>
@@ -2778,6 +4194,14 @@ async function runProductividadHourly() {
     const cacheRule = data.cache?.turno_finalizado
       ? 'Turno finalizado: queda conservado localmente.'
       : 'Turno activo: se refrescará contra Oracle en cada ejecución.';
+    if (data.modo === 'historico') {
+      const cacheKey2 = `${data.turno_key||data.turno||''}||${data.filters?.almacen_actual||'ALL'}`;
+      productividadHourlyHistoricoCache[cacheKey2] = {
+        summary: data.summary || {},
+        fecha_desde: data.fecha_desde_rango || data.fecha_desde || '',
+        fecha_hasta: data.fecha_hasta_rango || data.fecha_hasta || '',
+      };
+    }
     renderProductividadHourlyGrid();
     status.textContent = mode === 'historical'
       ? `Productividad por hora histórica lista desde ${sourceLabel}. ${data.summary?.dias_consultados || 0} días, ${data.summary?.operarios || 0} operarios, ${Number(data.summary?.bultos_total || 0).toLocaleString('es-AR')} bultos.`
@@ -2813,8 +4237,8 @@ async function runProductividadHourlyTrendIa() {
 
   productividadHourlyTrendIaLoading = true;
   btn.disabled = true;
-  btn.textContent = 'Analizando IA...';
-  status.textContent = 'Analizando tendencia de horas pico y horas bajas. Si ya existe cache, no consume tokens.';
+  btn.textContent = 'Generando acciones...';
+  status.textContent = 'Generando acciones operativas priorizadas. Si ya existe cache, no consume tokens.';
 
   try {
     const resumen = buildHourlyTrendIaSummary(data, rows, hours, summary);
@@ -2828,14 +4252,14 @@ async function runProductividadHourlyTrendIa() {
     productividadHourlyTrendIaResult = payload;
     renderProductividadHourlyGrid();
     status.textContent = payload.cache?.ia_cache_hit
-      ? 'Lectura IA recuperada desde cache local.'
-      : 'Lectura IA de tendencia lista y guardada en cache local.';
+      ? 'Acciones IA recuperadas desde cache local.'
+      : 'Acciones IA listas y guardadas en cache local.';
   } catch (err) {
     status.textContent = err.message || 'No se pudo analizar la tendencia con IA.';
   } finally {
     productividadHourlyTrendIaLoading = false;
     btn.disabled = false;
-    btn.textContent = 'Analizar tendencia IA';
+    btn.textContent = 'Generar acciones IA';
   }
 }
 
@@ -2903,7 +4327,7 @@ async function runPickingAnalysisBase() {
   } finally {
     pickingAnalysisLoading = false;
     btn.disabled = false;
-    btn.textContent = 'Consultar dataset base';
+    btn.textContent = 'Consultar suerte';
   }
 }
 
@@ -2916,8 +4340,8 @@ async function runPickingAnalysisIa() {
   pickingAnalysisIaLoading = true;
   pickingAnalysisIaResult = null;
   btn.disabled = true;
-  btn.textContent = 'Ejecutando IA...';
-  status.textContent = 'Generando lectura IA sobre el cálculo base ya armado.';
+  btn.textContent = 'Generando acciones...';
+  status.textContent = 'Generando acciones operativas sobre el cálculo base ya armado.';
   renderPickingAnalysisBase();
 
   try {
@@ -2931,8 +4355,8 @@ async function runPickingAnalysisIa() {
     pickingAnalysisIaResult = data;
     renderPickingAnalysisBase();
     status.textContent = data?.cache?.ia_cache_hit
-      ? `Lectura IA recuperada desde cache local con ${String(data.provider || '').toUpperCase() || 'IA'}.`
-      : `Lectura IA lista con ${String(data.provider || '').toUpperCase() || 'IA'}.`;
+      ? `Acciones IA recuperadas desde cache local con ${String(data.provider || '').toUpperCase() || 'IA'}.`
+      : `Acciones IA listas con ${String(data.provider || '').toUpperCase() || 'IA'}.`;
   } catch (err) {
     status.textContent = err.message || 'No se pudo ejecutar la IA.';
   } finally {
@@ -2965,15 +4389,20 @@ async function initProductividadOnlineModule() {
       el.dataset.prodRangeBound = '1';
       el.addEventListener('change', () => {
         productividadOnlineResult = null;
+        productividadOnlineIaResult = null;
+        turnoEvaluationResult = null;
+        turnoEvaluationIaResult = null;
+        const onlineIaBtn = document.getElementById('btn-online-ia-run');
+        if (onlineIaBtn) onlineIaBtn.disabled = true;
         resetPickingAnalysisUi('Cambió el día o turno. Ejecutá una nueva consulta para ver datos de ese rango.');
         resetProductividadHourlyUi('Cambió el día o turno. Ejecutá Generar por hora para ver datos de ese rango.');
         const onlineResults = document.getElementById('online-tab-results');
         if (onlineResults) {
-          onlineResults.innerHTML = '<div class="analisis-empty">Cambió el día o turno. Ejecutá una nueva consulta para ver datos de ese rango.</div>';
+          onlineResults.innerHTML = '<div class="analisis-empty">Cambió el día o turno. Ejecutá Evaluar turno para recalcular el cierre.</div>';
         }
         const onlineStatus = document.getElementById('online-tab-status');
         if (onlineStatus) {
-          onlineStatus.textContent = 'Rango cambiado. La próxima consulta decidirá entre cache local y Oracle según si el turno finalizó.';
+          onlineStatus.textContent = 'Rango cambiado. La evaluación se habilita cuando el turno seleccionado está vencido.';
         }
       });
     }
@@ -3775,6 +5204,7 @@ function switchProdTab(tab) {
   document.getElementById('prod-online-date-wrap')?.classList.toggle('hidden', tab === 'hourly');
   document.getElementById('hourly-date-from-wrap')?.classList.toggle('hidden', tab !== 'hourly');
   document.getElementById('hourly-date-to-wrap')?.classList.toggle('hidden', tab !== 'hourly');
+  document.getElementById('online-field-operacion')?.classList.toggle('hidden', tab === 'hourly');
   if (tab === 'hourly') onHourlyRangeChange(false);
   updateProductividadToolbarStatus(tab);
 }
@@ -3783,9 +5213,9 @@ function updateProductividadToolbarStatus(tab) {
   const status = document.getElementById('online-tab-status');
   if (!status) return;
   if (tab === 'online') {
-    status.textContent = 'Consultá productividad online para el día y turno seleccionados.';
+    status.textContent = 'Evaluá un turno vencido contra histórico local. Para seguimiento en vivo usá Por hora o Suerte y dificultad.';
   } else if (tab === 'picking-ia') {
-    status.textContent = 'Consultá el dataset base de Picking y luego ejecutá IA sobre ese resultado.';
+    status.textContent = 'Consultá suerte y dificultad de Picking para el día y turno seleccionados.';
   } else if (tab === 'hourly') {
     status.textContent = getProductividadHourlyMode() === 'historical'
       ? 'Generá productividad por hora histórica para el rango, turno y filtros seleccionados.'

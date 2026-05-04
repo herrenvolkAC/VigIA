@@ -244,32 +244,122 @@ SYSTEM_PRODUCTIVIDAD_ANALISIS = (
 )
 
 SYSTEM_PICKING_ANALISIS_IA = (
-    "Sos un analista operativo senior especializado en picking.\n"
+    "Actuas como supervisor operativo de picking y jefe de logistica. "
+    "Tu objetivo es decidir que accion tomar ahora, no explicar el tablero.\n"
     "Recibis un resumen calculado localmente sobre productividad bruta, dificultad asignada, "
-    "productividad ajustada y comparaciones justas entre operarios.\n"
-    "No inventes causas externas ni afirmes certezas que no se desprendan del dataset.\n"
+    "productividad ajustada, ranking bruto, ranking ajustado, inequidades y comparaciones justas entre operarios.\n"
+    "Reglas estrictas:\n"
+    "- Priorizá accion operativa concreta sobre explicacion.\n"
+    "- Devolve maximo 3 acciones.\n"
+    "- No devuelvas dos acciones para el mismo operario/zona en mirar.\n"
+    "- Si un mismo operario/zona tiene varias senales, fusiona validaciones en una sola accion priorizada.\n"
+    "- Cada accion debe poder ejecutarla un supervisor en menos de 5 minutos.\n"
+    "- No inventes causas externas ni razones no presentes en los datos.\n"
+    "- No atribuyas intencion, culpa, actitud ni falta de esfuerzo.\n"
+    "- No recomiendes sanciones.\n"
+    "- No repitas metricas visibles salvo un dato clave en porque.\n"
+    "- Diferencia siempre tipo: operario, asignacion, sistema o sin_evidencia.\n"
+    "- Si el bajo rendimiento coincide con dificultad alta o mala asignacion, usa tipo asignacion.\n"
+    "- Si el operario cae en ranking ajustado con dificultad baja/media y baja productividad, usa tipo operario.\n"
+    "- Si varios operarios de la misma zona caen a la vez, usa tipo sistema.\n"
+    "- Si faltan datos, hay pocos movimientos o comparacion debil, usa tipo sin_evidencia y propone validacion concreta.\n"
+    "- Solo usa monitorear si no hay otra accion posible.\n"
     "Responde SOLO con JSON valido, sin markdown ni texto extra:\n"
-    '{"resumen":"oracion ejecutiva",'
-    '"hallazgos":["hallazgo 1","hallazgo 2","hallazgo 3"],'
-    '"recomendaciones":["accion 1","accion 2","accion 3"],'
-    '"aclaraciones":["aclaracion 1","aclaracion 2"]}\n'
-    "Aclara cuando algo sea una estimacion del modelo base."
+    '{"acciones":[{"prioridad":"alta|media|baja",'
+    '"accion":"accion concreta ejecutable en piso",'
+    '"mirar":"operario/zona especifico",'
+    '"tipo":"operario|asignacion|sistema|sin_evidencia",'
+    '"porque":"dato puntual que lo justifica",'
+    '"urgencia":"ahora|proxima_hora"}]}'
 )
 
-PICKING_ANALISIS_IA_PROMPT_VERSION = "picking-ia-v1"
-HOURLY_TREND_IA_PROMPT_VERSION = "hourly-trend-v1"
+PICKING_ANALISIS_IA_PROMPT_VERSION = "picking-operativo-v3"
+HOURLY_TREND_IA_PROMPT_VERSION = "hourly-operativo-v2"
+ONLINE_OPERATIVO_IA_PROMPT_VERSION = "online-operativo-v1"
+TURNO_EVALUACION_IA_PROMPT_VERSION = "turno-evaluacion-v1"
+PICKING_CACHE_CLOSED_TURN_TOLERANCE_MINUTES = 30
+SQLITE_BUSY_TIMEOUT_SECONDS = 30
+SQLITE_BUSY_TIMEOUT_MS = SQLITE_BUSY_TIMEOUT_SECONDS * 1000
+_SQLITE_WRITE_LOCK = asyncio.Lock()
 
 SYSTEM_HOURLY_TREND_IA = (
-    "Sos un supervisor operativo senior de un centro de distribucion.\n"
-    "Recibis un resumen ya calculado de productividad por hora de Picking.\n"
-    "Tu objetivo es explicar tendencia del turno en lenguaje de supervisor: corto, claro y accionable.\n"
-    "No inventes causas. Si algo no se puede saber, deci 'validar'.\n"
-    "Foco principal: horas pico, horas bajas, y si la baja parece masiva o concentrada en pocos operarios.\n"
+    "Actuas como supervisor operativo de picking en tiempo real. "
+    "Tu objetivo es decidir donde intervenir primero, no explicar el heatmap.\n"
+    "Recibis KPIs del turno o rango filtrado, bultos por hora, operarios activos por hora, "
+    "ranking de atencion, horas pico, horas bajas, caidas post pico, concentracion de actividad, "
+    "posibles HE y operarios sin actividad final.\n"
+    "Reglas estrictas:\n"
+    "- Priorizá intervencion operativa concreta.\n"
+    "- Devolve maximo 3 acciones.\n"
+    "- Cada accion debe poder ejecutarla un supervisor en menos de 5 minutos.\n"
+    "- No expliques tendencias si no llevan a una accion.\n"
+    "- No confirmes HE; usa validar posible HE.\n"
+    "- No interpretes celda vacia como ausencia fisica; significa sin movimiento WMS registrado.\n"
+    "- No atribuyas intencion, culpa ni actitud.\n"
+    "- Si varios operarios caen en la misma zona o franja, usa tipo sistema.\n"
+    "- Si un solo operario cae o queda sin movimiento, usa tipo operario o asignacion segun los datos.\n"
+    "- Si el patron sugiere falta de tarea, fin de carga o reasignacion, usa tipo asignacion.\n"
+    "- Si el filtro deja pocos datos, usa tipo sin_evidencia y propone validacion concreta.\n"
+    "- Solo usa monitorear si no hay otra accion posible.\n"
     "Responde SOLO con JSON valido, sin markdown ni texto extra:\n"
-    '{"titulo":"frase corta",'
-    '"bullets":["bullet 1","bullet 2","bullet 3","bullet 4"],'
-    '"validar":["validacion 1","validacion 2"]}\n'
-    "Maximo 4 bullets y maximo 2 validaciones. Cada texto debe ser breve."
+    '{"acciones":[{"prioridad":"alta|media|baja",'
+    '"accion":"accion concreta ejecutable en piso",'
+    '"mirar":"operario/zona especifico",'
+    '"tipo":"operario|asignacion|sistema|sin_evidencia",'
+    '"porque":"dato puntual que lo justifica",'
+    '"urgencia":"ahora|proxima_hora"}]}'
+)
+
+SYSTEM_PRODUCTIVIDAD_ONLINE_IA = (
+    "Actuas como supervisor operativo de picking en tiempo real. "
+    "Tu objetivo es priorizar acciones inmediatas con datos online de Oracle, no explicar la grilla.\n"
+    "Recibis filas agregadas por operario, operacion y almacen con ranking por operacion, score, participacion, "
+    "productividad actual, promedio de operacion, nivel hoy, ultimo movimiento y minutos desde ultimo movimiento.\n"
+    "Reglas estrictas:\n"
+    "- Priorizá accion operativa concreta.\n"
+    "- Devolve maximo 3 acciones.\n"
+    "- Cada accion debe poder ejecutarla un supervisor en menos de 5 minutos.\n"
+    "- Compara operarios solo dentro de la misma operacion.\n"
+    "- No mezcles operaciones para concluir desempeño.\n"
+    "- No atribuyas intencion, culpa ni actitud.\n"
+    "- No recomiendes sanciones.\n"
+    "- No tomes productividad alta con bajo volumen como desempeño confirmado.\n"
+    "- Si hay pocos minutos activos, pocas lineas o bajo volumen, usa tipo sin_evidencia y propone validacion concreta.\n"
+    "- Si hay muchos operarios afectados en la misma operacion o almacen, usa tipo sistema.\n"
+    "- Si un operario esta bajo el promedio con volumen suficiente, usa tipo operario.\n"
+    "- Si el patron sugiere falta de tarea, cambio de asignacion o ultimo movimiento antiguo, usa tipo asignacion.\n"
+    "- Solo usa monitorear si no hay otra accion posible.\n"
+    "Responde SOLO con JSON valido, sin markdown ni texto extra:\n"
+    '{"acciones":[{"prioridad":"alta|media|baja",'
+    '"accion":"accion concreta ejecutable en piso",'
+    '"mirar":"operario/zona especifico",'
+    '"tipo":"operario|asignacion|sistema|sin_evidencia",'
+    '"porque":"dato puntual que lo justifica",'
+    '"urgencia":"ahora|proxima_hora"}]}'
+)
+
+SYSTEM_TURNO_EVALUACION_IA = (
+    "Actuas como jefe operativo explicando el cierre de turno en lenguaje simple. "
+    "Tu objetivo es decir si estuvo mejor, peor o parecido al historico, y por que.\n"
+    "Recibis un diagnostico matematico ya calculado: turno actual, baseline historico, variaciones y factores. "
+    "No inventes datos y no atribuyas culpa, actitud ni intencion.\n"
+    "Reglas estrictas:\n"
+    "- Usa frases cortas, concretas y terrenales.\n"
+    "- No uses palabras rebuscadas como cadencia, fluidez, absorcion, diferencial o comparable si podes decirlo simple.\n"
+    "- El resumen debe tener maximo 2 frases.\n"
+    "- Cada factor debe tener dato de maximo 14 palabras.\n"
+    "- Cada accion debe ser concreta y de piso.\n"
+    "- Si hay pocos turnos historicos, decilo simple: poca base historica.\n"
+    "- Devolve maximo 3 factores y maximo 2 acciones.\n"
+    "Responde SOLO con JSON valido, sin markdown ni texto extra:\n"
+    '{"resultado":{"estado":"mejor|peor|similar|sin_base",'
+    '"titular":"frase corta",'
+    '"resumen":"maximo 2 frases simples",'
+    '"confianza":"alta|media|baja"},'
+    '"factores":[{"nombre":"factor","impacto":"positivo|negativo|neutro",'
+    '"dato":"dato breve","explicacion":"frase muy corta"}],'
+    '"acciones":[{"prioridad":"alta|media|baja","accion":"accion concreta",'
+    '"porque":"dato breve"}]}'
 )
 
 
@@ -288,6 +378,18 @@ class PickingAnalisisIARequest(BaseModel):
 class HourlyTrendIARequest(BaseModel):
     provider: str | None = None
     resumen: dict[str, Any]
+    force_refresh: bool = False
+
+
+class OnlineOperativoIARequest(BaseModel):
+    provider: str | None = None
+    resumen: dict[str, Any]
+    force_refresh: bool = False
+
+
+class TurnoEvaluacionIARequest(BaseModel):
+    provider: str | None = None
+    evaluacion: dict[str, Any]
     force_refresh: bool = False
 
 
@@ -474,6 +576,80 @@ def _canonical_json(value: Any) -> str:
 
 def _hash_payload(value: Any) -> str:
     return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def _normalize_action_target(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", _safe_str(value, "Operacion filtrada"))
+    ascii_value = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    compact = " ".join(ascii_value.upper().replace(" - ", " ").replace("/", " ").split())
+    return compact or "OPERACION FILTRADA"
+
+
+def _merge_operational_action(existing: dict[str, str], incoming: dict[str, str]) -> dict[str, str]:
+    priority_rank = {"alta": 0, "media": 1, "baja": 2}
+    urgency_rank = {"ahora": 0, "proxima_hora": 1}
+    type_rank = {"sistema": 0, "asignacion": 1, "operario": 2, "sin_evidencia": 3}
+    merged = dict(existing)
+    if priority_rank.get(incoming["prioridad"], 9) < priority_rank.get(merged["prioridad"], 9):
+        merged["prioridad"] = incoming["prioridad"]
+    if urgency_rank.get(incoming["urgencia"], 9) < urgency_rank.get(merged["urgencia"], 9):
+        merged["urgencia"] = incoming["urgencia"]
+    if type_rank.get(incoming["tipo"], 9) < type_rank.get(merged["tipo"], 9):
+        merged["tipo"] = incoming["tipo"]
+    if incoming["accion"] and incoming["accion"] not in merged["accion"]:
+        merged["accion"] = f"{merged['accion']} Tambien validar: {incoming['accion']}"
+    if incoming["porque"] and incoming["porque"] not in merged["porque"]:
+        merged["porque"] = f"{merged['porque']} Ademas: {incoming['porque']}"
+    return merged
+
+
+def _normalize_operational_ai_payload(parsed: Any) -> dict[str, Any]:
+    if not isinstance(parsed, dict):
+        parsed = {}
+    raw_actions = parsed.get("acciones")
+    if not isinstance(raw_actions, list):
+        raw_actions = []
+
+    allowed_prioridad = {"alta", "media", "baja"}
+    allowed_tipo = {"operario", "asignacion", "sistema", "sin_evidencia"}
+    allowed_urgencia = {"ahora", "proxima_hora"}
+    actions_by_target: dict[str, dict[str, str]] = {}
+    ordered_targets = []
+    for raw in raw_actions:
+        if not isinstance(raw, dict):
+            continue
+        prioridad = _safe_str(raw.get("prioridad"), "media").lower()
+        tipo = _safe_str(raw.get("tipo"), "sin_evidencia").lower()
+        urgencia = _safe_str(raw.get("urgencia"), "proxima_hora").lower()
+        action = {
+            "prioridad": prioridad if prioridad in allowed_prioridad else "media",
+            "accion": _safe_str(raw.get("accion"), "Validar el caso con el supervisor de piso antes de intervenir."),
+            "mirar": _safe_str(raw.get("mirar"), "Operacion filtrada"),
+            "tipo": tipo if tipo in allowed_tipo else "sin_evidencia",
+            "porque": _safe_str(raw.get("porque"), "No hay evidencia suficiente para una causa unica."),
+            "urgencia": urgencia if urgencia in allowed_urgencia else "proxima_hora",
+        }
+        target_key = _normalize_action_target(action["mirar"])
+        if target_key in actions_by_target:
+            actions_by_target[target_key] = _merge_operational_action(actions_by_target[target_key], action)
+        else:
+            ordered_targets.append(target_key)
+            actions_by_target[target_key] = action
+
+    actions = [actions_by_target[target] for target in ordered_targets]
+
+    if not actions:
+        actions.append(
+            {
+                "prioridad": "media",
+                "accion": "Validar datos visibles, filtro aplicado y captura WMS antes de decidir una reasignacion.",
+                "mirar": "Operacion filtrada",
+                "tipo": "sin_evidencia",
+                "porque": "La IA no devolvio acciones operativas validas con los datos recibidos.",
+                "urgencia": "proxima_hora",
+            }
+        )
+    return {"acciones": actions[:3]}
 
 
 def _productive_db_local_only_enabled() -> bool:
@@ -1468,7 +1644,9 @@ async def _store_cached_picking_analysis_rows(
     rows: list[dict[str, Any]],
     source_name: str = "oracle_productiva",
 ) -> int:
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with _SQLITE_WRITE_LOCK:
+      async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
         await db.execute("PRAGMA foreign_keys = ON")
         existing = await db.execute(
             "SELECT cache_run_id FROM picking_analysis_cache_runs WHERE fecha = ? AND turno_key = ?",
@@ -1558,18 +1736,38 @@ async def _get_picking_cache_run_row(fecha: str, turno_key: str) -> aiosqlite.Ro
             return await cur.fetchone()
 
 
-def _picking_cache_is_complete_for_closed_turn(cached_run: aiosqlite.Row | None, fecha_hasta: str) -> bool:
+async def _picking_cache_is_complete_for_closed_turn(cached_run: aiosqlite.Row | None, fecha_hasta: str) -> bool:
     if not cached_run:
         return False
     if _safe_str(cached_run["fecha_hasta"], "") != fecha_hasta:
         return False
-    updated_at = _safe_str(cached_run["updated_at"], "")
-    if not updated_at:
-        return False
     try:
-        return _parse_dt(updated_at, "cache_updated_at") >= _parse_dt(fecha_hasta, "fecha_hasta")
+        end_dt = _parse_dt(fecha_hasta, "fecha_hasta")
     except HTTPException:
         return False
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT COUNT(*) AS rows_count,
+                   MAX(fh_movimiento) AS max_fh_movimiento
+            FROM picking_analysis_cache_rows
+            WHERE cache_run_id = ?
+            """,
+            (cached_run["cache_run_id"],),
+        ) as cur:
+            stats = await cur.fetchone()
+    if not stats or int(stats["rows_count"] or 0) <= 0:
+        return False
+    max_fh = _safe_str(stats["max_fh_movimiento"], "")
+    if not max_fh:
+        return False
+    try:
+        max_dt = _parse_dt(max_fh.replace("T", " ")[:19], "max_fh_movimiento")
+    except HTTPException:
+        return False
+    minutes_to_close = (end_dt - max_dt).total_seconds() / 60
+    return minutes_to_close <= PICKING_CACHE_CLOSED_TURN_TOLERANCE_MINUTES
 
 
 async def _update_picking_cache_run_hash(
@@ -1578,12 +1776,13 @@ async def _update_picking_cache_run_hash(
     turno_key: str,
     resumen_hash: str,
 ) -> None:
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with _SQLITE_WRITE_LOCK:
+      async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
         await db.execute(
             """
             UPDATE picking_analysis_cache_runs
-            SET resumen_hash = ?,
-                updated_at = CURRENT_TIMESTAMP
+            SET resumen_hash = ?
             WHERE fecha = ? AND turno_key = ?
             """,
             (resumen_hash, fecha, turno_key),
@@ -1600,7 +1799,9 @@ async def _update_picking_cache_run_ia(
     summary_hash: str,
     ia_payload: dict[str, Any],
 ) -> None:
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with _SQLITE_WRITE_LOCK:
+      async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
         await db.execute(
             """
             UPDATE picking_analysis_cache_runs
@@ -1689,7 +1890,34 @@ def _build_hourly_trend_ia_context(resumen: dict[str, Any]) -> str:
             f"Horas: {json.dumps(resumen.get('horas', []), ensure_ascii=False)}",
             f"Diagnostico local: {json.dumps(resumen.get('diagnostico_local', {}), ensure_ascii=False)}",
             f"Alertas: {json.dumps(resumen.get('alertas', {}), ensure_ascii=False)}",
-            "Redacta en lenguaje de supervisor, sin tecnicismos innecesarios.",
+            "Prioriza acciones operativas concretas para supervisor, sin tecnicismos innecesarios.",
+        ]
+    )
+
+
+def _build_online_operativo_ia_context(resumen: dict[str, Any]) -> str:
+    return "\n".join(
+        [
+            "PRODUCTIVIDAD ONLINE - ACCIONES OPERATIVAS",
+            f"Contexto: {json.dumps(resumen.get('contexto', {}), ensure_ascii=False)}",
+            f"Resumen: {json.dumps(resumen.get('summary', {}), ensure_ascii=False)}",
+            f"Operaciones: {json.dumps(resumen.get('operaciones', []), ensure_ascii=False)}",
+            f"Casos priorizados: {json.dumps(resumen.get('casos', []), ensure_ascii=False)}",
+            "Prioriza a quien revisar ahora, donde actuar y que validar en piso.",
+        ]
+    )
+
+
+def _build_turno_evaluacion_ia_context(evaluacion: dict[str, Any]) -> str:
+    return "\n".join(
+        [
+            "EVALUACION DE TURNO CERRADO",
+            f"Contexto: {json.dumps({k: evaluacion.get(k) for k in ['fecha', 'turno', 'turno_key', 'estado']}, ensure_ascii=False)}",
+            f"Turno actual: {json.dumps(evaluacion.get('current', {}), ensure_ascii=False)}",
+            f"Historico comparable: {json.dumps(evaluacion.get('baseline', {}), ensure_ascii=False)}",
+            f"Comparaciones: {json.dumps(evaluacion.get('comparisons', {}), ensure_ascii=False)}",
+            f"Factores calculados: {json.dumps(evaluacion.get('factors', []), ensure_ascii=False)}",
+            f"Notas: {json.dumps(evaluacion.get('notes', []), ensure_ascii=False)}",
         ]
     )
 
@@ -1742,6 +1970,297 @@ async def _get_productividad_online_cache_run(fecha: str, turno_key: str) -> aio
             return await cur.fetchone()
 
 
+def _online_row_value(row: dict[str, Any], *keys: str, default: Any = "") -> Any:
+    for key in keys:
+        if key in row and row.get(key) is not None:
+            return row.get(key)
+        upper = key.upper()
+        if upper in row and row.get(upper) is not None:
+            return row.get(upper)
+        lower = key.lower()
+        if lower in row and row.get(lower) is not None:
+            return row.get(lower)
+    return default
+
+
+def _summarize_online_detail_rows(
+    rows: list[dict[str, Any]],
+    *,
+    allowed_operations: set[str] | None,
+    fecha: str,
+    turno_key: str,
+    turno_label: str,
+    fecha_desde: str,
+    fecha_hasta: str,
+) -> dict[str, Any]:
+    operarios = set()
+    operaciones: dict[str, dict[str, Any]] = {}
+    almacenes = set()
+    movimientos = 0
+    bultos = 0.0
+    peso = 0.0
+    first_dt: datetime | None = None
+    last_dt: datetime | None = None
+    for row in rows:
+        operacion = _normalize_operacion_name(_safe_str(_online_row_value(row, "operacion"), ""))
+        if allowed_operations and operacion not in allowed_operations:
+            continue
+        movimientos += 1
+        cantidad = _safe_float(_online_row_value(row, "cantidad", default=0))
+        peso_row = _safe_float(_online_row_value(row, "peso", default=0))
+        bultos += cantidad
+        peso += peso_row
+        legajo = _safe_str(_online_row_value(row, "copecrea"), "")
+        if legajo:
+            operarios.add(legajo)
+        almacen = _safe_str(_online_row_value(row, "almacen"), "SIN MAPEAR")
+        almacenes.add(almacen)
+        op = operaciones.setdefault(operacion or "SIN OPERACION", {"operacion": operacion or "SIN OPERACION", "movimientos": 0, "bultos": 0.0, "peso": 0.0})
+        op["movimientos"] += 1
+        op["bultos"] += cantidad
+        op["peso"] += peso_row
+        fh_text = str(_online_row_value(row, "fh_movimiento", default="") or "")
+        if fh_text:
+            try:
+                fh_dt = _parse_dt(fh_text.replace("T", " ")[:19], "fh_movimiento")
+                first_dt = fh_dt if first_dt is None or fh_dt < first_dt else first_dt
+                last_dt = fh_dt if last_dt is None or fh_dt > last_dt else last_dt
+            except HTTPException:
+                pass
+    try:
+        range_hours = max((_parse_dt(fecha_hasta, "fecha_hasta") - _parse_dt(fecha_desde, "fecha_desde")).total_seconds() / 3600, 0.01)
+    except HTTPException:
+        range_hours = 1.0
+    active_hours = max(((last_dt - first_dt).total_seconds() / 3600), 0.0) if first_dt and last_dt else 0.0
+    operarios_count = len(operarios)
+    op_list = sorted(
+        [
+            {
+                **item,
+                "bultos_pct": round((item["bultos"] / bultos * 100), 1) if bultos else 0.0,
+            }
+            for item in operaciones.values()
+        ],
+        key=lambda item: item["bultos"],
+        reverse=True,
+    )
+    return {
+        "fecha": fecha,
+        "turno_key": turno_key,
+        "turno_label": turno_label,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "movimientos": movimientos,
+        "bultos": round(bultos, 2),
+        "peso": round(peso, 2),
+        "operarios": operarios_count,
+        "almacenes": len(almacenes),
+        "operaciones": len(operaciones),
+        "bultos_hora_turno": round(bultos / range_hours, 2) if range_hours else 0.0,
+        "movimientos_hora_turno": round(movimientos / range_hours, 2) if range_hours else 0.0,
+        "kg_hora_turno": round(peso / range_hours, 2) if range_hours else 0.0,
+        "bultos_por_operario": round(bultos / operarios_count, 2) if operarios_count else 0.0,
+        "bultos_por_linea": round(bultos / movimientos, 2) if movimientos else 0.0,
+        "kg_por_movimiento": round(peso / movimientos, 2) if movimientos else 0.0,
+        "horas_rango": round(range_hours, 2),
+        "horas_actividad_observada": round(active_hours, 2),
+        "mix_operaciones": op_list[:8],
+    }
+
+
+def _historical_baseline(metrics: list[dict[str, Any]]) -> dict[str, Any]:
+    numeric_keys = [
+        "movimientos",
+        "bultos",
+        "peso",
+        "operarios",
+        "bultos_hora_turno",
+        "movimientos_hora_turno",
+        "kg_hora_turno",
+        "bultos_por_operario",
+        "bultos_por_linea",
+        "kg_por_movimiento",
+    ]
+    baseline: dict[str, Any] = {"turnos": len(metrics)}
+    for key in numeric_keys:
+        values = [float(item.get(key) or 0) for item in metrics if item.get(key) is not None]
+        baseline[key] = round(statistics.mean(values), 2) if values else 0.0
+    baseline["fechas"] = [item.get("fecha") for item in metrics if item.get("fecha")]
+    return baseline
+
+
+def _pct_delta(actual: float, base: float) -> float | None:
+    if base == 0:
+        return None
+    return round((actual - base) / abs(base) * 100, 1)
+
+
+def _build_turno_evaluation_payload(current: dict[str, Any], baseline: dict[str, Any]) -> dict[str, Any]:
+    comparisons = {}
+    for key in [
+        "bultos_hora_turno",
+        "movimientos_hora_turno",
+        "kg_hora_turno",
+        "operarios",
+        "bultos_por_linea",
+        "kg_por_movimiento",
+        "bultos_por_operario",
+    ]:
+        comparisons[key] = {
+            "actual": current.get(key, 0),
+            "historico": baseline.get(key, 0),
+            "delta_pct": _pct_delta(float(current.get(key) or 0), float(baseline.get(key) or 0)),
+        }
+    main_delta = comparisons["bultos_hora_turno"]["delta_pct"]
+    if baseline.get("turnos", 0) < 3:
+        estado = "sin_base"
+    elif main_delta is None or abs(main_delta) < 5:
+        estado = "similar"
+    elif main_delta > 0:
+        estado = "mejor"
+    else:
+        estado = "peor"
+    factor_defs = [
+        ("bultos_por_linea", "Consolidacion", True),
+        ("kg_por_movimiento", "Peso por movimiento", False),
+        ("operarios", "Dotacion registrada", True),
+        ("bultos_por_operario", "Bultos por operario", True),
+        ("movimientos_hora_turno", "Movimientos por hora", True),
+    ]
+    factors = []
+    for key, label, higher_is_positive in factor_defs:
+        delta = comparisons[key]["delta_pct"]
+        if delta is None:
+            impact = "neutro"
+        elif abs(delta) < 5:
+            impact = "neutro"
+        elif (delta > 0 and higher_is_positive) or (delta < 0 and not higher_is_positive):
+            impact = "positivo"
+        else:
+            impact = "negativo"
+        factors.append(
+            {
+                "key": key,
+                "nombre": label,
+                "impacto": impact,
+                "actual": comparisons[key]["actual"],
+                "historico": comparisons[key]["historico"],
+                "delta_pct": delta,
+            }
+        )
+    return {
+        "fecha": current.get("fecha"),
+        "turno": current.get("turno_label"),
+        "turno_key": current.get("turno_key"),
+        "fecha_desde": current.get("fecha_desde"),
+        "fecha_hasta": current.get("fecha_hasta"),
+        "estado": estado,
+        "current": current,
+        "baseline": baseline,
+        "comparisons": comparisons,
+        "factors": factors,
+        "notes": [
+            "La comparacion usa turnos cerrados del mismo turno ya guardados en cache local.",
+            "El backend calcula las diferencias; la IA solo explica causas probables con esos datos.",
+        ],
+    }
+
+
+async def _get_online_historical_metrics(fecha: str, turno_key: str, allowed_operations: set[str] | None, limit: int = 12) -> list[dict[str, Any]]:
+    async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT cache_run_id, fecha, turno_key, turno_label, fecha_desde, fecha_hasta
+            FROM productividad_online_cache_runs
+            WHERE turno_key = ? AND fecha < ?
+            ORDER BY fecha DESC
+            LIMIT ?
+            """,
+            (turno_key, fecha, limit),
+        ) as cur:
+            runs = await cur.fetchall()
+        metrics = []
+        for run in runs:
+            async with db.execute(
+                """
+                SELECT *
+                FROM productividad_online_cache_rows
+                WHERE cache_run_id = ?
+                """,
+                (run["cache_run_id"],),
+            ) as cur:
+                rows = [dict(row) async for row in cur]
+            if rows:
+                metrics.append(
+                    _summarize_online_detail_rows(
+                        rows,
+                        allowed_operations=allowed_operations,
+                        fecha=run["fecha"],
+                        turno_key=run["turno_key"],
+                        turno_label=run["turno_label"],
+                        fecha_desde=run["fecha_desde"],
+                        fecha_hasta=run["fecha_hasta"],
+                    )
+                )
+        return metrics
+
+
+async def _update_online_cache_evaluation(fecha: str, turno_key: str, evaluation: dict[str, Any]) -> None:
+    evaluation_hash = _hash_payload(evaluation)
+    async with _SQLITE_WRITE_LOCK:
+      async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
+        await db.execute(
+            """
+            UPDATE productividad_online_cache_runs
+            SET evaluacion_json = ?,
+                evaluacion_hash = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE fecha = ? AND turno_key = ?
+            """,
+            (_canonical_json(evaluation), evaluation_hash, fecha, turno_key),
+        )
+        await db.commit()
+
+
+async def _update_online_cache_ia(
+    *,
+    fecha: str,
+    turno_key: str,
+    provider: str,
+    model_used: str,
+    summary_hash: str,
+    ia_payload: dict[str, Any],
+) -> None:
+    async with _SQLITE_WRITE_LOCK:
+      async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
+        await db.execute(
+            """
+            UPDATE productividad_online_cache_runs
+            SET ia_provider = ?,
+                ia_model = ?,
+                ia_prompt_version = ?,
+                ia_summary_hash = ?,
+                ia_json = ?,
+                ia_generated_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE fecha = ? AND turno_key = ?
+            """,
+            (
+                provider,
+                model_used,
+                TURNO_EVALUACION_IA_PROMPT_VERSION,
+                summary_hash,
+                _canonical_json(ia_payload),
+                fecha,
+                turno_key,
+            ),
+        )
+        await db.commit()
+
+
 async def _store_cached_productividad_online_rows(
     *,
     fecha: str,
@@ -1751,7 +2270,9 @@ async def _store_cached_productividad_online_rows(
     fecha_hasta: str,
     rows: list[dict[str, Any]],
 ) -> int:
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with _SQLITE_WRITE_LOCK:
+      async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
         await db.execute("PRAGMA foreign_keys = ON")
         existing = await db.execute(
             "SELECT cache_run_id FROM productividad_online_cache_runs WHERE fecha = ? AND turno_key = ?",
@@ -1876,7 +2397,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
     turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
     turno_finalizado = _turn_finished(fecha_hasta)
     cached_run = await _get_picking_cache_run_row(fecha, turno_key) if turno_finalizado else None
-    if cached_run and not _picking_cache_is_complete_for_closed_turn(cached_run, fecha_hasta):
+    if cached_run and not await _picking_cache_is_complete_for_closed_turn(cached_run, fecha_hasta):
         cached_run = None
     detail_rows = await _get_cached_picking_analysis_rows(fecha, turno_key) if cached_run else []
     source_name = "sqlite_cache" if cached_run else "oracle_productiva"
@@ -2022,13 +2543,16 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
     rows = []
     difficulty_indexes = []
     cantidad_horas = []
+    bultos_por_linea_values = []
     for current in operarios.values():
         hs_totales = round(current["seg_total"] / 3600, 2) if current["seg_total"] > 0 else 0.0
         cantidad_hora = round(current["cantidad_total"] / hs_totales, 2) if hs_totales > 0 else 0.0
         kg_hora = round(current["peso_total"] / hs_totales, 2) if hs_totales > 0 else 0.0
         dificultad_promedio = round(current["dificultad_total"] / max(current["lineas"], 1), 2)
+        bultos_por_linea = round(current["cantidad_total"] / max(current["lineas"], 1), 2)
         difficulty_indexes.append(dificultad_promedio)
         cantidad_horas.append(cantidad_hora)
+        bultos_por_linea_values.append(bultos_por_linea)
         rows.append(
             {
                 "copecrea": current["copecrea"],
@@ -2040,6 +2564,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
                 "ultimo_mov": current["ultimo_mov_dt"].strftime("%Y-%m-%d %H:%M:%S") if current["ultimo_mov_dt"] else "",
                 "lineas": current["lineas"],
                 "cantidad_total": round(current["cantidad_total"], 2),
+                "bultos_por_linea": bultos_por_linea,
                 "peso_total": round(current["peso_total"], 2),
                 "pallets_distintos": len(current["pallets"]),
                 "hs_totales": hs_totales,
@@ -2055,13 +2580,20 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
 
     avg_difficulty = statistics.mean(difficulty_indexes) if difficulty_indexes else 1.0
     avg_cantidad_hora = statistics.mean(cantidad_horas) if cantidad_horas else 0.0
+    avg_bultos_por_linea = statistics.mean(bultos_por_linea_values) if bultos_por_linea_values else 1.0
 
     for row in rows:
         factor_dificultad = _clamp((row["indice_dificultad"] / avg_difficulty) if avg_difficulty > 0 else 1.0, 0.75, 1.35)
-        productividad_ajustada = round(row["cantidad_hora"] * factor_dificultad, 2)
-        suerte_asignacion_pct = round(((avg_difficulty - row["indice_dificultad"]) / avg_difficulty) * 100, 2) if avg_difficulty > 0 else 0.0
+        factor_consolidacion = _clamp((avg_bultos_por_linea / row["bultos_por_linea"]) if row["bultos_por_linea"] > 0 else 1.0, 0.75, 1.35)
+        productividad_ajustada = round(row["cantidad_hora"] * factor_dificultad * factor_consolidacion, 2)
+        suerte_dificultad_pct = round(((avg_difficulty - row["indice_dificultad"]) / avg_difficulty) * 100, 2) if avg_difficulty > 0 else 0.0
+        suerte_consolidacion_pct = round(((row["bultos_por_linea"] - avg_bultos_por_linea) / avg_bultos_por_linea) * 100, 2) if avg_bultos_por_linea > 0 else 0.0
+        suerte_asignacion_pct = round(suerte_dificultad_pct + suerte_consolidacion_pct, 2)
         row["factor_dificultad"] = round(factor_dificultad, 3)
+        row["factor_consolidacion"] = round(factor_consolidacion, 3)
         row["productividad_ajustada"] = productividad_ajustada
+        row["suerte_dificultad_pct"] = suerte_dificultad_pct
+        row["suerte_consolidacion_pct"] = suerte_consolidacion_pct
         row["suerte_asignacion_pct"] = suerte_asignacion_pct
         row["gap_vs_promedio_bruto_pct"] = round(((row["cantidad_hora"] - avg_cantidad_hora) / avg_cantidad_hora) * 100, 2) if avg_cantidad_hora > 0 else 0.0
         row["gap_vs_promedio_ajustado_pct"] = round(((productividad_ajustada - avg_cantidad_hora) / avg_cantidad_hora) * 100, 2) if avg_cantidad_hora > 0 else 0.0
@@ -2150,6 +2682,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
             "Los saltos de recorrido suman 1 salto cuando el operario cambia de ubicacion entre dos picks consecutivos; no son metros fisicos.",
             "El sentido de circulacion por pasillo todavia no se aplica hasta contar con una regla/configuracion confiable de pasillos ascendentes y descendentes.",
             "La productividad ajustada toma la cantidad/hora y la normaliza por la dificultad promedio asignada.",
+            "Mas bultos por linea se interpreta como mejor consolidacion de la asignacion: una parada resuelve mas bultos.",
             "La suerte de asignacion es relativa al promedio del turno consultado.",
             "Los coeficientes 0.08 para cantidad y 0.03 para peso son ponderaciones heuristicas iniciales del V0; no representan todavia una calibracion estadistica cerrada del negocio.",
         ],
@@ -2158,8 +2691,12 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
             "Horas activas = suma de diferencias entre movimientos consecutivos del mismo operario.",
             "Dificultad fila = 1 + (cantidad * 0.08) + (peso * 0.03) + bonos por cambio de ubicacion/pasillo/zona.",
             "Indice de dificultad = dificultad_total / lineas.",
-            "Productividad ajustada = cantidad/hora * factor_dificultad, con factor acotado entre 0.75 y 1.35.",
-            "Suerte asignacion % = (dificultad_promedio_turno - dificultad_operario) / dificultad_promedio_turno * 100.",
+            "Bultos por linea = cantidad_total / lineas.",
+            "Factor consolidacion = bultos_por_linea_promedio_turno / bultos_por_linea_operario, acotado entre 0.75 y 1.35.",
+            "Productividad ajustada = cantidad/hora * factor_dificultad * factor_consolidacion.",
+            "Suerte dificultad % = (dificultad_promedio_turno - dificultad_operario) / dificultad_promedio_turno * 100.",
+            "Suerte consolidacion % = (bultos_por_linea_operario - bultos_por_linea_promedio_turno) / bultos_por_linea_promedio_turno * 100.",
+            "Suerte asignacion % = suerte dificultad % + suerte consolidacion %.",
         ],
     }
 
@@ -2180,6 +2717,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
             "distancia_estimada_total_m": round(total_saltos, 2),
             "dificultad_promedio": round(avg_difficulty, 2),
             "cantidad_hora_promedio": round(avg_cantidad_hora, 2),
+            "bultos_por_linea_promedio": round(avg_bultos_por_linea, 2),
             "almacenes": len(almacenes),
             "zonas": len(zonas),
             "source_name": source_name,
@@ -2216,7 +2754,7 @@ async def _load_picking_detail_for_turn(fecha: str, turno: str) -> tuple[str, st
     turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
     turno_finalizado = _turn_finished(fecha_hasta)
     cached_run = await _get_picking_cache_run_row(fecha, turno_key) if turno_finalizado else None
-    if cached_run and not _picking_cache_is_complete_for_closed_turn(cached_run, fecha_hasta):
+    if cached_run and not await _picking_cache_is_complete_for_closed_turn(cached_run, fecha_hasta):
         cached_run = None
     detail_rows = await _get_cached_picking_analysis_rows(fecha, turno_key) if cached_run else []
     source_name = "sqlite_cache" if cached_run else "oracle_productiva"
@@ -2312,10 +2850,12 @@ def _build_picking_hourly_productivity(
                 "total_bultos": 0.0,
                 "movimientos": 0,
                 "horas_con_movimiento": 0,
+                "almacenes": {},
             },
         )
         op["total_bultos"] += cantidad
         op["movimientos"] += 1
+        op["almacenes"][almacen] = op["almacenes"].get(almacen, 0) + 1
 
         current = grouped.setdefault(
             (legajo, hour_key),
@@ -2393,6 +2933,7 @@ def _build_picking_hourly_productivity(
                 "movimientos": op["movimientos"],
                 "horas_con_movimiento": op["horas_con_movimiento"],
                 "promedio_calendario_hora_activa": round(op["total_bultos"] / max(op["horas_con_movimiento"], 1), 2),
+                "almacen_principal": max(op.get("almacenes", {}), key=lambda k: op["almacenes"][k], default="SIN MAPEAR"),
                 "cells": cells,
             }
         )
@@ -2798,7 +3339,12 @@ async def post_picking_analysis_ia(req: PickingAnalisisIARequest):
         summary_hash = _safe_str(req.analisis_base.get("cache", {}).get("summary_hash"), "") or _hash_payload(req.analisis_base)
         if fecha and turno_key:
             cached_row = await _get_picking_cache_run_row(fecha, turno_key)
-            if turno_finalizado and cached_row and cached_row["ia_json"]:
+            if (
+                turno_finalizado
+                and cached_row
+                and cached_row["ia_json"]
+                and cached_row["ia_prompt_version"] == PICKING_ANALISIS_IA_PROMPT_VERSION
+            ):
                 cached_payload = json.loads(cached_row["ia_json"])
                 cached_payload["cache"] = {
                     "ia_cache_hit": True,
@@ -2848,7 +3394,7 @@ async def post_picking_analysis_ia(req: PickingAnalisisIARequest):
             SYSTEM_PICKING_ANALISIS_IA,
             [{"role": "user", "content": context}],
         )
-        parsed = json.loads(_extract_json(raw_text))
+        parsed = _normalize_operational_ai_payload(json.loads(_extract_json(raw_text)))
         payload = {
             "provider": provider,
             "model_used": model_used,
@@ -2902,7 +3448,7 @@ async def post_picking_hourly_trend_ia(req: HourlyTrendIARequest):
             SYSTEM_HOURLY_TREND_IA,
             [{"role": "user", "content": context}],
         )
-        parsed = json.loads(_extract_json(raw_text))
+        parsed = _normalize_operational_ai_payload(json.loads(_extract_json(raw_text)))
         payload = {
             "provider": provider,
             "model_used": model_used,
@@ -2929,6 +3475,129 @@ async def post_picking_hourly_trend_ia(req: HourlyTrendIARequest):
     except Exception as exc:
         logger.exception("Error generando tendencia IA por hora")
         raise HTTPException(status_code=500, detail=f"No se pudo generar la tendencia IA por hora: {exc}")
+
+
+@router.post("/online/acciones-ia")
+async def post_productividad_online_acciones_ia(req: OnlineOperativoIARequest):
+    provider = (req.provider or os.getenv("AI_PROVIDER", "claude")).lower()
+    try:
+        if not isinstance(req.resumen, dict) or not req.resumen:
+            raise HTTPException(status_code=400, detail="resumen es requerido.")
+        context = _build_online_operativo_ia_context(req.resumen)
+        raw_text, model_used = await _call_ai(
+            provider,
+            SYSTEM_PRODUCTIVIDAD_ONLINE_IA,
+            [{"role": "user", "content": context}],
+        )
+        parsed = _normalize_operational_ai_payload(json.loads(_extract_json(raw_text)))
+        return {
+            "provider": provider,
+            "model_used": model_used,
+            "analisis": parsed,
+            "cache": {
+                "ia_cache_hit": False,
+                "prompt_version": ONLINE_OPERATIVO_IA_PROMPT_VERSION,
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error generando acciones IA online")
+        raise HTTPException(status_code=500, detail=f"No se pudieron generar acciones IA online: {exc}")
+
+
+@router.get("/turno/evaluacion")
+async def get_turno_evaluacion(
+    fecha: str = Query(..., description="YYYY-MM-DD"),
+    turno: str = Query(..., description="Mañana, Tarde o Noche"),
+):
+    turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
+    if not _turn_finished(fecha_hasta):
+        raise HTTPException(
+            status_code=409,
+            detail="La evaluacion historica se habilita cuando el turno finaliza. Para seguimiento en vivo usa Por hora o Dificultad.",
+        )
+    online_payload = await get_productividad_online(fecha=fecha, turno=turno)
+    allowed_operations = _allowed_online_operations()
+    current = _summarize_online_detail_rows(
+        online_payload.get("detail_rows", []),
+        allowed_operations=allowed_operations,
+        fecha=fecha,
+        turno_key=turno_key,
+        turno_label=_turn_label(turno_key),
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+    historical_metrics = await _get_online_historical_metrics(fecha, turno_key, allowed_operations, limit=12)
+    baseline = _historical_baseline(historical_metrics)
+    evaluation = _build_turno_evaluation_payload(current, baseline)
+    evaluation["historical_turns"] = historical_metrics
+    evaluation["cache"] = {
+        "source_name": online_payload.get("cache", {}).get("source_name"),
+        "turno_finalizado": True,
+        "historical_turns": baseline.get("turnos", 0),
+    }
+    await _update_online_cache_evaluation(fecha, turno_key, evaluation)
+    return evaluation
+
+
+@router.post("/turno/evaluacion-ia")
+async def post_turno_evaluacion_ia(req: TurnoEvaluacionIARequest):
+    provider = (req.provider or os.getenv("AI_PROVIDER", "claude")).lower()
+    try:
+        if not isinstance(req.evaluacion, dict) or not req.evaluacion:
+            raise HTTPException(status_code=400, detail="evaluacion es requerida.")
+        fecha = _safe_str(req.evaluacion.get("fecha"), "")
+        turno_key = _safe_str(req.evaluacion.get("turno_key"), "")
+        summary_hash = _hash_payload(req.evaluacion)
+        if fecha and turno_key:
+            cached_row = await _get_productividad_online_cache_run(fecha, turno_key)
+            if (
+                cached_row
+                and not req.force_refresh
+                and cached_row["ia_json"]
+                and cached_row["ia_provider"] == provider
+                and cached_row["ia_prompt_version"] == TURNO_EVALUACION_IA_PROMPT_VERSION
+                and cached_row["ia_summary_hash"] == summary_hash
+            ):
+                cached_payload = json.loads(cached_row["ia_json"])
+                cached_payload["cache"] = {
+                    "ia_cache_hit": True,
+                    "ia_generated_at": cached_row["ia_generated_at"],
+                    "prompt_version": TURNO_EVALUACION_IA_PROMPT_VERSION,
+                }
+                return cached_payload
+        context = _build_turno_evaluacion_ia_context(req.evaluacion)
+        raw_text, model_used = await _call_ai(
+            provider,
+            SYSTEM_TURNO_EVALUACION_IA,
+            [{"role": "user", "content": context}],
+        )
+        parsed = json.loads(_extract_json(raw_text))
+        payload = {
+            "provider": provider,
+            "model_used": model_used,
+            "analisis": parsed,
+            "cache": {
+                "ia_cache_hit": False,
+                "prompt_version": TURNO_EVALUACION_IA_PROMPT_VERSION,
+            },
+        }
+        if fecha and turno_key:
+            await _update_online_cache_ia(
+                fecha=fecha,
+                turno_key=turno_key,
+                provider=provider,
+                model_used=model_used,
+                summary_hash=summary_hash,
+                ia_payload=payload,
+            )
+        return payload
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error generando evaluacion IA de turno")
+        raise HTTPException(status_code=500, detail=f"No se pudo generar evaluacion IA de turno: {exc}")
 
 
 @router.get("/online")
