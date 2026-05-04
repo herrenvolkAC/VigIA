@@ -17,9 +17,16 @@ env/
 
 # Base de datos local
 *.db
+*.db.bak*
+*.bak
 *.sqlite
 *.sqlite3
 vigia.db
+pick_real.csv
+
+# Artefactos compilados locales
+*.class
+scripts/java_build/
 
 # IDEs
 .vscode/
