@@ -1184,6 +1184,7 @@ html[data-prod-style="flowops"] .ai-overlay-box{
 <div id="mtab-productividad" class="main-tab-content active">
   <div class="sub-tab-bar">
     <button class="sub-tab-btn active" id="stab-btn-online" onclick="switchProdTab('online')">Evaluación de turno</button>
+    <button class="sub-tab-btn" id="stab-btn-idle" onclick="switchProdTab('idle')">Tiempos muertos</button>
     <button class="sub-tab-btn" id="stab-btn-picking-ia" onclick="switchProdTab('picking-ia')">Suerte y dificultad</button>
     <button class="sub-tab-btn" id="stab-btn-hourly" onclick="switchProdTab('hourly')">Productividad por hora</button>
     <button class="sub-tab-btn" id="stab-btn-base-explanation" onclick="switchProdTab('base-explanation')">🧮 Cálculo base</button>
@@ -1210,6 +1211,9 @@ html[data-prod-style="flowops"] .ai-overlay-box{
       <div class="online-action-group active" id="actions-online">
         <button class="online-btn" id="btn-online-turno" onclick="runTurnoEvaluation()">Evaluar turno</button>
         <button class="online-btn" id="btn-online-ia-run" onclick="runTurnoEvaluationIa()" disabled>Explicar con IA</button>
+      </div>
+      <div class="online-action-group" id="actions-idle">
+        <button class="online-btn" id="btn-idle-run" onclick="runPickingIdleAnalysis()">Detectar tiempos</button>
       </div>
       <div class="online-action-group" id="actions-picking-ia">
         <button class="online-btn" id="btn-picking-base" onclick="runPickingAnalysisBase()">Consultar suerte</button>
@@ -1251,6 +1255,30 @@ html[data-prod-style="flowops"] .ai-overlay-box{
     <div id="stab-online" class="sub-tab-content active">
       <div id="online-tab-results">
         <div class="analisis-empty">Todavía no se evaluó el turno. Este análisis se consolida cuando el turno está vencido.</div>
+      </div>
+    </div>
+
+    <div id="stab-idle" class="sub-tab-content">
+      <div class="online-filters" style="grid-template-columns:repeat(4,minmax(140px,1fr));margin-top:0;">
+        <div class="online-field compact">
+          <label>Umbral pedido min</label>
+          <input type="number" id="idle-threshold-pedido" min="1" max="240" step="1" value="10">
+        </div>
+        <div class="online-field compact">
+          <label>Umbral pallet min</label>
+          <input type="number" id="idle-threshold-pallet" min="1" max="240" step="1" value="15">
+        </div>
+        <div class="online-field compact">
+          <label>Umbral almacén min</label>
+          <input type="number" id="idle-threshold-almacen" min="1" max="240" step="1" value="25">
+        </div>
+        <div class="online-field compact">
+          <label>Extra transporte min</label>
+          <input type="number" id="idle-threshold-transporte" min="0" max="240" step="1" value="10">
+        </div>
+      </div>
+      <div id="idle-results">
+        <div class="analisis-empty">Todavía no se detectaron tiempos entre cambios de pedido o pallet.</div>
       </div>
     </div>
 
@@ -1370,6 +1398,8 @@ let productividadOnlineResult = null;
 let productividadOnlineIaResult = null;
 let productividadOnlineIaLoading = false;
 let actividadCompletaLoading = false;
+let pickingIdleResult = null;
+let pickingIdleLoading = false;
 let turnoEvaluationResult = null;
 let turnoEvaluationIaResult = null;
 let turnoEvaluationLoading = false;
@@ -1499,6 +1529,28 @@ function getProductividadOnlineTurnConfig(turnoKeyValue) {
   return { label: 'Noche', inicio: '22:00:00', fin: '06:00:00' };
 }
 
+function localDateValue(date = new Date()) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+
+function getLiveTurnKey(date = new Date()) {
+  const hour = date.getHours();
+  if (hour >= 6 && hour < 14) return 'manana';
+  if (hour >= 14 && hour < 22) return 'tarde';
+  return 'noche';
+}
+
+function applyLiveTurnForToday() {
+  const turnoSel = document.getElementById('prod-online-turno');
+  const dateInput = document.getElementById('prod-online-date');
+  if (!turnoSel || !dateInput || dateInput.value !== localDateValue()) return;
+  const liveTurn = getLiveTurnKey();
+  if ([...turnoSel.options].some(opt => opt.value === liveTurn)) {
+    turnoSel.value = liveTurn;
+  }
+}
+
 function buildProductividadOnlineRange() {
   const fecha = document.getElementById('prod-online-date')?.value || '';
   const turno = document.getElementById('prod-online-turno')?.value || '';
@@ -1532,8 +1584,7 @@ function getProductividadHourlyMode() {
 function setDateInputValue(id, date) {
   const input = document.getElementById(id);
   if (!input || input.value) return;
-  const pad = n => String(n).padStart(2, '0');
-  input.value = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+  input.value = localDateValue(date);
 }
 
 function buildProductividadHourlyRange() {
@@ -1557,6 +1608,7 @@ function buildProductividadHourlyRange() {
       turno_label: cfg.label,
       fecha_desde: `${desde} ${cfg.inicio}`,
       fecha_hasta: fechaHasta,
+      turno_iniciado: new Date(`${desde}T${cfg.inicio}`) <= new Date(),
       turno_finalizado: new Date(fechaHasta.replace(' ', 'T')) <= new Date(),
     };
   }
@@ -1667,12 +1719,13 @@ function getFilteredProductividadOnlineRows() {
 }
 
 function onProductividadFiltersChange() {
-  productividadOnlineIaResult = null;
-  productividadHourlyTrendIaResult = null;
-  renderProductividadOnlineGrid();
-  renderPickingAnalysisBase();
-  renderProductividadHourlyGrid();
-}
+    productividadOnlineIaResult = null;
+    productividadHourlyTrendIaResult = null;
+    renderProductividadOnlineGrid();
+    renderPickingIdleAnalysis();
+    renderPickingAnalysisBase();
+    renderProductividadHourlyGrid();
+  }
 
 function getFilteredPickingAnalysisRows() {
   const rows = Array.isArray(pickingAnalysisBaseResult?.rows) ? pickingAnalysisBaseResult.rows : [];
@@ -2381,6 +2434,267 @@ function renderProductividadOnlineGrid() {
   bindProductividadOnlineOperarioLinks();
 }
 
+function getFilteredPickingIdleRows() {
+  const rows = Array.isArray(pickingIdleResult?.rows) ? pickingIdleResult.rows : [];
+  const operario = (document.getElementById('prod-online-filter-operario')?.value || '').trim().toLowerCase();
+  const almacen = document.getElementById('prod-online-filter-almacen')?.value || 'ALL';
+  return rows.filter(row => {
+    if (operario) {
+      const hayMatch = String(row.operario || '').toLowerCase().includes(operario)
+        || String(row.copecrea || '').toLowerCase().includes(operario);
+      if (!hayMatch) return false;
+    }
+    if (almacen !== 'ALL' && row.almacen_anterior !== almacen && row.almacen_nuevo !== almacen) return false;
+    return true;
+  });
+}
+
+function renderPickingIdleAnalysis() {
+  const container = document.getElementById('idle-results');
+  if (!container) return;
+  const data = pickingIdleResult;
+  if (!data) {
+    container.innerHTML = '<div class="analisis-empty">Todavía no se detectaron tiempos entre cambios de pedido o pallet.</div>';
+    return;
+  }
+  const rows = getFilteredPickingIdleRows();
+  const summary = data.summary || {};
+  const thresholds = data.thresholds || {};
+  const sevClass = sev => sev === 'alta' ? 'bad' : (sev === 'media' ? 'warn' : 'online');
+  const onlyTime = value => {
+    const text = String(value || '');
+    return text.includes(' ') ? text.split(' ')[1].slice(0, 8) : text.slice(11, 19) || text || '—';
+  };
+  const excessTooltip = row => {
+    const minutos = Number(row.minutos || 0);
+    const umbralTotal = Number(row.umbral_minutos || 0);
+    const extra = row.transporte_pallets ? Number(thresholds.transporte_pallets_extra || 0) : 0;
+    const umbralBase = Math.max(umbralTotal - extra, 0);
+    const exceso = Number(row.exceso_minutos || 0);
+    const lines = [
+      `Minutos entre pickings: ${minutos.toLocaleString('es-AR')}`,
+      `Umbral base (${row.cambio || 'cambio'}): ${umbralBase.toLocaleString('es-AR')}`,
+    ];
+    if (extra > 0) lines.push(`Extra por transporte de pallets: ${extra.toLocaleString('es-AR')}`);
+    lines.push(`Umbral total: ${umbralTotal.toLocaleString('es-AR')}`);
+    lines.push(`Exceso = ${minutos.toLocaleString('es-AR')} - ${umbralTotal.toLocaleString('es-AR')} = ${exceso.toLocaleString('es-AR')} min`);
+    return escapeHtml(lines.join('\n'));
+  };
+  const situationHtml = row => {
+    const parts = [];
+    if (String(row.pallet_anterior || '') !== String(row.pallet_nuevo || '')) {
+      parts.push('Cambio de pallet');
+    }
+    if (String(row.pedido_anterior || '') !== String(row.pedido_nuevo || '')) {
+      parts.push('Cambio de pedido');
+    }
+    if (row.almacen_cambio || String(row.almacen_anterior || '') !== String(row.almacen_nuevo || '')) {
+      parts.push('Cambio de almacén');
+    }
+    return parts.length ? parts.join(', ') : escapeHtml(row.cambio || '—');
+  };
+  container.innerHTML = `
+    <div class="online-meta-card" style="margin-bottom:16px;">
+      <strong>Rango consultado:</strong> ${data.fecha_desde || '—'} a ${data.fecha_hasta || '—'} · umbrales usados: pedido ${Number(thresholds.cambio_pedido_mismo_almacen || 0)} min, pallet ${Number(thresholds.cambio_pallet_mismo_almacen || 0)} min, cambio de almacén ${Number(thresholds.cambio_almacen || 0)} min. Transporte de pallets suma ${Number(thresholds.transporte_pallets_extra || 0)} min contemplados.
+    </div>
+    <div class="online-meta-grid">
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Casos detectados</div>
+        <div class="online-meta-value">${Number(summary.casos_total || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">${Number(summary.casos_altos || 0).toLocaleString('es-AR')} de severidad alta</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Operarios</div>
+        <div class="online-meta-value">${Number(summary.operarios_afectados || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">Con al menos un hueco sobre umbral</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Mismo almacén</div>
+        <div class="online-meta-value">${Number(summary.casos_mismo_almacen || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">Menos justificables por traslado</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Sin intermedias</div>
+        <div class="online-meta-value">${Number(summary.casos_sin_intermedias || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">Sin otra operación registrada entre pickings</div>
+      </div>
+    </div>
+    <div class="online-highlights">
+      <div class="online-highlights-title">Lectura operativa</div>
+      <div class="online-highlights-list">
+        <div class="online-highlight-item">Se comparan pickings consecutivos del mismo operario. Solo entran casos donde cambia pedido o pallet y el tiempo supera el umbral del contexto.</div>
+        <div class="online-highlight-item">El cambio de almacén no desaparece: sube el umbral a 25 minutos y queda marcado como posible justificación.</div>
+        <div class="online-highlight-item">Si entre ambos pickings aparece TRANSPORTE DE PALETS, se toma como cierre operativo esperado y se le agrega tolerancia al tramo.</div>
+      </div>
+    </div>
+    <div class="online-grid-wrap">
+      <table class="online-grid" style="min-width:1100px;">
+        <thead>
+          <tr>
+            <th>Severidad</th>
+            <th>Operario</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th>Minutos</th>
+            <th>Exceso</th>
+            <th>Situación</th>
+            <th>Operaciones intermedias</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.length ? rows.map((row, index) => `
+            <tr>
+              <td><span class="online-chip ${sevClass(row.severidad)}">${String(row.severidad || 'baja').toUpperCase()}</span></td>
+              <td><button type="button" class="online-operario-link" data-idle-index="${index}"><strong>${escapeHtml(row.operario || row.copecrea || '—')}</strong></button><br><span style="color:#aab4cb">${escapeHtml(row.copecrea || '')}</span></td>
+              <td>${onlyTime(row.desde)}</td>
+              <td>${onlyTime(row.hasta)}</td>
+              <td>${Number(row.minutos || 0).toLocaleString('es-AR')}</td>
+              <td title="${excessTooltip(row)}">+${Number(row.exceso_minutos || 0).toLocaleString('es-AR')}</td>
+              <td>${situationHtml(row)}</td>
+              <td>${(row.operaciones_intermedias || []).length ? row.operaciones_intermedias.map(escapeHtml).join(', ') : '—'}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="8" class="analisis-empty">No hay casos para mostrar con los filtros actuales.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+  bindPickingIdleOperarioLinks(rows);
+}
+
+function bindPickingIdleOperarioLinks(rows) {
+  document.querySelectorAll('[data-idle-index]').forEach(button => {
+    button.addEventListener('click', () => {
+      const index = Number(button.getAttribute('data-idle-index') || -1);
+      openPickingIdleCaseDetail(rows[index]);
+    });
+  });
+}
+
+function openPickingIdleCaseDetail(row) {
+  if (!row) return;
+  const overlay = document.getElementById('online-detail-overlay');
+  const body = document.getElementById('online-detail-body');
+  if (!overlay || !body) return;
+  const acciones = Array.isArray(row.acciones_tramo) ? row.acciones_tramo : [];
+  const accionesAgrupadas = [];
+  acciones.forEach(item => {
+    const prev = accionesAgrupadas[accionesAgrupadas.length - 1];
+    const isTransport = String(item.operacion || '').toUpperCase() === 'TRANSPORTE DE PALETS';
+    const sameTransport = prev
+      && isTransport
+      && String(prev.operacion || '').toUpperCase() === 'TRANSPORTE DE PALETS'
+      && String(prev.fecha_hora || '') === String(item.fecha_hora || '')
+      && String(prev.pedido || '') === String(item.pedido || '')
+      && String(prev.pallet || '') === String(item.pallet || '')
+      && String(prev.almacen || '') === String(item.almacen || '');
+    if (sameTransport) {
+      prev.cantidad_registros = Number(prev.cantidad_registros || 1) + 1;
+    } else {
+      accionesAgrupadas.push({ ...item, cantidad_registros: 1 });
+    }
+  });
+  const onlyTime = value => {
+    const text = String(value || '');
+    return text.includes(' ') ? text.split(' ')[1].slice(0, 8) : text.slice(11, 19) || text || '—';
+  };
+  body.innerHTML = `
+    <div class="online-detail-top">
+      <div>
+        <div class="online-detail-title">${escapeHtml(row.operario || row.copecrea || 'Operario')}</div>
+        <div class="online-detail-sub">
+          ${escapeHtml(row.copecrea || '')} · ${onlyTime(row.desde)} a ${onlyTime(row.hasta)} · ${Number(row.minutos || 0).toLocaleString('es-AR')} min · ${escapeHtml(row.cambio || 'Cambio')}
+        </div>
+      </div>
+      <button type="button" class="online-detail-close" onclick="closeProductividadOnlineOperarioDetail()">Cerrar</button>
+    </div>
+    <div class="online-detail-grid">
+      <div class="online-detail-card"><strong>Exceso</strong><span>+${Number(row.exceso_minutos || 0).toLocaleString('es-AR')}</span></div>
+      <div class="online-detail-card"><strong>Umbral usado</strong><span>${Number(row.umbral_minutos || 0).toLocaleString('es-AR')}</span></div>
+      <div class="online-detail-card"><strong>Acciones</strong><span>${accionesAgrupadas.length.toLocaleString('es-AR')}</span></div>
+    </div>
+    <div class="online-grid-wrap">
+      <table class="online-detail-table">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Operación</th>
+            <th>Pedido</th>
+            <th>Pallet</th>
+            <th>Almacén</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${accionesAgrupadas.length ? accionesAgrupadas.map(item => `
+            <tr>
+              <td>${onlyTime(item.fecha_hora)}</td>
+              <td>${escapeHtml(item.operacion || '—')}${Number(item.cantidad_registros || 1) > 1 ? ` <span style="color:#aab4cb">(x${Number(item.cantidad_registros || 1).toLocaleString('es-AR')})</span>` : ''}</td>
+              <td>${escapeHtml(item.pedido || '—')}</td>
+              <td>${escapeHtml(item.pallet || '—')}</td>
+              <td>${escapeHtml(item.almacen || '—')}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="5" class="analisis-empty">No hay detalle de acciones para este tramo.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+  overlay.classList.add('visible');
+}
+
+async function runPickingIdleAnalysis() {
+  if (pickingIdleLoading) return;
+  const btn = document.getElementById('btn-idle-run');
+  const status = document.getElementById('online-tab-status');
+  const range = buildProductividadOnlineRange();
+  const container = document.getElementById('idle-results');
+  if (!btn || !status) return;
+  if (!range) {
+    status.textContent = 'Completá fecha y turno antes de detectar tiempos muertos.';
+    return;
+  }
+  const readThreshold = (id, fallback) => {
+    const value = Number(document.getElementById(id)?.value || fallback);
+    return Math.min(Math.max(Number.isFinite(value) ? Math.round(value) : fallback, id === 'idle-threshold-transporte' ? 0 : 1), 240);
+  };
+  const thresholds = {
+    umbral_pedido: readThreshold('idle-threshold-pedido', 10),
+    umbral_pallet: readThreshold('idle-threshold-pallet', 15),
+    umbral_almacen: readThreshold('idle-threshold-almacen', 25),
+    extra_transporte: readThreshold('idle-threshold-transporte', 10),
+  };
+
+  pickingIdleLoading = true;
+  btn.disabled = true;
+  btn.textContent = 'Detectando...';
+  status.textContent = `Buscando demoras entre cambios de pedido/pallet para ${range.turno_label}.`;
+  if (container) {
+    container.innerHTML = '<div class="analisis-empty">Consultando Oracle y ordenando la secuencia por operario...</div>';
+  }
+  try {
+    const params = new URLSearchParams({
+      fecha: range.fecha,
+      turno: range.turno,
+      ...Object.fromEntries(Object.entries(thresholds).map(([key, value]) => [key, String(value)])),
+    });
+    const resp = await fetch(`/api/productividad/picking/tiempos-muertos?${params.toString()}`);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudieron detectar tiempos muertos.');
+    pickingIdleResult = data;
+    populateProductividadOnlineFilter('prod-online-filter-almacen', data.filters?.almacenes || [], 'Todos');
+    renderPickingIdleAnalysis();
+    status.textContent = `Detección lista: ${Number(data.summary?.casos_total || 0).toLocaleString('es-AR')} caso(s), ${Number(data.summary?.casos_altos || 0).toLocaleString('es-AR')} altos.`;
+  } catch (err) {
+    pickingIdleResult = null;
+    if (container) {
+      container.innerHTML = `<div class="analisis-empty" style="color:var(--red);border-color:#fecaca;">${escapeHtml(err.message || 'No se pudieron detectar tiempos muertos.')}</div>`;
+    }
+    status.textContent = err.message || 'No se pudieron detectar tiempos muertos.';
+  } finally {
+    pickingIdleLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Detectar tiempos';
+  }
+}
+
 function buildProductividadOnlineIaSummary() {
   const data = productividadOnlineResult || {};
   const rows = getFilteredProductividadOnlineRows();
@@ -2695,6 +3009,7 @@ function renderPickingBaseExplanation() {
 function buildOperarioExplanationHtml(row, summary) {
   const fmt  = x => (x === null || x === undefined || x === '') ? '—' : Number(x || 0).toLocaleString('es-AR');
   const fmtF = n => Number(n || 0).toFixed(1);
+  const fmtPct = n => Number(n || 0).toFixed(0);
   const nombre = row.operario || row.copecrea || '—';
   const sections = [];
 
@@ -2713,23 +3028,32 @@ function buildOperarioExplanationHtml(row, summary) {
   // ── Bloque 2: ¿Le tocó una asignación exigente? ──
   const avgCantLinea      = row.lineas > 0 ? (row.cantidad_total || 0) / row.lineas : 0;
   const avgPesoLinea      = row.lineas > 0 ? (row.peso_total     || 0) / row.lineas : 0;
+  const cambiosUbicacion  = Number(row.cambios_ubicacion || 0);
+  const saltosRecorrido   = Number(row.saltos_recorrido || row.distancia_estimada_m || 0);
   const locationChangeRate = row.lineas > 0 ? ((row.cambios_ubicacion || 0) / row.lineas) : 0;
 
-  const turnoLineas    = summary.lineas_total || (summary.operarios * (row.lineas || 1));
+  const turnoLineas    = summary.lineas_total || summary.movimientos || (summary.operarios * (row.lineas || 1));
   const turnoCantLinea = (turnoLineas > 0 && summary.cantidad_total)
     ? summary.cantidad_total / turnoLineas : avgCantLinea;
   const turnoPesoLinea = (turnoLineas > 0 && summary.peso_total)
     ? summary.peso_total / turnoLineas : avgPesoLinea;
+  const turnoCambiosUbicacion = Number(summary.cambios_ubicacion_total ?? (
+    Number(summary.saltos_hist_confiables || 0) + Number(summary.saltos_hist_sin_mapa || 0)
+  ));
   const turnoCambioUbicacion = Number(summary.movimientos || 0) > 0
-    ? Number(summary.saltos_recorrido_total ?? summary.distancia_estimada_total_m ?? 0) / Number(summary.movimientos || 1)
+    ? turnoCambiosUbicacion / Number(summary.movimientos || 1)
     : locationChangeRate;
+  const tieneComparacionUbicacion = Number(row.lineas || 0) > 10
+    && Number(summary.movimientos || 0) > 0
+    && turnoCambiosUbicacion > 0
+    && turnoCambioUbicacion <= 1;
 
   const tieneMasPeso          = avgPesoLinea > turnoPesoLinea * 1.15;
   const tieneMenosPeso        = avgPesoLinea < turnoPesoLinea * 0.85 && avgPesoLinea > 0;
   const tieneMejorConsolidacion = avgCantLinea > turnoCantLinea * 1.15;
   const tienePeorConsolidacion  = avgCantLinea < turnoCantLinea * 0.85 && avgCantLinea > 0;
-  const tieneMuchosMovimientos = locationChangeRate > Math.max(turnoCambioUbicacion * 1.10, 0.98) && row.lineas > 10;
-  const tienePocosMovimientos  = locationChangeRate < turnoCambioUbicacion * 0.85 && row.lineas > 10;
+  const tieneMuchosMovimientos = tieneComparacionUbicacion && locationChangeRate > turnoCambioUbicacion * 1.15;
+  const tienePocosMovimientos  = tieneComparacionUbicacion && locationChangeRate < turnoCambioUbicacion * 0.85;
   const suerte                 = Number(row.suerte_asignacion_pct || 0);
   const asignacionDificil      = suerte <= -8;
   const asignacionFacil        = suerte >= 8;
@@ -2753,21 +3077,25 @@ function buildOperarioExplanationHtml(row, summary) {
     causas.push(`Tuvo mejor consolidación: ${fmtF(avgCantLinea)} bultos por línea vs ${fmtF(turnoCantLinea)} del turno. Eso juega a favor porque una parada resolvió más bultos.`);
   }
   if (tieneMuchosMovimientos) {
-    causas.push(`Cambió de ubicación algo más que el promedio del turno: ${Math.round(locationChangeRate * 100)}% de sus movimientos vs ${Math.round(turnoCambioUbicacion * 100)}% general.`);
+    causas.push(`Cambió de ubicación más que el promedio: ${fmtPct(locationChangeRate * 100)} cambios cada 100 movimientos vs ${fmtPct(turnoCambioUbicacion * 100)} del turno.`);
   }
   if (tienePocosMovimientos && asignacionFacil) {
-    causas.push(`Cambió de ubicación menos que el promedio del turno (${Math.round(locationChangeRate * 100)}% vs ${Math.round(turnoCambioUbicacion * 100)}%), lo que ayudó a la asignación.`);
+    causas.push(`Cambió de ubicación menos que el promedio: ${fmtPct(locationChangeRate * 100)} cambios cada 100 movimientos vs ${fmtPct(turnoCambioUbicacion * 100)} del turno. Eso ayudó a la asignación.`);
   }
   const pallets = Number(row.pallets_distintos || 0);
   if (pallets > 5 && asignacionDificil) {
     causas.push(`Trabajó sobre ${pallets} pallets distintos, lo que implica más desplazamiento.`);
   }
 
+  const recorridoLine = row.lineas > 0
+    ? `<p class="online-meta-sub" style="margin-top:8px;">Recorrido registrado: <strong>${fmt(cambiosUbicacion)}</strong> cambios de ubicación sobre <strong>${fmt(row.lineas)}</strong> movimientos (${fmtPct(locationChangeRate * 100)} cada 100). Saltos teóricos acumulados: <strong>${fmt(saltosRecorrido)}</strong>.</p>`
+    : '';
+
   let s2Causas = '';
   if (causas.length === 0) {
-    s2Causas = `<p>No se detecta un factor dominante. La dificultad estuvo distribuida entre distintos aspectos del trabajo (volumen, peso y desplazamiento).</p>`;
+    s2Causas = `<p>No se detecta un factor dominante. La dificultad estuvo distribuida entre distintos aspectos del trabajo (volumen, peso y desplazamiento).</p>${recorridoLine}`;
   } else {
-    s2Causas = `<ul style="margin:6px 0 0 16px;padding:0;">${causas.map(c => `<li style="margin-bottom:4px;">${c}</li>`).join('')}</ul>`;
+    s2Causas = `<ul style="margin:6px 0 0 16px;padding:0;">${causas.map(c => `<li style="margin-bottom:4px;">${c}</li>`).join('')}</ul>${recorridoLine}`;
   }
 
   const sec2Class = `op-modal-section${asignacionDificil ? ' warn' : asignacionFacil ? ' good' : ''}`;
@@ -4155,6 +4483,15 @@ async function runProductividadHourly() {
       : 'Completá fecha desde, fecha hasta y turno antes de generar productividad por hora.';
     return;
   }
+  if (mode !== 'historical' && range.turno_iniciado === false) {
+    const container = document.getElementById('hourly-results');
+    const message = `El turno ${range.turno_label} todavía no empezó (${range.fecha_desde}). Para ver datos en vivo del día actual elegí el turno en curso.`;
+    if (container) {
+      container.innerHTML = `<div class="analisis-empty">${escapeHtml(message)}</div>`;
+    }
+    status.textContent = message;
+    return;
+  }
 
   const almacen = document.getElementById('prod-online-filter-almacen')?.value || 'ALL';
   const cacheKey = mode === 'historical'
@@ -4377,9 +4714,9 @@ async function initProductividadOnlineModule() {
   }
   if (dateInput && !dateInput.value) {
     const now = new Date();
-    const pad = n => String(n).padStart(2, '0');
-    dateInput.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+    dateInput.value = localDateValue(now);
   }
+  applyLiveTurnForToday();
   const today = new Date();
   setDateInputValue('hourly-date-to', today);
   setDateInputValue('hourly-date-from', today);
@@ -4388,6 +4725,7 @@ async function initProductividadOnlineModule() {
     if (el && !el.dataset.prodRangeBound) {
       el.dataset.prodRangeBound = '1';
       el.addEventListener('change', () => {
+        if (el === dateInput) applyLiveTurnForToday();
         productividadOnlineResult = null;
         productividadOnlineIaResult = null;
         turnoEvaluationResult = null;
@@ -4419,6 +4757,7 @@ async function initProductividadOnlineModule() {
   const selected = EXCEL_DATA.olas[selectedOla];
   if (turnoSel && selected) {
     turnoSel.value = turnoKey(selected.turno);
+    applyLiveTurnForToday();
   }
   switchProdTab('online');
 }
@@ -5183,28 +5522,33 @@ function switchMainTab(tab) {
 // ── Sub-tabs Productividad ────────────────────────────────────────
 function switchProdTab(tab) {
   const onlineBtn = document.getElementById('stab-btn-online');
+  const idleBtn = document.getElementById('stab-btn-idle');
   const pickingIaBtn = document.getElementById('stab-btn-picking-ia');
   const hourlyBtn = document.getElementById('stab-btn-hourly');
   const explanationBtn = document.getElementById('stab-btn-base-explanation');
   const onlineTab = document.getElementById('stab-online');
+  const idleTab = document.getElementById('stab-idle');
   const pickingIaTab = document.getElementById('stab-picking-ia');
   const hourlyTab = document.getElementById('stab-hourly');
   const explanationTab = document.getElementById('stab-base-explanation');
   if (onlineBtn) onlineBtn.classList.toggle('active', tab === 'online');
+  if (idleBtn) idleBtn.classList.toggle('active', tab === 'idle');
   if (pickingIaBtn) pickingIaBtn.classList.toggle('active', tab === 'picking-ia');
   if (hourlyBtn) hourlyBtn.classList.toggle('active', tab === 'hourly');
   if (explanationBtn) explanationBtn.classList.toggle('active', tab === 'base-explanation');
   if (onlineTab) onlineTab.classList.toggle('active', tab === 'online');
+  if (idleTab) idleTab.classList.toggle('active', tab === 'idle');
   if (pickingIaTab) pickingIaTab.classList.toggle('active', tab === 'picking-ia');
   if (hourlyTab) hourlyTab.classList.toggle('active', tab === 'hourly');
   if (explanationTab) explanationTab.classList.toggle('active', tab === 'base-explanation');
   document.getElementById('actions-online')?.classList.toggle('active', tab === 'online');
+  document.getElementById('actions-idle')?.classList.toggle('active', tab === 'idle');
   document.getElementById('actions-picking-ia')?.classList.toggle('active', tab === 'picking-ia');
   document.getElementById('actions-hourly')?.classList.toggle('active', tab === 'hourly');
   document.getElementById('prod-online-date-wrap')?.classList.toggle('hidden', tab === 'hourly');
   document.getElementById('hourly-date-from-wrap')?.classList.toggle('hidden', tab !== 'hourly');
   document.getElementById('hourly-date-to-wrap')?.classList.toggle('hidden', tab !== 'hourly');
-  document.getElementById('online-field-operacion')?.classList.toggle('hidden', tab === 'hourly');
+  document.getElementById('online-field-operacion')?.classList.toggle('hidden', tab === 'hourly' || tab === 'idle');
   if (tab === 'hourly') onHourlyRangeChange(false);
   updateProductividadToolbarStatus(tab);
 }
@@ -5214,6 +5558,8 @@ function updateProductividadToolbarStatus(tab) {
   if (!status) return;
   if (tab === 'online') {
     status.textContent = 'Evaluá un turno vencido contra histórico local. Para seguimiento en vivo usá Por hora o Suerte y dificultad.';
+  } else if (tab === 'idle') {
+    status.textContent = 'Detectá demoras entre pickings cuando cambia pedido o pallet, contemplando cambios de almacén y operaciones intermedias.';
   } else if (tab === 'picking-ia') {
     status.textContent = 'Consultá suerte y dificultad de Picking para el día y turno seleccionados.';
   } else if (tab === 'hourly') {

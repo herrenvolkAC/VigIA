@@ -189,8 +189,31 @@ SELECT
     A.CZONAORI AS ZONA_ORIGEN,
     A.CUBIORIG AS UBIC_ORIGEN,
     A.CNUPALET AS NRO_PALLET,
+    A.CNPEDIDO AS PEDIDO,
     A.QCANTIDA AS CANTIDAD,
     A.QPESOREG AS PESO
+FROM F132HIST A
+LEFT JOIN PV_LEGAJO B
+  ON A.COPECREA = B.LEGAJO
+LEFT JOIN (
+    SELECT DISTINCT CZONALMA, DESCDIVI
+    FROM VW_UBICACIONES_DIVISION
+) SUB1
+  ON SUB1.CZONALMA = A.CZONAORI
+WHERE A.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+  AND A.FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+ORDER BY A.COPECREA, A.FCREAREG
+"""
+
+QUERY_PICKING_TIEMPOS_MUERTOS_DETAIL = """
+SELECT
+    A.FCREAREG AS FH_MOVIMIENTO,
+    A.CNUPALET AS NRO_PALLET,
+    A.CNPEDIDO AS PEDIDO,
+    A.COPECREA,
+    B.NOMBRE AS OPERARIO,
+    UPPER(A.CDESCRIP) AS OPERACION,
+    NVL(SUB1.DESCDIVI, 'SIN MAPEAR') AS ALMACEN
 FROM F132HIST A
 LEFT JOIN PV_LEGAJO B
   ON A.COPECREA = B.LEGAJO
@@ -228,6 +251,18 @@ WHERE A.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
   AND A.FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
   AND UPPER(A.CDESCRIP) = 'PICKING'
 ORDER BY A.COPECREA, A.FCREAREG
+"""
+
+QUERY_PICKING_UBICACIONES_HIST = """
+WITH UBICS AS (
+    SELECT CUBIORIG
+    FROM F132HIST_HIST A
+    WHERE UPPER(CDESCRIP) = 'PICKING'
+      AND CUBIORIG IS NOT NULL
+)
+SELECT DISTINCT CUBIORIG AS UBICACION_CODIGO
+FROM UBICS
+ORDER BY CUBIORIG
 """
 
 SYSTEM_PRODUCTIVIDAD_ANALISIS = (
@@ -763,9 +798,25 @@ def query_productive_db_online_detail(fecha_desde: str, fecha_hasta: str) -> lis
     )
 
 
+def query_productive_db_picking_tiempos_muertos(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_PICKING_TIEMPOS_MUERTOS_DETAIL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
 def query_productive_db_picking_analysis_detail(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_PICKING_ANALISIS_DETAIL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+def query_productive_db_picking_ubicaciones_hist(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_PICKING_UBICACIONES_HIST,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )
@@ -831,11 +882,20 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     classpath = os.pathsep.join([str(JAVA_BUILD_DIR), ojdbc_jar])
     normalized_query = " ".join(query.upper().split())
     if (
+        "CNPEDIDO AS PEDIDO" in normalized_query
+        and "UPPER(A.CDESCRIP) AS OPERACION" in normalized_query
+        and "A.QCANTIDA AS CANTIDAD" not in normalized_query
+        and "ORDER BY A.COPECREA, A.FCREAREG" in normalized_query
+    ):
+        query_key = "tiempos_muertos"
+    elif (
         "PV_LEGAJO" in normalized_query
         and "VW_UBICACIONES_DIVISION" in normalized_query
         and "UPPER(A.CDESCRIP) = 'PICKING'" in normalized_query
     ):
         query_key = "picking_analysis"
+    elif "F132HIST_HIST" in normalized_query and "CUBIORIG AS UBICACION_CODIGO" in normalized_query:
+        query_key = "picking_ubicaciones_hist"
     elif "PV_LEGAJO" in normalized_query and "VW_UBICACIONES_DIVISION" in normalized_query:
         query_key = "online"
     elif "VW_UBICACIONES_DIVISION" in normalized_query:
@@ -1908,6 +1968,215 @@ def _build_online_operativo_ia_context(resumen: dict[str, Any]) -> str:
     )
 
 
+def _picking_idle_threshold_minutes(
+    pedido_cambio: bool,
+    pallet_cambio: bool,
+    almacen_cambio: bool,
+    transporte_pallets: bool = False,
+    pedido_threshold: int = 10,
+    pallet_threshold: int = 15,
+    almacen_threshold: int = 25,
+    transporte_extra: int = 10,
+) -> int:
+    if almacen_cambio:
+        base = almacen_threshold
+    elif pallet_cambio:
+        base = pallet_threshold
+    elif pedido_cambio:
+        base = pedido_threshold
+    else:
+        base = pedido_threshold
+    return base + (transporte_extra if transporte_pallets else 0)
+
+
+def _picking_idle_severity(
+    minutos: float,
+    umbral: int,
+    almacen_cambio: bool,
+    intermedias_count: int,
+    transporte_pallets: bool = False,
+) -> str:
+    excess = minutos - umbral
+    if transporte_pallets and excess < 10:
+        return "info"
+    if almacen_cambio and excess < 10:
+        return "info"
+    if intermedias_count > 0 and excess < 10:
+        return "media"
+    if excess >= 15:
+        return "alta"
+    if excess >= 5:
+        return "media"
+    return "baja"
+
+
+def _is_transporte_pallets_operation(value: str) -> bool:
+    return _normalize_operacion_name(value) in {"TRANSPORTE DE PALETS", "TRANSPORTE DE PALLETS"}
+
+
+def _build_picking_idle_analysis(
+    detail_rows: list[dict[str, Any]],
+    fecha: str,
+    turno_key: str,
+    fecha_desde: str,
+    fecha_hasta: str,
+    pedido_threshold: int = 10,
+    pallet_threshold: int = 15,
+    almacen_threshold: int = 25,
+    transporte_extra: int = 10,
+) -> dict[str, Any]:
+    normalized = []
+    for idx, row in enumerate(detail_rows):
+        fh_text = str(row.get("FH_MOVIMIENTO") or "").replace("T", " ")[:19]
+        if not fh_text:
+            continue
+        try:
+            fh_dt = _parse_dt(fh_text, "fh_movimiento")
+        except HTTPException:
+            continue
+        normalized.append(
+            {
+                "idx": idx,
+                "fh_dt": fh_dt,
+                "fh_movimiento": fh_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                "pallet": _safe_str(row.get("NRO_PALLET"), ""),
+                "pedido": _safe_str(row.get("PEDIDO"), ""),
+                "copecrea": _safe_str(row.get("COPECREA"), ""),
+                "operario": _safe_str(row.get("OPERARIO"), ""),
+                "operacion": _normalize_operacion_name(_safe_str(row.get("OPERACION"), "")),
+                "almacen": _safe_str(row.get("ALMACEN"), "SIN MAPEAR"),
+            }
+        )
+
+    normalized.sort(key=lambda item: (item["copecrea"], item["fh_dt"], item["idx"]))
+    by_operator: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in normalized:
+        by_operator[row["copecrea"]].append(row)
+
+    cases = []
+    operators_with_case = set()
+    for legajo, rows in by_operator.items():
+        prev_pick_index = None
+        for current_index, row in enumerate(rows):
+            if row["operacion"] != "PICKING":
+                continue
+            if prev_pick_index is None:
+                prev_pick_index = current_index
+                continue
+
+            prev = rows[prev_pick_index]
+            pedido_cambio = bool(prev["pedido"] or row["pedido"]) and prev["pedido"] != row["pedido"]
+            pallet_cambio = bool(prev["pallet"] or row["pallet"]) and prev["pallet"] != row["pallet"]
+            almacen_cambio = bool(prev["almacen"] or row["almacen"]) and prev["almacen"] != row["almacen"]
+            minutos = round(max((row["fh_dt"] - prev["fh_dt"]).total_seconds() / 60, 0), 1)
+            intermedias = rows[prev_pick_index + 1:current_index]
+            operaciones_intermedias = [
+                item["operacion"] or "SIN OPERACION"
+                for item in intermedias
+                if item["operacion"] and item["operacion"] != "PICKING"
+            ]
+            transporte_pallets = any(_is_transporte_pallets_operation(item) for item in operaciones_intermedias)
+
+            if pedido_cambio or pallet_cambio:
+                umbral = _picking_idle_threshold_minutes(
+                    pedido_cambio,
+                    pallet_cambio,
+                    almacen_cambio,
+                    transporte_pallets=transporte_pallets,
+                    pedido_threshold=pedido_threshold,
+                    pallet_threshold=pallet_threshold,
+                    almacen_threshold=almacen_threshold,
+                    transporte_extra=transporte_extra,
+                )
+                if minutos >= umbral:
+                    cambios = []
+                    if pedido_cambio:
+                        cambios.append("Pedido")
+                    if pallet_cambio:
+                        cambios.append("Pallet")
+                    if almacen_cambio:
+                        cambios.append("Almacen")
+                    operators_with_case.add(legajo)
+                    cases.append(
+                        {
+                            "copecrea": legajo,
+                            "operario": row["operario"] or prev["operario"] or legajo,
+                            "desde": prev["fh_movimiento"],
+                            "hasta": row["fh_movimiento"],
+                            "minutos": minutos,
+                            "umbral_minutos": umbral,
+                            "exceso_minutos": round(minutos - umbral, 1),
+                            "cambio": " + ".join(cambios),
+                            "pedido_anterior": prev["pedido"],
+                            "pedido_nuevo": row["pedido"],
+                            "pallet_anterior": prev["pallet"],
+                            "pallet_nuevo": row["pallet"],
+                            "almacen_anterior": prev["almacen"],
+                            "almacen_nuevo": row["almacen"],
+                            "almacen_cambio": almacen_cambio,
+                            "operaciones_intermedias": sorted(set(operaciones_intermedias)),
+                            "acciones_tramo": [
+                                {
+                                    "fecha_hora": item["fh_movimiento"],
+                                    "operacion": item["operacion"],
+                                    "pedido": item["pedido"],
+                                    "pallet": item["pallet"],
+                                    "almacen": item["almacen"],
+                                }
+                                for item in [prev, *intermedias, row]
+                            ],
+                            "intermedias_count": len(intermedias),
+                            "transporte_pallets": transporte_pallets,
+                            "contexto": (
+                                "Transporte de pallets contemplado"
+                                if transporte_pallets
+                                else "Con operaciones intermedias"
+                                if intermedias
+                                else "Sin actividad intermedia registrada"
+                            ),
+                            "severidad": _picking_idle_severity(
+                                minutos,
+                                umbral,
+                                almacen_cambio,
+                                len(intermedias),
+                                transporte_pallets=transporte_pallets,
+                            ),
+                        }
+                    )
+
+            prev_pick_index = current_index
+
+    cases.sort(key=lambda item: (-item["exceso_minutos"], -item["minutos"], item["copecrea"]))
+    return {
+        "fecha": fecha,
+        "turno": _turn_label(turno_key),
+        "turno_key": turno_key,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "rows": cases,
+        "summary": {
+            "movimientos_total": len(normalized),
+            "pickings_total": sum(1 for item in normalized if item["operacion"] == "PICKING"),
+            "casos_total": len(cases),
+            "casos_altos": sum(1 for item in cases if item["severidad"] == "alta"),
+            "casos_mismo_almacen": sum(1 for item in cases if not item["almacen_cambio"]),
+            "casos_sin_intermedias": sum(1 for item in cases if item["intermedias_count"] == 0),
+            "operarios_afectados": len(operators_with_case),
+            "source_name": "oracle_productiva",
+        },
+        "filters": {
+            "almacenes": sorted({item["almacen_anterior"] for item in cases} | {item["almacen_nuevo"] for item in cases}),
+            "severidades": ["alta", "media", "baja", "info"],
+        },
+        "thresholds": {
+            "cambio_pedido_mismo_almacen": pedido_threshold,
+            "cambio_pallet_mismo_almacen": pallet_threshold,
+            "cambio_almacen": almacen_threshold,
+            "transporte_pallets_extra": transporte_extra,
+        },
+    }
+
+
 def _build_turno_evaluacion_ia_context(evaluacion: dict[str, Any]) -> str:
     return "\n".join(
         [
@@ -2373,6 +2642,23 @@ async def _load_ubicaciones_oracle_map() -> dict[str, dict[str, Any]]:
     return mapping
 
 
+async def _load_picking_ubicaciones_hist_order() -> dict[str, int]:
+    mapping: dict[str, int] = {}
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute(
+            """
+            SELECT ubicacion_codigo, orden_teorico
+            FROM picking_ubicaciones_hist
+            WHERE ubicacion_codigo IS NOT NULL
+            """
+        ) as cur:
+            async for codigo, orden in cur:
+                key = _safe_str(codigo, "")
+                if key:
+                    mapping[key] = int(orden or 0)
+    return mapping
+
+
 def _build_picking_row_difficulty(
     *,
     cantidad: float,
@@ -2417,6 +2703,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
             source_name="oracle_productiva",
         )
     ubicaciones_map = await _load_ubicaciones_oracle_map()
+    ubicaciones_hist_order = await _load_picking_ubicaciones_hist_order()
 
     operarios: dict[str, dict[str, Any]] = {}
     almacenes = set()
@@ -2424,6 +2711,10 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
     total_cantidad = 0.0
     total_peso = 0.0
     total_saltos = 0.0
+    total_saltos_fallback = 0.0
+    total_saltos_hist_conf = 0
+    total_saltos_hist_missing = 0
+    total_cambios_ubicacion = 0
     total_dificultad = 0.0
     detail_normalized = []
 
@@ -2457,9 +2748,13 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
                 "seg_total": 0.0,
                 "prev_dt": None,
                 "prev_ubic": "",
+                "prev_ubic_order": None,
                 "prev_zona": "",
                 "prev_pasillo": "",
                 "saltos_recorrido": 0.0,
+                "saltos_recorrido_fallback": 0.0,
+                "saltos_hist_confiables": 0,
+                "saltos_hist_sin_mapa": 0,
                 "distancia_estimada_m": 0.0,
                 "cambios_ubicacion": 0,
                 "dificultad_total": 0.0,
@@ -2475,10 +2770,15 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         location_changed = bool(current["prev_ubic"] and ubic_origen and current["prev_ubic"] != ubic_origen)
         zone_changed = bool(current["prev_zona"] and zona_origen and current["prev_zona"] != zona_origen)
         passillo_changed = bool(current["prev_pasillo"] and cpasillo and current["prev_pasillo"] != cpasillo)
-        # Es una unidad operacional de salto entre ubicaciones, no metros fisicos.
-        # El calculo queda deliberadamente conservador hasta configurar sentidos
-        # de circulacion por pasillo/zona.
-        saltos_recorrido = 1.0 if location_changed else 0.0
+        ubic_order = ubicaciones_hist_order.get(ubic_origen)
+        prev_ubic_order = current.get("prev_ubic_order")
+        saltos_fallback = 1.0 if location_changed else 0.0
+        saltos_hist_confiable = False
+        if location_changed and prev_ubic_order is not None and ubic_order is not None:
+            saltos_recorrido = float(abs(int(ubic_order) - int(prev_ubic_order)))
+            saltos_hist_confiable = True
+        else:
+            saltos_recorrido = saltos_fallback
         difficulty = _build_picking_row_difficulty(
             cantidad=cantidad,
             peso=peso,
@@ -2491,7 +2791,13 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         current["cantidad_total"] += cantidad
         current["peso_total"] += peso
         current["saltos_recorrido"] += saltos_recorrido
+        current["saltos_recorrido_fallback"] += saltos_fallback
         current["distancia_estimada_m"] += saltos_recorrido
+        if location_changed:
+            if saltos_hist_confiable:
+                current["saltos_hist_confiables"] += 1
+            else:
+                current["saltos_hist_sin_mapa"] += 1
         current["dificultad_total"] += difficulty
         current["almacenes"][almacen] += 1
         current["zonas"][zona_origen] += 1
@@ -2510,6 +2816,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
                 current["seg_total"] += max((fh_dt - current["prev_dt"]).total_seconds(), 0.0)
             current["prev_dt"] = fh_dt
         current["prev_ubic"] = ubic_origen or current["prev_ubic"]
+        current["prev_ubic_order"] = ubic_order if ubic_order is not None else current["prev_ubic_order"]
         current["prev_zona"] = zona_origen or current["prev_zona"]
         current["prev_pasillo"] = cpasillo or current["prev_pasillo"]
 
@@ -2527,6 +2834,9 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
             "cantidad": cantidad,
             "peso": peso,
             "saltos_recorrido": saltos_recorrido,
+            "saltos_recorrido_fallback": saltos_fallback,
+            "saltos_hist_confiable": saltos_hist_confiable,
+            "orden_ubicacion_teorico": ubic_order,
             "distancia_estimada_m": saltos_recorrido,
             "dificultad_fila": difficulty,
         }
@@ -2538,6 +2848,13 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         total_cantidad += cantidad
         total_peso += peso
         total_saltos += saltos_recorrido
+        total_saltos_fallback += saltos_fallback
+        if location_changed:
+            total_cambios_ubicacion += 1
+            if saltos_hist_confiable:
+                total_saltos_hist_conf += 1
+            else:
+                total_saltos_hist_missing += 1
         total_dificultad += difficulty
 
     rows = []
@@ -2571,6 +2888,9 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
                 "cantidad_hora": cantidad_hora,
                 "kg_hora": kg_hora,
                 "saltos_recorrido": round(current["saltos_recorrido"], 2),
+                "saltos_recorrido_fallback": round(current["saltos_recorrido_fallback"], 2),
+                "saltos_hist_confiables": current["saltos_hist_confiables"],
+                "saltos_hist_sin_mapa": current["saltos_hist_sin_mapa"],
                 "distancia_estimada_m": round(current["saltos_recorrido"], 2),
                 "cambios_ubicacion": current["cambios_ubicacion"],
                 "dificultad_total": round(current["dificultad_total"], 2),
@@ -2679,8 +2999,9 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         "metrica_principal": "cantidad/hora",
         "supuestos": [
             "Cada fila de Picking se toma como una accion registrada.",
-            "Los saltos de recorrido suman 1 salto cuando el operario cambia de ubicacion entre dos picks consecutivos; no son metros fisicos.",
-            "El sentido de circulacion por pasillo todavia no se aplica hasta contar con una regla/configuracion confiable de pasillos ascendentes y descendentes.",
+            "Los saltos de recorrido usan el orden teorico de picking_ubicaciones_hist cuando ambas ubicaciones existen en el mapa empirico.",
+            "Si alguna ubicacion no existe en el mapa empirico, se usa el fallback conservador anterior: 1 salto por cambio de ubicacion.",
+            "El orden teorico inicial sale de ubicaciones completas historicas ordenadas por codigo; no son metros fisicos ni una confirmacion definitiva del sentido real de pasillo.",
             "La productividad ajustada toma la cantidad/hora y la normaliza por la dificultad promedio asignada.",
             "Mas bultos por linea se interpreta como mejor consolidacion de la asignacion: una parada resuelve mas bultos.",
             "La suerte de asignacion es relativa al promedio del turno consultado.",
@@ -2689,6 +3010,7 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         "formulas": [
             "Cantidad/hora = cantidad_total / horas_activas.",
             "Horas activas = suma de diferencias entre movimientos consecutivos del mismo operario.",
+            "Saltos teoricos = ABS(orden_ubicacion_actual - orden_ubicacion_anterior) cuando ambas ubicaciones existen en picking_ubicaciones_hist.",
             "Dificultad fila = 1 + (cantidad * 0.08) + (peso * 0.03) + bonos por cambio de ubicacion/pasillo/zona.",
             "Indice de dificultad = dificultad_total / lineas.",
             "Bultos por linea = cantidad_total / lineas.",
@@ -2711,10 +3033,18 @@ async def build_picking_base_analysis(fecha: str, turno: str, force_refresh: boo
         "summary": {
             "operarios": len(rows),
             "movimientos": len(detail_normalized),
+            "lineas_total": len(detail_normalized),
             "cantidad_total": round(total_cantidad, 2),
             "peso_total": round(total_peso, 2),
-            "saltos_recorrido_total": round(total_saltos, 2),
-            "distancia_estimada_total_m": round(total_saltos, 2),
+            "cambios_ubicacion_total": total_cambios_ubicacion,
+            "saltos_recorrido_total": total_cambios_ubicacion,
+            "saltos_teoricos_total": round(total_saltos, 2),
+            "saltos_recorrido_fallback_total": round(total_saltos_fallback, 2),
+            "saltos_hist_confiables": total_saltos_hist_conf,
+            "saltos_hist_sin_mapa": total_saltos_hist_missing,
+            "ubicaciones_hist_map_count": len(ubicaciones_hist_order),
+            "distancia_estimada_total_m": total_cambios_ubicacion,
+            "distancia_teorica_total": round(total_saltos, 2),
             "dificultad_promedio": round(avg_difficulty, 2),
             "cantidad_hora_promedio": round(avg_cantidad_hora, 2),
             "bultos_por_linea_promedio": round(avg_bultos_por_linea, 2),
@@ -3598,6 +3928,53 @@ async def post_turno_evaluacion_ia(req: TurnoEvaluacionIARequest):
     except Exception as exc:
         logger.exception("Error generando evaluacion IA de turno")
         raise HTTPException(status_code=500, detail=f"No se pudo generar evaluacion IA de turno: {exc}")
+
+
+@router.get("/picking/tiempos-muertos")
+async def get_picking_tiempos_muertos(
+    fecha: str = Query(..., description="YYYY-MM-DD"),
+    turno: str = Query(..., description="MaÃ±ana, Tarde o Noche"),
+    umbral_pedido: int = Query(10, ge=1, le=240, description="Minutos para cambio de pedido"),
+    umbral_pallet: int = Query(15, ge=1, le=240, description="Minutos para cambio de pallet"),
+    umbral_almacen: int = Query(25, ge=1, le=240, description="Minutos para cambio de almacen"),
+    extra_transporte: int = Query(10, ge=0, le=240, description="Minutos extra si hay transporte de pallets"),
+):
+    turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
+    logger.info(
+        "[picking-tiempos-muertos] Consultando Oracle turno=%s rango=%s..%s",
+        _turn_label(turno_key),
+        fecha_desde,
+        fecha_hasta,
+    )
+    try:
+        detail_rows = await asyncio.to_thread(
+            query_productive_db_picking_tiempos_muertos,
+            fecha_desde,
+            fecha_hasta,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Error consultando tiempos muertos de picking")
+        raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle: {exc}")
+
+    payload = _build_picking_idle_analysis(
+        detail_rows,
+        fecha,
+        turno_key,
+        fecha_desde,
+        fecha_hasta,
+        pedido_threshold=umbral_pedido,
+        pallet_threshold=umbral_pallet,
+        almacen_threshold=umbral_almacen,
+        transporte_extra=extra_transporte,
+    )
+    logger.info(
+        "[picking-tiempos-muertos] Listo: %s movimientos, %s casos",
+        payload["summary"]["movimientos_total"],
+        payload["summary"]["casos_total"],
+    )
+    return payload
 
 
 @router.get("/online")

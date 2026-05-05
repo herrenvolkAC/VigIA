@@ -112,8 +112,28 @@ public class OracleProductividadQuery {
                 "    A.CZONAORI AS ZONA_ORIGEN, " +
                 "    A.CUBIORIG AS UBIC_ORIGEN, " +
                 "    A.CNUPALET AS NRO_PALLET, " +
+                "    A.CNPEDIDO AS PEDIDO, " +
                 "    A.QCANTIDA AS CANTIDAD, " +
                 "    A.QPESOREG AS PESO " +
+                "FROM F132HIST A " +
+                "LEFT JOIN PV_LEGAJO B ON A.COPECREA = B.LEGAJO " +
+                "LEFT JOIN ( " +
+                "    SELECT DISTINCT CZONALMA, DESCDIVI " +
+                "    FROM VW_UBICACIONES_DIVISION " +
+                ") SUB1 ON SUB1.CZONALMA = A.CZONAORI " +
+                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "ORDER BY A.COPECREA, A.FCREAREG";
+        } else if ("tiempos_muertos".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    A.FCREAREG AS FH_MOVIMIENTO, " +
+                "    A.CNUPALET AS NRO_PALLET, " +
+                "    A.CNPEDIDO AS PEDIDO, " +
+                "    A.COPECREA, " +
+                "    B.NOMBRE AS OPERARIO, " +
+                "    UPPER(A.CDESCRIP) AS OPERACION, " +
+                "    NVL(SUB1.DESCDIVI, 'SIN MAPEAR') AS ALMACEN " +
                 "FROM F132HIST A " +
                 "LEFT JOIN PV_LEGAJO B ON A.COPECREA = B.LEGAJO " +
                 "LEFT JOIN ( " +
@@ -143,6 +163,17 @@ public class OracleProductividadQuery {
                 "AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
                 "AND A.CDESCRIP = 'Picking' " +
                 "ORDER BY A.FCREAREG";
+        } else if ("picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
+            sql =
+                "WITH UBICS AS ( " +
+                "  SELECT CUBIORIG " +
+                "  FROM F132HIST_HIST A " +
+                "  WHERE UPPER(CDESCRIP) = 'PICKING' " +
+                "    AND CUBIORIG IS NOT NULL " +
+                ") " +
+                "SELECT DISTINCT CUBIORIG AS UBICACION_CODIGO " +
+                "FROM UBICS " +
+                "ORDER BY CUBIORIG";
         } else {
             sql =
                 "SELECT " +
@@ -168,8 +199,10 @@ public class OracleProductividadQuery {
             Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
             PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            ps.setString(1, fechaDesde);
-            ps.setString(2, fechaHasta);
+            if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaDesde);
+                ps.setString(2, fechaHasta);
+            }
 
             try (ResultSet rs = ps.executeQuery()) {
                 StringBuilder out = new StringBuilder();
@@ -179,7 +212,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("online".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey)) {
+                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

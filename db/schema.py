@@ -382,6 +382,19 @@ CREATE TABLE IF NOT EXISTS ubicaciones_oracle (
 );
 """
 
+CREATE_PICKING_UBICACIONES_HIST = """
+CREATE TABLE IF NOT EXISTS picking_ubicaciones_hist (
+    ubicacion_codigo        TEXT PRIMARY KEY,
+    orden_teorico          INTEGER NOT NULL,
+    first_seen             TEXT,
+    last_seen              TEXT,
+    pick_count             INTEGER DEFAULT 0,
+    source_name            TEXT DEFAULT 'oracle_productiva',
+    snapshot_loaded_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at             DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
 CREATE_PICKING_ANALYSIS_CACHE_RUNS = """
 CREATE TABLE IF NOT EXISTS picking_analysis_cache_runs (
     cache_run_id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -511,6 +524,11 @@ CREATE_UBICACIONES_ORACLE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_ubicaciones_oracle_tipo_nivel ON ubicaciones_oracle(xtipsubi, nnivelal)",
 ]
 
+CREATE_PICKING_UBICACIONES_HIST_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_picking_ubic_hist_orden ON picking_ubicaciones_hist(orden_teorico)",
+    "CREATE INDEX IF NOT EXISTS idx_picking_ubic_hist_count ON picking_ubicaciones_hist(pick_count DESC)",
+]
+
 CREATE_PICKING_ANALYSIS_CACHE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_picking_cache_runs_fecha_turno ON picking_analysis_cache_runs(fecha, turno_key, updated_at)",
     "CREATE INDEX IF NOT EXISTS idx_picking_cache_rows_lookup ON picking_analysis_cache_rows(fecha, turno_key, fh_movimiento)",
@@ -555,6 +573,7 @@ async def init_db():
         await db.execute(CREATE_PLANTEL_HISTORY_CACHE)
         await db.execute(CREATE_PLANTEL_MOVIMIENTOS_HIST)
         await db.execute(CREATE_UBICACIONES_ORACLE)
+        await db.execute(CREATE_PICKING_UBICACIONES_HIST)
         await db.execute(CREATE_PICKING_ANALYSIS_CACHE_RUNS)
         await db.execute(CREATE_PICKING_ANALYSIS_CACHE_ROWS)
         await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_RUNS)
@@ -597,6 +616,8 @@ async def init_db():
         for statement in CREATE_PLANTEL_INDEXES:
             await db.execute(statement)
         for statement in CREATE_UBICACIONES_ORACLE_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_PICKING_UBICACIONES_HIST_INDEXES:
             await db.execute(statement)
         for statement in CREATE_PICKING_ANALYSIS_CACHE_INDEXES:
             await db.execute(statement)
