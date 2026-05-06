@@ -23,6 +23,7 @@ env/
 *.sqlite3
 vigia.db
 pick_real.csv
+offline_packages/
 
 # Artefactos compilados locales
 *.class

@@ -931,6 +931,17 @@ header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2
 .style-switch-btn{border:0;border-radius:999px;padding:7px 12px;background:transparent;color:#a0a0c0;font-family:'Inter',sans-serif;font-size:11px;font-weight:800;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .style-switch-btn:hover{color:#f3f6ff;background:rgba(255,255,255,.08);}
 .style-switch-btn.active{background:linear-gradient(135deg,#00d4ff,#00ff88);color:#1e1e2e;box-shadow:0 8px 20px rgba(0,212,255,.18);}
+.standalone-note{display:none;margin:0 0 16px;padding:14px 18px;border-radius:14px;background:rgba(0,212,255,.10);border:1px solid rgba(0,212,255,.22);color:#dce3f5;font-size:13px;line-height:1.6;}
+.standalone-note strong{color:#7ddfff;}
+html[data-standalone-module="tiempos-muertos"] .standalone-note{display:block;}
+html[data-standalone-module="tiempos-muertos"] .main-tab-bar{display:none;}
+html[data-standalone-module="tiempos-muertos"] #mtab-productividad > .sub-tab-bar{display:none;}
+html[data-standalone-module="tiempos-muertos"] #stab-online,
+html[data-standalone-module="tiempos-muertos"] #stab-picking-ia,
+html[data-standalone-module="tiempos-muertos"] #stab-hourly,
+html[data-standalone-module="tiempos-muertos"] #stab-base-explanation{display:none!important;}
+html[data-standalone-module="tiempos-muertos"] #stab-idle{display:block!important;}
+html[data-standalone-module="tiempos-muertos"] .online-shell > .online-filters{display:none;}
 
 /* ── Tema alternativo: Claro ── */
 html[data-prod-style="flowops"] {
@@ -1182,6 +1193,9 @@ html[data-prod-style="flowops"] .ai-overlay-box{
 </div>
 <!-- Tab 2: Productividad -->
 <div id="mtab-productividad" class="main-tab-content active">
+  <div class="standalone-note">
+    <strong>Módulo en prueba:</strong> Tiempos muertos y TNC. Esta vista está preparada para supervisores y usa los filtros de fecha/turno del panel superior.
+  </div>
   <div class="sub-tab-bar">
     <button class="sub-tab-btn active" id="stab-btn-online" onclick="switchProdTab('online')">Evaluación de turno</button>
     <button class="sub-tab-btn" id="stab-btn-idle" onclick="switchProdTab('idle')">Tiempos muertos</button>
@@ -1214,6 +1228,7 @@ html[data-prod-style="flowops"] .ai-overlay-box{
       </div>
       <div class="online-action-group" id="actions-idle">
         <button class="online-btn" id="btn-idle-run" onclick="runPickingIdleAnalysis()">Detectar tiempos</button>
+        <button class="online-btn" id="btn-tnc-run" onclick="runTncMonitor()" style="display:none;">Consultar TNC</button>
       </div>
       <div class="online-action-group" id="actions-picking-ia">
         <button class="online-btn" id="btn-picking-base" onclick="runPickingAnalysisBase()">Consultar suerte</button>
@@ -1259,26 +1274,53 @@ html[data-prod-style="flowops"] .ai-overlay-box{
     </div>
 
     <div id="stab-idle" class="sub-tab-content">
-      <div class="online-filters" style="grid-template-columns:repeat(4,minmax(140px,1fr));margin-top:0;">
-        <div class="online-field compact">
-          <label>Umbral pedido min</label>
-          <input type="number" id="idle-threshold-pedido" min="1" max="240" step="1" value="10">
+      <div class="sub-tab-bar" style="margin-bottom:16px;">
+        <button class="sub-tab-btn active" id="idle-subtab-btn-cambios" onclick="switchIdleSubTab('cambios')">Cambios entre pickings</button>
+        <button class="sub-tab-btn" id="idle-subtab-btn-tnc" onclick="switchIdleSubTab('tnc')">TNC</button>
+      </div>
+      <div id="idle-subtab-cambios" class="sub-tab-content active">
+        <div class="online-filters" style="grid-template-columns:repeat(4,minmax(140px,1fr));margin-top:0;">
+          <div class="online-field compact">
+            <label>Umbral pedido min</label>
+            <input type="number" id="idle-threshold-pedido" min="1" max="240" step="1" value="10">
+          </div>
+          <div class="online-field compact">
+            <label>Umbral pallet min</label>
+            <input type="number" id="idle-threshold-pallet" min="1" max="240" step="1" value="15">
+          </div>
+          <div class="online-field compact">
+            <label>Umbral almacén min</label>
+            <input type="number" id="idle-threshold-almacen" min="1" max="240" step="1" value="25">
+          </div>
+          <div class="online-field compact">
+            <label>Extra transporte min</label>
+            <input type="number" id="idle-threshold-transporte" min="0" max="240" step="1" value="10">
+          </div>
         </div>
-        <div class="online-field compact">
-          <label>Umbral pallet min</label>
-          <input type="number" id="idle-threshold-pallet" min="1" max="240" step="1" value="15">
-        </div>
-        <div class="online-field compact">
-          <label>Umbral almacén min</label>
-          <input type="number" id="idle-threshold-almacen" min="1" max="240" step="1" value="25">
-        </div>
-        <div class="online-field compact">
-          <label>Extra transporte min</label>
-          <input type="number" id="idle-threshold-transporte" min="0" max="240" step="1" value="10">
+        <div id="idle-results">
+          <div class="analisis-empty">Todavía no se detectaron tiempos entre cambios de pedido o pallet.</div>
         </div>
       </div>
-      <div id="idle-results">
-        <div class="analisis-empty">Todavía no se detectaron tiempos entre cambios de pedido o pallet.</div>
+      <div id="idle-subtab-tnc" class="sub-tab-content">
+        <div class="online-filters" style="grid-template-columns:minmax(180px,260px) minmax(220px,320px) 1fr;margin-top:0;">
+          <div class="online-field compact">
+            <label>Estado</label>
+            <select id="tnc-filter-estado" onchange="renderTncMonitor()">
+              <option value="ALL">Todos</option>
+              <option value="Activo">Activo</option>
+              <option value="Finalizado">Finalizado</option>
+            </select>
+          </div>
+          <div class="online-field compact">
+            <label>Tipo de TNC</label>
+            <select id="tnc-filter-tipo" onchange="renderTncMonitor()">
+              <option value="ALL">Todas</option>
+            </select>
+          </div>
+        </div>
+        <div id="tnc-results">
+          <div class="analisis-empty">Todavía no se consultaron tiempos no continuos.</div>
+        </div>
       </div>
     </div>
 
@@ -1400,6 +1442,11 @@ let productividadOnlineIaLoading = false;
 let actividadCompletaLoading = false;
 let pickingIdleResult = null;
 let pickingIdleLoading = false;
+let idleSubTab = 'cambios';
+let tncMonitorResult = null;
+let tncMonitorLoading = false;
+let pickingIdleSort = { key: 'exceso_minutos', direction: 'desc' };
+let tncMonitorSort = { key: 'inicio', direction: 'desc' };
 let turnoEvaluationResult = null;
 let turnoEvaluationIaResult = null;
 let turnoEvaluationLoading = false;
@@ -1428,6 +1475,21 @@ let plantelLoading = false;
 const fmt   = n => Math.round(n).toLocaleString('es');
 const fmtF  = n => parseFloat(n).toFixed(1);
 const nowStr= () => { const n=new Date(); return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'); };
+
+function isTiemposMuertosStandalone() {
+  const params = new URLSearchParams(window.location.search);
+  const modo = String(params.get('modo') || params.get('vista') || '').toLowerCase();
+  const path = String(window.location.pathname || '').toLowerCase();
+  return path.includes('tiempos-muertos') || modo === 'tiempos-muertos' || modo === 'tnc';
+}
+
+function applyStandaloneModuleMode() {
+  if (!isTiemposMuertosStandalone()) return;
+  document.documentElement.setAttribute('data-standalone-module', 'tiempos-muertos');
+  document.title = 'VigIA · Tiempos muertos';
+  const process = document.querySelector('.brand-process');
+  if (process) process.textContent = 'Tiempos muertos y TNC';
+}
 
 // ── Detectar ola actual por hora ──────────────────────────────────
 function detectOlaActual() {
@@ -2436,8 +2498,24 @@ function renderProductividadOnlineGrid() {
 
 function getFilteredPickingIdleRows() {
   const rows = Array.isArray(pickingIdleResult?.rows) ? pickingIdleResult.rows : [];
-  const operario = (document.getElementById('prod-online-filter-operario')?.value || '').trim().toLowerCase();
-  const almacen = document.getElementById('prod-online-filter-almacen')?.value || 'ALL';
+  const standalone = isTiemposMuertosStandalone();
+  const operario = standalone ? '' : (document.getElementById('prod-online-filter-operario')?.value || '').trim().toLowerCase();
+  const almacen = standalone ? 'ALL' : (document.getElementById('prod-online-filter-almacen')?.value || 'ALL');
+  const severityOrder = { alta: 3, media: 2, baja: 1, info: 0 };
+  const valueForSort = row => {
+    switch (pickingIdleSort.key) {
+      case 'severidad': return severityOrder[String(row.severidad || '').toLowerCase()] ?? -1;
+      case 'operario': return String(row.operario || row.copecrea || '').toLowerCase();
+      case 'desde': return String(row.desde || '');
+      case 'hasta': return String(row.hasta || '');
+      case 'minutos': return Number(row.minutos || 0);
+      case 'exceso_minutos': return Number(row.exceso_minutos || 0);
+      case 'tnc': return String(row.tnc_resumen || '').toLowerCase();
+      case 'situacion': return String(row.cambio || '').toLowerCase();
+      case 'operaciones': return String((row.operaciones_intermedias || []).join(', ')).toLowerCase();
+      default: return Number(row.exceso_minutos || 0);
+    }
+  };
   return rows.filter(row => {
     if (operario) {
       const hayMatch = String(row.operario || '').toLowerCase().includes(operario)
@@ -2446,7 +2524,29 @@ function getFilteredPickingIdleRows() {
     }
     if (almacen !== 'ALL' && row.almacen_anterior !== almacen && row.almacen_nuevo !== almacen) return false;
     return true;
+  }).sort((a, b) => {
+    const av = valueForSort(a);
+    const bv = valueForSort(b);
+    let cmp = 0;
+    if (typeof av === 'number' && typeof bv === 'number') cmp = av - bv;
+    else cmp = String(av).localeCompare(String(bv), 'es');
+    return pickingIdleSort.direction === 'asc' ? cmp : -cmp;
   });
+}
+
+function setPickingIdleSort(key) {
+  if (pickingIdleSort.key === key) {
+    pickingIdleSort.direction = pickingIdleSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    pickingIdleSort = { key, direction: key === 'operario' ? 'asc' : 'desc' };
+  }
+  renderPickingIdleAnalysis();
+}
+
+function sortableIdleTh(label, key) {
+  const active = pickingIdleSort.key === key;
+  const arrow = active ? (pickingIdleSort.direction === 'asc' ? ' ▲' : ' ▼') : '';
+  return `<th style="cursor:pointer;" onclick="setPickingIdleSort('${key}')">${label}${arrow}</th>`;
 }
 
 function renderPickingIdleAnalysis() {
@@ -2470,6 +2570,8 @@ function renderPickingIdleAnalysis() {
     const umbralTotal = Number(row.umbral_minutos || 0);
     const extra = row.transporte_pallets ? Number(thresholds.transporte_pallets_extra || 0) : 0;
     const umbralBase = Math.max(umbralTotal - extra, 0);
+    const tncDescontable = Number(row.tnc_descontable_minutos || 0);
+    const excesoBruto = Number(row.exceso_bruto_minutos ?? (minutos - umbralTotal));
     const exceso = Number(row.exceso_minutos || 0);
     const lines = [
       `Minutos entre pickings: ${minutos.toLocaleString('es-AR')}`,
@@ -2477,7 +2579,9 @@ function renderPickingIdleAnalysis() {
     ];
     if (extra > 0) lines.push(`Extra por transporte de pallets: ${extra.toLocaleString('es-AR')}`);
     lines.push(`Umbral total: ${umbralTotal.toLocaleString('es-AR')}`);
-    lines.push(`Exceso = ${minutos.toLocaleString('es-AR')} - ${umbralTotal.toLocaleString('es-AR')} = ${exceso.toLocaleString('es-AR')} min`);
+    lines.push(`Exceso bruto: ${excesoBruto.toLocaleString('es-AR')} min`);
+    if (tncDescontable > 0) lines.push(`TNC descontable segun tope: ${tncDescontable.toLocaleString('es-AR')} min`);
+    lines.push(`Exceso mostrado = max(0, ${excesoBruto.toLocaleString('es-AR')} - ${tncDescontable.toLocaleString('es-AR')}) = ${exceso.toLocaleString('es-AR')} min`);
     return escapeHtml(lines.join('\n'));
   };
   const situationHtml = row => {
@@ -2522,7 +2626,7 @@ function renderPickingIdleAnalysis() {
     <div class="online-highlights">
       <div class="online-highlights-title">Lectura operativa</div>
       <div class="online-highlights-list">
-        <div class="online-highlight-item">Se comparan pickings consecutivos del mismo operario. Solo entran casos donde cambia pedido o pallet y el tiempo supera el umbral del contexto.</div>
+        <div class="online-highlight-item">Se comparan pickings consecutivos del mismo operario. Solo se muestran casos con exceso real luego de descontar TNC dentro de su tope.</div>
         <div class="online-highlight-item">El cambio de almacén no desaparece: sube el umbral a 25 minutos y queda marcado como posible justificación.</div>
         <div class="online-highlight-item">Si entre ambos pickings aparece TRANSPORTE DE PALETS, se toma como cierre operativo esperado y se le agrega tolerancia al tramo.</div>
       </div>
@@ -2531,14 +2635,15 @@ function renderPickingIdleAnalysis() {
       <table class="online-grid" style="min-width:1100px;">
         <thead>
           <tr>
-            <th>Severidad</th>
-            <th>Operario</th>
-            <th>Desde</th>
-            <th>Hasta</th>
-            <th>Minutos</th>
-            <th>Exceso</th>
-            <th>Situación</th>
-            <th>Operaciones intermedias</th>
+            ${sortableIdleTh('Severidad', 'severidad')}
+            ${sortableIdleTh('Operario', 'operario')}
+            ${sortableIdleTh('Desde', 'desde')}
+            ${sortableIdleTh('Hasta', 'hasta')}
+            ${sortableIdleTh('Minutos', 'minutos')}
+            ${sortableIdleTh('Exceso', 'exceso_minutos')}
+            ${sortableIdleTh('TNC?', 'tnc')}
+            ${sortableIdleTh('Situación', 'situacion')}
+            ${sortableIdleTh('Operaciones intermedias', 'operaciones')}
           </tr>
         </thead>
         <tbody>
@@ -2550,15 +2655,209 @@ function renderPickingIdleAnalysis() {
               <td>${onlyTime(row.hasta)}</td>
               <td>${Number(row.minutos || 0).toLocaleString('es-AR')}</td>
               <td title="${excessTooltip(row)}">+${Number(row.exceso_minutos || 0).toLocaleString('es-AR')}</td>
+              <td>${escapeHtml(row.tnc_resumen || 'Sin TNC')}</td>
               <td>${situationHtml(row)}</td>
               <td>${(row.operaciones_intermedias || []).length ? row.operaciones_intermedias.map(escapeHtml).join(', ') : '—'}</td>
             </tr>
-          `).join('') : '<tr><td colspan="8" class="analisis-empty">No hay casos para mostrar con los filtros actuales.</td></tr>'}
+          `).join('') : '<tr><td colspan="9" class="analisis-empty">No hay casos para mostrar con los filtros actuales.</td></tr>'}
         </tbody>
       </table>
     </div>
   `;
   bindPickingIdleOperarioLinks(rows);
+}
+
+function switchIdleSubTab(tab) {
+  idleSubTab = tab === 'tnc' ? 'tnc' : 'cambios';
+  document.getElementById('idle-subtab-btn-cambios')?.classList.toggle('active', idleSubTab === 'cambios');
+  document.getElementById('idle-subtab-btn-tnc')?.classList.toggle('active', idleSubTab === 'tnc');
+  document.getElementById('idle-subtab-cambios')?.classList.toggle('active', idleSubTab === 'cambios');
+  document.getElementById('idle-subtab-tnc')?.classList.toggle('active', idleSubTab === 'tnc');
+  const idleBtn = document.getElementById('btn-idle-run');
+  const tncBtn = document.getElementById('btn-tnc-run');
+  if (idleBtn) idleBtn.style.display = idleSubTab === 'cambios' ? '' : 'none';
+  if (tncBtn) tncBtn.style.display = idleSubTab === 'tnc' ? '' : 'none';
+  const status = document.getElementById('online-tab-status');
+  if (status && document.getElementById('stab-idle')?.classList.contains('active')) {
+    status.textContent = idleSubTab === 'tnc'
+      ? 'Consultá tiempos no continuos del rango seleccionado y filtrá activos o finalizados.'
+      : 'Detectá demoras entre pickings cuando cambia pedido o pallet, contemplando cambios de almacén y operaciones intermedias.';
+  }
+}
+
+function getFilteredTncRows() {
+  const rows = Array.isArray(tncMonitorResult?.rows) ? tncMonitorResult.rows : [];
+  const estado = document.getElementById('tnc-filter-estado')?.value || 'ALL';
+  const tipo = document.getElementById('tnc-filter-tipo')?.value || 'ALL';
+  const estadoTiempoOrder = { Excedido: 1, 'Dentro de tope': 0 };
+  const valueForSort = row => {
+    switch (tncMonitorSort.key) {
+      case 'legajo': return String(row.legajo || '');
+      case 'operario': return String(row.operario || '').toLowerCase();
+      case 'inicio': return String(row.inicio || '');
+      case 'fin': return String(row.fin || '');
+      case 'tnc': return String(row.tnc || '').toLowerCase();
+      case 'estado': return String(row.estado || '').toLowerCase();
+      case 'minutos': return Number(row.minutos || 0);
+      case 'tope': return Number(row.tope || 0);
+      case 'diferencia': return Number(row.diferencia || 0);
+      case 'estado_tiempo': return estadoTiempoOrder[row.estado_tiempo] ?? -1;
+      default: return String(row.inicio || '');
+    }
+  };
+  return rows.filter(row => {
+    if (estado !== 'ALL' && row.estado !== estado) return false;
+    if (tipo !== 'ALL' && row.tnc !== tipo) return false;
+    return true;
+  }).sort((a, b) => {
+    const av = valueForSort(a);
+    const bv = valueForSort(b);
+    let cmp = 0;
+    if (typeof av === 'number' && typeof bv === 'number') cmp = av - bv;
+    else cmp = String(av).localeCompare(String(bv), 'es');
+    return tncMonitorSort.direction === 'asc' ? cmp : -cmp;
+  });
+}
+
+function setTncMonitorSort(key) {
+  if (tncMonitorSort.key === key) {
+    tncMonitorSort.direction = tncMonitorSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    tncMonitorSort = { key, direction: ['legajo', 'operario', 'tnc', 'estado'].includes(key) ? 'asc' : 'desc' };
+  }
+  renderTncMonitor();
+}
+
+function sortableTncTh(label, key) {
+  const active = tncMonitorSort.key === key;
+  const arrow = active ? (tncMonitorSort.direction === 'asc' ? ' ▲' : ' ▼') : '';
+  return `<th style="cursor:pointer;" onclick="setTncMonitorSort('${key}')">${label}${arrow}</th>`;
+}
+
+function populateTncTipoFilter(rows) {
+  const select = document.getElementById('tnc-filter-tipo');
+  if (!select) return;
+  const current = select.value || 'ALL';
+  const tipos = Array.from(new Set((rows || []).map(row => String(row.tnc || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
+  select.innerHTML = ['<option value="ALL">Todas</option>']
+    .concat(tipos.map(tipo => `<option value="${escapeHtml(tipo)}">${escapeHtml(tipo)}</option>`))
+    .join('');
+  select.value = Array.from(select.options).some(opt => opt.value === current) ? current : 'ALL';
+}
+
+function renderTncMonitor() {
+  const container = document.getElementById('tnc-results');
+  if (!container) return;
+  const data = tncMonitorResult;
+  if (!data) {
+    container.innerHTML = '<div class="analisis-empty">Todavía no se consultaron tiempos no continuos.</div>';
+    return;
+  }
+  populateTncTipoFilter(data.rows || []);
+  const rows = getFilteredTncRows();
+  const summary = data.summary || {};
+  const chipClass = row => row.estado_tiempo === 'Excedido' ? 'inactivo' : 'online';
+  container.innerHTML = `
+    <div class="online-meta-card" style="margin-bottom:16px;">
+      <strong>Rango consultado:</strong> ${data.fecha_desde || '—'} a ${data.fecha_hasta || '—'}
+    </div>
+    <div class="online-meta-grid">
+      <div class="online-meta-panel">
+        <div class="online-meta-label">TNC total</div>
+        <div class="online-meta-value">${Number(summary.total || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">Registros del rango seleccionado</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Activos</div>
+        <div class="online-meta-value">${Number(summary.activos || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">TNC actualmente abiertos</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Finalizados</div>
+        <div class="online-meta-value">${Number(summary.finalizados || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">TNC cerrados en el turno</div>
+      </div>
+      <div class="online-meta-panel">
+        <div class="online-meta-label">Excedidos</div>
+        <div class="online-meta-value">${Number(summary.excedidos || 0).toLocaleString('es-AR')}</div>
+        <div class="online-meta-sub">Superaron el tope definido</div>
+      </div>
+    </div>
+    <div class="online-grid-wrap">
+      <table class="online-grid" style="min-width:1120px;">
+        <thead>
+          <tr>
+            ${sortableTncTh('Legajo', 'legajo')}
+            ${sortableTncTh('Operario', 'operario')}
+            ${sortableTncTh('Inicio', 'inicio')}
+            ${sortableTncTh('Fin', 'fin')}
+            ${sortableTncTh('TNC', 'tnc')}
+            ${sortableTncTh('Estado', 'estado')}
+            ${sortableTncTh('Minutos', 'minutos')}
+            ${sortableTncTh('Tope', 'tope')}
+            ${sortableTncTh('Diferencia', 'diferencia')}
+            ${sortableTncTh('Estado tiempo', 'estado_tiempo')}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.length ? rows.map(row => `
+            <tr style="${row.estado_tiempo === 'Excedido' ? 'background:rgba(255,107,107,.10);' : ''}">
+              <td>${escapeHtml(row.legajo || '—')}</td>
+              <td><strong>${escapeHtml(row.operario || '—')}</strong></td>
+              <td>${escapeHtml(row.inicio || '—')}</td>
+              <td>${escapeHtml(row.fin || '—')}</td>
+              <td>${escapeHtml(row.tnc || '—')}</td>
+              <td><span class="online-chip ${row.estado === 'Activo' ? 'online' : 'inactivo'}">${escapeHtml(row.estado || '—')}</span></td>
+              <td>${Number(row.minutos || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.tope || 0).toLocaleString('es-AR')}</td>
+              <td>${Number(row.diferencia || 0).toLocaleString('es-AR')}</td>
+              <td><span class="online-chip ${chipClass(row)}">${escapeHtml(row.estado_tiempo || '—')}</span></td>
+            </tr>
+          `).join('') : '<tr><td colspan="10" class="analisis-empty">No hay TNC para mostrar con el filtro actual.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function runTncMonitor() {
+  if (tncMonitorLoading) return;
+  const btn = document.getElementById('btn-tnc-run');
+  const status = document.getElementById('online-tab-status');
+  const range = buildProductividadOnlineRange();
+  const container = document.getElementById('tnc-results');
+  if (!btn || !status) return;
+  if (!range) {
+    status.textContent = 'Completá fecha y turno antes de consultar TNC.';
+    return;
+  }
+
+  tncMonitorLoading = true;
+  btn.disabled = true;
+  btn.textContent = 'Consultando...';
+  status.textContent = `Consultando TNC para ${range.turno_label}.`;
+  if (container) {
+    container.innerHTML = '<div class="analisis-empty">Consultando tiempos no continuos en Oracle...</div>';
+  }
+  try {
+    const params = new URLSearchParams({ fecha: range.fecha, turno: range.turno });
+    const resp = await fetch(`/api/productividad/tnc?${params.toString()}`);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudieron consultar TNC.');
+    tncMonitorResult = data;
+    renderTncMonitor();
+    status.textContent = `TNC listo: ${Number(data.summary?.total || 0).toLocaleString('es-AR')} registro(s), ${Number(data.summary?.activos || 0).toLocaleString('es-AR')} activo(s), ${Number(data.summary?.excedidos || 0).toLocaleString('es-AR')} excedido(s).`;
+  } catch (err) {
+    tncMonitorResult = null;
+    if (container) {
+      container.innerHTML = `<div class="analisis-empty" style="color:var(--red);border-color:#fecaca;">${escapeHtml(err.message || 'No se pudieron consultar TNC.')}</div>`;
+    }
+    status.textContent = err.message || 'No se pudieron consultar TNC.';
+  } finally {
+    tncMonitorLoading = false;
+    btn.disabled = false;
+    btn.textContent = 'Consultar TNC';
+  }
 }
 
 function bindPickingIdleOperarioLinks(rows) {
@@ -2575,7 +2874,9 @@ function openPickingIdleCaseDetail(row) {
   const overlay = document.getElementById('online-detail-overlay');
   const body = document.getElementById('online-detail-body');
   if (!overlay || !body) return;
-  const acciones = Array.isArray(row.acciones_tramo) ? row.acciones_tramo : [];
+  const acciones = Array.isArray(row.acciones_tramo)
+    ? [...row.acciones_tramo].sort((a, b) => String(a.fecha_hora || '').localeCompare(String(b.fecha_hora || '')))
+    : [];
   const accionesAgrupadas = [];
   acciones.forEach(item => {
     const prev = accionesAgrupadas[accionesAgrupadas.length - 1];
@@ -2627,7 +2928,7 @@ function openPickingIdleCaseDetail(row) {
           ${accionesAgrupadas.length ? accionesAgrupadas.map(item => `
             <tr>
               <td>${onlyTime(item.fecha_hora)}</td>
-              <td>${escapeHtml(item.operacion || '—')}${Number(item.cantidad_registros || 1) > 1 ? ` <span style="color:#aab4cb">(x${Number(item.cantidad_registros || 1).toLocaleString('es-AR')})</span>` : ''}</td>
+              <td>${escapeHtml(item.operacion || '—')}${Number(item.minutos || 0) > 0 ? ` <span style="color:#aab4cb">(${Number(item.minutos || 0).toLocaleString('es-AR')} min)</span>` : ''}${Number(item.cantidad_registros || 1) > 1 ? ` <span style="color:#aab4cb">(x${Number(item.cantidad_registros || 1).toLocaleString('es-AR')})</span>` : ''}</td>
               <td>${escapeHtml(item.pedido || '—')}</td>
               <td>${escapeHtml(item.pallet || '—')}</td>
               <td>${escapeHtml(item.almacen || '—')}</td>
@@ -4759,7 +5060,7 @@ async function initProductividadOnlineModule() {
     turnoSel.value = turnoKey(selected.turno);
     applyLiveTurnForToday();
   }
-  switchProdTab('online');
+  switchProdTab(isTiemposMuertosStandalone() ? 'idle' : 'online');
 }
 
 async function actualizarTurnoOnline() {
@@ -5504,6 +5805,9 @@ function getInitialMainTab() {
 }
 
 function switchMainTab(tab) {
+  if (isTiemposMuertosStandalone()) {
+    tab = 'productividad';
+  }
   ['plan','productividad','plantel'].forEach(t => {
     document.getElementById('mtab-btn-'+t)?.classList.toggle('active', t === tab);
     document.getElementById('mtab-'+t)?.classList.toggle('active', t === tab);
@@ -5521,6 +5825,9 @@ function switchMainTab(tab) {
 
 // ── Sub-tabs Productividad ────────────────────────────────────────
 function switchProdTab(tab) {
+  if (isTiemposMuertosStandalone()) {
+    tab = 'idle';
+  }
   const onlineBtn = document.getElementById('stab-btn-online');
   const idleBtn = document.getElementById('stab-btn-idle');
   const pickingIaBtn = document.getElementById('stab-btn-picking-ia');
@@ -5549,6 +5856,7 @@ function switchProdTab(tab) {
   document.getElementById('hourly-date-from-wrap')?.classList.toggle('hidden', tab !== 'hourly');
   document.getElementById('hourly-date-to-wrap')?.classList.toggle('hidden', tab !== 'hourly');
   document.getElementById('online-field-operacion')?.classList.toggle('hidden', tab === 'hourly' || tab === 'idle');
+  if (tab === 'idle') switchIdleSubTab(idleSubTab);
   if (tab === 'hourly') onHourlyRangeChange(false);
   updateProductividadToolbarStatus(tab);
 }
@@ -5559,7 +5867,9 @@ function updateProductividadToolbarStatus(tab) {
   if (tab === 'online') {
     status.textContent = 'Evaluá un turno vencido contra histórico local. Para seguimiento en vivo usá Por hora o Suerte y dificultad.';
   } else if (tab === 'idle') {
-    status.textContent = 'Detectá demoras entre pickings cuando cambia pedido o pallet, contemplando cambios de almacén y operaciones intermedias.';
+    status.textContent = idleSubTab === 'tnc'
+      ? 'Consultá tiempos no continuos del rango seleccionado y filtrá activos o finalizados.'
+      : 'Detectá demoras entre pickings cuando cambia pedido o pallet, contemplando cambios de almacén y operaciones intermedias.';
   } else if (tab === 'picking-ia') {
     status.textContent = 'Consultá suerte y dificultad de Picking para el día y turno seleccionados.';
   } else if (tab === 'hourly') {
@@ -7237,10 +7547,14 @@ function updateClock() {
 
 // ── Inicio (sin cálculos automáticos) ────────────────────────────
 (async function bootstrap() {
+  applyStandaloneModuleMode();
   initProductionStyleSelector();
   initProviderBar();
   initAnalisisProductividadDefaults();
   switchMainTab('productividad');
+  if (isTiemposMuertosStandalone()) {
+    switchIdleSubTab('cambios');
+  }
   setInterval(updateClock, 1000);
   updateClock();
 })();

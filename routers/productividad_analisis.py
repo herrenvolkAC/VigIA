@@ -227,6 +227,78 @@ WHERE A.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
 ORDER BY A.COPECREA, A.FCREAREG
 """
 
+QUERY_PICKING_TNC_DETAIL = """
+SELECT
+    A.LEGAJO,
+    A.LOTEINFORMACION AS FECHA_INICIO,
+    A.CODIGO AS CODIGO_TNC,
+    B.DESCRIPCION AS DESCRIPCION_TNC,
+    TRUNC(A.TIEMPOMAXIMO / 60) AS MINUTOS_TOPE,
+    CASE
+        WHEN A.ESTADO != 0 THEN A.TIEMPOREAL
+        ELSE ((SYSDATE - A.LOTEINFORMACION) * 86400)
+    END AS TIEMPO_ACUMULADO
+FROM F957ATNC A
+JOIN F956MTNC B
+  ON A.EMPRESA = B.EMPRESA
+ AND A.ALMACEN = B.ALMACEN
+ AND A.CODIGO = B.CODIGO
+WHERE A.LOTEINFORMACION >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+  AND A.LOTEINFORMACION <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+ORDER BY A.LEGAJO, A.LOTEINFORMACION
+"""
+
+QUERY_TNC_MONITOR = """
+WITH BASE AS (
+    SELECT
+        A.LEGAJO,
+        A.LOTEINFORMACION,
+        A.ULTIMAMODIFICACION,
+        B.DESCRIPCION AS TNC,
+        A.ESTADO,
+        TRUNC(
+            CASE
+                WHEN A.ESTADO <> 0 THEN A.TIEMPOREAL / 60
+                ELSE (SYSDATE - A.LOTEINFORMACION) * 1440
+            END
+        ) AS MINUTOS_CONSUMIDOS,
+        TRUNC(A.TIEMPOMAXIMO / 60) AS MINUTOS_TOPE
+    FROM F957ATNC A
+    JOIN F956MTNC B
+      ON A.EMPRESA = B.EMPRESA
+     AND A.ALMACEN = B.ALMACEN
+     AND A.CODIGO = B.CODIGO
+    WHERE A.LOTEINFORMACION >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+      AND A.LOTEINFORMACION < TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+      AND A.CODIGO <> 62
+)
+SELECT
+    A.LEGAJO,
+    B.NOMBRE AS OPERARIO,
+    TO_CHAR(LOTEINFORMACION, 'HH24:MI:SS') AS INICIO,
+    CASE
+        WHEN ESTADO = 0 THEN NULL
+        WHEN ULTIMAMODIFICACION = LOTEINFORMACION THEN NULL
+        ELSE TO_CHAR(ULTIMAMODIFICACION, 'HH24:MI:SS')
+    END AS FIN,
+    TNC,
+    CASE
+        WHEN ESTADO = 0 THEN 'Activo'
+        ELSE 'Finalizado'
+    END AS ESTADO,
+    MINUTOS_CONSUMIDOS AS MINUTOS,
+    MINUTOS_TOPE AS TOPE,
+    MINUTOS_CONSUMIDOS - MINUTOS_TOPE AS DIFERENCIA,
+    CASE
+        WHEN MINUTOS_CONSUMIDOS <= MINUTOS_TOPE OR MINUTOS_TOPE = 0 THEN 'Dentro de tope'
+        ELSE 'Excedido'
+    END AS ESTADO_TIEMPO
+FROM BASE A
+LEFT JOIN PV_LEGAJO B
+  ON A.LEGAJO = B.LEGAJO
+ORDER BY LOTEINFORMACION DESC
+"""
+
 QUERY_PICKING_ANALISIS_DETAIL = """
 SELECT
     NVL(SUB1.DESCDIVI, 'SIN MAPEAR') AS ALMACEN,
@@ -806,6 +878,22 @@ def query_productive_db_picking_tiempos_muertos(fecha_desde: str, fecha_hasta: s
     )
 
 
+def query_productive_db_picking_tnc(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_PICKING_TNC_DETAIL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+def query_productive_db_tnc_monitor(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_TNC_MONITOR,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
 def query_productive_db_picking_analysis_detail(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_PICKING_ANALISIS_DETAIL,
@@ -882,6 +970,17 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     classpath = os.pathsep.join([str(JAVA_BUILD_DIR), ojdbc_jar])
     normalized_query = " ".join(query.upper().split())
     if (
+        "F957ATNC" in normalized_query
+        and "F956MTNC" in normalized_query
+        and "PV_LEGAJO" in normalized_query
+    ):
+        query_key = "tnc_monitor"
+    elif (
+        "F957ATNC" in normalized_query
+        and "F956MTNC" in normalized_query
+    ):
+        query_key = "tnc"
+    elif (
         "CNPEDIDO AS PEDIDO" in normalized_query
         and "UPPER(A.CDESCRIP) AS OPERACION" in normalized_query
         and "A.QCANTIDA AS CANTIDAD" not in normalized_query
@@ -2016,6 +2115,7 @@ def _is_transporte_pallets_operation(value: str) -> bool:
 
 def _build_picking_idle_analysis(
     detail_rows: list[dict[str, Any]],
+    tnc_rows: list[dict[str, Any]],
     fecha: str,
     turno_key: str,
     fecha_desde: str,
@@ -2025,6 +2125,36 @@ def _build_picking_idle_analysis(
     almacen_threshold: int = 25,
     transporte_extra: int = 10,
 ) -> dict[str, Any]:
+    tnc_by_operator: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in tnc_rows:
+        fh_text = str(row.get("FECHA_INICIO") or "").replace("T", " ")[:19]
+        if not fh_text:
+            continue
+        try:
+            fh_dt = _parse_dt(fh_text, "fecha_inicio")
+        except HTTPException:
+            continue
+        legajo = _safe_str(row.get("LEGAJO"), "")
+        if not legajo:
+            continue
+        segundos = _safe_float(row.get("TIEMPO_ACUMULADO"))
+        minutos = round(segundos / 60, 1)
+        tope = int(_safe_float(row.get("MINUTOS_TOPE")))
+        descontable = round(min(minutos, tope), 1) if tope > 0 else 0.0
+        tnc_by_operator[legajo].append(
+            {
+                "fh_dt": fh_dt,
+                "fecha_hora": fh_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                "codigo": _safe_str(row.get("CODIGO_TNC"), ""),
+                "descripcion": _safe_str(row.get("DESCRIPCION_TNC"), "TNC"),
+                "segundos": round(segundos, 1),
+                "minutos": minutos,
+                "tope": tope,
+                "descontable_minutos": descontable,
+                "excedido": bool(tope > 0 and minutos > tope),
+            }
+        )
+
     normalized = []
     for idx, row in enumerate(detail_rows):
         fh_text = str(row.get("FH_MOVIMIENTO") or "").replace("T", " ")[:19]
@@ -2076,6 +2206,23 @@ def _build_picking_idle_analysis(
                 if item["operacion"] and item["operacion"] != "PICKING"
             ]
             transporte_pallets = any(_is_transporte_pallets_operation(item) for item in operaciones_intermedias)
+            tnc_items = [
+                {
+                    "fecha_hora": item["fecha_hora"],
+                    "codigo": item["codigo"],
+                    "descripcion": item["descripcion"],
+                    "segundos": item["segundos"],
+                    "minutos": item["minutos"],
+                    "tope": item["tope"],
+                    "descontable_minutos": item["descontable_minutos"],
+                    "excedido": item["excedido"],
+                }
+                for item in tnc_by_operator.get(legajo, [])
+                if prev["fh_dt"] <= item["fh_dt"] <= row["fh_dt"]
+            ]
+            tnc_total_minutos = round(sum(item["minutos"] for item in tnc_items), 1)
+            tnc_descontable_minutos = round(sum(item["descontable_minutos"] for item in tnc_items), 1)
+            tnc_descripciones = [item["descripcion"] for item in tnc_items]
 
             if pedido_cambio or pallet_cambio:
                 umbral = _picking_idle_threshold_minutes(
@@ -2088,7 +2235,9 @@ def _build_picking_idle_analysis(
                     almacen_threshold=almacen_threshold,
                     transporte_extra=transporte_extra,
                 )
-                if minutos >= umbral:
+                exceso_bruto = round(minutos - umbral, 1)
+                exceso_neto = round(max(exceso_bruto - tnc_descontable_minutos, 0), 1)
+                if exceso_neto > 0:
                     cambios = []
                     if pedido_cambio:
                         cambios.append("Pedido")
@@ -2105,7 +2254,9 @@ def _build_picking_idle_analysis(
                             "hasta": row["fh_movimiento"],
                             "minutos": minutos,
                             "umbral_minutos": umbral,
-                            "exceso_minutos": round(minutos - umbral, 1),
+                            "exceso_bruto_minutos": exceso_bruto,
+                            "exceso_minutos": exceso_neto,
+                            "tnc_descontable_minutos": tnc_descontable_minutos,
                             "cambio": " + ".join(cambios),
                             "pedido_anterior": prev["pedido"],
                             "pedido_nuevo": row["pedido"],
@@ -2115,8 +2266,20 @@ def _build_picking_idle_analysis(
                             "almacen_nuevo": row["almacen"],
                             "almacen_cambio": almacen_cambio,
                             "operaciones_intermedias": sorted(set(operaciones_intermedias)),
+                            "tnc_items": tnc_items,
+                            "tnc_total_minutos": tnc_total_minutos,
+                            "tnc_resumen": (
+                                "Sin TNC"
+                                if not tnc_items
+                                else f"{tnc_descripciones[0]} {tnc_total_minutos:g}/{tnc_items[0]['tope']:g} min"
+                                if len(set(tnc_descripciones)) == 1 and tnc_items[0]["tope"] > 0
+                                else f"{tnc_descripciones[0]} {tnc_total_minutos:g} min"
+                                if len(set(tnc_descripciones)) == 1
+                                else f"{len(tnc_items)} TNC - {tnc_total_minutos:g} min"
+                            ),
                             "acciones_tramo": [
                                 {
+                                    "tipo": "movimiento",
                                     "fecha_hora": item["fh_movimiento"],
                                     "operacion": item["operacion"],
                                     "pedido": item["pedido"],
@@ -2124,6 +2287,18 @@ def _build_picking_idle_analysis(
                                     "almacen": item["almacen"],
                                 }
                                 for item in [prev, *intermedias, row]
+                            ] + [
+                                {
+                                    "tipo": "tnc",
+                                    "fecha_hora": item["fecha_hora"],
+                                    "operacion": f"TNC - {item['descripcion']}",
+                                    "pedido": "",
+                                    "pallet": "",
+                                    "almacen": "",
+                                    "minutos": item["minutos"],
+                                    "tope": item["tope"],
+                                }
+                                for item in tnc_items
                             ],
                             "intermedias_count": len(intermedias),
                             "transporte_pallets": transporte_pallets,
@@ -2136,7 +2311,7 @@ def _build_picking_idle_analysis(
                             ),
                             "severidad": _picking_idle_severity(
                                 minutos,
-                                umbral,
+                                round(umbral + tnc_descontable_minutos, 1),
                                 almacen_cambio,
                                 len(intermedias),
                                 transporte_pallets=transporte_pallets,
@@ -3952,6 +4127,11 @@ async def get_picking_tiempos_muertos(
             fecha_desde,
             fecha_hasta,
         )
+        tnc_rows = await asyncio.to_thread(
+            query_productive_db_picking_tnc,
+            fecha_desde,
+            fecha_hasta,
+        )
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc))
     except Exception as exc:
@@ -3960,6 +4140,7 @@ async def get_picking_tiempos_muertos(
 
     payload = _build_picking_idle_analysis(
         detail_rows,
+        tnc_rows,
         fecha,
         turno_key,
         fecha_desde,
@@ -3975,6 +4156,68 @@ async def get_picking_tiempos_muertos(
         payload["summary"]["casos_total"],
     )
     return payload
+
+
+@router.get("/tnc")
+async def get_tnc_monitor(
+    fecha: str = Query(..., description="YYYY-MM-DD"),
+    turno: str = Query(..., description="MaÃ±ana, Tarde o Noche"),
+):
+    turno_key, fecha_desde, fecha_hasta = _turn_range_for_date(fecha, turno)
+    logger.info(
+        "[tnc-monitor] Consultando Oracle turno=%s rango=%s..%s",
+        _turn_label(turno_key),
+        fecha_desde,
+        fecha_hasta,
+    )
+    try:
+        raw_rows = await asyncio.to_thread(query_productive_db_tnc_monitor, fecha_desde, fecha_hasta)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Error consultando TNC")
+        raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle: {exc}")
+
+    rows = []
+    estados = set()
+    for row in raw_rows:
+        estado = _safe_str(row.get("ESTADO"), "")
+        estado_tiempo = _safe_str(row.get("ESTADO_TIEMPO"), "")
+        estados.add(estado)
+        rows.append(
+            {
+                "legajo": _safe_str(row.get("LEGAJO"), ""),
+                "operario": _safe_str(row.get("OPERARIO"), ""),
+                "inicio": _safe_str(row.get("INICIO"), ""),
+                "fin": _safe_str(row.get("FIN"), ""),
+                "tnc": _safe_str(row.get("TNC"), ""),
+                "estado": estado,
+                "minutos": int(_safe_float(row.get("MINUTOS"))),
+                "tope": int(_safe_float(row.get("TOPE"))),
+                "diferencia": int(_safe_float(row.get("DIFERENCIA"))),
+                "estado_tiempo": estado_tiempo,
+                "excedido": estado_tiempo.lower() == "excedido",
+            }
+        )
+
+    return {
+        "fecha": fecha,
+        "turno": _turn_label(turno_key),
+        "turno_key": turno_key,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "rows": rows,
+        "summary": {
+            "total": len(rows),
+            "activos": sum(1 for item in rows if item["estado"] == "Activo"),
+            "finalizados": sum(1 for item in rows if item["estado"] == "Finalizado"),
+            "excedidos": sum(1 for item in rows if item["excedido"]),
+            "source_name": "oracle_productiva",
+        },
+        "filters": {
+            "estados": ["Todos", *sorted(estados)],
+        },
+    }
 
 
 @router.get("/online")

@@ -143,6 +143,75 @@ public class OracleProductividadQuery {
                 "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
                 "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
                 "ORDER BY A.COPECREA, A.FCREAREG";
+        } else if ("tnc".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    A.LEGAJO, " +
+                "    A.LOTEINFORMACION AS FECHA_INICIO, " +
+                "    A.CODIGO AS CODIGO_TNC, " +
+                "    B.DESCRIPCION AS DESCRIPCION_TNC, " +
+                "    TRUNC(A.TIEMPOMAXIMO / 60) AS MINUTOS_TOPE, " +
+                "    CASE " +
+                "        WHEN A.ESTADO != 0 THEN A.TIEMPOREAL " +
+                "        ELSE ((SYSDATE - A.LOTEINFORMACION) * 86400) " +
+                "    END AS TIEMPO_ACUMULADO " +
+                "FROM F957ATNC A " +
+                "JOIN F956MTNC B " +
+                "  ON A.EMPRESA = B.EMPRESA " +
+                " AND A.ALMACEN = B.ALMACEN " +
+                " AND A.CODIGO = B.CODIGO " +
+                "WHERE A.LOTEINFORMACION >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND A.LOTEINFORMACION <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "ORDER BY A.LEGAJO, A.LOTEINFORMACION";
+        } else if ("tnc_monitor".equalsIgnoreCase(queryKey)) {
+            sql =
+                "WITH BASE AS ( " +
+                "    SELECT " +
+                "        A.LEGAJO, " +
+                "        A.LOTEINFORMACION, " +
+                "        A.ULTIMAMODIFICACION, " +
+                "        B.DESCRIPCION AS TNC, " +
+                "        A.ESTADO, " +
+                "        TRUNC( " +
+                "            CASE " +
+                "                WHEN A.ESTADO <> 0 THEN A.TIEMPOREAL / 60 " +
+                "                ELSE (SYSDATE - A.LOTEINFORMACION) * 1440 " +
+                "            END " +
+                "        ) AS MINUTOS_CONSUMIDOS, " +
+                "        TRUNC(A.TIEMPOMAXIMO / 60) AS MINUTOS_TOPE " +
+                "    FROM F957ATNC A " +
+                "    JOIN F956MTNC B " +
+                "      ON A.EMPRESA = B.EMPRESA " +
+                "     AND A.ALMACEN = B.ALMACEN " +
+                "     AND A.CODIGO = B.CODIGO " +
+                "    WHERE A.LOTEINFORMACION >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "      AND A.LOTEINFORMACION < TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "      AND A.CODIGO <> 62 " +
+                ") " +
+                "SELECT " +
+                "    A.LEGAJO, " +
+                "    B.NOMBRE AS OPERARIO, " +
+                "    TO_CHAR(LOTEINFORMACION, 'HH24:MI:SS') AS INICIO, " +
+                "    CASE " +
+                "        WHEN ESTADO = 0 THEN NULL " +
+                "        WHEN ULTIMAMODIFICACION = LOTEINFORMACION THEN NULL " +
+                "        ELSE TO_CHAR(ULTIMAMODIFICACION, 'HH24:MI:SS') " +
+                "    END AS FIN, " +
+                "    TNC, " +
+                "    CASE " +
+                "        WHEN ESTADO = 0 THEN 'Activo' " +
+                "        ELSE 'Finalizado' " +
+                "    END AS ESTADO, " +
+                "    MINUTOS_CONSUMIDOS AS MINUTOS, " +
+                "    MINUTOS_TOPE AS TOPE, " +
+                "    MINUTOS_CONSUMIDOS - MINUTOS_TOPE AS DIFERENCIA, " +
+                "    CASE " +
+                "        WHEN MINUTOS_CONSUMIDOS <= MINUTOS_TOPE OR MINUTOS_TOPE = 0 THEN 'Dentro de tope' " +
+                "        ELSE 'Excedido' " +
+                "    END AS ESTADO_TIEMPO " +
+                "FROM BASE A " +
+                "LEFT JOIN PV_LEGAJO B ON A.LEGAJO = B.LEGAJO " +
+                "ORDER BY LOTEINFORMACION DESC";
         } else if ("plantel".equalsIgnoreCase(queryKey)) {
             sql =
                 "SELECT " +
@@ -212,7 +281,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
+                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

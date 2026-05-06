@@ -110,6 +110,10 @@ async def page_picking():      return FileResponse(STATIC_DIR / "productividad.h
 @app.get("/productividad",      include_in_schema=False)
 async def page_productividad():  return FileResponse(STATIC_DIR / "productividad.html")
 
+@app.get("/tiempos-muertos.html", include_in_schema=False)
+@app.get("/tiempos-muertos",      include_in_schema=False)
+async def page_tiempos_muertos(): return FileResponse(STATIC_DIR / "productividad.html")
+
 @app.get("/recepcion.html",    include_in_schema=False)
 @app.get("/recepcion",         include_in_schema=False)
 async def page_recepcion():    return FileResponse(STATIC_DIR / "recepcion.html")
