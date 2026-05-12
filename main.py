@@ -6,21 +6,24 @@ import os
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
+from urllib.parse import quote
 
 import uvicorn
 import aiosqlite
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from dotenv import load_dotenv
 
 from db.schema import init_db
+from routers.auth_local import current_auth, ensure_bootstrap_admin, router as auth_router
 from routers.ai import router as ai_router
 from routers.data import router as data_router
 from routers.turnos import router as turnos_router
 from routers.operarios import router as operarios_router
 from routers.productividad_analisis import router as productividad_analisis_router
 from routers.plantel_operativo import router as plantel_operativo_router
+from routers.gestion_operativa import router as gestion_operativa_router
 from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -42,6 +45,7 @@ RESOURCES_DIR = Path(__file__).parent / "resources"
 async def lifespan(app: FastAPI):
     logger.info("Inicializando VigIA v2.0...")
     await init_db()
+    await ensure_bootstrap_admin()
     provider = os.getenv("AI_PROVIDER", "claude")
     logger.info(f"Proveedor IA configurado: {provider}")
     # Si está en modo Ollama, log de la URL
@@ -68,7 +72,57 @@ app.include_router(turnos_router)
 app.include_router(operarios_router)
 app.include_router(productividad_analisis_router)
 app.include_router(plantel_operativo_router)
+app.include_router(gestion_operativa_router)
 app.include_router(websocket_router)
+app.include_router(auth_router)
+
+
+PROTECTED_PAGE_PATHS = {
+    "/tiempos-muertos",
+    "/tiempos-muertos.html",
+    "/gestion-operativa",
+    "/gestion-operativa.html",
+}
+PROTECTED_API_PREFIXES = (
+    "/api/productividad/tnc",
+    "/api/productividad/picking/tiempos-muertos",
+    "/api/gestion-operativa",
+)
+ADMIN_PAGE_PATHS = {
+    "/admin/dispositivos",
+    "/admin/dispositivos.html",
+}
+
+
+def _login_redirect(path: str) -> RedirectResponse:
+    return RedirectResponse(f"/login?next={quote(path)}", status_code=303)
+
+
+@app.middleware("http")
+async def auth_gate(request: Request, call_next):
+    path = request.url.path
+    is_protected_page = path in PROTECTED_PAGE_PATHS
+    is_admin_page = path in ADMIN_PAGE_PATHS
+    is_protected_api = any(path.startswith(prefix) for prefix in PROTECTED_API_PREFIXES)
+
+    if not (is_protected_page or is_admin_page or is_protected_api):
+        return await call_next(request)
+
+    auth = await current_auth(request)
+    if not auth:
+        if is_protected_api:
+            return JSONResponse({"detail": "No autenticado."}, status_code=401)
+        return _login_redirect(path)
+
+    if auth.get("device_status") != "approved":
+        if is_protected_api:
+            return JSONResponse({"detail": "Dispositivo pendiente de aprobacion."}, status_code=403)
+        return RedirectResponse("/api/auth/pending", status_code=303)
+
+    if is_admin_page and auth.get("role") != "admin":
+        return JSONResponse({"detail": "Requiere administrador."}, status_code=403)
+
+    return await call_next(request)
 
 # Archivos estáticos — css, js y resources
 app.mount("/css",       StaticFiles(directory=STATIC_DIR / "css"),  name="css")
@@ -112,7 +166,15 @@ async def page_productividad():  return FileResponse(STATIC_DIR / "productividad
 
 @app.get("/tiempos-muertos.html", include_in_schema=False)
 @app.get("/tiempos-muertos",      include_in_schema=False)
-async def page_tiempos_muertos(): return FileResponse(STATIC_DIR / "productividad.html")
+async def page_tiempos_muertos(): return FileResponse(STATIC_DIR / "tiempos_muertos.html")
+
+@app.get("/gestion-operativa.html", include_in_schema=False)
+@app.get("/gestion-operativa",      include_in_schema=False)
+async def page_gestion_operativa(): return FileResponse(STATIC_DIR / "gestion_operativa.html")
+
+@app.get("/admin/dispositivos.html", include_in_schema=False)
+@app.get("/admin/dispositivos",      include_in_schema=False)
+async def page_admin_dispositivos(): return FileResponse(STATIC_DIR / "admin_dispositivos.html")
 
 @app.get("/recepcion.html",    include_in_schema=False)
 @app.get("/recepcion",         include_in_schema=False)

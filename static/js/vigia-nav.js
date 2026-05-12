@@ -4,6 +4,7 @@
 
 const PROCESOS_NAV = [
   { id: 'picking', label: 'Picking', url: '/picking.html', activo: true },
+  { id: 'gestion', label: 'Gestión Operativa', url: '/gestion-operativa.html', activo: true },
   { id: 'recepcion', label: 'Recepción', url: '/recepcion.html', activo: false },
   { id: 'reposicion', label: 'Reposición', url: '/reposicion.html', activo: false },
   { id: 'planificacion', label: 'Planificación', url: '/planificacion.html', activo: false },

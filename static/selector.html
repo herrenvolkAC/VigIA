@@ -60,6 +60,15 @@
       descripcion: 'Cumplimiento de plan por ola y sugerencia de plantel óptimo para cubrir la operación.',
     },
     {
+      id: 'gestion',
+      label: 'Gestión Operativa',
+      icon: '⚙️',
+      url: '/gestion-operativa.html',
+      activo: true,
+      tag: null,
+      descripcion: 'Herramientas de apoyo para coordinación de piso, comenzando por cambios de almacén.',
+    },
+    {
       id: 'reposicion',
       label: 'Reposición',
       icon: '🔄',
@@ -130,7 +139,7 @@
       }
 
       let kpiHtml = '';
-      if ((p.id === 'productividad' || p.id === 'planificacion') && turnoData) {
+      if ((p.id === 'productividad' || p.id === 'planificacion' || p.id === 'gestion') && turnoData) {
         const pct = turnoData.pct_avance != null ? `<strong>${turnoData.pct_avance}%</strong> completado` : '';
         kpiHtml = pct
           ? `<div class="proceso-kpi">Turno ${turnoData.turno} · ${pct}</div>`

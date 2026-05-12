@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VigIA · Acceso</title>
+  <title>VigIA - Acceso</title>
   <link rel="stylesheet" href="/css/vigia.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
   <div class="login-card">
     <section class="login-showcase">
       <div class="login-brand-chip">
-      <img class="login-brand-icon" src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
+        <img class="login-brand-icon" src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
         <div class="login-brand-copy">
           <div class="login-brand-kicker">Gemelo Operativo WMS</div>
           <div class="login-logo">Vig<span>IA</span></div>
@@ -19,12 +19,12 @@
       </div>
 
       <div class="login-promo">
-        <h1 class="login-title">Supervisión operativa con visual Coto</h1>
-        <p class="login-subtitle">Accedé al tablero de picking, selector de procesos y seguimiento operativo con una interfaz más clara, más grande y más directa.</p>
+        <h1 class="login-title">Supervisión operativa con acceso controlado</h1>
+        <p class="login-subtitle">Ingresá con tu usuario habilitado. Si es la primera vez desde este navegador, la solicitud queda pendiente de aprobación.</p>
         <div class="login-highlight-row">
-          <span class="login-highlight">Picking en vivo</span>
-          <span class="login-highlight">Alertas IA</span>
-          <span class="login-highlight">Turno actual</span>
+          <span class="login-highlight">TNC</span>
+          <span class="login-highlight">Dispositivo aprobado</span>
+          <span class="login-highlight">Supervisor</span>
         </div>
       </div>
     </section>
@@ -33,60 +33,76 @@
       <div class="login-panel-head">
         <div class="login-panel-kicker">Ingreso</div>
         <div class="login-panel-title">Entrar a VigIA</div>
-        <div class="login-panel-desc">Usá uno de los perfiles de prueba para continuar al selector de operación.</div>
+        <div class="login-panel-desc">El acceso queda asociado a este navegador mediante una cookie local.</div>
       </div>
 
-      <form class="login-form" id="login-form" onsubmit="doLogin(event)">
+      <form class="login-form" id="login-form">
         <div class="login-field">
-          <label>Usuario</label>
+          <label for="inp-user">Usuario</label>
           <input type="text" id="inp-user" placeholder="usuario" autocomplete="username" autofocus>
         </div>
         <div class="login-field">
-          <label>Contraseña</label>
+          <label for="inp-pass">Contraseña</label>
           <input type="password" id="inp-pass" placeholder="••••" autocomplete="current-password">
         </div>
         <button type="submit" class="login-submit">Ingresar</button>
-        <div class="login-error" id="login-error"></div>
+        <div class="login-error" id="login-error" role="alert"></div>
       </form>
     </section>
   </div>
 </div>
 
 <script>
-  (function() {
-    const s = JSON.parse(sessionStorage.getItem('vigia_session') || 'null');
-    if (s) window.location.href = '/selector.html';
-  })();
+  const formEl = document.getElementById('login-form');
+  const errEl = document.getElementById('login-error');
+  const nextUrl = new URLSearchParams(window.location.search).get('next') || '/selector.html';
 
-  const MOCK_USERS = [
-    { user: 'supervisor', pass: '1234', role: 'supervisor', name: 'Supervisor Turno' },
-    { user: 'jefe', pass: '1234', role: 'jefe', name: 'Jefe de Depósito' },
-    { user: 'admin', pass: '1234', role: 'admin', name: 'Administrador' },
-  ];
-
-  function doLogin(e) {
-    e.preventDefault();
-    const user = document.getElementById('inp-user').value.trim().toLowerCase();
-    const pass = document.getElementById('inp-pass').value;
-    const match = MOCK_USERS.find(u => u.user === user && u.pass === pass);
-
-    if (match) {
-      sessionStorage.setItem('vigia_session', JSON.stringify({
-        user: match.user,
-        role: match.role,
-        name: match.name,
-        loggedAt: new Date().toISOString(),
-      }));
-      window.location.href = '/selector.html';
-    } else {
-      const errEl = document.getElementById('login-error');
-      const formEl = document.getElementById('login-form');
-      errEl.textContent = 'Usuario o contraseña incorrectos.';
-      formEl.classList.remove('shake');
-      void formEl.offsetWidth;
-      formEl.classList.add('shake');
-    }
+  async function checkSession() {
+    try {
+      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.device_status === 'approved') window.location.href = nextUrl;
+      if (data.device_status === 'pending') window.location.href = '/api/auth/pending';
+    } catch (_) {}
   }
+
+  function showError(message) {
+    errEl.textContent = message;
+    formEl.classList.remove('shake');
+    void formEl.offsetWidth;
+    formEl.classList.add('shake');
+  }
+
+  formEl.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    errEl.textContent = '';
+    const username = document.getElementById('inp-user').value.trim();
+    const password = document.getElementById('inp-pass').value;
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showError(data.detail || 'No se pudo iniciar sesión.');
+        return;
+      }
+      if (data.device_status === 'approved') {
+        window.location.href = nextUrl;
+        return;
+      }
+      window.location.href = '/api/auth/pending';
+    } catch (error) {
+      showError('No se pudo conectar con VigIA.');
+    }
+  });
+
+  checkSession();
 </script>
 </body>
 </html>

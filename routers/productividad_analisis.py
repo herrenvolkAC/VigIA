@@ -9,6 +9,7 @@ Consulta movimientos de Picking bajo demanda y genera:
 """
 import asyncio
 import hashlib
+import io
 import json
 import logging
 import math
@@ -23,6 +24,7 @@ from typing import Any
 
 import aiosqlite
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from db.schema import DB_PATH
@@ -245,15 +247,40 @@ JOIN F956MTNC B
  AND A.CODIGO = B.CODIGO
 WHERE A.LOTEINFORMACION >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
   AND A.LOTEINFORMACION <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+  AND UPPER(TRIM(B.DESCRIPCION)) <> 'FIN DEL TURNO'
 ORDER BY A.LEGAJO, A.LOTEINFORMACION
+"""
+
+QUERY_TNC_MASTER = """
+SELECT
+    B.CODIGO AS CODIGO_TNC,
+    A.CODIGO AS CODIGO_PRODUCTIVIDAD,
+    B.DESCRIPCION AS DESCRIPCION_TNC,
+    TRUNC(B.DURACION / 60) AS DURACION_MINUTOS_WF,
+    TRUNC(A.TIEMPO_MAXIMO / 60) AS DURACION_MINUTOS_PRODUCTIVIDAD,
+    A.TIENE_TIEMPO_MAXIMO,
+    A.TIENE_TOLERANCIA_X_EXCESO,
+    TRUNC(A.TOLERANCIA_X_EXCESO / 60) AS TOLERANCIA_X_EXCESO,
+    A.CANTIDAD_DE_OCURRENCIAS,
+    B.REQUIEREAUTORIZACION,
+    B.TIPOTNC
+FROM F956MTNC B
+LEFT JOIN PV_FUNCION A
+  ON REGEXP_LIKE(A.CODIGO, '^RF-TNC-[0-9]+$')
+ AND TO_NUMBER(REPLACE(A.CODIGO, 'RF-TNC-', '')) = B.CODIGO
+ORDER BY B.CODIGO
 """
 
 QUERY_TNC_MONITOR = """
 WITH BASE AS (
     SELECT
+        A.EMPRESA,
+        A.ALMACEN,
         A.LEGAJO,
+        A.CODIGO AS CODIGO_TNC,
         A.LOTEINFORMACION,
         A.ULTIMAMODIFICACION,
+        TO_CHAR(A.LOTEINFORMACION, 'YYYY-MM-DD') AS DIA_TNC,
         B.DESCRIPCION AS TNC,
         A.ESTADO,
         TRUNC(
@@ -271,10 +298,20 @@ WITH BASE AS (
     WHERE A.LOTEINFORMACION >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
       AND A.LOTEINFORMACION < TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
       AND A.CODIGO <> 62
+      AND UPPER(TRIM(B.DESCRIPCION)) <> 'FIN DEL TURNO'
 )
 SELECT
+    A.EMPRESA,
+    A.ALMACEN,
     A.LEGAJO,
-    B.NOMBRE AS OPERARIO,
+    C.NOMBRE AS OPERARIO,
+    C.AREA_PERS_TXT AS AREA,
+    C.PUESTO AS PUESTO,
+    C.FOTO AS FOTO,
+    A.CODIGO_TNC,
+    A.DIA_TNC,
+    TO_CHAR(LOTEINFORMACION, 'YYYY-MM-DD HH24:MI:SS') AS LOTEINFORMACION_TS,
+    TO_CHAR(ULTIMAMODIFICACION, 'YYYY-MM-DD HH24:MI:SS') AS ULTIMAMODIFICACION_TS,
     TO_CHAR(LOTEINFORMACION, 'HH24:MI:SS') AS INICIO,
     CASE
         WHEN ESTADO = 0 THEN NULL
@@ -294,8 +331,18 @@ SELECT
         ELSE 'Excedido'
     END AS ESTADO_TIEMPO
 FROM BASE A
-LEFT JOIN PV_LEGAJO B
-  ON A.LEGAJO = B.LEGAJO
+LEFT JOIN (
+    SELECT
+        CASE
+            WHEN REGEXP_LIKE(TRIM(LEGAJO), '^[0-9]+$') THEN TO_NUMBER(TRIM(LEGAJO))
+        END AS LEGAJO_NUM,
+        NOMBRE,
+        AREA_PERS_TXT,
+        PUESTO,
+        FOTO
+    FROM WF_ACTIVE_EMPLOYEE
+) C
+  ON A.LEGAJO = C.LEGAJO_NUM
 ORDER BY LOTEINFORMACION DESC
 """
 
@@ -498,6 +545,18 @@ class TurnoEvaluacionIARequest(BaseModel):
     provider: str | None = None
     evaluacion: dict[str, Any]
     force_refresh: bool = False
+
+
+class XlsxExportColumn(BaseModel):
+    key: str
+    label: str
+
+
+class XlsxExportRequest(BaseModel):
+    filename: str = "vigia_export.xlsx"
+    sheet_name: str = "Datos"
+    columns: list[XlsxExportColumn]
+    rows: list[dict[str, Any]]
 
 
 def _parse_dt(value: str, field_name: str) -> datetime:
@@ -820,11 +879,14 @@ def _query_productive_db_sql(query: str, *, fecha_desde: str, fecha_hasta: str) 
     connection = oracledb.connect(user=user, password=password, dsn=dsn)
     try:
         cursor = connection.cursor()
-        cursor.execute(
-            query,
-            fecha_desde=fecha_desde,
-            fecha_hasta=fecha_hasta,
-        )
+        if ":fecha_desde" in query or ":fecha_hasta" in query:
+            cursor.execute(
+                query,
+                fecha_desde=fecha_desde,
+                fecha_hasta=fecha_hasta,
+            )
+        else:
+            cursor.execute(query)
         columns = [col[0] for col in cursor.description]
         rows = []
         for row in cursor.fetchall():
@@ -892,6 +954,378 @@ def query_productive_db_tnc_monitor(fecha_desde: str, fecha_hasta: str) -> list[
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )
+
+
+def query_productive_db_tnc_master() -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_TNC_MASTER,
+        fecha_desde="",
+        fecha_hasta="",
+    )
+
+
+def _empty_tnc_metric(label: str = "") -> dict[str, Any]:
+    return {
+        "label": label,
+        "codigo_tnc": "",
+        "eventos": 0,
+        "minutos_total": 0,
+        "minutos_promedio": 0,
+        "exceso_total": 0,
+        "excedidos": 0,
+        "activos": 0,
+    }
+
+
+def _build_tnc_indicators(raw_rows: list[dict[str, Any]], fecha_desde: str, fecha_hasta: str) -> dict[str, Any]:
+    by_tnc: dict[str, dict[str, Any]] = {}
+    by_day: dict[str, dict[str, Any]] = {}
+    by_area: dict[str, dict[str, Any]] = {}
+    by_puesto: dict[str, dict[str, Any]] = {}
+    by_operator: dict[str, dict[str, Any]] = {}
+    by_estado_tiempo: dict[str, dict[str, Any]] = {}
+
+    total_minutos = 0
+    total_exceso = 0
+    total_eventos = 0
+    activos = 0
+    excedidos = 0
+
+    for row in raw_rows:
+        tnc = _safe_str(row.get("TNC"), "Sin descripcion") or "Sin descripcion"
+        codigo = _safe_str(row.get("CODIGO_TNC"), "")
+        dia = _safe_str(row.get("DIA_TNC"), "") or "Sin fecha"
+        area = _safe_str(row.get("AREA"), "Sin area") or "Sin area"
+        puesto = _safe_str(row.get("PUESTO"), "Sin puesto") or "Sin puesto"
+        legajo = _safe_str(row.get("LEGAJO"), "")
+        operario = _safe_str(row.get("OPERARIO"), "") or legajo or "Sin operario"
+        estado = _safe_str(row.get("ESTADO"), "")
+        estado_tiempo = _safe_str(row.get("ESTADO_TIEMPO"), "Dentro de tope") or "Dentro de tope"
+        minutos = int(_safe_float(row.get("MINUTOS")))
+        tope = int(_safe_float(row.get("TOPE")))
+        exceso = max(minutos - tope, 0) if tope > 0 else 0
+        is_activo = estado == "Activo"
+        is_excedido = exceso > 0
+
+        total_eventos += 1
+        total_minutos += minutos
+        total_exceso += exceso
+        activos += 1 if is_activo else 0
+        excedidos += 1 if is_excedido else 0
+
+        tnc_key = codigo or tnc
+        tnc_metric = by_tnc.setdefault(tnc_key, _empty_tnc_metric(tnc))
+        tnc_metric["codigo_tnc"] = codigo
+
+        for metric in (
+            tnc_metric,
+            by_day.setdefault(dia, _empty_tnc_metric(dia)),
+            by_area.setdefault(area, _empty_tnc_metric(area)),
+            by_puesto.setdefault(puesto, _empty_tnc_metric(puesto)),
+            by_operator.setdefault(f"{legajo}|{operario}", _empty_tnc_metric(operario)),
+            by_estado_tiempo.setdefault(estado_tiempo, _empty_tnc_metric(estado_tiempo)),
+        ):
+            metric["eventos"] += 1
+            metric["minutos_total"] += minutos
+            metric["exceso_total"] += exceso
+            metric["excedidos"] += 1 if is_excedido else 0
+            metric["activos"] += 1 if is_activo else 0
+
+    def finalize(metric: dict[str, Any]) -> dict[str, Any]:
+        eventos = int(metric.get("eventos") or 0)
+        minutos = int(metric.get("minutos_total") or 0)
+        metric["minutos_promedio"] = round(minutos / eventos, 1) if eventos else 0
+        metric["participacion_minutos"] = round((minutos / total_minutos) * 100, 1) if total_minutos else 0
+        metric["tasa_exceso"] = round((int(metric.get("excedidos") or 0) / eventos) * 100, 1) if eventos else 0
+        return metric
+
+    by_tnc_rows = [finalize(item) for item in by_tnc.values()]
+    by_day_rows = [finalize(item) for item in by_day.values()]
+    by_area_rows = [finalize(item) for item in by_area.values()]
+    by_puesto_rows = [finalize(item) for item in by_puesto.values()]
+    by_operator_rows = [finalize(item) for item in by_operator.values()]
+    by_estado_rows = [finalize(item) for item in by_estado_tiempo.values()]
+
+    by_tnc_rows.sort(key=lambda item: item["minutos_total"], reverse=True)
+    by_day_rows.sort(key=lambda item: item["label"])
+    by_area_rows.sort(key=lambda item: item["minutos_total"], reverse=True)
+    by_puesto_rows.sort(key=lambda item: item["minutos_total"], reverse=True)
+    by_operator_rows.sort(key=lambda item: item["minutos_total"], reverse=True)
+    by_estado_rows.sort(key=lambda item: item["minutos_total"], reverse=True)
+
+    return {
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "rows": [
+            {
+                "fecha": _safe_str(row.get("DIA_TNC"), ""),
+                "turno_key": _safe_str(row.get("TURNO_KEY"), ""),
+                "turno_label": _safe_str(row.get("TURNO_LABEL"), ""),
+                "legajo": _safe_str(row.get("LEGAJO"), ""),
+                "operario": _safe_str(row.get("OPERARIO"), ""),
+                "area": _safe_str(row.get("AREA"), ""),
+                "puesto": _safe_str(row.get("PUESTO"), ""),
+                "codigo_tnc": _safe_str(row.get("CODIGO_TNC"), ""),
+                "tnc": _safe_str(row.get("TNC"), ""),
+                "estado": _safe_str(row.get("ESTADO"), ""),
+                "estado_tiempo": _safe_str(row.get("ESTADO_TIEMPO"), ""),
+                "minutos": int(_safe_float(row.get("MINUTOS"))),
+                "tope": int(_safe_float(row.get("TOPE"))),
+                "diferencia": int(_safe_float(row.get("DIFERENCIA"))),
+            }
+            for row in raw_rows
+        ],
+        "summary": {
+            "eventos": total_eventos,
+            "minutos_total": total_minutos,
+            "horas_total": round(total_minutos / 60, 1),
+            "minutos_promedio": round(total_minutos / total_eventos, 1) if total_eventos else 0,
+            "tnc_distintos": len(by_tnc_rows),
+            "activos": activos,
+            "excedidos": excedidos,
+            "exceso_total": total_exceso,
+            "tasa_exceso": round((excedidos / total_eventos) * 100, 1) if total_eventos else 0,
+            "dias": len(by_day_rows),
+            "source_name": "oracle_productiva",
+        },
+        "by_tnc": by_tnc_rows[:20],
+        "by_day": by_day_rows,
+        "by_area": by_area_rows[:12],
+        "by_puesto": by_puesto_rows[:12],
+        "by_operator": by_operator_rows[:12],
+        "by_estado_tiempo": by_estado_rows,
+    }
+
+
+TNC_CACHE_TODAY_TTL_MINUTES = 10
+
+
+def _tnc_turn_for_timestamp(value: str) -> tuple[str, str]:
+    try:
+        dt = datetime.strptime(str(value)[:19], "%Y-%m-%d %H:%M:%S")
+        hour = dt.hour
+    except ValueError:
+        return "sin_turno", "Sin turno"
+    if 6 <= hour < 14:
+        return "manana", "Manana"
+    if 14 <= hour < 22:
+        return "tarde", "Tarde"
+    return "noche", "Noche"
+
+
+def _iter_dates_inclusive(fecha_desde: str, fecha_hasta: str) -> list[str]:
+    start = datetime.strptime(fecha_desde, "%Y-%m-%d").date()
+    end = datetime.strptime(fecha_hasta, "%Y-%m-%d").date()
+    days = []
+    current = start
+    while current <= end:
+        days.append(current.isoformat())
+        current += timedelta(days=1)
+    return days
+
+
+def _tnc_cache_row_from_oracle(row: dict[str, Any], synced_at: str) -> dict[str, Any]:
+    dia = _safe_str(row.get("DIA_TNC"), "")
+    inicio = _safe_str(row.get("INICIO"), "")
+    lote_ts = _safe_str(row.get("LOTEINFORMACION_TS"), "") or (f"{dia} {inicio}" if dia and inicio else "")
+    ultima_ts = _safe_str(row.get("ULTIMAMODIFICACION_TS"), "")
+    turno_key, turno_label = _tnc_turn_for_timestamp(lote_ts)
+    empresa = _safe_str(row.get("EMPRESA"), "")
+    almacen = _safe_str(row.get("ALMACEN"), "")
+    legajo = _safe_str(row.get("LEGAJO"), "")
+    codigo = _safe_str(row.get("CODIGO_TNC"), "")
+    uid_seed = "|".join([empresa, almacen, legajo, codigo, lote_ts])
+    minutos = int(_safe_float(row.get("MINUTOS")))
+    tope = int(_safe_float(row.get("TOPE")))
+    diferencia = int(_safe_float(row.get("DIFERENCIA")))
+    estado_tiempo = _safe_str(row.get("ESTADO_TIEMPO"), "")
+    if tope > 0 and minutos > tope:
+        estado_tiempo = "Excedido"
+    elif not estado_tiempo:
+        estado_tiempo = "Dentro de tope"
+    return {
+        "row_uid": hashlib.sha1(uid_seed.encode("utf-8")).hexdigest(),
+        "empresa": empresa,
+        "almacen": almacen,
+        "legajo": legajo,
+        "operario": _safe_str(row.get("OPERARIO"), ""),
+        "area": _safe_str(row.get("AREA"), ""),
+        "puesto": _safe_str(row.get("PUESTO"), ""),
+        "foto": _safe_str(row.get("FOTO"), ""),
+        "codigo_tnc": codigo,
+        "descripcion_tnc": _safe_str(row.get("TNC"), ""),
+        "dia_tnc": dia or lote_ts[:10],
+        "turno_key": turno_key,
+        "turno_label": turno_label,
+        "loteinformacion": lote_ts,
+        "ultimamodificacion": ultima_ts,
+        "inicio": inicio,
+        "fin": _safe_str(row.get("FIN"), ""),
+        "estado": _safe_str(row.get("ESTADO"), ""),
+        "minutos": minutos,
+        "tope": tope,
+        "diferencia": diferencia,
+        "estado_tiempo": estado_tiempo,
+        "synced_at": synced_at,
+    }
+
+
+async def _tnc_cache_day_is_fresh(db: aiosqlite.Connection, day: str, *, force_refresh: bool) -> bool:
+    if force_refresh:
+        return False
+    async with db.execute(
+        "SELECT synced_at, estado FROM tnc_cache_sync WHERE dia_tnc = ?",
+        (day,),
+    ) as cur:
+        row = await cur.fetchone()
+    if not row or row["estado"] != "complete":
+        return False
+    today = datetime.now().date().isoformat()
+    if day != today:
+        return True
+    try:
+        synced_at = datetime.strptime(str(row["synced_at"])[:19], "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return False
+    return datetime.now() - synced_at <= timedelta(minutes=TNC_CACHE_TODAY_TTL_MINUTES)
+
+
+async def _save_tnc_cache_day(day: str, raw_rows: list[dict[str, Any]]) -> int:
+    synced_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cache_rows = [_tnc_cache_row_from_oracle(row, synced_at) for row in raw_rows]
+    async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        await db.execute("DELETE FROM tnc_eventos_cache WHERE dia_tnc = ?", (day,))
+        await db.executemany(
+            """
+            INSERT OR REPLACE INTO tnc_eventos_cache (
+                row_uid, empresa, almacen, legajo, operario, area, puesto, foto,
+                codigo_tnc, descripcion_tnc, dia_tnc, turno_key, turno_label,
+                loteinformacion, ultimamodificacion, inicio, fin, estado,
+                minutos, tope, diferencia, estado_tiempo, synced_at
+            ) VALUES (
+                :row_uid, :empresa, :almacen, :legajo, :operario, :area, :puesto, :foto,
+                :codigo_tnc, :descripcion_tnc, :dia_tnc, :turno_key, :turno_label,
+                :loteinformacion, :ultimamodificacion, :inicio, :fin, :estado,
+                :minutos, :tope, :diferencia, :estado_tiempo, :synced_at
+            )
+            """,
+            cache_rows,
+        )
+        await db.execute(
+            """
+            INSERT INTO tnc_cache_sync (dia_tnc, synced_at, registros, estado, error)
+            VALUES (?, ?, ?, 'complete', NULL)
+            ON CONFLICT(dia_tnc) DO UPDATE SET
+                synced_at = excluded.synced_at,
+                registros = excluded.registros,
+                estado = 'complete',
+                error = NULL
+            """,
+            (day, synced_at, len(cache_rows)),
+        )
+        await db.commit()
+    return len(cache_rows)
+
+
+async def _mark_tnc_cache_day_error(day: str, exc: Exception) -> None:
+    async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        await db.execute(
+            """
+            INSERT INTO tnc_cache_sync (dia_tnc, synced_at, registros, estado, error)
+            VALUES (?, CURRENT_TIMESTAMP, 0, 'error', ?)
+            ON CONFLICT(dia_tnc) DO UPDATE SET
+                synced_at = CURRENT_TIMESTAMP,
+                estado = 'error',
+                error = excluded.error
+            """,
+            (day, str(exc)[:500]),
+        )
+        await db.commit()
+
+
+async def ensure_tnc_cache_range(
+    fecha_desde: str,
+    fecha_hasta: str,
+    *,
+    force_refresh: bool = False,
+    stop_on_error: bool = True,
+    max_refresh_days: int | None = None,
+) -> dict[str, Any]:
+    days = _iter_dates_inclusive(fecha_desde, fecha_hasta)
+    refreshed = []
+    cached = []
+    errors = []
+    async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+        db.row_factory = aiosqlite.Row
+        freshness = {
+            day: await _tnc_cache_day_is_fresh(db, day, force_refresh=force_refresh)
+            for day in days
+        }
+    days_to_refresh = [day for day in days if not freshness[day]]
+    if max_refresh_days is not None and len(days_to_refresh) > max_refresh_days:
+        raise RuntimeError(
+            f"El rango requiere sincronizar {len(days_to_refresh)} dias desde Oracle. "
+            f"Usa la precarga controlada o reduce el rango a {max_refresh_days} dias sin cache."
+        )
+    for day in days:
+        if freshness[day]:
+            cached.append(day)
+            continue
+        query_desde = f"{day} 00:00:00"
+        query_hasta = (datetime.strptime(day, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d 00:00:00")
+        try:
+            raw_rows = await asyncio.to_thread(query_productive_db_tnc_monitor, query_desde, query_hasta)
+            count = await _save_tnc_cache_day(day, raw_rows)
+            refreshed.append({"dia": day, "registros": count})
+        except Exception as exc:
+            await _mark_tnc_cache_day_error(day, exc)
+            errors.append({"dia": day, "error": str(exc)})
+            if stop_on_error:
+                raise
+    return {
+        "days_total": len(days),
+        "days_cached": len(cached),
+        "days_refreshed": len(refreshed),
+        "cached": cached,
+        "refreshed": refreshed,
+        "errors": errors,
+    }
+
+
+async def _load_tnc_cache_rows(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT
+                empresa AS EMPRESA,
+                almacen AS ALMACEN,
+                legajo AS LEGAJO,
+                operario AS OPERARIO,
+                area AS AREA,
+                puesto AS PUESTO,
+                foto AS FOTO,
+                codigo_tnc AS CODIGO_TNC,
+                descripcion_tnc AS TNC,
+                dia_tnc AS DIA_TNC,
+                loteinformacion AS LOTEINFORMACION_TS,
+                ultimamodificacion AS ULTIMAMODIFICACION_TS,
+                inicio AS INICIO,
+                fin AS FIN,
+                estado AS ESTADO,
+                minutos AS MINUTOS,
+                tope AS TOPE,
+                diferencia AS DIFERENCIA,
+                estado_tiempo AS ESTADO_TIEMPO,
+                turno_key AS TURNO_KEY,
+                turno_label AS TURNO_LABEL
+            FROM tnc_eventos_cache
+            WHERE dia_tnc >= ? AND dia_tnc <= ?
+            ORDER BY loteinformacion DESC
+            """,
+            (fecha_desde, fecha_hasta),
+        ) as cur:
+            return [dict(row) for row in await cur.fetchall()]
 
 
 def query_productive_db_picking_analysis_detail(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
@@ -970,9 +1404,19 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     classpath = os.pathsep.join([str(JAVA_BUILD_DIR), ojdbc_jar])
     normalized_query = " ".join(query.upper().split())
     if (
+        "F956MTNC" in normalized_query
+        and "CODIGO_TNC" in normalized_query
+        and "F957ATNC" not in normalized_query
+    ):
+        query_key = "tnc_master"
+    elif (
         "F957ATNC" in normalized_query
         and "F956MTNC" in normalized_query
-        and "PV_LEGAJO" in normalized_query
+        and (
+            "PV_LEGAJO" in normalized_query
+            or "WF_ACTIVE_EMPLOYEE" in normalized_query
+            or "AREA_PERS_TXT" in normalized_query
+        )
     ):
         query_key = "tnc_monitor"
     elif (
@@ -2109,6 +2553,129 @@ def _picking_idle_severity(
     return "baja"
 
 
+def _build_picking_warehouse_crossings(
+    by_operator: dict[str, list[dict[str, Any]]],
+    ventana_minutos: int = 15,
+) -> dict[str, Any]:
+    transferencias: list[dict[str, Any]] = []
+    for legajo, rows in by_operator.items():
+        prev_pick = None
+        for row in rows:
+            if row["operacion"] != "PICKING":
+                continue
+            if prev_pick is not None:
+                almacen_origen = prev_pick["almacen"]
+                almacen_destino = row["almacen"]
+                if (
+                    almacen_origen
+                    and almacen_destino
+                    and almacen_origen != "SIN MAPEAR"
+                    and almacen_destino != "SIN MAPEAR"
+                    and almacen_origen != almacen_destino
+                ):
+                    minutos = round(max((row["fh_dt"] - prev_pick["fh_dt"]).total_seconds() / 60, 0), 1)
+                    transferencias.append(
+                        {
+                            "copecrea": legajo,
+                            "operario": row["operario"] or prev_pick["operario"] or legajo,
+                            "desde": prev_pick["fh_movimiento"],
+                            "hasta": row["fh_movimiento"],
+                            "desde_dt": prev_pick["fh_dt"],
+                            "hasta_dt": row["fh_dt"],
+                            "almacen_origen": almacen_origen,
+                            "almacen_destino": almacen_destino,
+                            "pedido_anterior": prev_pick["pedido"],
+                            "pedido_nuevo": row["pedido"],
+                            "pallet_anterior": prev_pick["pallet"],
+                            "pallet_nuevo": row["pallet"],
+                            "minutos": minutos,
+                        }
+                    )
+            prev_pick = row
+
+    crossings: list[dict[str, Any]] = []
+    seen_pairs: set[tuple[str, str]] = set()
+    for idx, left in enumerate(transferencias):
+        for right in transferencias[idx + 1:]:
+            if left["copecrea"] == right["copecrea"]:
+                continue
+            if (
+                left["almacen_origen"] != right["almacen_destino"]
+                or left["almacen_destino"] != right["almacen_origen"]
+            ):
+                continue
+            left_start = left["desde_dt"]
+            left_end = left["hasta_dt"]
+            right_start = right["desde_dt"]
+            right_end = right["hasta_dt"]
+            overlap_seconds = max(
+                (min(left_end, right_end) - max(left_start, right_start)).total_seconds(),
+                0,
+            )
+            start_gap_minutes = abs((left_start - right_start).total_seconds()) / 60
+            if overlap_seconds <= 0 and start_gap_minutes > ventana_minutos:
+                continue
+            pair_key = tuple(sorted([f"{left['copecrea']}|{left['desde']}", f"{right['copecrea']}|{right['desde']}"]))
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
+            overlap_minutes = round(overlap_seconds / 60, 1)
+            simultaneo = overlap_minutes > 0
+            severity = (
+                "alta"
+                if simultaneo and min(left["minutos"], right["minutos"]) >= 10
+                else "media"
+                if simultaneo or start_gap_minutes <= 5
+                else "baja"
+            )
+            crossings.append(
+                {
+                    "ruta": f"{left['almacen_origen']} <-> {left['almacen_destino']}",
+                    "almacen_a": left["almacen_origen"],
+                    "almacen_b": left["almacen_destino"],
+                    "operario_a": left["operario"],
+                    "copecrea_a": left["copecrea"],
+                    "desde_a": left["desde"],
+                    "hasta_a": left["hasta"],
+                    "minutos_a": left["minutos"],
+                    "operario_b": right["operario"],
+                    "copecrea_b": right["copecrea"],
+                    "desde_b": right["desde"],
+                    "hasta_b": right["hasta"],
+                    "minutos_b": right["minutos"],
+                    "overlap_minutos": overlap_minutes,
+                    "gap_inicio_minutos": round(start_gap_minutes, 1),
+                    "simultaneo": simultaneo,
+                    "severidad": severity,
+                    "accion_sugerida": "Revisar si conviene intercambiar asignaciones o consolidar la ola por almacen antes del traslado.",
+                }
+            )
+
+    crossings.sort(
+        key=lambda item: (
+            {"alta": 3, "media": 2, "baja": 1}.get(item["severidad"], 0),
+            item["overlap_minutos"],
+            -item["gap_inicio_minutos"],
+        ),
+        reverse=True,
+    )
+    return {
+        "transferencias": [
+            {key: value for key, value in item.items() if not key.endswith("_dt")}
+            for item in transferencias
+        ],
+        "cruces": crossings[:100],
+        "summary": {
+            "transferencias_almacen_total": len(transferencias),
+            "cruces_almacen_total": len(crossings),
+            "cruces_almacen_altos": sum(1 for item in crossings if item["severidad"] == "alta"),
+            "minutos_cruce_total": round(sum(item["overlap_minutos"] for item in crossings), 1),
+            "rutas_cruzadas": len({item["ruta"] for item in crossings}),
+            "ventana_cruce_minutos": ventana_minutos,
+        },
+    }
+
+
 def _is_transporte_pallets_operation(value: str) -> bool:
     return _normalize_operacion_name(value) in {"TRANSPORTE DE PALETS", "TRANSPORTE DE PALLETS"}
 
@@ -2126,6 +2693,7 @@ def _build_picking_idle_analysis(
     transporte_extra: int = 10,
 ) -> dict[str, Any]:
     tnc_by_operator: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    tnc_daily_groups: dict[tuple[str, str, str], dict[str, Any]] = {}
     for row in tnc_rows:
         fh_text = str(row.get("FECHA_INICIO") or "").replace("T", " ")[:19]
         if not fh_text:
@@ -2140,20 +2708,49 @@ def _build_picking_idle_analysis(
         segundos = _safe_float(row.get("TIEMPO_ACUMULADO"))
         minutos = round(segundos / 60, 1)
         tope = int(_safe_float(row.get("MINUTOS_TOPE")))
-        descontable = round(min(minutos, tope), 1) if tope > 0 else 0.0
-        tnc_by_operator[legajo].append(
+        codigo = _safe_str(row.get("CODIGO_TNC"), "")
+        descripcion = _safe_str(row.get("DESCRIPCION_TNC"), "TNC")
+        fecha_tnc = fh_dt.date().isoformat()
+        item = {
+            "fh_dt": fh_dt,
+            "fecha_hora": fh_dt.strftime("%Y-%m-%d %H:%M:%S"),
+            "fecha": fecha_tnc,
+            "codigo": codigo,
+            "descripcion": descripcion,
+            "segundos": round(segundos, 1),
+            "minutos": minutos,
+            "tope": tope,
+        }
+        group_key = (legajo, codigo or descripcion, fecha_tnc)
+        group = tnc_daily_groups.setdefault(
+            group_key,
             {
-                "fh_dt": fh_dt,
-                "fecha_hora": fh_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                "codigo": _safe_str(row.get("CODIGO_TNC"), ""),
-                "descripcion": _safe_str(row.get("DESCRIPCION_TNC"), "TNC"),
-                "segundos": round(segundos, 1),
-                "minutos": minutos,
+                "legajo": legajo,
+                "fecha": fecha_tnc,
+                "codigo": codigo,
+                "descripcion": descripcion,
                 "tope": tope,
-                "descontable_minutos": descontable,
-                "excedido": bool(tope > 0 and minutos > tope),
-            }
+                "items": [],
+                "minutos": 0.0,
+            },
         )
+        group["items"].append(item)
+        group["minutos"] = round(_safe_float(group.get("minutos")) + minutos, 1)
+        group["tope"] = max(int(group.get("tope") or 0), tope)
+        tnc_by_operator[legajo].append(item)
+
+    for group in tnc_daily_groups.values():
+        total = round(_safe_float(group.get("minutos")), 1)
+        tope = int(_safe_float(group.get("tope")))
+        descontable_total = round(min(total, tope), 1) if tope > 0 else total
+        exceso_total = round(max(total - tope, 0), 1) if tope > 0 else 0.0
+        factor = (descontable_total / total) if total > 0 else 0.0
+        for item in group["items"]:
+            item["grupo_diario_minutos"] = total
+            item["grupo_diario_tope"] = tope
+            item["grupo_diario_exceso_minutos"] = exceso_total
+            item["descontable_minutos"] = round(item["minutos"] * factor, 1) if tope > 0 else item["minutos"]
+            item["excedido"] = bool(exceso_total > 0)
 
     normalized = []
     for idx, row in enumerate(detail_rows):
@@ -2183,6 +2780,7 @@ def _build_picking_idle_analysis(
     for row in normalized:
         by_operator[row["copecrea"]].append(row)
 
+    warehouse_crossings = _build_picking_warehouse_crossings(by_operator)
     cases = []
     operators_with_case = set()
     for legajo, rows in by_operator.items():
@@ -2214,6 +2812,9 @@ def _build_picking_idle_analysis(
                     "segundos": item["segundos"],
                     "minutos": item["minutos"],
                     "tope": item["tope"],
+                    "grupo_diario_minutos": item.get("grupo_diario_minutos", item["minutos"]),
+                    "grupo_diario_tope": item.get("grupo_diario_tope", item["tope"]),
+                    "grupo_diario_exceso_minutos": item.get("grupo_diario_exceso_minutos", 0),
                     "descontable_minutos": item["descontable_minutos"],
                     "excedido": item["excedido"],
                 }
@@ -2271,8 +2872,8 @@ def _build_picking_idle_analysis(
                             "tnc_resumen": (
                                 "Sin TNC"
                                 if not tnc_items
-                                else f"{tnc_descripciones[0]} {tnc_total_minutos:g}/{tnc_items[0]['tope']:g} min"
-                                if len(set(tnc_descripciones)) == 1 and tnc_items[0]["tope"] > 0
+                                else f"{tnc_descripciones[0]} {tnc_total_minutos:g}/{tnc_items[0].get('grupo_diario_tope', tnc_items[0]['tope']):g} min dia"
+                                if len(set(tnc_descripciones)) == 1 and tnc_items[0].get("grupo_diario_tope", tnc_items[0]["tope"]) > 0
                                 else f"{tnc_descripciones[0]} {tnc_total_minutos:g} min"
                                 if len(set(tnc_descripciones)) == 1
                                 else f"{len(tnc_items)} TNC - {tnc_total_minutos:g} min"
@@ -2337,8 +2938,10 @@ def _build_picking_idle_analysis(
             "casos_mismo_almacen": sum(1 for item in cases if not item["almacen_cambio"]),
             "casos_sin_intermedias": sum(1 for item in cases if item["intermedias_count"] == 0),
             "operarios_afectados": len(operators_with_case),
+            **warehouse_crossings["summary"],
             "source_name": "oracle_productiva",
         },
+        "almacen_crossings": warehouse_crossings,
         "filters": {
             "almacenes": sorted({item["almacen_anterior"] for item in cases} | {item["almacen_nuevo"] for item in cases}),
             "severidades": ["alta", "media", "baja", "info"],
@@ -4178,27 +4781,73 @@ async def get_tnc_monitor(
         logger.exception("Error consultando TNC")
         raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle: {exc}")
 
-    rows = []
+    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
     estados = set()
     for row in raw_rows:
         estado = _safe_str(row.get("ESTADO"), "")
         estado_tiempo = _safe_str(row.get("ESTADO_TIEMPO"), "")
         estados.add(estado)
-        rows.append(
+        legajo = _safe_str(row.get("LEGAJO"), "")
+        tnc = _safe_str(row.get("TNC"), "")
+        codigo = _safe_str(row.get("CODIGO_TNC"), "")
+        dia_tnc = _safe_str(row.get("DIA_TNC"), "") or fecha
+        minutos = int(_safe_float(row.get("MINUTOS")))
+        tope = int(_safe_float(row.get("TOPE")))
+        key = (legajo, codigo or tnc, dia_tnc)
+        group = grouped.setdefault(
+            key,
             {
-                "legajo": _safe_str(row.get("LEGAJO"), ""),
+                "legajo": legajo,
                 "operario": _safe_str(row.get("OPERARIO"), ""),
+                "area": _safe_str(row.get("AREA"), ""),
+                "puesto": _safe_str(row.get("PUESTO"), ""),
+                "foto": _safe_str(row.get("FOTO"), ""),
+                "fecha": dia_tnc,
+                "codigo_tnc": codigo,
+                "tnc": tnc,
+                "estado": "Finalizado",
                 "inicio": _safe_str(row.get("INICIO"), ""),
                 "fin": _safe_str(row.get("FIN"), ""),
-                "tnc": _safe_str(row.get("TNC"), ""),
+                "minutos": 0,
+                "tope": tope,
+                "cantidad": 0,
+                "detalle": [],
+            },
+        )
+        group["cantidad"] += 1
+        group["minutos"] += minutos
+        group["tope"] = max(int(group.get("tope") or 0), tope)
+        if estado == "Activo":
+            group["estado"] = "Activo"
+        inicio = _safe_str(row.get("INICIO"), "")
+        fin = _safe_str(row.get("FIN"), "")
+        if inicio and (not group["inicio"] or inicio < group["inicio"]):
+            group["inicio"] = inicio
+        if fin and (not group["fin"] or fin > group["fin"]):
+            group["fin"] = fin
+        group["detalle"].append(
+            {
+                "inicio": inicio,
+                "fin": fin,
                 "estado": estado,
-                "minutos": int(_safe_float(row.get("MINUTOS"))),
-                "tope": int(_safe_float(row.get("TOPE"))),
+                "minutos": minutos,
+                "tope": tope,
                 "diferencia": int(_safe_float(row.get("DIFERENCIA"))),
-                "estado_tiempo": estado_tiempo,
-                "excedido": estado_tiempo.lower() == "excedido",
+                "estado_tiempo_original": estado_tiempo,
             }
         )
+
+    rows = []
+    for group in grouped.values():
+        tope = int(group["tope"] or 0)
+        minutos = int(group["minutos"] or 0)
+        diferencia = minutos - tope if tope > 0 else 0
+        excedido = bool(tope > 0 and minutos > tope)
+        group["diferencia"] = diferencia
+        group["estado_tiempo"] = "Excedido" if excedido else "Dentro de tope"
+        group["excedido"] = excedido
+        rows.append(group)
+    rows.sort(key=lambda item: (item["fecha"], item["inicio"], item["legajo"], item["tnc"]), reverse=True)
 
     return {
         "fecha": fecha,
@@ -4208,7 +4857,8 @@ async def get_tnc_monitor(
         "fecha_hasta": fecha_hasta,
         "rows": rows,
         "summary": {
-            "total": len(rows),
+            "total": sum(int(item.get("cantidad") or 0) for item in rows),
+            "grupos": len(rows),
             "activos": sum(1 for item in rows if item["estado"] == "Activo"),
             "finalizados": sum(1 for item in rows if item["estado"] == "Finalizado"),
             "excedidos": sum(1 for item in rows if item["excedido"]),
@@ -4218,6 +4868,183 @@ async def get_tnc_monitor(
             "estados": ["Todos", *sorted(estados)],
         },
     }
+
+
+@router.get("/tnc/maestro")
+async def get_tnc_master():
+    try:
+        raw_rows = await asyncio.to_thread(query_productive_db_tnc_master)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Error consultando maestro TNC")
+        raise HTTPException(status_code=500, detail=f"No se pudo consultar maestro TNC: {exc}")
+
+    rows = []
+    seen = set()
+    for row in raw_rows:
+        key = (
+            _safe_str(row.get("ALMACEN"), ""),
+            _safe_str(row.get("CODIGO_TNC"), ""),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        rows.append(
+            {
+                "empresa": _safe_str(row.get("EMPRESA"), ""),
+                "almacen": _safe_str(row.get("ALMACEN"), ""),
+                "codigo_tnc": _safe_str(row.get("CODIGO_TNC"), ""),
+                "codigo_productividad": _safe_str(row.get("CODIGO_PRODUCTIVIDAD"), ""),
+                "descripcion_tnc": _safe_str(row.get("DESCRIPCION_TNC"), ""),
+                "requiere_autorizacion": _safe_str(row.get("REQUIEREAUTORIZACION"), ""),
+                "duracion_minutos": int(_safe_float(row.get("DURACION_MINUTOS_WF"))),
+                "duracion_minutos_wf": int(_safe_float(row.get("DURACION_MINUTOS_WF"))),
+                "duracion_minutos_productividad": int(_safe_float(row.get("DURACION_MINUTOS_PRODUCTIVIDAD"))),
+                "tiene_tiempo_maximo": _safe_str(row.get("TIENE_TIEMPO_MAXIMO"), ""),
+                "tiene_tolerancia_x_exceso": _safe_str(row.get("TIENE_TOLERANCIA_X_EXCESO"), ""),
+                "tolerancia_x_exceso": int(_safe_float(row.get("TOLERANCIA_X_EXCESO"))),
+                "cantidad_de_ocurrencias": int(_safe_float(row.get("CANTIDAD_DE_OCURRENCIAS"))),
+                "tipo_tnc": _safe_str(row.get("TIPOTNC"), ""),
+            }
+        )
+    rows.sort(key=lambda item: (int(item["codigo_tnc"] or 0) if str(item["codigo_tnc"]).isdigit() else 0, item["descripcion_tnc"]))
+    return {
+        "rows": rows,
+        "summary": {
+            "total": len(rows),
+            "con_tope": sum(1 for item in rows if item["duracion_minutos"] > 0),
+            "sin_tope": sum(1 for item in rows if item["duracion_minutos"] <= 0),
+            "source_name": "oracle_productiva",
+        },
+    }
+
+
+@router.get("/tnc/indicadores")
+async def get_tnc_indicators(
+    fecha_desde: str = Query(..., description="YYYY-MM-DD"),
+    fecha_hasta: str = Query(..., description="YYYY-MM-DD"),
+    force_refresh: bool = Query(False, description="Fuerza refresco desde Oracle para el rango"),
+):
+    try:
+        desde_dt = datetime.strptime(fecha_desde, "%Y-%m-%d")
+        hasta_dt = datetime.strptime(fecha_hasta, "%Y-%m-%d")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Las fechas deben tener formato YYYY-MM-DD.") from exc
+    if hasta_dt < desde_dt:
+        raise HTTPException(status_code=400, detail="La fecha hasta no puede ser menor que la fecha desde.")
+    if (hasta_dt - desde_dt).days > 366:
+        raise HTTPException(status_code=400, detail="El rango maximo permitido es de 366 dias.")
+
+    logger.info("[tnc-indicadores] Asegurando cache rango=%s..%s", fecha_desde, fecha_hasta)
+    try:
+        cache_status = await ensure_tnc_cache_range(
+            fecha_desde,
+            fecha_hasta,
+            force_refresh=force_refresh,
+            stop_on_error=True,
+            max_refresh_days=31,
+        )
+        raw_rows = await _load_tnc_cache_rows(fecha_desde, fecha_hasta)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Error consultando indicadores TNC")
+        raise HTTPException(status_code=500, detail=f"No se pudo consultar indicadores TNC: {exc}")
+
+    payload = _build_tnc_indicators(
+        raw_rows,
+        desde_dt.strftime("%Y-%m-%d 00:00:00"),
+        (hasta_dt + timedelta(days=1)).strftime("%Y-%m-%d 00:00:00"),
+    )
+    payload["cache"] = cache_status
+    payload["summary"]["source_name"] = "sqlite_tnc_cache"
+    return payload
+
+
+@router.post("/tnc/cache/backfill")
+async def backfill_tnc_cache(
+    dias: int = Query(30, ge=1, le=90, description="Cantidad de dias hacia atras a sincronizar"),
+    force_refresh: bool = Query(False, description="Reconsulta Oracle aunque el dia ya este cacheado"),
+):
+    hasta_dt = datetime.now().date()
+    desde_dt = hasta_dt - timedelta(days=dias - 1)
+    logger.info(
+        "[tnc-cache-backfill] Sincronizando ultimos %s dias (%s..%s), force=%s",
+        dias,
+        desde_dt.isoformat(),
+        hasta_dt.isoformat(),
+        force_refresh,
+    )
+    cache_status = await ensure_tnc_cache_range(
+        desde_dt.isoformat(),
+        hasta_dt.isoformat(),
+        force_refresh=force_refresh,
+        stop_on_error=False,
+        max_refresh_days=90,
+    )
+    return {
+        "fecha_desde": desde_dt.isoformat(),
+        "fecha_hasta": hasta_dt.isoformat(),
+        "dias": dias,
+        "force_refresh": force_refresh,
+        "cache": cache_status,
+    }
+
+
+@router.post("/export/xlsx")
+async def export_xlsx(req: XlsxExportRequest):
+    try:
+        import xlsxwriter
+    except ImportError as exc:
+        raise HTTPException(status_code=500, detail="Falta instalar xlsxwriter para exportar XLSX.") from exc
+
+    columns = req.columns[:80]
+    rows = req.rows[:20000]
+    if not columns:
+        raise HTTPException(status_code=400, detail="No hay columnas para exportar.")
+
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+    safe_sheet = "".join(ch for ch in (req.sheet_name or "Datos") if ch not in r"[]:*?/\\")[:31] or "Datos"
+    worksheet = workbook.add_worksheet(safe_sheet)
+    header_fmt = workbook.add_format({"bold": True, "bg_color": "#343A40", "font_color": "#FFFFFF", "border": 1})
+    text_fmt = workbook.add_format({"border": 1})
+    number_fmt = workbook.add_format({"border": 1, "num_format": "#,##0.00"})
+
+    for col_idx, col in enumerate(columns):
+        worksheet.write(0, col_idx, col.label, header_fmt)
+
+    for row_idx, row in enumerate(rows, start=1):
+        for col_idx, col in enumerate(columns):
+            value = row.get(col.key, "")
+            if isinstance(value, bool):
+                worksheet.write(row_idx, col_idx, "Si" if value else "No", text_fmt)
+            elif isinstance(value, (int, float)) and not isinstance(value, bool):
+                worksheet.write_number(row_idx, col_idx, float(value), number_fmt)
+            elif value is None:
+                worksheet.write(row_idx, col_idx, "", text_fmt)
+            else:
+                worksheet.write(row_idx, col_idx, str(value), text_fmt)
+
+    for col_idx, col in enumerate(columns):
+        max_len = len(col.label)
+        for row in rows[:500]:
+            max_len = max(max_len, len(str(row.get(col.key, "") or "")))
+        worksheet.set_column(col_idx, col_idx, min(max(max_len + 2, 10), 48))
+    worksheet.freeze_panes(1, 0)
+    worksheet.autofilter(0, 0, max(len(rows), 1), len(columns) - 1)
+    workbook.close()
+    output.seek(0)
+
+    filename = (req.filename or "vigia_export.xlsx").replace("\\", "_").replace("/", "_")
+    if not filename.lower().endswith(".xlsx"):
+        filename += ".xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/online")

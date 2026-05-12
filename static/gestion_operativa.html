@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VigIA · Gestión Operativa</title>
+  <link rel="stylesheet" href="/css/vigia.css">
+  <style>
+    .gestion-page{padding:28px;max-width:1480px;margin:0 auto}
+    .gestion-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}
+    .gestion-kicker{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);font-weight:700}
+    .gestion-title{font-family:'Syne',sans-serif;font-size:34px;line-height:1.05;color:var(--text-hi);font-weight:800;margin-top:4px}
+    .gestion-tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .gestion-tab{border:1px solid var(--border);background:#fff;color:var(--muted);border-radius:999px;padding:10px 14px;font:700 11px 'DM Mono',monospace;letter-spacing:.5px}
+    .gestion-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:var(--shadow-accent)}
+    .toolbar{display:grid;grid-template-columns:minmax(160px,220px) minmax(160px,220px) auto 1fr;gap:12px;align-items:end;background:rgba(255,255,255,.78);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:18px}
+    .field{display:flex;flex-direction:column;gap:7px}
+    .field label{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);font-weight:700}
+    .field input,.field select{height:40px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text-hi);font:600 13px 'DM Mono',monospace;padding:0 12px}
+    .primary-btn{height:40px;border:0;border-radius:999px;background:var(--accent);color:#fff;font:800 11px 'DM Mono',monospace;letter-spacing:.6px;padding:0 18px;box-shadow:var(--shadow-accent);cursor:pointer}
+    .primary-btn:disabled{opacity:.6;cursor:wait}
+    .status{font-size:12px;color:var(--muted);line-height:1.35;align-self:center}
+    .status.error{color:var(--accent-dark);font-weight:700}
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .kpi{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm);min-height:106px}
+    .kpi-label{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);font-weight:700}
+    .kpi-value{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--text-hi);margin:8px 0 4px}
+    .kpi-sub{font-size:11px;color:var(--muted);line-height:1.35}
+    .section{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:18px}
+    .section-head{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg-soft)}
+    .section-title{font:800 13px 'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--accent-dark)}
+    .section-count{font-size:12px;color:var(--muted)}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:1120px}
+    th{position:sticky;top:0;background:#fff7f3;color:var(--accent-dark);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-align:left;padding:12px;border-bottom:1px solid var(--border);white-space:nowrap}
+    td{padding:12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);vertical-align:top}
+    tbody tr:nth-child(even){background:#fffaf7}
+    .chip{display:inline-flex;align-items:center;border-radius:999px;border:1px solid var(--border);padding:5px 9px;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;background:#fff;color:var(--muted)}
+    .chip.alta{background:#fff0f2;color:var(--accent-dark);border-color:#efb2bb}
+    .chip.media{background:#fff6db;color:#9b5d00;border-color:#f2cc75}
+    .chip.baja{background:#e9fff5;color:var(--success);border-color:#a4e5c9}
+    .muted{color:var(--muted)}
+    .empty{padding:28px 16px;color:var(--muted);font-size:12px}
+    .story-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .story-card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm);padding:16px}
+    .story-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+    .story-title{font:800 12px 'DM Mono',monospace;letter-spacing:.9px;text-transform:uppercase;color:var(--accent-dark)}
+    .story-text{font-size:14px;line-height:1.55;color:var(--text-hi);margin-bottom:12px}
+    .story-impact{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+    .story-action{border-top:1px solid var(--border);padding-top:10px;font-size:12px;line-height:1.45;color:var(--muted)}
+    .story-action strong{color:var(--text-hi)}
+    .raw-panel{display:none;margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fffaf7}
+    .raw-panel.open{display:block}
+    .raw-toggle{border:1px solid var(--border);background:#fff;color:var(--accent-dark);border-radius:999px;padding:7px 10px;font:800 10px 'DM Mono',monospace;letter-spacing:.5px;cursor:pointer}
+    .raw-panel table{min-width:820px}
+    @media(max-width:980px){
+      .gestion-page{padding:18px}
+      .gestion-head{align-items:flex-start;flex-direction:column}
+      .toolbar{grid-template-columns:1fr}
+      .kpi-grid{grid-template-columns:1fr 1fr}
+      .story-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:620px){.kpi-grid{grid-template-columns:1fr}.gestion-title{font-size:28px}}
+  </style>
+</head>
+<body>
+<div id="vigia-header"></div>
+
+<main class="gestion-page">
+  <header class="gestion-head">
+    <div>
+      <div class="gestion-kicker">Gestión Operativa</div>
+      <h1 class="gestion-title">Cambio de almacenes</h1>
+    </div>
+    <nav class="gestion-tabs" aria-label="Módulos">
+      <button class="gestion-tab active" type="button">Cambio de almacenes</button>
+    </nav>
+  </header>
+
+  <section class="toolbar">
+    <div class="field">
+      <label for="fecha">Fecha</label>
+      <input type="date" id="fecha">
+    </div>
+    <div class="field">
+      <label for="turno">Turno</label>
+      <select id="turno">
+        <option value="manana">Mañana</option>
+        <option value="tarde">Tarde</option>
+        <option value="noche">Noche</option>
+      </select>
+    </div>
+    <button class="primary-btn" id="btn-consultar" type="button" onclick="consultarCambios()">Consultar</button>
+    <div class="status" id="status">Seleccioná fecha y turno.</div>
+  </section>
+
+  <section class="kpi-grid" id="kpi-grid"></section>
+
+  <section class="story-grid" id="story-grid"></section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-title">Cruces detectados</div>
+      <div class="section-count" id="cruces-count">0 casos</div>
+    </div>
+    <div class="table-wrap" id="cruces-wrap">
+      <div class="empty">Sin consulta ejecutada.</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-title">Traslados entre almacenes</div>
+      <div class="section-count" id="transferencias-count">0 tramos</div>
+    </div>
+    <div class="table-wrap" id="transferencias-wrap">
+      <div class="empty">Sin consulta ejecutada.</div>
+    </div>
+  </section>
+</main>
+
+<script src="/js/vigia-nav.js"></script>
+<script>
+  let authUser = null;
+  let loading = false;
+  let lastResult = null;
+
+  function getSession() {
+    if (!authUser) return null;
+    return {
+      name: authUser.display_name || authUser.username,
+      role: authUser.role || '',
+      user: authUser.username || '',
+    };
+  }
+
+  async function logout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    } finally {
+      window.location.href = '/login';
+    }
+  }
+
+  function updateClock(elementId) {
+    const el = document.getElementById(elementId || 'clock-time');
+    if (!el) return;
+    const n = new Date();
+    el.textContent =
+      String(n.getHours()).padStart(2, '0') + ':' +
+      String(n.getMinutes()).padStart(2, '0') + ':' +
+      String(n.getSeconds()).padStart(2, '0');
+  }
+
+  async function requireAuth() {
+    const resp = await fetch('/api/auth/me', { credentials: 'same-origin' });
+    if (resp.status === 401) {
+      window.location.href = '/login?next=/gestion-operativa';
+      throw new Error('redirect');
+    }
+    if (resp.status === 403) {
+      window.location.href = '/api/auth/pending';
+      throw new Error('redirect');
+    }
+    if (!resp.ok) throw new Error('No se pudo validar la sesión.');
+    const data = await resp.json();
+    if (data.device_status !== 'approved') {
+      window.location.href = '/api/auth/pending';
+      throw new Error('redirect');
+    }
+    authUser = data;
+  }
+
+  function localDateValue(date = new Date()) {
+    const pad = value => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  function currentTurn(date = new Date()) {
+    const hour = date.getHours();
+    if (hour >= 6 && hour < 14) return 'manana';
+    if (hour >= 14 && hour < 22) return 'tarde';
+    return 'noche';
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+  }
+
+  function onlyTime(value) {
+    const text = String(value || '');
+    return text.includes(' ') ? text.split(' ')[1].slice(0, 8) : text.slice(11, 19) || text || '-';
+  }
+
+  function num(value) {
+    return Number(value || 0).toLocaleString('es-AR');
+  }
+
+  function setStatus(text, tone = '') {
+    const el = document.getElementById('status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `status ${tone}`;
+  }
+
+  function renderKpis(summary = {}) {
+    const items = [
+      ['Cruces', summary.cruces_almacen_total, `${num(summary.cruces_almacen_altos)} alta severidad`],
+      ['Traslados', summary.transferencias_almacen_total, 'Cambios A/B consecutivos'],
+      ['Rutas', summary.rutas_cruzadas, 'Pares de almacenes'],
+      ['Solape', summary.minutos_cruce_total, 'Minutos acumulados'],
+    ];
+    document.getElementById('kpi-grid').innerHTML = items.map(([label, value, sub]) => `
+      <article class="kpi">
+        <div class="kpi-label">${escapeHtml(label)}</div>
+        <div class="kpi-value">${num(value)}</div>
+        <div class="kpi-sub">${escapeHtml(sub)}</div>
+      </article>
+    `).join('');
+  }
+
+  function rawRowsForCruce(row) {
+    return [
+      {
+        operario: row.operario_a || row.copecrea_a || '-',
+        legajo: row.copecrea_a || '',
+        origen: row.almacen_a || '-',
+        destino: row.almacen_b || '-',
+        desde: row.desde_a,
+        hasta: row.hasta_a,
+        minutos: row.minutos_a,
+      },
+      {
+        operario: row.operario_b || row.copecrea_b || '-',
+        legajo: row.copecrea_b || '',
+        origen: row.almacen_b || '-',
+        destino: row.almacen_a || '-',
+        desde: row.desde_b,
+        hasta: row.hasta_b,
+        minutos: row.minutos_b,
+      },
+    ];
+  }
+
+  function toggleRawCase(index) {
+    const panel = document.getElementById(`raw-case-${index}`);
+    if (!panel) return;
+    panel.classList.toggle('open');
+  }
+
+  function renderStories(rows = []) {
+    const container = document.getElementById('story-grid');
+    if (!container) return;
+    if (!rows.length) {
+      container.innerHTML = `
+        <article class="story-card">
+          <div class="story-title">Lectura simple</div>
+          <p class="story-text">Todavía no hay cruces inversos entre almacenes para explicar en este rango.</p>
+          <div class="story-action"><strong>Validación:</strong> podés revisar igualmente la tabla de traslados entre almacenes.</div>
+        </article>
+      `;
+      return;
+    }
+    container.innerHTML = rows.slice(0, 4).map((row, index) => {
+      const rawRows = rawRowsForCruce(row);
+      return `
+        <article class="story-card">
+          <div class="story-top">
+            <div>
+              <div class="story-title">Cruce operativo entre almacenes</div>
+              <div class="muted">${escapeHtml(row.ruta || '-')}</div>
+            </div>
+            <span class="chip ${escapeHtml(row.severidad || 'baja')}">${escapeHtml(row.severidad || 'baja')}</span>
+          </div>
+          <p class="story-text">
+            Mientras <strong>${escapeHtml(row.operario_a || row.copecrea_a || '-')}</strong> fue de
+            <strong>${escapeHtml(row.almacen_a || '-')}</strong> a <strong>${escapeHtml(row.almacen_b || '-')}</strong>
+            entre <strong>${onlyTime(row.desde_a)}</strong> y <strong>${onlyTime(row.hasta_a)}</strong>,
+            <strong>${escapeHtml(row.operario_b || row.copecrea_b || '-')}</strong> hizo el movimiento inverso,
+            de <strong>${escapeHtml(row.almacen_b || '-')}</strong> a <strong>${escapeHtml(row.almacen_a || '-')}</strong>,
+            entre <strong>${onlyTime(row.desde_b)}</strong> y <strong>${onlyTime(row.hasta_b)}</strong>.
+            Los cruces se solaparon durante <strong>${num(row.overlap_minutos)} min</strong>.
+          </p>
+          <div class="story-impact">
+            <span class="chip">Solape ${num(row.overlap_minutos)} min</span>
+            <span class="chip">Gap inicio ${num(row.gap_inicio_minutos)} min</span>
+            <span class="chip">2 operarios</span>
+          </div>
+          <div class="story-action"><strong>Posible mejora:</strong> ${escapeHtml(row.accion_sugerida || 'Revisar si conviene intercambiar asignaciones antes del traslado.')}</div>
+          <button class="raw-toggle" type="button" onclick="toggleRawCase(${index})">Ver datos crudos</button>
+          <div class="raw-panel" id="raw-case-${index}">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Operario</th>
+                    <th>Legajo</th>
+                    <th>Origen</th>
+                    <th>Destino</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Minutos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rawRows.map(item => `
+                    <tr>
+                      <td>${escapeHtml(item.operario)}</td>
+                      <td>${escapeHtml(item.legajo)}</td>
+                      <td>${escapeHtml(item.origen)}</td>
+                      <td>${escapeHtml(item.destino)}</td>
+                      <td>${escapeHtml(item.desde || '-')}</td>
+                      <td>${escapeHtml(item.hasta || '-')}</td>
+                      <td>${num(item.minutos)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  function renderCruces(rows = []) {
+    document.getElementById('cruces-count').textContent = `${num(rows.length)} casos`;
+    const wrap = document.getElementById('cruces-wrap');
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty">No se detectaron cruces inversos entre almacenes en el rango.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Severidad</th>
+            <th>Ruta</th>
+            <th>Operario A</th>
+            <th>Tramo A</th>
+            <th>Operario B</th>
+            <th>Tramo B</th>
+            <th>Solape</th>
+            <th>Gap inicio</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `
+            <tr>
+              <td><span class="chip ${escapeHtml(row.severidad || 'baja')}">${escapeHtml(row.severidad || 'baja')}</span></td>
+              <td>${escapeHtml(row.ruta || '-')}</td>
+              <td><strong>${escapeHtml(row.operario_a || row.copecrea_a || '-')}</strong><br><span class="muted">${escapeHtml(row.copecrea_a || '')}</span></td>
+              <td>${onlyTime(row.desde_a)} → ${onlyTime(row.hasta_a)}<br><span class="muted">${num(row.minutos_a)} min</span></td>
+              <td><strong>${escapeHtml(row.operario_b || row.copecrea_b || '-')}</strong><br><span class="muted">${escapeHtml(row.copecrea_b || '')}</span></td>
+              <td>${onlyTime(row.desde_b)} → ${onlyTime(row.hasta_b)}<br><span class="muted">${num(row.minutos_b)} min</span></td>
+              <td>${num(row.overlap_minutos)} min</td>
+              <td>${num(row.gap_inicio_minutos)} min</td>
+              <td>${escapeHtml(row.accion_sugerida || '-')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderTransferencias(rows = []) {
+    document.getElementById('transferencias-count').textContent = `${num(rows.length)} tramos`;
+    const wrap = document.getElementById('transferencias-wrap');
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty">No hay traslados de picking entre almacenes en el rango.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Operario</th>
+            <th>Origen</th>
+            <th>Destino</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th>Minutos</th>
+            <th>Pedido</th>
+            <th>Pallet</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `
+            <tr>
+              <td><strong>${escapeHtml(row.operario || row.copecrea || '-')}</strong><br><span class="muted">${escapeHtml(row.copecrea || '')}</span></td>
+              <td>${escapeHtml(row.almacen_origen || '-')}</td>
+              <td>${escapeHtml(row.almacen_destino || '-')}</td>
+              <td>${onlyTime(row.desde)}</td>
+              <td>${onlyTime(row.hasta)}</td>
+              <td>${num(row.minutos)}</td>
+              <td>${escapeHtml(row.pedido_anterior || '-')} → ${escapeHtml(row.pedido_nuevo || '-')}</td>
+              <td>${escapeHtml(row.pallet_anterior || '-')} → ${escapeHtml(row.pallet_nuevo || '-')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderResult(data) {
+    lastResult = data;
+    renderKpis(data.summary || {});
+    renderStories(data.cruces || []);
+    renderCruces(data.cruces || []);
+    renderTransferencias(data.transferencias || []);
+  }
+
+  async function consultarCambios() {
+    if (loading) return;
+    const fecha = document.getElementById('fecha').value;
+    const turno = document.getElementById('turno').value;
+    if (!fecha || !turno) {
+      setStatus('Completá fecha y turno.', 'error');
+      return;
+    }
+    loading = true;
+    const btn = document.getElementById('btn-consultar');
+    btn.disabled = true;
+    btn.textContent = 'Consultando...';
+    setStatus('Consultando movimientos de picking.');
+    try {
+      const params = new URLSearchParams({ fecha, turno });
+      const resp = await fetch(`/api/gestion-operativa/cambios-almacen?${params.toString()}`);
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo consultar cambios de almacén.');
+      renderResult(data);
+      setStatus(`Consulta lista: ${num(data.summary?.cruces_almacen_total)} cruce(s), ${num(data.summary?.transferencias_almacen_total)} traslado(s).`);
+    } catch (err) {
+      renderResult({ summary: {}, cruces: [], transferencias: [] });
+      setStatus(err.message || 'No se pudo consultar cambios de almacén.', 'error');
+    } finally {
+      loading = false;
+      btn.disabled = false;
+      btn.textContent = 'Consultar';
+    }
+  }
+
+  (async function bootstrap() {
+    try {
+      await requireAuth();
+      initHeader('gestion', { showClock: true });
+      document.getElementById('fecha').value = localDateValue();
+      document.getElementById('turno').value = currentTurn();
+      renderKpis({});
+      renderStories([]);
+    } catch (err) {
+      if (err.message !== 'redirect') setStatus(err.message || 'No se pudo iniciar Gestión Operativa.', 'error');
+    }
+  })();
+</script>
+</body>
+</html>

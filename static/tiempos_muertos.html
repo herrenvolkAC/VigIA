@@ -1,0 +1,2079 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>VigIA - Tiempos muertos y TNC</title>
+  <style>
+    :root {
+      --bg:#F2F4F1;
+      --panel:#FFFFFF;
+      --ink:#0E1620;
+      --ink-soft:#5C6773;
+      --rule:#D4DBD8;
+      --rule-strong:#A9B4AC;
+      --green:#1F7A4D;
+      --green-soft:#E5F3E9;
+      --amber:#B25F00;
+      --amber-soft:#FBE7C8;
+      --red:#C8102E;
+      --red-soft:#F7D7DA;
+      --blue:#0B5FAE;
+    }
+
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--ink);
+      font-family:'IBM Plex Sans',system-ui,sans-serif;
+      background-color:var(--bg);
+      background-image:
+        linear-gradient(var(--rule) 1px, transparent 1px),
+        linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size:24px 24px;
+    }
+    button,input,select{font:inherit;color:inherit}
+    button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:min(1320px,100%);min-height:100vh;margin:0 auto;padding:0 32px 18px}
+    .mono{font-family:'IBM Plex Mono',monospace}
+    .serif{font-family:'IBM Plex Mono',monospace}
+    .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft)}
+
+    .paper-header{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:18px;
+      padding:14px 16px;
+      background:var(--panel);
+      border:1px solid var(--rule);
+      border-bottom:1px solid var(--rule-strong);
+    }
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-logo{width:86px;height:44px;object-fit:contain}
+    .brand-rule{width:1px;height:28px;background:var(--rule)}
+    .kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+    h1{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:20px;line-height:1.05;font-weight:600;margin:0;letter-spacing:0}
+    h1 .amp{color:var(--red)}
+    .hud-strip{display:flex;align-items:center;gap:8px;justify-content:center}
+    .hud-chip{min-width:64px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:4px 14px}
+    .hud-chip .hud-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+    .hud-chip .hud-value{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--ink)}
+    .hud-chip.ok .hud-value{color:var(--green)}
+    .hud-chip.bad .hud-value{color:var(--red)}
+    .hud-chip.warn .hud-value{color:var(--amber)}
+    .header-right{display:flex;align-items:center;gap:18px}
+    .user-chip{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:112px;
+      border:1px solid var(--rule);
+      border-radius:2px;
+      background:var(--panel);
+      padding:5px 10px;
+    }
+    .user-chip .user-label{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:9px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+    }
+    .user-chip .user-value{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:12px;
+      font-weight:600;
+      color:var(--green);
+      max-width:160px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .logout-btn{
+      min-height:24px;
+      border:1px solid var(--rule);
+      border-radius:2px;
+      background:var(--panel);
+      color:var(--ink-soft);
+      padding:3px 7px;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .timebox{text-align:right}
+    .timebox .time{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;line-height:1;letter-spacing:.04em}
+    .partner-logo{height:42px;max-width:112px;object-fit:contain}
+
+    .field{display:flex;flex-direction:column;gap:6px}
+    .crumb{display:flex;flex-direction:column;gap:2px}
+    .crumb span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft)}
+    .crumb strong{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--ink)}
+    .crumb strong:first-letter{color:var(--green)}
+    .paper-input,.paper-select{
+      height:34px;
+      min-width:150px;
+      border:1px solid var(--rule);
+      border-radius:2px;
+      background:var(--panel);
+      font-family:'IBM Plex Mono',monospace;
+      font-size:13px;
+      font-weight:500;
+      outline:none;
+      padding:0 10px;
+    }
+    .primary-cta{
+      background:var(--ink);
+      color:var(--bg);
+      border:1px solid var(--ink);
+      padding:0 16px;
+      height:38px;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .primary-cta:disabled{opacity:.55}
+
+    .kpi-row{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin:14px 0;
+    }
+    .kpi-cell{
+      background:var(--panel);
+      border:1px solid var(--rule);
+      border-top:3px solid var(--blue);
+      padding:12px 14px 14px;
+      min-height:122px;
+    }
+    .kpi-cell.ok{border-top-color:var(--green)}
+    .kpi-cell.warn{border-top-color:var(--amber)}
+    .kpi-cell.bad{border-top-color:var(--red)}
+    .kpi-number{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:40px;
+      line-height:1.05;
+      font-weight:600;
+      letter-spacing:0;
+      margin:10px 0 6px;
+      white-space:nowrap;
+    }
+    .kpi-cell.ok .kpi-number{color:var(--green)}
+    .kpi-cell.warn .kpi-number,.kpi-number.alert{color:var(--amber)}
+    .kpi-cell.bad .kpi-number{color:var(--red)}
+    .kpi-foot{display:flex;justify-content:space-between;gap:16px;font-size:11px;color:var(--ink-soft)}
+    .kpi-foot .metric{font-family:'IBM Plex Mono',monospace;color:var(--ink)}
+    .kpi-track{height:4px;background:#EAEEEB;margin-top:12px;overflow:hidden}
+    .kpi-fill{height:100%;width:var(--pct,0%);background:var(--blue)}
+    .kpi-cell.ok .kpi-fill{background:var(--green)}
+    .kpi-cell.warn .kpi-fill{background:var(--amber)}
+    .kpi-cell.bad .kpi-fill{background:var(--red)}
+
+    .paper-tabs{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      margin-top:12px;
+      padding:0 12px;
+      background:var(--panel);
+      border-bottom:1px solid var(--rule);
+    }
+    .tab-list{display:flex;gap:0}
+    .tab-btn{
+      background:transparent;
+      border:0;
+      color:var(--ink-soft);
+      padding:13px 18px 12px;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:11px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      min-width:132px;
+    }
+    .tab-btn.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}
+    .tab-btn.active::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-radius:50%;background:var(--green);vertical-align:middle}
+    .tab-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);margin-left:8px}
+    .export-link{
+      border:1px solid var(--rule);
+      background:var(--panel);
+      border-radius:2px;
+      padding:7px 10px;
+      margin:0 0 8px;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+    }
+    .export-link:hover{color:var(--blue);border-color:var(--blue)}
+
+    .paper-panel{display:none;padding-top:0}
+    .paper-panel.active{display:block}
+    .filter-line{
+      display:grid;
+      grid-template-columns:1fr 1fr 1.45fr 1fr 1fr 1.2fr 1fr auto;
+      gap:12px;
+      align-items:end;
+      background:var(--panel);
+      border:1px solid var(--rule);
+      border-top:0;
+      padding:12px;
+    }
+    .filter-line .field:nth-child(3){grid-column:span 2}
+    .filter-line .field:nth-child(6){grid-column:span 2}
+    .filter-line .field:nth-child(8){grid-column:span 2}
+    .filter-line .primary-cta{width:100%;min-width:136px}
+    .filter-line .paper-input,.filter-line .paper-select{font-size:13px;height:32px;min-width:0}
+
+    .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);border-top:0}
+    .paper-table th{
+      background:#F6F8F5;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+      border-bottom:1px solid var(--rule);
+      text-align:left;
+      padding:9px 14px;
+      cursor:pointer;
+      white-space:normal;
+    }
+    .paper-table td{
+      border-bottom:1px solid var(--rule);
+      padding:9px 14px;
+      font-size:13px;
+      line-height:1.22;
+      vertical-align:middle;
+    }
+    .paper-table tbody tr:nth-child(odd){background:#F8FAF7}
+    .paper-table tbody tr:nth-child(even){background:var(--panel)}
+    .paper-table .code{font-family:'IBM Plex Mono',monospace;color:var(--green);font-weight:600;white-space:nowrap}
+    .paper-table .strong{font-weight:500}
+    .paper-table .muted{color:var(--ink-soft)}
+    .name-button{
+      appearance:none;
+      border:0;
+      border-bottom:1px solid transparent;
+      background:transparent;
+      padding:0;
+      min-height:32px;
+      font-weight:600;
+      text-align:left;
+    }
+    .name-button:hover,.name-button:focus{border-color:var(--blue);color:var(--blue);outline:none}
+    .auth{display:inline-grid;place-items:center;width:18px;height:18px;border:1px solid var(--rule);background:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink-soft)}
+    .auth.yes{color:var(--green);background:var(--green-soft);border-color:var(--green)}
+    .duration{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600}
+    .duration-empty{font-family:'IBM Plex Mono',monospace;color:var(--amber);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+    .unit{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);margin-left:4px;text-transform:lowercase}
+    .pill{display:inline-flex;align-items:center;min-height:24px;border:1px solid var(--rule);border-radius:2px;padding:3px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase}
+    .pill.tp{color:var(--red);background:var(--red-soft);border-color:var(--red)}
+    .pill.ok{color:var(--green);background:var(--green-soft);border-color:var(--green)}
+    .pill.bad{color:var(--red);background:var(--red-soft);border-color:var(--red)}
+    .telemetry{display:inline-flex;align-items:end;gap:2px;height:20px}
+    .telemetry i{display:block;width:4px;background:var(--green)}
+    .telemetry i.warn{background:var(--amber)}
+    .chev{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--ink-soft);text-align:right}
+    .empty{padding:28px 14px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+    .detail-cell{padding:0 14px 16px!important;background:var(--green-soft)!important}
+    .detail-panel{border-top:1px solid var(--rule);padding:14px 0 4px}
+    .detail-title{display:flex;justify-content:space-between;gap:16px;margin-bottom:10px}
+    .detail-title strong{font-size:13px}
+    .detail-table{width:100%;border-collapse:collapse}
+    .detail-table th{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+      text-align:left;
+      padding:0 8px 8px;
+      border-bottom:1px solid var(--rule);
+      cursor:default;
+    }
+    .detail-table td{padding:9px 8px;border-bottom:1px solid var(--rule);font-size:12px}
+    .person-modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+      background:rgba(14,22,32,.18);
+      z-index:20;
+    }
+    .person-modal.open{display:flex}
+    .person-dialog{
+      width:min(980px,100%);
+      max-height:calc(100vh - 56px);
+      overflow:auto;
+      background:var(--panel);
+      border:1px solid var(--rule-strong);
+    }
+    .person-head{
+      display:grid;
+      grid-template-columns:96px 1fr auto;
+      gap:16px;
+      align-items:center;
+      padding:16px;
+      border-bottom:1px solid var(--rule);
+      background:#F6F8F5;
+    }
+    .person-photo{
+      width:96px;
+      height:96px;
+      object-fit:cover;
+      border:1px solid var(--rule);
+      background:var(--bg);
+    }
+    .person-photo-fallback{
+      width:96px;
+      height:96px;
+      display:grid;
+      place-items:center;
+      border:1px solid var(--rule);
+      background:var(--green-soft);
+      color:var(--green);
+      font-family:'IBM Plex Mono',monospace;
+      font-size:28px;
+      font-weight:600;
+    }
+    .person-name{font-size:20px;font-weight:600;margin:0 0 8px}
+    .person-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .person-close{border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:0 12px}
+    .person-body{padding:16px}
+    .person-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+    .person-summary .crumb{border:1px solid var(--rule);padding:8px;background:var(--panel)}
+
+    .tnc-table th:nth-child(1),.tnc-table td:nth-child(1){width:7%}
+    .tnc-table th:nth-child(2),.tnc-table td:nth-child(2){width:15%}
+    .tnc-table th:nth-child(3),.tnc-table td:nth-child(3){width:11%}
+    .tnc-table th:nth-child(4),.tnc-table td:nth-child(4){width:11%}
+    .tnc-table th:nth-child(5),.tnc-table td:nth-child(5){width:6%}
+    .tnc-table th:nth-child(6),.tnc-table td:nth-child(6){width:17%}
+    .tnc-table th:nth-child(7),.tnc-table td:nth-child(7){width:7%}
+    .tnc-table th:nth-child(8),.tnc-table td:nth-child(8){width:8%}
+    .tnc-table th:nth-child(9),.tnc-table td:nth-child(9){width:7%}
+    .tnc-table th:nth-child(10),.tnc-table td:nth-child(10){width:7%}
+    .tnc-table th:nth-child(11),.tnc-table td:nth-child(11){width:6%}
+    .tnc-table th:nth-child(12),.tnc-table td:nth-child(12){width:2%}
+    #master-results{overflow-x:auto}
+    .master-table{min-width:1120px}
+    .master-table th,.master-table td{padding-left:10px;padding-right:10px}
+    .master-table th{letter-spacing:.12em}
+    .master-table th:nth-child(1),.master-table td:nth-child(1){width:7%}
+    .master-table th:nth-child(2),.master-table td:nth-child(2){width:12%}
+    .master-table th:nth-child(3),.master-table td:nth-child(3){width:33%}
+    .master-table th:nth-child(4),.master-table td:nth-child(4){width:5%}
+    .master-table th:nth-child(5),.master-table td:nth-child(5){width:8%}
+    .master-table th:nth-child(6),.master-table td:nth-child(6){width:8%}
+    .master-table th:nth-child(7),.master-table td:nth-child(7){width:7%}
+    .master-table th:nth-child(8),.master-table td:nth-child(8){width:7%}
+    .master-table th:nth-child(9),.master-table td:nth-child(9){width:10%}
+    .master-table th:nth-child(10),.master-table td:nth-child(10){width:3%}
+    .master-table td:nth-child(4),
+    .master-table td:nth-child(5),
+    .master-table td:nth-child(6),
+    .master-table td:nth-child(7),
+    .master-table td:nth-child(8),
+    .master-table td:nth-child(9),
+    .master-table td:nth-child(10){white-space:nowrap}
+    .indicator-line{
+      grid-template-columns:220px 220px 1fr auto auto;
+    }
+    .indicator-line .field:nth-child(3){grid-column:auto}
+    .indicator-filter-line{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:12px;
+      align-items:end;
+      background:var(--panel);
+      border:1px solid var(--rule);
+      border-top:0;
+      padding:12px;
+    }
+    .indicator-filter-line .paper-select{min-width:0}
+    .indicator-grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:12px;
+      margin-top:14px;
+    }
+    .chart-panel{
+      background:var(--panel);
+      border:1px solid var(--rule);
+      padding:12px;
+      min-height:260px;
+    }
+    .chart-panel.wide{grid-column:1 / -1}
+    .chart-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .chart-title{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:11px;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+      color:var(--ink);
+      font-weight:600;
+    }
+    .chart-sub{
+      font-family:'IBM Plex Mono',monospace;
+      font-size:10px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+    }
+    .bar-row{
+      display:grid;
+      grid-template-columns:minmax(140px,1fr) 2fr 78px;
+      gap:10px;
+      align-items:center;
+      padding:7px 0;
+      border-bottom:1px solid var(--rule);
+      font-size:12px;
+    }
+    .bar-label{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .bar-track{height:12px;background:#EAEEEB}
+    .bar-fill{height:100%;background:var(--green);width:var(--pct)}
+    .bar-fill.warn{background:var(--amber)}
+    .bar-value{font-family:'IBM Plex Mono',monospace;text-align:right;font-weight:600}
+    .donut-wrap{display:grid;grid-template-columns:190px 1fr;gap:16px;align-items:center}
+    .donut{
+      width:180px;
+      height:180px;
+      border-radius:50%;
+      background:conic-gradient(var(--green) 0deg var(--ok-deg), var(--amber) var(--ok-deg) var(--warn-deg), var(--red) var(--warn-deg) 360deg);
+      position:relative;
+      margin:auto;
+      border:1px solid var(--rule);
+    }
+    .donut::after{
+      content:"";
+      position:absolute;
+      inset:42px;
+      border-radius:50%;
+      background:var(--panel);
+      border:1px solid var(--rule);
+    }
+    .donut-metric{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      z-index:1;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:22px;
+      font-weight:600;
+    }
+    .legend-item{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--rule);padding:7px 0;font-size:12px}
+    .legend-dot{display:inline-block;width:9px;height:9px;margin-right:8px;background:var(--green)}
+    .legend-dot.warn{background:var(--amber)}
+    .legend-dot.bad{background:var(--red)}
+    .line-chart{width:100%;height:260px;border:1px solid var(--rule);background:#F8FAF7}
+    .indicator-table{width:100%;border-collapse:collapse;font-size:12px}
+    .indicator-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);text-align:left;padding:8px;border-bottom:1px solid var(--rule)}
+    .indicator-table td{padding:8px;border-bottom:1px solid var(--rule)}
+    .indicator-table td:last-child,.indicator-table th:last-child{text-align:right}
+
+    .edition-footer{
+      display:flex;
+      justify-content:space-between;
+      border-top:1px solid var(--rule-strong);
+      background:var(--panel);
+      margin-top:18px;
+      padding:10px 12px;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--ink-soft);
+    }
+    @media(max-width:980px){
+      .paper-app{padding:0 18px 18px}
+      .paper-header{grid-template-columns:1fr}
+      .kpi-row{grid-template-columns:1fr 1fr}
+      .filter-line{grid-template-columns:1fr 1fr}
+      .indicator-line{grid-template-columns:1fr 1fr}
+      .indicator-filter-line{grid-template-columns:1fr 1fr}
+      .indicator-grid{grid-template-columns:1fr}
+      .chart-panel.wide{grid-column:auto}
+      .donut-wrap{grid-template-columns:1fr}
+      .paper-table th,.paper-table td{font-size:12px;padding-left:4px;padding-right:4px}
+    }
+  </style>
+</head>
+<body>
+  <main class="paper-app">
+    <header class="paper-header" id="paper-header"></header>
+    <section class="paper-tabs" id="paper-tabs"></section>
+
+    <section class="paper-panel active" id="panel-tnc">
+      <div class="filter-line">
+        <div class="field">
+          <label class="label" for="fecha">Fecha</label>
+          <input class="paper-input" type="date" id="fecha">
+        </div>
+        <div class="field">
+          <label class="label" for="turno">Turno</label>
+          <select class="paper-select" id="turno"></select>
+        </div>
+        <div class="field">
+          <label class="label" for="tnc-filter-operario">Operario</label>
+          <input class="paper-input" type="text" id="tnc-filter-operario" placeholder="Legajo o nombre" oninput="renderTncMonitor()">
+        </div>
+        <div class="field">
+          <label class="label" for="tnc-filter-estado">Estado</label>
+          <select class="paper-select" id="tnc-filter-estado" onchange="renderTncMonitor()">
+            <option value="ALL">Todos</option>
+            <option value="Activo">Activo</option>
+            <option value="Finalizado">Finalizado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="tnc-filter-estado-tiempo">Estado tiempo</label>
+          <select class="paper-select" id="tnc-filter-estado-tiempo" onchange="renderTncMonitor()">
+            <option value="ALL">Todos</option>
+            <option value="Dentro de tope">Dentro de tope</option>
+            <option value="Excedido">Excedido</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="tnc-filter-area">Area</label>
+          <select class="paper-select" id="tnc-filter-area" onchange="renderTncMonitor()">
+            <option value="ALL">Todas</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="tnc-filter-puesto">Puesto</label>
+          <select class="paper-select" id="tnc-filter-puesto" onchange="renderTncMonitor()">
+            <option value="ALL">Todos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="tnc-filter-tipo">Tipo de TNC</label>
+          <select class="paper-select" id="tnc-filter-tipo" onchange="renderTncMonitor()">
+            <option value="ALL">Todas</option>
+          </select>
+        </div>
+        <button class="primary-cta" id="btn-tnc" type="button" onclick="runTncMonitor()">► Consultar TNC</button>
+      </div>
+      <section class="kpi-row" id="tnc-kpi-row"></section>
+      <div id="tnc-results">
+        <div class="empty">Todavia no se consultaron tiempos no continuos.</div>
+      </div>
+    </section>
+
+    <section class="paper-panel" id="panel-master">
+      <section class="kpi-row" id="master-kpi-row"></section>
+      <div id="master-results">
+        <div class="empty">Consultando maestro de TNC...</div>
+      </div>
+    </section>
+
+    <section class="paper-panel" id="panel-indicators">
+      <div class="filter-line indicator-line">
+        <div class="field">
+          <label class="label" for="indicadores-desde">Desde</label>
+          <input class="paper-input" type="date" id="indicadores-desde">
+        </div>
+        <div class="field">
+          <label class="label" for="indicadores-hasta">Hasta</label>
+          <input class="paper-input" type="date" id="indicadores-hasta">
+        </div>
+        <div class="field">
+          <label class="label">Rango</label>
+          <div class="paper-input" id="indicadores-rango-label" style="display:flex;align-items:center;">Sin consultar</div>
+        </div>
+        <button class="primary-cta" id="btn-indicators" type="button" onclick="runTncIndicators()">► Generar indicadores</button>
+        <button class="export-link" id="btn-backfill-tnc" type="button" onclick="backfillTncCache30()">Precargar 30 dias</button>
+      </div>
+      <div class="indicator-filter-line">
+        <div class="field">
+          <label class="label" for="indicator-filter-tnc">Tipo de TNC</label>
+          <select class="paper-select" id="indicator-filter-tnc" onchange="renderTncIndicators()">
+            <option value="ALL">Todas</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="indicator-filter-area">Area</label>
+          <select class="paper-select" id="indicator-filter-area" onchange="renderTncIndicators()">
+            <option value="ALL">Todas</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="indicator-filter-puesto">Puesto</label>
+          <select class="paper-select" id="indicator-filter-puesto" onchange="renderTncIndicators()">
+            <option value="ALL">Todos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="indicator-filter-turno">Turno</label>
+          <select class="paper-select" id="indicator-filter-turno" onchange="renderTncIndicators()">
+            <option value="ALL">Todos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="indicator-filter-estado-tiempo">Estado tiempo</label>
+          <select class="paper-select" id="indicator-filter-estado-tiempo" onchange="renderTncIndicators()">
+            <option value="ALL">Todos</option>
+          </select>
+        </div>
+      </div>
+      <section class="kpi-row" id="indicators-kpi-row"></section>
+      <div id="indicators-results">
+        <div class="empty">Selecciona un rango de fechas para generar indicadores TNC.</div>
+      </div>
+    </section>
+
+    <section class="paper-panel" id="panel-idle" style="display:none"></section>
+    <footer class="edition-footer" id="edition-footer"></footer>
+  </main>
+  <section class="person-modal" id="tnc-person-modal" aria-hidden="true"></section>
+
+  <script>
+    const idleAnalysisEnabled = false;
+    let activeTab = 'tnc';
+    let idleResult = null;
+    let tncResult = null;
+    let masterResult = null;
+    let indicatorsResult = null;
+    let idleLoading = false;
+    let tncLoading = false;
+    let masterLoading = false;
+    let indicatorsLoading = false;
+    let idleSort = { key: 'exceso_minutos', direction: 'desc' };
+    let tncSort = { key: 'fecha', direction: 'desc' };
+    let masterSort = { key: 'codigo_tnc', direction: 'asc' };
+    let expandedTncKey = '';
+    let selectedTncKey = '';
+    let authUser = null;
+
+    const fallbackTurns = [
+      { turno_key: 'manana', turno_label: 'Manana', hora_inicio: '06:00', hora_fin: '14:00' },
+      { turno_key: 'tarde', turno_label: 'Tarde', hora_inicio: '14:00', hora_fin: '22:00' },
+      { turno_key: 'noche', turno_label: 'Noche', hora_inicio: '22:00', hora_fin: '06:00' },
+    ];
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    function localDateValue(date = new Date()) {
+      const pad = n => String(n).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function formatEditionDate(date = new Date()) {
+      const days = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+      const pad = n => String(n).padStart(2, '0');
+      return `${days[date.getDay()]} ${pad(date.getDate())}.${pad(date.getMonth()+1)}.${String(date.getFullYear()).slice(-2)}`;
+    }
+
+    function turnoKey(value) {
+      const raw = String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      if (raw.includes('man') || raw === 'm') return 'manana';
+      if (raw.includes('tar') || raw === 't') return 'tarde';
+      if (raw.includes('noc') || raw === 'n') return 'noche';
+      return raw || 'tarde';
+    }
+
+    function getTurnConfig(value) {
+      const key = turnoKey(value);
+      if (key === 'manana') return { label: 'Manana', inicio: '06:00:00', fin: '14:00:00' };
+      if (key === 'tarde') return { label: 'Tarde', inicio: '14:00:00', fin: '22:00:00' };
+      return { label: 'Noche', inicio: '22:00:00', fin: '06:00:00' };
+    }
+
+    function getLiveTurnKey(date = new Date()) {
+      const hour = date.getHours();
+      if (hour >= 6 && hour < 14) return 'manana';
+      if (hour >= 14 && hour < 22) return 'tarde';
+      return 'noche';
+    }
+
+    function buildRange() {
+      const fecha = document.getElementById('fecha')?.value || '';
+      const turno = document.getElementById('turno')?.value || '';
+      if (!fecha || !turno) return null;
+      const cfg = getTurnConfig(turno);
+      let hastaDate = fecha;
+      if (turnoKey(turno) === 'noche') {
+        const base = new Date(`${fecha}T00:00:00`);
+        base.setDate(base.getDate() + 1);
+        hastaDate = base.toISOString().slice(0, 10);
+      }
+      return {
+        fecha,
+        turno,
+        turno_label: cfg.label,
+        fecha_desde: `${fecha} ${cfg.inicio}`,
+        fecha_hasta: `${hastaDate} ${cfg.fin}`,
+      };
+    }
+
+    function setStatus(text, cls = '') {
+      if (cls === 'error') console.warn(text);
+    }
+
+    function padCode(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '---';
+      return /^\d+$/.test(raw) ? raw.padStart(4, '0') : raw;
+    }
+
+    function padMetric(value) {
+      return Number(value || 0).toLocaleString('es-AR', { minimumIntegerDigits: 3 });
+    }
+
+    function padMinutes(value) {
+      return Number(value || 0).toLocaleString('es-AR', { minimumIntegerDigits: 3 });
+    }
+
+    function pct(value, total) {
+      const n = Number(value || 0);
+      const d = Math.max(Number(total || 0), 1);
+      return `${Math.max(0, Math.min(100, Math.round((n / d) * 100)))}%`;
+    }
+
+    function tncRowKey(row) {
+      return [
+        row.legajo || '',
+        row.fecha || '',
+        row.codigo_tnc || '',
+        row.tnc || '',
+      ].map(part => String(part).replace(/\|/g, '/')).join('|');
+    }
+
+    function toggleTncDetail(key) {
+      expandedTncKey = expandedTncKey === key ? '' : key;
+      renderTncMonitor();
+    }
+
+    function tncRowsRaw() {
+      return Array.isArray(tncResult?.rows) ? tncResult.rows : [];
+    }
+
+    function initials(name) {
+      return String(name || '?')
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map(part => part[0] || '')
+        .join('')
+        .toUpperCase() || '?';
+    }
+
+    function openTncPerson(key) {
+      selectedTncKey = key;
+      const row = tncRowsRaw().find(item => tncRowKey(item) === key);
+      const modal = document.getElementById('tnc-person-modal');
+      if (!modal || !row) return;
+      modal.innerHTML = TncPersonModal(row);
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      modal.querySelector('.person-close')?.focus();
+    }
+
+    function closeTncPerson() {
+      const modal = document.getElementById('tnc-person-modal');
+      if (!modal) return;
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.innerHTML = '';
+      selectedTncKey = '';
+    }
+
+    function HudChip(label, value, tone = '') {
+      return `<div class="hud-chip ${tone}"><div class="hud-label">${escapeHtml(label)}</div><div class="hud-value">${escapeHtml(value)}</div></div>`;
+    }
+
+    function Crumb(label, value, ok = false) {
+      return `<div class="crumb"><span>${escapeHtml(label)}</span><strong>${ok ? 'MAESTRO OK - ' : ''}${escapeHtml(value)}</strong></div>`;
+    }
+
+    function KpiTile(index, label, value, caption, metric, tone = '', total = 0) {
+      return `
+        <article class="kpi-cell ${tone}" title="${escapeHtml(`${label}: ${value}. ${caption}. ${metric}`)}">
+          <div class="label">${String(index).padStart(2, '0')} - ${escapeHtml(label)}</div>
+          <div class="kpi-number">${padMetric(value)}</div>
+          <div class="kpi-foot"><span>${escapeHtml(caption)}</span><span class="metric">${escapeHtml(metric)}</span></div>
+          <div class="kpi-track"><div class="kpi-fill" style="--pct:${pct(value, total || value)}"></div></div>
+        </article>`;
+    }
+
+    function IndicatorKpiTile(index, label, value, unit, caption, tone = '', total = 0) {
+      const renderedValue = Number(value || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
+      return `
+        <article class="kpi-cell ${tone}" title="${escapeHtml(`${label}: ${renderedValue} ${unit}. ${caption}`)}">
+          <div class="label">${String(index).padStart(2, '0')} - ${escapeHtml(label)}</div>
+          <div class="kpi-number">${padMetric(Math.round(Number(value || 0)))}</div>
+          <div class="kpi-foot"><span>${escapeHtml(caption)}</span><span class="metric">${escapeHtml(unit)}</span></div>
+          <div class="kpi-track"><div class="kpi-fill" style="--pct:${pct(value, total || value)}"></div></div>
+        </article>`;
+    }
+
+    function ConsoleTab(id, label, count) {
+      const active = activeTab === id;
+      return `<button class="tab-btn ${active ? 'active' : ''}" id="tab-btn-${id}" type="button" onclick="switchTab('${id}')">${escapeHtml(label)} <span class="tab-count">${Number(count || 0).toLocaleString('es-AR')}</span></button>`;
+    }
+
+    function TipoPill(tipo) {
+      const normalized = String(tipo || '-').trim().toUpperCase();
+      return `<span class="pill ${normalized === 'TP' ? 'tp' : 'ok'}">${escapeHtml(normalized || '-')}</span>`;
+    }
+
+    function TelemetryBars(values = []) {
+      if (!values.length) return '';
+      return `<span class="telemetry">${values.slice(0, 14).map(v => {
+        const level = Math.max(1, Math.min(10, Number(v || 0)));
+        const cls = level > 7 ? 'warn' : '';
+        return `<i class="${cls}" style="height:${4 + level * 1.4}px"></i>`;
+      }).join('')}</span>`;
+    }
+
+    function PaperHeader() {
+      const total = masterResult?.summary?.total || 0;
+      const sinTope = masterResult?.summary?.sin_tope || 0;
+      const tncGroups = tncResult?.summary?.grupos || 0;
+      const userLabel = authUser?.display_name || authUser?.username || 'Validando...';
+      return `
+        <div class="brand-block">
+          <img class="brand-logo" src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
+          <span class="brand-rule" aria-hidden="true"></span>
+          <div>
+            <div class="kicker">NODE · CD-COTO-01 / TM-TNC</div>
+            <h1>Tiempos muertos <span class="amp">&amp;</span> TNC</h1>
+          </div>
+        </div>
+        <div class="hud-strip">
+          ${HudChip('Maestro', total ? 'OK' : 'CARGA', total ? 'ok' : 'warn')}
+          ${HudChip('TNC', padMetric(tncGroups), 'ok')}
+          ${HudChip('Alertas', String(sinTope), sinTope ? 'bad' : 'ok')}
+        </div>
+        <div class="header-right">
+          <div class="user-chip" title="${escapeHtml(userLabel)}">
+            <div>
+              <div class="user-label">Usuario</div>
+              <div class="user-value">${escapeHtml(userLabel)}</div>
+            </div>
+            <button class="logout-btn" type="button" onclick="logout()">Salir</button>
+          </div>
+          <div class="timebox">
+            <div class="label">Hora</div>
+            <div class="time" id="clock-time">--:--</div>
+          </div>
+          <img class="partner-logo" src="/resources/CotoLogo.svg" alt="Logo Coto">
+        </div>`;
+    }
+
+    function MasterKpiRow() {
+      const summary = masterResult?.summary || {};
+      const total = Number(summary.total || 0);
+      return `
+        ${KpiTile(1, 'TNC en el maestro', total, 'Codigos disponibles', 'F956MTNC', '', total)}
+        ${KpiTile(2, 'Con duracion', summary.con_tope || 0, 'Tienen minutos configurados', 'MAESTRO OK', 'ok', total)}
+        ${KpiTile(3, 'Sin duracion', summary.sin_tope || 0, 'Revisar maestro', 'PENDIENTE', 'warn', total)}`;
+    }
+
+    function TncKpiRow() {
+      const rows = getTncRows();
+      const eventos = rows.reduce((acc, row) => acc + Number(row.cantidad || 0), 0);
+      const activos = rows.filter(row => row.estado === 'Activo').length;
+      const excedidos = rows.filter(row => row.excedido || row.estado_tiempo === 'Excedido').length;
+      return `
+        ${KpiTile(1, 'TNC filtrados', rows.length, 'Grupos visibles', 'FILTRO', 'ok', rows.length)}
+        ${KpiTile(2, 'Eventos', eventos, 'Registros agrupados', 'TNC', '', eventos)}
+        ${KpiTile(3, 'Excedidos', excedidos, 'Superan tope diario', `${Number(activos || 0).toLocaleString('es-AR')} activos`, excedidos ? 'bad' : 'ok', rows.length)}`;
+    }
+
+    function IndicatorsKpiRow() {
+      const scoped = getFilteredIndicatorPayload();
+      const summary = scoped.summary || {};
+      const eventos = Number(summary.eventos || 0);
+      return `
+        ${IndicatorKpiTile(1, 'Eventos TNC', eventos, 'eventos', 'Cantidad total de registros del rango filtrado', '', eventos)}
+        ${IndicatorKpiTile(2, 'Tiempo total', Number(summary.horas_total || 0), 'horas', `Suma de ${Number(summary.minutos_total || 0).toLocaleString('es-AR')} minutos TNC`, 'ok', Math.max(Number(summary.horas_total || 0), 1))}
+        ${IndicatorKpiTile(3, 'Eventos excedidos', Number(summary.excedidos || 0), 'eventos', `${Number(summary.tasa_exceso || 0).toLocaleString('es-AR')}% supera el tope`, Number(summary.excedidos || 0) ? 'bad' : 'ok', eventos)}
+        ${IndicatorKpiTile(4, 'Promedio evento', Number(summary.minutos_promedio || 0), 'min/evento', 'Tiempo promedio consumido por cada TNC', '', Math.max(Number(summary.minutos_promedio || 0), 1))}
+        ${IndicatorKpiTile(5, 'Tipos activos', Number(summary.tnc_distintos || 0), 'tipos', 'Tipos de TNC distintos con actividad', '', Number(summary.tnc_distintos || 0))}
+        ${IndicatorKpiTile(6, 'Exceso total', Number(summary.exceso_total || 0), 'min excedidos', 'Suma de minutos por encima del tope', Number(summary.exceso_total || 0) ? 'warn' : 'ok', Math.max(Number(summary.minutos_total || 0), 1))}`;
+    }
+
+    function PaperTabs() {
+      const tncCount = tncResult?.summary?.grupos || 0;
+      const masterCount = masterResult?.summary?.total || 0;
+      const indicatorCount = indicatorsResult?.summary?.eventos || 0;
+      const exportAction = activeTab === 'master'
+        ? 'exportMasterXlsx()'
+        : activeTab === 'indicators'
+        ? 'exportIndicatorsXlsx()'
+        : 'exportTncXlsx()';
+      return `
+        <div class="tab-list">
+          ${ConsoleTab('tnc', 'TNC', tncCount)}
+          ${ConsoleTab('master', 'Maestro TNC', masterCount)}
+          ${ConsoleTab('indicators', 'Indicadores', indicatorCount)}
+        </div>
+        <button class="export-link" type="button" onclick="${exportAction}">EXPORT.XLSX</button>`;
+    }
+
+    function EditionFooter() {
+      const range = buildRange();
+      const turno = range?.turno_label || 'Tarde';
+      return `<span>Edicion ${escapeHtml(turno)} - ${formatEditionDate()}</span><span>Nro 0428 - Pag 01 / 04</span>`;
+    }
+
+    function renderShell() {
+      document.getElementById('paper-header').innerHTML = PaperHeader();
+      renderLiveRegions();
+    }
+
+    function renderLiveRegions() {
+      const header = document.getElementById('paper-header');
+      if (header) header.innerHTML = PaperHeader();
+      const tncKpis = document.getElementById('tnc-kpi-row');
+      if (tncKpis) tncKpis.innerHTML = TncKpiRow();
+      const masterKpis = document.getElementById('master-kpi-row');
+      if (masterKpis) masterKpis.innerHTML = MasterKpiRow();
+      const indicatorsKpis = document.getElementById('indicators-kpi-row');
+      if (indicatorsKpis) indicatorsKpis.innerHTML = IndicatorsKpiRow();
+      document.getElementById('paper-tabs').innerHTML = PaperTabs();
+      document.getElementById('edition-footer').innerHTML = EditionFooter();
+      updateClock();
+    }
+
+    function switchTab(tab) {
+      if (!idleAnalysisEnabled && tab === 'idle') tab = 'tnc';
+      activeTab = ['master', 'indicators'].includes(tab) ? tab : 'tnc';
+      document.getElementById('panel-tnc').classList.toggle('active', activeTab === 'tnc');
+      document.getElementById('panel-master').classList.toggle('active', activeTab === 'master');
+      document.getElementById('panel-indicators').classList.toggle('active', activeTab === 'indicators');
+      renderLiveRegions();
+    }
+
+    function restoreFilterControls() {
+      const dateInput = document.getElementById('fecha');
+      const turnoSelect = document.getElementById('turno');
+      if (dateInput && !dateInput.value) dateInput.value = localDateValue();
+      const indicatorsDesde = document.getElementById('indicadores-desde');
+      const indicatorsHasta = document.getElementById('indicadores-hasta');
+      if (indicatorsDesde && !indicatorsDesde.value) {
+        const base = new Date();
+        base.setDate(base.getDate() - 6);
+        indicatorsDesde.value = localDateValue(base);
+      }
+      if (indicatorsHasta && !indicatorsHasta.value) indicatorsHasta.value = localDateValue();
+      if (turnoSelect && !turnoSelect.options.length) {
+        turnoSelect.innerHTML = fallbackTurns.map(t => `<option value="${escapeHtml(t.turno_key)}">${escapeHtml(t.turno_label)}</option>`).join('');
+        turnoSelect.value = getLiveTurnKey();
+      }
+    }
+
+    function readThreshold(id, fallback) {
+      const min = id === 'idle-threshold-transporte' ? 0 : 1;
+      const value = Number(document.getElementById(id)?.value || fallback);
+      return Math.min(Math.max(Number.isFinite(value) ? Math.round(value) : fallback, min), 240);
+    }
+
+    function sortableIdleTh(label, key) {
+      const arrow = idleSort.key === key ? (idleSort.direction === 'asc' ? ' ^' : ' v') : '';
+      return `<th onclick="setIdleSort('${key}')">${label}${arrow}</th>`;
+    }
+
+    function setIdleSort(key) {
+      idleSort = idleSort.key === key
+        ? { key, direction: idleSort.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: key === 'operario' ? 'asc' : 'desc' };
+      renderIdleAnalysis();
+    }
+
+    function getIdleRows() {
+      const rows = Array.isArray(idleResult?.rows) ? idleResult.rows : [];
+      const severityOrder = { alta: 3, media: 2, baja: 1, info: 0 };
+      const valueForSort = row => {
+        switch (idleSort.key) {
+          case 'severidad': return severityOrder[String(row.severidad || '').toLowerCase()] ?? -1;
+          case 'operario': return String(row.operario || row.copecrea || '').toLowerCase();
+          case 'desde': return String(row.desde || '');
+          case 'hasta': return String(row.hasta || '');
+          case 'minutos': return Number(row.minutos || 0);
+          case 'exceso_minutos': return Number(row.exceso_minutos || 0);
+          case 'tnc': return String(row.tnc_resumen || '').toLowerCase();
+          case 'situacion': return String(row.cambio || '').toLowerCase();
+          default: return Number(row.exceso_minutos || 0);
+        }
+      };
+      return [...rows].sort((a, b) => {
+        const av = valueForSort(a);
+        const bv = valueForSort(b);
+        const cmp = typeof av === 'number' && typeof bv === 'number'
+          ? av - bv
+          : String(av).localeCompare(String(bv), 'es');
+        return idleSort.direction === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    function onlyTime(value) {
+      const text = String(value || '');
+      return text.includes(' ') ? text.split(' ')[1].slice(0, 8) : text.slice(11, 19) || text || '-';
+    }
+
+    function compactDate(value) {
+      const text = String(value || '').trim();
+      const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return `${match[3]}/${match[2]}`;
+      return text || '-';
+    }
+
+    function situationText(row) {
+      const parts = [];
+      if (String(row.pallet_anterior || '') !== String(row.pallet_nuevo || '')) parts.push('Cambio de pallet');
+      if (String(row.pedido_anterior || '') !== String(row.pedido_nuevo || '')) parts.push('Cambio de pedido');
+      if (row.almacen_cambio || String(row.almacen_anterior || '') !== String(row.almacen_nuevo || '')) parts.push('Cambio de almacen');
+      return parts.length ? parts.join(', ') : (row.cambio || '-');
+    }
+
+    function renderIdleAnalysis() {}
+
+    async function runIdleAnalysis() {
+      if (idleLoading) return;
+      const range = buildRange();
+      if (!range) {
+        setStatus('Completa fecha y turno antes de detectar tiempos muertos.', 'error');
+        return;
+      }
+      const btn = document.getElementById('btn-idle');
+      const thresholds = {
+        umbral_pedido: readThreshold('idle-threshold-pedido', 10),
+        umbral_pallet: readThreshold('idle-threshold-pallet', 15),
+        umbral_almacen: readThreshold('idle-threshold-almacen', 25),
+        extra_transporte: readThreshold('idle-threshold-transporte', 10),
+      };
+      idleLoading = true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Detectando...';
+      }
+      setStatus(`Buscando demoras entre cambios de pedido/pallet para ${range.turno_label}.`);
+      try {
+        const params = new URLSearchParams({
+          fecha: range.fecha,
+          turno: range.turno,
+          ...Object.fromEntries(Object.entries(thresholds).map(([key, value]) => [key, String(value)])),
+        });
+        const resp = await fetch(`/api/productividad/picking/tiempos-muertos?${params.toString()}`);
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'No se pudieron detectar tiempos muertos.');
+        idleResult = data;
+      } catch (err) {
+        idleResult = null;
+        setStatus(err.message || 'No se pudieron detectar tiempos muertos.', 'error');
+      } finally {
+        idleLoading = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Detectar tiempos';
+        }
+      }
+    }
+
+    function sortableTncTh(label, key) {
+      const arrow = tncSort.key === key ? (tncSort.direction === 'asc' ? ' ^' : ' v') : '';
+      return `<th onclick="setTncSort('${key}')">${label}${arrow}</th>`;
+    }
+
+    function setTncSort(key) {
+      if (key === 'chev') return;
+      tncSort = tncSort.key === key
+        ? { key, direction: tncSort.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: ['legajo', 'operario', 'area', 'puesto', 'tnc', 'estado'].includes(key) ? 'asc' : 'desc' };
+      renderTncMonitor();
+    }
+
+    function setDynamicSelectOptions(id, values, allLabel) {
+      const select = document.getElementById(id);
+      if (!select) return;
+      const current = select.value || 'ALL';
+      select.innerHTML = [`<option value="ALL">${escapeHtml(allLabel)}</option>`]
+        .concat(values.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`))
+        .join('');
+      select.value = Array.from(select.options).some(opt => opt.value === current) ? current : 'ALL';
+    }
+
+    function populateTncDynamicFilters(rows) {
+      const operario = (document.getElementById('tnc-filter-operario')?.value || '').trim().toLowerCase();
+      const estado = document.getElementById('tnc-filter-estado')?.value || 'ALL';
+      const estadoTiempo = document.getElementById('tnc-filter-estado-tiempo')?.value || 'ALL';
+      const area = document.getElementById('tnc-filter-area')?.value || 'ALL';
+      const puesto = document.getElementById('tnc-filter-puesto')?.value || 'ALL';
+      const filteredForArea = (rows || []).filter(row => {
+        if (operario) {
+          const match = String(row.legajo || '').toLowerCase().includes(operario)
+            || String(row.operario || '').toLowerCase().includes(operario);
+          if (!match) return false;
+        }
+        if (estado !== 'ALL' && row.estado !== estado) return false;
+        if (estadoTiempo !== 'ALL' && row.estado_tiempo !== estadoTiempo) return false;
+        if (puesto !== 'ALL' && row.puesto !== puesto) return false;
+        return true;
+      });
+      const filteredForPuesto = (rows || []).filter(row => {
+        if (operario) {
+          const match = String(row.legajo || '').toLowerCase().includes(operario)
+            || String(row.operario || '').toLowerCase().includes(operario);
+          if (!match) return false;
+        }
+        if (estado !== 'ALL' && row.estado !== estado) return false;
+        if (estadoTiempo !== 'ALL' && row.estado_tiempo !== estadoTiempo) return false;
+        if (area !== 'ALL' && row.area !== area) return false;
+        return true;
+      });
+      const filteredForTipo = (rows || []).filter(row => {
+        if (operario) {
+          const match = String(row.legajo || '').toLowerCase().includes(operario)
+            || String(row.operario || '').toLowerCase().includes(operario);
+          if (!match) return false;
+        }
+        if (estado !== 'ALL' && row.estado !== estado) return false;
+        if (estadoTiempo !== 'ALL' && row.estado_tiempo !== estadoTiempo) return false;
+        if (area !== 'ALL' && row.area !== area) return false;
+        if (puesto !== 'ALL' && row.puesto !== puesto) return false;
+        return true;
+      });
+      const areas = Array.from(new Set(filteredForArea.map(row => String(row.area || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
+      const puestos = Array.from(new Set(filteredForPuesto.map(row => String(row.puesto || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
+      const tipos = Array.from(new Set(filteredForTipo.map(row => String(row.tnc || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'));
+      setDynamicSelectOptions('tnc-filter-area', areas, 'Todas');
+      setDynamicSelectOptions('tnc-filter-puesto', puestos, 'Todos');
+      setDynamicSelectOptions('tnc-filter-tipo', tipos, 'Todas');
+    }
+
+    function getTncRows() {
+      const rows = Array.isArray(tncResult?.rows) ? tncResult.rows : [];
+      const operario = (document.getElementById('tnc-filter-operario')?.value || '').trim().toLowerCase();
+      const estado = document.getElementById('tnc-filter-estado')?.value || 'ALL';
+      const estadoTiempo = document.getElementById('tnc-filter-estado-tiempo')?.value || 'ALL';
+      const area = document.getElementById('tnc-filter-area')?.value || 'ALL';
+      const puesto = document.getElementById('tnc-filter-puesto')?.value || 'ALL';
+      const tipo = document.getElementById('tnc-filter-tipo')?.value || 'ALL';
+      const estadoTiempoOrder = { Excedido: 1, 'Dentro de tope': 0 };
+      const valueForSort = row => {
+        switch (tncSort.key) {
+          case 'legajo': return String(row.legajo || '');
+          case 'operario': return String(row.operario || '').toLowerCase();
+          case 'area': return String(row.area || '').toLowerCase();
+          case 'puesto': return String(row.puesto || '').toLowerCase();
+          case 'fecha': return String(row.fecha || '');
+          case 'tnc': return String(row.tnc || '').toLowerCase();
+          case 'estado': return String(row.estado || '').toLowerCase();
+          case 'cantidad': return Number(row.cantidad || 0);
+          case 'minutos': return Number(row.minutos || 0);
+          case 'tope': return Number(row.tope || 0);
+          case 'diferencia': return Number(row.diferencia || 0);
+          case 'estado_tiempo': return estadoTiempoOrder[row.estado_tiempo] ?? -1;
+          default: return String(row.fecha || '');
+        }
+      };
+      return rows.filter(row => {
+        if (operario) {
+          const match = String(row.legajo || '').toLowerCase().includes(operario)
+            || String(row.operario || '').toLowerCase().includes(operario);
+          if (!match) return false;
+        }
+        if (estado !== 'ALL' && row.estado !== estado) return false;
+        if (estadoTiempo !== 'ALL' && row.estado_tiempo !== estadoTiempo) return false;
+        if (area !== 'ALL' && row.area !== area) return false;
+        if (puesto !== 'ALL' && row.puesto !== puesto) return false;
+        if (tipo !== 'ALL' && row.tnc !== tipo) return false;
+        return true;
+      }).sort((a, b) => {
+        const av = valueForSort(a);
+        const bv = valueForSort(b);
+        const cmp = typeof av === 'number' && typeof bv === 'number'
+          ? av - bv
+          : String(av).localeCompare(String(bv), 'es');
+        return tncSort.direction === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    function TncTable(rows) {
+      return `
+        <table class="paper-table tnc-table">
+          <thead><tr>
+            ${sortableTncTh('Legajo', 'legajo')}
+            ${sortableTncTh('Operario', 'operario')}
+            ${sortableTncTh('Area', 'area')}
+            ${sortableTncTh('Puesto', 'puesto')}
+            ${sortableTncTh('Dia', 'fecha')}
+            ${sortableTncTh('TNC', 'tnc')}
+            ${sortableTncTh('Eventos', 'cantidad')}
+            ${sortableTncTh('Estado', 'estado')}
+            ${sortableTncTh('Minutos', 'minutos')}
+            ${sortableTncTh('Tope diario', 'tope')}
+            ${sortableTncTh('Estado tiempo', 'estado_tiempo')}
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${rows.length ? rows.map(row => `
+              <tr>
+                <td><span class="code">${escapeHtml(row.legajo || '-')}</span></td>
+                <td><button class="name-button" type="button" onclick="openTncPerson(decodeURIComponent('${encodeURIComponent(tncRowKey(row))}'))">${escapeHtml(row.operario || '-')}</button></td>
+                <td><span class="muted">${escapeHtml(row.area || '-')}</span></td>
+                <td><span class="muted">${escapeHtml(row.puesto || '-')}</span></td>
+                <td class="mono" title="${escapeHtml(row.fecha || '-')}">${escapeHtml(compactDate(row.fecha))}</td>
+                <td><span class="strong">${escapeHtml(row.tnc || '-')}</span></td>
+                <td class="mono">${padMetric(row.cantidad || 0)}</td>
+                <td><span class="pill ${row.estado === 'Activo' ? 'ok' : ''}">${escapeHtml(row.estado || '-')}</span></td>
+                <td><span class="duration">${padMinutes(row.minutos || 0)}</span><span class="unit">min</span></td>
+                <td><span class="duration">${padMinutes(row.tope || 0)}</span><span class="unit">min</span></td>
+                <td><span class="pill ${row.estado_tiempo === 'Excedido' ? 'bad' : 'ok'}">${escapeHtml(row.estado_tiempo || '-')}</span></td>
+                <td class="chev">&gt;</td>
+              </tr>
+            `).join('') : '<tr><td colspan="12"><div class="empty">No hay TNC para mostrar con el filtro actual.</div></td></tr>'}
+          </tbody>
+        </table>`;
+    }
+
+    function TncDetailRow(row) {
+      const details = Array.isArray(row.detalle) ? row.detalle : [];
+      return `
+        <tr>
+          <td class="detail-cell" colspan="12">
+            <div class="detail-panel">
+              <div class="detail-title">
+                <strong>${escapeHtml(row.operario || '-')} - ${escapeHtml(row.tnc || '-')}</strong>
+                <span class="mono">${padMetric(details.length || 0)} eventos</span>
+              </div>
+              <table class="detail-table">
+                <thead><tr>
+                  <th>Inicio</th>
+                  <th>Fin</th>
+                  <th>Estado</th>
+                  <th>Minutos</th>
+                  <th>Tope</th>
+                  <th>Diferencia</th>
+                  <th>Estado tiempo</th>
+                </tr></thead>
+                <tbody>
+                  ${details.length ? details.map(item => `
+                    <tr>
+                      <td class="mono">${escapeHtml(item.inicio || '-')}</td>
+                      <td class="mono">${escapeHtml(item.fin || '-')}</td>
+                      <td><span class="pill ${item.estado === 'Activo' ? 'ok' : ''}">${escapeHtml(item.estado || '-')}</span></td>
+                      <td><span class="duration">${padMinutes(item.minutos || 0)}</span><span class="unit">min</span></td>
+                      <td><span class="duration">${padMinutes(item.tope || 0)}</span><span class="unit">min</span></td>
+                      <td class="mono">${Number(item.diferencia || 0).toLocaleString('es-AR')}</td>
+                      <td><span class="pill ${item.estado_tiempo_original === 'Excedido' ? 'bad' : 'ok'}">${escapeHtml(item.estado_tiempo_original || '-')}</span></td>
+                    </tr>
+                  `).join('') : '<tr><td colspan="7"><div class="empty">No hay detalle para este resumen.</div></td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    function TncDetailTable(row) {
+      const details = Array.isArray(row.detalle) ? row.detalle : [];
+      return `
+        <table class="detail-table">
+          <thead><tr>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+            <th>Minutos</th>
+            <th>Tope</th>
+            <th>Diferencia</th>
+            <th>Estado tiempo</th>
+          </tr></thead>
+          <tbody>
+            ${details.length ? details.map(item => `
+              <tr>
+                <td class="mono">${escapeHtml(item.inicio || '-')}</td>
+                <td class="mono">${escapeHtml(item.fin || '-')}</td>
+                <td><span class="pill ${item.estado === 'Activo' ? 'ok' : ''}">${escapeHtml(item.estado || '-')}</span></td>
+                <td><span class="duration">${padMinutes(item.minutos || 0)}</span><span class="unit">min</span></td>
+                <td><span class="duration">${padMinutes(item.tope || 0)}</span><span class="unit">min</span></td>
+                <td class="mono">${Number(item.diferencia || 0).toLocaleString('es-AR')}</td>
+                <td><span class="pill ${item.estado_tiempo_original === 'Excedido' ? 'bad' : 'ok'}">${escapeHtml(item.estado_tiempo_original || '-')}</span></td>
+              </tr>
+            `).join('') : '<tr><td colspan="7"><div class="empty">No hay detalle para este resumen.</div></td></tr>'}
+          </tbody>
+        </table>`;
+    }
+
+    function TncPersonModal(row) {
+      const photo = String(row.foto || '').trim();
+      return `
+        <div class="person-dialog" role="dialog" aria-modal="true" aria-label="Detalle TNC de operario">
+          <div class="person-head">
+            ${photo
+              ? `<img class="person-photo" src="${escapeHtml(photo)}" alt="Foto de ${escapeHtml(row.operario || 'operario')}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'person-photo-fallback',textContent:'${escapeHtml(initials(row.operario))}'}))">`
+              : `<div class="person-photo-fallback">${escapeHtml(initials(row.operario))}</div>`}
+            <div>
+              <p class="person-name">${escapeHtml(row.operario || '-')}</p>
+              <div class="person-meta">
+                ${Crumb('Legajo', row.legajo || '-')}
+                ${Crumb('Area', row.area || '-')}
+                ${Crumb('Puesto', row.puesto || '-')}
+              </div>
+            </div>
+            <button class="person-close" type="button" onclick="closeTncPerson()">Cerrar</button>
+          </div>
+          <div class="person-body">
+            <div class="person-summary">
+              ${Crumb('TNC', row.tnc || '-')}
+              ${Crumb('Eventos', padMetric(row.cantidad || 0))}
+              ${Crumb('Minutos', `${padMinutes(row.minutos || 0)} min`)}
+              ${Crumb('Estado tiempo', row.estado_tiempo || '-')}
+            </div>
+            ${TncDetailTable(row)}
+          </div>
+        </div>`;
+    }
+
+    function TncSummaryTable(rows) {
+      return `
+        <table class="paper-table tnc-table">
+          <thead><tr>
+            ${sortableTncTh('Legajo', 'legajo')}
+            ${sortableTncTh('Operario', 'operario')}
+            ${sortableTncTh('Area', 'area')}
+            ${sortableTncTh('Puesto', 'puesto')}
+            ${sortableTncTh('Dia', 'fecha')}
+            ${sortableTncTh('TNC', 'tnc')}
+            ${sortableTncTh('Eventos', 'cantidad')}
+            ${sortableTncTh('Estado', 'estado')}
+            ${sortableTncTh('Minutos', 'minutos')}
+            ${sortableTncTh('Tope diario', 'tope')}
+            ${sortableTncTh('Estado tiempo', 'estado_tiempo')}
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${rows.length ? rows.map(row => {
+              const key = tncRowKey(row);
+              return `
+                <tr>
+                  <td><span class="code">${escapeHtml(row.legajo || '-')}</span></td>
+                  <td><button class="name-button" type="button" onclick="openTncPerson(decodeURIComponent('${encodeURIComponent(key)}'))">${escapeHtml(row.operario || '-')}</button></td>
+                  <td><span class="muted">${escapeHtml(row.area || '-')}</span></td>
+                  <td><span class="muted">${escapeHtml(row.puesto || '-')}</span></td>
+                  <td class="mono" title="${escapeHtml(row.fecha || '-')}">${escapeHtml(compactDate(row.fecha))}</td>
+                  <td><span class="strong">${escapeHtml(row.tnc || '-')}</span></td>
+                  <td class="mono">${padMetric(row.cantidad || 0)}</td>
+                  <td><span class="pill ${row.estado === 'Activo' ? 'ok' : ''}">${escapeHtml(row.estado || '-')}</span></td>
+                  <td><span class="duration">${padMinutes(row.minutos || 0)}</span><span class="unit">min</span></td>
+                  <td><span class="duration">${padMinutes(row.tope || 0)}</span><span class="unit">min</span></td>
+                  <td><span class="pill ${row.estado_tiempo === 'Excedido' ? 'bad' : 'ok'}">${escapeHtml(row.estado_tiempo || '-')}</span></td>
+                  <td class="chev">&gt;</td>
+                </tr>
+                `;
+            }).join('') : '<tr><td colspan="12"><div class="empty">No hay TNC para mostrar con el filtro actual.</div></td></tr>'}
+          </tbody>
+        </table>`;
+    }
+
+    function renderTncMonitor() {
+      const container = document.getElementById('tnc-results');
+      if (!container) return;
+      if (!tncResult) {
+        container.innerHTML = '<div class="empty">Todavia no se consultaron tiempos no continuos.</div>';
+        return;
+      }
+      populateTncDynamicFilters(tncResult.rows || []);
+      container.innerHTML = TncSummaryTable(getTncRows());
+      renderLiveRegions();
+    }
+
+    async function runTncMonitor() {
+      if (tncLoading) return;
+      const range = buildRange();
+      if (!range) {
+        setStatus('Completa fecha y turno antes de consultar TNC.', 'error');
+        return;
+      }
+      const btn = document.getElementById('btn-tnc');
+      const container = document.getElementById('tnc-results');
+      tncLoading = true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Consultando...';
+      }
+      container.innerHTML = '<div class="empty">Consultando tiempos no continuos en Oracle...</div>';
+      try {
+        const params = new URLSearchParams({ fecha: range.fecha, turno: range.turno });
+        const resp = await fetch(`/api/productividad/tnc?${params.toString()}`);
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'No se pudieron consultar TNC.');
+        tncResult = data;
+        renderTncMonitor();
+      } catch (err) {
+        tncResult = null;
+        container.innerHTML = `<div class="empty">${escapeHtml(err.message || 'No se pudieron consultar TNC.')}</div>`;
+        setStatus(err.message || 'No se pudieron consultar TNC.', 'error');
+      } finally {
+        tncLoading = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '► Consultar TNC';
+        }
+      }
+    }
+
+    async function exportXlsx(filename, sheetName, columns, rows) {
+      if (!rows.length) {
+        setStatus('No hay filas para exportar.', 'error');
+        return;
+      }
+      const resp = await fetch('/api/productividad/export/xlsx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, sheet_name: sheetName, columns, rows }),
+      });
+      if (!resp.ok) {
+        let message = 'No se pudo exportar XLSX.';
+        try {
+          const data = await resp.json();
+          message = data.detail || message;
+        } catch {}
+        throw new Error(message);
+      }
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatus(`Exportado ${filename}.`);
+    }
+
+    async function exportTncXlsx() {
+      try {
+        const rows = getTncRows().map(row => ({
+          legajo: row.legajo || '',
+          operario: row.operario || '',
+          empleador: row.empleador || '',
+          fecha: row.fecha || '',
+          tnc: row.tnc || '',
+          eventos: Number(row.cantidad || 0),
+          estado: row.estado || '',
+          minutos: Number(row.minutos || 0),
+          tope_diario: Number(row.tope || 0),
+          exceso_diario: Number(row.diferencia || 0),
+          estado_tiempo: row.estado_tiempo || '',
+        }));
+        await exportXlsx(
+          `vigia_tnc_${localDateValue()}.xlsx`,
+          'TNC',
+          [
+            { key: 'legajo', label: 'Legajo' },
+            { key: 'operario', label: 'Operario' },
+            { key: 'empleador', label: 'Empleador' },
+            { key: 'fecha', label: 'Dia' },
+            { key: 'tnc', label: 'TNC' },
+            { key: 'eventos', label: 'Eventos' },
+            { key: 'estado', label: 'Estado' },
+            { key: 'minutos', label: 'Minutos' },
+            { key: 'tope_diario', label: 'Tope diario' },
+            { key: 'exceso_diario', label: 'Exceso diario' },
+            { key: 'estado_tiempo', label: 'Estado tiempo' },
+          ],
+          rows
+        );
+      } catch (err) {
+        setStatus(err.message || 'No se pudo exportar TNC.', 'error');
+      }
+    }
+
+    function sortableMasterTh(label, key) {
+      const arrow = masterSort.key === key ? (masterSort.direction === 'asc' ? ' ^' : ' v') : '';
+      return `<th onclick="setMasterSort('${key}')">${label}${arrow}</th>`;
+    }
+
+    function setMasterSort(key) {
+      if (key === 'chev') return;
+      masterSort = masterSort.key === key
+        ? { key, direction: masterSort.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: key === 'duracion_minutos' ? 'desc' : 'asc' };
+      renderTncMaster();
+    }
+
+    function getMasterRows() {
+      const rows = Array.isArray(masterResult?.rows) ? masterResult.rows : [];
+      const valueForSort = row => {
+        switch (masterSort.key) {
+          case 'codigo_tnc': return Number(row.codigo_tnc || 0);
+          case 'codigo_productividad': return String(row.codigo_productividad || '').toLowerCase();
+          case 'descripcion_tnc': return String(row.descripcion_tnc || '').toLowerCase();
+          case 'requiere_autorizacion': return String(row.requiere_autorizacion || '').toLowerCase();
+          case 'duracion_minutos': return Number(row.duracion_minutos || 0);
+          case 'duracion_minutos_productividad': return Number(row.duracion_minutos_productividad || 0);
+          case 'tolerancia_x_exceso': return Number(row.tolerancia_x_exceso || 0);
+          case 'cantidad_de_ocurrencias': return Number(row.cantidad_de_ocurrencias || 0);
+          case 'tipo_tnc': return String(row.tipo_tnc || '').toLowerCase();
+          default: return Number(row.codigo_tnc || 0);
+        }
+      };
+      return [...rows].sort((a, b) => {
+        const av = valueForSort(a);
+        const bv = valueForSort(b);
+        const cmp = typeof av === 'number' && typeof bv === 'number'
+          ? av - bv
+          : String(av).localeCompare(String(bv), 'es');
+        return masterSort.direction === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    function TncMasterTable(rows) {
+      return `
+        <table class="paper-table master-table">
+          <thead><tr>
+            ${sortableMasterTh('Cod.', 'codigo_tnc')}
+            ${sortableMasterTh('Cod. prod.', 'codigo_productividad')}
+            ${sortableMasterTh('Descripcion', 'descripcion_tnc')}
+            ${sortableMasterTh('Aut.', 'requiere_autorizacion')}
+            ${sortableMasterTh('WF min', 'duracion_minutos')}
+            ${sortableMasterTh('Prod. min', 'duracion_minutos_productividad')}
+            ${sortableMasterTh('Tol. min', 'tolerancia_x_exceso')}
+            ${sortableMasterTh('Ocurr.', 'cantidad_de_ocurrencias')}
+            ${sortableMasterTh('Tipo', 'tipo_tnc')}
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${rows.length ? rows.map(row => {
+              const auth = String(row.requiere_autorizacion || '').trim().toUpperCase();
+              const isAuth = ['S','SI','Y','1','TRUE'].includes(auth);
+              const tipo = String(row.tipo_tnc || '').trim().toUpperCase();
+              const min = Number(row.duracion_minutos || 0);
+              return `
+                <tr>
+                  <td><span class="code">${escapeHtml(padCode(row.codigo_tnc))}</span></td>
+                  <td><span class="code">${escapeHtml(row.codigo_productividad || '-')}</span></td>
+                  <td><span class="strong">${escapeHtml(row.descripcion_tnc || '-')}</span></td>
+                  <td><span class="auth ${isAuth ? 'yes' : ''}">${escapeHtml(auth || 'N')}</span></td>
+                  <td>${min === 0 ? '<span class="duration-empty">&mdash;&mdash; SIN VALOR</span>' : `<span class="duration">${padMinutes(min)}</span><span class="unit">min</span>`}</td>
+                  <td>${Number(row.duracion_minutos_productividad || 0) === 0 ? '<span class="duration-empty">&mdash;&mdash;</span>' : `<span class="duration">${padMinutes(Number(row.duracion_minutos_productividad || 0))}</span><span class="unit">min</span>`}</td>
+                  <td>${Number(row.tolerancia_x_exceso || 0) === 0 ? '<span class="duration-empty">&mdash;&mdash;</span>' : `<span class="duration">${padMinutes(Number(row.tolerancia_x_exceso || 0))}</span><span class="unit">min</span>`}</td>
+                  <td>${Number(row.cantidad_de_ocurrencias || 0).toLocaleString('es-AR')}</td>
+                  <td>${TipoPill(tipo)}</td>
+                  <td class="chev">&gt;</td>
+                </tr>`;
+            }).join('') : '<tr><td colspan="10"><div class="empty">No hay datos de maestro TNC.</div></td></tr>'}
+          </tbody>
+        </table>`;
+    }
+
+    function renderTncMaster() {
+      const container = document.getElementById('master-results');
+      if (!container) return;
+      if (!masterResult) {
+        container.innerHTML = '<div class="empty">Todavia no se consulto el maestro de TNC.</div>';
+        return;
+      }
+      container.innerHTML = TncMasterTable(getMasterRows());
+      renderLiveRegions();
+    }
+
+    async function runTncMaster(silent = false) {
+      if (masterLoading) return;
+      const btn = document.getElementById('btn-master');
+      const container = document.getElementById('master-results');
+      masterLoading = true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Consultando...';
+      }
+      if (container) container.innerHTML = '<div class="empty">Consultando maestro de TNC en Oracle...</div>';
+      try {
+        const resp = await fetch('/api/productividad/tnc/maestro');
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'No se pudo consultar el maestro TNC.');
+        masterResult = data;
+        renderTncMaster();
+      } catch (err) {
+        masterResult = null;
+        if (container) container.innerHTML = `<div class="empty">${escapeHtml(err.message || 'No se pudo consultar el maestro TNC.')}</div>`;
+        if (!silent) setStatus(err.message || 'No se pudo consultar el maestro TNC.', 'error');
+      } finally {
+        masterLoading = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '► Consultar maestro';
+        }
+      }
+    }
+
+    async function exportMasterXlsx() {
+      try {
+        const rows = getMasterRows().map(row => ({
+          codigo_tnc: row.codigo_tnc || '',
+          codigo_productividad: row.codigo_productividad || '',
+          descripcion_tnc: row.descripcion_tnc || '',
+          requiere_autorizacion: row.requiere_autorizacion || '',
+          duracion_minutos: Number(row.duracion_minutos || 0),
+          duracion_minutos_productividad: Number(row.duracion_minutos_productividad || 0),
+          tiene_tiempo_maximo: row.tiene_tiempo_maximo || '',
+          tiene_tolerancia_x_exceso: row.tiene_tolerancia_x_exceso || '',
+          tolerancia_x_exceso: Number(row.tolerancia_x_exceso || 0),
+          cantidad_de_ocurrencias: Number(row.cantidad_de_ocurrencias || 0),
+          tipo_tnc: row.tipo_tnc || '',
+        }));
+        await exportXlsx(
+          `vigia_maestro_tnc_${localDateValue()}.xlsx`,
+          'Maestro TNC',
+          [
+            { key: 'codigo_tnc', label: 'Codigo' },
+            { key: 'codigo_productividad', label: 'Codigo productividad' },
+            { key: 'descripcion_tnc', label: 'Descripcion' },
+            { key: 'requiere_autorizacion', label: 'Requiere autorizacion' },
+            { key: 'duracion_minutos', label: 'Duracion WF min' },
+            { key: 'duracion_minutos_productividad', label: 'Duracion productividad min' },
+            { key: 'tiene_tiempo_maximo', label: 'Tiene tiempo maximo' },
+            { key: 'tiene_tolerancia_x_exceso', label: 'Tiene tolerancia exceso' },
+            { key: 'tolerancia_x_exceso', label: 'Tolerancia exceso min' },
+            { key: 'cantidad_de_ocurrencias', label: 'Cantidad ocurrencias' },
+            { key: 'tipo_tnc', label: 'Tipo' },
+          ],
+          rows
+        );
+      } catch (err) {
+        setStatus(err.message || 'No se pudo exportar Maestro TNC.', 'error');
+      }
+    }
+
+    function buildIndicatorRange() {
+      const desde = document.getElementById('indicadores-desde')?.value || '';
+      const hasta = document.getElementById('indicadores-hasta')?.value || '';
+      if (!desde || !hasta) return null;
+      if (hasta < desde) return null;
+      return { desde, hasta };
+    }
+
+    function getIndicatorRowsRaw() {
+      return Array.isArray(indicatorsResult?.rows) ? indicatorsResult.rows : [];
+    }
+
+    function readIndicatorFilters() {
+      return {
+        tnc: document.getElementById('indicator-filter-tnc')?.value || 'ALL',
+        area: document.getElementById('indicator-filter-area')?.value || 'ALL',
+        puesto: document.getElementById('indicator-filter-puesto')?.value || 'ALL',
+        turno: document.getElementById('indicator-filter-turno')?.value || 'ALL',
+        estadoTiempo: document.getElementById('indicator-filter-estado-tiempo')?.value || 'ALL',
+      };
+    }
+
+    function getFilteredIndicatorRows() {
+      const filters = readIndicatorFilters();
+      return getIndicatorRowsRaw().filter(row => {
+        if (filters.tnc !== 'ALL' && `${row.codigo_tnc || ''}|${row.tnc || ''}` !== filters.tnc) return false;
+        if (filters.area !== 'ALL' && String(row.area || '') !== filters.area) return false;
+        if (filters.puesto !== 'ALL' && String(row.puesto || '') !== filters.puesto) return false;
+        if (filters.turno !== 'ALL' && String(row.turno_key || '') !== filters.turno) return false;
+        if (filters.estadoTiempo !== 'ALL' && String(row.estado_tiempo || '') !== filters.estadoTiempo) return false;
+        return true;
+      });
+    }
+
+    function metricSeed(label = '') {
+      return { label, codigo_tnc: '', eventos: 0, minutos_total: 0, minutos_promedio: 0, exceso_total: 0, excedidos: 0, activos: 0 };
+    }
+
+    function buildIndicatorPayloadFromRows(rows) {
+      const byTnc = new Map();
+      const byDay = new Map();
+      const byArea = new Map();
+      const byPuesto = new Map();
+      const byOperator = new Map();
+      const byEstado = new Map();
+      let totalMinutos = 0;
+      let totalExceso = 0;
+      let activos = 0;
+      let excedidos = 0;
+      const add = (map, key, label, row, exceso, isExcedido, isActivo) => {
+        const metric = map.get(key) || metricSeed(label);
+        metric.eventos += 1;
+        metric.minutos_total += Number(row.minutos || 0);
+        metric.exceso_total += exceso;
+        metric.excedidos += isExcedido ? 1 : 0;
+        metric.activos += isActivo ? 1 : 0;
+        if (row.codigo_tnc) metric.codigo_tnc = row.codigo_tnc;
+        map.set(key, metric);
+      };
+      rows.forEach(row => {
+        const minutos = Number(row.minutos || 0);
+        const tope = Number(row.tope || 0);
+        const exceso = tope > 0 ? Math.max(minutos - tope, 0) : 0;
+        const isExcedido = exceso > 0 || String(row.estado_tiempo || '') === 'Excedido';
+        const isActivo = String(row.estado || '') === 'Activo';
+        totalMinutos += minutos;
+        totalExceso += exceso;
+        excedidos += isExcedido ? 1 : 0;
+        activos += isActivo ? 1 : 0;
+        add(byTnc, row.codigo_tnc || row.tnc || '-', row.tnc || '-', row, exceso, isExcedido, isActivo);
+        add(byDay, row.fecha || '-', row.fecha || '-', row, exceso, isExcedido, isActivo);
+        add(byArea, row.area || 'Sin area', row.area || 'Sin area', row, exceso, isExcedido, isActivo);
+        add(byPuesto, row.puesto || 'Sin puesto', row.puesto || 'Sin puesto', row, exceso, isExcedido, isActivo);
+        add(byOperator, `${row.legajo || ''}|${row.operario || ''}`, row.operario || row.legajo || 'Sin operario', row, exceso, isExcedido, isActivo);
+        add(byEstado, row.estado_tiempo || 'Dentro de tope', row.estado_tiempo || 'Dentro de tope', row, exceso, isExcedido, isActivo);
+      });
+      const finalize = metric => {
+        metric.minutos_promedio = metric.eventos ? Math.round((metric.minutos_total / metric.eventos) * 10) / 10 : 0;
+        metric.participacion_minutos = totalMinutos ? Math.round((metric.minutos_total / totalMinutos) * 1000) / 10 : 0;
+        metric.tasa_exceso = metric.eventos ? Math.round((metric.excedidos / metric.eventos) * 1000) / 10 : 0;
+        return metric;
+      };
+      const byValue = map => Array.from(map.values()).map(finalize).sort((a, b) => b.minutos_total - a.minutos_total);
+      const byDayRows = Array.from(byDay.values()).map(finalize).sort((a, b) => String(a.label).localeCompare(String(b.label)));
+      return {
+        summary: {
+          eventos: rows.length,
+          minutos_total: totalMinutos,
+          horas_total: Math.round((totalMinutos / 60) * 10) / 10,
+          minutos_promedio: rows.length ? Math.round((totalMinutos / rows.length) * 10) / 10 : 0,
+          tnc_distintos: byTnc.size,
+          activos,
+          excedidos,
+          exceso_total: totalExceso,
+          tasa_exceso: rows.length ? Math.round((excedidos / rows.length) * 1000) / 10 : 0,
+        },
+        by_tnc: byValue(byTnc),
+        by_day: byDayRows,
+        by_area: byValue(byArea),
+        by_puesto: byValue(byPuesto),
+        by_operator: byValue(byOperator),
+        by_estado_tiempo: byValue(byEstado),
+      };
+    }
+
+    function getFilteredIndicatorPayload() {
+      if (!indicatorsResult) return { summary: {} };
+      return buildIndicatorPayloadFromRows(getFilteredIndicatorRows());
+    }
+
+    function setIndicatorSelectOptions(id, options, allLabel) {
+      const select = document.getElementById(id);
+      if (!select) return;
+      const previous = select.value || 'ALL';
+      select.innerHTML = `<option value="ALL">${escapeHtml(allLabel)}</option>${options.map(item => (
+        `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`
+      )).join('')}`;
+      select.value = [...select.options].some(opt => opt.value === previous) ? previous : 'ALL';
+    }
+
+    function populateIndicatorFilters() {
+      const rows = getIndicatorRowsRaw();
+      const unique = (mapper, sorter = (a, b) => a.label.localeCompare(b.label, 'es')) => {
+        const map = new Map();
+        rows.forEach(row => {
+          const item = mapper(row);
+          if (item.value && item.label) map.set(item.value, item);
+        });
+        return Array.from(map.values()).sort(sorter);
+      };
+      setIndicatorSelectOptions('indicator-filter-tnc', unique(row => ({
+        value: `${row.codigo_tnc || ''}|${row.tnc || ''}`,
+        label: `${padCode(row.codigo_tnc)} - ${row.tnc || '-'}`
+      })), 'Todas');
+      setIndicatorSelectOptions('indicator-filter-area', unique(row => ({ value: row.area || '', label: row.area || '' })), 'Todas');
+      setIndicatorSelectOptions('indicator-filter-puesto', unique(row => ({ value: row.puesto || '', label: row.puesto || '' })), 'Todos');
+      setIndicatorSelectOptions('indicator-filter-turno', unique(row => ({ value: row.turno_key || '', label: row.turno_label || row.turno_key || '' })), 'Todos');
+      setIndicatorSelectOptions('indicator-filter-estado-tiempo', unique(row => ({ value: row.estado_tiempo || '', label: row.estado_tiempo || '' })), 'Todos');
+    }
+
+    function ChartPanel(title, sub, body, wide = false) {
+      return `
+        <section class="chart-panel ${wide ? 'wide' : ''}">
+          <div class="chart-head">
+            <div class="chart-title">${escapeHtml(title)}</div>
+            <div class="chart-sub">${escapeHtml(sub)}</div>
+          </div>
+          ${body}
+        </section>`;
+    }
+
+    function BarRows(rows, valueKey, unit = 'min', limit = 8, toneKey = '') {
+      const visible = (rows || []).slice(0, limit);
+      const max = Math.max(...visible.map(row => Number(row[valueKey] || 0)), 1);
+      if (!visible.length) return '<div class="empty">Sin datos para graficar.</div>';
+      return visible.map(row => {
+        const value = Number(row[valueKey] || 0);
+        const pctValue = Math.round((value / max) * 100);
+        const warn = toneKey && Number(row[toneKey] || 0) > 0;
+        return `
+          <div class="bar-row">
+            <div class="bar-label" title="${escapeHtml(row.label || '-')}">${escapeHtml(row.label || '-')}</div>
+            <div class="bar-track"><div class="bar-fill ${warn ? 'warn' : ''}" style="--pct:${pctValue}%"></div></div>
+            <div class="bar-value">${value.toLocaleString('es-AR')}${unit ? ` ${escapeHtml(unit)}` : ''}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function DonutEstado() {
+      const rows = getFilteredIndicatorPayload().by_estado_tiempo || [];
+      const total = rows.reduce((acc, row) => acc + Number(row.eventos || 0), 0);
+      const dentro = rows.filter(row => String(row.label || '').toLowerCase().includes('dentro')).reduce((acc, row) => acc + Number(row.eventos || 0), 0);
+      const excedido = rows.filter(row => String(row.label || '').toLowerCase().includes('exced')).reduce((acc, row) => acc + Number(row.eventos || 0), 0);
+      const otros = Math.max(total - dentro - excedido, 0);
+      const okDeg = total ? Math.round((dentro / total) * 360) : 0;
+      const warnDeg = total ? Math.round(((dentro + otros) / total) * 360) : 0;
+      const tasa = total ? Math.round((excedido / total) * 100) : 0;
+      return `
+        <div class="donut-wrap">
+          <div class="donut" style="--ok-deg:${okDeg}deg;--warn-deg:${warnDeg}deg"><div class="donut-metric">${tasa}%</div></div>
+          <div>
+            <div class="legend-item"><span><i class="legend-dot"></i>Dentro de tope</span><strong>${dentro.toLocaleString('es-AR')}</strong></div>
+            <div class="legend-item"><span><i class="legend-dot warn"></i>Otros / sin tope</span><strong>${otros.toLocaleString('es-AR')}</strong></div>
+            <div class="legend-item"><span><i class="legend-dot bad"></i>Excedidos</span><strong>${excedido.toLocaleString('es-AR')}</strong></div>
+          </div>
+        </div>`;
+    }
+
+    function DailyLineChart() {
+      const rows = getFilteredIndicatorPayload().by_day || [];
+      if (!rows.length) return '<div class="empty">Sin datos diarios para graficar.</div>';
+      const width = 920;
+      const height = 240;
+      const padX = 42;
+      const padY = 28;
+      const max = Math.max(...rows.map(row => Number(row.minutos_total || 0)), 1);
+      const points = rows.map((row, idx) => {
+        const x = rows.length === 1 ? width / 2 : padX + idx * ((width - padX * 2) / (rows.length - 1));
+        const y = height - padY - (Number(row.minutos_total || 0) / max) * (height - padY * 2);
+        return { x, y, row };
+      });
+      const poly = points.map(point => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+      return `
+        <svg class="line-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Evolucion diaria de minutos TNC">
+          <line x1="${padX}" y1="${height - padY}" x2="${width - padX}" y2="${height - padY}" stroke="#A9B4AC" />
+          <line x1="${padX}" y1="${padY}" x2="${padX}" y2="${height - padY}" stroke="#A9B4AC" />
+          <polyline points="${poly}" fill="none" stroke="#1F7A4D" stroke-width="3" />
+          ${points.map(point => `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4" fill="#1F7A4D"><title>${escapeHtml(point.row.label)}: ${Number(point.row.minutos_total || 0).toLocaleString('es-AR')} min</title></circle>`).join('')}
+          ${points.map((point, idx) => idx % Math.ceil(points.length / 8) === 0 ? `<text x="${point.x.toFixed(1)}" y="${height - 8}" text-anchor="middle" font-size="10" fill="#5C6773">${escapeHtml(String(point.row.label || '').slice(5))}</text>` : '').join('')}
+          <text x="8" y="${padY}" font-size="10" fill="#5C6773">${max.toLocaleString('es-AR')} min</text>
+        </svg>`;
+    }
+
+    function IndicatorSummaryTable() {
+      const rows = getFilteredIndicatorPayload().by_tnc || [];
+      if (!rows.length) return '<div class="empty">Sin TNC para resumir.</div>';
+      return `
+        <table class="indicator-table">
+          <thead><tr><th>TNC</th><th>Eventos</th><th>Min totales</th><th>Promedio</th><th>Exceso</th></tr></thead>
+          <tbody>
+            ${rows.slice(0, 10).map(row => `
+              <tr>
+                <td><span class="strong">${escapeHtml(row.label || '-')}</span></td>
+                <td>${Number(row.eventos || 0).toLocaleString('es-AR')}</td>
+                <td>${Number(row.minutos_total || 0).toLocaleString('es-AR')}</td>
+                <td>${Number(row.minutos_promedio || 0).toLocaleString('es-AR')} min</td>
+                <td>${Number(row.exceso_total || 0).toLocaleString('es-AR')} min</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    function IndicatorsDashboard() {
+      if (!indicatorsResult) return '<div class="empty">Selecciona un rango de fechas para generar indicadores TNC.</div>';
+      const scoped = getFilteredIndicatorPayload();
+      const summary = scoped.summary || {};
+      if (!Number(summary.eventos || 0)) return '<div class="empty">No hay eventos TNC en el rango seleccionado.</div>';
+      return `
+        <section class="indicator-grid">
+          ${ChartPanel('Participacion por estado', 'Eventos dentro / fuera de tope', DonutEstado())}
+          ${ChartPanel('Minutos por TNC', 'Top impacto operativo', BarRows(scoped.by_tnc, 'minutos_total', 'min', 8, 'exceso_total'))}
+          ${ChartPanel('Evolucion diaria', 'Minutos totales por dia', DailyLineChart(), true)}
+          ${ChartPanel('Ocurrencias por TNC', 'Frecuencia de eventos', BarRows(scoped.by_tnc, 'eventos', '', 8))}
+          ${ChartPanel('Areas con mas minutos', 'Concentracion operativa', BarRows(scoped.by_area, 'minutos_total', 'min', 8))}
+          ${ChartPanel('Puestos con mas minutos', 'Ranking por puesto', BarRows(scoped.by_puesto, 'minutos_total', 'min', 8))}
+          ${ChartPanel('Operarios con mas minutos', 'Para analisis de causa', BarRows(scoped.by_operator, 'minutos_total', 'min', 8, 'exceso_total'))}
+          ${ChartPanel('Resumen por TNC', 'Top 10 por minutos', IndicatorSummaryTable())}
+        </section>`;
+    }
+
+    function renderTncIndicators() {
+      const container = document.getElementById('indicators-results');
+      if (container) container.innerHTML = IndicatorsDashboard();
+      const label = document.getElementById('indicadores-rango-label');
+      const range = buildIndicatorRange();
+      if (label) label.textContent = range ? `${range.desde} al ${range.hasta}` : 'Rango invalido';
+      renderLiveRegions();
+    }
+
+    async function runTncIndicators() {
+      if (indicatorsLoading) return;
+      const range = buildIndicatorRange();
+      if (!range) {
+        setStatus('Selecciona un rango valido para indicadores.', 'error');
+        return;
+      }
+      const btn = document.getElementById('btn-indicators');
+      const container = document.getElementById('indicators-results');
+      indicatorsLoading = true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Generando...';
+      }
+      if (container) container.innerHTML = '<div class="empty">Consultando indicadores TNC en Oracle...</div>';
+      try {
+        const params = new URLSearchParams({ fecha_desde: range.desde, fecha_hasta: range.hasta });
+        const resp = await fetch(`/api/productividad/tnc/indicadores?${params.toString()}`);
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'No se pudieron consultar indicadores TNC.');
+        indicatorsResult = data;
+        populateIndicatorFilters();
+        renderTncIndicators();
+      } catch (err) {
+        indicatorsResult = null;
+        if (container) container.innerHTML = `<div class="empty">${escapeHtml(err.message || 'No se pudieron consultar indicadores TNC.')}</div>`;
+        setStatus(err.message || 'No se pudieron consultar indicadores TNC.', 'error');
+      } finally {
+        indicatorsLoading = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '► Generar indicadores';
+        }
+      }
+    }
+
+    async function backfillTncCache30() {
+      const btn = document.getElementById('btn-backfill-tnc');
+      const container = document.getElementById('indicators-results');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Precargando...';
+      }
+      if (container) container.innerHTML = '<div class="empty">Precargando cache TNC de los ultimos 30 dias. La carga es secuencial para cuidar Oracle...</div>';
+      try {
+        const resp = await fetch('/api/productividad/tnc/cache/backfill?dias=30', { method: 'POST' });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'No se pudo precargar cache TNC.');
+        const refreshed = Number(data.cache?.days_refreshed || 0);
+        const cached = Number(data.cache?.days_cached || 0);
+        const errors = Number(data.cache?.errors?.length || 0);
+        if (container) {
+          container.innerHTML = `<div class="empty">Cache TNC listo: ${refreshed.toLocaleString('es-AR')} dia(s) consultados, ${cached.toLocaleString('es-AR')} ya estaban cacheados${errors ? `, ${errors.toLocaleString('es-AR')} con error` : ''}.</div>`;
+        }
+      } catch (err) {
+        if (container) container.innerHTML = `<div class="empty">${escapeHtml(err.message || 'No se pudo precargar cache TNC.')}</div>`;
+        setStatus(err.message || 'No se pudo precargar cache TNC.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Precargar 30 dias';
+        }
+      }
+    }
+
+    async function exportIndicatorsXlsx() {
+      try {
+        const rows = (getFilteredIndicatorPayload().by_tnc || []).map(row => ({
+          tnc: row.label || '',
+          codigo_tnc: row.codigo_tnc || '',
+          eventos: Number(row.eventos || 0),
+          minutos_total: Number(row.minutos_total || 0),
+          minutos_promedio: Number(row.minutos_promedio || 0),
+          exceso_total: Number(row.exceso_total || 0),
+          excedidos: Number(row.excedidos || 0),
+          tasa_exceso: Number(row.tasa_exceso || 0),
+          participacion_minutos: Number(row.participacion_minutos || 0),
+        }));
+        await exportXlsx(
+          `vigia_indicadores_tnc_${localDateValue()}.xlsx`,
+          'Indicadores TNC',
+          [
+            { key: 'tnc', label: 'TNC' },
+            { key: 'codigo_tnc', label: 'Codigo TNC' },
+            { key: 'eventos', label: 'Eventos' },
+            { key: 'minutos_total', label: 'Minutos total' },
+            { key: 'minutos_promedio', label: 'Minutos promedio' },
+            { key: 'exceso_total', label: 'Exceso total min' },
+            { key: 'excedidos', label: 'Eventos excedidos' },
+            { key: 'tasa_exceso', label: 'Tasa exceso %' },
+            { key: 'participacion_minutos', label: 'Participacion minutos %' },
+          ],
+          rows
+        );
+      } catch (err) {
+        setStatus(err.message || 'No se pudo exportar Indicadores TNC.', 'error');
+      }
+    }
+
+    async function loadTurns() {
+      let turns = fallbackTurns;
+      try {
+        const resp = await fetch('/api/plantel/turnos');
+        const data = await resp.json();
+        if (resp.ok && Array.isArray(data.turnos) && data.turnos.length) turns = data.turnos;
+      } catch (err) {
+        console.warn('Usando turnos por fallback.', err);
+      }
+      const select = document.getElementById('turno');
+      if (!select) return;
+      select.innerHTML = turns.map(t => `<option value="${escapeHtml(t.turno_key)}">${escapeHtml(t.turno_label)}</option>`).join('');
+      const live = getLiveTurnKey();
+      if ([...select.options].some(opt => opt.value === live)) select.value = live;
+    }
+
+    async function loadAuthUser() {
+      try {
+        const resp = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        if (!resp.ok) return;
+        authUser = await resp.json();
+        renderLiveRegions();
+      } catch (err) {
+        console.warn('No se pudo obtener el usuario logueado.', err);
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      } finally {
+        window.location.href = '/login';
+      }
+    }
+
+    function updateClock() {
+      const n = new Date();
+      const el = document.getElementById('clock-time');
+      if (el) el.textContent = `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
+    }
+
+    (async function bootstrap() {
+      renderShell();
+      restoreFilterControls();
+      document.getElementById('fecha').value = localDateValue();
+      loadAuthUser();
+      await loadTurns();
+      switchTab('tnc');
+      runTncMaster(true);
+      updateClock();
+      setInterval(updateClock, 1000);
+    })();
+  </script>
+</body>
+</html>
+

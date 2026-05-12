@@ -162,14 +162,38 @@ public class OracleProductividadQuery {
                 " AND A.CODIGO = B.CODIGO " +
                 "WHERE A.LOTEINFORMACION >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
                 "  AND A.LOTEINFORMACION <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND UPPER(TRIM(B.DESCRIPCION)) <> 'FIN DEL TURNO' " +
                 "ORDER BY A.LEGAJO, A.LOTEINFORMACION";
+        } else if ("tnc_master".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    B.CODIGO AS CODIGO_TNC, " +
+                "    A.CODIGO AS CODIGO_PRODUCTIVIDAD, " +
+                "    B.DESCRIPCION AS DESCRIPCION_TNC, " +
+                "    TRUNC(B.DURACION / 60) AS DURACION_MINUTOS_WF, " +
+                "    TRUNC(A.TIEMPO_MAXIMO / 60) AS DURACION_MINUTOS_PRODUCTIVIDAD, " +
+                "    A.TIENE_TIEMPO_MAXIMO, " +
+                "    A.TIENE_TOLERANCIA_X_EXCESO, " +
+                "    TRUNC(A.TOLERANCIA_X_EXCESO / 60) AS TOLERANCIA_X_EXCESO, " +
+                "    A.CANTIDAD_DE_OCURRENCIAS, " +
+                "    B.REQUIEREAUTORIZACION, " +
+                "    B.TIPOTNC " +
+                "FROM F956MTNC B " +
+                "LEFT JOIN PV_FUNCION A " +
+                "  ON REGEXP_LIKE(A.CODIGO, '^RF-TNC-[0-9]+$') " +
+                " AND TO_NUMBER(REPLACE(A.CODIGO, 'RF-TNC-', '')) = B.CODIGO " +
+                "ORDER BY B.CODIGO";
         } else if ("tnc_monitor".equalsIgnoreCase(queryKey)) {
             sql =
                 "WITH BASE AS ( " +
                 "    SELECT " +
+                "        A.EMPRESA, " +
+                "        A.ALMACEN, " +
                 "        A.LEGAJO, " +
+                "        A.CODIGO AS CODIGO_TNC, " +
                 "        A.LOTEINFORMACION, " +
                 "        A.ULTIMAMODIFICACION, " +
+                "        TO_CHAR(A.LOTEINFORMACION, 'YYYY-MM-DD') AS DIA_TNC, " +
                 "        B.DESCRIPCION AS TNC, " +
                 "        A.ESTADO, " +
                 "        TRUNC( " +
@@ -187,10 +211,20 @@ public class OracleProductividadQuery {
                 "    WHERE A.LOTEINFORMACION >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
                 "      AND A.LOTEINFORMACION < TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
                 "      AND A.CODIGO <> 62 " +
+                "      AND UPPER(TRIM(B.DESCRIPCION)) <> 'FIN DEL TURNO' " +
                 ") " +
                 "SELECT " +
+                "    A.EMPRESA, " +
+                "    A.ALMACEN, " +
                 "    A.LEGAJO, " +
-                "    B.NOMBRE AS OPERARIO, " +
+                "    C.NOMBRE AS OPERARIO, " +
+                "    C.AREA_PERS_TXT AS AREA, " +
+                "    C.PUESTO AS PUESTO, " +
+                "    C.FOTO AS FOTO, " +
+                "    A.CODIGO_TNC, " +
+                "    A.DIA_TNC, " +
+                "    TO_CHAR(LOTEINFORMACION, 'YYYY-MM-DD HH24:MI:SS') AS LOTEINFORMACION_TS, " +
+                "    TO_CHAR(ULTIMAMODIFICACION, 'YYYY-MM-DD HH24:MI:SS') AS ULTIMAMODIFICACION_TS, " +
                 "    TO_CHAR(LOTEINFORMACION, 'HH24:MI:SS') AS INICIO, " +
                 "    CASE " +
                 "        WHEN ESTADO = 0 THEN NULL " +
@@ -210,7 +244,17 @@ public class OracleProductividadQuery {
                 "        ELSE 'Excedido' " +
                 "    END AS ESTADO_TIEMPO " +
                 "FROM BASE A " +
-                "LEFT JOIN PV_LEGAJO B ON A.LEGAJO = B.LEGAJO " +
+                "LEFT JOIN ( " +
+                "    SELECT " +
+                "        CASE " +
+                "            WHEN REGEXP_LIKE(TRIM(LEGAJO), '^[0-9]+$') THEN TO_NUMBER(TRIM(LEGAJO)) " +
+                "        END AS LEGAJO_NUM, " +
+                "        NOMBRE, " +
+                "        AREA_PERS_TXT, " +
+                "        PUESTO, " +
+                "        FOTO " +
+                "    FROM WF_ACTIVE_EMPLOYEE " +
+                ") C ON A.LEGAJO = C.LEGAJO_NUM " +
                 "ORDER BY LOTEINFORMACION DESC";
         } else if ("plantel".equalsIgnoreCase(queryKey)) {
             sql =
@@ -268,7 +312,7 @@ public class OracleProductividadQuery {
             Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
             PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
+            if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
                 ps.setString(2, fechaHasta);
             }
@@ -281,7 +325,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
+                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

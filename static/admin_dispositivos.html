@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VigIA - Dispositivos</title>
+  <style>
+    :root {
+      --bg: #F2F4F1;
+      --panel: #FFFFFF;
+      --ink: #0E1620;
+      --ink-soft: #5C6773;
+      --rule: #D4DBD8;
+      --rule-strong: #A9B4AC;
+      --green: #1F7A4D;
+      --green-soft: #E5F3E9;
+      --amber: #B25F00;
+      --amber-soft: #FBE7C8;
+      --red: #C8102E;
+      --red-soft: #F7D7DA;
+      --blue: #0B5FAE;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(var(--rule) 1px, transparent 1px),
+        linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 16px 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--rule-strong);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand img { width: 56px; height: auto; }
+    .kicker, th, label, button, .pill {
+      font-family: Consolas, "Courier New", monospace;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+    }
+    .kicker { color: var(--ink-soft); font-size: 10px; }
+    h1 { margin: 2px 0 0; font-size: 22px; }
+    main { padding: 22px 24px 40px; display: grid; gap: 18px; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      padding: 18px;
+    }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    h2 { margin: 0; font-size: 17px; }
+    .muted { color: var(--ink-soft); font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); }
+    th {
+      text-align: left;
+      color: var(--ink-soft);
+      background: #F6F8F5;
+      font-size: 10px;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--rule);
+    }
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--rule);
+      font-size: 13px;
+      vertical-align: top;
+    }
+    tr:nth-child(odd) td { background: #F8FAF7; }
+    .mono { font-family: Consolas, "Courier New", monospace; }
+    .ua { max-width: 420px; color: var(--ink-soft); font-size: 12px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 3px 8px;
+      border: 1px solid var(--rule);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .pending { color: var(--amber); background: var(--amber-soft); border-color: var(--amber); }
+    .approved { color: var(--green); background: var(--green-soft); border-color: var(--green); }
+    .rejected, .revoked { color: var(--red); background: var(--red-soft); border-color: var(--red); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    button, a.button {
+      min-height: 34px;
+      border: 1px solid var(--rule);
+      background: var(--panel);
+      color: var(--ink);
+      padding: 8px 12px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 11px;
+    }
+    button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    button.ok { color: var(--green); border-color: var(--green); background: var(--green-soft); }
+    button.warn { color: var(--red); border-color: var(--red); background: var(--red-soft); }
+    button:focus, input:focus, select:focus, a.button:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    form { display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: 12px; align-items: end; }
+    label { display: block; color: var(--ink-soft); font-size: 10px; margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid var(--rule);
+      background: var(--panel);
+      color: var(--ink);
+      padding: 7px 9px;
+    }
+    .password-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+    .password-row button {
+      min-width: 42px;
+      padding-inline: 10px;
+    }
+    .message { min-height: 18px; color: var(--ink-soft); font-size: 12px; }
+    @media (max-width: 900px) {
+      form { grid-template-columns: 1fr; }
+      table { min-width: 900px; }
+      .table-wrap { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
+      <div>
+        <div class="kicker">Admin - acceso local</div>
+        <h1>Dispositivos y usuarios</h1>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="button" href="/tiempos-muertos">TNC</a>
+      <button id="logout-btn">Salir</button>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Solicitudes de acceso</h2>
+          <div class="muted">Cada navegador aprobado queda habilitado para entrar con su usuario.</div>
+        </div>
+        <button class="primary" id="refresh-btn">Refrescar</button>
+      </div>
+      <div class="message" id="message"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Estado</th>
+              <th>Usuario</th>
+              <th>Dispositivo</th>
+              <th>IP</th>
+              <th>Primer ingreso</th>
+              <th>Último uso</th>
+              <th>Navegador</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="devices-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Usuarios habilitados</h2>
+          <div class="muted">Alta local simple. La contraseña no se guarda en claro.</div>
+        </div>
+      </div>
+      <form id="user-form">
+        <div>
+          <label for="new-user">Usuario</label>
+          <input id="new-user" autocomplete="off" required>
+        </div>
+        <div>
+          <label for="new-name">Nombre</label>
+          <input id="new-name" autocomplete="off">
+        </div>
+        <div>
+          <label for="new-pass">Contraseña</label>
+          <div class="password-row">
+            <input id="new-pass" type="text" autocomplete="new-password" minlength="4" required>
+            <button type="button" id="generate-pass" title="Generar contraseña">AUTO</button>
+          </div>
+        </div>
+        <div>
+          <label for="new-role">Rol</label>
+          <select id="new-role">
+            <option value="user">Usuario</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button class="primary" type="submit">Crear usuario</button>
+      </form>
+      <div class="table-wrap" style="margin-top:14px">
+        <table>
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Rol</th>
+      <th>Activo</th>
+      <th>Creado</th>
+      <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="users-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const messageEl = document.getElementById('message');
+  const devicesBody = document.getElementById('devices-body');
+  const usersBody = document.getElementById('users-body');
+
+  function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+  }
+
+  function setMessage(text, isError = false) {
+    messageEl.textContent = text || '';
+    messageEl.style.color = isError ? 'var(--red)' : 'var(--ink-soft)';
+  }
+
+  function randomPassword(length = 8) {
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const bytes = new Uint8Array(length);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
+  }
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function api(path, options = {}) {
+    const res = await fetch(path, {
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      ...options,
+    });
+    if (res.status === 401) {
+      window.location.href = '/login?next=/admin/dispositivos';
+      return null;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || 'La operación no pudo completarse.');
+    return data;
+  }
+
+  async function loadDevices() {
+    const data = await api('/api/auth/admin/devices');
+    if (!data) return;
+    devicesBody.innerHTML = data.devices.map((row) => `
+      <tr>
+        <td><span class="pill ${esc(row.status)}">${esc(row.status)}</span></td>
+        <td class="mono">${esc(row.username)}</td>
+        <td class="mono">${esc(row.device_short)}</td>
+        <td class="mono">${esc(row.ip_address)}</td>
+        <td class="mono">${esc(row.first_seen)}</td>
+        <td class="mono">${esc(row.last_seen)}</td>
+        <td class="ua">${esc(row.user_agent)}</td>
+        <td>
+          <div class="actions">
+            ${row.status !== 'approved' ? `<button class="ok" data-action="approve" data-device="${esc(row.device_id)}">Aprobar</button>` : ''}
+            ${row.status === 'pending' ? `<button data-action="reject" data-device="${esc(row.device_id)}">Rechazar</button>` : ''}
+            ${row.status === 'approved' ? `<button class="warn" data-action="revoke" data-device="${esc(row.device_id)}">Revocar</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="8" class="muted">Sin solicitudes registradas.</td></tr>';
+  }
+
+  async function loadUsers() {
+    const data = await api('/api/auth/admin/users');
+    if (!data) return;
+    usersBody.innerHTML = data.users.map((row) => `
+      <tr>
+        <td class="mono">${esc(row.username)}</td>
+        <td>${esc(row.display_name)}</td>
+        <td class="mono">${esc(row.role)}</td>
+        <td class="mono">${row.active ? 'SI' : 'NO'}</td>
+        <td class="mono">${esc(row.created_at)}</td>
+        <td>
+          <div class="actions">
+            <button data-mail-user="${esc(row.username)}" data-mail-name="${esc(row.display_name || row.username)}">Correo</button>
+            <button class="${row.active ? 'warn' : 'ok'}" data-user-action="${row.active ? 'deactivate' : 'activate'}" data-username="${esc(row.username)}">
+              ${row.active ? 'Desactivar' : 'Activar'}
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function refreshAll() {
+    try {
+      setMessage('Consultando...');
+      await Promise.all([loadDevices(), loadUsers()]);
+      setMessage('Actualizado.');
+    } catch (error) {
+      setMessage(error.message, true);
+    }
+  }
+
+  devicesBody.addEventListener('click', async (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    try {
+      await api(`/api/auth/admin/devices/${button.dataset.action}`, {
+        method: 'POST',
+        body: JSON.stringify({ device_id: button.dataset.device }),
+      });
+      await refreshAll();
+    } catch (error) {
+      setMessage(error.message, true);
+    }
+  });
+
+  usersBody.addEventListener('click', async (event) => {
+    const button = event.target.closest('button[data-user-action]');
+    if (!button) return;
+    try {
+      await api(`/api/auth/admin/users/${button.dataset.userAction}`, {
+        method: 'POST',
+        body: JSON.stringify({ username: button.dataset.username }),
+      });
+      await refreshAll();
+    } catch (error) {
+      setMessage(error.message, true);
+    }
+  });
+
+  document.getElementById('user-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const username = document.getElementById('new-user').value.trim();
+    const password = document.getElementById('new-pass').value;
+    try {
+      await api('/api/auth/admin/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          display_name: document.getElementById('new-name').value.trim(),
+          password,
+          role: document.getElementById('new-role').value,
+        }),
+      });
+      sessionStorage.setItem(`vigia_user_pass_${username.toLowerCase()}`, password);
+      event.target.reset();
+      await refreshAll();
+    } catch (error) {
+      setMessage(error.message, true);
+    }
+  });
+
+  usersBody.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-mail-user]');
+    if (!button) return;
+    const username = button.dataset.mailUser;
+    const displayName = button.dataset.mailName || username;
+    const storageKey = `vigia_user_pass_${username.toLowerCase()}`;
+    let password = sessionStorage.getItem(storageKey) || '';
+    if (!password) {
+      password = prompt(`Contraseña inicial para ${username}:`) || '';
+    }
+    if (!password) {
+      setMessage('No se armó el correo porque falta la contraseña.', true);
+      return;
+    }
+    const subject = `Acceso a VigIA - Tiempos muertos y TNC`;
+    const body = [
+      `Hola ${displayName},`,
+      '',
+      'Te comparto el acceso a VigIA para la pantalla de Tiempos muertos y TNC.',
+      '',
+      `URL: http://w093sisd04:9999/tiempos-muertos`,
+      `Usuario: ${username}`,
+      `Contraseña: ${password}`,
+      '',
+      'Por favor ingresá desde la PC/navegador que vas a usar habitualmente para validar tu primer ingreso.',
+      'Después de iniciar sesión, el acceso va a quedar pendiente de aprobación.',
+      'Cuando termines ese primer ingreso, avisame para validar y habilitar el dispositivo.',
+      '',
+      'Gracias.'
+    ].join('\n');
+    copyText(body).then((copied) => {
+      setMessage(copied
+        ? 'Correo copiado al portapapeles y abierto con la app predeterminada.'
+        : 'Correo abierto con la app predeterminada.');
+    });
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+
+  document.getElementById('refresh-btn').addEventListener('click', refreshAll);
+  document.getElementById('generate-pass').addEventListener('click', () => {
+    const passInput = document.getElementById('new-pass');
+    passInput.value = randomPassword(8);
+    passInput.focus();
+    passInput.select();
+  });
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    window.location.href = '/login';
+  });
+
+  refreshAll();
+</script>
+</body>
+</html>

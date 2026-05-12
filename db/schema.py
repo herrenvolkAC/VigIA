@@ -495,6 +495,45 @@ CREATE TABLE IF NOT EXISTS productividad_hourly_ia_cache (
 );
 """
 
+CREATE_TNC_EVENTOS_CACHE = """
+CREATE TABLE IF NOT EXISTS tnc_eventos_cache (
+    row_uid                 TEXT PRIMARY KEY,
+    empresa                 TEXT,
+    almacen                 TEXT,
+    legajo                  TEXT NOT NULL,
+    operario                TEXT,
+    area                    TEXT,
+    puesto                  TEXT,
+    foto                    TEXT,
+    codigo_tnc              TEXT NOT NULL,
+    descripcion_tnc         TEXT,
+    dia_tnc                 DATE NOT NULL,
+    turno_key               TEXT NOT NULL,
+    turno_label             TEXT NOT NULL,
+    loteinformacion         TEXT NOT NULL,
+    ultimamodificacion     TEXT,
+    inicio                  TEXT,
+    fin                     TEXT,
+    estado                  TEXT,
+    minutos                 INTEGER DEFAULT 0,
+    tope                    INTEGER DEFAULT 0,
+    diferencia              INTEGER DEFAULT 0,
+    estado_tiempo           TEXT,
+    source_name             TEXT DEFAULT 'oracle_productiva',
+    synced_at               DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_TNC_CACHE_SYNC = """
+CREATE TABLE IF NOT EXISTS tnc_cache_sync (
+    dia_tnc                 DATE PRIMARY KEY,
+    synced_at               DATETIME DEFAULT CURRENT_TIMESTAMP,
+    registros               INTEGER DEFAULT 0,
+    estado                  TEXT DEFAULT 'complete',
+    error                   TEXT
+);
+"""
+
 CREATE_CUMPLIMIENTO_ONLINE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_cumpl_online_turno_inicio ON cumplimiento_online_snapshots(turno_key, turno_inicio, bloque_hasta)",
 ]
@@ -545,6 +584,62 @@ CREATE_PRODUCTIVIDAD_HOURLY_IA_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_prod_hourly_ia_lookup ON productividad_hourly_ia_cache(provider, prompt_version, summary_hash, updated_at)",
 ]
 
+CREATE_TNC_CACHE_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_tnc_cache_dia ON tnc_eventos_cache(dia_tnc)",
+    "CREATE INDEX IF NOT EXISTS idx_tnc_cache_dia_turno ON tnc_eventos_cache(dia_tnc, turno_key)",
+    "CREATE INDEX IF NOT EXISTS idx_tnc_cache_codigo ON tnc_eventos_cache(codigo_tnc, dia_tnc)",
+    "CREATE INDEX IF NOT EXISTS idx_tnc_cache_legajo ON tnc_eventos_cache(legajo, dia_tnc)",
+    "CREATE INDEX IF NOT EXISTS idx_tnc_cache_area ON tnc_eventos_cache(area, dia_tnc)",
+    "CREATE INDEX IF NOT EXISTS idx_tnc_cache_puesto ON tnc_eventos_cache(puesto, dia_tnc)",
+]
+
+CREATE_AUTH_USERS = """
+CREATE TABLE IF NOT EXISTS auth_users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    display_name TEXT,
+    role TEXT NOT NULL DEFAULT 'user',
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_AUTH_DEVICES = """
+CREATE TABLE IF NOT EXISTS auth_devices (
+    device_id TEXT PRIMARY KEY,
+    username TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    user_agent TEXT,
+    ip_address TEXT,
+    first_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
+    approved_at DATETIME,
+    approved_by TEXT,
+    rejected_at DATETIME,
+    rejected_by TEXT,
+    revoked_at DATETIME,
+    revoked_by TEXT
+);
+"""
+
+CREATE_AUTH_SESSIONS = """
+CREATE TABLE IF NOT EXISTS auth_sessions (
+    session_token_hash TEXT PRIMARY KEY,
+    username TEXT NOT NULL,
+    device_id TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL
+);
+"""
+
+CREATE_AUTH_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_auth_devices_username ON auth_devices(username, status)",
+    "CREATE INDEX IF NOT EXISTS idx_auth_sessions_username ON auth_sessions(username, expires_at)",
+]
+
 
 async def init_db():
     """Crea las tablas si no existen."""
@@ -579,6 +674,11 @@ async def init_db():
         await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_RUNS)
         await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_ROWS)
         await db.execute(CREATE_PRODUCTIVIDAD_HOURLY_IA_CACHE)
+        await db.execute(CREATE_TNC_EVENTOS_CACHE)
+        await db.execute(CREATE_TNC_CACHE_SYNC)
+        await db.execute(CREATE_AUTH_USERS)
+        await db.execute(CREATE_AUTH_DEVICES)
+        await db.execute(CREATE_AUTH_SESSIONS)
         async with db.execute("PRAGMA table_info(picking_analysis_cache_runs)") as cur:
             picking_cache_cols = {row[1] for row in await cur.fetchall()}
         if "resumen_hash" not in picking_cache_cols:
@@ -624,6 +724,10 @@ async def init_db():
         for statement in CREATE_PRODUCTIVIDAD_ONLINE_CACHE_INDEXES:
             await db.execute(statement)
         for statement in CREATE_PRODUCTIVIDAD_HOURLY_IA_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_TNC_CACHE_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_AUTH_INDEXES:
             await db.execute(statement)
 
         await db.commit()

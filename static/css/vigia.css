@@ -591,6 +591,7 @@ body {
 .proceso-card.reposicion::before   { background: var(--process-reposicion); }
 .proceso-card.planificacion::before{ background: var(--process-planif); }
 .proceso-card.productividad::before{ background: var(--process-control); }
+.proceso-card.gestion::before      { background: var(--process-generales); }
 .proceso-card.plantel::before      { background: var(--process-mapa); }
 .proceso-card.mapa::before         { background: var(--process-mapa); }
 .proceso-card.control::before      { background: var(--process-control); }
@@ -627,6 +628,7 @@ body {
 .proceso-card.reposicion   .proceso-icon-wrap { border-color: var(--process-reposicion); box-shadow: 0 0 0 9px rgba(30,157,116,.12),  0 14px 32px rgba(30,157,116,.16); }
 .proceso-card.planificacion .proceso-icon-wrap { border-color: var(--process-planif);    box-shadow: 0 0 0 9px rgba(194,69,152,.12),  0 14px 32px rgba(194,69,152,.16); }
 .proceso-card.productividad .proceso-icon-wrap { border-color: var(--process-control);   box-shadow: 0 0 0 9px rgba(8,145,178,.12),   0 14px 32px rgba(8,145,178,.16); }
+.proceso-card.gestion      .proceso-icon-wrap { border-color: var(--process-generales);  box-shadow: 0 0 0 9px rgba(99,102,241,.12),  0 14px 32px rgba(99,102,241,.16); }
 .proceso-card.plantel      .proceso-icon-wrap { border-color: var(--process-mapa);       box-shadow: 0 0 0 9px rgba(59,130,246,.12),  0 14px 32px rgba(59,130,246,.16); }
 .proceso-card.mapa         .proceso-icon-wrap { border-color: var(--process-mapa);       box-shadow: 0 0 0 9px rgba(59,130,246,.12),  0 14px 32px rgba(59,130,246,.16); }
 .proceso-card.control      .proceso-icon-wrap { border-color: var(--process-control);    box-shadow: 0 0 0 9px rgba(8,145,178,.12),   0 14px 32px rgba(8,145,178,.16); }
