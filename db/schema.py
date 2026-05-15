@@ -534,6 +534,248 @@ CREATE TABLE IF NOT EXISTS tnc_cache_sync (
 );
 """
 
+CREATE_RRHH_IMPORT_BATCHES = """
+CREATE TABLE IF NOT EXISTS rrhh_import_batches (
+    batch_id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_key               TEXT NOT NULL UNIQUE,
+    source_dir              TEXT NOT NULL,
+    imported_by             TEXT,
+    imported_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status                  TEXT NOT NULL DEFAULT 'complete',
+    files_json              TEXT,
+    summary_json            TEXT,
+    error                   TEXT
+);
+"""
+
+CREATE_RRHH_LEGAJERO = """
+CREATE TABLE IF NOT EXISTS rrhh_legajero (
+    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_id                INTEGER NOT NULL REFERENCES rrhh_import_batches(batch_id) ON DELETE CASCADE,
+    legajo                  TEXT NOT NULL,
+    nombre                  TEXT,
+    empresa                 TEXT,
+    division_personal       TEXT,
+    sucursal                TEXT,
+    unidad_organizativa     TEXT,
+    desc_unidad_organizativa TEXT,
+    sector_generico         TEXT,
+    desc_sector_generico    TEXT,
+    clave_funcion           TEXT,
+    desc_funcion            TEXT,
+    posicion                TEXT,
+    desc_posicion           TEXT,
+    grupo_personal          TEXT,
+    desc_grupo_personal     TEXT,
+    area_personal           TEXT,
+    desc_area_personal      TEXT,
+    fecha_ingreso           DATE,
+    fecha_baja              DATE,
+    proveedor               TEXT,
+    razon_social            TEXT,
+    es_gerencia             INTEGER DEFAULT 0,
+    raw_json                TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(batch_id, legajo)
+);
+"""
+
+CREATE_RRHH_PERSONAS = """
+CREATE TABLE IF NOT EXISTS rrhh_personas (
+    legajo                  TEXT PRIMARY KEY,
+    nombre                  TEXT,
+    empresa                 TEXT,
+    division_personal       TEXT,
+    sucursal                TEXT,
+    unidad_organizativa     TEXT,
+    desc_unidad_organizativa TEXT,
+    sector_generico         TEXT,
+    desc_sector_generico    TEXT,
+    clave_funcion           TEXT,
+    desc_funcion            TEXT,
+    posicion                TEXT,
+    desc_posicion           TEXT,
+    grupo_personal          TEXT,
+    desc_grupo_personal     TEXT,
+    area_personal           TEXT,
+    desc_area_personal      TEXT,
+    area_nomina             TEXT,
+    clase_contrato          TEXT,
+    desc_tipo_contrato      TEXT,
+    regla_plan_horario      TEXT,
+    jubilado                TEXT,
+    centro_coste            TEXT,
+    fecha_ingreso           DATE,
+    fecha_baja              DATE,
+    antiguedad_anios        REAL DEFAULT 0,
+    antiguedad_meses        REAL DEFAULT 0,
+    antiguedad_dias         REAL DEFAULT 0,
+    proveedor               TEXT,
+    razon_social            TEXT,
+    es_gerencia             INTEGER DEFAULT 0,
+    active                  INTEGER NOT NULL DEFAULT 1,
+    first_seen_batch_id     INTEGER REFERENCES rrhh_import_batches(batch_id),
+    last_seen_batch_id      INTEGER REFERENCES rrhh_import_batches(batch_id),
+    last_changed_batch_id   INTEGER REFERENCES rrhh_import_batches(batch_id),
+    first_seen_at           DATETIME,
+    last_seen_at            DATETIME,
+    deactivated_at          DATETIME,
+    data_hash               TEXT,
+    change_count            INTEGER NOT NULL DEFAULT 0,
+    raw_json                TEXT,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RRHH_PERSONAS_CHANGES = """
+CREATE TABLE IF NOT EXISTS rrhh_personas_changes (
+    change_id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_id                INTEGER NOT NULL REFERENCES rrhh_import_batches(batch_id) ON DELETE CASCADE,
+    legajo                  TEXT NOT NULL,
+    change_type             TEXT NOT NULL,
+    old_json                TEXT,
+    new_json                TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RRHH_ACTIVIDAD = """
+CREATE TABLE IF NOT EXISTS rrhh_actividad_diaria (
+    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_id                INTEGER NOT NULL REFERENCES rrhh_import_batches(batch_id) ON DELETE CASCADE,
+    legajo                  TEXT NOT NULL,
+    empleado                TEXT,
+    fecha                   DATE NOT NULL,
+    division                TEXT,
+    subdivision             TEXT,
+    sector                  TEXT,
+    grupo_profesional       TEXT,
+    area_personal           TEXT,
+    dia                     TEXT,
+    pausa                   TEXT,
+    horario                 TEXT,
+    aus_pres_codigo         TEXT,
+    aus_pres_codigo_norm    TEXT,
+    ausentismo_tratamiento  TEXT,
+    ausentismo_tipo         TEXT,
+    ausentismo_clasificacion TEXT,
+    ausentismo_contabiliza  INTEGER DEFAULT 0,
+    ausentismo_regla        TEXT,
+    motivo                  TEXT,
+    comida                  TEXT,
+    entrada                 TEXT,
+    p1_ini                  TEXT,
+    p1_fin                  TEXT,
+    mas                     TEXT,
+    salida                  TEXT,
+    hs_trab                 REAL DEFAULT 0,
+    hs_ext_realiz           REAL DEFAULT 0,
+    hs_50_autorizadas       REAL DEFAULT 0,
+    hs_100                  REAL DEFAULT 0,
+    recargo_50              REAL DEFAULT 0,
+    recargo_100             REAL DEFAULT 0,
+    rec_noct                REAL DEFAULT 0,
+    hs_fer                  REAL DEFAULT 0,
+    tarde                   REAL DEFAULT 0,
+    viajes_equiv            REAL DEFAULT 0,
+    es_gerencia             INTEGER DEFAULT 0,
+    raw_json                TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RRHH_FICHADAS = """
+CREATE TABLE IF NOT EXISTS rrhh_fichadas (
+    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_id                INTEGER NOT NULL REFERENCES rrhh_import_batches(batch_id) ON DELETE CASCADE,
+    legajo                  TEXT NOT NULL,
+    empleado                TEXT,
+    fecha_fichada           DATETIME NOT NULL,
+    fecha                   DATE NOT NULL,
+    hora                    TEXT,
+    sentido                 TEXT,
+    ubicacion               TEXT,
+    origen                  TEXT,
+    destino                 TEXT,
+    tipo_lectura            TEXT,
+    es_gerencia             INTEGER DEFAULT 0,
+    raw_json                TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RRHH_SANCIONES = """
+CREATE TABLE IF NOT EXISTS rrhh_sanciones (
+    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_id                INTEGER NOT NULL REFERENCES rrhh_import_batches(batch_id) ON DELETE CASCADE,
+    legajo                  TEXT NOT NULL,
+    nombre                  TEXT,
+    inicio                  DATE,
+    fin                     DATE,
+    cod                     TEXT,
+    creacion                DATE,
+    descripcion             TEXT,
+    detalle                 TEXT,
+    ausentismo              TEXT,
+    desc_ausentismo         TEXT,
+    causa_sancion           TEXT,
+    descripcion_causa       TEXT,
+    unidad_organizativa     TEXT,
+    desc_unidad_organizativa TEXT,
+    es_gerencia             INTEGER DEFAULT 0,
+    raw_json                TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RRHH_CODIGOS_AUSENTISMO = """
+CREATE TABLE IF NOT EXISTS rrhh_codigos_ausentismo (
+    id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_id                INTEGER NOT NULL REFERENCES rrhh_import_batches(batch_id) ON DELETE CASCADE,
+    codigo                  TEXT NOT NULL,
+    codigo_normalizado      TEXT,
+    descripcion             TEXT,
+    tratamiento             TEXT,
+    tipo_ausentismo         TEXT,
+    source_sheet            TEXT,
+    raw_json                TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(batch_id, codigo, tipo_ausentismo)
+);
+"""
+
+CREATE_RRHH_CODIGOS_AUSENTISMO_MAESTRO = """
+CREATE TABLE IF NOT EXISTS rrhh_codigos_ausentismo_maestro (
+    codigo_normalizado      TEXT PRIMARY KEY,
+    codigo_original         TEXT,
+    descripcion             TEXT,
+    tratamiento             TEXT,
+    tipo_ausentismo         TEXT,
+    source_sheet            TEXT,
+    active                  INTEGER NOT NULL DEFAULT 1,
+    first_seen_batch_id     INTEGER REFERENCES rrhh_import_batches(batch_id),
+    last_seen_batch_id      INTEGER REFERENCES rrhh_import_batches(batch_id),
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    raw_json                TEXT
+);
+"""
+
+CREATE_RRHH_AUSENTISMO_REGLAS = """
+CREATE TABLE IF NOT EXISTS rrhh_ausentismo_reglas (
+    regla_id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_id                INTEGER REFERENCES rrhh_import_batches(batch_id) ON DELETE CASCADE,
+    regla_tipo              TEXT NOT NULL,
+    patron                  TEXT NOT NULL,
+    clasificacion           TEXT NOT NULL,
+    contabiliza             INTEGER NOT NULL DEFAULT 0,
+    source_sheet            TEXT,
+    active                  INTEGER NOT NULL DEFAULT 1,
+    raw_json                TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(batch_id, regla_tipo, patron, clasificacion)
+);
+"""
+
 CREATE_CUMPLIMIENTO_ONLINE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_cumpl_online_turno_inicio ON cumplimiento_online_snapshots(turno_key, turno_inicio, bloque_hasta)",
 ]
@@ -591,6 +833,26 @@ CREATE_TNC_CACHE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_tnc_cache_legajo ON tnc_eventos_cache(legajo, dia_tnc)",
     "CREATE INDEX IF NOT EXISTS idx_tnc_cache_area ON tnc_eventos_cache(area, dia_tnc)",
     "CREATE INDEX IF NOT EXISTS idx_tnc_cache_puesto ON tnc_eventos_cache(puesto, dia_tnc)",
+]
+
+CREATE_RRHH_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_batches_imported ON rrhh_import_batches(imported_at DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_legajero_batch_legajo ON rrhh_legajero(batch_id, legajo)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_legajero_sector ON rrhh_legajero(batch_id, desc_sector_generico)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_personas_active ON rrhh_personas(active, es_gerencia)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_personas_sector ON rrhh_personas(desc_sector_generico)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_personas_changes_batch ON rrhh_personas_changes(batch_id, change_type)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_personas_changes_legajo ON rrhh_personas_changes(legajo, created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_actividad_fecha ON rrhh_actividad_diaria(batch_id, fecha)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_actividad_legajo_fecha ON rrhh_actividad_diaria(batch_id, legajo, fecha)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_actividad_sector ON rrhh_actividad_diaria(batch_id, sector)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_actividad_aus_tipo ON rrhh_actividad_diaria(batch_id, ausentismo_clasificacion, ausentismo_contabiliza)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_codigos_norm ON rrhh_codigos_ausentismo(batch_id, codigo_normalizado)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_reglas_batch ON rrhh_ausentismo_reglas(batch_id, regla_tipo, active)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_fichadas_legajo_fecha ON rrhh_fichadas(batch_id, legajo, fecha)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_fichadas_fecha ON rrhh_fichadas(batch_id, fecha)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_sanciones_legajo ON rrhh_sanciones(batch_id, legajo)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_sanciones_creacion ON rrhh_sanciones(batch_id, creacion)",
 ]
 
 CREATE_AUTH_USERS = """
@@ -676,6 +938,32 @@ async def init_db():
         await db.execute(CREATE_PRODUCTIVIDAD_HOURLY_IA_CACHE)
         await db.execute(CREATE_TNC_EVENTOS_CACHE)
         await db.execute(CREATE_TNC_CACHE_SYNC)
+        await db.execute(CREATE_RRHH_IMPORT_BATCHES)
+        await db.execute(CREATE_RRHH_LEGAJERO)
+        await db.execute(CREATE_RRHH_PERSONAS)
+        await db.execute(CREATE_RRHH_PERSONAS_CHANGES)
+        await db.execute(CREATE_RRHH_ACTIVIDAD)
+        await db.execute(CREATE_RRHH_FICHADAS)
+        await db.execute(CREATE_RRHH_SANCIONES)
+        await db.execute(CREATE_RRHH_CODIGOS_AUSENTISMO)
+        await db.execute(CREATE_RRHH_CODIGOS_AUSENTISMO_MAESTRO)
+        await db.execute(CREATE_RRHH_AUSENTISMO_REGLAS)
+        async with db.execute("PRAGMA table_info(rrhh_actividad_diaria)") as cur:
+            rrhh_act_cols = {row[1] for row in await cur.fetchall()}
+        for column_name, column_type in {
+            "aus_pres_codigo_norm": "TEXT",
+            "ausentismo_tratamiento": "TEXT",
+            "ausentismo_tipo": "TEXT",
+            "ausentismo_clasificacion": "TEXT",
+            "ausentismo_contabiliza": "INTEGER DEFAULT 0",
+            "ausentismo_regla": "TEXT",
+        }.items():
+            if column_name not in rrhh_act_cols:
+                await db.execute(f"ALTER TABLE rrhh_actividad_diaria ADD COLUMN {column_name} {column_type}")
+        async with db.execute("PRAGMA table_info(rrhh_codigos_ausentismo)") as cur:
+            rrhh_cod_cols = {row[1] for row in await cur.fetchall()}
+        if "codigo_normalizado" not in rrhh_cod_cols:
+            await db.execute("ALTER TABLE rrhh_codigos_ausentismo ADD COLUMN codigo_normalizado TEXT")
         await db.execute(CREATE_AUTH_USERS)
         await db.execute(CREATE_AUTH_DEVICES)
         await db.execute(CREATE_AUTH_SESSIONS)
@@ -726,6 +1014,8 @@ async def init_db():
         for statement in CREATE_PRODUCTIVIDAD_HOURLY_IA_INDEXES:
             await db.execute(statement)
         for statement in CREATE_TNC_CACHE_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_RRHH_INDEXES:
             await db.execute(statement)
         for statement in CREATE_AUTH_INDEXES:
             await db.execute(statement)

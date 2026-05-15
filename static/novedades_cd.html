@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>VigIA - Novedades CD</title>
+  <style>
+    :root{
+      --bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;
+      --rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;
+      --amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;--blue:#0B5FAE;
+    }
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{
+      margin:0;min-height:100vh;color:var(--ink);
+      font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);
+      background-image:linear-gradient(var(--rule) 1px, transparent 1px),linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size:24px 24px;
+    }
+    button,input,select{font:inherit;color:inherit}button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:100%;min-height:100vh;margin:0;padding:0 16px 22px}
+    .mono{font-family:'IBM Plex Mono',monospace}.label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft)}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}.brand-logo{width:86px;height:44px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}
+    .kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+    h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}.amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}.user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}
+    .user-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+    .user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .paper-link,.logout-btn,.export-link{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}
+    .paper-link:hover,.logout-btn:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .paper-tabs{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule)}
+    .tab-list{display:flex}.tab-btn{background:transparent;border:0;color:var(--ink-soft);padding:13px 18px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;min-width:132px}
+    .tab-btn.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}
+    .tab-btn.active::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-radius:50%;background:var(--green);vertical-align:middle}
+    .paper-panel{display:none}.paper-panel.active{display:block}
+    .filters{
+      display:grid;
+      grid-template-columns:minmax(132px,.62fr) minmax(132px,.62fr) minmax(260px,1.25fr) 128px 128px;
+      gap:12px;
+      align-items:end;
+      background:var(--panel);
+      border:1px solid var(--rule);
+      border-top:0;
+      padding:12px;
+    }
+    .range-note{
+      grid-column:1 / -1;
+      margin-top:-2px;
+      font-family:'IBM Plex Mono',monospace;
+      font-size:11px;
+      line-height:1.35;
+      color:var(--ink-soft);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .filters > *,.import-line > *{min-width:0}
+    .filter-panel{grid-column:1 / -1;border:1px solid var(--rule);background:#F8FAF7;padding:12px;display:none}.filter-panel.open{display:block}.check-grid{display:grid;grid-template-columns:1.1fr 1.3fr 1fr;gap:12px}.check-box{border:1px solid var(--rule);background:var(--panel);padding:10px;min-height:230px}.check-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.check-list{height:260px;overflow:auto;border-top:1px solid var(--rule);padding-top:6px}.check-item{display:flex;align-items:center;gap:8px;padding:4px 2px;font-family:'IBM Plex Mono',monospace;font-size:12px}.check-item input{width:14px;height:14px;min-height:14px}.check-actions{display:flex;gap:8px}.link-btn{border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;min-height:26px}.filter-toggle{background:var(--panel);border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input,.paper-select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
+    .primary-cta{height:34px;width:100%;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}.primary-cta:disabled{opacity:.55}
+    .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
+    .access-note{padding:9px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.access-note.warn{background:var(--amber-soft);color:#6f4300;border-color:#e1bf76}
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}
+    .kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}
+    .kpi-number{font-family:'IBM Plex Mono',monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}
+    .kpi-foot{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--ink-soft)}.metric{font-family:'IBM Plex Mono',monospace;color:var(--ink)}
+    .dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.chart-panel{background:var(--panel);border:1px solid var(--rule);min-height:318px;padding:12px;display:flex;flex-direction:column;min-width:0}
+    .paired-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.chart-stack{display:grid;grid-template-rows:1fr 1fr;gap:12px;min-width:0}.chart-panel.short{min-height:286px}
+    .chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+    .bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(92px,1.05fr) minmax(120px,2fr) 58px;gap:8px;align-items:center;font-size:12px}
+    .bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:14px;background:#EAEEEB;position:relative}.bar-fill{height:100%;background:var(--green);min-width:2px}.bar-fill.ok{background:var(--green)}.bar-fill.bad{background:var(--red)}.bar-fill.blue{background:var(--blue)}.bar-fill.amber{background:var(--amber)}.bar-value{font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--ink-soft)}
+    .line-chart{width:100%;height:220px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .target{stroke:var(--amber);stroke-width:1.5;stroke-dasharray:5 4}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart .target-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--amber);font-weight:600}.line-chart polyline{fill:none;stroke-width:2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.bad{stroke:var(--red)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.bad{fill:var(--red)}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}
+    .mini-table{width:100%;border-collapse:collapse}.mini-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);background:#F6F8F5;border-bottom:1px solid var(--rule);padding:8px;text-align:left}.mini-table td{border-bottom:1px solid var(--rule);padding:8px;font-size:12px}.mini-table tbody tr:nth-child(odd){background:#F8FAF7}
+    .import-line{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
+    .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);border-top:0}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 12px}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--ink);background:#EDF2EE}.paper-table th .sort-mark{float:right;color:var(--green);letter-spacing:0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 12px;font-size:13px;line-height:1.22;vertical-align:middle}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}
+    .table-wrap{overflow:auto;max-height:540px}.hidden{display:none!important}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+    @media(max-width:1100px){.filters,.import-line{grid-template-columns:1fr 1fr}.check-grid{grid-template-columns:1fr}.dashboard-grid,.paired-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}}
+    @media(max-width:700px){.paper-app{padding:0 14px 18px}.filters,.import-line,.kpi-row{grid-template-columns:1fr}.tab-list{overflow:auto}.tab-btn{min-width:120px;padding-left:12px;padding-right:12px}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div>
+        <div class="kicker">Panel RRHH operativo</div>
+        <h1>Novedades <span class="amp">CD</span></h1>
+      </div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/tiempos-muertos">TNC</a>
+      <a class="paper-link" href="/gestion-operativa">Gestion</a>
+      <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn">Salir</button>
+    </div>
+  </header>
+
+  <div class="paper-tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" data-tab="indicadores">Indicadores</button>
+      <button class="tab-btn" data-tab="datos">Datos</button>
+      <button class="tab-btn" data-tab="importacion">Importacion</button>
+    </div>
+  </div>
+
+  <section class="filters">
+    <div class="field"><label class="label" for="fecha-desde">Desde</label><input class="paper-input" type="date" id="fecha-desde"></div>
+    <div class="field"><label class="label" for="fecha-hasta">Hasta</label><input class="paper-input" type="date" id="fecha-hasta"></div>
+    <div class="field"><label class="label" for="filter-persona">Legajo / apellido</label><input class="paper-input" id="filter-persona" autocomplete="off" placeholder="Legajo o apellido"></div>
+    <button class="filter-toggle" id="toggle-filters">Filtros avanzados</button>
+    <button class="primary-cta" id="apply-filters">Aplicar</button>
+    <div class="filter-panel" id="filter-panel">
+      <div class="check-grid">
+        <div class="check-box">
+          <div class="check-head"><span class="label">Sector</span><div class="check-actions"><button class="link-btn" data-clear-filter="sector">Todos</button></div></div>
+          <div class="check-list" id="filter-sector"></div>
+        </div>
+        <div class="check-box">
+          <div class="check-head"><span class="label">Cargo</span><div class="check-actions"><button class="link-btn" data-clear-filter="cargo">Todos</button></div></div>
+          <div class="check-list" id="filter-cargo"></div>
+        </div>
+        <div class="check-box">
+          <div class="check-head"><span class="label">Motivo</span><div class="check-actions"><button class="link-btn" data-clear-filter="motivo">Todos</button></div></div>
+          <div class="check-list" id="filter-motivo"></div>
+        </div>
+      </div>
+    </div>
+    <div class="range-note" id="range-note">El tablero cuenta con informacion entre - y -</div>
+  </section>
+  <div class="access-note" id="access-note"></div>
+  <div class="status" id="status"></div>
+
+  <section class="paper-panel active" id="panel-indicadores">
+    <section class="kpi-row" id="kpis"></section>
+    <section class="dashboard-grid">
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Ausentismo diario</strong><span>Objetivo 4%</span></div>
+        <div id="chart-diario"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Motivos con novedad</strong><span>Aus/Pres</span></div>
+        <div id="chart-motivos"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Sanciones</strong><span>Por tipo</span></div>
+        <div id="chart-sanciones"></div>
+      </article>
+    </section>
+    <section class="paired-grid">
+      <div class="chart-stack">
+        <article class="chart-panel short">
+          <div class="chart-title"><strong>Eventos</strong><span>Obj. 4% por sector</span></div>
+          <div id="chart-sector"></div>
+        </article>
+        <article class="chart-panel short">
+          <div class="chart-title"><strong>Eventos</strong><span>Obj. 4% sector / cargo</span></div>
+          <div id="chart-sector-cargo"></div>
+        </article>
+      </div>
+      <div class="chart-stack">
+        <article class="chart-panel short">
+          <div class="chart-title"><strong>Horas extra</strong><span>Por sector</span></div>
+          <div id="chart-extra"></div>
+        </article>
+        <article class="chart-panel short">
+          <div class="chart-title"><strong>Horas extra</strong><span>Sector / cargo</span></div>
+          <div id="chart-extra-cargo"></div>
+        </article>
+      </div>
+      <div class="chart-stack">
+        <article class="chart-panel short">
+          <div class="chart-title"><strong>Llegadas tarde</strong><span>Por sector</span></div>
+          <div id="chart-tarde"></div>
+        </article>
+        <article class="chart-panel short">
+          <div class="chart-title"><strong>Llegadas tarde</strong><span>Sector / cargo</span></div>
+          <div id="chart-tarde-cargo"></div>
+        </article>
+      </div>
+    </section>
+    <section class="chart-panel" style="margin-top:12px;min-height:260px">
+      <div class="chart-title"><strong>Detalle por legajo</strong><span>Todos los legajos filtrados</span></div>
+      <div class="tab-list" style="margin-bottom:10px;overflow:auto">
+        <button class="tab-btn active detail-tab" data-detail="aus_pct">Ausentismo %</button>
+        <button class="tab-btn detail-tab" data-detail="ctrl">Controladas</button>
+        <button class="tab-btn detail-tab" data-detail="no_ctrl">No controladas</button>
+        <button class="tab-btn detail-tab" data-detail="he_total">Hs. extra</button>
+        <button class="tab-btn detail-tab" data-detail="he_50">Hs. 50%</button>
+        <button class="tab-btn detail-tab" data-detail="he_100">Hs. 100%</button>
+        <button class="tab-btn detail-tab" data-detail="tarde">Llegadas tarde</button>
+        <button class="tab-btn detail-tab" data-detail="general">General</button>
+      </div>
+      <div class="table-wrap"><table class="mini-table" id="ranking-table"></table></div>
+    </section>
+  </section>
+
+  <section class="paper-panel" id="panel-datos">
+    <div class="paper-tabs" style="margin-top:14px">
+      <div class="tab-list">
+        <button class="tab-btn active inner-tab" data-inner="actividad">Actividad</button>
+        <button class="tab-btn inner-tab" data-inner="sanciones">Sanciones</button>
+      </div>
+    </div>
+    <div class="table-wrap" id="inner-actividad"><table class="paper-table" id="actividad-table"></table></div>
+    <div class="table-wrap hidden" id="inner-sanciones"><table class="paper-table" id="sanciones-table"></table></div>
+  </section>
+
+  <section class="paper-panel" id="panel-importacion">
+    <section class="import-line" id="import-box">
+      <div class="field"><label class="label" for="folder-path">Carpeta fuente RRHH</label><input class="paper-input" id="folder-path" placeholder="C:\Ingenieria\VigIA\Docs\Panel_Choferes\PROCESADOS\2026_05"></div>
+      <button class="primary-cta" id="import-latest">Importar ultima</button>
+      <button class="primary-cta" id="import-folder">Importar indicada</button>
+    </section>
+    <div class="empty" id="import-readonly">Tu perfil puede consultar indicadores, pero la importacion queda reservada para Admin/RRHH.</div>
+  </section>
+</div>
+
+<script>
+  const state = { config:null, batchId:null, filtersLoaded:false, dateRangeApplied:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
+  const STORAGE_KEY = 'vigia.novedades_cd.advanced_filters.v1';
+  const $ = id => document.getElementById(id);
+  const fmt = n => Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  function setStatus(text, error=false){ $('status').textContent = text || ''; $('status').className = 'status' + (error ? ' error' : ''); }
+  async function api(path, options={}){
+    const res = await fetch(path, { credentials:'same-origin', headers:{'Content-Type':'application/json'}, ...options });
+    if (res.status === 401) { location.href = '/login?next=/novedades-cd'; return null; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || 'No se pudo completar la operacion.');
+    return data;
+  }
+  function params(){
+    const p = new URLSearchParams();
+    if (state.batchId) p.set('batch_id', state.batchId);
+    [['fecha_desde','fecha-desde'],['fecha_hasta','fecha-hasta'],['persona','filter-persona']].forEach(([key,id]) => {
+      const value = $(id).value;
+      if (value) p.set(key, value);
+    });
+    [['sector','sector'],['cargo','cargo'],['motivo','motivo']].forEach(([key,id]) => {
+      selectedValues(id).forEach(value => p.append(key, value));
+    });
+    return p.toString();
+  }
+  function selectedValues(key){
+    return state.selected[key] || [];
+  }
+  function loadSavedFilters(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      ['sector','cargo','motivo'].forEach(key => {
+        state.selected[key] = Array.isArray(saved[key]) ? saved[key].map(String) : [];
+      });
+      if (saved.panelOpen) $('filter-panel').classList.add('open');
+    } catch (_) {}
+  }
+  function saveFilters(){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        sector: state.selected.sector,
+        cargo: state.selected.cargo,
+        motivo: state.selected.motivo,
+        panelOpen: $('filter-panel').classList.contains('open'),
+      }));
+    } catch (_) {}
+  }
+  function setChecklist(key, values){
+    const box = $(`filter-${key}`);
+    const keep = (state.selected[key] || []).filter(value => (values || []).includes(value));
+    state.selected[key] = keep;
+    saveFilters();
+    box.innerHTML = (values || []).map(value => `
+      <label class="check-item" title="${esc(value)}">
+        <input type="checkbox" data-filter="${esc(key)}" value="${esc(value)}" ${keep.includes(value) ? 'checked' : ''}>
+        <span>${esc(value)}</span>
+      </label>
+    `).join('') || '<div class="empty">Sin opciones</div>';
+  }
+  function renderKpis(k){
+    const cells = [
+      ['Empleados', k.empleados, 'ok', 'Legajos visibles'],
+      ['Ausentismo', `${fmt(k.ausentismo_pct)}%`, k.ausentismo_pct > 8 ? 'bad' : 'warn', `${fmt(k.ausencias)} eventos`],
+      ['Controlado', k.ausencias_controladas, 'bad', 'Cuenta como ausentismo'],
+      ['No controlado', k.ausencias_no_controladas, 'warn', 'Cuenta como ausentismo'],
+      ['No considerar', k.ausencias_no_considerar, 'ok', 'Excluido por regla'],
+      ['Sin clasificar', k.ausencias_sin_clasificar, k.ausencias_sin_clasificar ? 'warn' : 'ok', 'Codigo fuera de maestro'],
+      ['Hs. extra', k.horas_extra, 'warn', `${fmt(k.horas_trabajadas)} hs trabajadas`],
+      ['Llegadas tarde', k.llegadas_tarde, 'warn', 'Registros con tarde'],
+      ['Sanciones', k.sanciones, k.sanciones ? 'bad' : 'ok', 'Periodo filtrado'],
+      ['Actividad', k.registros, 'ok', 'Filas de actividad'],
+      ['Hs. trabajadas', k.horas_trabajadas, 'ok', 'Total filtrado'],
+    ];
+    $('kpis').innerHTML = cells.map(([label,value,tone,foot]) => `
+      <div class="kpi-cell ${tone}"><div class="label">${esc(label)}</div><div class="kpi-number">${esc(fmtMaybe(value))}</div><div class="kpi-foot"><span>${esc(foot)}</span><span class="metric">RRHH</span></div></div>
+    `).join('');
+  }
+  function fmtMaybe(v){ return typeof v === 'number' ? fmt(v) : v; }
+  function bars(rows, valueKey, labelKey='label', tone='green', maxRows=10){
+    const data = [...(rows || [])]
+      .sort((a,b) => Number(b[valueKey] || 0) - Number(a[valueKey] || 0))
+      .slice(0, maxRows);
+    const max = Math.max(...data.map(r => Number(r[valueKey] || 0)), 1);
+    if (!data.length) return '<div class="empty">Sin datos</div>';
+    return `<div class="bars">${data.map(r => {
+      const val = Number(r[valueKey] || 0), pct = Math.max(2, val / max * 100);
+      return `<div class="bar-row"><div class="bar-label" title="${esc(r[labelKey])}">${esc(r[labelKey])}</div><div class="bar-track"><div class="bar-fill ${tone}" style="width:${pct}%"></div></div><div class="bar-value">${fmt(val)}</div></div>`;
+    }).join('')}</div>`;
+  }
+  function objectiveBars(rows, maxRows=10){
+    const target = 4;
+    const data = [...(rows || [])].map(r => {
+      const ausencias = Number(r.ausencias || 0);
+      const registros = Number(r.registros || 0);
+      return { ...r, ausencias, registros, pct: registros ? ausencias * 100 / registros : 0 };
+    }).sort((a,b) => b.pct - a.pct || b.ausencias - a.ausencias).slice(0, maxRows);
+    const max = Math.max(target, ...data.map(r => r.pct), 1);
+    if (!data.length) return '<div class="empty">Sin datos</div>';
+    return `<div class="bars">${data.map(r => {
+      const width = Math.max(2, r.pct / max * 100);
+      const tone = r.pct > target ? 'bad' : 'ok';
+      const value = `${fmt(r.pct)}% · ${fmt(r.ausencias)}`;
+      return `<div class="bar-row" title="${esc(r.label)} - ${fmt(r.pct)}% - ${fmt(r.ausencias)} aus. / ${fmt(r.registros)} reg."><div class="bar-label">${esc(r.label)}</div><div class="bar-track"><div class="bar-fill ${tone}" style="width:${width}%"></div></div><div class="bar-value">${esc(fmt(r.pct))}%</div></div>`;
+    }).join('')}</div>`;
+  }
+  function line(rows){
+    const data = rows || [];
+    if (!data.length) return '<div class="empty">Sin datos</div>';
+    const w=520,h=230,left=42,right=14,top=16,bottom=32;
+    const values = data.map(r => Number(r.ausencias || 0));
+    const max = Math.max(...values, 1);
+    const plotW = w - left - right, plotH = h - top - bottom;
+    const xFor = i => left + (data.length === 1 ? 0 : i * plotW / (data.length - 1));
+    const yFor = v => top + plotH - (v / max) * plotH;
+    const points = data.map((r,i)=>({
+      x:xFor(i),
+      y:yFor(Number(r.ausencias || 0)),
+      fecha:String(r.label || ''),
+      ausencias:Number(r.ausencias || 0),
+      registros:Number(r.registros || 0),
+    }));
+    const pts = points.map(p=>`${p.x},${p.y}`).join(' ');
+    const firstDate = String(data[0]?.label || '').slice(5);
+    const lastDate = String(data[data.length - 1]?.label || '').slice(5);
+    const mid = Math.round(max / 2);
+    return `
+      <svg class="line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Ausentismo diario">
+        <line class="grid" x1="${left}" y1="${yFor(max)}" x2="${w-right}" y2="${yFor(max)}"></line>
+        <line class="grid" x1="${left}" y1="${yFor(mid)}" x2="${w-right}" y2="${yFor(mid)}"></line>
+        <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line>
+        <line class="axis" x1="${left}" y1="${h-bottom}" x2="${w-right}" y2="${h-bottom}"></line>
+        <text class="axis-label" x="4" y="${yFor(max)+4}">${fmt(max)}</text>
+        <text class="axis-label" x="4" y="${yFor(mid)+4}">${fmt(mid)}</text>
+        <text class="axis-label" x="4" y="${h-bottom+4}">0</text>
+        <text class="axis-label" x="${left}" y="${h-8}">${esc(firstDate)}</text>
+        <text class="axis-label" x="${w-right-44}" y="${h-8}">${esc(lastDate)}</text>
+        <polyline points="${pts}"></polyline>
+        ${points.map(p=>`
+          <g class="point">
+            <circle cx="${p.x}" cy="${p.y}" r="3"></circle>
+            <circle class="point-hit" cx="${p.x}" cy="${p.y}" r="12"></circle>
+            <text class="point-label" x="${Math.min(p.x + 8, w - right - 96)}" y="${Math.max(p.y - 8, top + 10)}">${esc(p.fecha)} · ${fmt(p.ausencias)} aus. · ${fmt(p.registros)} reg.</text>
+          </g>
+        `).join('')}
+      </svg>`;
+  }
+  function linePct(rows){
+    const data = rows || [];
+    if (!data.length) return '<div class="empty">Sin datos</div>';
+    const target = 4;
+    const w=520,h=230,left=46,right=18,top=16,bottom=42;
+    const pointsData = data.map(r => {
+      const ausencias = Number(r.ausencias || 0);
+      const registros = Number(r.registros || 0);
+      const pct = registros ? ausencias * 100 / registros : 0;
+      return { label:r.label, ausencias, registros, pct };
+    });
+    const max = Math.max(target + 1, ...pointsData.map(r => r.pct), 1);
+    const plotW = w - left - right, plotH = h - top - bottom;
+    const xFor = i => left + (data.length === 1 ? plotW / 2 : i * plotW / (data.length - 1));
+    const yFor = v => top + plotH - (v / max) * plotH;
+    const points = pointsData.map((r,i)=>({
+      x:xFor(i), y:yFor(r.pct), fecha:String(r.label || ''),
+      ausencias:r.ausencias, registros:r.registros, pct:r.pct,
+      tone:r.pct > target ? 'bad' : 'ok',
+    }));
+    const segments = points.slice(1).map((p,i) => {
+      const prev = points[i];
+      const tone = (p.pct > target || prev.pct > target) ? 'bad' : 'ok';
+      return `<polyline class="${tone}" points="${prev.x},${prev.y} ${p.x},${p.y}"></polyline>`;
+    }).join('');
+    const tickCount = Math.min(6, data.length);
+    const tickIndexes = [...new Set(Array.from({length:tickCount},(_,i)=>Math.round(i * (data.length - 1) / Math.max(tickCount - 1, 1))))];
+    const mid = max / 2;
+    const targetY = yFor(target);
+    return `
+      <svg class="line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Ausentismo diario porcentual">
+        <line class="grid" x1="${left}" y1="${yFor(max)}" x2="${w-right}" y2="${yFor(max)}"></line>
+        <line class="grid" x1="${left}" y1="${yFor(mid)}" x2="${w-right}" y2="${yFor(mid)}"></line>
+        <line class="target" x1="${left}" y1="${targetY}" x2="${w-right}" y2="${targetY}"></line>
+        <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line>
+        <line class="axis" x1="${left}" y1="${h-bottom}" x2="${w-right}" y2="${h-bottom}"></line>
+        <text class="axis-label" x="4" y="${yFor(max)+4}">${fmt(max)}%</text>
+        <text class="axis-label" x="4" y="${yFor(mid)+4}">${fmt(mid)}%</text>
+        <text class="axis-label" x="4" y="${h-bottom+4}">0</text>
+        <text class="target-label" x="${w-right-58}" y="${Math.max(targetY - 5, top + 10)}">Obj. 4%</text>
+        ${tickIndexes.map(i => {
+          const x = xFor(i);
+          const label = String(data[i]?.label || '').slice(5);
+          return `<line class="grid" x1="${x}" y1="${h-bottom}" x2="${x}" y2="${h-bottom+4}"></line><text class="axis-label" x="${Math.max(2, Math.min(x - 16, w - right - 34))}" y="${h-8}">${esc(label)}</text>`;
+        }).join('')}
+        ${segments || `<polyline class="${points[0]?.tone || 'ok'}" points="${points.map(p=>`${p.x},${p.y}`).join(' ')}"></polyline>`}
+        ${points.map(p=>`
+          <g class="point">
+            <circle class="${p.tone}" cx="${p.x}" cy="${p.y}" r="3"></circle>
+            <circle class="point-hit" cx="${p.x}" cy="${p.y}" r="12"></circle>
+            <text class="point-label" x="${Math.min(p.x + 8, w - right - 140)}" y="${Math.max(p.y - 8, top + 10)}">${esc(p.fecha)} - ${fmt(p.pct)}% - ${fmt(p.ausencias)} aus. / ${fmt(p.registros)} reg.</text>
+          </g>
+        `).join('')}
+      </svg>`;
+  }
+  function sortValue(value){
+    if (value === null || value === undefined || value === '') return '';
+    const numeric = Number(String(value).replace(/\./g,'').replace(',', '.'));
+    if (!Number.isNaN(numeric) && String(value).trim() !== '') return numeric;
+    return String(value).toUpperCase();
+  }
+  function sortedRows(id, rows){
+    const sort = state.tableSort[id];
+    if (!sort?.key) return rows || [];
+    const dir = sort.dir === 'desc' ? -1 : 1;
+    return [...(rows || [])].sort((a,b) => {
+      const av = sortValue(a[sort.key]), bv = sortValue(b[sort.key]);
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  }
+  function renderTable(id, cols, rows, klass=''){
+    const data = sortedRows(id, rows);
+    const sort = state.tableSort[id] || {};
+    $(id).innerHTML = `<thead><tr>${cols.map(c=>{
+      const active = sort.key === c.key;
+      const mark = active ? `<span class="sort-mark">${sort.dir === 'desc' ? '▼' : '▲'}</span>` : '';
+      return `<th class="sortable" data-table="${esc(id)}" data-key="${esc(c.key)}" title="Ordenar por ${esc(c.label)}">${esc(c.label)}${mark}</th>`;
+    }).join('')}</tr></thead><tbody>${data.map(row=>`<tr>${cols.map(c=>`<td class="${c.mono?'mono':''}">${esc(row[c.key])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}">Sin datos.</td></tr>`}</tbody>`;
+    $(id).__rows = rows || [];
+    $(id).__cols = cols;
+  }
+  const rankCol = {key:'rank', label:'#', mono:true};
+  const personCols = [rankCol, {key:'empleado', label:'Empleado'}, {key:'funcion', label:'Funcion'}];
+  const groupCols = [{key:'grupo_personal', label:'Grupo Personal'}, {key:'area_personal', label:'Area Personal'}];
+  const detailColumns = {
+    aus_pct:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_aus',label:'Dias',mono:true},{key:'pct_aus',label:'% Aus.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
+    ctrl:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_aus',label:'Dias',mono:true},{key:'ctrl',label:'Dias Ctrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
+    no_ctrl:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_aus',label:'Dias',mono:true},{key:'no_ctrl',label:'Dias NoCtrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
+    he_total:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_che',label:'Dias c/HE',mono:true},{key:'hs_extra',label:'Hs. Extra',mono:true},...groupCols],
+    he_50:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_he_50',label:'Dias c/HE',mono:true},{key:'hs_50',label:'Hs. 50%',mono:true},...groupCols],
+    he_100:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_he_100',label:'Dias c/HE',mono:true},{key:'hs_100',label:'Hs. 100%',mono:true},...groupCols],
+    tarde:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'c_tarde',label:'Veces Tarde',mono:true},{key:'min_tarde',label:'Min. Acum.',mono:true},...groupCols],
+    general:[{key:'legajo',label:'Legajo',mono:true},{key:'empleado',label:'Empleado'},{key:'funcion',label:'Funcion'},{key:'unidad',label:'Unidad'},{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_aus',label:'Dias Aus.',mono:true},{key:'pct_aus',label:'% Aus.',mono:true},{key:'ctrl',label:'Ctrl.',mono:true},{key:'no_ctrl',label:'No Ctrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},{key:'hs_trab',label:'Hs.Trab.',mono:true},{key:'hs_50',label:'Hs.50%',mono:true},{key:'hs_100',label:'Hs.100%',mono:true},{key:'hs_extra',label:'Hs.Extra',mono:true},{key:'hs_fer',label:'Hs.Fer.',mono:true},{key:'rec_noct',label:'Rec.Noct.',mono:true},{key:'c_tarde',label:'C.Tarde',mono:true},{key:'min_tarde',label:'Min.Tarde',mono:true},{key:'paus_30',label:'Paus>30',mono:true},{key:'c_sanc',label:'C.Sanc.',mono:true},{key:'tipo_sancion',label:'Tipo Sancion'},{key:'grupo_personal',label:'Grupo Personal'},{key:'area_personal',label:'Area Personal'}],
+  };
+  const detailModes = {
+    aus_pct:{key:'pct_aus', filter:r=>Number(r.dias_aus || 0) > 0},
+    ctrl:{key:'ctrl', filter:r=>Number(r.ctrl || 0) > 0},
+    no_ctrl:{key:'no_ctrl', filter:r=>Number(r.no_ctrl || 0) > 0},
+    he_total:{key:'hs_extra', filter:r=>Number(r.hs_extra || 0) > 0},
+    he_50:{key:'hs_50', filter:r=>Number(r.hs_50 || 0) > 0},
+    he_100:{key:'hs_100', filter:r=>Number(r.hs_100 || 0) > 0},
+    tarde:{key:'c_tarde', filter:r=>Number(r.c_tarde || 0) > 0},
+    general:{key:'pct_aus', filter:r=>true},
+  };
+  function renderDetail(rows){
+    const mode = detailModes[state.detailMode] || detailModes.aus_pct;
+    const data = [...(rows || [])]
+      .filter(mode.filter)
+      .sort((a,b) => Number(b[mode.key] || 0) - Number(a[mode.key] || 0) || Number(b.dias_aus || 0) - Number(a.dias_aus || 0))
+      .map((row, index) => ({...row, rank:`${index + 1}°`}));
+    state.tableSort['ranking-table'] = {key:mode.key, dir:'desc'};
+    renderTable('ranking-table', detailColumns[state.detailMode] || detailColumns.aus_pct, data);
+  }
+  async function loadConfig(){
+    const me = await api('/api/auth/me'); if (!me) return;
+    state.config = await api('/api/rrhh/config');
+    $('user-label').textContent = `${me.display_name || me.username} · ${me.role}`;
+    $('folder-path').value = state.config.latest_folder || '';
+    $('import-box').classList.toggle('hidden', !state.config.can_import);
+    $('import-readonly').classList.toggle('hidden', state.config.can_import);
+    $('access-note').textContent = state.config.can_see_gerencia ? 'Perfil con acceso completo a registros de gerencia/jefatura.' : 'Vista operativa: gerencia/jefatura se oculta desde el servidor.';
+    $('access-note').classList.toggle('warn', !state.config.can_see_gerencia);
+  }
+  async function loadBatches(){
+    const data = await api('/api/rrhh/batches');
+    const batches = data?.batches || [];
+    if (batches.length) {
+      const nextBatchId = Number(batches[0].batch_id);
+      if (state.batchId !== nextBatchId) {
+        state.batchId = nextBatchId;
+        state.dateRangeApplied = false;
+        $('fecha-desde').value = '';
+        $('fecha-hasta').value = '';
+      }
+      await loadIndicators();
+    }
+    else setStatus('Todavia no hay lotes importados.');
+  }
+  async function loadIndicators(){
+    if (!state.batchId) return;
+    const data = await api(`/api/rrhh/indicadores?${params()}`);
+    const range = data.data_range || {};
+    $('range-note').textContent = `El tablero cuenta con informacion entre ${range.fecha_desde || '-'} y ${range.fecha_hasta || '-'}`;
+    if (!state.dateRangeApplied && range.fecha_desde && range.fecha_hasta && !$('fecha-desde').value && !$('fecha-hasta').value) {
+      $('fecha-desde').value = range.fecha_desde;
+      $('fecha-hasta').value = range.fecha_hasta;
+      state.dateRangeApplied = true;
+    }
+    if (!state.filtersLoaded) {
+      setChecklist('sector', data.filters.sectores);
+      setChecklist('cargo', data.filters.cargos);
+      setChecklist('motivo', data.filters.motivos);
+      state.filtersLoaded = true;
+    } else {
+      setChecklist('cargo', data.filters.cargos);
+    }
+    renderKpis(data.kpis || {});
+    $('chart-diario').innerHTML = linePct(data.series.diario);
+    $('chart-sector').innerHTML = objectiveBars(data.series.por_sector, 10);
+    $('chart-motivos').innerHTML = bars(data.series.motivos, 'eventos', 'label', 'amber', 10);
+    $('chart-extra').innerHTML = bars(data.series.por_sector, 'horas_extra', 'label', 'blue', 10);
+    $('chart-tarde').innerHTML = bars(data.series.por_sector, 'llegadas_tarde', 'label', 'amber', 10);
+    $('chart-sanciones').innerHTML = bars(data.series.sanciones, 'eventos', 'label', 'blue', 10);
+    $('chart-sector-cargo').innerHTML = objectiveBars(data.series.por_sector_cargo, 12);
+    $('chart-extra-cargo').innerHTML = bars(data.series.por_sector_cargo, 'horas_extra', 'label', 'blue', 12);
+    $('chart-tarde-cargo').innerHTML = bars(data.series.por_sector_cargo, 'llegadas_tarde', 'label', 'amber', 12);
+    $('ranking-table').__allRows = data.series.ranking || [];
+    renderDetail(data.series.ranking);
+    await Promise.all([loadActividad(), loadSanciones()]);
+    setStatus('Indicadores actualizados.');
+  }
+  async function loadActividad(){
+    const data = await api(`/api/rrhh/actividad?${params()}&limit=250`);
+    renderTable('actividad-table', [
+      {key:'fecha',label:'Fecha',mono:true},{key:'legajo',label:'Legajo',mono:true},{key:'empleado',label:'Empleado'},{key:'sector',label:'Sector'},
+      {key:'horario',label:'Horario'},{key:'entrada',label:'Entrada',mono:true},{key:'salida',label:'Salida',mono:true},{key:'aus_pres_codigo',label:'Cod.',mono:true},
+      {key:'motivo',label:'Motivo'},{key:'ausentismo_clasificacion',label:'Clasif.'},{key:'hs_trab',label:'Hs.',mono:true},{key:'tarde',label:'Tarde',mono:true}
+    ], data.rows);
+  }
+  async function loadSanciones(){
+    const data = await api(`/api/rrhh/sanciones?${params()}&limit=250`);
+    renderTable('sanciones-table', [
+      {key:'creacion',label:'Creacion',mono:true},{key:'legajo',label:'Legajo',mono:true},{key:'nombre',label:'Nombre'},{key:'sector',label:'Sector'},{key:'cod',label:'Cod.',mono:true},
+      {key:'descripcion',label:'Descripcion'},{key:'causa_sancion',label:'Causa'},{key:'descripcion_causa',label:'Detalle causa'}
+    ], data.rows);
+  }
+  async function importRequest(path, body){
+    try { setStatus('Importando archivos RRHH...'); const data = await api(path, {method:'POST', body:JSON.stringify(body||{})}); state.filtersLoaded=false; state.dateRangeApplied=false; setStatus(`Importacion completa: ${data.batch_key}.`); await loadBatches(); }
+    catch(e){ setStatus(e.message, true); }
+  }
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.paper-panel').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active'); $(`panel-${btn.dataset.tab}`).classList.add('active');
+  });
+  document.querySelectorAll('.inner-tab').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('.inner-tab').forEach(x => x.classList.remove('active'));
+    ['actividad','sanciones'].forEach(id => $(`inner-${id}`).classList.add('hidden'));
+    btn.classList.add('active'); $(`inner-${btn.dataset.inner}`).classList.remove('hidden');
+  });
+  document.querySelectorAll('.detail-tab').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('.detail-tab').forEach(x => x.classList.remove('active'));
+    btn.classList.add('active');
+    state.detailMode = btn.dataset.detail;
+    renderDetail($('ranking-table').__allRows || []);
+  });
+  document.addEventListener('click', (event) => {
+    const th = event.target.closest('th.sortable[data-table][data-key]');
+    if (!th) return;
+    const table = $(th.dataset.table);
+    if (!table?.__rows || !table?.__cols) return;
+    const current = state.tableSort[th.dataset.table] || {};
+    state.tableSort[th.dataset.table] = {
+      key: th.dataset.key,
+      dir: current.key === th.dataset.key && current.dir === 'asc' ? 'desc' : 'asc',
+    };
+    renderTable(th.dataset.table, table.__cols, table.__rows);
+  });
+  document.addEventListener('change', (event) => {
+    const input = event.target.closest('input[type="checkbox"][data-filter]');
+    if (!input) return;
+    const key = input.dataset.filter;
+    const current = new Set(state.selected[key] || []);
+    if (input.checked) current.add(input.value); else current.delete(input.value);
+    state.selected[key] = Array.from(current);
+    saveFilters();
+    if (key === 'sector') {
+      loadIndicators();
+    }
+  });
+  document.querySelectorAll('[data-clear-filter]').forEach(button => {
+    button.addEventListener('click', () => {
+      const key = button.dataset.clearFilter;
+      state.selected[key] = [];
+      setChecklist(key, Array.from($(`filter-${key}`).querySelectorAll('input')).map(input => input.value));
+      saveFilters();
+      if (key === 'sector') loadIndicators();
+    });
+  });
+  $('toggle-filters').onclick = () => { $('filter-panel').classList.toggle('open'); saveFilters(); };
+  $('apply-filters').onclick = async () => { await loadIndicators(); $('filter-panel').classList.remove('open'); saveFilters(); };
+  $('import-latest').onclick = () => importRequest('/api/rrhh/import/latest', {force:true});
+  $('import-folder').onclick = () => importRequest('/api/rrhh/import/folder', {folder_path:$('folder-path').value, force:true});
+  $('logout-btn').onclick = async () => { await fetch('/api/auth/logout', {method:'POST', credentials:'same-origin'}); location.href='/login'; };
+  (async function init(){ try { loadSavedFilters(); await loadConfig(); await loadBatches(); } catch(e) { setStatus(e.message, true); } })();
+</script>
+</body>
+</html>

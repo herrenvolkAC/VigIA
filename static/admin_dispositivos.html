@@ -130,6 +130,9 @@
       padding-inline: 10px;
     }
     .message { min-height: 18px; color: var(--ink-soft); font-size: 12px; }
+    .mail-controls { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
+    .mail-controls label { margin-bottom: 4px; }
+    .mail-controls select { min-width: 230px; }
     @media (max-width: 900px) {
       form { grid-template-columns: 1fr; }
       table { min-width: 900px; }
@@ -187,6 +190,16 @@
           <h2>Usuarios habilitados</h2>
           <div class="muted">Alta local simple. La contraseña no se guarda en claro.</div>
         </div>
+        <div class="mail-controls">
+          <div>
+            <label for="mail-target">Correo para</label>
+            <select id="mail-target">
+              <option value="tnc">TNC</option>
+              <option value="rrhh">Novedades CD</option>
+              <option value="both">TNC + Novedades CD</option>
+            </select>
+          </div>
+        </div>
       </div>
       <form id="user-form">
         <div>
@@ -208,6 +221,7 @@
           <label for="new-role">Rol</label>
           <select id="new-role">
             <option value="user">Usuario</option>
+            <option value="rrhh">RRHH</option>
             <option value="admin">Admin</option>
           </select>
         </div>
@@ -235,6 +249,14 @@
   const messageEl = document.getElementById('message');
   const devicesBody = document.getElementById('devices-body');
   const usersBody = document.getElementById('users-body');
+  let mailContext = {
+    origin: window.location.origin,
+    server_name: window.location.hostname,
+    apps: [
+      { id: 'tnc', label: 'Tiempos muertos y TNC', path: '/tiempos-muertos' },
+      { id: 'rrhh', label: 'Novedades CD', path: '/novedades-cd' },
+    ],
+  };
 
   function esc(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -323,10 +345,16 @@
     `).join('');
   }
 
+  async function loadMailContext() {
+    const data = await api('/api/auth/admin/mail-context');
+    if (!data) return;
+    mailContext = data;
+  }
+
   async function refreshAll() {
     try {
       setMessage('Consultando...');
-      await Promise.all([loadDevices(), loadUsers()]);
+      await Promise.all([loadDevices(), loadUsers(), loadMailContext()]);
       setMessage('Actualizado.');
     } catch (error) {
       setMessage(error.message, true);
@@ -397,13 +425,18 @@
       setMessage('No se armó el correo porque falta la contraseña.', true);
       return;
     }
-    const subject = `Acceso a VigIA - Tiempos muertos y TNC`;
+    const target = document.getElementById('mail-target').value;
+    const selectedApps = mailContext.apps.filter((app) => target === 'both' || app.id === target);
+    const appNames = selectedApps.map((app) => app.label).join(' / ');
+    const links = selectedApps.map((app) => `URL ${app.label}: ${mailContext.origin}${app.path}`);
+    const subject = `Acceso a VigIA - ${appNames}`;
     const body = [
       `Hola ${displayName},`,
       '',
-      'Te comparto el acceso a VigIA para la pantalla de Tiempos muertos y TNC.',
+      `Te comparto el acceso a VigIA para ${appNames}.`,
       '',
-      `URL: http://w093sisd04:9999/tiempos-muertos`,
+      ...links,
+      `Servidor: ${mailContext.server_name || new URL(mailContext.origin).hostname}`,
       `Usuario: ${username}`,
       `Contraseña: ${password}`,
       '',

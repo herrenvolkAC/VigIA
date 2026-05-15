@@ -24,6 +24,7 @@ from routers.operarios import router as operarios_router
 from routers.productividad_analisis import router as productividad_analisis_router
 from routers.plantel_operativo import router as plantel_operativo_router
 from routers.gestion_operativa import router as gestion_operativa_router
+from routers.rrhh_novedades import router as rrhh_novedades_router
 from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -73,6 +74,7 @@ app.include_router(operarios_router)
 app.include_router(productividad_analisis_router)
 app.include_router(plantel_operativo_router)
 app.include_router(gestion_operativa_router)
+app.include_router(rrhh_novedades_router)
 app.include_router(websocket_router)
 app.include_router(auth_router)
 
@@ -82,11 +84,14 @@ PROTECTED_PAGE_PATHS = {
     "/tiempos-muertos.html",
     "/gestion-operativa",
     "/gestion-operativa.html",
+    "/novedades-cd",
+    "/novedades-cd.html",
 }
 PROTECTED_API_PREFIXES = (
     "/api/productividad/tnc",
     "/api/productividad/picking/tiempos-muertos",
     "/api/gestion-operativa",
+    "/api/rrhh",
 )
 ADMIN_PAGE_PATHS = {
     "/admin/dispositivos",
@@ -171,6 +176,10 @@ async def page_tiempos_muertos(): return FileResponse(STATIC_DIR / "tiempos_muer
 @app.get("/gestion-operativa.html", include_in_schema=False)
 @app.get("/gestion-operativa",      include_in_schema=False)
 async def page_gestion_operativa(): return FileResponse(STATIC_DIR / "gestion_operativa.html")
+
+@app.get("/novedades-cd.html", include_in_schema=False)
+@app.get("/novedades-cd",      include_in_schema=False)
+async def page_novedades_cd(): return FileResponse(STATIC_DIR / "novedades_cd.html")
 
 @app.get("/admin/dispositivos.html", include_in_schema=False)
 @app.get("/admin/dispositivos",      include_in_schema=False)

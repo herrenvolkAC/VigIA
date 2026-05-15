@@ -4,6 +4,7 @@ import hmac
 import os
 import secrets
 import sqlite3
+import socket
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -77,6 +78,24 @@ def _client_ip(request: Request) -> str:
     if forwarded:
         return forwarded.split(",", 1)[0].strip()
     return request.client.host if request.client else ""
+
+
+def _request_origin(request: Request) -> str:
+    forwarded_proto = request.headers.get("x-forwarded-proto", "").split(",", 1)[0].strip()
+    scheme = forwarded_proto or request.url.scheme or "http"
+    host = request.headers.get("host") or request.url.netloc
+    return f"{scheme}://{host}".rstrip("/")
+
+
+def _server_origin(request: Request) -> str:
+    origin = _request_origin(request)
+    hostname = (request.url.hostname or "").lower()
+    if hostname not in {"localhost", "127.0.0.1", "::1"}:
+        return origin
+    server_name = (os.getenv("COMPUTERNAME") or socket.gethostname() or hostname).strip()
+    port = request.url.port
+    port_part = f":{port}" if port else ""
+    return f"{request.url.scheme or 'http'}://{server_name}{port_part}"
 
 
 def _is_local_request(request: Request) -> bool:
@@ -302,11 +321,25 @@ async def list_users(request: Request):
     return {"users": rows}
 
 
+@router.get("/admin/mail-context")
+async def mail_context(request: Request):
+    await _require_admin(request)
+    return {
+        "origin": _server_origin(request),
+        "request_origin": _request_origin(request),
+        "server_name": (os.getenv("COMPUTERNAME") or socket.gethostname() or "").strip(),
+        "apps": [
+            {"id": "tnc", "label": "Tiempos muertos y TNC", "path": "/tiempos-muertos"},
+            {"id": "rrhh", "label": "Novedades CD", "path": "/novedades-cd"},
+        ],
+    }
+
+
 @router.post("/admin/users")
 async def create_user(req: UserCreateRequest, request: Request):
     await _require_admin(request)
     username = _normalize_username(req.username)
-    role = req.role if req.role in {"user", "admin"} else "user"
+    role = req.role if req.role in {"user", "admin", "rrhh"} else "user"
     if not username or len(req.password) < 4:
         raise HTTPException(status_code=400, detail="Usuario requerido y contraseña mínima de 4 caracteres.")
     try:
