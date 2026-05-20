@@ -45,6 +45,13 @@ class UserActionRequest(BaseModel):
     username: str
 
 
+class UserScopeRequest(BaseModel):
+    username: str
+    module: str = "novedades_cd"
+    scope: str = "operativo"
+    sectors: list[str] = []
+
+
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -315,10 +322,91 @@ async def list_users(request: Request):
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
-            "SELECT username, display_name, role, active, created_at, updated_at FROM auth_users ORDER BY username"
+            """
+            SELECT u.username, u.display_name, u.role, u.active, u.created_at, u.updated_at,
+                   COALESCE(MAX(CASE WHEN s.module = 'novedades_cd' AND s.active = 1 THEN s.scope END), 'operativo') rrhh_scope,
+                   GROUP_CONCAT(CASE WHEN s.module = 'novedades_cd' AND s.active = 1 AND s.sector IS NOT NULL THEN s.sector END, '|') rrhh_sectors
+            FROM auth_users u
+            LEFT JOIN auth_user_module_scopes s ON s.username = u.username
+            GROUP BY u.username, u.display_name, u.role, u.active, u.created_at, u.updated_at
+            ORDER BY u.username
+            """
         ) as cur:
             rows = [dict(row) for row in await cur.fetchall()]
+    for row in rows:
+        row["rrhh_sectors"] = [item for item in (row.get("rrhh_sectors") or "").split("|") if item]
     return {"users": rows}
+
+
+@router.get("/admin/rrhh-sectors")
+async def list_rrhh_sectors(request: Request):
+    await _require_admin(request)
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT DISTINCT desc_sector_generico value
+            FROM rrhh_legajero
+            WHERE TRIM(COALESCE(desc_sector_generico, '')) <> ''
+            ORDER BY value
+            """
+        ) as cur:
+            rows = [row["value"] for row in await cur.fetchall()]
+    return {"sectors": rows}
+
+
+@router.post("/admin/users/scope")
+async def set_user_scope(req: UserScopeRequest, request: Request):
+    await _require_admin(request)
+    username = _normalize_username(req.username)
+    module = req.module.strip().lower() or "novedades_cd"
+    scope = req.scope.strip().lower()
+    if module != "novedades_cd":
+        raise HTTPException(status_code=400, detail="Modulo no soportado.")
+    if scope not in {"operativo", "sector_completo", "global"}:
+        raise HTTPException(status_code=400, detail="Alcance invalido.")
+    sectors = []
+    for sector in req.sectors or []:
+        value = " ".join(str(sector).split())
+        if value and value not in sectors:
+            sectors.append(value)
+    if scope == "sector_completo" and not sectors:
+        raise HTTPException(status_code=400, detail="El alcance por sector requiere al menos un sector.")
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT 1 FROM auth_users WHERE username = ?", (username,)) as cur:
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+        await db.execute(
+            "UPDATE auth_user_module_scopes SET active = 0, updated_at = ? WHERE username = ? AND module = ?",
+            (_now(), username, module),
+        )
+        if scope == "operativo":
+            await db.execute(
+                """
+                INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
+                VALUES (?, ?, 'operativo', NULL, 1)
+                """,
+                (username, module),
+            )
+        elif scope == "global":
+            await db.execute(
+                """
+                INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
+                VALUES (?, ?, 'global', NULL, 1)
+                """,
+                (username, module),
+            )
+        else:
+            for sector in sectors:
+                await db.execute(
+                    """
+                    INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
+                    VALUES (?, ?, 'sector_completo', ?, 1)
+                    """,
+                    (username, module, sector),
+                )
+        await db.commit()
+    return {"ok": True}
 
 
 @router.get("/admin/mail-context")

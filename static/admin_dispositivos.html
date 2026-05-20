@@ -133,10 +133,45 @@
     .mail-controls { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
     .mail-controls label { margin-bottom: 4px; }
     .mail-controls select { min-width: 230px; }
+    .users-list { display: grid; gap: 10px; margin-top: 14px; }
+    .user-card { border: 1px solid var(--rule); background: var(--panel); }
+    .user-summary {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) minmax(180px, 1.1fr) 92px 190px auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+    }
+    .user-summary:nth-child(odd) { background: #F8FAF7; }
+    .user-name { font-weight: 700; }
+    .user-detail { display: none; border-top: 1px solid var(--rule); padding: 12px; background: #F8FAF7; }
+    .user-card.open .user-detail { display: block; }
+    .scope-form { display: grid; grid-template-columns: 220px 1fr auto; gap: 12px; align-items: start; }
+    .sector-checks {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 4px 12px;
+      max-height: 260px;
+      overflow: auto;
+      border: 1px solid var(--rule);
+      background: var(--panel);
+      padding: 8px;
+    }
+    .sector-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 26px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+    .sector-check input { width: auto; min-height: 0; }
+    .scope-note { margin-top: 6px; color: var(--ink-soft); font-size: 12px; }
     @media (max-width: 900px) {
       form { grid-template-columns: 1fr; }
       table { min-width: 900px; }
       .table-wrap { overflow-x: auto; }
+      .user-summary, .scope-form, .sector-checks { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -174,9 +209,9 @@
               <th>Dispositivo</th>
               <th>IP</th>
               <th>Primer ingreso</th>
-              <th>Último uso</th>
+              <th>Ultimo uso</th>
               <th>Navegador</th>
-              <th>Acción</th>
+              <th>Accion</th>
             </tr>
           </thead>
           <tbody id="devices-body"></tbody>
@@ -188,7 +223,7 @@
       <div class="section-head">
         <div>
           <h2>Usuarios habilitados</h2>
-          <div class="muted">Alta local simple. La contraseña no se guarda en claro.</div>
+          <div class="muted">Alta local simple. La contrasena no se guarda en claro.</div>
         </div>
         <div class="mail-controls">
           <div>
@@ -211,10 +246,10 @@
           <input id="new-name" autocomplete="off">
         </div>
         <div>
-          <label for="new-pass">Contraseña</label>
+          <label for="new-pass">Contrasena</label>
           <div class="password-row">
             <input id="new-pass" type="text" autocomplete="new-password" minlength="4" required>
-            <button type="button" id="generate-pass" title="Generar contraseña">AUTO</button>
+            <button type="button" id="generate-pass" title="Generar contrasena">AUTO</button>
           </div>
         </div>
         <div>
@@ -227,20 +262,7 @@
         </div>
         <button class="primary" type="submit">Crear usuario</button>
       </form>
-      <div class="table-wrap" style="margin-top:14px">
-        <table>
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Nombre</th>
-              <th>Rol</th>
-      <th>Activo</th>
-      <th>Creado</th>
-      <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody id="users-body"></tbody>
-        </table>
+      <div class="users-list" id="users-body">
       </div>
     </section>
   </main>
@@ -249,6 +271,7 @@
   const messageEl = document.getElementById('message');
   const devicesBody = document.getElementById('devices-body');
   const usersBody = document.getElementById('users-body');
+  let rrhhSectors = [];
   let mailContext = {
     origin: window.location.origin,
     server_name: window.location.hostname,
@@ -296,7 +319,7 @@
       return null;
     }
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || 'La operación no pudo completarse.');
+    if (!res.ok) throw new Error(data.detail || 'La operacion no pudo completarse.');
     return data;
   }
 
@@ -326,23 +349,66 @@
   async function loadUsers() {
     const data = await api('/api/auth/admin/users');
     if (!data) return;
-    usersBody.innerHTML = data.users.map((row) => `
-      <tr>
-        <td class="mono">${esc(row.username)}</td>
-        <td>${esc(row.display_name)}</td>
-        <td class="mono">${esc(row.role)}</td>
-        <td class="mono">${row.active ? 'SI' : 'NO'}</td>
-        <td class="mono">${esc(row.created_at)}</td>
-        <td>
+    usersBody.innerHTML = data.users.map(renderUserCard).join('') || '<div class="muted">Sin usuarios registrados.</div>';
+  }
+
+  function scopeLabel(scope) {
+    return ({ operativo: 'Operativo', sector_completo: 'Sector completo', global: 'Global' })[scope] || 'Operativo';
+  }
+
+  function renderSectorChecks(row) {
+    const selected = new Set(row.rrhh_sectors || []);
+    return rrhhSectors.map((sector) => `
+      <label class="sector-check" title="${esc(sector)}">
+        <input type="checkbox" data-sector-check value="${esc(sector)}" ${selected.has(sector) ? 'checked' : ''}>
+        <span>${esc(sector)}</span>
+      </label>
+    `).join('') || '<div class="muted">No hay sectores importados todavia.</div>';
+  }
+
+  function renderUserCard(row) {
+    const selectedCount = (row.rrhh_sectors || []).length;
+    const scope = row.rrhh_scope || 'operativo';
+    const sectorSummary = scope === 'global' ? 'Todos los sectores'
+      : scope === 'sector_completo' ? `${selectedCount} sector(es)` : 'Sin sectores asignados';
+    return `
+      <article class="user-card" data-user-card="${esc(row.username)}">
+        <div class="user-summary">
+          <div>
+            <div class="mono user-name">${esc(row.username)}</div>
+            <div class="muted">${esc(row.display_name || '')}</div>
+          </div>
+          <div><span class="pill">${esc(scopeLabel(scope))}</span></div>
+          <div class="mono">${esc(row.role)}</div>
+          <div class="muted">${esc(sectorSummary)}</div>
           <div class="actions">
+            <button data-toggle-user="${esc(row.username)}">Detalle</button>
             <button data-mail-user="${esc(row.username)}" data-mail-name="${esc(row.display_name || row.username)}">Correo</button>
             <button class="${row.active ? 'warn' : 'ok'}" data-user-action="${row.active ? 'deactivate' : 'activate'}" data-username="${esc(row.username)}">
               ${row.active ? 'Desactivar' : 'Activar'}
             </button>
           </div>
-        </td>
-      </tr>
-    `).join('');
+        </div>
+        <div class="user-detail" data-scope-user="${esc(row.username)}">
+          <div class="scope-form">
+            <div>
+              <label>Alcance Novedades CD</label>
+              <select data-scope-select>
+                <option value="operativo" ${scope === 'operativo' ? 'selected' : ''}>Operativo</option>
+                <option value="sector_completo" ${scope === 'sector_completo' ? 'selected' : ''}>Sector completo</option>
+                <option value="global" ${scope === 'global' ? 'selected' : ''}>Global</option>
+              </select>
+              <div class="scope-note">Global ignora sectores. Sector completo habilita jefes/gerentes solo en los sectores marcados.</div>
+            </div>
+            <div>
+              <label>Sectores asociados</label>
+              <div class="sector-checks">${renderSectorChecks(row)}</div>
+            </div>
+            <button class="primary" data-save-scope="${esc(row.username)}">Guardar</button>
+          </div>
+        </div>
+      </article>
+    `;
   }
 
   async function loadMailContext() {
@@ -351,9 +417,16 @@
     mailContext = data;
   }
 
+  async function loadRrhhSectors() {
+    const data = await api('/api/auth/admin/rrhh-sectors');
+    if (!data) return;
+    rrhhSectors = data.sectors || [];
+  }
+
   async function refreshAll() {
     try {
       setMessage('Consultando...');
+      await loadRrhhSectors();
       await Promise.all([loadDevices(), loadUsers(), loadMailContext()]);
       setMessage('Actualizado.');
     } catch (error) {
@@ -376,6 +449,30 @@
   });
 
   usersBody.addEventListener('click', async (event) => {
+    const toggleButton = event.target.closest('button[data-toggle-user]');
+    if (toggleButton) {
+      const card = toggleButton.closest('[data-user-card]');
+      card.classList.toggle('open');
+      toggleButton.textContent = card.classList.contains('open') ? 'Cerrar' : 'Detalle';
+      return;
+    }
+    const scopeButton = event.target.closest('button[data-save-scope]');
+    if (scopeButton) {
+      const row = scopeButton.closest('[data-scope-user]');
+      const scope = row.querySelector('[data-scope-select]').value;
+      const sectors = Array.from(row.querySelectorAll('[data-sector-check]:checked')).map((option) => option.value);
+      try {
+        await api('/api/auth/admin/users/scope', {
+          method: 'POST',
+          body: JSON.stringify({ username: scopeButton.dataset.saveScope, module: 'novedades_cd', scope, sectors }),
+        });
+        setMessage('Alcance actualizado.');
+        await refreshAll();
+      } catch (error) {
+        setMessage(error.message, true);
+      }
+      return;
+    }
     const button = event.target.closest('button[data-user-action]');
     if (!button) return;
     try {
@@ -419,10 +516,10 @@
     const storageKey = `vigia_user_pass_${username.toLowerCase()}`;
     let password = sessionStorage.getItem(storageKey) || '';
     if (!password) {
-      password = prompt(`Contraseña inicial para ${username}:`) || '';
+      password = prompt(`Contrasena inicial para ${username}:`) || '';
     }
     if (!password) {
-      setMessage('No se armó el correo porque falta la contraseña.', true);
+      setMessage('No se armo el correo porque falta la contrasena.', true);
       return;
     }
     const target = document.getElementById('mail-target').value;
@@ -438,10 +535,10 @@
       ...links,
       `Servidor: ${mailContext.server_name || new URL(mailContext.origin).hostname}`,
       `Usuario: ${username}`,
-      `Contraseña: ${password}`,
+      `Contrasena: ${password}`,
       '',
-      'Por favor ingresá desde la PC/navegador que vas a usar habitualmente para validar tu primer ingreso.',
-      'Después de iniciar sesión, el acceso va a quedar pendiente de aprobación.',
+      'Por favor ingresa desde la PC/navegador que vas a usar habitualmente para validar tu primer ingreso.',
+      'Despues de iniciar sesion, el acceso va a quedar pendiente de aprobacion.',
       'Cuando termines ese primer ingreso, avisame para validar y habilitar el dispositivo.',
       '',
       'Gracias.'

@@ -135,6 +135,20 @@ app.mount("/js",        StaticFiles(directory=STATIC_DIR / "js"),   name="js")
 app.mount("/resources", StaticFiles(directory=RESOURCES_DIR),       name="resources")
 
 # Páginas HTML
+@app.get("/api/app-info")
+async def app_info():
+    environment = os.getenv("VIGIA_APP_ENV", "test").strip().lower()
+    banner = os.getenv(
+        "VIGIA_APP_BANNER",
+        "VERSION DE PRUEBAS - pendiente de implementacion en servidor",
+    ).strip()
+    return {
+        "environment": environment,
+        "banner": banner,
+        "show_banner": bool(banner) and environment not in {"prod", "production", "produccion"},
+    }
+
+
 _PAGES = [
     "/",             "index.html",
     "/login",        "login.html",

@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 import asyncio
 import csv
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +42,13 @@ router = APIRouter(prefix="/api/rrhh", tags=["rrhh-novedades"])
 SOURCE_ROOT = Path(__file__).parent.parent / "Docs" / "Panel_Choferes" / "PROCESADOS"
 FULL_ACCESS_ROLES = {"admin", "rrhh"}
 IMPORT_ROLES = {"admin", "rrhh"}
+RRHH_SCOPE_MODULE = "novedades_cd"
+REAL_SANCIONES = (
+    "Amonestación",
+    "Anotaciones Especiales",
+    "Llamada de Atención Escrita",
+    "Suspensión",
+)
 
 
 class ImportFolderRequest(BaseModel):
@@ -169,6 +176,68 @@ def _to_time_text(value: Any) -> str | None:
         return value.strftime("%H:%M:%S")
     text = _norm(value)
     return text or None
+
+
+def _time_minus_minutes(value: Any, minutes: Any) -> str:
+    text = _norm(value)
+    if not text:
+        return ""
+    try:
+        mins = int(round(float(minutes or 0)))
+    except (TypeError, ValueError):
+        mins = 0
+    if mins <= 0:
+        return text[:5] if re.match(r"^\d{1,2}:\d{2}", text) else text
+    try:
+        base = datetime.strptime(text[:8] if len(text) >= 8 else text[:5], "%H:%M:%S" if len(text) >= 8 else "%H:%M")
+    except ValueError:
+        return ""
+    return (base - timedelta(minutes=mins)).strftime("%H:%M")
+
+
+def _is_schedule_text(value: Any) -> bool:
+    text = _norm(value)
+    if not text:
+        return False
+    return bool(re.search(r"\bhs\b|\d+\s*\+\s*\d+|libre", text, re.IGNORECASE))
+
+
+def _split_activity_schedule_code(data: dict[str, Any]) -> tuple[str, str, str]:
+    first = _norm(data.get("horario"))
+    second = _norm(data.get("pausa"))
+    if _is_schedule_text(first) and not _is_schedule_text(second):
+        return second, first, second
+    if _is_schedule_text(second) and not _is_schedule_text(first):
+        return first, second, first
+    return first, first if _is_schedule_text(first) else second if _is_schedule_text(second) else "", second
+
+
+def _parse_schedule(value: Any) -> dict[str, Any]:
+    text = re.sub(r"\s+", " ", _norm(value)).strip()
+    if not text or re.search(r"\blibre\b", text, re.IGNORECASE):
+        return {"descripcion": text, "inicio": "", "fin": "", "horas": 0.0}
+    time_match = re.search(r"(\d{1,2}):(\d{2})", text)
+    hour_only_match = None if time_match else re.search(r"\b(\d{1,2})\s*hs\b", text, re.IGNORECASE)
+    if not time_match and not hour_only_match:
+        return {"descripcion": text, "inicio": "", "fin": "", "horas": 0.0}
+    duration_part = text[:time_match.start()] if time_match else text[:hour_only_match.start()]
+    numbers = [float(num.replace(",", ".")) for num in re.findall(r"\d+(?:[,.]\d+)?", duration_part)]
+    hours = sum(numbers) if "+" in duration_part else (numbers[0] if numbers else 0.0)
+    start_minutes = int((time_match or hour_only_match).group(1)) * 60 + (int(time_match.group(2)) if time_match else 0)
+    if hours <= 0:
+        return {
+            "descripcion": text,
+            "inicio": f"{start_minutes // 60:02d}:{start_minutes % 60:02d}",
+            "fin": "",
+            "horas": 0.0,
+        }
+    end_minutes = (start_minutes + int(round(hours * 60))) % (24 * 60)
+    return {
+        "descripcion": text,
+        "inicio": f"{start_minutes // 60:02d}:{start_minutes % 60:02d}",
+        "fin": f"{end_minutes // 60:02d}:{end_minutes % 60:02d}",
+        "horas": hours,
+    }
 
 
 def _json_value(value: Any) -> Any:
@@ -334,6 +403,7 @@ def _pick_files(folder: Path, patterns: list[str], exclude: list[str] | None = N
         p.resolve(): p for p in candidates
         if p.is_file()
         and p.suffix.lower() in {".xlsx", ".xls"}
+        and not p.name.startswith("~$")
         and not any(token in p.name.lower() for token in exclude)
     }
     return sorted(unique.values(), key=lambda p: (p.stat().st_mtime, p.name.lower()))
@@ -414,12 +484,12 @@ def _sync_personas_master(cur: sqlite3.Cursor, batch_id: int, items: list[dict[s
                     last_seen_batch_id, last_changed_batch_id, first_seen_at,
                     last_seen_at, data_hash, change_count, raw_json, updated_at
                 ) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, 1, ?, ?
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )
                 """,
                 tuple(item.get(key) for key in PERSONA_MASTER_FIELDS[:-1])
-                + (batch_id, batch_id, batch_id, now, now, item_hash, item["raw_json"], now),
+                + (1, batch_id, batch_id, batch_id, now, now, item_hash, 1, item["raw_json"], now),
             )
             cur.execute(
                 """
@@ -456,7 +526,7 @@ def _sync_personas_master(cur: sqlite3.Cursor, batch_id: int, items: list[dict[s
                 raw_json = ?, updated_at = ?
             WHERE legajo = ?
             """,
-            tuple(item.get(key) for key in PERSONA_MASTER_FIELDS[1:])
+            tuple(item.get(key) for key in PERSONA_MASTER_FIELDS[1:-1])
             + (batch_id, batch_id, now, item_hash, item["raw_json"], now, legajo),
         )
         cur.execute(
@@ -598,13 +668,15 @@ def _import_actividad(
         sector = _norm(data.get("sector"))
         aus_pres = _norm(data.get("aus_pres"))
         motivo = _norm(data.get("motivo"))
-        horario = _norm(data.get("horario"))
-        aus_info = _classify_ausentismo(aus_pres, motivo, horario, codes, no_count_patterns)
+        horario, horario_teorico_raw, pausa = _split_activity_schedule_code(data)
+        horario_info = _parse_schedule(horario_teorico_raw)
+        aus_info = _classify_ausentismo(aus_pres, motivo, horario_teorico_raw, codes, no_count_patterns)
         payload.append((
             batch_id, legajo, _norm(data.get("empleado")), fecha,
             _norm(data.get("division")), _norm(data.get("subdivision")), uo_sector_map.get(sector, sector),
             _norm(data.get("grupo_profesional")), _norm(data.get("area_de_personal")),
-            _norm(data.get("dia")), _norm(data.get("pausa")), horario,
+            _norm(data.get("dia")), pausa, horario,
+            horario_info["descripcion"], horario_info["inicio"], horario_info["fin"], horario_info["horas"],
             aus_pres, aus_info["codigo_norm"], aus_info["tratamiento"], aus_info["tipo"],
             aus_info["clasificacion"], aus_info["contabiliza"], aus_info["regla"],
             motivo, _norm(data.get("comida")),
@@ -622,13 +694,14 @@ def _import_actividad(
         """
         INSERT INTO rrhh_actividad_diaria (
             batch_id, legajo, empleado, fecha, division, subdivision, sector,
-            grupo_profesional, area_personal, dia, pausa, horario, aus_pres_codigo,
-            aus_pres_codigo_norm, ausentismo_tratamiento, ausentismo_tipo,
+            grupo_profesional, area_personal, dia, pausa, horario,
+            horario_teorico, ingreso_teorico, salida_teorica, horas_teoricas,
+            aus_pres_codigo, aus_pres_codigo_norm, ausentismo_tratamiento, ausentismo_tipo,
             ausentismo_clasificacion, ausentismo_contabiliza, ausentismo_regla,
             motivo, comida, entrada, p1_ini, p1_fin, mas, salida, hs_trab,
             hs_ext_realiz, hs_50_autorizadas, hs_100, recargo_50, recargo_100,
             rec_noct, hs_fer, tarde, viajes_equiv, es_gerencia, raw_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         payload,
     )
@@ -1021,6 +1094,73 @@ def _delete_rrhh_batch_children(cur: sqlite3.Cursor, batch_id: int) -> None:
         cur.execute(f"DELETE FROM {table} WHERE batch_id = ?", (batch_id,))
 
 
+def _rrhh_quality_warnings(cur: sqlite3.Cursor, batch_id: int, limit: int = 25) -> dict[str, Any]:
+    cur.execute(
+        """
+        SELECT legajo, COALESCE(NULLIF(TRIM(nombre), ''), 'Sin nombre') nombre,
+               COALESCE(NULLIF(TRIM(desc_posicion), ''), NULLIF(TRIM(desc_funcion), ''), '') referencia
+        FROM rrhh_legajero
+        WHERE batch_id = ?
+          AND (
+            TRIM(COALESCE(desc_sector_generico, '')) = ''
+            OR TRIM(COALESCE(desc_funcion, '')) = ''
+          )
+        ORDER BY legajo
+        LIMIT ?
+        """,
+        (batch_id, limit),
+    )
+    legajero_rows = [dict(row) for row in cur.fetchall()]
+    cur.execute(
+        """
+        SELECT COUNT(*) c
+        FROM rrhh_legajero
+        WHERE batch_id = ?
+          AND (
+            TRIM(COALESCE(desc_sector_generico, '')) = ''
+            OR TRIM(COALESCE(desc_funcion, '')) = ''
+          )
+        """,
+        (batch_id,),
+    )
+    legajero_count = int(cur.fetchone()["c"] or 0)
+    cur.execute(
+        """
+        SELECT a.legajo,
+               COALESCE(NULLIF(TRIM(l.nombre), ''), NULLIF(TRIM(a.empleado), ''), 'Sin nombre') nombre,
+               COUNT(*) registros,
+               SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza, 0) = 1 THEN 1 ELSE 0 END) ausencias
+        FROM rrhh_actividad_diaria a
+        LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+        WHERE a.batch_id = ?
+          AND COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), '')) IS NULL
+        GROUP BY a.legajo, nombre
+        ORDER BY ausencias DESC, registros DESC, a.legajo
+        LIMIT ?
+        """,
+        (batch_id, limit),
+    )
+    activity_rows = [dict(row) for row in cur.fetchall()]
+    cur.execute(
+        """
+        SELECT COUNT(DISTINCT a.legajo) legajos, COUNT(*) registros
+        FROM rrhh_actividad_diaria a
+        LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+        WHERE a.batch_id = ?
+          AND COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), '')) IS NULL
+        """,
+        (batch_id,),
+    )
+    activity_count = dict(cur.fetchone())
+    return {
+        "legajero_sin_sector_o_cargo": legajero_count,
+        "legajero_sin_sector_o_cargo_muestra": legajero_rows,
+        "actividad_sin_sector_legajos": int(activity_count.get("legajos") or 0),
+        "actividad_sin_sector_registros": int(activity_count.get("registros") or 0),
+        "actividad_sin_sector_muestra": activity_rows,
+    }
+
+
 def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: bool) -> dict[str, Any]:
     files = _detect_files(folder)
     conn = sqlite3.connect(DB_PATH)
@@ -1064,6 +1204,8 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
             "sanciones_archivos": len(_as_paths(files, "sanciones_files")),
             "gerencia_legajos": sum(1 for value in gerencia_map.values() if value),
         }
+        warnings = _rrhh_quality_warnings(cur, batch_id)
+        summary["advertencias_calidad"] = warnings
         cur.execute(
             """
             UPDATE rrhh_import_batches
@@ -1085,11 +1227,47 @@ async def _require_auth(request: Request) -> dict[str, Any]:
     auth = await current_auth(request)
     if not auth or auth.get("device_status") != "approved":
         raise HTTPException(status_code=401, detail="No autenticado.")
+    await _attach_rrhh_scope(auth)
     return auth
 
 
+async def _attach_rrhh_scope(auth: dict[str, Any]) -> None:
+    if auth.get("role") in FULL_ACCESS_ROLES:
+        auth["rrhh_scope"] = "global"
+        auth["rrhh_sectors"] = []
+        return
+    sectors: list[str] = []
+    scope = "operativo"
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT scope, sector
+            FROM auth_user_module_scopes
+            WHERE username = ? AND module = ? AND active = 1
+            ORDER BY scope
+            """,
+            (auth.get("username"), RRHH_SCOPE_MODULE),
+        ) as cur:
+            rows = [dict(row) for row in await cur.fetchall()]
+    if any(row.get("scope") == "global" for row in rows):
+        scope = "global"
+    elif any(row.get("scope") == "sector_completo" for row in rows):
+        scope = "sector_completo"
+        for row in rows:
+            sector = _norm(row.get("sector"))
+            if row.get("scope") == "sector_completo" and sector and sector not in sectors:
+                sectors.append(sector)
+    auth["rrhh_scope"] = scope
+    auth["rrhh_sectors"] = sectors
+
+
 def _can_see_all(auth: dict[str, Any]) -> bool:
-    return auth.get("role") in FULL_ACCESS_ROLES
+    return auth.get("role") in FULL_ACCESS_ROLES or auth.get("rrhh_scope") == "global"
+
+
+def _can_see_gerencia(auth: dict[str, Any]) -> bool:
+    return _can_see_all(auth) or auth.get("rrhh_scope") == "sector_completo"
 
 
 def _require_import_role(auth: dict[str, Any]) -> None:
@@ -1115,9 +1293,18 @@ async def _resolve_batch_id(batch_id: int | None) -> int:
     return latest
 
 
-def _visibility_sql(auth: dict[str, Any], alias: str = "") -> str:
+def _sql_literals(values: list[str]) -> str:
+    return ", ".join("'" + value.replace("'", "''") + "'" for value in values)
+
+
+def _visibility_sql(auth: dict[str, Any], alias: str = "", sector_expression: str | None = None) -> str:
     if _can_see_all(auth):
         return "1=1"
+    if auth.get("rrhh_scope") == "sector_completo":
+        sectors = [_norm(sector) for sector in auth.get("rrhh_sectors", []) if _norm(sector)]
+        if not sectors or not sector_expression:
+            return "0=1"
+        return f"{sector_expression} IN ({_sql_literals(sectors)})"
     prefix = f"{alias}." if alias else ""
     return f"COALESCE({prefix}es_gerencia, 0) = 0"
 
@@ -1178,8 +1365,10 @@ async def get_config(request: Request):
             latest_folder = None
     return {
         "role": auth.get("role"),
+        "data_scope": auth.get("rrhh_scope", "operativo"),
+        "data_sectors": auth.get("rrhh_sectors", []),
         "can_import": auth.get("role") in IMPORT_ROLES,
-        "can_see_gerencia": _can_see_all(auth),
+        "can_see_gerencia": _can_see_gerencia(auth),
         "source_root": str(SOURCE_ROOT),
         "latest_folder": latest_folder,
     }
@@ -1203,6 +1392,73 @@ async def list_batches(request: Request):
     for row in rows:
         row["files"] = json.loads(row.pop("files_json") or "{}")
         row["summary"] = json.loads(row.pop("summary_json") or "{}")
+        if "advertencias_calidad" not in row["summary"]:
+            async with aiosqlite.connect(DB_PATH) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.execute(
+                    """
+                    SELECT legajo, COALESCE(NULLIF(TRIM(nombre), ''), 'Sin nombre') nombre,
+                           COALESCE(NULLIF(TRIM(desc_posicion), ''), NULLIF(TRIM(desc_funcion), ''), '') referencia
+                    FROM rrhh_legajero
+                    WHERE batch_id = ?
+                      AND (
+                        TRIM(COALESCE(desc_sector_generico, '')) = ''
+                        OR TRIM(COALESCE(desc_funcion, '')) = ''
+                      )
+                    ORDER BY legajo
+                    LIMIT 25
+                    """,
+                    (row["batch_id"],),
+                ) as cur:
+                    missing_master = [dict(item) for item in await cur.fetchall()]
+                async with db.execute(
+                    """
+                    SELECT COUNT(*) c
+                    FROM rrhh_legajero
+                    WHERE batch_id = ?
+                      AND (
+                        TRIM(COALESCE(desc_sector_generico, '')) = ''
+                        OR TRIM(COALESCE(desc_funcion, '')) = ''
+                      )
+                    """,
+                    (row["batch_id"],),
+                ) as cur:
+                    missing_master_count = (await cur.fetchone())["c"]
+                async with db.execute(
+                    """
+                    SELECT a.legajo,
+                           COALESCE(NULLIF(TRIM(l.nombre), ''), NULLIF(TRIM(a.empleado), ''), 'Sin nombre') nombre,
+                           COUNT(*) registros,
+                           SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza, 0) = 1 THEN 1 ELSE 0 END) ausencias
+                    FROM rrhh_actividad_diaria a
+                    LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+                    WHERE a.batch_id = ?
+                      AND COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), '')) IS NULL
+                    GROUP BY a.legajo, nombre
+                    ORDER BY ausencias DESC, registros DESC, a.legajo
+                    LIMIT 25
+                    """,
+                    (row["batch_id"],),
+                ) as cur:
+                    missing_activity = [dict(item) for item in await cur.fetchall()]
+                async with db.execute(
+                    """
+                    SELECT COUNT(DISTINCT a.legajo) legajos, COUNT(*) registros
+                    FROM rrhh_actividad_diaria a
+                    LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+                    WHERE a.batch_id = ?
+                      AND COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), '')) IS NULL
+                    """,
+                    (row["batch_id"],),
+                ) as cur:
+                    missing_activity_count = dict(await cur.fetchone())
+            row["summary"]["advertencias_calidad"] = {
+                "legajero_sin_sector_o_cargo": int(missing_master_count or 0),
+                "legajero_sin_sector_o_cargo_muestra": missing_master,
+                "actividad_sin_sector_legajos": int(missing_activity_count.get("legajos") or 0),
+                "actividad_sin_sector_registros": int(missing_activity_count.get("registros") or 0),
+                "actividad_sin_sector_muestra": missing_activity,
+            }
     return {"batches": rows}
 
 
@@ -1238,18 +1494,21 @@ async def import_folder(req: ImportFolderRequest, request: Request):
 async def get_resumen(request: Request, batch_id: int | None = None):
     auth = await _require_auth(request)
     batch_id = await _resolve_batch_id(batch_id)
-    vis = _visibility_sql(auth)
+    vis_legajero = _visibility_sql(auth, sector_expression="desc_sector_generico")
+    vis_actividad = _visibility_sql(auth, sector_expression="sector")
+    vis_sanciones = _visibility_sql(auth, sector_expression="desc_unidad_organizativa")
+    vis_fichadas = _visibility_sql(auth, "f", "COALESCE(l.desc_sector_generico, '')")
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         queries = {
-            "empleados": f"SELECT COUNT(DISTINCT legajo) v FROM rrhh_legajero WHERE batch_id = ? AND {vis}",
-            "actividad": f"SELECT COUNT(*) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis}",
-            "ausencias": f"SELECT COUNT(*) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis} AND COALESCE(ausentismo_contabiliza,0) = 1",
-            "horas_trabajadas": f"SELECT COALESCE(SUM(hs_trab),0) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis}",
-            "horas_extra": f"SELECT COALESCE(SUM(hs_ext_realiz + hs_50_autorizadas + hs_100),0) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis}",
-            "llegadas_tarde": f"SELECT COUNT(*) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis} AND tarde > 0",
-            "fichadas": f"SELECT COUNT(*) v FROM rrhh_fichadas WHERE batch_id = ? AND {vis}",
-            "sanciones": f"SELECT COUNT(*) v FROM rrhh_sanciones WHERE batch_id = ? AND {vis}",
+            "empleados": f"SELECT COUNT(DISTINCT legajo) v FROM rrhh_legajero WHERE batch_id = ? AND {vis_legajero}",
+            "actividad": f"SELECT COUNT(*) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis_actividad}",
+            "ausencias": f"SELECT COUNT(*) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis_actividad} AND COALESCE(ausentismo_contabiliza,0) = 1",
+            "horas_trabajadas": f"SELECT COALESCE(SUM(hs_trab),0) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis_actividad}",
+            "horas_extra": f"SELECT COALESCE(SUM(hs_ext_realiz + hs_50_autorizadas + hs_100),0) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis_actividad}",
+            "llegadas_tarde": f"SELECT COUNT(*) v FROM rrhh_actividad_diaria WHERE batch_id = ? AND {vis_actividad} AND tarde > 0",
+            "fichadas": f"SELECT COUNT(*) v FROM rrhh_fichadas f LEFT JOIN rrhh_legajero l ON l.batch_id = f.batch_id AND l.legajo = f.legajo WHERE f.batch_id = ? AND {vis_fichadas}",
+            "sanciones": f"SELECT COUNT(*) v FROM rrhh_sanciones WHERE batch_id = ? AND {vis_sanciones}",
         }
         metrics = {}
         for key, sql in queries.items():
@@ -1265,7 +1524,7 @@ async def get_resumen(request: Request, batch_id: int | None = None):
                    SUM(CASE WHEN a.tarde > 0 THEN 1 ELSE 0 END) llegadas_tarde
             FROM rrhh_actividad_diaria a
             LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
-            WHERE a.batch_id = ? AND {_visibility_sql(auth, 'a')}
+            WHERE a.batch_id = ? AND {_visibility_sql(auth, 'a', 'COALESCE(l.desc_sector_generico, a.sector)')}
             GROUP BY sector
             ORDER BY ausencias DESC, empleados DESC
             LIMIT 20
@@ -1302,7 +1561,7 @@ async def get_indicadores(
     grupos_sel = _multi_query_values(request, "grupo", grupo)
     motivos_sel = _multi_query_values(request, "motivo", motivo)
 
-    where = ["a.batch_id = ?", _visibility_sql(auth, "a")]
+    where = ["a.batch_id = ?", _visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
     params: list[Any] = [batch_id]
     if fecha_desde:
         where.append("a.fecha >= ?")
@@ -1350,7 +1609,7 @@ async def get_indicadores(
             SELECT MIN(a.fecha) fecha_desde, MAX(a.fecha) fecha_hasta
             FROM rrhh_actividad_diaria a
             LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
-            WHERE a.batch_id = ? AND {_visibility_sql(auth, "a")}
+            WHERE a.batch_id = ? AND {_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")}
             """,
             (batch_id,),
         ) as cur:
@@ -1375,7 +1634,7 @@ async def get_indicadores(
 
         async with db.execute(
             f"""
-            SELECT COALESCE(l.desc_sector_generico, a.sector, 'Sin sector') label,
+            SELECT COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), ''), 'Sin sector') label,
                    COUNT(*) registros,
                    COUNT(DISTINCT a.legajo) empleados,
                    SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) ausencias,
@@ -1385,6 +1644,7 @@ async def get_indicadores(
             FROM rrhh_actividad_diaria a
             LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
             WHERE {where_sql}
+              AND COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), '')) IS NOT NULL
             GROUP BY label
             ORDER BY ausencias DESC, horas_extra DESC
             LIMIT 12
@@ -1395,8 +1655,8 @@ async def get_indicadores(
 
         async with db.execute(
             f"""
-            SELECT COALESCE(l.desc_sector_generico, a.sector, 'Sin sector') || ' / ' ||
-                   COALESCE(NULLIF(TRIM(l.desc_funcion), ''), 'Sin cargo') label,
+            SELECT COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''), 'Sin cargo') || ' / ' ||
+                   COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), ''), 'Sin sector') label,
                    COUNT(*) registros,
                    COUNT(DISTINCT a.legajo) empleados,
                    SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) ausencias,
@@ -1406,6 +1666,7 @@ async def get_indicadores(
             FROM rrhh_actividad_diaria a
             LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
             WHERE {where_sql}
+              AND COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), '')) IS NOT NULL
             GROUP BY label
             ORDER BY ausencias DESC, horas_extra DESC
             LIMIT 18
@@ -1430,7 +1691,7 @@ async def get_indicadores(
         ) as cur:
             motivos = [dict(row) for row in await cur.fetchall()]
 
-        ranking_sancion_filters = ["s.batch_id = ?", _visibility_sql(auth, "s")]
+        ranking_sancion_filters = ["s.batch_id = ?", _visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
         ranking_sancion_params: list[Any] = [batch_id]
         if fecha_desde:
             ranking_sancion_filters.append("COALESCE(s.creacion, s.inicio) >= ?")
@@ -1438,6 +1699,8 @@ async def get_indicadores(
         if fecha_hasta:
             ranking_sancion_filters.append("COALESCE(s.creacion, s.inicio) <= ?")
             ranking_sancion_params.append(fecha_hasta)
+        ranking_sancion_filters.append(f"TRIM(s.descripcion) IN ({', '.join('?' for _ in REAL_SANCIONES)})")
+        ranking_sancion_params.extend(REAL_SANCIONES)
         async with db.execute(
             f"""
             WITH actividad_filtrada AS (
@@ -1479,6 +1742,7 @@ async def get_indicadores(
                 FROM (
                     SELECT s.legajo, COALESCE(NULLIF(TRIM(s.descripcion), ''), 'Sin descripcion') label, COUNT(*) c
                     FROM rrhh_sanciones s
+                    LEFT JOIN rrhh_legajero l ON l.batch_id = s.batch_id AND l.legajo = s.legajo
                     WHERE {" AND ".join(ranking_sancion_filters)}
                     GROUP BY s.legajo, label
                     ORDER BY COUNT(*) DESC, label
@@ -1506,7 +1770,7 @@ async def get_indicadores(
                    ROUND(SUM(af.hs_fer), 1) hs_fer,
                    ROUND(SUM(af.rec_noct), 1) rec_noct,
                    SUM(CASE WHEN af.tarde > 0 THEN 1 ELSE 0 END) c_tarde,
-                   ROUND(SUM(af.tarde), 1) min_tarde,
+                   ROUND(SUM(af.tarde) * 60, 0) min_tarde,
                    0 paus_30,
                    COALESCE(MAX(sl.c_sanc), 0) c_sanc,
                    COALESCE(MAX(sl.tipo_sancion), '') tipo_sancion,
@@ -1524,7 +1788,7 @@ async def get_indicadores(
         ) as cur:
             ranking = [dict(row) for row in await cur.fetchall()]
 
-        s_where = ["s.batch_id = ?", _visibility_sql(auth, "s")]
+        s_where = ["s.batch_id = ?", _visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
         s_params: list[Any] = [batch_id]
         if fecha_desde:
             s_where.append("COALESCE(s.creacion, s.inicio) >= ?")
@@ -1536,6 +1800,8 @@ async def get_indicadores(
         _append_multi_filter(s_where, s_params, "COALESCE(l.desc_funcion, '')", cargos_sel)
         _append_multi_filter(s_where, s_params, "COALESCE(l.desc_grupo_personal, '')", grupos_sel)
         _append_persona_filter(s_where, s_params, persona, record_alias="s", name_columns=("s.nombre",))
+        s_where.append(f"TRIM(s.descripcion) IN ({', '.join('?' for _ in REAL_SANCIONES)})")
+        s_params.extend(REAL_SANCIONES)
         async with db.execute(
             f"""
             SELECT COALESCE(NULLIF(TRIM(s.descripcion), ''), 'Sin descripcion') label,
@@ -1561,21 +1827,26 @@ async def get_indicadores(
         ) as cur:
             kpis["sanciones"] = (await cur.fetchone())["sanciones"]
 
-        f_where = ["batch_id = ?", _visibility_sql(auth)]
+        f_where = ["f.batch_id = ?", _visibility_sql(auth, "f", "COALESCE(l.desc_sector_generico, '')")]
         f_params: list[Any] = [batch_id]
         if fecha_desde:
-            f_where.append("fecha >= ?")
+            f_where.append("f.fecha >= ?")
             f_params.append(fecha_desde)
         if fecha_hasta:
-            f_where.append("fecha <= ?")
+            f_where.append("f.fecha <= ?")
             f_params.append(fecha_hasta)
         async with db.execute(
-            f"SELECT COUNT(*) fichadas, COUNT(DISTINCT legajo) legajos_con_fichada FROM rrhh_fichadas WHERE {' AND '.join(f_where)}",
+            f"""
+            SELECT COUNT(*) fichadas, COUNT(DISTINCT f.legajo) legajos_con_fichada
+            FROM rrhh_fichadas f
+            LEFT JOIN rrhh_legajero l ON l.batch_id = f.batch_id AND l.legajo = f.legajo
+            WHERE {' AND '.join(f_where)}
+            """,
             tuple(f_params),
         ) as cur:
             kpis.update(dict(await cur.fetchone()))
 
-        filter_vis = _visibility_sql(auth, "l")
+        filter_vis = _visibility_sql(auth, "l", "l.desc_sector_generico")
         async with db.execute(
             f"""
             SELECT DISTINCT desc_sector_generico value
@@ -1613,7 +1884,7 @@ async def get_indicadores(
             f"""
             SELECT DISTINCT TRIM(a.motivo) value
             FROM rrhh_actividad_diaria a
-            WHERE batch_id = ? AND {_visibility_sql(auth, "a")}
+            WHERE a.batch_id = ? AND {_visibility_sql(auth, "a", "a.sector")}
               AND COALESCE(a.ausentismo_contabiliza,0) = 1
               AND TRIM(COALESCE(a.motivo,'')) <> ''
             ORDER BY value
@@ -1667,7 +1938,7 @@ async def get_actividad(
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
     motivos_sel = _multi_query_values(request, "motivo", motivo)
-    where = [f"a.batch_id = ?", _visibility_sql(auth, "a")]
+    where = [f"a.batch_id = ?", _visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
     params: list[Any] = [batch_id]
     if fecha_desde:
         where.append("a.fecha >= ?")
@@ -1683,9 +1954,11 @@ async def get_actividad(
     rows = await _query_rows(
         f"""
         SELECT a.fecha, a.legajo, a.empleado, COALESCE(l.desc_sector_generico, a.sector) sector,
-               a.horario, a.entrada, a.salida, a.motivo, a.aus_pres_codigo,
+               a.horario, a.horario_teorico, a.ingreso_teorico, a.salida_teorica, a.horas_teoricas,
+               a.entrada, a.salida, a.motivo, a.aus_pres_codigo,
                a.ausentismo_clasificacion, a.ausentismo_tratamiento,
-               a.hs_trab, a.hs_ext_realiz, a.hs_50_autorizadas, a.hs_100, a.tarde
+               a.hs_trab, a.hs_ext_realiz, a.hs_50_autorizadas, a.hs_100,
+               ROUND(a.tarde * 60, 0) tarde
         FROM rrhh_actividad_diaria a
         LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
         WHERE {' AND '.join(where)}
@@ -1694,6 +1967,9 @@ async def get_actividad(
         """,
         tuple(params),
     )
+    for row in rows:
+        if not row.get("ingreso_teorico"):
+            row["ingreso_teorico"] = _time_minus_minutes(row.get("entrada"), row.get("tarde"))
     return {"rows": rows, "restricted": not _can_see_all(auth)}
 
 
@@ -1713,7 +1989,7 @@ async def get_fichadas(
     batch_id = await _resolve_batch_id(batch_id)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
-    where = ["f.batch_id = ?", _visibility_sql(auth, "f")]
+    where = ["f.batch_id = ?", _visibility_sql(auth, "f", "COALESCE(l.desc_sector_generico, '')")]
     params: list[Any] = [batch_id]
     if fecha_desde:
         where.append("f.fecha >= ?")
@@ -1760,7 +2036,7 @@ async def get_sanciones(
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
     motivos_sel = _multi_query_values(request, "motivo", motivo)
-    where = ["s.batch_id = ?", _visibility_sql(auth, "s")]
+    where = ["s.batch_id = ?", _visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
     params: list[Any] = [batch_id]
     if fecha_desde:
         where.append("COALESCE(s.creacion, s.inicio) >= ?")
@@ -1768,6 +2044,8 @@ async def get_sanciones(
     if fecha_hasta:
         where.append("COALESCE(s.creacion, s.inicio) <= ?")
         params.append(fecha_hasta)
+    where.append(f"TRIM(s.descripcion) IN ({', '.join('?' for _ in REAL_SANCIONES)})")
+    params.extend(REAL_SANCIONES)
     _append_multi_filter(where, params, "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')", sectores_sel)
     _append_multi_filter(where, params, "COALESCE(l.desc_funcion, '')", cargos_sel)
     if motivos_sel:
