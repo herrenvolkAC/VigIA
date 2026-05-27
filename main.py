@@ -16,6 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from dotenv import load_dotenv
 
 from db.schema import init_db
+from db.daily_operativa import init_daily_db
 from routers.auth_local import current_auth, ensure_bootstrap_admin, router as auth_router
 from routers.ai import router as ai_router
 from routers.data import router as data_router
@@ -24,7 +25,16 @@ from routers.operarios import router as operarios_router
 from routers.productividad_analisis import router as productividad_analisis_router
 from routers.plantel_operativo import router as plantel_operativo_router
 from routers.gestion_operativa import router as gestion_operativa_router
-from routers.rrhh_novedades import router as rrhh_novedades_router
+from routers.historia_legajo import (
+    router as historia_legajo_router,
+    start_historia_actividad_scheduler,
+    stop_historia_actividad_scheduler,
+)
+from routers.rrhh_novedades import (
+    router as rrhh_novedades_router,
+    start_rrhh_folder_monitor,
+    stop_rrhh_folder_monitor,
+)
 from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -46,7 +56,10 @@ RESOURCES_DIR = Path(__file__).parent / "resources"
 async def lifespan(app: FastAPI):
     logger.info("Inicializando VigIA v2.0...")
     await init_db()
+    await init_daily_db()
     await ensure_bootstrap_admin()
+    start_historia_actividad_scheduler()
+    start_rrhh_folder_monitor()
     provider = os.getenv("AI_PROVIDER", "claude")
     logger.info(f"Proveedor IA configurado: {provider}")
     # Si está en modo Ollama, log de la URL
@@ -55,8 +68,12 @@ async def lifespan(app: FastAPI):
         ollama_model = os.getenv("OLLAMA_MODEL", "mistral")
         logger.info(f"  Ollama URL: {ollama_url}")
         logger.info(f"  Ollama Model: {ollama_model}")
-    yield
-    logger.info("VigIA detenido.")
+    try:
+        yield
+    finally:
+        await stop_rrhh_folder_monitor()
+        await stop_historia_actividad_scheduler()
+        logger.info("VigIA detenido.")
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -74,6 +91,7 @@ app.include_router(operarios_router)
 app.include_router(productividad_analisis_router)
 app.include_router(plantel_operativo_router)
 app.include_router(gestion_operativa_router)
+app.include_router(historia_legajo_router)
 app.include_router(rrhh_novedades_router)
 app.include_router(websocket_router)
 app.include_router(auth_router)
@@ -86,11 +104,14 @@ PROTECTED_PAGE_PATHS = {
     "/gestion-operativa.html",
     "/novedades-cd",
     "/novedades-cd.html",
+    "/historia-legajo",
+    "/historia-legajo.html",
 }
 PROTECTED_API_PREFIXES = (
     "/api/productividad/tnc",
     "/api/productividad/picking/tiempos-muertos",
     "/api/gestion-operativa",
+    "/api/historia-legajo",
     "/api/rrhh",
 )
 ADMIN_PAGE_PATHS = {
@@ -194,6 +215,10 @@ async def page_gestion_operativa(): return FileResponse(STATIC_DIR / "gestion_op
 @app.get("/novedades-cd.html", include_in_schema=False)
 @app.get("/novedades-cd",      include_in_schema=False)
 async def page_novedades_cd(): return FileResponse(STATIC_DIR / "novedades_cd.html")
+
+@app.get("/historia-legajo.html", include_in_schema=False)
+@app.get("/historia-legajo",      include_in_schema=False)
+async def page_historia_legajo(): return FileResponse(STATIC_DIR / "historia_legajo.html")
 
 @app.get("/admin/dispositivos.html", include_in_schema=False)
 @app.get("/admin/dispositivos",      include_in_schema=False)

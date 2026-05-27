@@ -3,9 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <title>VigIA · Gestión Operativa</title>
   <link rel="stylesheet" href="/css/vigia.css">
   <style>
+    :root{
+      --bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;
+      --rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;
+      --amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;--blue:#0B5FAE;
+      --border:var(--rule);--muted:var(--ink-soft);--text:var(--ink);--text-hi:var(--ink);
+      --accent:var(--red);--accent-dark:var(--red);--success:var(--green);--bg-soft:#F6F8F5;
+      --shadow-sm:none;--shadow-accent:none;
+    }
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{
+      margin:0;min-height:100vh;color:var(--ink);
+      font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);
+      background-image:linear-gradient(var(--rule) 1px, transparent 1px),linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size:24px 24px;
+    }
+    button,input,select{font:inherit;color:inherit}
+    button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    #vigia-header{display:none}
+    .paper-app{width:100%;min-height:100vh;margin:0;padding:0 16px 22px}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-logo{width:86px;height:44px;object-fit:contain}
+    .brand-rule{width:1px;height:28px;background:var(--rule)}
+    .paper-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+    .paper-title{font-size:20px;line-height:1.05;font-weight:600;margin:0;color:var(--ink)}
+    .amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}
+    .paper-link,.logout-btn{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}
+    .paper-link:hover{color:var(--blue);border-color:var(--blue)}
+    .logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}
+    .user-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+    .user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .gestion-page{padding:28px;max-width:1480px;margin:0 auto}
     .gestion-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}
     .gestion-kicker{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);font-weight:700}
@@ -13,6 +52,13 @@
     .gestion-tabs{display:flex;gap:8px;flex-wrap:wrap}
     .gestion-tab{border:1px solid var(--border);background:#fff;color:var(--muted);border-radius:999px;padding:10px 14px;font:700 11px 'DM Mono',monospace;letter-spacing:.5px}
     .gestion-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:var(--shadow-accent)}
+    .module-panel{display:none}
+    .module-panel.active{display:block}
+    .subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 16px}
+    .subtab{border:1px solid var(--border);background:#fff;color:var(--muted);border-radius:999px;padding:8px 12px;font:800 10px 'DM Mono',monospace;letter-spacing:.5px;text-transform:uppercase;cursor:pointer}
+    .subtab.active{background:#1f2937;border-color:#1f2937;color:#fff}
+    .subpanel{display:none}
+    .subpanel.active{display:block}
     .toolbar{display:grid;grid-template-columns:minmax(160px,220px) minmax(160px,220px) auto 1fr;gap:12px;align-items:end;background:rgba(255,255,255,.78);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:18px}
     .field{display:flex;flex-direction:column;gap:7px}
     .field label{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);font-weight:700}
@@ -49,22 +95,190 @@
     .story-impact{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
     .story-action{border-top:1px solid var(--border);padding-top:10px;font-size:12px;line-height:1.45;color:var(--muted)}
     .story-action strong{color:var(--text-hi)}
+    .chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .chart-card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm);padding:16px}
+    .chart-card.primary-chart{grid-column:1/-1}
+    .chart-card.primary-chart .line-chart{height:340px}
+    .chart-title{font:800 12px 'DM Mono',monospace;letter-spacing:.9px;text-transform:uppercase;color:var(--accent-dark);margin-bottom:12px}
+    .bar-row{display:grid;grid-template-columns:minmax(110px,170px) 1fr minmax(58px,auto);gap:10px;align-items:center;margin:9px 0}
+    .bar-label{font-size:12px;color:var(--text-hi);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .bar-track{height:12px;background:#f2e9e4;border-radius:999px;overflow:hidden}
+    .bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),#1f9d7a);border-radius:999px;min-width:2px}
+    .bar-value{font:800 11px 'DM Mono',monospace;color:var(--text-hi);text-align:right;white-space:nowrap}
+    .line-chart{width:100%;height:260px;display:block;overflow:visible}
+    .line-grid{stroke:#eadfd9;stroke-width:1}
+    .line-axis{stroke:#d7c8c0;stroke-width:1.2}
+    .line-total{stroke:#111827;stroke-width:3;fill:none}
+    .line-store{stroke-width:2;fill:none;opacity:.88}
+    .line-dot{stroke:#fff;stroke-width:1.5}
+    .chart-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .legend-item{display:inline-flex;align-items:center;gap:6px;font:800 10px 'DM Mono',monospace;color:var(--muted)}
+    .legend-swatch{width:18px;height:3px;border-radius:999px;background:#111827}
+    .chart-note{font-size:11px;color:var(--muted);margin-top:8px}
+    .ai-bar{display:flex;justify-content:flex-end;margin:-4px 0 14px}
+    .ai-panel{display:none;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm);padding:16px;margin-bottom:18px}
+    .ai-panel.open{display:block}
+    .ai-title{font:800 13px 'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--accent-dark);margin-bottom:10px}
+    .ai-summary{font-size:14px;line-height:1.55;color:var(--text-hi);margin-bottom:12px}
+    .ai-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .ai-block{border-top:1px solid var(--border);padding-top:10px}
+    .ai-block h4{font:800 11px 'DM Mono',monospace;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+    .ai-block ul{margin:0;padding-left:18px}
+    .ai-block li{font-size:12px;line-height:1.45;color:var(--text);margin-bottom:6px}
+    .insight-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .insight{border:1px solid var(--border);border-left:4px solid var(--accent);background:#fff;padding:14px;border-radius:12px;box-shadow:var(--shadow-sm)}
+    .insight strong{display:block;color:var(--text-hi);font-size:13px;margin-bottom:5px}
+    .insight span{font-size:12px;color:var(--muted);line-height:1.4}
     .raw-panel{display:none;margin-top:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fffaf7}
     .raw-panel.open{display:block}
     .raw-toggle{border:1px solid var(--border);background:#fff;color:var(--accent-dark);border-radius:999px;padding:7px 10px;font:800 10px 'DM Mono',monospace;letter-spacing:.5px;cursor:pointer}
     .raw-panel table{min-width:820px}
+    .daily-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
+    .daily-meta-item{background:var(--panel);border:1px solid var(--rule);border-radius:0;padding:12px}
+    .daily-meta-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .daily-meta-value{margin-top:7px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--ink)}
+    .daily-form{display:block}
+    .daily-group{background:var(--panel);border:1px solid var(--rule);border-radius:0;margin-bottom:12px;overflow:hidden}
+    .daily-group-head{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#F6F8F5;border-bottom:1px solid var(--rule);padding:9px 12px}
+    .daily-group-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+    .daily-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}
+    .daily-param{display:flex;flex-direction:column;gap:7px;min-width:0}
+    .daily-param label{font-size:12px;line-height:1.35;color:var(--ink);font-weight:600}
+    .daily-param small{font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.35;color:var(--ink-soft)}
+    .daily-param input,.daily-param textarea{width:100%;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:8px 10px}
+    .daily-param input{height:34px}
+    .daily-param textarea{min-height:82px;resize:vertical;font-family:'IBM Plex Sans',system-ui,sans-serif}
+    .daily-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:12px 0 18px}
+    .daily-duplicate{display:none;border:1px solid #E1BF76;background:var(--amber-soft);color:var(--amber);padding:10px 12px;margin-bottom:12px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+    .daily-duplicate.open{display:block}
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(14,22,32,.42);z-index:30;align-items:center;justify-content:center;padding:24px}
+    .modal-backdrop.open{display:flex}
+    .modal-panel{width:min(1180px,100%);max-height:88vh;background:var(--panel);border:1px solid var(--rule-strong);display:flex;flex-direction:column}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--rule);background:#F6F8F5}
+    .modal-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);font-weight:600}
+    .modal-body{padding:12px;overflow:auto}
+    .modal-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px;border-top:1px solid var(--rule);background:var(--panel)}
+    .ghost-btn{height:34px;min-height:34px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px}
+    .param-table{min-width:1040px}
+    .param-table input[type="text"]{height:30px;width:100%;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:0 8px}
+    .param-table input[type="checkbox"]{width:18px;height:18px}
+    .gestion-page{padding:0;max-width:none;margin:0}
+    .gestion-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule)}
+    .gestion-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .gestion-title{font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:20px;line-height:1.05;font-weight:600;color:var(--ink);margin:0 0 11px}
+    .gestion-tabs,.subtabs{display:flex;gap:0;flex-wrap:wrap;margin:0}
+    .gestion-tab,.subtab{background:transparent;border:0;color:var(--ink-soft);border-radius:0;box-shadow:none;padding:13px 18px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;min-width:132px}
+    .gestion-tab.active,.subtab.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600;box-shadow:none}
+    .gestion-tab.active::after,.subtab.active::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-radius:50%;background:var(--green);vertical-align:middle}
+    .module-panel{padding-top:0}
+    .toolbar{display:grid;grid-template-columns:repeat(5,minmax(132px,.62fr)) minmax(150px,.8fr) minmax(220px,1.2fr);gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;border-radius:0;box-shadow:none;padding:12px;margin-bottom:14px}
+    #panel-cambios .toolbar{grid-template-columns:minmax(132px,.62fr) minmax(132px,.62fr) 150px 1fr}
+    .field{gap:6px}
+    .field label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .field input,.field select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
+    .primary-btn{height:34px;min-height:34px;border:1px solid var(--ink);border-radius:0;background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px;box-shadow:none;white-space:nowrap}
+    .ai-bar .primary-btn{width:auto;background:var(--red);border-color:var(--red);color:#fff}
+    .primary-btn:disabled{opacity:.55;cursor:wait}
+    .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);line-height:1.35;align-self:stretch}
+    .status.error{color:var(--red);font-weight:500}
+    .kpi-grid{grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
+    .kpi{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);border-radius:0;box-shadow:none;padding:12px 14px;min-height:108px}
+    .kpi:nth-child(1){border-top-color:var(--green)}
+    .kpi:nth-child(2),.kpi:nth-child(5){border-top-color:var(--amber)}
+    .kpi:nth-child(8){border-top-color:var(--red)}
+    .kpi-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .kpi-value{font-family:'IBM Plex Mono',monospace;font-size:32px;line-height:1.05;font-weight:600;color:var(--ink);margin:10px 0 6px;white-space:nowrap}
+    .kpi-sub{font-size:11px;color:var(--ink-soft);line-height:1.35}
+    .section,.story-card,.chart-card,.ai-panel,.insight{background:var(--panel);border:1px solid var(--rule);border-radius:0;box-shadow:none}
+    .section{overflow:hidden;margin-bottom:14px}
+    .section-head{padding:9px 12px;border-bottom:1px solid var(--rule);background:#F6F8F5}
+    .section-title,.chart-title,.story-title,.ai-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+    .chart-subtitle{font-size:11px;line-height:1.35;color:var(--ink-soft);margin:6px 0 10px;max-width:760px}
+    .section-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green)}
+    table{min-width:1120px;border-collapse:collapse;background:var(--panel)}
+    th{background:#F6F8F5;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;padding:9px 12px;border-bottom:1px solid var(--rule)}
+    td{padding:9px 12px;border-bottom:1px solid var(--rule);font-size:13px;line-height:1.22;color:var(--ink)}
+    tbody tr:nth-child(even),tbody tr:nth-child(odd){background:transparent}
+    tbody tr:nth-child(odd){background:#F8FAF7}
+    .chip{border-radius:2px;border:1px solid var(--rule);padding:3px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.08em;background:var(--panel);color:var(--ink-soft)}
+    .chip.alta{background:var(--red-soft);color:var(--red);border-color:#E6AAB1}
+    .chip.media{background:var(--amber-soft);color:var(--amber);border-color:#E1BF76}
+    .chip.baja{background:var(--green-soft);color:var(--green);border-color:#C8E2D0}
+    .muted{color:var(--ink-soft)}
+    .empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+    .story-grid{gap:12px;margin-bottom:14px}
+    .story-card{padding:12px}
+    .story-text,.ai-summary{font-size:14px;line-height:1.5;color:var(--ink)}
+    .story-action{border-top:1px solid var(--rule);color:var(--ink-soft)}
+    .story-action strong{color:var(--ink)}
+    .chart-grid{gap:12px;margin-bottom:14px}
+    .chart-card{padding:12px}
+    .chart-card.primary-chart{border-top:3px solid var(--green)}
+    .bar-label{font-size:12px;color:var(--ink);font-weight:500}
+    .bar-track{height:14px;background:#EAEEEB;border-radius:0}
+    .bar-fill{background:var(--green);border-radius:0}
+    .bar-value{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
+    .line-grid{stroke:var(--rule);stroke-width:1}
+    .line-axis{stroke:var(--rule-strong);stroke-width:1}
+    .line-total{stroke:var(--ink);stroke-width:2.6}
+    .line-dot{stroke:var(--panel)}
+    .line-dot{cursor:pointer}
+    .legend-item{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}
+    .legend-swatch{border-radius:0}
+    .chart-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}
+    .ai-panel{padding:12px;margin-bottom:14px;border-top:3px solid var(--red)}
+    .ai-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .ai-help{width:28px;height:28px;min-height:28px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600}
+    .ai-help:hover{border-color:var(--blue);color:var(--blue)}
+    .ai-audit{display:none;border:1px solid var(--rule);background:#F8FAF7;padding:10px;margin:8px 0 12px}
+    .ai-audit.open{display:block}
+    .ai-audit pre{white-space:pre-wrap;margin:0;font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.45;color:var(--ink-soft)}
+    .ai-block{border-top:1px solid var(--rule)}
+    .ai-block h4{font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);font-weight:600}
+    .ai-block li{font-size:12px;color:var(--ink)}
+    .insight-strip{gap:12px;margin-bottom:14px}
+    .insight{border-left:3px solid var(--red);padding:12px}
+    .insight strong{color:var(--ink);font-size:13px}
+    .insight span{font-size:12px;color:var(--ink-soft)}
+    .raw-panel{border:1px solid var(--rule);border-radius:0;background:#F8FAF7}
+    .raw-toggle{border:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
     @media(max-width:980px){
       .gestion-page{padding:18px}
       .gestion-head{align-items:flex-start;flex-direction:column}
       .toolbar{grid-template-columns:1fr}
+      #panel-cambios .toolbar{grid-template-columns:1fr}
+      .paper-header{grid-template-columns:1fr}
+      .header-right{justify-content:flex-start;flex-wrap:wrap}
       .kpi-grid{grid-template-columns:1fr 1fr}
       .story-grid{grid-template-columns:1fr}
+      .chart-grid{grid-template-columns:1fr}
+      .insight-strip{grid-template-columns:1fr}
+      .ai-grid{grid-template-columns:1fr}
+      .daily-meta{grid-template-columns:1fr 1fr}
+      .daily-fields{grid-template-columns:1fr}
     }
-    @media(max-width:620px){.kpi-grid{grid-template-columns:1fr}.gestion-title{font-size:28px}}
+    @media(max-width:620px){.kpi-grid{grid-template-columns:1fr}.gestion-title{font-size:28px}.daily-meta{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
 <div id="vigia-header"></div>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div>
+        <div class="paper-kicker">Panel operativo</div>
+        <h1 class="paper-title">Gestion <span class="amp">Operativa</span></h1>
+      </div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/selector">Inicio</a>
+      <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn" type="button" onclick="logout()">Salir</button>
+    </div>
+  </header>
 
 <main class="gestion-page">
   <header class="gestion-head">
@@ -73,10 +287,13 @@
       <h1 class="gestion-title">Cambio de almacenes</h1>
     </div>
     <nav class="gestion-tabs" aria-label="Módulos">
-      <button class="gestion-tab active" type="button">Cambio de almacenes</button>
+      <button class="gestion-tab active" id="tab-cambios" type="button" onclick="setMainTab('cambios')">Cambio de almacenes</button>
+      <button class="gestion-tab" id="tab-productividad" type="button" onclick="setMainTab('productividad')">Analisis de productividad</button>
+      <button class="gestion-tab" id="tab-daily" type="button" onclick="setMainTab('daily')">Carga de Daily</button>
     </nav>
   </header>
 
+  <div class="module-panel active" id="panel-cambios">
   <section class="toolbar">
     <div class="field">
       <label for="fecha">Fecha</label>
@@ -117,13 +334,158 @@
       <div class="empty">Sin consulta ejecutada.</div>
     </div>
   </section>
+  </div>
+
+  <div class="module-panel" id="panel-productividad">
+    <section class="toolbar">
+      <div class="field">
+        <label for="prod-fecha-desde">Fecha inicio</label>
+        <input type="date" id="prod-fecha-desde">
+      </div>
+      <div class="field">
+        <label for="prod-turno-desde">Turno inicio</label>
+        <select id="prod-turno-desde">
+          <option value="manana">Mañana</option>
+          <option value="tarde">Tarde</option>
+          <option value="noche">Noche</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="prod-fecha-hasta">Fecha fin</label>
+        <input type="date" id="prod-fecha-hasta">
+      </div>
+      <div class="field">
+        <label for="prod-turno-hasta">Turno fin</label>
+        <select id="prod-turno-hasta">
+          <option value="manana">Mañana</option>
+          <option value="tarde">Tarde</option>
+          <option value="noche">Noche</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="prod-almacen">Almacen</label>
+        <select id="prod-almacen" onchange="onProductividadAlmacenChange()">
+          <option value="ALL">Todos</option>
+        </select>
+      </div>
+      <button class="primary-btn" id="btn-prod-consultar" type="button" onclick="consultarProductividad()">Consultar</button>
+      <div class="status" id="prod-status">Selecciona inicio y fin.</div>
+    </section>
+
+    <nav class="subtabs" aria-label="Productividad picking">
+      <button class="subtab active" id="prod-subtab-indicadores" type="button" onclick="setProductividadSubtab('indicadores')">Indicadores</button>
+      <button class="subtab" id="prod-subtab-grilla" type="button" onclick="setProductividadSubtab('grilla')">Grilla</button>
+    </nav>
+
+    <div class="subpanel active" id="prod-panel-indicadores">
+      <section class="kpi-grid" id="prod-kpi-grid"></section>
+      <section class="insight-strip" id="prod-insights"></section>
+      <div class="ai-bar">
+        <button class="primary-btn" id="btn-prod-ia" type="button" onclick="analizarProductividadIA()">Analizar con IA</button>
+      </div>
+      <section class="ai-panel" id="prod-ai-panel">
+        <div class="ai-head">
+          <div class="ai-title">Analisis IA</div>
+          <button class="ai-help" type="button" title="Ver prompt IA" onclick="toggleProductividadPrompt()">?</button>
+        </div>
+        <div class="ai-audit" id="prod-ai-audit"></div>
+        <div class="ai-summary" id="prod-ai-summary"></div>
+        <div class="ai-grid" id="prod-ai-grid"></div>
+      </section>
+      <section class="chart-grid" id="prod-chart-grid"></section>
+    </div>
+
+    <div class="subpanel" id="prod-panel-grilla">
+      <section class="section">
+        <div class="section-head">
+          <div class="section-title">Productividad por turno y almacen</div>
+          <div class="section-count" id="prod-grid-count">0 registros</div>
+        </div>
+        <div class="table-wrap" id="prod-grid-wrap">
+          <div class="empty">Sin consulta ejecutada.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="module-panel" id="panel-daily">
+    <section class="toolbar">
+      <div class="field">
+        <label for="daily-tipo">Tipo Daily</label>
+        <select id="daily-tipo" onchange="onDailyTipoChange()">
+          <option value="Operacion">Operacion</option>
+          <option value="Logistica Inversa">Logistica Inversa</option>
+          <option value="Planeamiento">Planeamiento</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="daily-sector">Sector</label>
+        <select id="daily-sector" onchange="loadDailyParametros()"></select>
+      </div>
+      <div class="field">
+        <label for="daily-turno">Turno</label>
+        <select id="daily-turno">
+          <option value="Completo">Completo</option>
+          <option value="Manana">Manana</option>
+          <option value="Tarde">Tarde</option>
+          <option value="Noche">Noche</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="daily-plan">Plan</label>
+        <input type="text" id="daily-plan" placeholder="Opcional">
+      </div>
+      <button class="primary-btn" id="btn-daily-refresh" type="button" onclick="loadDailyConfig()">Actualizar</button>
+      <button class="primary-btn" id="btn-daily-parametros" type="button" onclick="abrirParametrosDaily()">Parametros</button>
+      <div class="status" id="daily-status">Cargando configuracion Daily.</div>
+    </section>
+
+    <section class="daily-meta" id="daily-meta"></section>
+    <div class="daily-duplicate" id="daily-duplicate"></div>
+    <section class="daily-form" id="daily-form">
+      <div class="empty">Selecciona tipo y sector para cargar parametros.</div>
+    </section>
+    <div class="daily-actions">
+      <button class="primary-btn" id="btn-daily-save" type="button" onclick="guardarDaily()">Guardar Daily</button>
+    </div>
+  </div>
 </main>
+</div>
+
+<div class="modal-backdrop" id="daily-param-modal" role="dialog" aria-modal="true" aria-label="Parametros Daily">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-title">Parametros de cumplimiento</div>
+      <button class="ghost-btn" type="button" onclick="cerrarParametrosDaily()">Cerrar</button>
+    </div>
+    <div class="modal-body">
+      <div class="status" id="daily-param-status">Carga los parametros con la clave del modulo.</div>
+      <div class="table-wrap" id="daily-param-wrap">
+        <div class="empty">Sin parametros cargados.</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost-btn" type="button" onclick="cerrarParametrosDaily()">Cancelar</button>
+      <button class="primary-btn" id="btn-daily-param-save" type="button" onclick="guardarParametrosDaily()">Guardar parametros</button>
+    </div>
+  </div>
+</div>
 
 <script src="/js/vigia-nav.js"></script>
 <script>
   let authUser = null;
   let loading = false;
+  let loadingProd = false;
+  let loadingDaily = false;
   let lastResult = null;
+  let lastProdResult = null;
+  let lastProdView = null;
+  let selectedProdAlmacen = 'ALL';
+  let dailyConfig = null;
+  let dailyParametros = [];
+  let dailyExisting = [];
+  let dailyParamClave = '';
+  let dailyAdminParametros = [];
 
   function getSession() {
     if (!authUser) return null;
@@ -198,11 +560,353 @@
     return Number(value || 0).toLocaleString('es-AR');
   }
 
+  function fmtMetric(value, suffix = '') {
+    const n = Number(value || 0);
+    const text = Math.abs(n) >= 100 ? Math.round(n).toLocaleString('es-AR') : n.toLocaleString('es-AR', { maximumFractionDigits: 1 });
+    return `${text}${suffix}`;
+  }
+
+  function setMainTab(tab) {
+    ['cambios', 'productividad', 'daily'].forEach(id => {
+      document.getElementById(`tab-${id}`)?.classList.toggle('active', id === tab);
+      document.getElementById(`panel-${id}`)?.classList.toggle('active', id === tab);
+    });
+    const title = document.querySelector('.gestion-title');
+    if (title) {
+      title.textContent = tab === 'productividad'
+        ? 'Analisis de productividad'
+        : (tab === 'daily' ? 'Carga de Daily' : 'Cambio de almacenes');
+    }
+    if (tab === 'daily' && !dailyConfig) loadDailyConfig();
+  }
+
+  function setProductividadSubtab(tab) {
+    ['indicadores', 'grilla'].forEach(id => {
+      document.getElementById(`prod-subtab-${id}`)?.classList.toggle('active', id === tab);
+      document.getElementById(`prod-panel-${id}`)?.classList.toggle('active', id === tab);
+    });
+  }
+
   function setStatus(text, tone = '') {
     const el = document.getElementById('status');
     if (!el) return;
     el.textContent = text;
     el.className = `status ${tone}`;
+  }
+
+  function setProdStatus(text, tone = '') {
+    const el = document.getElementById('prod-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `status ${tone}`;
+  }
+
+  function setDailyStatus(text, tone = '') {
+    const el = document.getElementById('daily-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `status ${tone}`;
+  }
+
+  function renderDailyMeta() {
+    const daily = dailyConfig?.daily || {};
+    const items = [
+      ['Daily detectada', daily.daily_label || '-'],
+      ['Usuario carga', dailyConfig?.usuario_carga || '-'],
+      ['Inicio', daily.fecha_inicio ? daily.fecha_inicio.replace('T', ' ').slice(0, 16) : '-'],
+      ['Fin', daily.fecha_fin ? daily.fecha_fin.replace('T', ' ').slice(0, 16) : '-'],
+    ];
+    const meta = document.getElementById('daily-meta');
+    if (!meta) return;
+    meta.innerHTML = items.map(([label, value]) => `
+      <article class="daily-meta-item">
+        <div class="daily-meta-label">${escapeHtml(label)}</div>
+        <div class="daily-meta-value">${escapeHtml(value)}</div>
+      </article>
+    `).join('');
+  }
+
+  function fillDailySectorOptions() {
+    const tipo = document.getElementById('daily-tipo')?.value || 'Operacion';
+    const sectors = dailyConfig?.sector_options?.[tipo] || ['Noa', 'Secos', 'Refrigerados'];
+    const select = document.getElementById('daily-sector');
+    if (!select) return;
+    select.innerHTML = sectors.map(sector => `<option value="${escapeHtml(sector)}">${escapeHtml(sector)}</option>`).join('');
+  }
+
+  function onDailyTipoChange() {
+    fillDailySectorOptions();
+    loadDailyParametros();
+  }
+
+  function renderDailyDuplicate() {
+    const box = document.getElementById('daily-duplicate');
+    if (!box) return;
+    if (!dailyExisting.length) {
+      box.classList.remove('open');
+      box.innerHTML = '';
+      return;
+    }
+    const latest = dailyExisting[0];
+    box.classList.add('open');
+    box.innerHTML = `
+      Ya existe una carga activa para esta Daily, tipo y sector. Ultima version: ${escapeHtml(latest.version || '-')}.
+      <label style="display:inline-flex;align-items:center;gap:6px;margin-left:12px">
+        <input type="checkbox" id="daily-replace"> Reemplazar anterior
+      </label>
+    `;
+  }
+
+  function renderDailyParametros() {
+    const form = document.getElementById('daily-form');
+    if (!form) return;
+    if (!dailyParametros.length) {
+      form.innerHTML = '<div class="empty">No hay parametros activos para la seleccion.</div>';
+      return;
+    }
+    const groups = dailyParametros.reduce((acc, param) => {
+      const group = param.grupo || 'OTROS';
+      if (!acc[group]) acc[group] = [];
+      acc[group].push(param);
+      return acc;
+    }, {});
+    form.innerHTML = Object.entries(groups).map(([group, params]) => `
+      <section class="daily-group">
+        <div class="daily-group-head">
+          <div class="daily-group-title">${escapeHtml(group)}</div>
+          <div class="section-count">${num(params.length)} campos</div>
+        </div>
+        <div class="daily-fields">
+          ${params.map(renderDailyField).join('')}
+        </div>
+      </section>
+    `).join('');
+  }
+
+  function renderDailyField(param) {
+    const id = `daily-param-${param.id_parametro}`;
+    const meta = [param.proceso, param.ventana_horaria, param.fuente, param.unidad].filter(Boolean).join(' · ');
+    const label = `${param.nombre || param.id_parametro}`;
+    const desc = param.descripcion || '';
+    if (param.tipo_campo === 'texto') {
+      return `
+        <div class="daily-param">
+          <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
+          <small>${escapeHtml(meta || desc)}</small>
+          <textarea id="${escapeHtml(id)}" data-param-id="${escapeHtml(param.id_parametro)}" placeholder="${escapeHtml(desc)}"></textarea>
+        </div>
+      `;
+    }
+    const type = param.tipo_campo === 'fecha' ? 'date' : (param.tipo_campo === 'hora' ? 'time' : 'text');
+    return `
+      <div class="daily-param">
+        <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
+        <small>${escapeHtml(meta || desc)}</small>
+        <input id="${escapeHtml(id)}" data-param-id="${escapeHtml(param.id_parametro)}" type="${type}" inputmode="${param.tipo_campo === 'numerico' ? 'decimal' : 'text'}" placeholder="${escapeHtml(desc)}">
+      </div>
+    `;
+  }
+
+  async function loadDailyConfig() {
+    setDailyStatus('Cargando configuracion Daily.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/config', { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo cargar la configuracion.');
+      dailyConfig = data;
+      fillDailySectorOptions();
+      renderDailyMeta();
+      if (!data.daily?.can_load) {
+        document.getElementById('btn-daily-save').disabled = true;
+        setDailyStatus(data.daily?.reason || 'La Daily no esta habilitada.', 'error');
+        return;
+      }
+      document.getElementById('btn-daily-save').disabled = false;
+      await loadDailyParametros();
+    } catch (err) {
+      setDailyStatus(err.message || 'No se pudo cargar Daily.', 'error');
+    }
+  }
+
+  async function loadDailyParametros() {
+    const tipo = document.getElementById('daily-tipo')?.value || 'Operacion';
+    const sector = document.getElementById('daily-sector')?.value || 'Noa';
+    setDailyStatus('Cargando parametros.');
+    try {
+      const params = new URLSearchParams({ tipo_daily: tipo, sector });
+      const [paramResp, existingResp] = await Promise.all([
+        fetch(`/api/gestion-operativa/daily/parametros?${params.toString()}`, { credentials: 'same-origin' }),
+        fetch(`/api/gestion-operativa/daily/existente?${params.toString()}`, { credentials: 'same-origin' }),
+      ]);
+      const paramData = await paramResp.json();
+      const existingData = await existingResp.json();
+      if (!paramResp.ok) throw new Error(paramData.detail || 'No se pudieron cargar parametros.');
+      if (!existingResp.ok) throw new Error(existingData.detail || 'No se pudo validar duplicados.');
+      dailyParametros = paramData.parametros || [];
+      dailyExisting = existingData.existing || [];
+      renderDailyParametros();
+      renderDailyDuplicate();
+      setDailyStatus(`${num(dailyParametros.length)} parametros listos para cargar.`);
+    } catch (err) {
+      dailyParametros = [];
+      renderDailyParametros();
+      setDailyStatus(err.message || 'No se pudieron cargar parametros.', 'error');
+    }
+  }
+
+  async function guardarDaily() {
+    if (loadingDaily) return;
+    const daily = dailyConfig?.daily || {};
+    if (!daily.can_load) {
+      setDailyStatus(daily.reason || 'La Daily no esta habilitada.', 'error');
+      return;
+    }
+    const respuestas = {};
+    document.querySelectorAll('#daily-form [data-param-id]').forEach(input => {
+      respuestas[input.dataset.paramId] = input.value || '';
+    });
+    const action = document.getElementById('daily-replace')?.checked ? 'replace' : 'new_version';
+    const payload = {
+      tipo_daily: document.getElementById('daily-tipo')?.value || 'Operacion',
+      sector: document.getElementById('daily-sector')?.value || '',
+      turno: document.getElementById('daily-turno')?.value || '',
+      plan: document.getElementById('daily-plan')?.value || '',
+      action,
+      respuestas,
+    };
+    loadingDaily = true;
+    const btn = document.getElementById('btn-daily-save');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    setDailyStatus('Guardando Daily.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/cargas', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo guardar la Daily.');
+      setDailyStatus(`Daily guardada: registro ${data.carga_id}, version ${data.version}, ${num(data.parametros_guardados)} parametros.`);
+      await loadDailyParametros();
+    } catch (err) {
+      setDailyStatus(err.message || 'No se pudo guardar la Daily.', 'error');
+    } finally {
+      loadingDaily = false;
+      btn.disabled = false;
+      btn.textContent = 'Guardar Daily';
+    }
+  }
+
+  function setDailyParamStatus(text, tone = '') {
+    const el = document.getElementById('daily-param-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `status ${tone}`;
+  }
+
+  async function abrirParametrosDaily() {
+    const clave = window.prompt('Clave de parametros');
+    if (clave === null) return;
+    dailyParamClave = clave;
+    const modal = document.getElementById('daily-param-modal');
+    modal?.classList.add('open');
+    await cargarParametrosAdmin();
+  }
+
+  function cerrarParametrosDaily() {
+    document.getElementById('daily-param-modal')?.classList.remove('open');
+  }
+
+  async function cargarParametrosAdmin() {
+    setDailyParamStatus('Cargando parametros.');
+    const wrap = document.getElementById('daily-param-wrap');
+    if (wrap) wrap.innerHTML = '<div class="empty">Cargando parametros.</div>';
+    try {
+      const params = new URLSearchParams({ clave: dailyParamClave });
+      const resp = await fetch(`/api/gestion-operativa/daily/parametros/admin?${params.toString()}`, { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudieron cargar parametros.');
+      dailyAdminParametros = data.parametros || [];
+      renderParametrosAdmin();
+      setDailyParamStatus(`${num(dailyAdminParametros.length)} parametros listos.`);
+    } catch (err) {
+      dailyAdminParametros = [];
+      if (wrap) wrap.innerHTML = '<div class="empty">No se pudieron cargar parametros.</div>';
+      setDailyParamStatus(err.message || 'No se pudieron cargar parametros.', 'error');
+    }
+  }
+
+  function renderParametrosAdmin() {
+    const wrap = document.getElementById('daily-param-wrap');
+    if (!wrap) return;
+    if (!dailyAdminParametros.length) {
+      wrap.innerHTML = '<div class="empty">Sin parametros cargados.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table class="param-table">
+        <thead>
+          <tr>
+            <th>Activo</th>
+            <th>Tipo</th>
+            <th>Sector</th>
+            <th>Grupo</th>
+            <th>Proceso</th>
+            <th>Indicador</th>
+            <th>Unidad</th>
+            <th>Regla</th>
+            <th>Meta</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dailyAdminParametros.map(param => `
+            <tr data-param-id="${escapeHtml(param.id_parametro)}">
+              <td><input type="checkbox" data-param-active ${Number(param.activo || 0) ? 'checked' : ''}></td>
+              <td>${escapeHtml(param.tipo_daily || '')}</td>
+              <td>${escapeHtml(param.sector_aplicable || '')}</td>
+              <td>${escapeHtml(param.grupo || '')}</td>
+              <td>${escapeHtml(param.proceso || '')}</td>
+              <td><strong>${escapeHtml(param.nombre || '')}</strong><br><span class="muted">${escapeHtml(param.descripcion || '')}</span></td>
+              <td>${escapeHtml(param.unidad || '')}</td>
+              <td>${escapeHtml(param.regla_cumplimiento || '')}</td>
+              <td><input type="text" data-param-meta value="${escapeHtml(param.valor_esperado ?? '')}" inputmode="decimal"></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function guardarParametrosDaily() {
+    const rows = [...document.querySelectorAll('#daily-param-wrap tr[data-param-id]')].map(row => ({
+      id_parametro: row.dataset.paramId,
+      activo: row.querySelector('[data-param-active]')?.checked || false,
+      valor_esperado: row.querySelector('[data-param-meta]')?.value || '',
+    }));
+    const btn = document.getElementById('btn-daily-param-save');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    setDailyParamStatus('Guardando parametros.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/parametros/admin', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clave: dailyParamClave, parametros: rows }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudieron guardar parametros.');
+      setDailyParamStatus(`Parametros actualizados: ${num(data.updated)}.`);
+      await cargarParametrosAdmin();
+      await loadDailyParametros();
+    } catch (err) {
+      setDailyParamStatus(err.message || 'No se pudieron guardar parametros.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Guardar parametros';
+    }
   }
 
   function renderKpis(summary = {}) {
@@ -413,6 +1117,631 @@
     renderTransferencias(data.transferencias || []);
   }
 
+  function renderProdKpis(summary = {}) {
+    const items = [
+      ['Prod. bruta', summary.productividad, 'Desde entrega a devolucion'],
+      ['Prod. neta', summary.productividad_neta, 'Sin arranque ni cierre'],
+      ['Bultos', summary.bultos, 'Cantidad preparada'],
+      ['Operarios', summary.operarios, 'Personas con picking'],
+      ['Otros sectores', summary.operarios_fuera_sector, 'Trabajando en este almacen'],
+      ['Entrega a primer', summary.tiempo_entrega_primer, 'Minutos promedio'],
+      ['Entre pickings', summary.tiempo_entre_traspasos, 'Minutos promedio'],
+      ['Ultimo a devolucion', summary.tiempo_ultimo_devolucion, 'Minutos promedio'],
+      ['Bultos/linea', summary.promedio_bultos_traspaso, 'Promedio por linea'],
+      ['Almacenes', summary.almacenes, 'Con actividad'],
+      ['Sesiones incompletas', summary.sesiones_incompletas, 'Sin devolucion detectada'],
+    ];
+    document.getElementById('prod-kpi-grid').innerHTML = items.map(([label, value, sub]) => `
+      <article class="kpi">
+        <div class="kpi-label">${escapeHtml(label)}</div>
+        <div class="kpi-value">${fmtMetric(value)}</div>
+        <div class="kpi-sub">${escapeHtml(sub)}</div>
+      </article>
+    `).join('');
+  }
+
+  function renderBars(title, rows, field, suffix = '') {
+    const max = Math.max(...rows.map(row => Number(row[field] || 0)), 1);
+    return `
+      <article class="chart-card">
+        <div class="chart-title">${escapeHtml(title)}</div>
+        ${rows.length ? rows.map(row => {
+          const value = Number(row[field] || 0);
+          const width = Math.max(2, Math.round((value / max) * 100));
+          return `
+            <div class="bar-row">
+              <div class="bar-label" title="${escapeHtml(row.almacen || '-')}">${escapeHtml(row.almacen || '-')}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
+              <div class="bar-value">${fmtMetric(value, suffix)}</div>
+            </div>
+          `;
+        }).join('') : '<div class="empty">Sin datos para graficar.</div>'}
+      </article>
+    `;
+  }
+
+  function renderProdInsights(rows = []) {
+    const sortedFirst = [...rows].sort((a, b) => Number(b.tiempo_entrega_primer || 0) - Number(a.tiempo_entrega_primer || 0))[0];
+    const sortedGaps = [...rows].sort((a, b) => Number(b.tiempo_entre_traspasos || 0) - Number(a.tiempo_entre_traspasos || 0))[0];
+    const sortedTail = [...rows].sort((a, b) => Number(b.tiempo_ultimo_devolucion || 0) - Number(a.tiempo_ultimo_devolucion || 0))[0];
+    const sortedCross = [...rows].sort((a, b) => Number(b.operarios_fuera_sector || 0) - Number(a.operarios_fuera_sector || 0))[0];
+    const insights = [
+      ['Arranque mas lento', sortedFirst ? `${sortedFirst.almacen}: ${fmtMetric(sortedFirst.tiempo_entrega_primer, ' min')}` : 'Sin datos', 'Entrega de equipo hasta primer picking.'],
+      ['Mayor pausa entre pickings', sortedGaps ? `${sortedGaps.almacen}: ${fmtMetric(sortedGaps.tiempo_entre_traspasos, ' min')}` : 'Sin datos', 'Puede mostrar espera, recorridos largos o bloqueo de tarea.'],
+      ['Cierre mas largo', sortedTail ? `${sortedTail.almacen}: ${fmtMetric(sortedTail.tiempo_ultimo_devolucion, ' min')}` : 'Sin datos', 'Ultimo picking hasta devolucion del equipo.'],
+      ['Mas apoyo externo', sortedCross ? `${sortedCross.almacen}: ${fmtMetric(sortedCross.operarios_fuera_sector)}` : 'Sin datos', 'Personas de otros sectores trabajando en ese almacen.'],
+    ];
+    document.getElementById('prod-insights').innerHTML = insights.map(([title, value, text]) => `
+      <article class="insight"><strong>${escapeHtml(title)}: ${escapeHtml(value)}</strong><span>${escapeHtml(text)}</span></article>
+    `).join('');
+  }
+
+  function renderProdCharts(rows = []) {
+    const order = ['productividad', 'productividad_neta', 'productividad_por_cargo', 'operarios_fuera_sector', 'composicion_otros_sectores'];
+    const ordered = [...rows].sort((a, b) => {
+      const ai = order.includes(a.metric) ? order.indexOf(a.metric) : 99;
+      const bi = order.includes(b.metric) ? order.indexOf(b.metric) : 99;
+      return ai - bi;
+    });
+    document.getElementById('prod-chart-grid').innerHTML = ordered.length
+      ? ordered.map(chart => renderLineChart(chart, chart.metric === 'productividad')).join('')
+      : '<article class="chart-card"><div class="chart-title">Tendencias</div><div class="empty">Sin datos para graficar.</div></article>';
+  }
+
+  function linePath(points, maxValue, width, height, pad) {
+    if (!points.length) return '';
+    if (points.length === 1) {
+      const y = height - pad.bottom - ((Number(points[0].valor || 0) / maxValue) * (height - pad.top - pad.bottom));
+      const x = pad.left + ((width - pad.left - pad.right) / 2);
+      return `M ${x.toFixed(1)} ${y.toFixed(1)} L ${(x + 0.1).toFixed(1)} ${y.toFixed(1)}`;
+    }
+    return points.map((point, index) => {
+      const x = pad.left + (index / (points.length - 1)) * (width - pad.left - pad.right);
+      const y = height - pad.bottom - ((Number(point.valor || 0) / maxValue) * (height - pad.top - pad.bottom));
+      return `${index ? 'L' : 'M'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(' ');
+  }
+
+  function encodeChartPoint(payload) {
+    return encodeURIComponent(JSON.stringify(payload));
+  }
+
+  function lineDots(points, maxValue, width, height, pad, color, chart, seriesName, seriesType, cssClass = 'line-dot') {
+    if (!points.length) return '';
+    return points.map((point, index) => {
+      const x = points.length === 1 ? width / 2 : pad.left + (index / (points.length - 1)) * (width - pad.left - pad.right);
+      const y = height - pad.bottom - ((Number(point.valor || 0) / maxValue) * (height - pad.top - pad.bottom));
+      const payload = encodeChartPoint({
+        metric: chart.metric,
+        label: chart.label,
+        fecha: point.fecha,
+        serie: seriesName || 'Total',
+        serie_tipo: seriesType || 'total',
+        valor: point.valor,
+      });
+      return `<circle class="${cssClass}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${color}" onclick="inspectProdChartPoint('${payload}')"><title>${escapeHtml(point.fecha || '')} · ${escapeHtml(seriesName || 'Total')}: ${escapeHtml(fmtMetric(point.valor, ''))}</title></circle>`;
+    }).join('');
+  }
+
+  function renderLineChart(chart, isPrimary = false) {
+    const palette = ['#c2410c', '#0f766e', '#2563eb', '#9333ea', '#ca8a04', '#be123c', '#15803d', '#7c3aed'];
+    const width = 760;
+    const height = 260;
+    const pad = { top: 18, right: 24, bottom: 34, left: 46 };
+    const storeSeries = Array.isArray(chart.almacenes) ? chart.almacenes : [];
+    const allValues = [
+      ...(chart.total || []).map(point => Number(point.valor || 0)),
+      ...storeSeries.flatMap(series => (series.points || []).map(point => Number(point.valor || 0))),
+    ];
+    const maxValue = Math.max(...allValues, 1);
+    const niceMax = maxValue * 1.12;
+    const dates = (chart.total || []).map(point => point.fecha);
+    const gridLines = [0, .25, .5, .75, 1].map(ratio => {
+      const y = pad.top + ratio * (height - pad.top - pad.bottom);
+      const label = fmtMetric(niceMax * (1 - ratio), chart.unit || '');
+      return `<line class="line-grid" x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}"></line><text x="4" y="${y + 4}" font-size="10" fill="#8f7d74">${escapeHtml(label)}</text>`;
+    }).join('');
+    const dateLabels = dates.map((date, index) => {
+      if (dates.length > 6 && index % Math.ceil(dates.length / 6) !== 0 && index !== dates.length - 1) return '';
+      const x = dates.length === 1 ? width / 2 : pad.left + (index / Math.max(dates.length - 1, 1)) * (width - pad.left - pad.right);
+      const label = String(date || '').slice(5);
+      return `<text x="${x}" y="${height - 8}" text-anchor="middle" font-size="10" fill="#8f7d74">${escapeHtml(label)}</text>`;
+    }).join('');
+    const storeLines = storeSeries.map((series, index) => {
+      const color = palette[index % palette.length];
+      const label = series.almacen || series.sector || '-';
+      const type = chart.series_type || 'almacen';
+      return `<path class="line-store" d="${linePath(series.points || [], niceMax, width, height, pad)}" stroke="${color}"></path>${lineDots(series.points || [], niceMax, width, height, pad, color, chart, label, type)}`;
+    }).join('');
+    const totalLine = `<path class="line-total" d="${linePath(chart.total || [], niceMax, width, height, pad)}"></path>${lineDots(chart.total || [], niceMax, width, height, pad, '#111827', chart, 'Total', 'total')}`;
+    const legend = [
+      `<span class="legend-item"><span class="legend-swatch"></span>Total</span>`,
+      ...storeSeries.map((series, index) => `<span class="legend-item"><span class="legend-swatch" style="background:${palette[index % palette.length]}"></span>${escapeHtml(series.almacen || series.sector || '-')}</span>`),
+    ].join('');
+    return `
+      <article class="chart-card ${isPrimary ? 'primary-chart' : ''}">
+        <div class="chart-title">${escapeHtml(chart.label || 'Tendencia')}</div>
+        ${chart.description ? `<div class="chart-subtitle">${escapeHtml(chart.description)}</div>` : ''}
+        <svg class="line-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(chart.label || 'Tendencia')}">
+          ${gridLines}
+          <line class="line-axis" x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}"></line>
+          ${dateLabels}
+          ${storeLines}
+          ${totalLine}
+        </svg>
+        <div class="chart-legend">${legend}</div>
+        <div class="chart-note">${escapeHtml(chart.note || 'Linea negra: total consolidado. Lineas de color: almacenes. Click en un punto para ver detalle en grilla.')}</div>
+      </article>
+    `;
+  }
+
+  function renderProdGrid(rows = [], context = '') {
+    document.getElementById('prod-grid-count').textContent = context ? `${num(rows.length)} registros · ${context}` : `${num(rows.length)} registros`;
+    const wrap = document.getElementById('prod-grid-wrap');
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty">No hay productividad materializada para el rango.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Turno</th>
+            <th>Almacen</th>
+            <th>Sector legajero</th>
+            <th>Cargo</th>
+            <th>Operario</th>
+            <th>Inicio</th>
+            <th>Primer picking</th>
+            <th>Ultimo picking</th>
+            <th>Fin</th>
+            <th>Bultos</th>
+            <th>Lineas</th>
+            <th>Bultos/linea</th>
+            <th>Entrega-primer</th>
+            <th>Entre pickings</th>
+            <th>Ultimo-devolucion</th>
+            <th>Alertas</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `
+            <tr>
+              <td>${escapeHtml(row.fecha_operativa || '-')}</td>
+              <td>${escapeHtml(row.turno_label || row.turno_key || '-')}</td>
+              <td>${escapeHtml(row.almacen || '-')}</td>
+              <td>${escapeHtml(row.sector_legajero || '-')}<br><span class="muted">${escapeHtml(row.sector_esperado ? `Esperado: ${row.sector_esperado}` : '')}</span></td>
+              <td>${escapeHtml(row.cargo_legajero || '-')}<br><span class="muted">${escapeHtml(row.posicion_legajero || '')}</span></td>
+              <td><strong>${escapeHtml(row.operario || row.copecrea || '-')}</strong><br><span class="muted">${escapeHtml(row.copecrea || '')}</span></td>
+              <td>${onlyTime(row.inicio_productivo)}</td>
+              <td>${onlyTime(row.primer_traspaso)}</td>
+              <td>${onlyTime(row.ultimo_traspaso)}</td>
+              <td>${onlyTime(row.fin_productivo)}</td>
+              <td>${fmtMetric(row.bultos)}</td>
+              <td>${num(row.traspasos)}</td>
+              <td>${fmtMetric(row.promedio_bultos_traspaso)}</td>
+              <td>${fmtMetric(row.minutos_entrega_primer, ' min')}</td>
+              <td>${fmtMetric(row.minutos_entre_traspasos, ' min')}</td>
+              <td>${fmtMetric(row.minutos_ultimo_devol, ' min')}</td>
+              <td>
+                ${row.sesion_incompleta ? '<span class="chip media">incompleta</span>' : ''}
+                ${row.excede_turno ? '<span class="chip alta">extra turno</span>' : ''}
+                ${row.dotacion_fuera_almacen ? '<span class="chip alta">fuera dotacion</span>' : ''}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function inspectProdChartPoint(encodedPayload) {
+    let payload = {};
+    try {
+      payload = JSON.parse(decodeURIComponent(encodedPayload || ''));
+    } catch (_) {
+      return;
+    }
+    const rows = Array.isArray(lastProdView?.grid) ? lastProdView.grid : [];
+    const metric = payload.metric || '';
+    const fecha = payload.fecha || '';
+    const serie = payload.serie || 'Total';
+    const serieTipo = payload.serie_tipo || 'total';
+    let filtered = rows.filter(row => row.fecha_operativa === fecha);
+    if (metric === 'operarios_fuera_sector' || metric === 'composicion_otros_sectores') {
+      filtered = filtered.filter(row => Number(row.dotacion_fuera_almacen || 0));
+    }
+    if (serieTipo === 'almacen') {
+      filtered = filtered.filter(row => (row.almacen || 'SIN MAPEAR') === serie);
+    }
+    if (serieTipo === 'sector') {
+      filtered = filtered.filter(row => (row.sector_legajero || 'SIN LEGAJO') === serie);
+    }
+    if (serieTipo === 'cargo') {
+      filtered = filtered.filter(row => (row.cargo_grupo || 'SIN CARGO') === serie);
+    }
+    const title = `${payload.label || metric} · ${fecha} · ${serie}`;
+    renderProdGrid(filtered, title);
+    setProductividadSubtab('grilla');
+  }
+
+  function renderProdResult(data) {
+    lastProdResult = data;
+    populateProductividadAlmacenSelect(data);
+    renderProductividadView();
+    renderProdAI(null);
+  }
+
+  function populateProductividadAlmacenSelect(data) {
+    const select = document.getElementById('prod-almacen');
+    if (!select) return;
+    const almacenes = [...new Set([
+      ...(data.almacenes || []).map(item => item.almacen),
+      ...(data.grid || []).map(row => row.almacen),
+    ].filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'es'));
+    const current = almacenes.includes(selectedProdAlmacen) ? selectedProdAlmacen : 'ALL';
+    selectedProdAlmacen = current;
+    select.innerHTML = [
+      '<option value="ALL">Todos</option>',
+      ...almacenes.map(almacen => `<option value="${escapeHtml(almacen)}">${escapeHtml(almacen)}</option>`),
+    ].join('');
+    select.value = current;
+  }
+
+  function onProductividadAlmacenChange() {
+    const select = document.getElementById('prod-almacen');
+    selectedProdAlmacen = select?.value || 'ALL';
+    renderProductividadView();
+    renderProdAI(null);
+  }
+
+  function weightedRows(rows, field) {
+    const totalWeight = rows.reduce((acc, row) => acc + Number(row.traspasos || 0), 0);
+    if (!totalWeight) return 0;
+    return rows.reduce((acc, row) => acc + Number(row[field] || 0) * Number(row.traspasos || 0), 0) / totalWeight;
+  }
+
+  function netProductiveMinutes(row = {}) {
+    if (row.minutos_productivos_netos !== undefined && row.minutos_productivos_netos !== null) {
+      return Number(row.minutos_productivos_netos || 0);
+    }
+    return Math.max(
+      0,
+      Number(row.minutos_productivos || 0)
+        - Number(row.minutos_entrega_primer || 0)
+        - Number(row.minutos_ultimo_devol || 0)
+    );
+  }
+
+  function aggregateProductividadRows(rows = []) {
+    const bultos = rows.reduce((acc, row) => acc + Number(row.bultos || 0), 0);
+    const traspasos = rows.reduce((acc, row) => acc + Number(row.traspasos || 0), 0);
+    const minutos = rows.reduce((acc, row) => acc + Number(row.minutos_productivos || 0), 0);
+    const minutosNetos = rows.reduce((acc, row) => acc + netProductiveMinutes(row), 0);
+    return {
+      bultos,
+      traspasos,
+      operarios: new Set(rows.map(row => row.copecrea).filter(Boolean)).size,
+      almacenes: new Set(rows.map(row => row.almacen).filter(Boolean)).size,
+      productividad: minutos > 0 ? bultos / (minutos / 60) : 0,
+      productividad_neta: minutosNetos > 0 ? bultos / (minutosNetos / 60) : 0,
+      minutos_productivos_netos: minutosNetos,
+      operarios_fuera_sector: new Set(rows.filter(row => Number(row.dotacion_fuera_almacen || 0)).map(row => row.copecrea).filter(Boolean)).size,
+      segmentos_fuera_sector: rows.reduce((acc, row) => acc + Number(row.dotacion_fuera_almacen || 0), 0),
+      bultos_fuera_sector: rows.reduce((acc, row) => acc + (Number(row.dotacion_fuera_almacen || 0) ? Number(row.bultos || 0) : 0), 0),
+      tiempo_entrega_primer: weightedRows(rows, 'minutos_entrega_primer'),
+      tiempo_entre_traspasos: weightedRows(rows, 'minutos_entre_traspasos'),
+      tiempo_ultimo_devolucion: weightedRows(rows, 'minutos_ultimo_devol'),
+      promedio_bultos_traspaso: traspasos ? bultos / traspasos : 0,
+      sesiones_incompletas: rows.reduce((acc, row) => acc + Number(row.sesion_incompleta || 0), 0),
+      segmentos_extra_turno: rows.reduce((acc, row) => acc + Number(row.excede_turno || 0), 0),
+    };
+  }
+
+  function buildAlmacenesFromGrid(rows = []) {
+    const names = [...new Set(rows.map(row => row.almacen || 'SIN MAPEAR'))].sort((a, b) => String(a).localeCompare(String(b), 'es'));
+    return names.map(almacen => ({ almacen, ...aggregateProductividadRows(rows.filter(row => (row.almacen || 'SIN MAPEAR') === almacen)) }));
+  }
+
+  function productividadFilteredRows(data) {
+    const rows = Array.isArray(data?.grid) ? data.grid : [];
+    if (selectedProdAlmacen === 'ALL') return rows;
+    return rows.filter(row => (row.almacen || 'SIN MAPEAR') === selectedProdAlmacen);
+  }
+
+  function buildProductividadView(data) {
+    const rows = productividadFilteredRows(data);
+    const almacenes = buildAlmacenesFromGrid(rows);
+    return {
+      ...(data || {}),
+      summary: aggregateProductividadRows(rows),
+      almacenes,
+      tendencias: { charts: buildTrendsFromGrid(rows) },
+      grid: rows,
+      selected_almacen: selectedProdAlmacen,
+      segment_rows_count: rows.length,
+    };
+  }
+
+  function renderProductividadView() {
+    const data = lastProdResult || { summary: {}, almacenes: [], grid: [] };
+    const view = buildProductividadView(data);
+    lastProdView = view;
+    renderProdKpis(view.summary || {});
+    renderProdInsights(view.almacenes || []);
+    renderProdCharts(view.tendencias?.charts || []);
+    renderProdGrid(view.grid || []);
+  }
+
+  function renderProdAI(data) {
+    const panel = document.getElementById('prod-ai-panel');
+    const summary = document.getElementById('prod-ai-summary');
+    const grid = document.getElementById('prod-ai-grid');
+    const audit = document.getElementById('prod-ai-audit');
+    if (!panel || !summary || !grid) return;
+    if (!data) {
+      panel.classList.remove('open');
+      summary.textContent = '';
+      grid.innerHTML = '';
+      if (audit) {
+        audit.classList.remove('open');
+        audit.innerHTML = '';
+      }
+      return;
+    }
+    panel.classList.add('open');
+    summary.innerHTML = `
+      <strong>${escapeHtml(String(data.estado_actual || '-').toUpperCase())}</strong> · ${escapeHtml(data.resumen || '')}
+      <br><span class="muted">${escapeHtml(data.comparacion_vs_pasado || '')}</span>
+    `;
+    if (audit) {
+      const auditData = data.audit || {};
+      audit.innerHTML = `<pre>${escapeHtml([
+        'PROMPT DEL SISTEMA:',
+        auditData.system_prompt || 'No disponible',
+        '',
+        'PLANTILLA DE USUARIO:',
+        auditData.user_prompt_template || 'No disponible',
+        '',
+        'PROMPT DE USUARIO REAL ENVIADO:',
+        auditData.user_prompt_real || 'No disponible',
+        '',
+        'POLITICA DE DATOS:',
+        auditData.data_policy || 'No disponible',
+        '',
+        `CLAVES DEL PAYLOAD: ${(auditData.payload_keys || []).join(', ') || 'No disponible'}`,
+      ].join('\n'))}</pre>`;
+    }
+    const list = (items, render) => (Array.isArray(items) && items.length)
+      ? `<ul>${items.map(item => `<li>${render(item)}</li>`).join('')}</ul>`
+      : '<div class="empty">Sin hallazgos.</div>';
+    grid.innerHTML = `
+      <div class="ai-block">
+        <h4>Tendencias</h4>
+        ${list(data.tendencias, item => `<strong>${escapeHtml(item.titulo || item.concepto || '-')}</strong>: ${escapeHtml(item.detalle || item.lectura || '')}`)}
+      </div>
+      <div class="ai-block">
+        <h4>Causas probables</h4>
+        ${list(data.causas_probables, item => `<strong>${escapeHtml(item.titulo || item.causa || '-')}</strong>: ${escapeHtml(item.detalle || item.evidencia || '')} <span class="muted">${escapeHtml(item.almacen || '')}</span>`)}
+      </div>
+      <div class="ai-block">
+        <h4>Acciones</h4>
+        ${list(data.acciones, item => `<strong>${escapeHtml(item.titulo || item.accion || '-')}</strong>: ${escapeHtml(item.detalle || item.porque || '')} <span class="muted">${escapeHtml(item.prioridad || '')}</span>`)}
+      </div>
+      <div class="ai-block">
+        <h4>Almacenes a revisar</h4>
+        ${list(data.almacenes_a_revisar, item => `<strong>${escapeHtml(item.titulo || item.almacen || '-')}</strong>: ${escapeHtml(item.detalle || item.motivo || '')}`)}
+      </div>
+    `;
+  }
+
+  function toggleProductividadPrompt() {
+    const audit = document.getElementById('prod-ai-audit');
+    if (!audit || !audit.innerHTML.trim()) return;
+    audit.classList.toggle('open');
+  }
+
+  async function analizarProductividadIA() {
+    const analysisBase = lastProdView || lastProdResult;
+    if (!analysisBase || !analysisBase.summary || !Number(analysisBase.segment_rows_count || 0)) {
+      setProdStatus('Primero consulta productividad para enviar datos a IA.', 'error');
+      return;
+    }
+    const btn = document.getElementById('btn-prod-ia');
+    btn.disabled = true;
+    btn.textContent = 'Analizando...';
+    setProdStatus('IA analizando tendencias y comparando actual vs pasado.');
+    try {
+      const payload = {
+        ...analysisBase,
+        grid: (analysisBase.grid || []).slice(0, 500),
+      };
+      const resp = await fetch('/api/gestion-operativa/productividad-picking/ia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analisis_base: payload }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo generar analisis IA.');
+      renderProdAI(data);
+      setProdStatus(`Analisis IA listo (${data.provider || 'IA'}).`);
+    } catch (err) {
+      setProdStatus(err.message || 'No se pudo generar analisis IA.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Analizar con IA';
+    }
+  }
+
+  function buildTrendsFromGrid(rows = []) {
+    if (!rows.length) return [];
+    const metricDefs = [
+      ['productividad', 'Productividad bruta', ' bultos/h', 'Bultos por hora desde entrega de equipo hasta devolucion o corte de turno.'],
+      ['productividad_neta', 'Productividad neta', ' bultos/h', 'Bultos por hora descontando entrega a primer picking y ultimo picking a devolucion.'],
+      ['bultos', 'Bultos preparados', '', 'Volumen total preparado en picking durante el periodo seleccionado.'],
+      ['operarios', 'Cantidad de operarios', '', 'Personas distintas con actividad de picking en cada dia y almacen.'],
+      ['operarios_fuera_sector', 'Otros sectores en el almacen', '', 'Personas de otros sectores que hicieron picking en el almacen graficado. No mide gente de ese almacen trabajando afuera.'],
+      ['tiempo_entrega_primer', 'Entrega a primer picking', ' min', 'Minutos entre entrega de equipo y primer movimiento de picking.'],
+      ['tiempo_entre_traspasos', 'Tiempo medio entre pickings', ' min', 'Pausa promedio entre movimientos de picking; ayuda a detectar esperas o recorridos.'],
+      ['tiempo_ultimo_devolucion', 'Ultimo picking a devolucion', ' min', 'Minutos entre el ultimo picking y la devolucion del equipo.'],
+      ['promedio_bultos_traspaso', 'Promedio bultos por linea', '', 'Cantidad promedio de bultos procesados por cada linea de picking.'],
+    ];
+    const fechas = [...new Set(rows.map(row => row.fecha_operativa).filter(Boolean))].sort();
+    const almacenes = [...new Set(rows.map(row => row.almacen || 'SIN MAPEAR'))].sort();
+    const rowsFor = (fecha, almacen = null) => rows.filter(row => row.fecha_operativa === fecha && (!almacen || (row.almacen || 'SIN MAPEAR') === almacen));
+    const weighted = (items, field) => {
+      const totalWeight = items.reduce((acc, row) => acc + Number(row.traspasos || 0), 0);
+      if (!totalWeight) return 0;
+      return items.reduce((acc, row) => acc + Number(row[field] || 0) * Number(row.traspasos || 0), 0) / totalWeight;
+    };
+    const aggregate = items => {
+      const bultos = items.reduce((acc, row) => acc + Number(row.bultos || 0), 0);
+      const traspasos = items.reduce((acc, row) => acc + Number(row.traspasos || 0), 0);
+      const minutos = items.reduce((acc, row) => acc + Number(row.minutos_productivos || 0), 0);
+      const minutosNetos = items.reduce((acc, row) => acc + netProductiveMinutes(row), 0);
+      return {
+        productividad: minutos > 0
+          ? bultos / (minutos / 60)
+          : 0,
+        productividad_neta: minutosNetos > 0 ? bultos / (minutosNetos / 60) : 0,
+        bultos,
+        operarios: new Set(items.map(row => row.copecrea).filter(Boolean)).size,
+        operarios_fuera_sector: new Set(items.filter(row => Number(row.dotacion_fuera_almacen || 0)).map(row => row.copecrea).filter(Boolean)).size,
+        tiempo_entrega_primer: weighted(items, 'minutos_entrega_primer'),
+        tiempo_entre_traspasos: weighted(items, 'minutos_entre_traspasos'),
+        tiempo_ultimo_devolucion: weighted(items, 'minutos_ultimo_devol'),
+        promedio_bultos_traspaso: traspasos ? bultos / traspasos : 0,
+      };
+    };
+    const charts = metricDefs.map(([metric, label, unit, description]) => ({
+      metric,
+      label,
+      unit,
+      description,
+      total: fechas.map(fecha => ({ fecha, valor: Number(aggregate(rowsFor(fecha))[metric] || 0) })),
+      almacenes: almacenes.map(almacen => ({
+        almacen,
+        points: fechas.map(fecha => ({ fecha, valor: Number(aggregate(rowsFor(fecha, almacen))[metric] || 0) })),
+      })),
+    }));
+    const composition = buildOtrosSectoresCompositionChart(rows, fechas);
+    const insertAfter = charts.findIndex(chart => chart.metric === 'operarios_fuera_sector');
+    if (composition && insertAfter >= 0) charts.splice(insertAfter + 1, 0, composition);
+    const cargoChart = buildProductividadCargoChart(rows, fechas);
+    const cargoAfter = charts.findIndex(chart => chart.metric === 'productividad_neta');
+    if (cargoChart && cargoAfter >= 0) charts.splice(cargoAfter + 1, 0, cargoChart);
+    return charts;
+  }
+
+  function buildProductividadCargoChart(rows = [], fechas = []) {
+    if (!rows.length) return null;
+    const cargoGroups = [...new Set(rows.map(row => row.cargo_grupo || 'SIN CARGO'))].sort((a, b) => {
+      const order = ['ARMADOR', 'NO ARMADOR', 'SIN CARGO'];
+      const ai = order.includes(a) ? order.indexOf(a) : 99;
+      const bi = order.includes(b) ? order.indexOf(b) : 99;
+      return ai - bi || String(a).localeCompare(String(b), 'es');
+    });
+    const rowsFor = (fecha, cargo = null) => rows.filter(row => row.fecha_operativa === fecha && (!cargo || (row.cargo_grupo || 'SIN CARGO') === cargo));
+    const productividadNeta = items => {
+      const bultos = items.reduce((acc, row) => acc + Number(row.bultos || 0), 0);
+      const minutos = items.reduce((acc, row) => acc + netProductiveMinutes(row), 0);
+      return minutos > 0 ? bultos / (minutos / 60) : 0;
+    };
+    return {
+      metric: 'productividad_por_cargo',
+      label: 'Productividad neta por cargo',
+      unit: ' bultos/h',
+      description: 'Compara productividad neta entre armadores y personas con otros cargos que hicieron picking.',
+      series_type: 'cargo',
+      note: 'Linea negra: total del almacen seleccionado. Lineas de color: grupo de cargo. Click en un punto para ver detalle en grilla.',
+      total: fechas.map(fecha => ({ fecha, valor: productividadNeta(rowsFor(fecha)) })),
+      almacenes: cargoGroups.map(cargo => ({
+        sector: cargo,
+        almacen: cargo,
+        points: fechas.map(fecha => ({ fecha, valor: productividadNeta(rowsFor(fecha, cargo)) })),
+      })),
+    };
+  }
+
+  function buildOtrosSectoresCompositionChart(rows = [], fechas = []) {
+    const externalRows = rows.filter(row => Number(row.dotacion_fuera_almacen || 0));
+    if (!externalRows.length) return null;
+    const sectors = [...new Set(externalRows.map(row => row.sector_legajero || 'SIN LEGAJO'))].sort((a, b) => String(a).localeCompare(String(b), 'es'));
+    const rowsFor = (fecha, sector = null) => externalRows.filter(row => row.fecha_operativa === fecha && (!sector || (row.sector_legajero || 'SIN LEGAJO') === sector));
+    const distinctOps = items => new Set(items.map(row => row.copecrea).filter(Boolean)).size;
+    return {
+      metric: 'composicion_otros_sectores',
+      label: 'Composicion por sector',
+      unit: '',
+      description: 'Desglosa de que sector vienen las personas contadas como otros sectores en el almacen seleccionado.',
+      series_type: 'sector',
+      note: 'Linea negra: total de otros sectores. Lineas de color: sector de origen. Click en un punto para ver detalle en grilla.',
+      total: fechas.map(fecha => ({ fecha, valor: distinctOps(rowsFor(fecha)) })),
+      almacenes: sectors.map(sector => ({
+        sector,
+        almacen: sector,
+        points: fechas.map(fecha => ({ fecha, valor: distinctOps(rowsFor(fecha, sector)) })),
+      })),
+    };
+  }
+
+  function shiftStart(fecha, turno) {
+    if (turno === 'manana') return `${fecha} 06:00:00`;
+    if (turno === 'tarde') return `${fecha} 14:00:00`;
+    return `${fecha} 22:00:00`;
+  }
+
+  function shiftEnd(fecha, turno) {
+    const addDays = (dateValue, days) => {
+      const [year, month, day] = String(dateValue).split('-').map(Number);
+      const date = new Date(year, month - 1, day + days);
+      const pad = value => String(value).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    };
+    if (turno === 'manana') return `${fecha} 14:00:00`;
+    if (turno === 'tarde') return `${fecha} 22:00:00`;
+    return `${addDays(fecha, 1)} 06:00:00`;
+  }
+
+  function productividadRangeFromTurns(fechaDesde, turnoDesde, fechaHasta, turnoHasta) {
+    return { desde: shiftStart(fechaDesde, turnoDesde), hasta: shiftEnd(fechaHasta, turnoHasta) };
+  }
+
+  async function consultarProductividad() {
+    if (loadingProd) return;
+    const fechaDesde = document.getElementById('prod-fecha-desde').value;
+    const fechaHasta = document.getElementById('prod-fecha-hasta').value;
+    const turnoDesde = document.getElementById('prod-turno-desde').value;
+    const turnoHasta = document.getElementById('prod-turno-hasta').value;
+    if (!fechaDesde || !fechaHasta || !turnoDesde || !turnoHasta) {
+      setProdStatus('Completa fecha y turno de inicio y fin.', 'error');
+      return;
+    }
+    const range = productividadRangeFromTurns(fechaDesde, turnoDesde, fechaHasta, turnoHasta);
+    loadingProd = true;
+    const btn = document.getElementById('btn-prod-consultar');
+    btn.disabled = true;
+    btn.textContent = 'Consultando...';
+    setProdStatus('Buscando primero en cache local; si no existe, consulta Oracle.');
+    try {
+      const params = new URLSearchParams({ fecha_desde: range.desde, fecha_hasta: range.hasta });
+      const resp = await fetch(`/api/gestion-operativa/productividad-picking?${params.toString()}`);
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo consultar productividad.');
+      renderProdResult(data);
+      const origin = String(data.source_name || '').includes('sqlite') ? 'cache local' : 'Oracle';
+      setProdStatus(`Consulta lista desde ${origin}: ${num(data.event_rows_count)} eventos, ${num(data.segment_rows_count)} segmentos.`);
+    } catch (err) {
+      renderProdResult({ summary: {}, almacenes: [], grid: [] });
+      setProdStatus(err.message || 'No se pudo consultar productividad.', 'error');
+    } finally {
+      loadingProd = false;
+      btn.disabled = false;
+      btn.textContent = 'Consultar';
+    }
+  }
+
   async function consultarCambios() {
     if (loading) return;
     const fecha = document.getElementById('fecha').value;
@@ -446,11 +1775,18 @@
   (async function bootstrap() {
     try {
       await requireAuth();
-      initHeader('gestion', { showClock: true });
+      const userLabel = document.getElementById('user-label');
+      if (userLabel) userLabel.textContent = `${authUser.display_name || authUser.username} · ${authUser.role || ''}`;
       document.getElementById('fecha').value = localDateValue();
       document.getElementById('turno').value = currentTurn();
+      document.getElementById('prod-fecha-hasta').value = localDateValue();
+      document.getElementById('prod-fecha-desde').value = localDateValue();
+      document.getElementById('prod-turno-desde').value = currentTurn();
+      document.getElementById('prod-turno-hasta').value = currentTurn();
       renderKpis({});
       renderStories([]);
+      renderProdResult({ summary: {}, almacenes: [], grid: [] });
+      await loadDailyConfig();
     } catch (err) {
       if (err.message !== 'redirect') setStatus(err.message || 'No se pudo iniciar Gestión Operativa.', 'error');
     }
