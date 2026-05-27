@@ -481,6 +481,119 @@ CREATE TABLE IF NOT EXISTS productividad_online_cache_rows (
 );
 """
 
+CREATE_GESTION_PRODUCTIVIDAD_PICKING_RUNS = """
+CREATE TABLE IF NOT EXISTS gestion_productividad_picking_runs (
+    run_id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    rango_key               TEXT NOT NULL UNIQUE,
+    fecha_desde             TEXT NOT NULL,
+    fecha_hasta             TEXT NOT NULL,
+    source_name             TEXT DEFAULT 'oracle_productiva',
+    source_rows_count       INTEGER DEFAULT 0,
+    event_rows_count        INTEGER DEFAULT 0,
+    segment_rows_count      INTEGER DEFAULT 0,
+    resumen_json            TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_GESTION_PRODUCTIVIDAD_PICKING_EVENTS = """
+CREATE TABLE IF NOT EXISTS gestion_productividad_picking_events (
+    event_uid               TEXT PRIMARY KEY,
+    run_id                  INTEGER NOT NULL REFERENCES gestion_productividad_picking_runs(run_id) ON DELETE CASCADE,
+    fh_movimiento           TEXT NOT NULL,
+    fecha_operativa         TEXT,
+    turno_key               TEXT,
+    turno_label             TEXT,
+    almacen                 TEXT,
+    copecrea                TEXT NOT NULL,
+    operario                TEXT,
+    operacion               TEXT NOT NULL,
+    zona_origen             TEXT,
+    ubic_origen             TEXT,
+    nro_pallet              TEXT,
+    pedido                  TEXT,
+    cantidad                REAL DEFAULT 0,
+    peso                    REAL DEFAULT 0,
+    source_table            TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_GESTION_PRODUCTIVIDAD_PICKING_SEGMENTS = """
+CREATE TABLE IF NOT EXISTS gestion_productividad_picking_segments (
+    segment_uid             TEXT PRIMARY KEY,
+    run_id                  INTEGER NOT NULL REFERENCES gestion_productividad_picking_runs(run_id) ON DELETE CASCADE,
+    fecha_operativa         TEXT NOT NULL,
+    turno_key               TEXT NOT NULL,
+    turno_label             TEXT NOT NULL,
+    almacen                 TEXT NOT NULL,
+    copecrea                TEXT NOT NULL,
+    operario                TEXT,
+    inicio_productivo       TEXT,
+    fin_productivo          TEXT,
+    primer_traspaso         TEXT,
+    ultimo_traspaso         TEXT,
+    minutos_productivos     REAL DEFAULT 0,
+    minutos_entrega_primer  REAL DEFAULT 0,
+    minutos_entre_traspasos REAL DEFAULT 0,
+    minutos_ultimo_devol    REAL DEFAULT 0,
+    traspasos               INTEGER DEFAULT 0,
+    bultos                  REAL DEFAULT 0,
+    peso                    REAL DEFAULT 0,
+    promedio_bultos_traspaso REAL DEFAULT 0,
+    sesion_incompleta       INTEGER DEFAULT 0,
+    excede_turno            INTEGER DEFAULT 0,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_HISTORIA_LEGAJO_ACTIVIDAD_OPERACIONES = """
+CREATE TABLE IF NOT EXISTS historia_legajo_actividad_operaciones (
+    legajo                  TEXT NOT NULL,
+    fecha                   TEXT NOT NULL,
+    operaciones             TEXT NOT NULL DEFAULT '',
+    source_rows_count       INTEGER DEFAULT 0,
+    source_name             TEXT DEFAULT 'oracle_productiva',
+    synced_at               DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (legajo, fecha)
+);
+"""
+
+CREATE_HISTORIA_LEGAJO_ACTIVIDAD_SYNC_RUNS = """
+CREATE TABLE IF NOT EXISTS historia_legajo_actividad_sync_runs (
+    run_id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    trigger                 TEXT NOT NULL DEFAULT 'scheduler',
+    status                  TEXT NOT NULL DEFAULT 'running',
+    window_label            TEXT,
+    fecha_desde             TEXT,
+    fecha_hasta             TEXT,
+    days_attempted          INTEGER DEFAULT 0,
+    legajos_scope_count     INTEGER DEFAULT 0,
+    cache_rows_written      INTEGER DEFAULT 0,
+    active_rows_written     INTEGER DEFAULT 0,
+    oracle_rows_count       INTEGER DEFAULT 0,
+    started_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    heartbeat_at            DATETIME DEFAULT CURRENT_TIMESTAMP,
+    finished_at             DATETIME,
+    duration_seconds        REAL DEFAULT 0,
+    error                   TEXT
+);
+"""
+
+CREATE_HISTORIA_LEGAJO_ACTIVIDAD_SYNC_LOCK = """
+CREATE TABLE IF NOT EXISTS historia_legajo_actividad_sync_lock (
+    lock_name               TEXT PRIMARY KEY,
+    status                  TEXT NOT NULL DEFAULT 'idle',
+    owner                   TEXT,
+    run_id                  INTEGER,
+    started_at              DATETIME,
+    heartbeat_at            DATETIME,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    error                   TEXT
+);
+"""
+
 CREATE_PRODUCTIVIDAD_HOURLY_IA_CACHE = """
 CREATE TABLE IF NOT EXISTS productividad_hourly_ia_cache (
     cache_key               TEXT PRIMARY KEY,
@@ -780,6 +893,33 @@ CREATE TABLE IF NOT EXISTS rrhh_ausentismo_reglas (
 );
 """
 
+CREATE_RRHH_FRANCOS_INICIAL = """
+CREATE TABLE IF NOT EXISTS rrhh_francos_inicial (
+    legajo                  TEXT PRIMARY KEY,
+    nombre                  TEXT,
+    saldo_inicial           REAL NOT NULL DEFAULT 0,
+    fecha_corte             DATE,
+    source_file             TEXT,
+    raw_json                TEXT,
+    imported_by             TEXT,
+    imported_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RRHH_FRANCOS_REGLAS = """
+CREATE TABLE IF NOT EXISTS rrhh_francos_reglas (
+    regla_id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo                    TEXT NOT NULL,
+    patron                  TEXT NOT NULL,
+    delta                   REAL NOT NULL,
+    prioridad               INTEGER NOT NULL DEFAULT 100,
+    active                  INTEGER NOT NULL DEFAULT 1,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(tipo, patron)
+);
+"""
+
 CREATE_CUMPLIMIENTO_ONLINE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_cumpl_online_turno_inicio ON cumplimiento_online_snapshots(turno_key, turno_inicio, bloque_hasta)",
 ]
@@ -826,6 +966,20 @@ CREATE_PRODUCTIVIDAD_ONLINE_CACHE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_prod_online_cache_rows_operario ON productividad_online_cache_rows(copecrea, fecha, turno_key)",
 ]
 
+CREATE_GESTION_PRODUCTIVIDAD_PICKING_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_gestion_prod_pick_events_run ON gestion_productividad_picking_events(run_id, fh_movimiento)",
+    "CREATE INDEX IF NOT EXISTS idx_gestion_prod_pick_events_turno ON gestion_productividad_picking_events(fecha_operativa, turno_key, almacen)",
+    "CREATE INDEX IF NOT EXISTS idx_gestion_prod_pick_segments_turno ON gestion_productividad_picking_segments(fecha_operativa, turno_key, almacen)",
+    "CREATE INDEX IF NOT EXISTS idx_gestion_prod_pick_segments_run_primer ON gestion_productividad_picking_segments(run_id, primer_traspaso)",
+    "CREATE INDEX IF NOT EXISTS idx_gestion_prod_pick_segments_operario ON gestion_productividad_picking_segments(copecrea, inicio_productivo)",
+    "CREATE INDEX IF NOT EXISTS idx_gestion_prod_pick_segments_operario_fecha ON gestion_productividad_picking_segments(copecrea, fecha_operativa)",
+]
+
+CREATE_HISTORIA_LEGAJO_INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_historia_legajo_actividad_fecha ON historia_legajo_actividad_operaciones(fecha)",
+    "CREATE INDEX IF NOT EXISTS idx_historia_legajo_actividad_sync_started ON historia_legajo_actividad_sync_runs(started_at DESC)",
+]
+
 CREATE_PRODUCTIVIDAD_HOURLY_IA_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_prod_hourly_ia_lookup ON productividad_hourly_ia_cache(provider, prompt_version, summary_hash, updated_at)",
 ]
@@ -857,6 +1011,8 @@ CREATE_RRHH_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_rrhh_fichadas_fecha ON rrhh_fichadas(batch_id, fecha)",
     "CREATE INDEX IF NOT EXISTS idx_rrhh_sanciones_legajo ON rrhh_sanciones(batch_id, legajo)",
     "CREATE INDEX IF NOT EXISTS idx_rrhh_sanciones_creacion ON rrhh_sanciones(batch_id, creacion)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_francos_saldo ON rrhh_francos_inicial(saldo_inicial)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_francos_reglas ON rrhh_francos_reglas(active, prioridad)",
 ]
 
 CREATE_AUTH_USERS = """
@@ -924,6 +1080,8 @@ CREATE_AUTH_INDEXES = [
 async def init_db():
     """Crea las tablas si no existen."""
     async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA journal_mode = WAL")
+        await db.execute("PRAGMA busy_timeout = 10000")
         # Tablas existentes
         await db.execute(CREATE_TURNOS)
         await db.execute(CREATE_MOVIMIENTOS)
@@ -953,6 +1111,12 @@ async def init_db():
         await db.execute(CREATE_PICKING_ANALYSIS_CACHE_ROWS)
         await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_RUNS)
         await db.execute(CREATE_PRODUCTIVIDAD_ONLINE_CACHE_ROWS)
+        await db.execute(CREATE_GESTION_PRODUCTIVIDAD_PICKING_RUNS)
+        await db.execute(CREATE_GESTION_PRODUCTIVIDAD_PICKING_EVENTS)
+        await db.execute(CREATE_GESTION_PRODUCTIVIDAD_PICKING_SEGMENTS)
+        await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_OPERACIONES)
+        await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_SYNC_RUNS)
+        await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_SYNC_LOCK)
         await db.execute(CREATE_PRODUCTIVIDAD_HOURLY_IA_CACHE)
         await db.execute(CREATE_TNC_EVENTOS_CACHE)
         await db.execute(CREATE_TNC_CACHE_SYNC)
@@ -966,6 +1130,8 @@ async def init_db():
         await db.execute(CREATE_RRHH_CODIGOS_AUSENTISMO)
         await db.execute(CREATE_RRHH_CODIGOS_AUSENTISMO_MAESTRO)
         await db.execute(CREATE_RRHH_AUSENTISMO_REGLAS)
+        await db.execute(CREATE_RRHH_FRANCOS_INICIAL)
+        await db.execute(CREATE_RRHH_FRANCOS_REGLAS)
         async with db.execute("PRAGMA table_info(rrhh_actividad_diaria)") as cur:
             rrhh_act_cols = {row[1] for row in await cur.fetchall()}
         for column_name, column_type in {
@@ -986,6 +1152,27 @@ async def init_db():
             rrhh_cod_cols = {row[1] for row in await cur.fetchall()}
         if "codigo_normalizado" not in rrhh_cod_cols:
             await db.execute("ALTER TABLE rrhh_codigos_ausentismo ADD COLUMN codigo_normalizado TEXT")
+        await db.executemany(
+            """
+            INSERT OR IGNORE INTO rrhh_francos_reglas (tipo, patron, delta, prioridad)
+            VALUES (?, ?, ?, ?)
+            """,
+            [
+                ("credito", "FRANCO TRABAJADO", 1, 10),
+                ("credito", "TRABAJO FRANCO", 1, 20),
+                ("credito", "TRABAJADO EN FRANCO", 1, 30),
+                ("credito", "FRANCO LABORADO", 1, 40),
+                ("credito", "HS 100", 1, 50),
+                ("debito", "FRANCO COMPENSATORIO", -1, 10),
+                ("debito", "COMPENSATORIO", -1, 20),
+                ("debito", "FRANCO GOZADO", -1, 30),
+                ("debito", "GOCE FRANCO", -1, 40),
+                ("debito", "TOMA FRANCO", -1, 50),
+                ("neutro", "FRANCO", 0, 900),
+                ("neutro", "DESCANSO", 0, 910),
+                ("neutro", "LIBRE", 0, 920),
+            ],
+        )
         await db.execute(CREATE_AUTH_USERS)
         await db.execute(CREATE_AUTH_DEVICES)
         await db.execute(CREATE_AUTH_SESSIONS)
@@ -1033,6 +1220,10 @@ async def init_db():
         for statement in CREATE_PICKING_ANALYSIS_CACHE_INDEXES:
             await db.execute(statement)
         for statement in CREATE_PRODUCTIVIDAD_ONLINE_CACHE_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_GESTION_PRODUCTIVIDAD_PICKING_INDEXES:
+            await db.execute(statement)
+        for statement in CREATE_HISTORIA_LEGAJO_INDEXES:
             await db.execute(statement)
         for statement in CREATE_PRODUCTIVIDAD_HOURLY_IA_INDEXES:
             await db.execute(statement)

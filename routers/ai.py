@@ -90,6 +90,35 @@ def _active_provider() -> str:
     return os.getenv("AI_PROVIDER", "gemini").lower()
 
 
+def _env_flag(name: str, default: bool = True) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"0", "false", "no", "off"}
+
+
+def _ai_ssl_verify_config():
+    ca_bundle = os.getenv("AI_CA_BUNDLE", "").strip()
+    if ca_bundle:
+        return ca_bundle
+
+    verify = _env_flag("AI_SSL_VERIFY", True)
+    if not verify:
+        logger.warning("[IA] Verificacion SSL deshabilitada por AI_SSL_VERIFY=0")
+    return verify
+
+
+def _http_client_kwargs() -> dict:
+    return {"timeout": TIMEOUT, "verify": _ai_ssl_verify_config()}
+
+
+def _ollama_client_kwargs() -> dict:
+    kwargs = _http_client_kwargs()
+    # Ollama suele estar en localhost o LAN; no debe salir por proxy corporativo.
+    kwargs["trust_env"] = False
+    return kwargs
+
+
 # ── Extracción robusta de JSON ────────────────────────────────────────────────
 def _extract_json(text: str) -> str:
     """Extrae el primer objeto JSON del texto, tolerando markdown y texto extra."""
@@ -143,7 +172,7 @@ async def _call_gemini(system: str, messages: list) -> str:
 
     # Retry con backoff para 429
     for attempt in range(3):
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+        async with httpx.AsyncClient(**_http_client_kwargs()) as client:
             resp = await client.post(
                 url,
                 headers={"Content-Type": "application/json", "X-goog-api-key": api_key},
@@ -166,13 +195,17 @@ async def _call_gemini(system: str, messages: list) -> str:
 async def _call_claude(system: str, messages: list, max_tokens: int = 4096) -> str:
     import anthropic
     t0 = time.time()
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=max_tokens,
-        system=system,
-        messages=messages,
-    )
+    with httpx.Client(**_http_client_kwargs()) as http_client:
+        client = anthropic.Anthropic(
+            api_key=os.getenv("ANTHROPIC_API_KEY"),
+            http_client=http_client,
+        )
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=max_tokens,
+            system=system,
+            messages=messages,
+        )
     elapsed = round(time.time() - t0, 2)
     text = response.content[0].text if response.content else ""
     logger.info(f"[Claude] respuesta recibida en {elapsed}s | stop={response.stop_reason} | chars={len(text)}")
@@ -192,7 +225,7 @@ async def _call_azure(system: str, messages: list) -> str:
         "messages": [{"role": "system", "content": system}] + messages,
         "max_tokens": 1200,
     }
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+    async with httpx.AsyncClient(**_http_client_kwargs()) as client:
         resp = await client.post(
             url,
             headers={"Content-Type": "application/json", "api-key": api_key},
@@ -216,7 +249,7 @@ async def _call_ollama(system: str, messages: list) -> str:
         "stream": False,
     }
     try:
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+        async with httpx.AsyncClient(**_ollama_client_kwargs()) as client:
             resp = await client.post(f"{ollama_url}/api/chat", json=payload)
             resp.raise_for_status()
     except httpx.ConnectError:

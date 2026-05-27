@@ -1,0 +1,282 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>VigIA - Historia de Legajo</title>
+  <style>
+    :root{--bg:#F2F4F1;--panel:#fff;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;--blue:#0B5FAE}
+    *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px, transparent 1px),linear-gradient(90deg, var(--rule) 1px, transparent 1px);background-size:24px 24px}
+    button,input{font:inherit;color:inherit}button{cursor:pointer;border-radius:0}.paper-app{width:100%;min-height:100vh;padding:0 16px 22px}.mono,.label{font-family:'IBM Plex Mono',monospace}.label{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft)}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px}.brand-logo{width:86px;height:44px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}.kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}.amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}.user-chip{border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}.user-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}.user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green)}
+    .paper-link,.logout-btn{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}.paper-link:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .filters{display:grid;grid-template-columns:160px 160px minmax(260px,1fr) 128px;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input{height:34px;width:100%;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}.primary-cta{height:34px;width:100%;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase}.primary-cta:disabled{opacity:.55}.status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
+    .suggest{position:absolute;z-index:10;top:100%;left:0;right:0;background:var(--panel);border:1px solid var(--rule);max-height:260px;overflow:auto;display:none}.suggest.open{display:block}.search-wrap{position:relative}.suggest button{display:block;width:100%;border:0;border-bottom:1px solid var(--rule);background:var(--panel);text-align:left;padding:8px 10px}.suggest small{display:block;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px}
+    .profile{display:grid;grid-template-columns:260px 1fr;gap:12px;margin-top:14px}.person-card,.panel,.kpi,.timeline-card{background:var(--panel);border:1px solid var(--rule);box-shadow:none}.person-card{padding:16px}.avatar{width:116px;height:116px;border:1px solid var(--rule-strong);background:#F8FAF7;display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:34px;font-weight:600;color:var(--green);margin-bottom:14px;overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}.person-name{font-size:22px;font-weight:600;margin:0 0 6px}.person-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.55;color:var(--ink-soft)}
+    .kpi-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.kpi{position:relative;padding:12px 14px 30px;border-top:3px solid var(--blue);min-height:116px}.kpi.ok{border-top-color:var(--green)}.kpi.warn{border-top-color:var(--amber)}.kpi.bad{border-top-color:var(--red)}.kpi-icon{position:absolute;top:10px;right:12px;width:24px;height:24px;color:var(--ink-soft);opacity:.82}.kpi-icon svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.kpi-source{position:absolute;left:14px;right:14px;bottom:10px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpi-num{font-family:'IBM Plex Mono',monospace;font-size:28px;line-height:1.05;font-weight:600;margin:9px 0 5px}.kpi-sub{font-size:11px;color:var(--ink-soft)}
+    .tabs{display:flex;margin-top:14px;background:var(--panel);border-bottom:1px solid var(--rule);padding:0 12px}.tab{background:transparent;border:0;color:var(--ink-soft);padding:13px 18px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;min-width:132px}.tab.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}.tab.active::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-radius:50%;background:var(--green)}
+    .tab-panel{display:none}.tab-panel.active{display:block}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.panel{padding:12px;min-width:0}.panel-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-bottom:10px}.line-chart{width:100%;height:220px;display:block}.axis,.grid{stroke:var(--rule);stroke-width:1}.line-a{fill:none;stroke:var(--green);stroke-width:2.2}.line-b{fill:none;stroke:var(--blue);stroke-width:2.2}.dot-a{fill:var(--green)}.dot-b{fill:var(--blue)}.chart-legend{display:flex;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);text-transform:uppercase}.sw{display:inline-block;width:16px;height:3px;margin-right:5px;background:var(--green)}.sw.blue{background:var(--blue)}
+    .table-wrap{overflow:auto;max-height:540px;margin-top:14px}.paper-table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--rule);min-width:980px}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 12px}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 12px;font-size:13px;line-height:1.22;vertical-align:top}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}.muted{color:var(--ink-soft)}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+    .sort-th{border:0;background:transparent;padding:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}
+    .timeline{display:grid;gap:8px;margin-top:14px}.timeline-card{display:grid;grid-template-columns:120px 130px 1fr;gap:10px;padding:10px 12px}.pill{display:inline-block;border:1px solid var(--rule);background:#F8FAF7;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 6px}.pill.tnc{color:var(--red);background:var(--red-soft)}.pill.productividad{color:var(--green);background:var(--green-soft)}.pill.novedad{color:var(--amber);background:var(--amber-soft)}
+    @media(max-width:1100px){.profile,.grid-2{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}.paper-header{grid-template-columns:1fr}.header-right{flex-wrap:wrap}}@media(max-width:700px){.paper-app{padding:0 12px 18px}.filters,.kpi-grid{grid-template-columns:1fr}.tabs{overflow:auto}.timeline-card{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div><div class="kicker">Ficha operativa 360</div><h1>Historia de <span class="amp">Legajo</span></h1></div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/novedades-cd">Novedades</a>
+      <a class="paper-link" href="/tiempos-muertos">TNC</a>
+      <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn">Salir</button>
+    </div>
+  </header>
+
+  <section class="filters">
+    <div class="field"><label class="label" for="fecha-desde">Desde</label><input class="paper-input" type="date" id="fecha-desde"></div>
+    <div class="field"><label class="label" for="fecha-hasta">Hasta</label><input class="paper-input" type="date" id="fecha-hasta"></div>
+    <div class="field search-wrap"><label class="label" for="legajo-q">Legajo / nombre</label><input class="paper-input" id="legajo-q" autocomplete="off" placeholder="Buscar legajo o apellido"><div class="suggest" id="suggest"></div></div>
+    <button class="primary-cta" id="btn-load">Consultar</button>
+  </section>
+  <div class="status" id="status">Busca un legajo para comenzar.</div>
+
+  <section class="profile" id="profile" style="display:none">
+    <article class="person-card">
+      <div class="avatar" id="avatar">--</div>
+      <h2 class="person-name" id="person-name">-</h2>
+      <div class="person-meta" id="person-meta"></div>
+    </article>
+    <section class="kpi-grid" id="kpis"></section>
+  </section>
+
+  <nav class="tabs" id="tabs" style="display:none">
+    <button class="tab active" data-tab="timeline">Timeline</button>
+    <button class="tab" data-tab="actividad">Actividad diaria</button>
+    <button class="tab" data-tab="productividad">Productividad</button>
+    <button class="tab" data-tab="novedades">Novedades</button>
+    <button class="tab" data-tab="tnc">TNC</button>
+    <button class="tab" data-tab="sanciones">Sanciones</button>
+    <button class="tab" data-tab="fichadas">Fichadas</button>
+  </nav>
+
+  <section class="tab-panel active" id="panel-timeline"><div class="timeline" id="timeline"></div></section>
+  <section class="tab-panel" id="panel-actividad"><div class="table-wrap" id="tabla-actividad"></div></section>
+  <section class="tab-panel" id="panel-productividad">
+    <div class="grid-2">
+      <article class="panel"><div class="panel-title">Productividad diaria</div><div id="chart-prod"></div><div class="chart-legend"><span><span class="sw"></span>Real</span><span><span class="sw blue"></span>Equivalente</span></div></article>
+    </div>
+    <div class="table-wrap" id="tabla-productividad"></div>
+  </section>
+  <section class="tab-panel" id="panel-novedades"><div class="table-wrap" id="tabla-novedades"></div></section>
+  <section class="tab-panel" id="panel-tnc"><div class="table-wrap" id="tabla-tnc"></div></section>
+  <section class="tab-panel" id="panel-sanciones"><div class="table-wrap" id="tabla-sanciones"></div></section>
+  <section class="tab-panel" id="panel-fichadas"><div class="table-wrap" id="tabla-fichadas"></div></section>
+</div>
+
+<script>
+let authUser=null, selectedLegajo='', lastData=null, searchTimer=null, searchAbort=null, loadingHistoria=false;
+const tableSortState={};
+const fmt = n => Number(n||0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
+const esc = v => String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const onlyTime = v => String(v||'').slice(11,16) || '-';
+function fmtHms(seconds){ const total=Math.max(0,Math.floor(Number(seconds||0))); const h=Math.floor(total/3600); const m=Math.floor((total%3600)/60); const s=total%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
+
+async function requireAuth(){
+  const res=await fetch('/api/auth/me');
+  if(res.status===401){ location.href='/login?next=/historia-legajo'; throw new Error('redirect'); }
+  const data=await res.json();
+  if(!res.ok) throw new Error(data.detail||'No autenticado');
+  authUser=data.user||data;
+  return authUser;
+}
+async function logout(){ await fetch('/api/auth/logout',{method:'POST'}).catch(()=>{}); location.href='/login'; }
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+function setStatus(text,tone=''){ const el=document.getElementById('status'); el.textContent=text; el.className=`status ${tone}`; }
+function localDate(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function addDays(value, days){ const [y,m,d]=value.split('-').map(Number); const dt=new Date(y,m-1,d+days); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; }
+
+async function searchLegajos(q){
+  if(!q || q.trim().length<2){ document.getElementById('suggest').classList.remove('open'); return; }
+  if(searchAbort) searchAbort.abort();
+  searchAbort=new AbortController();
+  let data={items:[]};
+  try{
+    const res=await fetch(`/api/historia-legajo/buscar?q=${encodeURIComponent(q.trim())}`, {signal: searchAbort.signal});
+    data=await res.json();
+    if(!res.ok) throw new Error(data.detail||'No se pudo buscar legajos.');
+  }catch(err){
+    if(err.name==='AbortError') return;
+    setStatus(err.message||'No se pudo buscar legajos.', 'error');
+    return;
+  }
+  const box=document.getElementById('suggest');
+  box.innerHTML=(data.items||[]).map(item=>`<button type="button" data-legajo="${esc(item.legajo)}"><strong>${esc(item.legajo)} - ${esc(item.nombre)}</strong><small>${esc(item.sector||'-')} - ${esc(item.cargo||'-')}</small></button>`).join('') || '<button type="button">Sin resultados</button>';
+  box.classList.add('open');
+  box.querySelectorAll('button[data-legajo]').forEach(btn=>btn.addEventListener('click',()=>{ selectedLegajo=btn.dataset.legajo; document.getElementById('legajo-q').value=btn.textContent.trim().split('-')[0].trim(); box.classList.remove('open'); loadHistoria(); }));
+}
+
+function iconSvg(name){
+  const icons={
+    clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v5l3 2"></path></svg>',
+    alert:'<svg viewBox="0 0 24 24"><path d="M12 4l9 16H3L12 4z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>',
+    chart:'<svg viewBox="0 0 24 24"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M7 15l4-4 3 3 5-7"></path></svg>',
+    package:'<svg viewBox="0 0 24 24"><path d="M4 8l8-4 8 4-8 4-8-4z"></path><path d="M4 8v8l8 4 8-4V8"></path><path d="M12 12v8"></path></svg>',
+    calendar:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M4 10h16"></path></svg>',
+    arrow:'<svg viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M7 14l5 5 5-5"></path></svg>',
+    warehouse:'<svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg>'
+  };
+  return icons[name]||icons.chart;
+}
+function sourceLabel(key){
+  const labels={rrhh:'BD: Exportacion RRHH',productividad:'BD: Productividad',tnc:'BD: TNC',actividad:'BD: WF'};
+  return labels[key]||'BD: VigIA';
+}
+function kpi(label,value,sub,cls='',icon='chart',source='BD: Productividad'){ const cardIcon=label==='Almacenes'?'warehouse':icon; return `<article class="kpi ${cls}"><div class="kpi-icon">${iconSvg(cardIcon)}</div><div class="label">${esc(label)}</div><div class="kpi-num">${esc(value)}</div><div class="kpi-sub">${esc(sub)}</div><div class="kpi-source">${esc(source)}</div></article>`; }
+function renderProfile(data){
+  const p=data.legajo, s=data.summary;
+  const src={rrhh:sourceLabel('rrhh'),productividad:sourceLabel('productividad'),tnc:sourceLabel('tnc'),actividad:sourceLabel('actividad')};
+  document.getElementById('profile').style.display='grid';
+  document.getElementById('tabs').style.display='flex';
+  const initials=(p.nombre||p.legajo||'--').split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+  document.getElementById('avatar').innerHTML=data.foto ? `<img src="${esc(data.foto)}" alt="" onerror="this.parentNode.textContent='${esc(initials)}'">` : esc(initials);
+  document.getElementById('person-name').textContent=p.nombre||'-';
+  document.getElementById('person-meta').innerHTML=[
+    `Legajo ${esc(p.legajo)}`,
+    esc(p.sector||'Sin sector'),
+    esc(p.cargo||'Sin cargo'),
+    esc(p.posicion||'Sin posicion'),
+    esc(p.empresa||p.razon_social||'')
+  ].filter(Boolean).join('<br>');
+  document.getElementById('kpis').innerHTML=[
+    kpi('Hs extra',fmt(s.horas_extra),'Periodo seleccionado',s.horas_extra>0?'warn':'','clock',src.rrhh),
+    kpi('TNC excedida',fmt(s.tnc_eventos),`${fmt(s.tnc_horas)} h excedidas`,s.tnc_eventos?'bad':'ok','alert',src.tnc),
+    kpi('Dias actividad',s.dias_con_actividad,'Con operaciones','','calendar',src.actividad),
+    kpi('Prod. real',fmt(s.productividad_real),'Promedio periodo','','chart',src.productividad),
+    kpi('Prod. equiv.',fmt(s.productividad_equivalente),'Promedio sector',s.productividad_equivalente>s.productividad_real?'ok':'','chart',src.productividad),
+    kpi('Ausencias',s.ausencias,'Dias con novedad',s.ausencias?'warn':'ok','calendar',src.rrhh),
+    kpi('Tarde',fmt(s.llegadas_tarde),'Eventos/horas segun origen','','clock',src.rrhh)
+  ].join('');
+}
+
+function lineChart(rows){
+  if(!rows.length) return '<div class="empty">Sin productividad para graficar.</div>';
+  const w=720,h=220,p={l:42,r:14,t:16,b:28};
+  const vals=rows.flatMap(r=>[Number(r.productividad_real||0),Number(r.productividad_equivalente||0)]);
+  const max=Math.max(...vals,1)*1.12;
+  const path=key=>rows.map((r,i)=>`${i?'L':'M'} ${(p.l+(i/Math.max(rows.length-1,1))*(w-p.l-p.r)).toFixed(1)} ${(h-p.b-(Number(r[key]||0)/max)*(h-p.t-p.b)).toFixed(1)}`).join(' ');
+  const dots=key=>rows.map((r,i)=>`<circle class="${key==='productividad_equivalente'?'dot-b':'dot-a'}" cx="${(p.l+(i/Math.max(rows.length-1,1))*(w-p.l-p.r)).toFixed(1)}" cy="${(h-p.b-(Number(r[key]||0)/max)*(h-p.t-p.b)).toFixed(1)}" r="3"><title>${esc(r.fecha)}: ${fmt(r[key])}</title></circle>`).join('');
+  const labels=rows.map((r,i)=> rows.length>8 && i%Math.ceil(rows.length/8)!==0 && i!==rows.length-1 ? '' : `<text x="${(p.l+(i/Math.max(rows.length-1,1))*(w-p.l-p.r)).toFixed(1)}" y="${h-7}" text-anchor="middle" font-size="10" fill="#5C6773">${esc(String(r.fecha).slice(5))}</text>`).join('');
+  return `<svg class="line-chart" viewBox="0 0 ${w} ${h}"><line class="axis" x1="${p.l}" y1="${h-p.b}" x2="${w-p.r}" y2="${h-p.b}"></line>${labels}<path class="line-a" d="${path('productividad_real')}"></path>${dots('productividad_real')}<path class="line-b" d="${path('productividad_equivalente')}"></path>${dots('productividad_equivalente')}</svg>`;
+}
+
+function sortValue(value){
+  if(value==null) return '';
+  const number=Number(value);
+  if(value!=='' && !Number.isNaN(number)) return number;
+  return String(value).toLowerCase();
+}
+function renderSortableTable(targetId, columns, rows, rowClass=''){
+  const target=document.getElementById(targetId);
+  if(!rows.length){ target.innerHTML='<div class="empty">Sin datos para el rango.</div>'; return; }
+  const state=tableSortState[targetId]||{key:columns[0].key,direction:'asc'};
+  const sorted=[...rows].sort((a,b)=>{
+    const av=sortValue(a[state.key]);
+    const bv=sortValue(b[state.key]);
+    if(av<bv) return state.direction==='asc'?-1:1;
+    if(av>bv) return state.direction==='asc'?1:-1;
+    return 0;
+  });
+  target.innerHTML=`<table class="paper-table"><thead><tr>${columns.map(c=>`<th><button type="button" class="sort-th" data-table="${esc(targetId)}" data-key="${esc(c.key)}">${esc(c.label)}${state.key===c.key?` ${state.direction==='asc'?'▲':'▼'}`:''}</button></th>`).join('')}</tr></thead><tbody>${sorted.map(row=>`<tr>${columns.map(c=>`<td>${c.format?c.format(row[c.key],row):esc(row[c.key]??'-')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  target.querySelectorAll('.sort-th').forEach(btn=>btn.addEventListener('click',()=>{const key=btn.dataset.key; const current=tableSortState[targetId]||{}; tableSortState[targetId]={key,direction:current.key===key&&current.direction==='asc'?'desc':'asc'}; renderTables(lastData);}));
+}
+function renderTimeline(rows){
+  document.getElementById('timeline').innerHTML=rows.length?rows.map(r=>`<article class="timeline-card"><div class="mono">${esc(r.fecha)}</div><div><span class="pill ${esc(r.tipo)}">${esc(r.tipo)}</span></div><div><strong>${esc(r.titulo)}</strong><br><span class="muted">${esc(r.detalle)} ${r.meta?' - '+esc(r.meta):''}</span></div></article>`).join(''):'<div class="empty">Sin eventos para el rango.</div>';
+}
+function renderTables(data){
+  document.getElementById('chart-prod').innerHTML=lineChart(data.productividad.diaria||[]);
+  renderSortableTable('tabla-productividad',[
+    {key:'fecha',label:'Fecha'},{key:'funcion',label:'Funcion'},{key:'prod_real',label:'Prod. real',format:v=>fmt(v)},{key:'prod_equivalente',label:'Prod. equiv.',format:v=>fmt(v)}
+  ],data.productividad.rows||[]);
+  renderSortableTable('tabla-actividad',[
+    {key:'fecha',label:'Fecha'},{key:'operaciones',label:'Operaciones'}
+  ],data.actividad_operaciones||[]);
+  renderSortableTable('tabla-novedades',[
+    {key:'fecha',label:'Fecha'},{key:'motivo',label:'Motivo',format:(v,r)=>esc(v||r.aus_pres_codigo||'-')},{key:'horario',label:'Horario'},{key:'hs_trab',label:'Hs trab',format:v=>fmt(v)},{key:'hs_extra_calc',label:'Hs extra',format:(v,r)=>fmt(Number(r.hs_ext_realiz||0)+Number(r.hs_50_autorizadas||0)+Number(r.hs_100||0))},{key:'tarde',label:'Tarde',format:v=>fmt(v)},{key:'ausentismo_clasificacion',label:'Clasificacion'}
+  ],(data.novedades||[]).map(r=>({...r,hs_extra_calc:Number(r.hs_ext_realiz||0)+Number(r.hs_50_autorizadas||0)+Number(r.hs_100||0)})));
+  renderSortableTable('tabla-tnc',[
+    {key:'fecha',label:'Fecha'},{key:'funcion',label:'Funcion'},{key:'cantidad_excedida',label:'Cantidad excedida',format:v=>fmt(v)},{key:'tiempo_excedido_segundos',label:'Tiempo excedido',format:v=>fmtHms(v)}
+  ],data.tnc||[]);
+  renderSortableTable('tabla-sanciones',[
+    {key:'fecha_sancion',label:'Fecha',format:(v,r)=>esc(r.creacion||r.inicio||'-')},
+    {key:'descripcion',label:'Descripcion',format:(v,r)=>esc(v||r.cod||'-')},
+    {key:'detalle',label:'Detalle'},
+    {key:'descripcion_causa',label:'Causa',format:(v,r)=>esc(v||r.causa_sancion||r.desc_ausentismo||'-')}
+  ],data.sanciones||[]);
+  renderSortableTable('tabla-fichadas',[
+    {key:'fecha',label:'Fecha'},{key:'hora',label:'Hora',format:(v,r)=>esc(v||onlyTime(r.fecha_fichada))},{key:'sentido',label:'Sentido'},{key:'ubicacion',label:'Ubicacion'},{key:'origen',label:'Origen'},{key:'destino',label:'Destino'}
+  ],data.fichadas||[]);
+}
+
+async function loadHistoria(){
+  if(loadingHistoria) return;
+  const raw=document.getElementById('legajo-q').value.trim();
+  const legajo=selectedLegajo || raw.split(/\s+/)[0];
+  if(!legajo){ setStatus('Selecciona un legajo.', 'error'); return; }
+  selectedLegajo=legajo;
+  const desde=document.getElementById('fecha-desde').value;
+  const hasta=document.getElementById('fecha-hasta').value;
+  if(!desde || !hasta){ setStatus('Completa el rango de fechas.', 'error'); return; }
+  if(desde>hasta){ setStatus('El rango de fechas es invalido: desde no puede ser mayor que hasta.', 'error'); return; }
+  loadingHistoria=true;
+  document.getElementById('btn-load').disabled=true;
+  setStatus('Cargando historia del legajo...');
+  try{
+    const res=await fetch(`/api/historia-legajo/${encodeURIComponent(legajo)}?fecha_desde=${encodeURIComponent(desde)}&fecha_hasta=${encodeURIComponent(hasta)}`);
+    const data=await res.json().catch(()=>({detail:'Respuesta invalida del servidor.'}));
+  if(!res.ok){ setStatus(data.detail||'No se pudo cargar el legajo.', 'error'); return; }
+  lastData=data; selectedLegajo=data.legajo.legajo; document.getElementById('legajo-q').value=`${data.legajo.legajo} - ${data.legajo.nombre||''}`;
+  renderProfile(data); renderTimeline(data.timeline||[]); renderTables(data);
+    const warnings=Object.values(data.warnings||{}).filter(Boolean);
+    setStatus(warnings.length?`Historia lista: ${data.legajo.legajo} - ${warnings.join(' | ')}`:`Historia lista: ${data.legajo.legajo} - ${data.rango.fecha_desde}..${data.rango.fecha_hasta}`, warnings.length?'error':'');
+  }catch(err){
+    setStatus(err.message||'No se pudo cargar el legajo.', 'error');
+  }finally{
+    loadingHistoria=false;
+    document.getElementById('btn-load').disabled=false;
+  }
+}
+
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b===btn));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`panel-${btn.dataset.tab}`));}));
+document.getElementById('legajo-q').addEventListener('input',e=>{
+  selectedLegajo='';
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>searchLegajos(e.target.value), 220);
+});
+document.getElementById('btn-load').addEventListener('click', loadHistoria);
+document.getElementById('legajo-q').addEventListener('keydown',e=>{ if(e.key==='Enter') loadHistoria(); });
+
+(async function bootstrap(){
+  try{
+    await requireAuth();
+    document.getElementById('user-label').textContent=`${authUser.display_name||authUser.username} - ${authUser.role||''}`;
+    const today=localDate(); document.getElementById('fecha-hasta').value=today; document.getElementById('fecha-desde').value='2026-01-01';
+    const params=new URLSearchParams(location.search); if(params.get('legajo')){ selectedLegajo=params.get('legajo'); document.getElementById('legajo-q').value=selectedLegajo; await loadHistoria(); }
+  }catch(err){ if(err.message!=='redirect') setStatus(err.message||'No se pudo iniciar.', 'error'); }
+})();
+</script>
+</body>
+</html>

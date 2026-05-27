@@ -136,6 +136,7 @@ async def current_auth(request: Request) -> dict[str, Any] | None:
         return None
     token_hash = _token_hash(token)
     async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
         db.row_factory = aiosqlite.Row
         async with db.execute(
             """
@@ -158,15 +159,19 @@ async def current_auth(request: Request) -> dict[str, Any] | None:
             await db.execute("DELETE FROM auth_sessions WHERE session_token_hash = ?", (token_hash,))
             await db.commit()
             return None
-        await db.execute(
-            "UPDATE auth_sessions SET last_seen = ? WHERE session_token_hash = ?",
-            (_now(), token_hash),
-        )
-        await db.execute(
-            "UPDATE auth_devices SET last_seen = ?, ip_address = ?, user_agent = ? WHERE device_id = ? AND username = ?",
-            (_now(), _client_ip(request), request.headers.get("user-agent", ""), device_id, data["username"]),
-        )
-        await db.commit()
+        try:
+            await db.execute(
+                "UPDATE auth_sessions SET last_seen = ? WHERE session_token_hash = ?",
+                (_now(), token_hash),
+            )
+            await db.execute(
+                "UPDATE auth_devices SET last_seen = ?, ip_address = ?, user_agent = ? WHERE device_id = ? AND username = ?",
+                (_now(), _client_ip(request), request.headers.get("user-agent", ""), device_id, data["username"]),
+            )
+            await db.commit()
+        except sqlite3.OperationalError as exc:
+            if "database is locked" not in str(exc).lower():
+                raise
     return data
 
 
@@ -419,6 +424,7 @@ async def mail_context(request: Request):
         "apps": [
             {"id": "tnc", "label": "Tiempos muertos y TNC", "path": "/tiempos-muertos"},
             {"id": "rrhh", "label": "Novedades CD", "path": "/novedades-cd"},
+            {"id": "historia", "label": "Historia de Legajo", "path": "/historia-legajo"},
         ],
     }
 

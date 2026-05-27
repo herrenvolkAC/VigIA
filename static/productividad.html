@@ -7,16 +7,11 @@
 <title>VigIA · Productividad</title>
 <script>
 (function() {
-  try {
-    const saved = localStorage.getItem('vigia-produccion-style') || 'actual';
-    document.documentElement.setAttribute('data-prod-style', saved === 'flowops' ? 'flowops' : 'actual');
-  } catch (e) {
-    document.documentElement.setAttribute('data-prod-style', 'actual');
-  }
+  document.documentElement.setAttribute('data-prod-style', 'paper');
 })();
 </script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 :root {
   --bg:#1e1e2e; --surface:rgba(64,64,96,.42); --surface-alt:rgba(30,30,50,.78); --border:rgba(0,212,255,.16);
   --green:#00ff88; --green-light:rgba(0,255,136,.1); --cyan:#00d4ff; --cyan-light:rgba(0,212,255,.1); --red:#ff6b6b; --red-light:rgba(255,107,107,.12);
@@ -1141,42 +1136,366 @@ html[data-prod-style="flowops"] .ai-overlay-box{
   border-color:var(--border);
   box-shadow:var(--shadow);
 }
+html[data-prod-style="paper"]{
+  --bg:#F2F4F1;
+  --surface:#FFFFFF;
+  --surface-alt:#F8FAF7;
+  --border:#D4DBD8;
+  --green:#1F7A4D;
+  --green-light:#E5F3E9;
+  --cyan:#0B5FAE;
+  --cyan-light:#E8F2FB;
+  --red:#C8102E;
+  --red-light:#F7D7DA;
+  --purple:#5B5F97;
+  --purple-light:#EEF0FA;
+  --amber:#B25F00;
+  --amber-light:#FBE7C8;
+  --ok:#1F7A4D;
+  --ok-light:#E5F3E9;
+  --accent:#0E1620;
+  --accent-soft:#EEF2F0;
+  --accent2:#0E1620;
+  --warn:#B25F00;
+  --warn-soft:#FBE7C8;
+  --danger-soft:#F7D7DA;
+  --muted:#5C6773;
+  --text:#0E1620;
+  --text-hi:#0E1620;
+  --ai:#0B5FAE;
+  --ai-soft:#E8F2FB;
+  --shadow:0 18px 42px rgba(14,22,32,.08);
+}
+html[data-prod-style="paper"] body{
+  margin:0;
+  min-height:100vh;
+  padding:0 16px 22px;
+  color:var(--text);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  background-color:var(--bg);
+  background-image:linear-gradient(var(--border) 1px, transparent 1px),linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size:24px 24px;
+}
+html[data-prod-style="paper"] button,
+html[data-prod-style="paper"] input,
+html[data-prod-style="paper"] select,
+html[data-prod-style="paper"] textarea{font:inherit;color:inherit}
+html[data-prod-style="paper"] .paper-header{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:18px;
+  height:auto;
+  margin:0;
+  padding:14px 16px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-bottom:1px solid #A9B4AC;
+  border-radius:0;
+  box-shadow:none;
+  backdrop-filter:none;
+}
+html[data-prod-style="paper"] .brand{display:flex;align-items:center;gap:14px}
+html[data-prod-style="paper"] .brand-mark{
+  width:86px;
+  height:44px;
+  object-fit:contain;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+html[data-prod-style="paper"] .brand-rule{width:1px;height:28px;background:var(--border)}
+html[data-prod-style="paper"] .brand-subtitle{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+html[data-prod-style="paper"] .brand-process{
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:20px;
+  line-height:1.05;
+  font-weight:600;
+  color:var(--text);
+  letter-spacing:0;
+}
+html[data-prod-style="paper"] .header-logos{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+}
+html[data-prod-style="paper"] .paper-link,
+html[data-prod-style="paper"] .logout-link{
+  min-height:28px;
+  border:1px solid var(--border);
+  border-radius:2px;
+  background:var(--surface);
+  color:var(--muted);
+  padding:6px 9px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  text-decoration:none;
+  cursor:pointer;
+}
+html[data-prod-style="paper"] .paper-link:hover{color:var(--cyan);border-color:var(--cyan)}
+html[data-prod-style="paper"] .logout-link:hover{color:var(--red);border-color:var(--red)}
+html[data-prod-style="paper"] .clock{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+  padding:0;
+  background:transparent;
+  border:0;
+  text-align:right;
+}
+html[data-prod-style="paper"] .clock span{color:var(--text)}
+html[data-prod-style="paper"] .ai-provider-bar{display:none}
+html[data-prod-style="paper"] .main-tab-bar{display:none}
+html[data-prod-style="paper"] .standalone-note{display:none}
+html[data-prod-style="paper"] .main-tab-content{display:block;margin-top:12px}
+html[data-prod-style="paper"] .sub-tab-bar{
+  display:flex;
+  gap:0;
+  margin:12px 0 0;
+  padding:0 12px;
+  background:var(--surface);
+  border:0;
+  border-bottom:1px solid var(--border);
+  border-radius:0;
+  box-shadow:none;
+  overflow:auto;
+}
+html[data-prod-style="paper"] .sub-tab-btn{
+  min-width:132px;
+  min-height:44px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--muted);
+  padding:13px 18px 12px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  box-shadow:none;
+}
+html[data-prod-style="paper"] .sub-tab-btn.active{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-top:2px solid var(--green);
+  border-bottom-color:var(--surface);
+  margin-bottom:-1px;
+  color:var(--text);
+  box-shadow:none;
+}
+html[data-prod-style="paper"] .sub-tab-btn.active::after{
+  content:"";
+  display:inline-block;
+  width:6px;
+  height:6px;
+  margin-left:8px;
+  border-radius:50%;
+  background:var(--green);
+  vertical-align:middle;
+}
+html[data-prod-style="paper"] .online-shell{
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  padding:0;
+  margin-top:0;
+}
+html[data-prod-style="paper"] .online-toolbar,
+html[data-prod-style="paper"] .online-filters{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-top:0;
+  border-radius:0;
+  box-shadow:none;
+  padding:12px;
+}
+html[data-prod-style="paper"] .online-toolbar{align-items:end}
+html[data-prod-style="paper"] .online-filters{margin-top:0}
+html[data-prod-style="paper"] .online-field label,
+html[data-prod-style="paper"] .field-label,
+html[data-prod-style="paper"] .form-title,
+html[data-prod-style="paper"] .panel-title,
+html[data-prod-style="paper"] .analisis-kpi-label,
+html[data-prod-style="paper"] .online-meta-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-weight:600;
+}
+html[data-prod-style="paper"] input,
+html[data-prod-style="paper"] select,
+html[data-prod-style="paper"] textarea,
+html[data-prod-style="paper"] .field-input,
+html[data-prod-style="paper"] .online-field input,
+html[data-prod-style="paper"] .online-field select{
+  height:34px;
+  border:1px solid var(--border);
+  border-radius:2px;
+  background:var(--surface);
+  color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  font-weight:500;
+  box-shadow:none;
+}
+html[data-prod-style="paper"] input:focus,
+html[data-prod-style="paper"] select:focus,
+html[data-prod-style="paper"] textarea:focus{
+  outline:2px solid var(--green);
+  outline-offset:1px;
+  box-shadow:none;
+}
+html[data-prod-style="paper"] .online-btn,
+html[data-prod-style="paper"] .btn-calcular{
+  min-height:34px;
+  border:1px solid var(--text);
+  border-radius:2px;
+  background:var(--text);
+  color:var(--bg);
+  padding:0 12px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  box-shadow:none;
+}
+html[data-prod-style="paper"] .online-btn:disabled{opacity:.5}
+html[data-prod-style="paper"] .online-status,
+html[data-prod-style="paper"] .picking-analysis-status{
+  border:1px solid var(--border);
+  background:var(--surface-alt);
+  color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  border-radius:0;
+}
+html[data-prod-style="paper"] .picking-analysis-shell,
+html[data-prod-style="paper"] .panel,
+html[data-prod-style="paper"] .kpi,
+html[data-prod-style="paper"] .picking-analysis-card,
+html[data-prod-style="paper"] .online-meta-card,
+html[data-prod-style="paper"] .analisis-card,
+html[data-prod-style="paper"] .hourly-ia-box,
+html[data-prod-style="paper"] .dashboard-empty,
+html[data-prod-style="paper"] .analisis-empty,
+html[data-prod-style="paper"] .sugerencias-wrap,
+html[data-prod-style="paper"] .online-detail-modal,
+html[data-prod-style="paper"] .ai-overlay-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:0;
+  color:var(--text);
+  box-shadow:var(--shadow);
+  backdrop-filter:none;
+}
+html[data-prod-style="paper"] .kpi{border-top:3px solid var(--cyan)}
+html[data-prod-style="paper"] .kpi.green{border-top-color:var(--green)}
+html[data-prod-style="paper"] .kpi.yellow{border-top-color:var(--amber)}
+html[data-prod-style="paper"] .kpi.orange{border-top-color:var(--red)}
+html[data-prod-style="paper"] .kpi-value,
+html[data-prod-style="paper"] .analisis-kpi-value,
+html[data-prod-style="paper"] .online-detail-title{
+  color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  text-shadow:none;
+}
+html[data-prod-style="paper"] .kpi-sub,
+html[data-prod-style="paper"] .online-meta-sub,
+html[data-prod-style="paper"] .analisis-kpi-sub,
+html[data-prod-style="paper"] .muted{color:var(--muted)}
+html[data-prod-style="paper"] table,
+html[data-prod-style="paper"] .online-table,
+html[data-prod-style="paper"] .online-detail-table{
+  background:var(--surface);
+  color:var(--text);
+  border-collapse:collapse;
+}
+html[data-prod-style="paper"] th{
+  background:#F6F8F5;
+  color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+html[data-prod-style="paper"] td{border-color:var(--border)}
+html[data-prod-style="paper"] .chip,
+html[data-prod-style="paper"] .hourly-sort-btn,
+html[data-prod-style="paper"] .btn-reset,
+html[data-prod-style="paper"] .prov-btn{
+  border-radius:2px;
+  background:var(--surface);
+  border-color:var(--border);
+  color:var(--text);
+  box-shadow:none;
+  font-family:'IBM Plex Mono',monospace;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+html[data-prod-style="paper"] .chip:hover,
+html[data-prod-style="paper"] .btn-reset:hover{
+  color:var(--cyan);
+  border-color:var(--cyan);
+  background:var(--surface);
+}
+html[data-prod-style="paper"] .ai-overlay{background:rgba(14,22,32,.38)}
+@media(max-width:980px){
+  html[data-prod-style="paper"] .paper-header{grid-template-columns:1fr;text-align:left;justify-items:stretch}
+  html[data-prod-style="paper"] .brand{justify-content:flex-start}
+  html[data-prod-style="paper"] .brand-process{font-size:20px}
+  html[data-prod-style="paper"] .header-logos{justify-content:flex-start;flex-wrap:wrap}
+}
 @media(max-width:900px){.kpi-strip{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}header{flex-wrap:wrap}.header-logos{margin-left:0}}
 @media(max-width:980px){header{grid-template-columns:1fr;justify-items:center;text-align:center}.brand{justify-content:center}.header-logos{align-items:center}.header-status{justify-content:center}.header-topline{flex-wrap:wrap;justify-content:center}.brand-title{padding:0 0 14px;min-height:auto}.brand-wordmark-vig,.brand-wordmark-ia{font-size:84px;letter-spacing:-4px}.brand-wordmark{padding-bottom:20px}.brand-process{font-size:34px}}
 @media(max-width:560px){body{padding:14px}header{padding:16px}.brand-mark{width:80px;height:46px;border-radius:10px;padding:4px 6px}.brand-copy{gap:3px}.brand-process{font-size:30px;padding-bottom:6px}.brand-wordmark-vig,.brand-wordmark-ia{font-size:64px;letter-spacing:-2.8px}.brand-wordmark-vig{padding-bottom:7px}.brand-wordmark{padding-bottom:16px}.partner-logo{height:36px}}
+@media(max-width:980px){
+  html[data-prod-style="paper"] .paper-header{grid-template-columns:1fr;text-align:left;justify-items:stretch}
+  html[data-prod-style="paper"] .brand{justify-content:flex-start}
+  html[data-prod-style="paper"] .brand-process{font-size:20px;padding-bottom:0}
+  html[data-prod-style="paper"] .brand-mark{width:86px;height:44px;border-radius:0;padding:0}
+  html[data-prod-style="paper"] .header-logos{justify-content:flex-start;align-items:center;flex-wrap:wrap;margin-left:0}
+}
+@media(max-width:560px){
+  html[data-prod-style="paper"] body{padding:0 14px 18px}
+  html[data-prod-style="paper"] .paper-header{padding:14px 12px}
+  html[data-prod-style="paper"] .brand-process{font-size:20px}
+}
 </style>
 </head>
 <body>
 
-<header>
+<header class="paper-header">
   <div class="brand">
-    <img class="brand-mark" src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
+    <img class="brand-mark" src="/resources/CotoLogo.svg" alt="Coto">
+    <div class="brand-rule"></div>
     <div class="brand-copy">
-      <div class="brand-subtitle">CD Coto</div>
+      <div class="brand-subtitle">Panel operativo</div>
       <div class="brand-process">Productividad</div>
     </div>
   </div>
-  <div class="brand-title">
-    <div class="brand-subtitle">Gemelo operativo WMS</div>
-    <div class="brand-wordmark" aria-label="vigIA">
-      <span class="brand-wordmark-vig">vig</span><span class="brand-wordmark-ia">IA</span>
-    </div>
-  </div>
+  <div></div>
   <div class="header-logos">
-    <div class="header-topline">
-      <img class="partner-logo" src="/resources/CotoLogo.svg" alt="Logo Coto">
-      <div class="clock">CD COTO &nbsp;|&nbsp; <span id="clock-time">--:--:--</span></div>
-    </div>
-    <div class="style-switcher" aria-label="Selector de estilo de pantalla">
-      <span class="style-switcher-label">Estilo</span>
-      <button type="button" class="style-switch-btn" data-style-option="actual" onclick="setProductionStyle('actual')">Oscuro</button>
-      <button type="button" class="style-switch-btn" data-style-option="flowops" onclick="setProductionStyle('flowops')">Claro</button>
-    </div>
-    <div class="header-status">
-      <div class="badge b-green">Ingreso manual primero</div>
-      <div class="badge b-ai" id="ai-badge">CLAUDE</div>
-      <div id="status-badge" class="badge b-pending">LISTO PARA EDITAR</div>
-    </div>
+    <a class="paper-link" href="/gestion-operativa">Gestion</a>
+    <a class="paper-link" href="/selector">Inicio</a>
+    <div class="clock"><span id="clock-time">--:--:--</span></div>
+    <button class="paper-link logout-link" type="button" onclick="logout()">Salir</button>
   </div>
 </header>
 
@@ -1354,6 +1673,11 @@ html[data-prod-style="flowops"] .ai-overlay-box{
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 //  DATOS DEL EXCEL (Programa 5441 — valores sugeridos por defecto)
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+async function logout() {
+  try { await fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' }); } catch (_) {}
+  location.href = '/login';
+}
+
 let EXCEL_DATA = {
   programa: '5441',
   olas: [
@@ -7316,6 +7640,7 @@ function selectProvider(id) {
 
 function updateAiBadge(provider) {
   const badge = document.getElementById('ai-badge');
+  if (!badge) return;
   if (provider === 'gemini')      { badge.className='badge b-ai gemini'; badge.textContent='GEMINI'; }
   else if (provider === 'azure')  { badge.className='badge b-ai azure';  badge.textContent='AZURE GPT'; }
   else if (provider === 'ollama') { badge.className='badge b-ai ollama'; badge.textContent='OLLAMA'; }
@@ -7509,7 +7834,7 @@ function actualizarSugerencias(estado, historico) {
 
 // ── Selector de estilo de produccion ─────────────────────────────
 function normalizeProductionStyle(style) {
-  return style === 'flowops' ? 'flowops' : 'actual';
+  return 'paper';
 }
 
 function setProductionStyle(style) {
@@ -7527,19 +7852,15 @@ function setProductionStyle(style) {
 }
 
 function initProductionStyleSelector() {
-  let saved = 'actual';
-  try {
-    saved = localStorage.getItem('vigia-produccion-style') || document.documentElement.getAttribute('data-prod-style') || 'actual';
-  } catch (e) {
-    saved = document.documentElement.getAttribute('data-prod-style') || 'actual';
-  }
-  setProductionStyle(saved);
+  setProductionStyle('paper');
 }
 
 // ── Reloj ─────────────────────────────────────────────────────────
 function updateClock() {
+  const target = document.getElementById('clock-time');
+  if (!target) return;
   const n = new Date();
-  document.getElementById('clock-time').textContent =
+  target.textContent =
     String(n.getHours()).padStart(2,'0')+':'+
     String(n.getMinutes()).padStart(2,'0')+':'+
     String(n.getSeconds()).padStart(2,'0');

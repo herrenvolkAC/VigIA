@@ -65,6 +65,82 @@ WHERE FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
 ORDER BY FCREAREG
 """
 
+QUERY_HISTORIA_PRODUCTIVIDAD_LEGAJO = """
+SELECT
+    A.FECHA,
+    C.DESCRIPCION AS FUNCION,
+    B.PROD_REAL,
+    B.PROD_EQUIVAL_POR_SECTOR
+FROM PV_DIA_LABORAL A
+JOIN PV_LIQUIDAC_DIA_DET2 B ON A.ID = B.ID_PV_DIA_LABORAL
+JOIN PV_GRUPO_DE_FUNCIONES_CAB C ON C.ID = B.ID_PV_GRUPO_DE_FUNCIONES
+WHERE A.FECHA >= :fecha_desde
+  AND A.FECHA <= :fecha_hasta
+  AND A.LEGAJO = :legajo
+  AND (B.PROD_REAL > 0 OR B.PROD_EQUIVAL_POR_SECTOR > 0)
+ORDER BY A.FECHA, C.DESCRIPCION
+"""
+
+QUERY_HISTORIA_TNC_LEGAJO = """
+SELECT
+    A.FECHA,
+    B.DESCRIP_DE_FUNCION,
+    B.CANTIDAD_DE_CORTES_HECHOS,
+    B.TIEMPO_EXCEDIDO_EN_SEGUNDOS
+FROM PV_DIA_LABORAL A
+JOIN PV_LIQUIDAC_DIA_DET3 B ON A.ID = B.ID_PV_DIA_LABORAL
+WHERE A.LEGAJO = :legajo
+  AND A.FECHA >= :fecha_desde
+  AND A.FECHA <= :fecha_hasta
+  AND B.TIEMPO_EXCEDIDO_EN_SEGUNDOS > 0
+ORDER BY A.FECHA, B.DESCRIP_DE_FUNCION
+"""
+
+QUERY_HISTORIA_ACTIVIDAD_OPERACIONES = """
+SELECT
+    TO_CHAR(FCREAREG, 'YYYY-MM-DD') AS FECHA,
+    CDESCRIP AS OPERACION
+FROM (
+    SELECT DISTINCT TRUNC(FCREAREG) AS FCREAREG, CDESCRIP
+    FROM F132HIST
+    WHERE COPECREA = :legajo
+      AND FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD')
+      AND FCREAREG < TO_DATE(:fecha_hasta, 'YYYY-MM-DD') + 1
+      AND CDESCRIP NOT IN ('ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO')
+    UNION
+    SELECT DISTINCT TRUNC(FCREAREG) AS FCREAREG, CDESCRIP
+    FROM F132HIST_HIST
+    WHERE COPECREA = :legajo
+      AND FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD')
+      AND FCREAREG < TO_DATE(:fecha_hasta, 'YYYY-MM-DD') + 1
+      AND CDESCRIP NOT IN ('ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO')
+)
+ORDER BY FECHA, OPERACION
+"""
+
+QUERY_HISTORIA_ACTIVIDAD_OPERACIONES_BULK = """
+SELECT
+    COPECREA AS LEGAJO,
+    TO_CHAR(FCREAREG, 'YYYY-MM-DD') AS FECHA,
+    CDESCRIP AS OPERACION
+FROM (
+    SELECT DISTINCT COPECREA, TRUNC(FCREAREG) AS FCREAREG, CDESCRIP
+    FROM F132HIST
+    WHERE FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD')
+      AND FCREAREG < TO_DATE(:fecha_hasta, 'YYYY-MM-DD') + 1
+      AND CDESCRIP NOT IN ('ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO')
+      AND COPECREA IS NOT NULL
+    UNION
+    SELECT DISTINCT COPECREA, TRUNC(FCREAREG) AS FCREAREG, CDESCRIP
+    FROM F132HIST_HIST
+    WHERE FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD')
+      AND FCREAREG < TO_DATE(:fecha_hasta, 'YYYY-MM-DD') + 1
+      AND CDESCRIP NOT IN ('ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO')
+      AND COPECREA IS NOT NULL
+)
+ORDER BY FECHA, LEGAJO, OPERACION
+"""
+
 QUERY_PLANTEL_OPERATIVO = """
 SELECT
     A.FCREAREG AS FHMovimiento,
@@ -205,6 +281,61 @@ LEFT JOIN (
 WHERE A.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
   AND A.FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
 ORDER BY A.COPECREA, A.FCREAREG
+"""
+
+QUERY_GESTION_PRODUCTIVIDAD_PICKING = """
+SELECT * FROM (
+SELECT
+    NVL(SUB1.DESCDIVI, 'SIN MAPEAR') AS ALMACEN,
+    A.COPECREA,
+    B.NOMBRE AS OPERARIO,
+    UPPER(A.CDESCRIP) AS OPERACION,
+    A.FCREAREG AS FH_MOVIMIENTO,
+    A.CZONAORI AS ZONA_ORIGEN,
+    A.CUBIORIG AS UBIC_ORIGEN,
+    A.CNUPALET AS NRO_PALLET,
+    A.CNPEDIDO AS PEDIDO,
+    A.QCANTIDA AS CANTIDAD,
+    A.QPESOREG AS PESO,
+    'F132HIST' AS SOURCE_TABLE
+FROM F132HIST A
+LEFT JOIN PV_LEGAJO B
+  ON A.COPECREA = B.LEGAJO
+LEFT JOIN (
+    SELECT DISTINCT CZONALMA, DESCDIVI
+    FROM VW_UBICACIONES_DIVISION
+) SUB1
+  ON SUB1.CZONALMA = A.CZONAORI
+WHERE A.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+  AND A.FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+  AND UPPER(A.CDESCRIP) IN ('PICKING', 'ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO')
+UNION ALL
+SELECT
+    NVL(SUB1.DESCDIVI, 'SIN MAPEAR') AS ALMACEN,
+    A.COPECREA,
+    B.NOMBRE AS OPERARIO,
+    UPPER(A.CDESCRIP) AS OPERACION,
+    A.FCREAREG AS FH_MOVIMIENTO,
+    A.CZONAORI AS ZONA_ORIGEN,
+    A.CUBIORIG AS UBIC_ORIGEN,
+    A.CNUPALET AS NRO_PALLET,
+    A.CNPEDIDO AS PEDIDO,
+    A.QCANTIDA AS CANTIDAD,
+    A.QPESOREG AS PESO,
+    'F132HIST_HIST' AS SOURCE_TABLE
+FROM F132HIST_HIST A
+LEFT JOIN PV_LEGAJO B
+  ON A.COPECREA = B.LEGAJO
+LEFT JOIN (
+    SELECT DISTINCT CZONALMA, DESCDIVI
+    FROM VW_UBICACIONES_DIVISION
+) SUB1
+  ON SUB1.CZONALMA = A.CZONAORI
+WHERE A.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+  AND A.FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+  AND UPPER(A.CDESCRIP) IN ('PICKING', 'ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO')
+)
+ORDER BY COPECREA, FH_MOVIMIENTO
 """
 
 QUERY_PICKING_TIEMPOS_MUERTOS_DETAIL = """
@@ -822,7 +953,7 @@ def _productive_db_local_only_enabled() -> bool:
     return os.getenv("PRODUCTIVE_DB_LOCAL_ONLY", "0").strip().lower() in {"1", "true", "yes", "si"}
 
 
-def _query_productive_db_sql(query: str, *, fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+def _query_productive_db_sql(query: str, *, fecha_desde: str, fecha_hasta: str, legajo: str | None = None) -> list[dict[str, Any]]:
     if _productive_db_local_only_enabled():
         raise RuntimeError(
             "La BD productiva Oracle esta temporalmente bloqueada por configuracion. "
@@ -830,7 +961,7 @@ def _query_productive_db_sql(query: str, *, fecha_desde: str, fecha_hasta: str) 
         )
 
     if os.getenv("PRODUCTIVE_DB_USE_JDBC", "1").strip().lower() in {"1", "true", "yes", "si"}:
-        return _query_productive_db_via_jdbc(query, fecha_desde, fecha_hasta)
+        return _query_productive_db_via_jdbc(query, fecha_desde, fecha_hasta, legajo=legajo)
 
     try:
         import oracledb
@@ -879,12 +1010,15 @@ def _query_productive_db_sql(query: str, *, fecha_desde: str, fecha_hasta: str) 
     connection = oracledb.connect(user=user, password=password, dsn=dsn)
     try:
         cursor = connection.cursor()
-        if ":fecha_desde" in query or ":fecha_hasta" in query:
-            cursor.execute(
-                query,
-                fecha_desde=fecha_desde,
-                fecha_hasta=fecha_hasta,
-            )
+        bind_values: dict[str, Any] = {}
+        if ":fecha_desde" in query:
+            bind_values["fecha_desde"] = fecha_desde
+        if ":fecha_hasta" in query:
+            bind_values["fecha_hasta"] = fecha_hasta
+        if ":legajo" in query:
+            bind_values["legajo"] = legajo
+        if bind_values:
+            cursor.execute(query, bind_values)
         else:
             cursor.execute(query)
         columns = [col[0] for col in cursor.description]
@@ -924,9 +1058,52 @@ def query_productive_db_online(fecha_desde: str, fecha_hasta: str) -> list[dict[
     )
 
 
+def query_productive_db_historia_productividad_legajo(fecha_desde: str, fecha_hasta: str, legajo: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_HISTORIA_PRODUCTIVIDAD_LEGAJO,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        legajo=legajo,
+    )
+
+
+def query_productive_db_historia_tnc_legajo(fecha_desde: str, fecha_hasta: str, legajo: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_HISTORIA_TNC_LEGAJO,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        legajo=legajo,
+    )
+
+
+def query_productive_db_historia_actividad_operaciones(fecha_desde: str, fecha_hasta: str, legajo: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_HISTORIA_ACTIVIDAD_OPERACIONES,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        legajo=legajo,
+    )
+
+
+def query_productive_db_historia_actividad_operaciones_bulk(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_HISTORIA_ACTIVIDAD_OPERACIONES_BULK,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
 def query_productive_db_online_detail(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_PRODUCTIVIDAD_ONLINE_DETAIL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+def query_productive_db_gestion_productividad_picking(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_GESTION_PRODUCTIVIDAD_PICKING,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )
@@ -1372,7 +1549,7 @@ def _ensure_java_helper_compiled() -> None:
         )
 
 
-def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str, legajo: str | None = None) -> list[dict[str, Any]]:
     user = os.getenv("PRODUCTIVE_DB_USER", "").strip()
     password = os.getenv("PRODUCTIVE_DB_PASSWORD", "").strip()
     host = os.getenv("PRODUCTIVE_DB_HOST", "").strip()
@@ -1425,6 +1602,35 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     ):
         query_key = "tnc"
     elif (
+        "PV_LIQUIDAC_DIA_DET2" in normalized_query
+        and "PROD_REAL" in normalized_query
+        and "PROD_EQUIVAL_POR_SECTOR" in normalized_query
+    ):
+        query_key = "historia_productividad_legajo"
+    elif (
+        "PV_LIQUIDAC_DIA_DET3" in normalized_query
+        and "TIEMPO_EXCEDIDO_EN_SEGUNDOS" in normalized_query
+    ):
+        query_key = "historia_tnc_legajo"
+    elif (
+        "F132HIST_HIST" in normalized_query
+        and "COPECREA AS LEGAJO" in normalized_query
+        and "CDESCRIP AS OPERACION" in normalized_query
+    ):
+        query_key = "historia_actividad_operaciones_bulk"
+    elif (
+        "F132HIST_HIST" in normalized_query
+        and "CDESCRIP AS OPERACION" in normalized_query
+    ):
+        query_key = "historia_actividad_operaciones"
+    elif (
+        "F132HIST_HIST" in normalized_query
+        and "SOURCE_TABLE" in normalized_query
+        and "ENTREGA DE EQUIPO" in normalized_query
+        and "DEVOLUCION DE EQUIPO" in normalized_query
+    ):
+        query_key = "gestion_productividad_picking"
+    elif (
         "CNPEDIDO AS PEDIDO" in normalized_query
         and "UPPER(A.CDESCRIP) AS OPERACION" in normalized_query
         and "A.QCANTIDA AS CANTIDAD" not in normalized_query
@@ -1446,22 +1652,27 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     else:
         query_key = "productividad"
 
+    command = [
+        java_bin,
+        "-cp",
+        classpath,
+        "OracleProductividadQuery",
+        jdbc_url,
+        user,
+        password,
+        fecha_desde,
+        fecha_hasta,
+        query_key,
+    ]
+    if query_key in {"historia_productividad_legajo", "historia_tnc_legajo", "historia_actividad_operaciones"}:
+        command.append(str(legajo or ""))
+
     result = subprocess.run(
-        [
-            java_bin,
-            "-cp",
-            classpath,
-            "OracleProductividadQuery",
-            jdbc_url,
-            user,
-            password,
-            fecha_desde,
-            fecha_hasta,
-            query_key,
-        ],
+        command,
         capture_output=True,
         text=True,
         check=False,
+        timeout=int(os.getenv("PRODUCTIVE_DB_JDBC_TIMEOUT_SECONDS", "300")),
     )
     if result.returncode != 0:
         raise RuntimeError(

@@ -23,7 +23,12 @@ echo  Verificando dependencias...
 python -c "import uvicorn" >nul 2>&1
 if errorlevel 1 (
     echo  Instalando dependencias ^(primera vez^)...
-    pip install -r requirements.txt
+    if exist offline_packages (
+        echo  Usando paquetes locales de offline_packages...
+        pip install --no-index --find-links offline_packages -r requirements.txt
+    ) else (
+        pip install -r requirements.txt
+    )
     if errorlevel 1 (
         echo  [ERROR] No se pudieron instalar las dependencias.
         pause

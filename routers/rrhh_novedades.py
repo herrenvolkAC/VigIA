@@ -15,6 +15,10 @@ import subprocess
 import tempfile
 import asyncio
 import csv
+import logging
+import os
+import time as time_module
+from contextlib import suppress
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Any
@@ -38,11 +42,16 @@ except Exception:  # pragma: no cover
 
 
 router = APIRouter(prefix="/api/rrhh", tags=["rrhh-novedades"])
+logger = logging.getLogger("vigia.rrhh_novedades")
 
 SOURCE_ROOT = Path(__file__).parent.parent / "Docs" / "Panel_Choferes" / "PROCESADOS"
 FULL_ACCESS_ROLES = {"admin", "rrhh"}
 IMPORT_ROLES = {"admin", "rrhh"}
 RRHH_SCOPE_MODULE = "novedades_cd"
+_rrhh_import_lock: asyncio.Lock | None = None
+_rrhh_monitor_task: asyncio.Task | None = None
+_rrhh_monitor_stop: asyncio.Event | None = None
+_rrhh_monitor_seen: dict[str, tuple[int, int, float]] = {}
 REAL_SANCIONES = (
     "Amonestación",
     "Anotaciones Especiales",
@@ -51,10 +60,49 @@ REAL_SANCIONES = (
 )
 
 
+def _scheduled_day_sql(alias: str = "a") -> str:
+    return (
+        f"(COALESCE({alias}.ausentismo_contabiliza,0) = 1 "
+        f"OR COALESCE({alias}.horas_teoricas,0) > 0 "
+        f"OR TRIM(COALESCE({alias}.ingreso_teorico,'')) <> '')"
+    )
+
+
 class ImportFolderRequest(BaseModel):
     folder_path: str | None = None
     batch_key: str | None = None
     force: bool = False
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "si", "on"}
+
+
+def _env_int(name: str, default: int, *, minimum: int | None = None, maximum: int | None = None) -> int:
+    try:
+        value = int(os.getenv(name, str(default)).strip())
+    except (TypeError, ValueError):
+        value = default
+    if minimum is not None:
+        value = max(minimum, value)
+    if maximum is not None:
+        value = min(maximum, value)
+    return value
+
+
+def _env_path(name: str, default: Path | None = None) -> Path | None:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    return Path(raw).expanduser()
+
+
+def _francos_fecha_inicial() -> str:
+    raw = os.getenv("RRHH_FRANCOS_FECHA_INICIAL", "2026-05-26").strip()
+    return _to_date(raw) or "2026-05-26"
 
 
 def _now() -> str:
@@ -416,6 +464,42 @@ def _pick_file(folder: Path, patterns: list[str], exclude: list[str] | None = No
     return max(candidates, key=lambda p: p.stat().st_mtime)
 
 
+def _excel_files(folder: Path) -> list[Path]:
+    return sorted(
+        [
+            p for p in folder.iterdir()
+            if p.is_file()
+            and p.suffix.lower() in {".xlsx", ".xls"}
+            and not p.name.startswith("~$")
+        ],
+        key=lambda p: (p.stat().st_mtime, p.name.lower()),
+    )
+
+
+def _detect_file_kind(path: Path) -> str | None:
+    try:
+        rows = _read_workbook_rows(path)
+    except Exception:
+        return None
+    if not rows:
+        return None
+    header_idx = 1 if len(rows) > 1 and _norm_key(rows[0][0] if rows[0] else "") != "ubicacion" else 0
+    headers = set(_unique_headers(rows[header_idx]))
+    if {"legajo", "fecha"}.issubset(headers) and ("empleado" in headers or "sector" in headers):
+        return "actividad"
+    if {"legajo", "nombre_del_empleado_o_candidato"}.issubset(headers) or {"legajo", "desc_funcion", "desc_posicion"}.issubset(headers):
+        return "legajero"
+    if {"legajo_apellido_y_nombre", "fecha_fichada"}.issubset(headers):
+        return "fichadas"
+    if {"legajo", "apellido_y_nombre"}.issubset(headers) and ("causa_sancion" in headers or "descripcion_causa" in headers):
+        return "sanciones"
+    legajo_headers = {"legajo", "numero_de_personal", "nro_personal", "numero_personal"}
+    saldo_headers = {"saldo", "saldo_francos", "francos", "dias_franco", "cuenta_corriente", "resto_global"}
+    if headers.intersection(legajo_headers) and headers.intersection(saldo_headers):
+        return "francos"
+    return None
+
+
 def _stringify_files(files: dict[str, Any]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for key, value in files.items():
@@ -437,19 +521,39 @@ def _as_paths(files: dict[str, Any], key: str) -> list[Path]:
 
 
 def _detect_files(folder: Path) -> dict[str, Any]:
+    actividad_files = _pick_files(folder, ["*Actividad*.xlsx", "*ACTIVIDAD*.XLS", "*ACTIVIDAD*.xls"], ["full_base"])
+    sanciones_files = _pick_files(folder, ["*SANCIONES*.xlsx", "*SANCIONES*.XLS", "*Sanciones*.xls"])
     files = {
-        "actividad": _pick_file(folder, ["*Actividad*.xlsx", "*ACTIVIDAD*.XLS", "*ACTIVIDAD*.xls"], ["full_base"]),
-        "actividad_files": _pick_files(folder, ["*Actividad*.xlsx", "*ACTIVIDAD*.XLS", "*ACTIVIDAD*.xls"], ["full_base"]),
+        "actividad": actividad_files[-1] if actividad_files else None,
+        "actividad_files": actividad_files,
         "fichadas": _pick_file(folder, ["*Fichadas*.xlsx", "*FICHADAS*.XLS", "*FICHADAS*.xls"]),
         "legajero": _pick_file(folder, ["*Legajero*.xlsx", "*LEGAJERO*.XLS", "*LEGAJERO*.xls"]),
         "sanciones": _pick_file(folder, ["*SANCIONES*.xlsx", "*SANCIONES*.XLS", "*Sanciones*.xls"]),
-        "sanciones_files": _pick_files(folder, ["*SANCIONES*.xlsx", "*SANCIONES*.XLS", "*Sanciones*.xls"]),
+        "sanciones_files": sanciones_files,
         "codigos_ausentismo": _pick_file(folder, ["*Codigos_Ausentismo*.xlsx", "*Codigos_Ausentismo*.xls"]),
+        "francos": _pick_file(folder, ["*Francos*.xlsx", "*FRANCOS*.XLS", "*Francos*.xls", "*francos*.xlsx", "*francos*.xls"]),
     }
-    required = ["actividad", "legajero"]
-    missing = [key for key in required if files[key] is None]
-    if missing:
-        raise RuntimeError(f"Faltan archivos requeridos en {folder}: {', '.join(missing)}.")
+
+    known_paths = {p.resolve() for value in files.values() for p in (value if isinstance(value, list) else [value]) if p}
+    for path in _excel_files(folder):
+        if path.resolve() in known_paths:
+            continue
+        kind = _detect_file_kind(path)
+        if kind == "actividad":
+            files["actividad_files"].append(path)
+            files["actividad"] = path
+        elif kind == "legajero" and not files.get("legajero"):
+            files["legajero"] = path
+        elif kind == "fichadas" and not files.get("fichadas"):
+            files["fichadas"] = path
+        elif kind == "sanciones":
+            files["sanciones_files"].append(path)
+            files["sanciones"] = path
+        elif kind == "francos" and not files.get("francos"):
+            files["francos"] = path
+
+    if not any(files.get(key) for key in ("actividad", "legajero", "fichadas", "sanciones", "codigos_ausentismo", "francos")):
+        raise RuntimeError(f"No se detectaron archivos RRHH compatibles en {folder}.")
     return _stringify_files(files)
 
 
@@ -783,7 +887,8 @@ def _classify_ausentismo(codigo: Any, motivo: Any, horario: Any, codes: dict[str
     codigo_text = _norm(codigo)
     codigo_norm = _norm_codigo(codigo_text)
     motivo_text = _norm(motivo)
-    haystack = f"{motivo_text} {_norm(horario)}".upper()
+    motivo_haystack = motivo_text.upper()
+    horario_haystack = _norm(horario).upper()
     if not codigo_norm or codigo_norm == "0":
         return {
             "codigo_norm": codigo_norm,
@@ -793,14 +898,16 @@ def _classify_ausentismo(codigo: Any, motivo: Any, horario: Any, codes: dict[str
             "contabiliza": 0,
             "regla": "",
         }
-    if codigo_norm == "666" or any(pattern and pattern in haystack for pattern in no_count_patterns):
+    motivo_no_count = any(pattern and pattern in motivo_haystack for pattern in no_count_patterns)
+    horario_no_count = any(pattern and pattern in horario_haystack for pattern in no_count_patterns)
+    if codigo_norm == "666" or motivo_no_count or (horario_no_count and not motivo_text):
         return {
             "codigo_norm": codigo_norm,
             "tratamiento": "",
             "tipo": "",
             "clasificacion": "NO CONSIDERAR",
             "contabiliza": 0,
-            "regla": "codigo_666" if codigo_norm == "666" else "patron_no_considerar",
+            "regla": "codigo_666" if codigo_norm == "666" else ("motivo_no_considerar" if motivo_no_count else "horario_no_considerar"),
         }
     info = codes.get(codigo_norm)
     if info:
@@ -1056,6 +1163,69 @@ def _import_codigos(cur: sqlite3.Cursor, batch_id: int, path: Path) -> dict[str,
     return {"codigos": total, "reglas": reglas}
 
 
+def _first_present(data: dict[str, Any], keys: tuple[str, ...]) -> Any:
+    for key in keys:
+        value = data.get(key)
+        if value is not None and value != "":
+            return value
+    return None
+
+
+def _import_francos_inicial(cur: sqlite3.Cursor, path: Path, imported_by: str) -> int:
+    rows = _read_workbook_rows(path)
+    if not rows:
+        return 0
+    header_idx = 0
+    for idx, row in enumerate(rows[:5]):
+        keys = set(_unique_headers(row))
+        legajo_headers = {"legajo", "numero_de_personal", "nro_personal", "numero_personal"}
+        saldo_headers = {"saldo", "saldo_francos", "francos", "dias_franco", "cuenta_corriente", "resto_global"}
+        if keys.intersection(legajo_headers) and keys.intersection(saldo_headers):
+            header_idx = idx
+            break
+    headers = _unique_headers(rows[header_idx])
+    payload = []
+    now = _now()
+    legajo_keys = ("legajo", "numero_de_personal", "nro_personal", "numero_personal")
+    saldo_keys = ("saldo_francos", "saldo", "francos", "dias_franco", "cuenta_corriente", "saldo_actual", "resto_global")
+    nombre_keys = ("nombre", "empleado", "apellido_y_nombre", "nombre_del_empleado_o_candidato")
+    fecha_keys = ("fecha_corte", "fecha", "corte", "fecha_saldo")
+    fecha_inicial = _francos_fecha_inicial()
+    for row in rows[header_idx + 1:]:
+        data = _row_dict(headers, row)
+        legajo = _norm_legajo(_first_present(data, legajo_keys))
+        if not legajo:
+            continue
+        payload.append((
+            legajo,
+            _norm(_first_present(data, nombre_keys)),
+            _to_float(_first_present(data, saldo_keys)),
+            _to_date(_first_present(data, fecha_keys)) or fecha_inicial,
+            str(path),
+            _raw_json(headers, row),
+            imported_by,
+            now,
+        ))
+    cur.executemany(
+        """
+        INSERT INTO rrhh_francos_inicial (
+            legajo, nombre, saldo_inicial, fecha_corte, source_file,
+            raw_json, imported_by, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(legajo) DO UPDATE SET
+            nombre = excluded.nombre,
+            saldo_inicial = excluded.saldo_inicial,
+            fecha_corte = excluded.fecha_corte,
+            source_file = excluded.source_file,
+            raw_json = excluded.raw_json,
+            imported_by = excluded.imported_by,
+            updated_at = excluded.updated_at
+        """,
+        payload,
+    )
+    return len(payload)
+
+
 def _cleanup_rrhh_orphans(cur: sqlite3.Cursor) -> None:
     for table in (
         "rrhh_legajero",
@@ -1069,6 +1239,68 @@ def _cleanup_rrhh_orphans(cur: sqlite3.Cursor) -> None:
         cur.execute(
             f"DELETE FROM {table} WHERE batch_id NOT IN (SELECT batch_id FROM rrhh_import_batches)"
         )
+
+
+def _latest_complete_batch_with_legajero(cur: sqlite3.Cursor, exclude_batch_id: int | None = None) -> int | None:
+    params: list[Any] = []
+    exclude_sql = ""
+    if exclude_batch_id is not None:
+        exclude_sql = "AND b.batch_id <> ?"
+        params.append(exclude_batch_id)
+    cur.execute(
+        f"""
+        SELECT b.batch_id
+        FROM rrhh_import_batches b
+        WHERE b.status = 'complete'
+          {exclude_sql}
+          AND EXISTS (SELECT 1 FROM rrhh_legajero l WHERE l.batch_id = b.batch_id)
+        ORDER BY b.imported_at DESC, b.batch_id DESC
+        LIMIT 1
+        """,
+        params,
+    )
+    row = cur.fetchone()
+    return int(row["batch_id"]) if row else None
+
+
+def _copy_legajero_from_batch(cur: sqlite3.Cursor, target_batch_id: int, source_batch_id: int) -> dict[str, Any]:
+    cur.execute(
+        """
+        INSERT OR REPLACE INTO rrhh_legajero (
+            batch_id, legajo, nombre, empresa, division_personal, sucursal,
+            unidad_organizativa, desc_unidad_organizativa, sector_generico,
+            desc_sector_generico, clave_funcion, desc_funcion, posicion,
+            desc_posicion, grupo_personal, desc_grupo_personal, area_personal,
+            desc_area_personal, fecha_ingreso, fecha_baja, proveedor, razon_social,
+            raw_json, es_gerencia
+        )
+        SELECT ?, legajo, nombre, empresa, division_personal, sucursal,
+            unidad_organizativa, desc_unidad_organizativa, sector_generico,
+            desc_sector_generico, clave_funcion, desc_funcion, posicion,
+            desc_posicion, grupo_personal, desc_grupo_personal, area_personal,
+            desc_area_personal, fecha_ingreso, fecha_baja, proveedor, razon_social,
+            raw_json, es_gerencia
+        FROM rrhh_legajero
+        WHERE batch_id = ?
+        """,
+        (target_batch_id, source_batch_id),
+    )
+    inserted = int(cur.rowcount or 0)
+    cur.execute(
+        "SELECT legajo, COALESCE(es_gerencia, 0) es_gerencia FROM rrhh_legajero WHERE batch_id = ?",
+        (target_batch_id,),
+    )
+    gerencia_map = {row["legajo"]: int(row["es_gerencia"] or 0) for row in cur.fetchall()}
+    return {
+        "inserted": inserted,
+        "gerencia_map": gerencia_map,
+        "altas": 0,
+        "modificaciones": 0,
+        "bajas": 0,
+        "reactivaciones": 0,
+        "sin_cambios": inserted,
+        "referencia_batch_id": source_batch_id,
+    }
 
 
 def _delete_rrhh_batch_children(cur: sqlite3.Cursor, batch_id: int) -> None:
@@ -1173,9 +1405,13 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
         existing = cur.fetchone()
         if existing and not force:
             raise RuntimeError(f"El lote {batch_key} ya existe. Usar force=true para reimportar.")
+        existing_batch_id = int(existing["batch_id"]) if existing else None
+        reference_legajero_batch_id = None
+        if not files.get("legajero"):
+            reference_legajero_batch_id = _latest_complete_batch_with_legajero(cur, existing_batch_id)
         if existing:
-            _delete_rrhh_batch_children(cur, int(existing["batch_id"]))
-            cur.execute("DELETE FROM rrhh_import_batches WHERE batch_id = ?", (existing["batch_id"],))
+            _delete_rrhh_batch_children(cur, existing_batch_id)
+            cur.execute("DELETE FROM rrhh_import_batches WHERE batch_id = ?", (existing_batch_id,))
         cur.execute(
             """
             INSERT INTO rrhh_import_batches (batch_key, source_dir, imported_by, status, files_json)
@@ -1184,10 +1420,40 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
             (batch_key, str(folder), imported_by, json.dumps(files, ensure_ascii=False)),
         )
         batch_id = int(cur.lastrowid)
-        legajero_info = _import_legajero(cur, batch_id, Path(files["legajero"]))
+        import_mode = "completo"
+        if files.get("legajero"):
+            legajero_info = _import_legajero(cur, batch_id, Path(files["legajero"]))
+        elif reference_legajero_batch_id:
+            legajero_info = _copy_legajero_from_batch(cur, batch_id, reference_legajero_batch_id)
+            import_mode = "parcial_con_legajero_referencia"
+        else:
+            legajero_info = {
+                "inserted": 0,
+                "gerencia_map": {},
+                "altas": 0,
+                "modificaciones": 0,
+                "bajas": 0,
+                "reactivaciones": 0,
+                "sin_cambios": 0,
+                "referencia_batch_id": None,
+            }
+            import_mode = "parcial_sin_legajero"
         gerencia_map = legajero_info["gerencia_map"]
         codigos_info = _import_codigos(cur, batch_id, Path(files["codigos_ausentismo"])) if files.get("codigos_ausentismo") else {"codigos": 0, "reglas": 0}
+        francos_inicial = _import_francos_inicial(cur, Path(files["francos"]), imported_by) if files.get("francos") else 0
+        actividad_paths = _as_paths(files, "actividad_files")
+        sanciones_paths = _as_paths(files, "sanciones_files")
         summary = {
+            "modo_importacion": import_mode,
+            "archivos_detectados": {
+                "actividad": len(actividad_paths),
+                "legajero": 1 if files.get("legajero") else 0,
+                "legajero_referencia_batch_id": legajero_info.get("referencia_batch_id"),
+                "fichadas": 1 if files.get("fichadas") else 0,
+                "sanciones": len(sanciones_paths),
+                "codigos_ausentismo": 1 if files.get("codigos_ausentismo") else 0,
+                "francos": 1 if files.get("francos") else 0,
+            },
             "legajero": legajero_info["inserted"],
             "legajero_altas": legajero_info["altas"],
             "legajero_modificaciones": legajero_info["modificaciones"],
@@ -1196,12 +1462,12 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
             "legajero_sin_cambios": legajero_info["sin_cambios"],
             "codigos_ausentismo": codigos_info["codigos"],
             "reglas_ausentismo": codigos_info["reglas"],
-            "actividad": _import_actividad_files(cur, batch_id, _as_paths(files, "actividad_files"), gerencia_map),
-            "actividad_archivos": len(_as_paths(files, "actividad_files")),
-            "fichadas": 0,
-            "fichadas_omitidas": bool(files.get("fichadas")),
-            "sanciones": _import_sanciones_files(cur, batch_id, _as_paths(files, "sanciones_files"), gerencia_map) if files.get("sanciones") else 0,
-            "sanciones_archivos": len(_as_paths(files, "sanciones_files")),
+            "francos_inicial": francos_inicial,
+            "actividad": _import_actividad_files(cur, batch_id, actividad_paths, gerencia_map) if actividad_paths else 0,
+            "actividad_archivos": len(actividad_paths),
+            "fichadas": _import_fichadas(cur, batch_id, Path(files["fichadas"]), gerencia_map) if files.get("fichadas") else 0,
+            "sanciones": _import_sanciones_files(cur, batch_id, sanciones_paths, gerencia_map) if sanciones_paths else 0,
+            "sanciones_archivos": len(sanciones_paths),
             "gerencia_legajos": sum(1 for value in gerencia_map.values() if value),
         }
         warnings = _rrhh_quality_warnings(cur, batch_id)
@@ -1223,6 +1489,178 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
         conn.close()
 
 
+def _get_import_lock() -> asyncio.Lock:
+    global _rrhh_import_lock
+    if _rrhh_import_lock is None:
+        _rrhh_import_lock = asyncio.Lock()
+    return _rrhh_import_lock
+
+
+async def _import_folder_locked(folder: Path, batch_key: str, imported_by: str, force: bool) -> dict[str, Any]:
+    async with _get_import_lock():
+        return await asyncio.to_thread(_import_folder_sync, folder, batch_key, imported_by, force)
+
+
+def _watch_inbox() -> Path | None:
+    return _env_path("RRHH_WATCH_INBOX", _env_path("RRHH_WATCH_FOLDER", SOURCE_ROOT))
+
+
+def _watch_imported_dir(inbox: Path) -> Path:
+    return _env_path("RRHH_WATCH_IMPORTED", inbox / "IMPORTADOS") or inbox / "IMPORTADOS"
+
+
+def _watch_error_dir(inbox: Path) -> Path:
+    return _env_path("RRHH_WATCH_ERROR", inbox / "ERROR") or inbox / "ERROR"
+
+
+def _file_signature(path: Path) -> tuple[int, int] | None:
+    try:
+        stat = path.stat()
+    except OSError:
+        return None
+    return int(stat.st_size), int(stat.st_mtime_ns)
+
+
+def _stable_excel_files(folder: Path, stability_seconds: int) -> list[Path]:
+    global _rrhh_monitor_seen
+    now = time_module.monotonic()
+    files = _excel_files(folder)
+    current = {str(path.resolve()): path for path in files}
+    for known in list(_rrhh_monitor_seen):
+        if known not in current:
+            _rrhh_monitor_seen.pop(known, None)
+
+    stable: list[Path] = []
+    for key, path in current.items():
+        signature = _file_signature(path)
+        if signature is None:
+            _rrhh_monitor_seen.pop(key, None)
+            continue
+        previous = _rrhh_monitor_seen.get(key)
+        if previous is None or previous[:2] != signature:
+            _rrhh_monitor_seen[key] = (signature[0], signature[1], now)
+            continue
+        if now - previous[2] >= stability_seconds:
+            stable.append(path)
+
+    return stable if len(stable) == len(files) else []
+
+
+def _make_auto_batch_key(paths: list[Path]) -> str:
+    digest = hashlib.sha1(
+        "|".join(
+            f"{path.name}:{path.stat().st_size}:{path.stat().st_mtime_ns}"
+            for path in sorted(paths, key=lambda item: item.name.lower())
+            if path.exists()
+        ).encode("utf-8")
+    ).hexdigest()[:16]
+    return f"auto_{digest}"
+
+
+def _flatten_imported_paths(files: dict[str, Any]) -> list[Path]:
+    paths: list[Path] = []
+    for value in files.values():
+        if isinstance(value, list):
+            paths.extend(Path(item) for item in value)
+        elif value:
+            paths.append(Path(value))
+    unique: dict[str, Path] = {}
+    for path in paths:
+        unique[str(path.resolve())] = path
+    return list(unique.values())
+
+
+def _unique_destination(dest_dir: Path, name: str) -> Path:
+    candidate = dest_dir / name
+    if not candidate.exists():
+        return candidate
+    stem = candidate.stem
+    suffix = candidate.suffix
+    for index in range(1, 1000):
+        candidate = dest_dir / f"{stem}_{index}{suffix}"
+        if not candidate.exists():
+            return candidate
+    raise RuntimeError(f"No se pudo generar destino unico para {name}.")
+
+
+def _move_files(paths: list[Path], dest_root: Path, batch_key: str) -> list[str]:
+    dest_dir = dest_root / datetime.now().strftime("%Y_%m_%d") / batch_key
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    moved: list[str] = []
+    for path in paths:
+        if not path.exists() or not path.is_file():
+            continue
+        dest = _unique_destination(dest_dir, path.name)
+        shutil.move(str(path), str(dest))
+        moved.append(str(dest))
+        _rrhh_monitor_seen.pop(str(path.resolve()), None)
+    return moved
+
+
+async def _rrhh_monitor_loop() -> None:
+    logger.info("Monitor RRHH iniciado.")
+    interval = _env_int("RRHH_WATCH_POLL_SECONDS", 60, minimum=10, maximum=3600)
+    stability = _env_int("RRHH_WATCH_STABILITY_SECONDS", 30, minimum=5, maximum=3600)
+    while _rrhh_monitor_stop is not None and not _rrhh_monitor_stop.is_set():
+        try:
+            inbox = _watch_inbox()
+            if inbox is None or not inbox.exists() or not inbox.is_dir():
+                logger.warning("Monitor RRHH: carpeta no disponible: %s", inbox)
+            else:
+                stable_files = await asyncio.to_thread(_stable_excel_files, inbox, stability)
+                if stable_files:
+                    batch_key = _make_auto_batch_key(stable_files)
+                    try:
+                        result = await _import_folder_locked(inbox, batch_key, "rrhh_monitor", False)
+                        moved = await asyncio.to_thread(
+                            _move_files,
+                            _flatten_imported_paths(result.get("files") or {}),
+                            _watch_imported_dir(inbox),
+                            batch_key,
+                        )
+                        logger.info("Monitor RRHH importo %s y movio %s archivo(s).", batch_key, len(moved))
+                    except Exception as exc:
+                        logger.exception("Monitor RRHH fallo al importar %s: %s", batch_key, exc)
+                        if "ya existe" in str(exc):
+                            moved = await asyncio.to_thread(_move_files, stable_files, _watch_imported_dir(inbox), batch_key)
+                            logger.warning("Monitor RRHH movio %s archivo(s) ya importado(s) a IMPORTADOS.", len(moved))
+                        else:
+                            moved = await asyncio.to_thread(_move_files, stable_files, _watch_error_dir(inbox), batch_key)
+                            logger.warning("Monitor RRHH movio %s archivo(s) a ERROR para %s.", len(moved), batch_key)
+            await asyncio.wait_for(_rrhh_monitor_stop.wait(), timeout=interval)
+        except asyncio.TimeoutError:
+            continue
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            logger.warning("Monitor RRHH continuo tras error: %s", exc)
+            await asyncio.sleep(interval)
+    logger.info("Monitor RRHH detenido.")
+
+
+def start_rrhh_folder_monitor() -> None:
+    global _rrhh_monitor_task, _rrhh_monitor_stop
+    if not _env_bool("RRHH_WATCH_ENABLED", False):
+        logger.info("Monitor RRHH deshabilitado.")
+        return
+    if _rrhh_monitor_task and not _rrhh_monitor_task.done():
+        return
+    _rrhh_monitor_stop = asyncio.Event()
+    _rrhh_monitor_task = asyncio.create_task(_rrhh_monitor_loop())
+
+
+async def stop_rrhh_folder_monitor() -> None:
+    global _rrhh_monitor_task, _rrhh_monitor_stop
+    if _rrhh_monitor_stop:
+        _rrhh_monitor_stop.set()
+    if _rrhh_monitor_task:
+        _rrhh_monitor_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await _rrhh_monitor_task
+    _rrhh_monitor_task = None
+    _rrhh_monitor_stop = None
+
+
 async def _require_auth(request: Request) -> dict[str, Any]:
     auth = await current_auth(request)
     if not auth or auth.get("device_status") != "approved":
@@ -1240,6 +1678,7 @@ async def _attach_rrhh_scope(auth: dict[str, Any]) -> None:
     scope = "operativo"
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db, sanciones=False, fichadas=False)
         async with db.execute(
             """
             SELECT scope, sector
@@ -1278,7 +1717,18 @@ def _require_import_role(auth: dict[str, Any]) -> None:
 async def _latest_batch_id() -> int | None:
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute(
-            "SELECT batch_id FROM rrhh_import_batches WHERE status = 'complete' ORDER BY imported_at DESC, batch_id DESC LIMIT 1"
+            """
+            SELECT b.batch_id
+            FROM rrhh_import_batches b
+            LEFT JOIN rrhh_actividad_diaria a ON a.batch_id = b.batch_id
+            WHERE b.status = 'complete'
+            GROUP BY b.batch_id
+            ORDER BY CASE WHEN MAX(a.fecha) IS NULL THEN 1 ELSE 0 END,
+                     MAX(a.fecha) DESC,
+                     b.imported_at DESC,
+                     b.batch_id DESC
+            LIMIT 1
+            """
         ) as cur:
             row = await cur.fetchone()
     return int(row[0]) if row else None
@@ -1354,10 +1804,166 @@ def _append_multi_filter(where: list[str], params: list[Any], expression: str, v
     params.extend(values)
 
 
+CONSOLIDATED_CTES = """
+latest_legajero AS (
+    SELECT *
+    FROM (
+        SELECT l.*,
+               ROW_NUMBER() OVER (
+                   PARTITION BY l.legajo
+                   ORDER BY b.imported_at DESC, l.batch_id DESC, l.id DESC
+               ) rn
+        FROM rrhh_legajero l
+        JOIN rrhh_import_batches b ON b.batch_id = l.batch_id
+        WHERE b.status = 'complete'
+    )
+    WHERE rn = 1
+),
+actividad_consolidada AS (
+    SELECT *
+    FROM (
+        SELECT a.*,
+               ROW_NUMBER() OVER (
+                   PARTITION BY a.legajo, a.fecha
+                   ORDER BY b.imported_at DESC, a.batch_id DESC, a.id DESC
+               ) rn
+        FROM rrhh_actividad_diaria a
+        JOIN rrhh_import_batches b ON b.batch_id = a.batch_id
+        WHERE b.status = 'complete'
+    )
+    WHERE rn = 1
+),
+sanciones_consolidadas AS (
+    SELECT *
+    FROM (
+        SELECT s.*,
+               ROW_NUMBER() OVER (
+                   PARTITION BY s.legajo, COALESCE(s.inicio,''), COALESCE(s.fin,''), COALESCE(s.cod,''), COALESCE(s.creacion,''), COALESCE(s.descripcion,''), COALESCE(s.causa_sancion,''), COALESCE(s.descripcion_causa,'')
+                   ORDER BY b.imported_at DESC, s.batch_id DESC, s.id DESC
+               ) rn
+        FROM rrhh_sanciones s
+        JOIN rrhh_import_batches b ON b.batch_id = s.batch_id
+        WHERE b.status = 'complete'
+    )
+    WHERE rn = 1
+),
+fichadas_consolidadas AS (
+    SELECT *
+    FROM (
+        SELECT f.*,
+               ROW_NUMBER() OVER (
+                   PARTITION BY f.legajo, f.fecha_fichada, COALESCE(f.sentido,''), COALESCE(f.ubicacion,''), COALESCE(f.tipo_lectura,'')
+                   ORDER BY b.imported_at DESC, f.batch_id DESC, f.id DESC
+               ) rn
+        FROM rrhh_fichadas f
+        JOIN rrhh_import_batches b ON b.batch_id = f.batch_id
+        WHERE b.status = 'complete'
+    )
+    WHERE rn = 1
+)
+"""
+
+
+def _with_consolidated(extra_ctes: str = "") -> str:
+    return f"WITH {extra_ctes}" if extra_ctes.strip() else ""
+
+
+async def _ensure_consolidated_temp(
+    db: aiosqlite.Connection,
+    *,
+    actividad: bool = True,
+    sanciones: bool = True,
+    fichadas: bool = True,
+) -> None:
+    await db.executescript(
+        """
+        DROP TABLE IF EXISTS temp.latest_legajero;
+        DROP TABLE IF EXISTS temp.actividad_consolidada;
+        DROP TABLE IF EXISTS temp.sanciones_consolidadas;
+        DROP TABLE IF EXISTS temp.fichadas_consolidadas;
+
+        CREATE TEMP TABLE latest_legajero AS
+        SELECT *
+        FROM (
+            SELECT l.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY l.legajo
+                       ORDER BY b.imported_at DESC, l.batch_id DESC, l.id DESC
+                   ) rn
+            FROM rrhh_legajero l
+            JOIN rrhh_import_batches b ON b.batch_id = l.batch_id
+            WHERE b.status = 'complete'
+        )
+        WHERE rn = 1;
+        CREATE INDEX temp.idx_tmp_latest_legajero ON latest_legajero(legajo);
+        """
+    )
+    if actividad:
+        await db.executescript(
+            """
+        CREATE TEMP TABLE actividad_consolidada AS
+        SELECT *
+        FROM (
+            SELECT a.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY a.legajo, a.fecha
+                       ORDER BY b.imported_at DESC, a.batch_id DESC, a.id DESC
+                   ) rn
+            FROM rrhh_actividad_diaria a
+            JOIN rrhh_import_batches b ON b.batch_id = a.batch_id
+            WHERE b.status = 'complete'
+        )
+        WHERE rn = 1;
+        CREATE INDEX temp.idx_tmp_actividad_fecha ON actividad_consolidada(fecha);
+        CREATE INDEX temp.idx_tmp_actividad_legajo_fecha ON actividad_consolidada(legajo, fecha);
+            """
+        )
+    if sanciones:
+        await db.executescript(
+            """
+        CREATE TEMP TABLE sanciones_consolidadas AS
+        SELECT *
+        FROM (
+            SELECT s.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY s.legajo, COALESCE(s.inicio,''), COALESCE(s.fin,''), COALESCE(s.cod,''), COALESCE(s.creacion,''), COALESCE(s.descripcion,''), COALESCE(s.causa_sancion,''), COALESCE(s.descripcion_causa,'')
+                       ORDER BY b.imported_at DESC, s.batch_id DESC, s.id DESC
+                   ) rn
+            FROM rrhh_sanciones s
+            JOIN rrhh_import_batches b ON b.batch_id = s.batch_id
+            WHERE b.status = 'complete'
+        )
+        WHERE rn = 1;
+        CREATE INDEX temp.idx_tmp_sanciones_legajo ON sanciones_consolidadas(legajo);
+            """
+        )
+    if fichadas:
+        await db.executescript(
+            """
+        CREATE TEMP TABLE fichadas_consolidadas AS
+        SELECT *
+        FROM (
+            SELECT f.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY f.legajo, f.fecha_fichada, COALESCE(f.sentido,''), COALESCE(f.ubicacion,''), COALESCE(f.tipo_lectura,'')
+                       ORDER BY b.imported_at DESC, f.batch_id DESC, f.id DESC
+                   ) rn
+            FROM rrhh_fichadas f
+            JOIN rrhh_import_batches b ON b.batch_id = f.batch_id
+            WHERE b.status = 'complete'
+        )
+        WHERE rn = 1;
+        CREATE INDEX temp.idx_tmp_fichadas_fecha ON fichadas_consolidadas(fecha);
+        CREATE INDEX temp.idx_tmp_fichadas_legajo ON fichadas_consolidadas(legajo);
+        """
+        )
+
+
 @router.get("/config")
 async def get_config(request: Request):
     auth = await _require_auth(request)
     latest_folder = None
+    watch_inbox = _watch_inbox()
     if SOURCE_ROOT.exists():
         try:
             latest_folder = str(_find_latest_folder())
@@ -1371,6 +1977,14 @@ async def get_config(request: Request):
         "can_see_gerencia": _can_see_gerencia(auth),
         "source_root": str(SOURCE_ROOT),
         "latest_folder": latest_folder,
+        "watch": {
+            "enabled": _env_bool("RRHH_WATCH_ENABLED", False),
+            "inbox": str(watch_inbox) if watch_inbox else None,
+            "imported": str(_watch_imported_dir(watch_inbox)) if watch_inbox else None,
+            "error": str(_watch_error_dir(watch_inbox)) if watch_inbox else None,
+            "poll_seconds": _env_int("RRHH_WATCH_POLL_SECONDS", 60, minimum=10, maximum=3600),
+            "stability_seconds": _env_int("RRHH_WATCH_STABILITY_SECONDS", 30, minimum=5, maximum=3600),
+        },
     }
 
 
@@ -1382,9 +1996,22 @@ async def list_batches(request: Request):
         async with db.execute(
             """
             SELECT batch_id, batch_key, source_dir, imported_by, imported_at, status,
-                   files_json, summary_json, error
-            FROM rrhh_import_batches
-            ORDER BY imported_at DESC, batch_id DESC
+                   files_json, summary_json, error,
+                   fecha_min, fecha_max, actividad_registros
+            FROM (
+                SELECT b.batch_id, b.batch_key, b.source_dir, b.imported_by, b.imported_at, b.status,
+                       b.files_json, b.summary_json, b.error,
+                       MIN(a.fecha) fecha_min,
+                       MAX(a.fecha) fecha_max,
+                       COUNT(a.id) actividad_registros
+                FROM rrhh_import_batches b
+                LEFT JOIN rrhh_actividad_diaria a ON a.batch_id = b.batch_id
+                GROUP BY b.batch_id
+            )
+            ORDER BY CASE WHEN fecha_max IS NULL THEN 1 ELSE 0 END,
+                     fecha_max DESC,
+                     imported_at DESC,
+                     batch_id DESC
             LIMIT 20
             """
         ) as cur:
@@ -1469,7 +2096,7 @@ async def import_latest(req: ImportFolderRequest, request: Request):
     folder = _find_latest_folder()
     batch_key = req.batch_key or folder.name
     try:
-        result = await asyncio.to_thread(_import_folder_sync, folder, batch_key, auth.get("username", ""), req.force)
+        result = await _import_folder_locked(folder, batch_key, auth.get("username", ""), req.force)
     except RuntimeError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return result
@@ -1484,7 +2111,7 @@ async def import_folder(req: ImportFolderRequest, request: Request):
         raise HTTPException(status_code=400, detail="La carpeta indicada no existe.")
     batch_key = req.batch_key or folder.name
     try:
-        result = await asyncio.to_thread(_import_folder_sync, folder, batch_key, auth.get("username", ""), req.force)
+        result = await _import_folder_locked(folder, batch_key, auth.get("username", ""), req.force)
     except RuntimeError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return result
@@ -1542,6 +2169,41 @@ async def get_resumen(request: Request, batch_id: int | None = None):
     return {"batch": batch, "metrics": metrics, "sectores": sectores, "restricted": not _can_see_all(auth)}
 
 
+@router.get("/rango-sugerido")
+async def get_rango_sugerido(request: Request, batch_id: int | None = None):
+    auth = await _require_auth(request)
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db)
+        async with db.execute(
+            f"""
+            {_with_consolidated()}
+            SELECT MIN(a.fecha) fecha_min, MAX(a.fecha) fecha_max
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
+            WHERE {_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")}
+            """,
+            (),
+        ) as cur:
+            row = dict(await cur.fetchone())
+    fecha_max = row.get("fecha_max")
+    fecha_min = row.get("fecha_min")
+    suggested_from = fecha_min
+    if fecha_max:
+        try:
+            max_dt = datetime.strptime(fecha_max, "%Y-%m-%d").date()
+            min_dt = datetime.strptime(fecha_min, "%Y-%m-%d").date() if fecha_min else max_dt
+            from_dt = max(max_dt - timedelta(days=6), min_dt)
+            suggested_from = from_dt.isoformat()
+        except ValueError:
+            suggested_from = fecha_min
+    return {
+        "batch_id": None,
+        "data_range": {"fecha_desde": fecha_min, "fecha_hasta": fecha_max},
+        "suggested_range": {"fecha_desde": suggested_from, "fecha_hasta": fecha_max},
+    }
+
+
 @router.get("/indicadores")
 async def get_indicadores(
     request: Request,
@@ -1555,14 +2217,13 @@ async def get_indicadores(
     persona: str = "",
 ):
     auth = await _require_auth(request)
-    batch_id = await _resolve_batch_id(batch_id)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
     grupos_sel = _multi_query_values(request, "grupo", grupo)
     motivos_sel = _multi_query_values(request, "motivo", motivo)
 
-    where = ["a.batch_id = ?", _visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
-    params: list[Any] = [batch_id]
+    where = [_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
+    params: list[Any] = []
     if fecha_desde:
         where.append("a.fecha >= ?")
         params.append(fecha_desde)
@@ -1575,15 +2236,19 @@ async def get_indicadores(
     _append_multi_filter(where, params, "COALESCE(NULLIF(TRIM(a.motivo), ''), 'Sin motivo')", motivos_sel)
     _append_persona_filter(where, params, persona, record_alias="a", name_columns=("a.empleado",))
     where_sql = " AND ".join(where)
+    scheduled_a = _scheduled_day_sql("a")
+    scheduled_af = _scheduled_day_sql("af")
 
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db)
 
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT
                 COUNT(DISTINCT a.legajo) empleados,
-                COUNT(*) registros,
+                SUM(CASE WHEN {scheduled_a} THEN 1 ELSE 0 END) registros,
                 SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) ausencias,
                 SUM(CASE WHEN a.ausentismo_clasificacion = 'CONTROLADO' THEN 1 ELSE 0 END) ausencias_controladas,
                 SUM(CASE WHEN a.ausentismo_clasificacion = 'NO CONTROLADO' THEN 1 ELSE 0 END) ausencias_no_controladas,
@@ -1593,11 +2258,11 @@ async def get_indicadores(
                 ROUND(COALESCE(SUM(a.hs_trab),0), 1) horas_trabajadas,
                 ROUND(COALESCE(SUM(a.hs_ext_realiz + a.hs_50_autorizadas + a.hs_100),0), 1) horas_extra,
                 ROUND(
-                    SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0),
+                    SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) * 100.0 / NULLIF(SUM(CASE WHEN {scheduled_a} THEN 1 ELSE 0 END), 0),
                     1
                 ) ausentismo_pct
-            FROM rrhh_actividad_diaria a
-            LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
             WHERE {where_sql}
             """,
             tuple(params),
@@ -1606,24 +2271,28 @@ async def get_indicadores(
 
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT MIN(a.fecha) fecha_desde, MAX(a.fecha) fecha_hasta
-            FROM rrhh_actividad_diaria a
-            LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
-            WHERE a.batch_id = ? AND {_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")}
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
+            WHERE {_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")}
             """,
-            (batch_id,),
+            (),
         ) as cur:
             data_range = dict(await cur.fetchone())
 
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT a.fecha label,
-                   COUNT(*) registros,
+                   SUM(CASE WHEN {scheduled_a} THEN 1 ELSE 0 END) registros,
                    SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) ausencias,
+                   SUM(CASE WHEN a.ausentismo_clasificacion = 'CONTROLADO' THEN 1 ELSE 0 END) ausencias_controladas,
+                   SUM(CASE WHEN a.ausentismo_clasificacion = 'NO CONTROLADO' THEN 1 ELSE 0 END) ausencias_no_controladas,
                    SUM(CASE WHEN a.tarde > 0 THEN 1 ELSE 0 END) llegadas_tarde,
                    ROUND(SUM(a.hs_ext_realiz + a.hs_50_autorizadas + a.hs_100), 1) horas_extra
-            FROM rrhh_actividad_diaria a
-            LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
             WHERE {where_sql}
             GROUP BY a.fecha
             ORDER BY a.fecha
@@ -1634,15 +2303,16 @@ async def get_indicadores(
 
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), ''), 'Sin sector') label,
-                   COUNT(*) registros,
+                   SUM(CASE WHEN {scheduled_a} THEN 1 ELSE 0 END) registros,
                    COUNT(DISTINCT a.legajo) empleados,
                    SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) ausencias,
                    ROUND(SUM(a.hs_trab), 1) horas_trabajadas,
                    ROUND(SUM(a.hs_ext_realiz + a.hs_50_autorizadas + a.hs_100), 1) horas_extra,
                    SUM(CASE WHEN a.tarde > 0 THEN 1 ELSE 0 END) llegadas_tarde
-            FROM rrhh_actividad_diaria a
-            LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
             WHERE {where_sql}
               AND COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), '')) IS NOT NULL
             GROUP BY label
@@ -1655,16 +2325,17 @@ async def get_indicadores(
 
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''), 'Sin cargo') || ' / ' ||
                    COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), ''), 'Sin sector') label,
-                   COUNT(*) registros,
+                   SUM(CASE WHEN {scheduled_a} THEN 1 ELSE 0 END) registros,
                    COUNT(DISTINCT a.legajo) empleados,
                    SUM(CASE WHEN COALESCE(a.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) ausencias,
                    ROUND(SUM(a.hs_trab), 1) horas_trabajadas,
                    ROUND(SUM(a.hs_ext_realiz + a.hs_50_autorizadas + a.hs_100), 1) horas_extra,
                    SUM(CASE WHEN a.tarde > 0 THEN 1 ELSE 0 END) llegadas_tarde
-            FROM rrhh_actividad_diaria a
-            LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
             WHERE {where_sql}
               AND COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), '')) IS NOT NULL
             GROUP BY label
@@ -1677,10 +2348,11 @@ async def get_indicadores(
 
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT TRIM(a.motivo) label,
                    COUNT(*) eventos
-            FROM rrhh_actividad_diaria a
-            LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
             WHERE {where_sql}
             GROUP BY label
             HAVING TRIM(COALESCE(label, '')) <> '' AND eventos > 0
@@ -1691,8 +2363,8 @@ async def get_indicadores(
         ) as cur:
             motivos = [dict(row) for row in await cur.fetchall()]
 
-        ranking_sancion_filters = ["s.batch_id = ?", _visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
-        ranking_sancion_params: list[Any] = [batch_id]
+        ranking_sancion_filters = [_visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
+        ranking_sancion_params: list[Any] = []
         if fecha_desde:
             ranking_sancion_filters.append("COALESCE(s.creacion, s.inicio) >= ?")
             ranking_sancion_params.append(fecha_desde)
@@ -1701,17 +2373,20 @@ async def get_indicadores(
             ranking_sancion_params.append(fecha_hasta)
         ranking_sancion_filters.append(f"TRIM(s.descripcion) IN ({', '.join('?' for _ in REAL_SANCIONES)})")
         ranking_sancion_params.extend(REAL_SANCIONES)
-        async with db.execute(
-            f"""
-            WITH actividad_filtrada AS (
+        ranking_cte = f"""
+            actividad_filtrada AS (
                 SELECT a.*, COALESCE(l.desc_sector_generico, a.sector, 'Sin sector') unidad,
                        COALESCE(NULLIF(TRIM(l.desc_funcion), ''), 'Sin cargo') funcion,
                        COALESCE(NULLIF(TRIM(l.desc_grupo_personal), ''), '') grupo_personal,
                        COALESCE(NULLIF(TRIM(l.desc_area_personal), ''), '') area_personal
-                FROM rrhh_actividad_diaria a
-                LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+                FROM actividad_consolidada a
+                LEFT JOIN latest_legajero l ON l.legajo = a.legajo
                 WHERE {where_sql}
-            ),
+            )
+        """
+        async with db.execute(
+            f"""
+            {_with_consolidated(ranking_cte)},
             motivos_aus AS (
                 SELECT legajo, GROUP_CONCAT(label, ', ') motivos_aus
                 FROM (
@@ -1741,8 +2416,8 @@ async def get_indicadores(
                 SELECT legajo, SUM(c) c_sanc, GROUP_CONCAT(label, ', ') tipo_sancion
                 FROM (
                     SELECT s.legajo, COALESCE(NULLIF(TRIM(s.descripcion), ''), 'Sin descripcion') label, COUNT(*) c
-                    FROM rrhh_sanciones s
-                    LEFT JOIN rrhh_legajero l ON l.batch_id = s.batch_id AND l.legajo = s.legajo
+                    FROM sanciones_consolidadas s
+                    LEFT JOIN latest_legajero l ON l.legajo = s.legajo
                     WHERE {" AND ".join(ranking_sancion_filters)}
                     GROUP BY s.legajo, label
                     ORDER BY COUNT(*) DESC, label
@@ -1754,8 +2429,16 @@ async def get_indicadores(
                    MAX(af.funcion) funcion,
                    MAX(af.unidad) unidad,
                    COUNT(DISTINCT af.fecha) dias_reg,
+                   SUM(CASE WHEN {scheduled_af} THEN 1 ELSE 0 END) dias_programados,
+                   SUM(CASE WHEN TRIM(COALESCE(af.motivo,'')) <> ''
+                              OR COALESCE(NULLIF(TRIM(af.aus_pres_codigo), ''), '0') <> '0'
+                            THEN 1 ELSE 0 END) dias_novedad,
+                   SUM(CASE WHEN (TRIM(COALESCE(af.motivo,'')) <> ''
+                                  OR COALESCE(NULLIF(TRIM(af.aus_pres_codigo), ''), '0') <> '0')
+                              AND COALESCE(af.ausentismo_contabiliza,0) = 0
+                            THEN 1 ELSE 0 END) dias_no_considerar,
                    SUM(CASE WHEN COALESCE(af.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) dias_aus,
-                   ROUND(SUM(CASE WHEN COALESCE(af.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(DISTINCT af.fecha), 0), 1) pct_aus,
+                   ROUND(SUM(CASE WHEN COALESCE(af.ausentismo_contabiliza,0) = 1 THEN 1 ELSE 0 END) * 100.0 / NULLIF(SUM(CASE WHEN {scheduled_af} THEN 1 ELSE 0 END), 0), 1) pct_aus,
                    SUM(CASE WHEN af.ausentismo_clasificacion = 'CONTROLADO' THEN 1 ELSE 0 END) ctrl,
                    SUM(CASE WHEN af.ausentismo_clasificacion = 'NO CONTROLADO' THEN 1 ELSE 0 END) no_ctrl,
                    COALESCE(MAX(ma.motivos_aus), '') motivos_aus,
@@ -1788,8 +2471,8 @@ async def get_indicadores(
         ) as cur:
             ranking = [dict(row) for row in await cur.fetchall()]
 
-        s_where = ["s.batch_id = ?", _visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
-        s_params: list[Any] = [batch_id]
+        s_where = [_visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
+        s_params: list[Any] = []
         if fecha_desde:
             s_where.append("COALESCE(s.creacion, s.inicio) >= ?")
             s_params.append(fecha_desde)
@@ -1804,10 +2487,11 @@ async def get_indicadores(
         s_params.extend(REAL_SANCIONES)
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT COALESCE(NULLIF(TRIM(s.descripcion), ''), 'Sin descripcion') label,
                    COUNT(*) eventos
-            FROM rrhh_sanciones s
-            LEFT JOIN rrhh_legajero l ON l.batch_id = s.batch_id AND l.legajo = s.legajo
+            FROM sanciones_consolidadas s
+            LEFT JOIN latest_legajero l ON l.legajo = s.legajo
             WHERE {" AND ".join(s_where)}
             GROUP BY label
             ORDER BY eventos DESC
@@ -1818,17 +2502,18 @@ async def get_indicadores(
             sanciones = [dict(row) for row in await cur.fetchall()]
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT COUNT(*) sanciones
-            FROM rrhh_sanciones s
-            LEFT JOIN rrhh_legajero l ON l.batch_id = s.batch_id AND l.legajo = s.legajo
+            FROM sanciones_consolidadas s
+            LEFT JOIN latest_legajero l ON l.legajo = s.legajo
             WHERE {" AND ".join(s_where)}
             """,
             tuple(s_params),
         ) as cur:
             kpis["sanciones"] = (await cur.fetchone())["sanciones"]
 
-        f_where = ["f.batch_id = ?", _visibility_sql(auth, "f", "COALESCE(l.desc_sector_generico, '')")]
-        f_params: list[Any] = [batch_id]
+        f_where = [_visibility_sql(auth, "f", "COALESCE(l.desc_sector_generico, '')")]
+        f_params: list[Any] = []
         if fecha_desde:
             f_where.append("f.fecha >= ?")
             f_params.append(fecha_desde)
@@ -1837,9 +2522,10 @@ async def get_indicadores(
             f_params.append(fecha_hasta)
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT COUNT(*) fichadas, COUNT(DISTINCT f.legajo) legajos_con_fichada
-            FROM rrhh_fichadas f
-            LEFT JOIN rrhh_legajero l ON l.batch_id = f.batch_id AND l.legajo = f.legajo
+            FROM fichadas_consolidadas f
+            LEFT JOIN latest_legajero l ON l.legajo = f.legajo
             WHERE {' AND '.join(f_where)}
             """,
             tuple(f_params),
@@ -1849,21 +2535,23 @@ async def get_indicadores(
         filter_vis = _visibility_sql(auth, "l", "l.desc_sector_generico")
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT DISTINCT desc_sector_generico value
-            FROM rrhh_legajero l
-            WHERE batch_id = ? AND {filter_vis} AND TRIM(COALESCE(desc_sector_generico,'')) <> ''
+            FROM latest_legajero l
+            WHERE {filter_vis} AND TRIM(COALESCE(desc_sector_generico,'')) <> ''
             ORDER BY value
             """,
-            (batch_id,),
+            (),
         ) as cur:
             sectores = [row["value"] for row in await cur.fetchall()]
-        cargo_where = ["l.batch_id = ?", filter_vis, "TRIM(COALESCE(l.desc_funcion,'')) <> ''"]
-        cargo_params: list[Any] = [batch_id]
+        cargo_where = [filter_vis, "TRIM(COALESCE(l.desc_funcion,'')) <> ''"]
+        cargo_params: list[Any] = []
         _append_multi_filter(cargo_where, cargo_params, "l.desc_sector_generico", sectores_sel)
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT DISTINCT desc_funcion value
-            FROM rrhh_legajero l
+            FROM latest_legajero l
             WHERE {" AND ".join(cargo_where)}
             ORDER BY value
             """,
@@ -1872,24 +2560,26 @@ async def get_indicadores(
             cargos = [row["value"] for row in await cur.fetchall()]
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT DISTINCT desc_grupo_personal value
-            FROM rrhh_legajero l
-            WHERE batch_id = ? AND {filter_vis} AND TRIM(COALESCE(desc_grupo_personal,'')) <> ''
+            FROM latest_legajero l
+            WHERE {filter_vis} AND TRIM(COALESCE(desc_grupo_personal,'')) <> ''
             ORDER BY value
             """,
-            (batch_id,),
+            (),
         ) as cur:
             grupos = [row["value"] for row in await cur.fetchall()]
         async with db.execute(
             f"""
+            {_with_consolidated()}
             SELECT DISTINCT TRIM(a.motivo) value
-            FROM rrhh_actividad_diaria a
-            WHERE a.batch_id = ? AND {_visibility_sql(auth, "a", "a.sector")}
+            FROM actividad_consolidada a
+            WHERE {_visibility_sql(auth, "a", "a.sector")}
               AND COALESCE(a.ausentismo_contabiliza,0) = 1
               AND TRIM(COALESCE(a.motivo,'')) <> ''
             ORDER BY value
             """,
-            (batch_id,),
+            (),
         ) as cur:
             motivos_filter = [row["value"] for row in await cur.fetchall()]
 
@@ -1917,8 +2607,261 @@ async def get_indicadores(
 async def _query_rows(sql: str, params: tuple[Any, ...]) -> list[dict[str, Any]]:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(
+            db,
+            actividad="actividad_consolidada" in sql,
+            sanciones="sanciones_consolidadas" in sql,
+            fichadas="fichadas_consolidadas" in sql,
+        )
         async with db.execute(sql, params) as cur:
             return [dict(row) for row in await cur.fetchall()]
+
+
+def _franco_delta(row: dict[str, Any], rules: list[dict[str, Any]]) -> tuple[float, str, str]:
+    haystack = " ".join(
+        _norm(row.get(key)).upper()
+        for key in ("motivo", "horario", "horario_teorico", "aus_pres_codigo", "ausentismo_clasificacion")
+    )
+    if _to_float(row.get("hs_100")) > 0 and any(token in haystack for token in ("FRANCO", "DESCANSO", "LIBRE")):
+        haystack = f"{haystack} HS 100"
+    for rule in rules:
+        pattern = _norm(rule.get("patron")).upper()
+        if pattern and pattern in haystack:
+            delta = _to_float(rule.get("delta"))
+            return delta, pattern, "credito" if delta > 0 else "debito" if delta < 0 else "neutro"
+    return 0.0, "", ""
+
+
+@router.get("/francos")
+async def get_francos(
+    request: Request,
+    fecha_desde: str | None = None,
+    fecha_hasta: str | None = None,
+    persona: str = "",
+    sector: str = "ALL",
+    cargo: str = "ALL",
+    limit: int = Query(500, ge=1, le=2000),
+):
+    auth = await _require_auth(request)
+    sectores_sel = _multi_query_values(request, "sector", sector)
+    cargos_sel = _multi_query_values(request, "cargo", cargo)
+
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db, actividad=True, sanciones=False, fichadas=False)
+        async with db.execute(
+            """
+            SELECT tipo, patron, delta, prioridad
+            FROM rrhh_francos_reglas
+            WHERE active = 1
+            ORDER BY prioridad, regla_id
+            """
+        ) as cur:
+            rules = [dict(row) for row in await cur.fetchall()]
+
+        base_visibility = _visibility_sql(auth, "l", "l.desc_sector_generico")
+        initial_where = [base_visibility]
+        initial_params: list[Any] = []
+        _append_persona_filter(initial_where, initial_params, persona, record_alias="fi", legajero_alias="l", name_columns=("fi.nombre",))
+        _append_multi_filter(initial_where, initial_params, "l.desc_sector_generico", sectores_sel)
+        _append_multi_filter(initial_where, initial_params, "l.desc_funcion", cargos_sel)
+        async with db.execute(
+            f"""
+            SELECT fi.legajo,
+                   COALESCE(NULLIF(TRIM(l.nombre), ''), NULLIF(TRIM(fi.nombre), ''), 'Sin nombre') nombre,
+                   COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), '') sector,
+                   COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''), '') funcion,
+                   COALESCE(fi.saldo_inicial, 0) saldo_inicial,
+                   fi.fecha_corte
+            FROM rrhh_francos_inicial fi
+            LEFT JOIN latest_legajero l ON l.legajo = fi.legajo
+            WHERE {" AND ".join(initial_where)}
+            """,
+            tuple(initial_params),
+        ) as cur:
+            balances = {row["legajo"]: dict(row) for row in await cur.fetchall()}
+
+        activity_where = [_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
+        activity_params: list[Any] = []
+        if fecha_desde:
+            activity_where.append("a.fecha >= ?")
+            activity_params.append(fecha_desde)
+        if fecha_hasta:
+            activity_where.append("a.fecha <= ?")
+            activity_params.append(fecha_hasta)
+        _append_persona_filter(activity_where, activity_params, persona, record_alias="a", legajero_alias="l", name_columns=("a.empleado",))
+        _append_multi_filter(activity_where, activity_params, "COALESCE(l.desc_sector_generico, a.sector)", sectores_sel)
+        _append_multi_filter(activity_where, activity_params, "l.desc_funcion", cargos_sel)
+        async with db.execute(
+            f"""
+            SELECT a.legajo, a.fecha, a.empleado, a.sector, a.motivo, a.horario,
+                   a.horario_teorico, a.aus_pres_codigo, a.ausentismo_clasificacion,
+                   a.hs_100, a.hs_trab,
+                   COALESCE(NULLIF(TRIM(l.nombre), ''), NULLIF(TRIM(a.empleado), ''), 'Sin nombre') nombre,
+                   COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), ''), '') sector_legajero,
+                   COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''), '') funcion
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
+            WHERE {" AND ".join(activity_where)}
+            ORDER BY a.fecha, a.legajo
+            """,
+            tuple(activity_params),
+        ) as cur:
+            activity_rows = [dict(row) for row in await cur.fetchall()]
+
+    movements: list[dict[str, Any]] = []
+    for row in activity_rows:
+        delta, regla, tipo = _franco_delta(row, rules)
+        if not delta:
+            continue
+        legajo = row["legajo"]
+        corte = balances.get(legajo, {}).get("fecha_corte") or _francos_fecha_inicial()
+        if row.get("fecha") and corte and row["fecha"] <= corte:
+            continue
+        item = balances.setdefault(
+            legajo,
+            {
+                "legajo": legajo,
+                "nombre": row.get("nombre") or "Sin nombre",
+                "sector": row.get("sector_legajero") or row.get("sector") or "",
+                "funcion": row.get("funcion") or "",
+                "saldo_inicial": 0,
+                "fecha_corte": None,
+            },
+        )
+        item["nombre"] = item.get("nombre") or row.get("nombre") or "Sin nombre"
+        item["sector"] = item.get("sector") or row.get("sector_legajero") or row.get("sector") or ""
+        item["funcion"] = item.get("funcion") or row.get("funcion") or ""
+        movement = {
+            "fecha": row.get("fecha"),
+            "legajo": legajo,
+            "empleado": item["nombre"],
+            "delta": delta,
+            "tipo": tipo,
+            "regla": regla,
+            "motivo": row.get("motivo") or row.get("horario_teorico") or row.get("horario") or "",
+            "hs_100": row.get("hs_100") or 0,
+        }
+        movements.append(movement)
+        item["creditos"] = _to_float(item.get("creditos")) + (delta if delta > 0 else 0)
+        item["debitos"] = _to_float(item.get("debitos")) + ((-delta) if delta < 0 else 0)
+        item["movimientos"] = int(item.get("movimientos") or 0) + 1
+
+    rows: list[dict[str, Any]] = []
+    for item in balances.values():
+        saldo_inicial = _to_float(item.get("saldo_inicial"))
+        creditos = _to_float(item.get("creditos"))
+        debitos = _to_float(item.get("debitos"))
+        rows.append({
+            **item,
+            "creditos": creditos,
+            "debitos": debitos,
+            "movimientos": int(item.get("movimientos") or 0),
+            "saldo_actual": saldo_inicial + creditos - debitos,
+        })
+    rows.sort(key=lambda item: (item["saldo_actual"], item["legajo"]))
+
+    kpis = {
+        "legajos": len(rows),
+        "saldo_total": round(sum(_to_float(row.get("saldo_actual")) for row in rows), 1),
+        "creditos": round(sum(_to_float(row.get("creditos")) for row in rows), 1),
+        "debitos": round(sum(_to_float(row.get("debitos")) for row in rows), 1),
+        "negativos": sum(1 for row in rows if _to_float(row.get("saldo_actual")) < 0),
+    }
+    return {"kpis": kpis, "rows": rows[:limit], "movimientos": movements[-500:]}
+
+
+@router.get("/francos/candidatos")
+async def get_francos_candidatos(
+    request: Request,
+    fecha_desde: str | None = None,
+    fecha_hasta: str | None = None,
+    persona: str = "",
+    sector: str = "ALL",
+    cargo: str = "ALL",
+    limit: int = Query(1000, ge=1, le=3000),
+):
+    auth = await _require_auth(request)
+    sectores_sel = _multi_query_values(request, "sector", sector)
+    cargos_sel = _multi_query_values(request, "cargo", cargo)
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db, actividad=True, sanciones=False, fichadas=False)
+        async with db.execute(
+            """
+            SELECT tipo, patron, delta, prioridad
+            FROM rrhh_francos_reglas
+            WHERE active = 1
+            ORDER BY prioridad, regla_id
+            """
+        ) as cur:
+            rules = [dict(row) for row in await cur.fetchall()]
+
+        where = [_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
+        params: list[Any] = []
+        if fecha_desde:
+            where.append("a.fecha >= ?")
+            params.append(fecha_desde)
+        if fecha_hasta:
+            where.append("a.fecha <= ?")
+            params.append(fecha_hasta)
+        _append_persona_filter(where, params, persona, record_alias="a", legajero_alias="l", name_columns=("a.empleado",))
+        _append_multi_filter(where, params, "COALESCE(l.desc_sector_generico, a.sector)", sectores_sel)
+        _append_multi_filter(where, params, "l.desc_funcion", cargos_sel)
+        async with db.execute(
+            f"""
+            SELECT a.legajo, a.fecha, a.empleado, a.sector, a.motivo, a.horario,
+                   a.horario_teorico, a.aus_pres_codigo, a.ausentismo_clasificacion,
+                   a.hs_100, a.hs_trab,
+                   COALESCE(fi.fecha_corte, ?) fecha_corte,
+                   COALESCE(fi.saldo_inicial, 0) saldo_inicial,
+                   COALESCE(NULLIF(TRIM(l.nombre), ''), NULLIF(TRIM(a.empleado), ''), 'Sin nombre') nombre,
+                   COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), NULLIF(TRIM(a.sector), ''), '') sector_legajero,
+                   COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''), '') funcion
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
+            LEFT JOIN rrhh_francos_inicial fi ON fi.legajo = a.legajo
+            WHERE {" AND ".join(where)}
+            ORDER BY a.fecha DESC, a.legajo
+            LIMIT ?
+            """,
+            (_francos_fecha_inicial(), *params, limit * 5),
+        ) as cur:
+            activity_rows = [dict(row) for row in await cur.fetchall()]
+
+    candidatos: list[dict[str, Any]] = []
+    for row in activity_rows:
+        if row.get("fecha") and row.get("fecha_corte") and row["fecha"] <= row["fecha_corte"]:
+            continue
+        delta, regla, tipo = _franco_delta(row, rules)
+        if not delta:
+            continue
+        candidatos.append({
+            "fecha": row.get("fecha"),
+            "fecha_corte": row.get("fecha_corte"),
+            "legajo": row.get("legajo"),
+            "empleado": row.get("nombre"),
+            "sector": row.get("sector_legajero") or row.get("sector") or "",
+            "funcion": row.get("funcion") or "",
+            "tipo": tipo,
+            "delta": delta,
+            "regla": regla,
+            "motivo": row.get("motivo") or row.get("horario_teorico") or row.get("horario") or "",
+            "horario": row.get("horario_teorico") or row.get("horario") or "",
+            "aus_pres_codigo": row.get("aus_pres_codigo") or "",
+            "hs_100": row.get("hs_100") or 0,
+        })
+        if len(candidatos) >= limit:
+            break
+    return {
+        "kpis": {
+            "total": len(candidatos),
+            "creditos": sum(1 for item in candidatos if item["delta"] > 0),
+            "debitos": sum(1 for item in candidatos if item["delta"] < 0),
+            "dias_netos": round(sum(_to_float(item["delta"]) for item in candidatos), 1),
+        },
+        "rows": candidatos,
+    }
 
 
 @router.get("/actividad")
@@ -1934,12 +2877,11 @@ async def get_actividad(
     limit: int = Query(200, ge=1, le=1000),
 ):
     auth = await _require_auth(request)
-    batch_id = await _resolve_batch_id(batch_id)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
     motivos_sel = _multi_query_values(request, "motivo", motivo)
-    where = [f"a.batch_id = ?", _visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
-    params: list[Any] = [batch_id]
+    where = [_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
+    params: list[Any] = []
     if fecha_desde:
         where.append("a.fecha >= ?")
         params.append(fecha_desde)
@@ -1953,14 +2895,15 @@ async def get_actividad(
     params.append(limit)
     rows = await _query_rows(
         f"""
+        {_with_consolidated()}
         SELECT a.fecha, a.legajo, a.empleado, COALESCE(l.desc_sector_generico, a.sector) sector,
                a.horario, a.horario_teorico, a.ingreso_teorico, a.salida_teorica, a.horas_teoricas,
                a.entrada, a.salida, a.motivo, a.aus_pres_codigo,
                a.ausentismo_clasificacion, a.ausentismo_tratamiento,
                a.hs_trab, a.hs_ext_realiz, a.hs_50_autorizadas, a.hs_100,
                ROUND(a.tarde * 60, 0) tarde
-        FROM rrhh_actividad_diaria a
-        LEFT JOIN rrhh_legajero l ON l.batch_id = a.batch_id AND l.legajo = a.legajo
+        FROM actividad_consolidada a
+        LEFT JOIN latest_legajero l ON l.legajo = a.legajo
         WHERE {' AND '.join(where)}
         ORDER BY a.fecha DESC, a.legajo
         LIMIT ?
@@ -1986,11 +2929,10 @@ async def get_fichadas(
     limit: int = Query(200, ge=1, le=1000),
 ):
     auth = await _require_auth(request)
-    batch_id = await _resolve_batch_id(batch_id)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
-    where = ["f.batch_id = ?", _visibility_sql(auth, "f", "COALESCE(l.desc_sector_generico, '')")]
-    params: list[Any] = [batch_id]
+    where = [_visibility_sql(auth, "f", "COALESCE(l.desc_sector_generico, '')")]
+    params: list[Any] = []
     if fecha_desde:
         where.append("f.fecha >= ?")
         params.append(fecha_desde)
@@ -2006,10 +2948,11 @@ async def get_fichadas(
     params.append(limit)
     rows = await _query_rows(
         f"""
+        {_with_consolidated()}
         SELECT f.fecha_fichada, f.legajo, f.empleado, COALESCE(l.desc_sector_generico, '') sector,
                COALESCE(l.desc_funcion, '') cargo, f.sentido, f.ubicacion, f.origen, f.destino, f.tipo_lectura
-        FROM rrhh_fichadas f
-        LEFT JOIN rrhh_legajero l ON l.batch_id = f.batch_id AND l.legajo = f.legajo
+        FROM fichadas_consolidadas f
+        LEFT JOIN latest_legajero l ON l.legajo = f.legajo
         WHERE {' AND '.join(where)}
         ORDER BY f.fecha_fichada DESC
         LIMIT ?
@@ -2032,12 +2975,11 @@ async def get_sanciones(
     limit: int = Query(200, ge=1, le=1000),
 ):
     auth = await _require_auth(request)
-    batch_id = await _resolve_batch_id(batch_id)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
     motivos_sel = _multi_query_values(request, "motivo", motivo)
-    where = ["s.batch_id = ?", _visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
-    params: list[Any] = [batch_id]
+    where = [_visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
+    params: list[Any] = []
     if fecha_desde:
         where.append("COALESCE(s.creacion, s.inicio) >= ?")
         params.append(fecha_desde)
@@ -2057,11 +2999,12 @@ async def get_sanciones(
     params.append(limit)
     rows = await _query_rows(
         f"""
+        {_with_consolidated()}
         SELECT s.legajo, s.nombre, COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '') sector,
                COALESCE(l.desc_funcion, '') cargo, s.inicio, s.creacion, s.cod, s.descripcion,
                s.causa_sancion, s.descripcion_causa
-        FROM rrhh_sanciones s
-        LEFT JOIN rrhh_legajero l ON l.batch_id = s.batch_id AND l.legajo = s.legajo
+        FROM sanciones_consolidadas s
+        LEFT JOIN latest_legajero l ON l.legajo = s.legajo
         WHERE {' AND '.join(where)}
         ORDER BY COALESCE(s.creacion, s.inicio) DESC, s.legajo
         LIMIT ?

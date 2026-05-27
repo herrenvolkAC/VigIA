@@ -76,6 +76,7 @@ public class OracleProductividadQuery {
         String fechaDesde = args[3];
         String fechaHasta = args[4];
         String queryKey = args.length >= 6 ? args[5] : "productividad";
+        String legajo = args.length >= 7 ? args[6] : "";
 
         String sql;
         if ("picking_analysis".equalsIgnoreCase(queryKey)) {
@@ -101,6 +102,123 @@ public class OracleProductividadQuery {
                 "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
                 "  AND UPPER(A.CDESCRIP) = 'PICKING' " +
                 "ORDER BY A.COPECREA, A.FCREAREG";
+        } else if ("gestion_productividad_picking".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT * FROM ( " +
+                "SELECT " +
+                "    NVL(SUB1.DESCDIVI, 'SIN MAPEAR') AS ALMACEN, " +
+                "    A.COPECREA, " +
+                "    B.NOMBRE AS OPERARIO, " +
+                "    UPPER(A.CDESCRIP) AS OPERACION, " +
+                "    A.FCREAREG AS FH_MOVIMIENTO, " +
+                "    A.CZONAORI AS ZONA_ORIGEN, " +
+                "    A.CUBIORIG AS UBIC_ORIGEN, " +
+                "    A.CNUPALET AS NRO_PALLET, " +
+                "    A.CNPEDIDO AS PEDIDO, " +
+                "    A.QCANTIDA AS CANTIDAD, " +
+                "    A.QPESOREG AS PESO, " +
+                "    'F132HIST' AS SOURCE_TABLE " +
+                "FROM F132HIST A " +
+                "LEFT JOIN PV_LEGAJO B ON A.COPECREA = B.LEGAJO " +
+                "LEFT JOIN (SELECT DISTINCT CZONALMA, DESCDIVI FROM VW_UBICACIONES_DIVISION) SUB1 " +
+                "  ON SUB1.CZONALMA = A.CZONAORI " +
+                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND UPPER(A.CDESCRIP) IN ('PICKING', 'ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO') " +
+                "UNION ALL " +
+                "SELECT " +
+                "    NVL(SUB1.DESCDIVI, 'SIN MAPEAR') AS ALMACEN, " +
+                "    A.COPECREA, " +
+                "    B.NOMBRE AS OPERARIO, " +
+                "    UPPER(A.CDESCRIP) AS OPERACION, " +
+                "    A.FCREAREG AS FH_MOVIMIENTO, " +
+                "    A.CZONAORI AS ZONA_ORIGEN, " +
+                "    A.CUBIORIG AS UBIC_ORIGEN, " +
+                "    A.CNUPALET AS NRO_PALLET, " +
+                "    A.CNPEDIDO AS PEDIDO, " +
+                "    A.QCANTIDA AS CANTIDAD, " +
+                "    A.QPESOREG AS PESO, " +
+                "    'F132HIST_HIST' AS SOURCE_TABLE " +
+                "FROM F132HIST_HIST A " +
+                "LEFT JOIN PV_LEGAJO B ON A.COPECREA = B.LEGAJO " +
+                "LEFT JOIN (SELECT DISTINCT CZONALMA, DESCDIVI FROM VW_UBICACIONES_DIVISION) SUB1 " +
+                "  ON SUB1.CZONALMA = A.CZONAORI " +
+                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND UPPER(A.CDESCRIP) IN ('PICKING', 'ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO') " +
+                ") ORDER BY COPECREA, FH_MOVIMIENTO";
+        } else if ("historia_productividad_legajo".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    A.FECHA, " +
+                "    C.DESCRIPCION AS FUNCION, " +
+                "    B.PROD_REAL, " +
+                "    B.PROD_EQUIVAL_POR_SECTOR " +
+                "FROM PV_DIA_LABORAL A " +
+                "JOIN PV_LIQUIDAC_DIA_DET2 B ON A.ID = B.ID_PV_DIA_LABORAL " +
+                "JOIN PV_GRUPO_DE_FUNCIONES_CAB C ON C.ID = B.ID_PV_GRUPO_DE_FUNCIONES " +
+                "WHERE A.FECHA >= ? " +
+                "  AND A.FECHA <= ? " +
+                "  AND A.LEGAJO = ? " +
+                "  AND (B.PROD_REAL > 0 OR B.PROD_EQUIVAL_POR_SECTOR > 0) " +
+                "ORDER BY A.FECHA, C.DESCRIPCION";
+        } else if ("historia_tnc_legajo".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    A.FECHA, " +
+                "    B.DESCRIP_DE_FUNCION, " +
+                "    B.CANTIDAD_DE_CORTES_HECHOS, " +
+                "    B.TIEMPO_EXCEDIDO_EN_SEGUNDOS " +
+                "FROM PV_DIA_LABORAL A " +
+                "JOIN PV_LIQUIDAC_DIA_DET3 B ON A.ID = B.ID_PV_DIA_LABORAL " +
+                "WHERE A.LEGAJO = ? " +
+                "  AND A.FECHA >= ? " +
+                "  AND A.FECHA <= ? " +
+                "  AND B.TIEMPO_EXCEDIDO_EN_SEGUNDOS > 0 " +
+                "ORDER BY A.FECHA, B.DESCRIP_DE_FUNCION";
+        } else if ("historia_actividad_operaciones".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    TO_CHAR(FCREAREG, 'YYYY-MM-DD') AS FECHA, " +
+                "    CDESCRIP AS OPERACION " +
+                "FROM ( " +
+                "    SELECT DISTINCT TRUNC(FCREAREG) AS FCREAREG, CDESCRIP " +
+                "    FROM F132HIST " +
+                "    WHERE COPECREA = ? " +
+                "      AND FCREAREG >= TO_DATE(?, 'YYYY-MM-DD') " +
+                "      AND FCREAREG < TO_DATE(?, 'YYYY-MM-DD') + 1 " +
+                "      AND CDESCRIP NOT IN ('ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO') " +
+                "    UNION " +
+                "    SELECT DISTINCT TRUNC(FCREAREG) AS FCREAREG, CDESCRIP " +
+                "    FROM F132HIST_HIST " +
+                "    WHERE COPECREA = ? " +
+                "      AND FCREAREG >= TO_DATE(?, 'YYYY-MM-DD') " +
+                "      AND FCREAREG < TO_DATE(?, 'YYYY-MM-DD') + 1 " +
+                "      AND CDESCRIP NOT IN ('ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO') " +
+                ") " +
+                "ORDER BY FECHA, OPERACION";
+        } else if ("historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    COPECREA AS LEGAJO, " +
+                "    TO_CHAR(FCREAREG, 'YYYY-MM-DD') AS FECHA, " +
+                "    CDESCRIP AS OPERACION " +
+                "FROM ( " +
+                "    SELECT DISTINCT COPECREA, TRUNC(FCREAREG) AS FCREAREG, CDESCRIP " +
+                "    FROM F132HIST " +
+                "    WHERE FCREAREG >= TO_DATE(?, 'YYYY-MM-DD') " +
+                "      AND FCREAREG < TO_DATE(?, 'YYYY-MM-DD') + 1 " +
+                "      AND CDESCRIP NOT IN ('ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO') " +
+                "      AND COPECREA IS NOT NULL " +
+                "    UNION " +
+                "    SELECT DISTINCT COPECREA, TRUNC(FCREAREG) AS FCREAREG, CDESCRIP " +
+                "    FROM F132HIST_HIST " +
+                "    WHERE FCREAREG >= TO_DATE(?, 'YYYY-MM-DD') " +
+                "      AND FCREAREG < TO_DATE(?, 'YYYY-MM-DD') + 1 " +
+                "      AND CDESCRIP NOT IN ('ENTREGA DE EQUIPO', 'DEVOLUCION DE EQUIPO') " +
+                "      AND COPECREA IS NOT NULL " +
+                ") " +
+                "ORDER BY FECHA, LEGAJO, OPERACION";
         } else if ("online".equalsIgnoreCase(queryKey)) {
             sql =
                 "SELECT " +
@@ -315,6 +433,26 @@ public class OracleProductividadQuery {
             if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
                 ps.setString(2, fechaHasta);
+                if ("gestion_productividad_picking".equalsIgnoreCase(queryKey)) {
+                    ps.setString(3, fechaDesde);
+                    ps.setString(4, fechaHasta);
+                } else if ("historia_productividad_legajo".equalsIgnoreCase(queryKey)) {
+                    ps.setString(3, legajo);
+                } else if ("historia_tnc_legajo".equalsIgnoreCase(queryKey)) {
+                    ps.setString(1, legajo);
+                    ps.setString(2, fechaDesde);
+                    ps.setString(3, fechaHasta);
+                } else if ("historia_actividad_operaciones".equalsIgnoreCase(queryKey)) {
+                    ps.setString(1, legajo);
+                    ps.setString(2, fechaDesde);
+                    ps.setString(3, fechaHasta);
+                    ps.setString(4, legajo);
+                    ps.setString(5, fechaDesde);
+                    ps.setString(6, fechaHasta);
+                } else if ("historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
+                    ps.setString(3, fechaDesde);
+                    ps.setString(4, fechaHasta);
+                }
             }
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -325,7 +463,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey)) {
+                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_tnc_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

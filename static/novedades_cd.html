@@ -70,6 +70,8 @@
     .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
     .access-note{padding:9px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.access-note.warn{background:var(--amber-soft);color:#6f4300;border-color:#e1bf76}
     .quality-warning{margin-top:12px;border:1px solid var(--amber);background:var(--amber-soft);padding:12px;color:#6f4300}.quality-warning.hidden{display:none}.quality-warning strong{display:block;margin-bottom:8px}.quality-warning ul{margin:8px 0 0;padding-left:18px}.quality-warning li{margin:3px 0;font-family:'IBM Plex Mono',monospace;font-size:11px}
+    .import-help{margin-top:12px;border:1px solid var(--rule);background:var(--panel);padding:12px;font-size:12px;color:var(--ink-soft);line-height:1.45}
+    .import-help strong{display:block;color:var(--ink);margin-bottom:4px}.import-result{margin-top:12px;display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.import-result.visible{display:grid}.import-card{border:1px solid var(--rule);background:var(--panel);padding:10px;min-height:78px}.import-card .value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--green);margin-top:6px}.import-card .sub{font-size:11px;color:var(--ink-soft);margin-top:2px}.import-note{grid-column:1 / -1;border:1px solid var(--rule);background:#F8FAF7;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
     .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}
     .kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}
     .kpi-number{font-family:'IBM Plex Mono',monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}
@@ -79,7 +81,7 @@
     .chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
     .bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(92px,1.05fr) minmax(120px,2fr) 58px;gap:8px;align-items:center;font-size:12px}
     .bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:14px;background:#EAEEEB;position:relative}.bar-fill{height:100%;background:var(--green);min-width:2px}.bar-fill.ok{background:var(--green)}.bar-fill.bad{background:var(--red)}.bar-fill.blue{background:var(--blue)}.bar-fill.amber{background:var(--amber)}.bar-value{font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--ink-soft)}
-    .line-chart{width:100%;height:220px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .target{stroke:var(--amber);stroke-width:1.5;stroke-dasharray:5 4}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart .target-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--amber);font-weight:600}.line-chart polyline{fill:none;stroke-width:2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.bad{stroke:var(--red)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.bad{fill:var(--red)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}
+    .line-chart{width:100%;height:220px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .target{stroke:var(--amber);stroke-width:1.5;stroke-dasharray:5 4}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart .target-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--amber);font-weight:600}.line-chart polyline{fill:none;stroke-width:2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.bad{stroke:var(--red)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart polyline.ctrl{stroke:var(--blue);stroke-width:1.6;stroke-dasharray:4 3}.line-chart polyline.noctrl{stroke:var(--red);stroke-width:1.6;stroke-dasharray:2 4}.line-chart circle.ok{fill:var(--green)}.line-chart circle.bad{fill:var(--red)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:-2px 0 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--green)}.legend-dot.bad{background:var(--red)}.legend-dot.blue{background:var(--blue)}.legend-dot.amber{background:var(--amber)}
     .mini-table{width:100%;border-collapse:collapse}.mini-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);background:#F6F8F5;border-bottom:1px solid var(--rule);padding:8px;text-align:left}.mini-table td{border-bottom:1px solid var(--rule);padding:8px;font-size:12px}.mini-table tbody tr:nth-child(odd){background:#F8FAF7}
     .import-line{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
     .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);border-top:0}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 12px}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--ink);background:#EDF2EE}.paper-table th .sort-mark{float:right;color:var(--green);letter-spacing:0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 12px;font-size:13px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}
@@ -102,7 +104,7 @@
     <div></div>
     <div class="header-right">
       <a class="paper-link" href="/tiempos-muertos">TNC</a>
-      <a class="paper-link" href="/gestion-operativa">Gestion</a>
+      <a class="paper-link" href="/historia-legajo">Historia</a>
       <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
       <button class="logout-btn" id="logout-btn">Salir</button>
     </div>
@@ -113,6 +115,7 @@
     <div class="tab-list">
       <button class="tab-btn active" data-tab="indicadores">Indicadores</button>
       <button class="tab-btn" data-tab="datos">Datos</button>
+      <button class="tab-btn" data-tab="francos">Francos</button>
       <button class="tab-btn" data-tab="importacion">Importacion</button>
     </div>
   </div>
@@ -152,12 +155,12 @@
         <div id="chart-diario"></div>
       </article>
       <article class="chart-panel">
-        <div class="chart-title"><strong>Motivos con novedad</strong><span>Aus/Pres</span></div>
-        <div id="chart-motivos"></div>
+        <div class="chart-title"><strong>Horas extra por dia</strong><span>Hs. extra</span></div>
+        <div id="chart-extra-dia"></div>
       </article>
       <article class="chart-panel">
-        <div class="chart-title"><strong>Sanciones</strong><span>Reales por tipo</span></div>
-        <div id="chart-sanciones"></div>
+        <div class="chart-title"><strong>Llegadas tarde por dia</strong><span>Eventos</span></div>
+        <div id="chart-tarde-dia"></div>
       </article>
     </section>
     <section class="paired-grid">
@@ -192,6 +195,20 @@
         </article>
       </div>
     </section>
+    <section class="dashboard-grid">
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Motivos con novedad</strong><span>Aus/Pres</span></div>
+        <div id="chart-motivos"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Sanciones</strong><span>Reales por tipo</span></div>
+        <div id="chart-sanciones"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Resumen operativo</strong><span>Filtro actual</span></div>
+        <div id="chart-resumen"></div>
+      </article>
+    </section>
     <section class="chart-panel" style="margin-top:12px;min-height:260px">
       <div class="chart-title"><strong>Detalle por legajo</strong><span>Todos los legajos filtrados</span></div>
       <div class="tab-list" style="margin-bottom:10px;overflow:auto">
@@ -219,6 +236,22 @@
     <div class="table-wrap hidden" id="inner-sanciones"><table class="paper-table" id="sanciones-table"></table></div>
   </section>
 
+  <section class="paper-panel" id="panel-francos">
+    <section class="kpi-row" id="francos-kpis"></section>
+    <section class="chart-panel" style="margin-top:12px;min-height:260px">
+      <div class="chart-title"><strong>Candidatos de francos</strong><span>Dias que incrementan o descuentan</span></div>
+      <div class="table-wrap"><table class="paper-table" id="francos-candidatos-table"></table></div>
+    </section>
+    <section class="chart-panel" style="margin-top:12px;min-height:260px">
+      <div class="chart-title"><strong>Cuenta corriente proyectada</strong><span>Base 26/05/2026 + candidatos posteriores</span></div>
+      <div class="table-wrap"><table class="paper-table" id="francos-table"></table></div>
+    </section>
+    <section class="chart-panel" style="margin-top:12px;min-height:220px">
+      <div class="chart-title"><strong>Movimientos detectados</strong><span>Ultimos registros</span></div>
+      <div class="table-wrap"><table class="paper-table" id="francos-mov-table"></table></div>
+    </section>
+  </section>
+
   <section class="paper-panel" id="panel-importacion">
     <section class="import-line" id="import-box">
       <div class="field"><label class="label" for="folder-path">Carpeta fuente RRHH</label><input class="paper-input" id="folder-path" placeholder="C:\Ingenieria\VigIA\Docs\Panel_Choferes\PROCESADOS\2026_05"></div>
@@ -226,12 +259,17 @@
       <button class="primary-cta" id="import-folder">Importar indicada</button>
     </section>
     <div class="empty" id="import-readonly">Tu perfil puede consultar indicadores, pero la importacion queda reservada para Admin/RRHH.</div>
+    <div class="import-help" id="import-help">
+      <strong>Importacion flexible</strong>
+      La carpeta puede contener uno o varios archivos compatibles: actividad, legajero, fichadas, sanciones, codigos de ausentismo o saldo inicial de francos. Para actividad historica sin legajero, VigIA usa el ultimo legajero importado como referencia.
+    </div>
+    <div class="import-result" id="import-result"></div>
     <div class="quality-warning hidden" id="quality-warning"></div>
   </section>
 </div>
 
 <script>
-  const state = { config:null, batchId:null, filtersLoaded:false, dateRangeApplied:false, indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
+  const state = { config:null, batches:[], filtersLoaded:false, dateRangeApplied:false, indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
   const STORAGE_KEY = 'vigia.novedades_cd.advanced_filters.v1';
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
@@ -264,7 +302,6 @@
   }
   function params(){
     const p = new URLSearchParams();
-    if (state.batchId) p.set('batch_id', state.batchId);
     [['fecha_desde','fecha-desde'],['fecha_hasta','fecha-hasta'],['persona','filter-persona']].forEach(([key,id]) => {
       const value = $(id).value;
       if (value) p.set(key, value);
@@ -320,14 +357,59 @@
     const cells = [
       ['Empleados', k.empleados, 'ok', 'Legajos visibles'],
       ['Ausentismo', `${fmt(k.ausentismo_pct)}%`, k.ausentismo_pct > 8 ? 'bad' : 'warn', `${fmt(k.ausencias)} eventos`],
-      ['Hs. extra', k.horas_extra, 'warn', `${fmt(k.horas_trabajadas)} hs trabajadas`],
-      ['Llegadas tarde', k.llegadas_tarde, 'warn', 'Registros con tarde'],
       ['Sanciones', k.sanciones, k.sanciones ? 'bad' : 'ok', 'Sanciones reales'],
       ['Hs. trabajadas', k.horas_trabajadas, 'ok', 'Total filtrado'],
     ];
     $('kpis').innerHTML = cells.map(([label,value,tone,foot]) => `
       <div class="kpi-cell ${tone}"><div class="label">${esc(label)}</div><div class="kpi-number">${esc(fmtMaybe(value))}</div><div class="kpi-foot"><span>${esc(foot)}</span><span class="metric">RRHH</span></div></div>
     `).join('');
+  }
+  function renderFrancos(data, candidatos){
+    const k = data?.kpis || {};
+    const ck = candidatos?.kpis || {};
+    const cells = [
+      ['Legajos', k.legajos, 'ok', 'Con saldo o movimiento'],
+      ['Saldo total', k.saldo_total, Number(k.saldo_total || 0) < 0 ? 'bad' : 'ok', 'Dias netos'],
+      ['Candidatos +', ck.creditos, 'ok', 'Incrementan saldo'],
+      ['Candidatos -', ck.debitos, Number(k.negativos || 0) ? 'warn' : 'ok', `${fmt(k.negativos || 0)} saldos negativos`],
+    ];
+    $('francos-kpis').innerHTML = cells.map(([label,value,tone,foot]) => `
+      <div class="kpi-cell ${tone}"><div class="label">${esc(label)}</div><div class="kpi-number">${esc(fmtMaybe(value))}</div><div class="kpi-foot"><span>${esc(foot)}</span><span class="metric">FR</span></div></div>
+    `).join('');
+    renderTable('francos-candidatos-table', [
+      {key:'fecha',label:'Fecha',mono:true},
+      {key:'legajo',label:'Legajo',mono:true},
+      {key:'empleado',label:'Empleado'},
+      {key:'sector',label:'Sector'},
+      {key:'tipo',label:'Tipo'},
+      {key:'delta',label:'Dias',mono:true,format:'number'},
+      {key:'regla',label:'Regla'},
+      {key:'motivo',label:'Motivo'},
+      {key:'horario',label:'Horario'},
+      {key:'hs_100',label:'Hs.100',mono:true,format:'number'},
+    ], candidatos?.rows || []);
+    renderTable('francos-table', [
+      {key:'legajo',label:'Legajo',mono:true},
+      {key:'nombre',label:'Empleado'},
+      {key:'sector',label:'Sector'},
+      {key:'funcion',label:'Funcion'},
+      {key:'saldo_inicial',label:'Saldo inicial',mono:true,format:'number'},
+      {key:'creditos',label:'Creditos',mono:true,format:'number'},
+      {key:'debitos',label:'Debitos',mono:true,format:'number'},
+      {key:'saldo_actual',label:'Saldo actual',mono:true,format:'number'},
+      {key:'movimientos',label:'Mov.',mono:true,format:'integer'},
+      {key:'fecha_corte',label:'Corte',mono:true},
+    ], data?.rows || []);
+    renderTable('francos-mov-table', [
+      {key:'fecha',label:'Fecha',mono:true},
+      {key:'legajo',label:'Legajo',mono:true},
+      {key:'empleado',label:'Empleado'},
+      {key:'tipo',label:'Tipo'},
+      {key:'delta',label:'Dias',mono:true,format:'number'},
+      {key:'regla',label:'Regla'},
+      {key:'motivo',label:'Motivo'},
+      {key:'hs_100',label:'Hs.100',mono:true,format:'number'},
+    ], data?.movimientos || []);
   }
   function fmtMaybe(v){ return typeof v === 'number' ? fmt(v) : v; }
   function bars(rows, valueKey, labelKey='label', tone='green', maxRows=10){
@@ -354,8 +436,57 @@
       const width = Math.max(2, r.pct / max * 100);
       const tone = r.pct > target ? 'bad' : 'ok';
       const value = `${fmt(r.pct)}% · ${fmt(r.ausencias)}`;
-      return `<div class="bar-row" title="${esc(r.label)} - ${fmt(r.pct)}% - ${fmt(r.ausencias)} aus. / ${fmt(r.registros)} reg."><div class="bar-label">${esc(r.label)}</div><div class="bar-track"><div class="bar-fill ${tone}" style="width:${width}%"></div></div><div class="bar-value">${esc(fmt(r.pct))}%</div></div>`;
+      return `<div class="bar-row" title="${esc(r.label)} - ${fmt(r.pct)}% - ${fmt(r.ausencias)} aus. / ${fmt(r.registros)} prog."><div class="bar-label">${esc(r.label)}</div><div class="bar-track"><div class="bar-fill ${tone}" style="width:${width}%"></div></div><div class="bar-value">${esc(fmt(r.pct))}%</div></div>`;
     }).join('')}</div>`;
+  }
+  function renderResumenOperativo(k){
+    const rows = [
+      {label:'Horas extra', value:Number(k.horas_extra || 0), tone:'blue'},
+      {label:'Llegadas tarde', value:Number(k.llegadas_tarde || 0), tone:'amber'},
+      {label:'Sanciones reales', value:Number(k.sanciones || 0), tone:Number(k.sanciones || 0) ? 'bad' : 'ok'},
+    ];
+    return `<div class="bars">${rows.map(r => {
+      const max = Math.max(...rows.map(x => x.value), 1);
+      const width = Math.max(2, r.value / max * 100);
+      return `<div class="bar-row"><div class="bar-label">${esc(r.label)}</div><div class="bar-track"><div class="bar-fill ${r.tone}" style="width:${width}%"></div></div><div class="bar-value">${fmt(r.value)}</div></div>`;
+    }).join('')}</div>`;
+  }
+  function lineMetric(rows, valueKey, tone='blue', suffix=''){
+    const data = rows || [];
+    if (!data.length) return '<div class="empty">Sin datos</div>';
+    const w=520,h=230,left=42,right=16,top=16,bottom=42;
+    const values = data.map(r => Number(r[valueKey] || 0));
+    const max = Math.max(...values, 1);
+    const plotW = w - left - right, plotH = h - top - bottom;
+    const xFor = i => left + (data.length === 1 ? plotW / 2 : i * plotW / (data.length - 1));
+    const yFor = v => top + plotH - (v / max) * plotH;
+    const points = data.map((r,i)=>({x:xFor(i), y:yFor(Number(r[valueKey] || 0)), label:String(r.label || ''), value:Number(r[valueKey] || 0)}));
+    const tickCount = Math.min(6, data.length);
+    const tickIndexes = [...new Set(Array.from({length:tickCount},(_,i)=>Math.round(i * (data.length - 1) / Math.max(tickCount - 1, 1))))];
+    const mid = max / 2;
+    return `
+      <svg class="line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Serie diaria">
+        <line class="grid" x1="${left}" y1="${yFor(max)}" x2="${w-right}" y2="${yFor(max)}"></line>
+        <line class="grid" x1="${left}" y1="${yFor(mid)}" x2="${w-right}" y2="${yFor(mid)}"></line>
+        <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line>
+        <line class="axis" x1="${left}" y1="${h-bottom}" x2="${w-right}" y2="${h-bottom}"></line>
+        <text class="axis-label" x="4" y="${yFor(max)+4}">${fmt(max)}</text>
+        <text class="axis-label" x="4" y="${yFor(mid)+4}">${fmt(mid)}</text>
+        <text class="axis-label" x="4" y="${h-bottom+4}">0</text>
+        ${tickIndexes.map(i => {
+          const x = xFor(i);
+          const label = String(data[i]?.label || '').slice(5);
+          return `<line class="grid" x1="${x}" y1="${h-bottom}" x2="${x}" y2="${h-bottom+4}"></line><text class="axis-label" x="${Math.max(2, Math.min(x - 16, w - right - 34))}" y="${h-8}">${esc(label)}</text>`;
+        }).join('')}
+        <polyline class="${tone}" points="${points.map(p=>`${p.x},${p.y}`).join(' ')}"></polyline>
+        ${points.map(p=>`
+          <g class="point">
+            <circle class="${tone}" cx="${p.x}" cy="${p.y}" r="3"></circle>
+            <circle class="point-hit" cx="${p.x}" cy="${p.y}" r="12"></circle>
+            <text class="point-label" x="${Math.min(p.x + 8, w - right - 110)}" y="${Math.max(p.y - 8, top + 10)}">${esc(p.label)} - ${fmt(p.value)}${suffix}</text>
+          </g>
+        `).join('')}
+      </svg>`;
   }
   function line(rows){
     const data = rows || [];
@@ -407,17 +538,29 @@
       const ausencias = Number(r.ausencias || 0);
       const registros = Number(r.registros || 0);
       const pct = registros ? ausencias * 100 / registros : 0;
-      return { label:r.label, ausencias, registros, pct };
+      return {
+        label:r.label,
+        ausencias,
+        registros,
+        pct,
+        controladas:Number(r.ausencias_controladas || 0),
+        noControladas:Number(r.ausencias_no_controladas || 0),
+      };
     });
     const max = Math.max(target + 1, ...pointsData.map(r => r.pct), 1);
+    const maxCount = Math.max(...pointsData.map(r => Math.max(r.controladas, r.noControladas)), 1);
     const plotW = w - left - right, plotH = h - top - bottom;
     const xFor = i => left + (data.length === 1 ? plotW / 2 : i * plotW / (data.length - 1));
     const yFor = v => top + plotH - (v / max) * plotH;
+    const yForCount = v => top + plotH - (v / maxCount) * plotH;
     const points = pointsData.map((r,i)=>({
       x:xFor(i), y:yFor(r.pct), fecha:String(r.label || ''),
       ausencias:r.ausencias, registros:r.registros, pct:r.pct,
+      controladas:r.controladas, noControladas:r.noControladas,
       tone:r.pct > target ? 'bad' : 'ok',
     }));
+    const ctrlPts = pointsData.map((r,i)=>`${xFor(i)},${yForCount(r.controladas)}`).join(' ');
+    const noCtrlPts = pointsData.map((r,i)=>`${xFor(i)},${yForCount(r.noControladas)}`).join(' ');
     const segments = points.slice(1).map((p,i) => {
       const prev = points[i];
       const tone = (p.pct > target || prev.pct > target) ? 'bad' : 'ok';
@@ -437,6 +580,8 @@
         <text class="axis-label" x="4" y="${yFor(max)+4}">${fmt(max)}%</text>
         <text class="axis-label" x="4" y="${yFor(mid)+4}">${fmt(mid)}%</text>
         <text class="axis-label" x="4" y="${h-bottom+4}">0</text>
+        <text class="axis-label" x="${w-right-8}" y="${yForCount(maxCount)+4}" text-anchor="end">${fmt(maxCount)}</text>
+        <text class="axis-label" x="${w-right-8}" y="${h-bottom+4}" text-anchor="end">0</text>
         <text class="target-label" x="${w-right-58}" y="${Math.max(targetY - 5, top + 10)}">Obj. 4%</text>
         ${tickIndexes.map(i => {
           const x = xFor(i);
@@ -444,14 +589,17 @@
           return `<line class="grid" x1="${x}" y1="${h-bottom}" x2="${x}" y2="${h-bottom+4}"></line><text class="axis-label" x="${Math.max(2, Math.min(x - 16, w - right - 34))}" y="${h-8}">${esc(label)}</text>`;
         }).join('')}
         ${segments || `<polyline class="${points[0]?.tone || 'ok'}" points="${points.map(p=>`${p.x},${p.y}`).join(' ')}"></polyline>`}
+        <polyline class="ctrl" points="${ctrlPts}"></polyline>
+        <polyline class="noctrl" points="${noCtrlPts}"></polyline>
         ${points.map(p=>`
           <g class="point" data-drill-date="${esc(p.fecha)}">
             <circle class="${p.tone}" cx="${p.x}" cy="${p.y}" r="3"></circle>
             <circle class="point-hit" cx="${p.x}" cy="${p.y}" r="12"></circle>
-            <text class="point-label" x="${Math.min(p.x + 8, w - right - 140)}" y="${Math.max(p.y - 8, top + 10)}">${esc(p.fecha)} - ${fmt(p.pct)}% - ${fmt(p.ausencias)} aus. / ${fmt(p.registros)} reg.</text>
+            <text class="point-label" x="${Math.min(p.x + 8, w - right - 190)}" y="${Math.max(p.y - 8, top + 10)}">${esc(p.fecha)} - ${fmt(p.pct)}% - ${fmt(p.ausencias)} aus. / ${fmt(p.registros)} prog. - Ctrl ${fmt(p.controladas)} / No ctrl ${fmt(p.noControladas)}</text>
           </g>
         `).join('')}
-      </svg>`;
+      </svg>
+      <div class="chart-legend"><span><i class="legend-dot"></i>% aus.</span><span><i class="legend-dot blue"></i>controladas</span><span><i class="legend-dot bad"></i>no controladas</span></div>`;
   }
   function sortValue(value){
     if (value === null || value === undefined || value === '') return '';
@@ -500,15 +648,22 @@
   const rankCol = {key:'rank', label:'#', mono:true};
   const personCols = [rankCol, {key:'empleado', label:'Empleado'}, {key:'funcion', label:'Funcion'}];
   const groupCols = [{key:'grupo_personal', label:'Grupo Personal'}, {key:'area_personal', label:'Area Personal'}];
+  const ausCols = [
+    {key:'dias_reg',label:'Dias Reg.',mono:true},
+    {key:'dias_programados',label:'Dias Prog.',mono:true},
+    {key:'dias_novedad',label:'Dias Novedad',mono:true},
+    {key:'dias_aus',label:'Dias Aus. Oper.',mono:true},
+    {key:'dias_no_considerar',label:'Dias No Cons.',mono:true}
+  ];
   const detailColumns = {
-    aus_pct:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_aus',label:'Dias',mono:true},{key:'pct_aus',label:'% Aus.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
-    ctrl:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_aus',label:'Dias',mono:true},{key:'ctrl',label:'Dias Ctrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
-    no_ctrl:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_aus',label:'Dias',mono:true},{key:'no_ctrl',label:'Dias NoCtrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
+    aus_pct:[...personCols,...ausCols,{key:'pct_aus',label:'% Aus.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
+    ctrl:[...personCols,...ausCols,{key:'ctrl',label:'Dias Ctrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
+    no_ctrl:[...personCols,...ausCols,{key:'no_ctrl',label:'Dias NoCtrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
     he_total:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_che',label:'Dias c/HE',mono:true},{key:'hs_extra',label:'Hs. Extra',mono:true,format:'number'},...groupCols],
     he_50:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_he_50',label:'Dias c/HE',mono:true},{key:'hs_50',label:'Hs. 50%',mono:true,format:'number'},...groupCols],
     he_100:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_he_100',label:'Dias c/HE',mono:true},{key:'hs_100',label:'Hs. 100%',mono:true,format:'number'},...groupCols],
     tarde:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'c_tarde',label:'Veces Tarde',mono:true},{key:'min_tarde',label:'Min. Acum.',mono:true,format:'integer'},...groupCols],
-    general:[{key:'legajo',label:'Legajo',mono:true},{key:'empleado',label:'Empleado'},{key:'funcion',label:'Funcion'},{key:'unidad',label:'Unidad'},{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_aus',label:'Dias Aus.',mono:true},{key:'pct_aus',label:'% Aus.',mono:true,format:'number'},{key:'ctrl',label:'Ctrl.',mono:true},{key:'no_ctrl',label:'No Ctrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},{key:'hs_trab',label:'Hs.Trab.',mono:true,format:'number'},{key:'hs_50',label:'Hs.50%',mono:true,format:'number'},{key:'hs_100',label:'Hs.100%',mono:true,format:'number'},{key:'hs_extra',label:'Hs.Extra',mono:true,format:'number'},{key:'hs_fer',label:'Hs.Fer.',mono:true,format:'number'},{key:'rec_noct',label:'Rec.Noct.',mono:true,format:'number'},{key:'c_tarde',label:'C.Tarde',mono:true},{key:'min_tarde',label:'Min.Tarde',mono:true,format:'integer'},{key:'paus_30',label:'Paus>30',mono:true},{key:'c_sanc',label:'C.Sanc.',mono:true},{key:'tipo_sancion',label:'Tipo Sancion'},{key:'grupo_personal',label:'Grupo Personal'},{key:'area_personal',label:'Area Personal'}],
+    general:[{key:'legajo',label:'Legajo',mono:true},{key:'empleado',label:'Empleado'},{key:'funcion',label:'Funcion'},{key:'unidad',label:'Unidad'},...ausCols,{key:'pct_aus',label:'% Aus.',mono:true,format:'number'},{key:'ctrl',label:'Ctrl.',mono:true},{key:'no_ctrl',label:'No Ctrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},{key:'hs_trab',label:'Hs.Trab.',mono:true,format:'number'},{key:'hs_50',label:'Hs.50%',mono:true,format:'number'},{key:'hs_100',label:'Hs.100%',mono:true,format:'number'},{key:'hs_extra',label:'Hs.Extra',mono:true,format:'number'},{key:'hs_fer',label:'Hs.Fer.',mono:true,format:'number'},{key:'rec_noct',label:'Rec.Noct.',mono:true,format:'number'},{key:'c_tarde',label:'C.Tarde',mono:true},{key:'min_tarde',label:'Min.Tarde',mono:true,format:'integer'},{key:'paus_30',label:'Paus>30',mono:true},{key:'c_sanc',label:'C.Sanc.',mono:true},{key:'tipo_sancion',label:'Tipo Sancion'},{key:'grupo_personal',label:'Grupo Personal'},{key:'area_personal',label:'Area Personal'}],
   };
   const detailModes = {
     aus_pct:{key:'pct_aus', filter:r=>Number(r.dias_aus || 0) > 0},
@@ -548,13 +703,44 @@
       `<li>${esc(row.legajo)} - ${esc(row.nombre)}${row.referencia ? ` (${esc(row.referencia)})` : ''}</li>`
     ).join('');
     box.innerHTML = `
-      <strong>Advertencia de calidad de datos del lote ${esc(batch.batch_key || '')}</strong>
+      <strong>Advertencia de calidad de datos de la carga ${esc(batch.batch_key || '')}</strong>
       <div>Hay legajos con sector o cargo incompleto. Conviene avisar a RRHH para corregir el legajero de origen.</div>
       <div style="margin-top:8px">Actividad sin sector: ${fmt(warnings.actividad_sin_sector_legajos)} legajo(s), ${fmt(warnings.actividad_sin_sector_registros)} registro(s).</div>
       ${activityItems ? `<ul>${activityItems}</ul>` : ''}
       <div style="margin-top:8px">Legajero con sector/cargo incompleto: ${fmt(warnings.legajero_sin_sector_o_cargo)} legajo(s).</div>
       ${masterItems ? `<ul>${masterItems}</ul>` : ''}
     `;
+  }
+  function renderImportResult(data){
+    const box = $('import-result');
+    if (!box) return;
+    const s = data?.summary || {};
+    const detected = s.archivos_detectados || {};
+    const modeLabel = {
+      completo:'Completa',
+      parcial_con_legajero_referencia:'Parcial con legajero ref.',
+      parcial_sin_legajero:'Parcial sin legajero',
+    }[s.modo_importacion] || 'Importacion';
+    const files = [
+      `Actividad: ${fmt(detected.actividad || 0)}`,
+      `Legajero: ${fmt(detected.legajero || 0)}`,
+      `Fichadas: ${fmt(detected.fichadas || 0)}`,
+      `Sanciones: ${fmt(detected.sanciones || 0)}`,
+      `Codigos: ${fmt(detected.codigos_ausentismo || 0)}`,
+      `Francos: ${fmt(detected.francos || 0)}`,
+    ].join(' | ');
+    const reference = detected.legajero_referencia_batch_id
+      ? `Se uso legajero de referencia de la carga ${detected.legajero_referencia_batch_id}.`
+      : '';
+    box.innerHTML = `
+      <div class="import-card"><div class="label">Modo</div><div class="value">${esc(modeLabel)}</div><div class="sub">${esc(data.batch_key || '')}</div></div>
+      <div class="import-card"><div class="label">Actividad</div><div class="value">${fmt(s.actividad || 0)}</div><div class="sub">${fmt(s.actividad_archivos || 0)} archivo(s)</div></div>
+      <div class="import-card"><div class="label">Legajero</div><div class="value">${fmt(s.legajero || 0)}</div><div class="sub">${reference ? 'referencia copiada' : 'registros'}</div></div>
+      <div class="import-card"><div class="label">Sanciones</div><div class="value">${fmt(s.sanciones || 0)}</div><div class="sub">${fmt(s.sanciones_archivos || 0)} archivo(s)</div></div>
+      <div class="import-card"><div class="label">Francos</div><div class="value">${fmt(s.francos_inicial || 0)}</div><div class="sub">saldo inicial</div></div>
+      <div class="import-note">${esc(files)}${reference ? `<br>${esc(reference)}` : ''}</div>
+    `;
+    box.classList.add('visible');
   }
   async function loadConfig(){
     const me = await api('/api/auth/me'); if (!me) return;
@@ -571,22 +757,26 @@
   }
   async function loadBatches(){
     const data = await api('/api/rrhh/batches');
-    const batches = data?.batches || [];
-    if (batches.length) {
-      renderQualityWarnings(batches[0]);
-      const nextBatchId = Number(batches[0].batch_id);
-      if (state.batchId !== nextBatchId) {
-        state.batchId = nextBatchId;
-        state.dateRangeApplied = false;
-        $('fecha-desde').value = '';
-        $('fecha-hasta').value = '';
-      }
+    state.batches = data?.batches || [];
+    if (state.batches.length) {
+      renderQualityWarnings(state.batches[0]);
+      renderImportResult(state.batches[0]);
+      await applyInitialDateRange();
       await loadIndicators();
     }
-    else setStatus('Todavia no hay lotes importados.');
+    else setStatus('Todavia no hay cargas importadas.');
+  }
+  async function applyInitialDateRange(){
+    if (state.dateRangeApplied || $('fecha-desde').value || $('fecha-hasta').value) return;
+    const data = await api('/api/rrhh/rango-sugerido');
+    const range = data?.suggested_range || {};
+    if (range.fecha_desde && range.fecha_hasta) {
+      $('fecha-desde').value = range.fecha_desde;
+      $('fecha-hasta').value = range.fecha_hasta;
+      state.dateRangeApplied = true;
+    }
   }
   async function loadIndicators(){
-    if (!state.batchId) return;
     if (state.indicatorsLoading) return;
     state.indicatorsLoading = true;
     setApplyLoading(true);
@@ -595,11 +785,7 @@
       const data = await api(`/api/rrhh/indicadores?${params()}`);
       const range = data.data_range || {};
       $('range-note').textContent = `El tablero cuenta con informacion entre ${range.fecha_desde || '-'} y ${range.fecha_hasta || '-'}`;
-      if (!state.dateRangeApplied && range.fecha_desde && range.fecha_hasta && !$('fecha-desde').value && !$('fecha-hasta').value) {
-        $('fecha-desde').value = range.fecha_desde;
-        $('fecha-hasta').value = range.fecha_hasta;
-        state.dateRangeApplied = true;
-      }
+      if (!state.dateRangeApplied && range.fecha_desde && range.fecha_hasta && !$('fecha-desde').value && !$('fecha-hasta').value) await applyInitialDateRange();
       if (!state.filtersLoaded) {
         setChecklist('sector', data.filters.sectores);
         setChecklist('cargo', data.filters.cargos);
@@ -609,12 +795,16 @@
         setChecklist('cargo', data.filters.cargos);
       }
       renderKpis(data.kpis || {});
+      await loadFrancos();
       $('chart-diario').innerHTML = linePct(data.series.diario);
+      $('chart-extra-dia').innerHTML = lineMetric(data.series.diario, 'horas_extra', 'blue', ' hs');
+      $('chart-tarde-dia').innerHTML = lineMetric(data.series.diario, 'llegadas_tarde', 'amber');
       $('chart-sector').innerHTML = objectiveBars(data.series.por_sector, 10);
       $('chart-motivos').innerHTML = bars(data.series.motivos, 'eventos', 'label', 'amber', 10);
       $('chart-extra').innerHTML = bars(data.series.por_sector, 'horas_extra', 'label', 'blue', 10);
       $('chart-tarde').innerHTML = bars(data.series.por_sector, 'llegadas_tarde', 'label', 'amber', 10);
       $('chart-sanciones').innerHTML = bars(data.series.sanciones, 'eventos', 'label', 'blue', 10);
+      $('chart-resumen').innerHTML = renderResumenOperativo(data.kpis || {});
       $('chart-sector-cargo').innerHTML = objectiveBars(data.series.por_sector_cargo, 12);
       $('chart-extra-cargo').innerHTML = bars(data.series.por_sector_cargo, 'horas_extra', 'label', 'blue', 12);
       $('chart-tarde-cargo').innerHTML = bars(data.series.por_sector_cargo, 'llegadas_tarde', 'label', 'amber', 12);
@@ -663,8 +853,25 @@
       {key:'descripcion',label:'Descripcion'},{key:'causa_sancion',label:'Causa'},{key:'descripcion_causa',label:'Detalle causa'}
     ], data.rows);
   }
+  async function loadFrancos(){
+    const query = params();
+    const [data, candidatos] = await Promise.all([
+      api(`/api/rrhh/francos?${query}&limit=1000`),
+      api(`/api/rrhh/francos/candidatos?${query}&limit=1000`),
+    ]);
+    renderFrancos(data || {}, candidatos || {});
+  }
   async function importRequest(path, body){
-    try { setStatus('Importando archivos RRHH...'); const data = await api(path, {method:'POST', body:JSON.stringify(body||{})}); state.filtersLoaded=false; state.dateRangeApplied=false; setStatus(`Importacion completa: ${data.batch_key}.`); await loadBatches(); }
+    try {
+      setStatus('Importando archivos RRHH...');
+      const data = await api(path, {method:'POST', body:JSON.stringify(body||{})});
+      state.filtersLoaded=false;
+      state.dateRangeApplied=false;
+      renderImportResult(data);
+      setStatus(`Importacion completa: ${data.batch_key}.`);
+      await loadBatches();
+      await loadFrancos();
+    }
     catch(e){ setStatus(e.message, true); }
   }
   document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => btn.onclick = () => activateMainTab(btn.dataset.tab));
