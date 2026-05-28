@@ -6,8 +6,9 @@ vigia.db ni de sus tablas operativas.
 """
 from __future__ import annotations
 
-import re
+import csv
 import os
+import re
 from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -24,11 +25,33 @@ def _daily_db_path() -> Path:
 
 
 DAILY_DB_PATH = _daily_db_path()
+DAILY_POWERBI_CSV_PATH = DAILY_DB_PATH.with_name("daily_powerbi.csv")
+DAILY_CONSOLIDADO_CSV_PATH = DAILY_DB_PATH.with_name("daily_consolidado_powerbi.csv")
 try:
     LOCAL_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 except ZoneInfoNotFoundError:
     LOCAL_TZ = timezone(timedelta(hours=-3), name="America/Argentina/Buenos_Aires")
 LOAD_CUTOFF = time(6, 30)
+
+CONSOLIDADO_HEADERS = [
+    "Semana",
+    "Division",
+    "UP",
+    "Metrica",
+    "Dia Daily",
+    "Fecha Daily",
+    "Semana",
+    "REAL",
+    "TARGET/PLAN",
+    "%",
+    "COLOR",
+    "Filtro",
+    "Fecha_hoy",
+    "Filtro de semana",
+    "Dia_hoy",
+    "Filtro de avance",
+]
+CONSOLIDADO_SEED_DEFAULT = Path(r"C:\Users\207189\Downloads\DMS Daily Consolidado.xlsx")
 
 
 CREATE_DAILY_CARGAS = """
@@ -91,6 +114,32 @@ CREATE TABLE IF NOT EXISTS daily_carga_detalle (
 );
 """
 
+CREATE_DAILY_CONSOLIDADO_HISTORICO = """
+CREATE TABLE IF NOT EXISTS daily_consolidado_historico (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_file         TEXT NOT NULL,
+    source_row          INTEGER NOT NULL,
+    semana_label        TEXT,
+    division            TEXT,
+    up                  TEXT,
+    metrica             TEXT,
+    dia_daily           TEXT,
+    fecha_daily         TEXT,
+    semana_num          TEXT,
+    real                REAL,
+    target_plan         REAL,
+    porcentaje          REAL,
+    color               TEXT,
+    filtro              TEXT,
+    fecha_hoy           TEXT,
+    filtro_semana       TEXT,
+    dia_hoy             TEXT,
+    filtro_avance       TEXT,
+    imported_at         TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(source_file, source_row)
+);
+"""
+
 CREATE_POWERBI_VIEW = """
 CREATE VIEW IF NOT EXISTS vw_daily_powerbi AS
 SELECT
@@ -128,7 +177,8 @@ SELECT
     p.orden
 FROM daily_cargas c
 JOIN daily_carga_detalle d ON d.carga_id = c.id
-JOIN daily_parametros_cumplimiento p ON p.id_parametro = d.id_parametro;
+JOIN daily_parametros_cumplimiento p ON p.id_parametro = d.id_parametro
+WHERE c.reemplazado = 0;
 """
 
 CREATE_POWERBI_RESUMEN_VIEW = """
@@ -156,6 +206,7 @@ SELECT
     AVG(d.porcentaje_cumplimiento) AS porcentaje_promedio_cumplimiento
 FROM daily_cargas c
 LEFT JOIN daily_carga_detalle d ON d.carga_id = c.id
+WHERE c.reemplazado = 0
 GROUP BY c.id;
 """
 
@@ -164,15 +215,23 @@ CREATE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_daily_cargas_timestamp ON daily_cargas(timestamp_carga DESC)",
     "CREATE INDEX IF NOT EXISTS idx_daily_detalle_carga ON daily_carga_detalle(carga_id)",
     "CREATE INDEX IF NOT EXISTS idx_daily_parametros_tipo ON daily_parametros_cumplimiento(tipo_daily, activo, orden)",
+    "CREATE INDEX IF NOT EXISTS idx_daily_consolidado_hist_key ON daily_consolidado_historico(fecha_daily, division, up, metrica)",
 ]
 
 
 PARAMETROS_SEED: list[dict[str, Any]] = [
     # Operacion - Productividad
-    {"id_parametro": "OP_PROD_RECEPCION_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION", "ventana_horaria": "6 a 6", "fuente": "Plataforma PI", "nombre": "Pallets recepcionados por legajo y turno", "descripcion": "Cuantos pallets se recepcionaron, por legajo y turno?", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 120, "regla_cumplimiento": "productividad", "orden": 10},
-    {"id_parametro": "OP_PROD_PICKING_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "PICKING", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Bultos armados por legajo y turno", "descripcion": "Cuantos bultos se armaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Bultos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 95, "regla_cumplimiento": "productividad", "orden": 20},
-    {"id_parametro": "OP_PROD_CLARK_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "CLARK", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Pallets movilizados por legajo y turno", "descripcion": "Cuantos pallets se movilizaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 55, "regla_cumplimiento": "productividad", "orden": 30},
-    {"id_parametro": "OP_PROD_DESPACHO_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "DESPACHO", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Camiones despachados por legajo y turno", "descripcion": "Cuantos camiones se despacharon, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Camiones / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 1, "regla_cumplimiento": "productividad", "orden": 40},
+    {"id_parametro": "OP_PROD_RECEPCION_SECOS_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Secos", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION", "ventana_horaria": "6 a 6", "fuente": "Plataforma PI", "nombre": "Pallets recepcionados por legajo y turno", "descripcion": "Cuantos pallets se recepcionaron, por legajo y turno?", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 160, "regla_cumplimiento": "productividad", "orden": 10},
+    {"id_parametro": "OP_PROD_PICKING_SECOS_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Secos", "grupo": "PRODUCTIVIDAD", "proceso": "PICKING", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Bultos armados por legajo y turno", "descripcion": "Cuantos bultos se armaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Bultos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 1050, "regla_cumplimiento": "productividad", "orden": 20},
+    {"id_parametro": "OP_PROD_CLARK_SECOS_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Secos", "grupo": "PRODUCTIVIDAD", "proceso": "CLARK", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Pallets movilizados por legajo y turno", "descripcion": "Cuantos pallets se movilizaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 120, "regla_cumplimiento": "productividad", "orden": 30},
+    {"id_parametro": "OP_PROD_DESPACHO_SECOS_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Secos", "grupo": "PRODUCTIVIDAD", "proceso": "DESPACHO", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Viajes despachados por legajo y turno", "descripcion": "Cuantos viajes se despacharon, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Viajes / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 6, "regla_cumplimiento": "productividad", "orden": 40},
+    {"id_parametro": "OP_PROD_RECEPCION_NOA_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION", "ventana_horaria": "6 a 6", "fuente": "Plataforma PI", "nombre": "Pallets recepcionados por legajo y turno", "descripcion": "Cuantos pallets se recepcionaron, por legajo y turno?", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 125, "regla_cumplimiento": "productividad", "orden": 10},
+    {"id_parametro": "OP_PROD_PICKING_NOA_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa", "grupo": "PRODUCTIVIDAD", "proceso": "PICKING", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Bultos armados por legajo y turno", "descripcion": "Cuantos bultos se armaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Bultos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 850, "regla_cumplimiento": "productividad", "orden": 20},
+    {"id_parametro": "OP_PROD_CLARK_NOA_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa", "grupo": "PRODUCTIVIDAD", "proceso": "CLARK", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Pallets movilizados por legajo y turno", "descripcion": "Cuantos pallets se movilizaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 120, "regla_cumplimiento": "productividad", "orden": 30},
+    {"id_parametro": "OP_PROD_RECEPCION_REFRI_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION", "ventana_horaria": "6 a 6", "fuente": "Plataforma PI", "nombre": "Pallets recepcionados por legajo y turno", "descripcion": "Cuantos pallets se recepcionaron, por legajo y turno?", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 80, "regla_cumplimiento": "productividad", "orden": 10},
+    {"id_parametro": "OP_PROD_PICKING_REFRI_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "PICKING", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Bultos armados por legajo y turno", "descripcion": "Cuantos bultos se armaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Bultos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 910, "regla_cumplimiento": "productividad", "orden": 20},
+    {"id_parametro": "OP_PROD_CLARK_REFRI_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "CLARK", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Pallets movilizados por legajo y turno", "descripcion": "Cuantos pallets se movilizaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 130, "regla_cumplimiento": "productividad", "orden": 30},
+    {"id_parametro": "OP_PROD_DESPACHO_REFRI_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "DESPACHO", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Viajes despachados por legajo y turno", "descripcion": "Cuantos viajes se despacharon, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Viajes / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 6, "regla_cumplimiento": "productividad", "orden": 40},
     # Operacion - Cumplimiento
     {"id_parametro": "OP_CUMP_RECEPCION_PLAN_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "CUMPLIMIENTO", "proceso": "RECEPCION", "ventana_horaria": "6 a 6", "fuente": "Excel Planeamiento IN", "nombre": "Pallets planificados para recibir", "descripcion": "Cuantos pallets se planificaron, desde C.Proveedores, para recibir?", "unidad": "Pallets", "tipo_campo": "numerico", "valor_esperado": 100, "regla_cumplimiento": "informativo", "orden": 50},
     {"id_parametro": "OP_CUMP_RECEPCION_REAL_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "CUMPLIMIENTO", "proceso": "RECEPCION", "ventana_horaria": "6 a 6", "fuente": "Plataforma PI", "nombre": "Pallets reales recepcionados", "descripcion": "Cuantos pallets reales se recepcionaron mediante tareas de Recepcion por Plataforma PI?", "unidad": "Pallets", "tipo_campo": "numerico", "valor_esperado": 100, "regla_cumplimiento": "cumplimiento", "orden": 60},
@@ -202,10 +261,10 @@ PARAMETROS_SEED: list[dict[str, Any]] = [
     {"id_parametro": "OP_DOT_DESPACHO_LEGAJOS_6A8", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "DOTACION", "proceso": "DESPACHO", "ventana_horaria": "6 a 8", "fuente": "Reportes WF", "nombre": "Legajos activos cargando en turno manana", "descripcion": "Cuantos legajos activos tenemos cargando en el Turno Manana Corriente por WMS?", "unidad": "Legajos", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "informativo", "orden": 280},
     {"id_parametro": "OP_DOT_RECEPCION_LEGAJOS_6A8", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "DOTACION", "proceso": "RECEPCION", "ventana_horaria": "6 a 8", "fuente": "Plataforma PI", "nombre": "Legajos activos recepcionando en turno manana", "descripcion": "Cuantos legajos activos tenemos recepcionando en el Turno Manana Corriente por WMS?", "unidad": "Legajos", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "informativo", "orden": 290},
     # Logistica inversa
-    {"id_parametro": "LI_PROD_CARGA_DESCARGA_MOVILES_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "PRODUCTIVIDAD", "proceso": "CARGA Y DESCARGA MOVILES", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Moviles recepcionados o cargados por legajo y turno", "descripcion": "Cuantos moviles se recepcionaron y/o cargaron, por legajo y turno?", "unidad": "Doc / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "productividad", "orden": 300},
-    {"id_parametro": "LI_PROD_RECEPCION_ENVASES_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION ENVASES", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Documentos recepcionados por legajo y turno", "descripcion": "Cuantos documentos se recepcionaron, por legajo y turno?", "unidad": "Doc / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "productividad", "orden": 310},
-    {"id_parametro": "LI_PROD_RECEPCION_DEVOLUCION_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION DEVOLUCION", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Documentos recepcionados por legajo y turno", "descripcion": "Cuantos documentos se recepcionaron, por legajo y turno?", "unidad": "Doc / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "productividad", "orden": 320},
-    {"id_parametro": "LI_PROD_ENFARDADORA_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "PRODUCTIVIDAD", "proceso": "ENFARDADORA", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Fardos producidos por legajo y turno", "descripcion": "Cuantos fardos se produjeron, por legajo y turno?", "unidad": "Fardos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "productividad", "orden": 330},
+    {"id_parametro": "LI_PROD_CARGA_DESCARGA_MOVILES_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "PRODUCTIVIDAD", "proceso": "CARGA Y DESCARGA MOVILES", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Moviles recepcionados o cargados por legajo y turno", "descripcion": "Cuantos moviles se recepcionaron y/o cargaron, por legajo y turno?", "unidad": "Mov / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 8.4, "regla_cumplimiento": "productividad", "orden": 300},
+    {"id_parametro": "LI_PROD_RECEPCION_ENVASES_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION ENVASES", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Documentos recepcionados por legajo y turno", "descripcion": "Cuantos documentos se recepcionaron, por legajo y turno?", "unidad": "Doc / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 10, "regla_cumplimiento": "productividad", "orden": 310},
+    {"id_parametro": "LI_PROD_RECEPCION_DEVOLUCION_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION DEVOLUCION", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Documentos recepcionados por legajo y turno", "descripcion": "Cuantos documentos se recepcionaron, por legajo y turno?", "unidad": "Doc / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 45, "regla_cumplimiento": "productividad", "orden": 320},
+    {"id_parametro": "LI_PROD_ENFARDADORA_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "PRODUCTIVIDAD", "proceso": "ENFARDADORA", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Fardos producidos por legajo y turno", "descripcion": "Cuantos fardos se produjeron, por legajo y turno?", "unidad": "Fardos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 30, "regla_cumplimiento": "productividad", "orden": 330},
     {"id_parametro": "LI_CUMP_RECEPCION_ENVASES_PROX_VENCER_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "CUMPLIMIENTO", "proceso": "RECEPCION ENVASES", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Documentos proximos a vencer", "descripcion": "Cuantos documentos se encuentran proximos a vencer?", "unidad": "Documentos", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "cumplimiento", "orden": 340},
     {"id_parametro": "LI_CUMP_RECEPCION_ENVASES_VENCIDOS_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "CUMPLIMIENTO", "proceso": "RECEPCION ENVASES", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Documentos vencidos", "descripcion": "Cuantos documentos se encuentran vencidos?", "unidad": "Documentos", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "cumplimiento", "orden": 350},
     {"id_parametro": "LI_CUMP_RECEPCION_DEVOLUCION_PROX_VENCER_6A6", "tipo_daily": "Logistica Inversa", "sector_aplicable": "Logistica Inversa", "grupo": "CUMPLIMIENTO", "proceso": "RECEPCION DEVOLUCION", "ventana_horaria": "6 a 6", "fuente": "Carga manual", "nombre": "Documentos proximos a vencer", "descripcion": "Cuantos documentos se encuentran proximos a vencer?", "unidad": "Documentos", "tipo_campo": "numerico", "valor_esperado": None, "regla_cumplimiento": "cumplimiento", "orden": 360},
@@ -234,11 +293,16 @@ async def init_daily_db() -> None:
         await db.execute(CREATE_DAILY_CARGAS)
         await db.execute(CREATE_DAILY_PARAMETROS)
         await db.execute(CREATE_DAILY_DETALLE)
+        await db.execute(CREATE_DAILY_CONSOLIDADO_HISTORICO)
         for statement in CREATE_INDEXES:
             await db.execute(statement)
+        await db.execute("DROP VIEW IF EXISTS vw_daily_powerbi")
+        await db.execute("DROP VIEW IF EXISTS vw_daily_resumen_powerbi")
         await db.execute(CREATE_POWERBI_VIEW)
         await db.execute(CREATE_POWERBI_RESUMEN_VIEW)
         await _seed_parametros(db)
+        await _apply_parametros_migrations(db)
+        await _seed_consolidado_historico_if_available(db)
         await db.commit()
 
 
@@ -256,6 +320,136 @@ async def _seed_parametros(db: aiosqlite.Connection) -> None:
         )
         """,
         PARAMETROS_SEED,
+    )
+
+
+async def _apply_parametros_migrations(db: aiosqlite.Connection) -> None:
+    now = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
+    old_operacion_ids = [
+        "OP_PROD_RECEPCION_6A6",
+        "OP_PROD_PICKING_6A6",
+        "OP_PROD_CLARK_6A6",
+        "OP_PROD_DESPACHO_6A6",
+    ]
+    placeholders = ",".join("?" for _ in old_operacion_ids)
+    await db.execute(
+        f"""
+        UPDATE daily_parametros_cumplimiento
+        SET activo = 0, updated_at = ?
+        WHERE id_parametro IN ({placeholders})
+        """,
+        (now, *old_operacion_ids),
+    )
+
+    force_ids = {
+        "OP_PROD_RECEPCION_SECOS_6A6",
+        "OP_PROD_PICKING_SECOS_6A6",
+        "OP_PROD_CLARK_SECOS_6A6",
+        "OP_PROD_DESPACHO_SECOS_6A6",
+        "OP_PROD_RECEPCION_NOA_6A6",
+        "OP_PROD_PICKING_NOA_6A6",
+        "OP_PROD_CLARK_NOA_6A6",
+        "OP_PROD_RECEPCION_REFRI_6A6",
+        "OP_PROD_PICKING_REFRI_6A6",
+        "OP_PROD_CLARK_REFRI_6A6",
+        "OP_PROD_DESPACHO_REFRI_6A6",
+        "LI_PROD_CARGA_DESCARGA_MOVILES_6A6",
+        "LI_PROD_RECEPCION_ENVASES_6A6",
+        "LI_PROD_RECEPCION_DEVOLUCION_6A6",
+        "LI_PROD_ENFARDADORA_6A6",
+    }
+    seed_by_id = {item["id_parametro"]: item for item in PARAMETROS_SEED}
+    for id_parametro in sorted(force_ids):
+        item = seed_by_id.get(id_parametro)
+        if not item:
+            continue
+        await db.execute(
+            """
+            UPDATE daily_parametros_cumplimiento
+            SET sector_aplicable = ?,
+                unidad = ?,
+                valor_esperado = ?,
+                regla_cumplimiento = ?,
+                orden = ?,
+                activo = 1,
+                updated_at = ?
+            WHERE id_parametro = ?
+            """,
+            (
+                item.get("sector_aplicable") or "",
+                item.get("unidad") or "",
+                item.get("valor_esperado"),
+                item.get("regla_cumplimiento") or "informativo",
+                item.get("orden") or 0,
+                now,
+                id_parametro,
+            ),
+        )
+
+
+async def _seed_consolidado_historico_if_available(db: aiosqlite.Connection) -> None:
+    async with db.execute("SELECT COUNT(*) FROM daily_consolidado_historico") as cur:
+        count = int((await cur.fetchone())[0] or 0)
+    if count:
+        return
+
+    configured = os.getenv("DAILY_CONSOLIDADO_SEED_XLSX", "").strip()
+    source = Path(configured).expanduser() if configured else CONSOLIDADO_SEED_DEFAULT
+    if not source.exists():
+        return
+
+    try:
+        from openpyxl import load_workbook
+    except ImportError:
+        return
+
+    workbook = load_workbook(source, read_only=True, data_only=True)
+    sheet_name = "CONSOLIDADO" if "CONSOLIDADO" in workbook.sheetnames else "Consolidado"
+    if sheet_name not in workbook.sheetnames:
+        return
+    ws = workbook[sheet_name]
+    imported_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
+    rows_to_insert = []
+    for row_index, row in enumerate(ws.iter_rows(min_row=2, max_col=len(CONSOLIDADO_HEADERS), values_only=True), 2):
+        if not any(value not in (None, "") for value in row):
+            continue
+        if not row[1] or not row[2] or not row[3]:
+            continue
+        rows_to_insert.append(
+            (
+                str(source),
+                row_index,
+                _cell_text(row[0]),
+                _cell_text(row[1]),
+                _cell_text(row[2]),
+                _cell_text(row[3]),
+                _cell_text(row[4]),
+                _excel_date_text(row[5]),
+                _cell_text(row[6]),
+                _as_float(row[7]),
+                _as_float(row[8]),
+                _as_float(row[9]),
+                _cell_text(row[10]),
+                _cell_text(row[11]),
+                _cell_text(row[12]),
+                _cell_text(row[13]),
+                _cell_text(row[14]),
+                _cell_text(row[15]),
+                imported_at,
+            )
+        )
+    if not rows_to_insert:
+        return
+    await db.executemany(
+        """
+        INSERT OR IGNORE INTO daily_consolidado_historico (
+            source_file, source_row, semana_label, division, up, metrica,
+            dia_daily, fecha_daily, semana_num, real, target_plan, porcentaje,
+            color, filtro, fecha_hoy, filtro_semana, dia_hoy, filtro_avance,
+            imported_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        rows_to_insert,
     )
 
 
@@ -464,6 +658,274 @@ async def update_parametros(rows: list[dict[str, Any]]) -> int:
     return updated
 
 
+async def export_powerbi_csv() -> Path:
+    """
+    Regenera el CSV completo de la vista plana para Power BI.
+
+    Se escribe primero un archivo temporal y luego se reemplaza el destino para
+    evitar que Power BI lea un archivo a medio escribir.
+    """
+    DAILY_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    target = DAILY_POWERBI_CSV_PATH
+    temp = target.with_suffix(target.suffix + ".tmp")
+    async with aiosqlite.connect(DAILY_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM vw_daily_powerbi ORDER BY carga_id, orden") as cur:
+            rows = await cur.fetchall()
+            columns = [item[0] for item in (cur.description or [])]
+
+    with temp.open("w", encoding="utf-8-sig", newline="") as file:
+        writer = csv.writer(file, delimiter=";")
+        writer.writerow(columns)
+        for row in rows:
+            writer.writerow([row[column] for column in columns])
+    temp.replace(target)
+    return target
+
+
+async def export_consolidado_powerbi_csv() -> Path:
+    DAILY_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    target = DAILY_CONSOLIDADO_CSV_PATH
+    temp = target.with_suffix(target.suffix + ".tmp")
+    async with aiosqlite.connect(DAILY_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT
+                semana_label AS "Semana",
+                division AS "Division",
+                up AS "UP",
+                metrica AS "Metrica",
+                dia_daily AS "Dia Daily",
+                fecha_daily AS "Fecha Daily",
+                semana_label AS "Semana",
+                real AS "REAL",
+                target_plan AS "TARGET/PLAN",
+                porcentaje AS "%",
+                color AS "COLOR",
+                filtro AS "Filtro",
+                fecha_hoy AS "Fecha_hoy",
+                filtro_semana AS "Filtro de semana",
+                dia_hoy AS "Dia_hoy",
+                filtro_avance AS "Filtro de avance"
+            FROM daily_consolidado_historico
+            ORDER BY fecha_daily, division, metrica, up
+            """
+        ) as cur:
+            historico_rows = [dict(row) for row in await cur.fetchall()]
+        async with db.execute(
+            """
+            SELECT *
+            FROM vw_daily_powerbi
+            WHERE tipo_campo = 'numerico'
+              AND grupo IN ('PRODUCTIVIDAD', 'CUMPLIMIENTO', 'AVANCE')
+            ORDER BY fecha_inicio, tipo_daily, sector, grupo, orden
+            """
+        ) as cur:
+            rows = [dict(row) for row in await cur.fetchall()]
+
+    with temp.open("w", encoding="utf-8-sig", newline="") as file:
+        writer = csv.writer(file, delimiter=";")
+        writer.writerow(CONSOLIDADO_HEADERS)
+        for row in rows:
+            item = _consolidado_row(row)
+            if item:
+                historico_rows = _upsert_consolidado_item(historico_rows, item)
+        for item in historico_rows:
+            writer.writerow([item.get(column, "") for column in CONSOLIDADO_HEADERS])
+    temp.replace(target)
+    return target
+
+
+def _upsert_consolidado_item(rows: list[dict[str, Any]], item: dict[str, Any]) -> list[dict[str, Any]]:
+    key = _consolidado_key(item)
+    for index, row in enumerate(rows):
+        if _consolidado_key(row) == key:
+            rows[index] = item
+            return rows
+    rows.append(item)
+    return rows
+
+
+def _consolidado_key(row: dict[str, Any]) -> tuple[str, str, str, str]:
+    return (
+        str(row.get("Fecha Daily") or ""),
+        str(row.get("Division") or ""),
+        str(row.get("UP") or ""),
+        str(row.get("Metrica") or ""),
+    )
+
+
+def _consolidado_row(row: dict[str, Any]) -> dict[str, Any] | None:
+    division = _consolidado_division(row)
+    up = _consolidado_up(row)
+    metrica = _consolidado_metrica(row.get("grupo"))
+    if not division or not up or not metrica:
+        return None
+    fecha_daily = _parse_iso_date(row.get("fecha_fin")) or _parse_iso_date(row.get("fecha_carga"))
+    real = row.get("valor_real_numero")
+    target = row.get("valor_esperado")
+    percent = _consolidado_percent(real, target, metrica)
+    return {
+        "Semana": _week_label(fecha_daily),
+        "Division": division,
+        "UP": up,
+        "Metrica": metrica,
+        "Dia Daily": _daily_day_label(fecha_daily),
+        "Fecha Daily": f"{fecha_daily.isoformat()} 00:00:00" if fecha_daily else "",
+        "REAL": real if real is not None else "",
+        "TARGET/PLAN": target if target is not None else "",
+        "%": percent if percent is not None else "",
+        "COLOR": _consolidado_color(percent, metrica, real, target),
+        "Filtro": "Si",
+        "Fecha_hoy": datetime.now(LOCAL_TZ).day,
+        "Filtro de semana": "No",
+        "Dia_hoy": _short_day_label(datetime.now(LOCAL_TZ)),
+        "Filtro de avance": "Si" if metrica == "Avance" else "No",
+    }
+
+
+def _consolidado_division(row: dict[str, Any]) -> str:
+    tipo = str(row.get("tipo_daily") or "")
+    sector = str(row.get("sector") or "")
+    if tipo == "Operacion":
+        return "NoA" if sector == "Noa" else sector
+    if tipo == "Logistica Inversa":
+        return "Logística Inversa - Suc 126"
+    return tipo
+
+
+def _consolidado_metrica(group: Any) -> str:
+    mapping = {
+        "PRODUCTIVIDAD": "Productividad",
+        "CUMPLIMIENTO": "Cumplimiento",
+        "AVANCE": "Avance",
+    }
+    return mapping.get(str(group or "").upper(), "")
+
+
+def _consolidado_up(row: dict[str, Any]) -> str:
+    tipo = str(row.get("tipo_daily") or "")
+    proceso = str(row.get("proceso") or "").upper()
+    if tipo == "Logistica Inversa":
+        li_map = {
+            "RECEPCION ENVASES": "1-Recep Env",
+            "RECEPCION DEVOLUCION": "2-Recep Dev",
+            "CARGA Y DESCARGA MOVILES": "3-Car Des / Recep Rot",
+            "RECEPCION ROTURAS": "3-Car Des / Recep Rot",
+            "ENFARDADORA": "4-Enf",
+        }
+        return li_map.get(proceso, "")
+    if tipo == "Planeamiento":
+        pl_map = {
+            "HUECOS": "1-Hue",
+            "PROGRAMA": "2-Pro",
+            "RECURSO FTE": "3-Fte",
+            "COORDINACION DE PROVEEDORES": "4-Cpr",
+        }
+        return pl_map.get(proceso, "")
+    op_map = {
+        "RECEPCION": "1-Recep",
+        "PICKING": "2-Pick",
+        "CLARK": "3-Clark",
+        "SPC": "3-Clark",
+        "DESPACHO": "4-Desp",
+    }
+    return op_map.get(proceso, "")
+
+
+def _consolidado_percent(real: Any, target: Any, metrica: str) -> float | None:
+    real_num = _as_float(real)
+    target_num = _as_float(target)
+    if real_num is None or target_num in (None, 0):
+        return None
+    if metrica == "Productividad":
+        return real_num / target_num - 1
+    return real_num / target_num
+
+
+def _consolidado_color(percent: float | None, metrica: str, real: Any, target: Any) -> str:
+    if percent is None:
+        return "GRIS"
+    if metrica == "Productividad":
+        if percent < -0.05:
+            return "ROJO"
+        if percent < 0:
+            return "AMARILLO"
+        if percent <= 0.05:
+            return "VERDE C"
+        return "VERDE O"
+    if percent < 0.85:
+        return "ROJO"
+    if percent < 0.90:
+        return "AMARILLO"
+    if percent <= 0.95:
+        return "VERDE C"
+    return "VERDE O"
+
+
+def _parse_iso_date(value: Any):
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        return datetime.fromisoformat(text.replace("Z", "")).date()
+    except ValueError:
+        try:
+            return datetime.strptime(text[:10], "%Y-%m-%d").date()
+        except ValueError:
+            return None
+
+
+def _week_label(value) -> str:
+    if not value:
+        return ""
+    start = value - timedelta(days=value.weekday())
+    end = start + timedelta(days=4)
+    return f"{start.day:02d} al {end.day:02d}-{end.month:02d}"
+
+
+def _daily_day_label(value) -> str:
+    if not value:
+        return ""
+    labels = ["1-Lunes", "2-Martes", "3-Miercoles", "4-Jueves", "5-Viernes", "6-Sabado", "7-Domingo"]
+    return labels[value.weekday()]
+
+
+def _short_day_label(value: datetime) -> str:
+    labels = ["1-L", "2-M", "3-Mi", "4-J", "5-V", "6-S", "7-D"]
+    return labels[value.weekday()]
+
+
+def _as_float(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _cell_text(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, datetime):
+        return value.isoformat(sep=" ")
+    return str(value)
+
+
+def _excel_date_text(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, datetime):
+        return f"{value.date().isoformat()} 00:00:00"
+    text = str(value).strip()
+    if not text:
+        return ""
+    parsed = _parse_iso_date(text)
+    return f"{parsed.isoformat()} 00:00:00" if parsed else text
+
+
 async def get_existing_cargas(daily_key: str, tipo_daily: str, sector: str) -> list[dict[str, Any]]:
     async with aiosqlite.connect(DAILY_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
@@ -560,10 +1022,14 @@ async def save_daily_carga(
             )
         await db.commit()
 
+    csv_path = await export_powerbi_csv()
+    consolidado_csv_path = await export_consolidado_powerbi_csv()
     return {
         "carga_id": carga_id,
         "daily": daily,
         "version": next_version,
         "parametros_guardados": len(parametros),
         "db_path": str(DAILY_DB_PATH),
+        "csv_path": str(csv_path),
+        "consolidado_csv_path": str(consolidado_csv_path),
     }

@@ -23,6 +23,8 @@ env/
 *.sqlite3
 vigia.db
 pick_real.csv
+daily_powerbi.csv
+daily_consolidado_powerbi.csv
 offline_packages/
 
 # Artefactos compilados locales

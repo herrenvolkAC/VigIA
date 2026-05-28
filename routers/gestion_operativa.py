@@ -19,6 +19,8 @@ from pydantic import BaseModel
 from db.daily_operativa import (
     DAILY_DB_PATH,
     calculate_daily_window,
+    export_consolidado_powerbi_csv,
+    export_powerbi_csv,
     get_all_parametros,
     get_existing_cargas,
     get_parametros,
@@ -53,13 +55,17 @@ class DailyCargaRequest(BaseModel):
     sector: str = ""
     turno: str = ""
     plan: str = ""
-    action: str = "new_version"
+    action: str = "replace"
     respuestas: dict[str, Any] = {}
 
 
 class DailyParametrosUpdateRequest(BaseModel):
     clave: str
     parametros: list[dict[str, Any]]
+
+
+class DailyExportRequest(BaseModel):
+    clave: str
 
 
 SHIFT_LABELS = {"manana": "Mañana", "tarde": "Tarde", "noche": "Noche"}
@@ -878,6 +884,19 @@ async def daily_parametros_admin_update(req: DailyParametrosUpdateRequest, reque
     return {"updated": updated}
 
 
+@router.post("/daily/exportar-csv")
+async def daily_exportar_csv(req: DailyExportRequest, request: Request):
+    await _require_request_auth(request)
+    if req.clave != "ingenieria":
+        raise HTTPException(status_code=403, detail="Clave incorrecta.")
+    csv_path = await export_powerbi_csv()
+    consolidado_csv_path = await export_consolidado_powerbi_csv()
+    return {
+        "csv_path": str(csv_path),
+        "consolidado_csv_path": str(consolidado_csv_path),
+    }
+
+
 @router.get("/daily/existente")
 async def daily_existente(
     request: Request,
@@ -906,7 +925,7 @@ async def daily_guardar(req: DailyCargaRequest, request: Request):
             turno=req.turno,
             plan=req.plan,
             respuestas=req.respuestas,
-            action=req.action,
+            action="replace",
         )
         return result
     except ValueError as exc:
