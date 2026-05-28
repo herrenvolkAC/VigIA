@@ -16,6 +16,14 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import aiosqlite
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - python-dotenv is already a project dependency.
+    load_dotenv = None
+
+if load_dotenv:
+    load_dotenv()
+
 
 def _daily_db_path() -> Path:
     configured = os.getenv("DAILY_OPERATIVA_DB_PATH", "").strip()
@@ -596,6 +604,7 @@ def parse_number(value: Any) -> float | None:
 
 
 async def get_parametros(tipo_daily: str, sector: str) -> list[dict[str, Any]]:
+    await init_daily_db()
     tipo = normalize_tipo_daily(tipo_daily)
     sector_norm = normalize_sector(sector)
     async with aiosqlite.connect(DAILY_DB_PATH) as db:
@@ -620,6 +629,7 @@ async def get_parametros(tipo_daily: str, sector: str) -> list[dict[str, Any]]:
 
 
 async def get_all_parametros() -> list[dict[str, Any]]:
+    await init_daily_db()
     async with aiosqlite.connect(DAILY_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
@@ -633,6 +643,7 @@ async def get_all_parametros() -> list[dict[str, Any]]:
 
 
 async def update_parametros(rows: list[dict[str, Any]]) -> int:
+    await init_daily_db()
     updated = 0
     now = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
     async with aiosqlite.connect(DAILY_DB_PATH) as db:
@@ -665,6 +676,7 @@ async def export_powerbi_csv() -> Path:
     Se escribe primero un archivo temporal y luego se reemplaza el destino para
     evitar que Power BI lea un archivo a medio escribir.
     """
+    await init_daily_db()
     DAILY_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     target = DAILY_POWERBI_CSV_PATH
     temp = target.with_suffix(target.suffix + ".tmp")
@@ -684,6 +696,7 @@ async def export_powerbi_csv() -> Path:
 
 
 async def export_consolidado_powerbi_csv() -> Path:
+    await init_daily_db()
     DAILY_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     target = DAILY_CONSOLIDADO_CSV_PATH
     temp = target.with_suffix(target.suffix + ".tmp")
@@ -927,6 +940,7 @@ def _excel_date_text(value: Any) -> str:
 
 
 async def get_existing_cargas(daily_key: str, tipo_daily: str, sector: str) -> list[dict[str, Any]]:
+    await init_daily_db()
     async with aiosqlite.connect(DAILY_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
