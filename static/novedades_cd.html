@@ -238,18 +238,31 @@
 
   <section class="paper-panel" id="panel-francos">
     <section class="kpi-row" id="francos-kpis"></section>
-    <section class="chart-panel" style="margin-top:12px;min-height:260px">
-      <div class="chart-title"><strong>Candidatos de francos</strong><span>Dias que incrementan o descuentan</span></div>
-      <div class="table-wrap"><table class="paper-table" id="francos-candidatos-table"></table></div>
-    </section>
-    <section class="chart-panel" style="margin-top:12px;min-height:260px">
-      <div class="chart-title"><strong>Cuenta corriente proyectada</strong><span>Base 26/05/2026 + candidatos posteriores</span></div>
-      <div class="table-wrap"><table class="paper-table" id="francos-table"></table></div>
-    </section>
-    <section class="chart-panel" style="margin-top:12px;min-height:220px">
-      <div class="chart-title"><strong>Movimientos detectados</strong><span>Ultimos registros</span></div>
-      <div class="table-wrap"><table class="paper-table" id="francos-mov-table"></table></div>
-    </section>
+    <div class="paper-tabs" style="margin-top:14px">
+      <div class="tab-list">
+        <button class="tab-btn active franco-tab" data-franco="candidatos">Candidatos</button>
+        <button class="tab-btn franco-tab" data-franco="cuenta">Cuenta corriente</button>
+        <button class="tab-btn franco-tab" data-franco="movimientos">Movimientos</button>
+      </div>
+    </div>
+    <div id="franco-candidatos">
+      <section class="chart-panel" style="margin-top:12px;min-height:260px">
+        <div class="chart-title"><strong>Candidatos de francos</strong><span>Dias que incrementan o descuentan</span></div>
+        <div class="table-wrap"><table class="paper-table" id="francos-candidatos-table"></table></div>
+      </section>
+    </div>
+    <div id="franco-cuenta" class="hidden">
+      <section class="chart-panel" style="margin-top:12px;min-height:260px">
+        <div class="chart-title"><strong>Cuenta corriente proyectada</strong><span>Base 26/05/2026 + candidatos posteriores</span></div>
+        <div class="table-wrap"><table class="paper-table" id="francos-table"></table></div>
+      </section>
+    </div>
+    <div id="franco-movimientos" class="hidden">
+      <section class="chart-panel" style="margin-top:12px;min-height:220px">
+        <div class="chart-title"><strong>Movimientos detectados</strong><span>Ultimos registros</span></div>
+        <div class="table-wrap"><table class="paper-table" id="francos-mov-table"></table></div>
+      </section>
+    </div>
   </section>
 
   <section class="paper-panel" id="panel-importacion">
@@ -269,7 +282,7 @@
 </div>
 
 <script>
-  const state = { config:null, batches:[], filtersLoaded:false, dateRangeApplied:false, indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
+  const state = { config:null, batches:[], filtersLoaded:false, importLoaded:false, activeTab:'indicadores', indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
   const STORAGE_KEY = 'vigia.novedades_cd.advanced_filters.v1';
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
@@ -313,6 +326,18 @@
   }
   function selectedValues(key){
     return state.selected[key] || [];
+  }
+  function localDateInput(date){
+    const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    return `${copy.getFullYear()}-${String(copy.getMonth() + 1).padStart(2,'0')}-${String(copy.getDate()).padStart(2,'0')}`;
+  }
+  function setDefaultDateRange(){
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    $('fecha-desde').value = localDateInput(yesterday);
+    $('fecha-hasta').value = localDateInput(today);
+    $('range-note').textContent = `Rango inicial: ${$('fecha-desde').value} a ${$('fecha-hasta').value}`;
   }
   function loadSavedFilters(){
     try {
@@ -758,23 +783,12 @@
   async function loadBatches(){
     const data = await api('/api/rrhh/batches');
     state.batches = data?.batches || [];
+    state.importLoaded = true;
     if (state.batches.length) {
       renderQualityWarnings(state.batches[0]);
       renderImportResult(state.batches[0]);
-      await applyInitialDateRange();
-      await loadIndicators();
     }
     else setStatus('Todavia no hay cargas importadas.');
-  }
-  async function applyInitialDateRange(){
-    if (state.dateRangeApplied || $('fecha-desde').value || $('fecha-hasta').value) return;
-    const data = await api('/api/rrhh/rango-sugerido');
-    const range = data?.suggested_range || {};
-    if (range.fecha_desde && range.fecha_hasta) {
-      $('fecha-desde').value = range.fecha_desde;
-      $('fecha-hasta').value = range.fecha_hasta;
-      state.dateRangeApplied = true;
-    }
   }
   async function loadIndicators(){
     if (state.indicatorsLoading) return;
@@ -785,7 +799,6 @@
       const data = await api(`/api/rrhh/indicadores?${params()}`);
       const range = data.data_range || {};
       $('range-note').textContent = `El tablero cuenta con informacion entre ${range.fecha_desde || '-'} y ${range.fecha_hasta || '-'}`;
-      if (!state.dateRangeApplied && range.fecha_desde && range.fecha_hasta && !$('fecha-desde').value && !$('fecha-hasta').value) await applyInitialDateRange();
       if (!state.filtersLoaded) {
         setChecklist('sector', data.filters.sectores);
         setChecklist('cargo', data.filters.cargos);
@@ -795,7 +808,6 @@
         setChecklist('cargo', data.filters.cargos);
       }
       renderKpis(data.kpis || {});
-      await loadFrancos();
       $('chart-diario').innerHTML = linePct(data.series.diario);
       $('chart-extra-dia').innerHTML = lineMetric(data.series.diario, 'horas_extra', 'blue', ' hs');
       $('chart-tarde-dia').innerHTML = lineMetric(data.series.diario, 'llegadas_tarde', 'amber');
@@ -810,7 +822,6 @@
       $('chart-tarde-cargo').innerHTML = bars(data.series.por_sector_cargo, 'llegadas_tarde', 'label', 'amber', 12);
       $('ranking-table').__allRows = data.series.ranking || [];
       renderDetail(data.series.ranking);
-      await Promise.all([loadActividad(), loadSanciones()]);
       setStatus('Indicadores actualizados.');
     } finally {
       state.indicatorsLoading = false;
@@ -818,16 +829,24 @@
     }
   }
   function activateMainTab(tab){
+    state.activeTab = tab;
     document.querySelectorAll('.tab-btn[data-tab]').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.paper-panel').forEach(x => x.classList.remove('active'));
     document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
     $(`panel-${tab}`)?.classList.add('active');
+    if (tab === 'importacion' && !state.importLoaded) loadBatches().catch(e => setStatus(e.message, true));
   }
   function activateInnerTab(tab){
     document.querySelectorAll('.inner-tab').forEach(x => x.classList.remove('active'));
     ['actividad','sanciones'].forEach(id => $(`inner-${id}`).classList.add('hidden'));
     document.querySelector(`.inner-tab[data-inner="${tab}"]`)?.classList.add('active');
     $(`inner-${tab}`)?.classList.remove('hidden');
+  }
+  function activateFrancoTab(tab){
+    document.querySelectorAll('.franco-tab').forEach(x => x.classList.remove('active'));
+    ['candidatos','cuenta','movimientos'].forEach(id => $(`franco-${id}`)?.classList.add('hidden'));
+    document.querySelector(`.franco-tab[data-franco="${tab}"]`)?.classList.add('active');
+    $(`franco-${tab}`)?.classList.remove('hidden');
   }
   async function drillDownDay(fecha){
     if (!fecha || state.indicatorsLoading) return;
@@ -861,21 +880,35 @@
     ]);
     renderFrancos(data || {}, candidatos || {});
   }
+  async function applyCurrentView(){
+    if (state.activeTab === 'francos') {
+      setStatus('Consultando francos...');
+      await loadFrancos();
+      setStatus('Francos actualizados.');
+      return;
+    }
+    if (state.activeTab === 'datos') {
+      setStatus('Consultando datos...');
+      await Promise.all([loadActividad(), loadSanciones()]);
+      setStatus('Datos actualizados.');
+      return;
+    }
+    await loadIndicators();
+  }
   async function importRequest(path, body){
     try {
       setStatus('Importando archivos RRHH...');
       const data = await api(path, {method:'POST', body:JSON.stringify(body||{})});
       state.filtersLoaded=false;
-      state.dateRangeApplied=false;
       renderImportResult(data);
       setStatus(`Importacion completa: ${data.batch_key}.`);
       await loadBatches();
-      await loadFrancos();
     }
     catch(e){ setStatus(e.message, true); }
   }
   document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => btn.onclick = () => activateMainTab(btn.dataset.tab));
   document.querySelectorAll('.inner-tab').forEach(btn => btn.onclick = () => activateInnerTab(btn.dataset.inner));
+  document.querySelectorAll('.franco-tab').forEach(btn => btn.onclick = () => activateFrancoTab(btn.dataset.franco));
   document.querySelectorAll('.detail-tab').forEach(btn => btn.onclick = () => {
     document.querySelectorAll('.detail-tab').forEach(x => x.classList.remove('active'));
     btn.classList.add('active');
@@ -919,11 +952,21 @@
     });
   });
   $('toggle-filters').onclick = () => { $('filter-panel').classList.toggle('open'); saveFilters(); };
-  $('apply-filters').onclick = async () => { await loadIndicators(); $('filter-panel').classList.remove('open'); saveFilters(); };
+  $('apply-filters').onclick = async () => { await applyCurrentView(); $('filter-panel').classList.remove('open'); saveFilters(); };
   $('import-latest').onclick = () => importRequest('/api/rrhh/import/latest', {force:true});
   $('import-folder').onclick = () => importRequest('/api/rrhh/import/folder', {folder_path:$('folder-path').value, force:true});
   $('logout-btn').onclick = async () => { await fetch('/api/auth/logout', {method:'POST', credentials:'same-origin'}); location.href='/login'; };
-  (async function init(){ try { loadSavedFilters(); await loadAppInfo(); await loadConfig(); await loadBatches(); } catch(e) { setStatus(e.message, true); } })();
+  (async function init(){
+    try {
+      loadSavedFilters();
+      setDefaultDateRange();
+      await loadAppInfo();
+      await loadConfig();
+      setStatus('Listo. Elegi filtros y presiona Aplicar para consultar.');
+    } catch(e) {
+      setStatus(e.message, true);
+    }
+  })();
 </script>
 </body>
 </html>

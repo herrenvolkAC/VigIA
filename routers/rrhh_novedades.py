@@ -494,7 +494,7 @@ def _detect_file_kind(path: Path) -> str | None:
     if {"legajo", "apellido_y_nombre"}.issubset(headers) and ("causa_sancion" in headers or "descripcion_causa" in headers):
         return "sanciones"
     legajo_headers = {"legajo", "numero_de_personal", "nro_personal", "numero_personal"}
-    saldo_headers = {"saldo", "saldo_francos", "francos", "dias_franco", "cuenta_corriente", "resto_global"}
+    saldo_headers = {"saldo", "saldo_francos", "francos", "dias", "dias_franco", "cuenta_corriente", "resto_global"}
     if headers.intersection(legajo_headers) and headers.intersection(saldo_headers):
         return "francos"
     return None
@@ -1179,7 +1179,7 @@ def _import_francos_inicial(cur: sqlite3.Cursor, path: Path, imported_by: str) -
     for idx, row in enumerate(rows[:5]):
         keys = set(_unique_headers(row))
         legajo_headers = {"legajo", "numero_de_personal", "nro_personal", "numero_personal"}
-        saldo_headers = {"saldo", "saldo_francos", "francos", "dias_franco", "cuenta_corriente", "resto_global"}
+        saldo_headers = {"saldo", "saldo_francos", "francos", "dias", "dias_franco", "cuenta_corriente", "resto_global"}
         if keys.intersection(legajo_headers) and keys.intersection(saldo_headers):
             header_idx = idx
             break
@@ -1187,7 +1187,7 @@ def _import_francos_inicial(cur: sqlite3.Cursor, path: Path, imported_by: str) -
     payload = []
     now = _now()
     legajo_keys = ("legajo", "numero_de_personal", "nro_personal", "numero_personal")
-    saldo_keys = ("saldo_francos", "saldo", "francos", "dias_franco", "cuenta_corriente", "saldo_actual", "resto_global")
+    saldo_keys = ("saldo_francos", "saldo", "francos", "dias", "dias_franco", "cuenta_corriente", "saldo_actual", "resto_global")
     nombre_keys = ("nombre", "empleado", "apellido_y_nombre", "nombre_del_empleado_o_candidato")
     fecha_keys = ("fecha_corte", "fecha", "corte", "fecha_saldo")
     fecha_inicial = _francos_fecha_inicial()
