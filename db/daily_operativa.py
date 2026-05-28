@@ -7,6 +7,7 @@ vigia.db ni de sus tablas operativas.
 from __future__ import annotations
 
 import re
+import os
 from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -15,7 +16,14 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import aiosqlite
 
 
-DAILY_DB_PATH = Path(__file__).resolve().parent / "daily_operativa.db"
+def _daily_db_path() -> Path:
+    configured = os.getenv("DAILY_OPERATIVA_DB_PATH", "").strip()
+    if configured:
+        return Path(configured).expanduser()
+    return Path(__file__).resolve().parent / "daily_operativa.db"
+
+
+DAILY_DB_PATH = _daily_db_path()
 try:
     LOCAL_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 except ZoneInfoNotFoundError:
