@@ -28,7 +28,10 @@ if load_dotenv:
 def _daily_db_path() -> Path:
     configured = os.getenv("DAILY_OPERATIVA_DB_PATH", "").strip()
     if configured:
-        return Path(configured).expanduser()
+        path = Path(os.path.expandvars(configured)).expanduser()
+        if path.suffix.lower() != ".db" or path.is_dir():
+            return path / "daily_operativa.db"
+        return path
     return Path(__file__).resolve().parent / "daily_operativa.db"
 
 
