@@ -747,10 +747,23 @@ async def export_consolidado_powerbi_csv() -> Path:
             item = _consolidado_row(row)
             if item:
                 historico_rows = _upsert_consolidado_item(historico_rows, item)
+                separator = _consolidado_separator_row(item)
+                if separator:
+                    historico_rows = _upsert_consolidado_item(historico_rows, separator)
         for item in historico_rows:
+            if _is_future_consolidado_row(item):
+                continue
             writer.writerow([item.get(column, "") for column in CONSOLIDADO_HEADERS])
     temp.replace(target)
     return target
+
+
+def _is_future_consolidado_row(item: dict[str, Any]) -> bool:
+    fecha_daily = _parse_iso_date(item.get("Fecha Daily"))
+    if not fecha_daily:
+        return False
+    today = datetime.now(LOCAL_TZ).date()
+    return fecha_daily > today
 
 
 def _upsert_consolidado_item(rows: list[dict[str, Any]], item: dict[str, Any]) -> list[dict[str, Any]]:
@@ -761,6 +774,27 @@ def _upsert_consolidado_item(rows: list[dict[str, Any]], item: dict[str, Any]) -
             return rows
     rows.append(item)
     return rows
+
+
+def _consolidado_separator_row(item: dict[str, Any]) -> dict[str, Any] | None:
+    metrica = str(item.get("Metrica") or "")
+    division = str(item.get("Division") or "")
+    if metrica not in {"Productividad", "Cumplimiento"}:
+        return None
+    if not division or division == "Trafico":
+        return None
+    if str(item.get("UP") or "") == "5-S":
+        return None
+    row = {column: item.get(column, "") for column in CONSOLIDADO_HEADERS}
+    row["UP"] = "5-S"
+    row["REAL"] = 1
+    row["TARGET/PLAN"] = 1
+    row["%"] = 1
+    row["COLOR"] = "BLANCO"
+    row["Filtro"] = "Si"
+    row["Filtro de semana"] = item.get("Filtro de semana") or "No"
+    row["Filtro de avance"] = "No"
+    return row
 
 
 def _consolidado_key(row: dict[str, Any]) -> tuple[str, str, str, str]:

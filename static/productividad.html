@@ -1436,6 +1436,88 @@ html[data-prod-style="paper"] th{
   text-transform:uppercase;
 }
 html[data-prod-style="paper"] td{border-color:var(--border)}
+html[data-prod-style="paper"] .picking-analysis-table th,
+html[data-prod-style="paper"] .online-grid thead th,
+html[data-prod-style="paper"] .online-detail-table th{
+  background:#F6F8F5;
+  color:#2F3A45;
+}
+html[data-prod-style="paper"] .picking-analysis-table td,
+html[data-prod-style="paper"] .online-grid tbody td,
+html[data-prod-style="paper"] .online-detail-table td{
+  color:var(--text);
+  background:var(--surface);
+  border-color:var(--border);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:12px;
+}
+html[data-prod-style="paper"] .picking-analysis-table tbody tr:nth-child(even) td,
+html[data-prod-style="paper"] .online-grid tbody tr:nth-child(even) td{
+  background:#FAFBF9;
+}
+html[data-prod-style="paper"] .online-grid-wrap{
+  background:var(--surface);
+  border-color:var(--border);
+  border-radius:0;
+  overflow:auto;
+}
+html[data-prod-style="paper"] .picking-analysis-card-title,
+html[data-prod-style="paper"] .online-highlights-title,
+html[data-prod-style="paper"] .online-score-title{
+  color:#0B5FAE;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  font-weight:700;
+}
+html[data-prod-style="paper"] .picking-analysis-kpi,
+html[data-prod-style="paper"] .turno-trend-card,
+html[data-prod-style="paper"] .online-highlight-item,
+html[data-prod-style="paper"] .online-score-panel,
+html[data-prod-style="paper"] .online-highlights{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:0;
+  color:var(--text);
+  box-shadow:none;
+}
+html[data-prod-style="paper"] .turno-eval-kpi{
+  min-height:112px;
+  background:var(--surface);
+}
+html[data-prod-style="paper"] .turno-eval-kpi strong,
+html[data-prod-style="paper"] .picking-analysis-kpi strong{
+  color:#465260;
+}
+html[data-prod-style="paper"] .picking-analysis-kpi span,
+html[data-prod-style="paper"] .online-highlight-item strong,
+html[data-prod-style="paper"] .online-score-text strong{
+  color:var(--text);
+}
+html[data-prod-style="paper"] .online-meta-sub,
+html[data-prod-style="paper"] .online-score-text{
+  color:#465260;
+}
+html[data-prod-style="paper"] .turno-impact.positivo{
+  background:#E5F3E9;
+  color:#0E6B3F;
+  border-color:#9FC8AD;
+}
+html[data-prod-style="paper"] .turno-impact.negativo{
+  background:#F7D7DA;
+  color:#A50E25;
+  border-color:#E0A5AD;
+}
+html[data-prod-style="paper"] .turno-impact.neutro{
+  background:#EEF2F0;
+  color:#465260;
+  border-color:var(--border);
+}
+html[data-prod-style="paper"] .turno-trend-title,
+html[data-prod-style="paper"] .turno-trend-labels{
+  color:#465260;
+}
 html[data-prod-style="paper"] .chip,
 html[data-prod-style="paper"] .hourly-sort-btn,
 html[data-prod-style="paper"] .btn-reset,

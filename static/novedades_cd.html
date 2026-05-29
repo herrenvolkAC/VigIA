@@ -790,10 +790,12 @@
     }
     else setStatus('Todavia no hay cargas importadas.');
   }
-  async function loadIndicators(){
+  async function loadIndicators(options = {}){
+    const manageApply = options.manageApply !== false;
+    const finalStatus = options.finalStatus !== false;
     if (state.indicatorsLoading) return;
     state.indicatorsLoading = true;
-    setApplyLoading(true);
+    if (manageApply) setApplyLoading(true);
     try {
       setStatus('Consultando indicadores...');
       const data = await api(`/api/rrhh/indicadores?${params()}`);
@@ -822,10 +824,10 @@
       $('chart-tarde-cargo').innerHTML = bars(data.series.por_sector_cargo, 'llegadas_tarde', 'label', 'amber', 12);
       $('ranking-table').__allRows = data.series.ranking || [];
       renderDetail(data.series.ranking);
-      setStatus('Indicadores actualizados.');
+      if (finalStatus) setStatus('Indicadores actualizados.');
     } finally {
       state.indicatorsLoading = false;
-      setApplyLoading(false);
+      if (manageApply) setApplyLoading(false);
     }
   }
   function activateMainTab(tab){
@@ -895,6 +897,27 @@
     }
     await loadIndicators();
   }
+  async function applyAllTabs(){
+    if (state.indicatorsLoading) return;
+    setApplyLoading(true);
+    setStatus('Consultando todas las solapas con el filtro actual...');
+    try {
+      await loadIndicators({ manageApply: false, finalStatus: false });
+      await Promise.all([
+        loadActividad(),
+        loadSanciones(),
+        loadFrancos(),
+        loadBatches(),
+      ]);
+      setStatus('Indicadores, datos, francos e importacion actualizados.');
+      $('filter-panel').classList.remove('open');
+      saveFilters();
+    } catch (e) {
+      setStatus(e.message || 'No se pudieron actualizar todas las solapas.', true);
+    } finally {
+      setApplyLoading(false);
+    }
+  }
   async function importRequest(path, body){
     try {
       setStatus('Importando archivos RRHH...');
@@ -952,7 +975,7 @@
     });
   });
   $('toggle-filters').onclick = () => { $('filter-panel').classList.toggle('open'); saveFilters(); };
-  $('apply-filters').onclick = async () => { await applyCurrentView(); $('filter-panel').classList.remove('open'); saveFilters(); };
+  $('apply-filters').onclick = applyAllTabs;
   $('import-latest').onclick = () => importRequest('/api/rrhh/import/latest', {force:true});
   $('import-folder').onclick = () => importRequest('/api/rrhh/import/folder', {folder_path:$('folder-path').value, force:true});
   $('logout-btn').onclick = async () => { await fetch('/api/auth/logout', {method:'POST', credentials:'same-origin'}); location.href='/login'; };
