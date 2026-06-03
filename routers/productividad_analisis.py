@@ -81,6 +81,24 @@ WHERE A.FECHA >= :fecha_desde
 ORDER BY A.FECHA, C.DESCRIPCION
 """
 
+QUERY_HISTORIA_PRODUCTIVIDAD_BULK = """
+SELECT
+    A.FECHA,
+    A.LEGAJO,
+    SUM(B.PROD_REAL) AS PRODUCTIVIDAD,
+    C.DESCRIPCION AS FUNCION,
+    C.ID_DE_UNIDAD_DE_PRODUCCION AS TIPO
+FROM PV_DIA_LABORAL A
+JOIN PV_LIQUIDAC_DIA_DET2 B
+  ON A.ID = B.ID_PV_DIA_LABORAL
+JOIN PV_GRUPO_DE_FUNCIONES_CAB C
+  ON B.ID_PV_GRUPO_DE_FUNCIONES = C.ID
+WHERE A.FECHA >= :fecha_desde
+  AND A.FECHA <= :fecha_hasta
+GROUP BY A.FECHA, A.LEGAJO, C.DESCRIPCION, C.ID_DE_UNIDAD_DE_PRODUCCION
+ORDER BY A.FECHA, A.LEGAJO, C.DESCRIPCION
+"""
+
 QUERY_HISTORIA_TNC_LEGAJO = """
 SELECT
     A.FECHA,
@@ -1058,12 +1076,500 @@ def query_productive_db_online(fecha_desde: str, fecha_hasta: str) -> list[dict[
     )
 
 
+QUERY_DAILY_PICKING_REAL = """
+WITH prm AS (
+  SELECT
+    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
+    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
+  FROM dual
+),
+pck AS (
+  SELECT
+    h.COPECREA,
+    h.QCANTIDA,
+    CASE
+      WHEN UPPER(TRIM(h.CZONAORI)) = 'T06' THEN 4
+      WHEN h.CZONAORI IS NOT NULL
+       AND INSTR(UPPER(TRIM(h.CZONAORI)), 'T') > 0 THEN 2
+      WHEN UPPER(TRIM(h.CZONAORI)) IN ('N01','N02','N04','N05','N07','N09','N10','N15') THEN 6
+      ELSE 1
+    END AS division
+  FROM f132hist h
+  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
+    AND h.FCREAREG <  (SELECT p_to FROM prm)
+    AND h.CDESCRIP = 'Picking'
+)
+SELECT
+  CASE division
+    WHEN 1 THEN 'SECOS'
+    WHEN 2 THEN 'REFRIGERADOS'
+    WHEN 4 THEN 'REFRIGERADOS'
+    WHEN 6 THEN 'NOA'
+  END AS ALMACEN,
+  COUNT(DISTINCT COPECREA) AS LEGAJOS,
+  SUM(QCANTIDA) AS BULTOS,
+  ROUND(SUM(QCANTIDA) / COUNT(DISTINCT COPECREA), 2) AS PRODUCCION
+FROM pck
+GROUP BY CASE division
+  WHEN 1 THEN 'SECOS'
+  WHEN 2 THEN 'REFRIGERADOS'
+  WHEN 4 THEN 'REFRIGERADOS'
+  WHEN 6 THEN 'NOA'
+END
+"""
+
+
+def query_productive_db_daily_picking_real(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_PICKING_REAL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+QUERY_DAILY_DESPACHO_REAL = """
+WITH params AS (
+  SELECT
+    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
+    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
+  FROM dual
+),
+base AS (
+  SELECT
+    t.hojaruta,
+    t.cargador AS legajo_cargador,
+    CASE
+      WHEN t.cdivisio IN (1,6) THEN 1
+      WHEN t.cdivisio IN (2,4) THEN 2
+      ELSE NULL
+    END AS division
+  FROM f922traf t
+  WHERE t.inicarga >= (SELECT p_from FROM params)
+    AND t.inicarga <  (SELECT p_to FROM params)
+    AND t.calmacen IN ('093','93')
+)
+SELECT
+  CASE division
+    WHEN 1 THEN 'SECOS'
+    WHEN 2 THEN 'REFRIGERADOS'
+  END AS ALMACEN,
+  COUNT(DISTINCT legajo_cargador) AS LEGAJOS,
+  COUNT(DISTINCT hojaruta) AS VIAJES,
+  ROUND(COUNT(DISTINCT hojaruta) / COUNT(DISTINCT legajo_cargador), 2) AS PRODUCCION
+FROM base
+WHERE division IN (1, 2)
+GROUP BY CASE division
+  WHEN 1 THEN 'SECOS'
+  WHEN 2 THEN 'REFRIGERADOS'
+END
+"""
+
+
+def query_productive_db_daily_despacho_real(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_DESPACHO_REAL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+QUERY_DAILY_PICKING_PLAN = """
+WITH params AS (
+  SELECT
+    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
+    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
+  FROM dual
+),
+base AS (
+  SELECT
+    v.CODIGO,
+    v.FECHAYHORADEINICIO,
+    (v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) AS FECHA_ARMADO_PLAN,
+    TRUNC((v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) - INTERVAL '6' HOUR) AS dia_operativo,
+    CASE
+      WHEN v.CODIGODETIPODEDARSENA IN (1, 2, 6) THEN v.CODIGODETIPODEDARSENA
+      ELSE NULL
+    END AS division
+  FROM TR_VIAJE v, params p
+  WHERE v.FECHAYHORADEINICIO >= p.p_from
+    AND v.FECHAYHORADEINICIO <  p.p_to
+),
+viaje_pallet AS (
+  SELECT
+    m.CODIGO AS CODIGODEVIAJE,
+    m.division,
+    c.NUMERODEPALLET AS PALLET_ID,
+    NVL(
+      (SELECT SUM(d.cantidad)
+       FROM TR_DETALLE_DE_PALLET_NEW d
+       WHERE d.pallet_id = p.NUMERO),
+      0
+    ) AS bultos_pallet
+  FROM base m
+  JOIN TR_CARGAS c ON m.CODIGO = c.CODIGODEVIAJE
+  JOIN TR_PALLET p ON c.NUMERODEPALLET = p.NUMERO
+  WHERE UPPER(p.TIPO) IN ('PALLET DE PICKING','PALLET DE PICKING (CONSOLIDADO)')
+)
+SELECT
+  CASE division
+    WHEN 1 THEN 'SECOS'
+    WHEN 2 THEN 'REFRIGERADOS'
+    WHEN 6 THEN 'NOA'
+  END AS ALMACEN,
+  SUM(bultos_pallet) AS BULTOS_PLANIFICADOS,
+  COUNT(DISTINCT CODIGODEVIAJE) AS VIAJES_PLANIFICADOS,
+  COUNT(DISTINCT PALLET_ID) AS PALLETS_PICKING_PLANIFICADOS
+FROM viaje_pallet
+WHERE division IN (1, 2, 6)
+GROUP BY CASE division
+  WHEN 1 THEN 'SECOS'
+  WHEN 2 THEN 'REFRIGERADOS'
+  WHEN 6 THEN 'NOA'
+END
+"""
+
+
+def query_productive_db_daily_picking_plan(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_PICKING_PLAN,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+QUERY_DAILY_DESPACHO_PLAN = """
+WITH params AS (
+  SELECT
+    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
+    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
+  FROM dual
+),
+base AS (
+  SELECT
+    v.CODIGO,
+    CASE
+      WHEN v.CODIGODETIPODEDARSENA = 1 THEN 1
+      WHEN v.CODIGODETIPODEDARSENA = 2 THEN 2
+      ELSE NULL
+    END AS division
+  FROM TR_VIAJE v
+  WHERE v.FECHAYHORADEINICIO >= (SELECT p_from FROM params)
+    AND v.FECHAYHORADEINICIO <  (SELECT p_to FROM params)
+)
+SELECT
+  CASE division
+    WHEN 1 THEN 'SECOS'
+    WHEN 2 THEN 'REFRIGERADOS'
+  END AS ALMACEN,
+  COUNT(*) AS VIAJES_PLANIFICADOS
+FROM base
+WHERE division IN (1, 2)
+GROUP BY CASE division
+  WHEN 1 THEN 'SECOS'
+  WHEN 2 THEN 'REFRIGERADOS'
+END
+"""
+
+
+def query_productive_db_daily_despacho_plan(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_DESPACHO_PLAN,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+QUERY_DAILY_SPC_PLAN = """
+WITH params AS (
+  SELECT
+    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
+    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
+  FROM dual
+),
+base AS (
+  SELECT
+    v.CODIGO,
+    v.FECHAYHORADEINICIO,
+    v.CODIGODETIPODEDARSENA,
+    (v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) AS FECHA_ARMADO_PLAN,
+    CASE
+      WHEN v.CODIGODETIPODEDARSENA = 1 THEN 1
+      WHEN v.CODIGODETIPODEDARSENA = 2 THEN 2
+      ELSE NULL
+    END AS division
+  FROM TR_VIAJE v
+  WHERE v.FECHAYHORADEINICIO >= (SELECT p_from FROM params)
+    AND v.FECHAYHORADEINICIO <  (SELECT p_to FROM params)
+),
+viaje_pallet AS (
+  SELECT
+    m.division,
+    m.CODIGO AS CODIGODEVIAJE,
+    c.NUMERODEPALLET AS PALLET_ID,
+    p.TIPO
+  FROM base m
+  JOIN TR_CARGAS c
+    ON m.CODIGO = c.CODIGODEVIAJE
+  JOIN TR_PALLET p
+    ON c.NUMERODEPALLET = p.NUMERO
+),
+no_picking AS (
+  SELECT *
+  FROM viaje_pallet
+  WHERE UPPER(TIPO) NOT IN ('PALLET DE PICKING','PALLET DE PICKING (CONSOLIDADO)')
+)
+SELECT
+  CASE division
+    WHEN 1 THEN 'SECOS'
+    WHEN 2 THEN 'REFRIGERADOS'
+  END AS ALMACEN,
+  COUNT(DISTINCT PALLET_ID) AS PALLETS_TOTALES_PLANIFICADOS,
+  COUNT(DISTINCT CODIGODEVIAJE) AS VIAJES_PLANIFICADOS
+FROM no_picking
+WHERE division IN (1, 2)
+GROUP BY CASE division
+  WHEN 1 THEN 'SECOS'
+  WHEN 2 THEN 'REFRIGERADOS'
+END
+"""
+
+
+def query_productive_db_daily_spc_plan(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_SPC_PLAN,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+QUERY_DAILY_CLARK_REAL = """
+WITH prm AS (
+  SELECT
+    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
+    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to,
+    15 AS tol_min
+  FROM dual
+),
+mdiv AS (
+  SELECT
+    s.CREFEREN,
+    d.CDIVISIO
+  FROM f602asec s
+  JOIN F601SECT d
+    ON d.CNSECTOR = s.CNSECTOR
+),
+leg AS (
+  SELECT DISTINCT h.COPECREA
+  FROM f132hist h
+  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
+    AND h.FCREAREG <  (SELECT p_to FROM prm)
+    AND h.CDESCRIP IN (
+      'GUARADO PALETS ENTRADA',
+      'EXTRACCION DE REAPROS',
+      'EXTRACCION TRASPASOS',
+      'SURTIDO P.COMPLETOS'
+    )
+),
+bas AS (
+  SELECT
+    h.COPECREA,
+    h.FCREAREG,
+    h.CDESCRIP,
+    h.QCANTIDA,
+    h.QPESOREG,
+    h.CZONAORI,
+    h.CUBIORIG,
+    h.CNUPALET,
+    h.CREFEREN,
+    pv.TURNO AS tur_pv
+  FROM f132hist h
+  JOIN leg l
+    ON l.COPECREA = h.COPECREA
+  LEFT JOIN PV_DIA_LABORAL pv
+    ON TO_CHAR(pv.LEGAJO) = TO_CHAR(h.COPECREA)
+   AND pv.FECHA = TO_NUMBER(TO_CHAR(h.FCREAREG,'YYYYMMDD'))
+  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
+    AND h.FCREAREG <  (SELECT p_to FROM prm)
+),
+enr AS (
+  SELECT
+    b.COPECREA,
+    b.FCREAREG,
+    b.CDESCRIP,
+    b.QCANTIDA,
+    b.QPESOREG,
+    b.CZONAORI,
+    b.CUBIORIG,
+    b.CNUPALET,
+    b.CREFEREN,
+    b.tur_pv,
+    CASE
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '060000'
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000' THEN 'TM'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '140000'
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000' THEN 'TT'
+      ELSE 'TN'
+    END AS tur_real,
+    CASE
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('06:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '060000'
+       AND b.tur_pv = 1 THEN 'TM'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('14:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000'
+       AND b.tur_pv = 2 THEN 'TT'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('22:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000'
+       AND b.tur_pv = 3 THEN 'TN'
+      ELSE
+        CASE
+          WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '060000'
+           AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000' THEN 'TM'
+          WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '140000'
+           AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000' THEN 'TT'
+          ELSE 'TN'
+        END
+    END AS turno,
+    m.CDIVISIO AS division
+  FROM bas b
+  LEFT JOIN mdiv m
+    ON m.CREFEREN = b.CREFEREN
+),
+enr2 AS (
+  SELECT
+    e.*,
+    CASE
+      WHEN e.turno = 'TM'
+       AND TO_CHAR(e.FCREAREG,'HH24MISS') < '060000'
+      THEN TRUNC(e.FCREAREG)
+      ELSE TRUNC(e.FCREAREG - INTERVAL '6' HOUR)
+    END AS dia_op
+  FROM enr e
+),
+ven AS (
+  SELECT
+    e.COPECREA,
+    e.FCREAREG,
+    e.CDESCRIP,
+    e.QCANTIDA,
+    e.QPESOREG,
+    e.CZONAORI,
+    e.CUBIORIG,
+    e.CNUPALET,
+    e.CREFEREN,
+    e.turno,
+    e.dia_op,
+    e.division
+  FROM enr2 e
+  WHERE e.FCREAREG >= (SELECT p_from FROM prm)
+    AND e.FCREAREG <  (SELECT p_to FROM prm)
+),
+mapv AS (
+  SELECT
+    v.*,
+    CASE
+      WHEN TO_CHAR(v.dia_op, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH') IN ('FRI','SAT','SUN')
+      THEN TRUNC(NEXT_DAY(v.dia_op, 'LUNES'))
+      ELSE v.dia_op + 1
+    END AS dia_daily
+  FROM ven v
+),
+seq AS (
+  SELECT
+    m.*,
+    LAG(m.FCREAREG) OVER (
+      PARTITION BY m.COPECREA, m.dia_op, m.turno
+      ORDER BY m.FCREAREG, m.CDESCRIP, m.CNUPALET, m.CREFEREN
+    ) AS f_prev_turno
+  FROM mapv m
+),
+dur AS (
+  SELECT
+    s.*,
+    CASE
+      WHEN s.f_prev_turno IS NULL THEN 0
+      ELSE (s.FCREAREG - s.f_prev_turno) * 86400
+    END AS dur_s_turno
+  FROM seq s
+),
+clk AS (
+  SELECT
+    d.COPECREA,
+    d.FCREAREG,
+    d.CDESCRIP,
+    d.CNUPALET,
+    d.turno,
+    d.dia_op,
+    d.dia_daily,
+    d.division,
+    d.dur_s_turno
+  FROM dur d
+  WHERE d.CDESCRIP IN (
+    'GUARADO PALETS ENTRADA',
+    'EXTRACCION DE REAPROS',
+    'EXTRACCION TRASPASOS',
+    'SURTIDO P.COMPLETOS'
+  )
+),
+agt AS (
+  SELECT
+    m.dia_op,
+    m.dia_daily,
+    m.turno,
+    m.COPECREA,
+    m.division,
+    COUNT(m.CNUPALET) AS pallets_totales,
+    COUNT(DISTINCT m.CNUPALET) AS pallets_distintos,
+    SUM(m.dur_s_turno) / 3600 AS hs_clark_total
+  FROM clk m
+  GROUP BY
+    m.dia_op,
+    m.dia_daily,
+    m.turno,
+    m.COPECREA,
+    m.division
+)
+SELECT
+  CASE division
+    WHEN 1 THEN 'SECOS'
+    WHEN 2 THEN 'REFRIGERADOS'
+    WHEN 6 THEN 'NOA'
+  END AS ALMACEN,
+  COUNT(DISTINCT COPECREA) AS LEGAJOS,
+  SUM(pallets_totales) AS PALLETS,
+  SUM(pallets_distintos) AS PALLETS_DISTINTOS,
+  ROUND(SUM(pallets_totales) / COUNT(DISTINCT COPECREA), 2) AS PRODUCCION
+FROM agt
+WHERE division IN (1, 2, 6)
+GROUP BY CASE division
+  WHEN 1 THEN 'SECOS'
+  WHEN 2 THEN 'REFRIGERADOS'
+  WHEN 6 THEN 'NOA'
+END
+"""
+
+
+def query_productive_db_daily_clark_real(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_CLARK_REAL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
 def query_productive_db_historia_productividad_legajo(fecha_desde: str, fecha_hasta: str, legajo: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_HISTORIA_PRODUCTIVIDAD_LEGAJO,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
         legajo=legajo,
+    )
+
+
+def query_productive_db_historia_productividad_bulk(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_HISTORIA_PRODUCTIVIDAD_BULK,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
     )
 
 
@@ -1608,6 +2114,12 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     ):
         query_key = "historia_productividad_legajo"
     elif (
+        "PV_LIQUIDAC_DIA_DET2" in normalized_query
+        and "SUM(B.PROD_REAL) AS PRODUCTIVIDAD" in normalized_query
+        and "ID_DE_UNIDAD_DE_PRODUCCION AS TIPO" in normalized_query
+    ):
+        query_key = "historia_productividad_bulk"
+    elif (
         "PV_LIQUIDAC_DIA_DET3" in normalized_query
         and "TIEMPO_EXCEDIDO_EN_SEGUNDOS" in normalized_query
     ):
@@ -1623,6 +2135,43 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         and "CDESCRIP AS OPERACION" in normalized_query
     ):
         query_key = "historia_actividad_operaciones"
+    elif (
+        "F132HIST" in normalized_query
+        and "H.CDESCRIP = 'PICKING'" in normalized_query
+        and "SUM(QCANTIDA) AS BULTOS" in normalized_query
+    ):
+        query_key = "daily_picking_real"
+    elif (
+        "F922TRAF" in normalized_query
+        and "COUNT(DISTINCT HOJARUTA) AS VIAJES" in normalized_query
+        and "T.CALMACEN IN ('093','93')" in normalized_query
+    ):
+        query_key = "daily_despacho_real"
+    elif (
+        "TR_DETALLE_DE_PALLET_NEW" in normalized_query
+        and "BULTOS_PLANIFICADOS" in normalized_query
+        and "PALLET DE PICKING" in normalized_query
+    ):
+        query_key = "daily_picking_plan"
+    elif (
+        "TR_VIAJE" in normalized_query
+        and "VIAJES_PLANIFICADOS" in normalized_query
+        and "CODIGODETIPODEDARSENA" in normalized_query
+        and "NO_PICKING" in normalized_query
+    ):
+        query_key = "daily_spc_plan"
+    elif (
+        "TR_VIAJE" in normalized_query
+        and "VIAJES_PLANIFICADOS" in normalized_query
+        and "CODIGODETIPODEDARSENA" in normalized_query
+    ):
+        query_key = "daily_despacho_plan"
+    elif (
+        "F601SECT" in normalized_query
+        and "GUARADO PALETS ENTRADA" in normalized_query
+        and "PALLETS_DISTINTOS" in normalized_query
+    ):
+        query_key = "daily_clark_real"
     elif (
         "F132HIST_HIST" in normalized_query
         and "SOURCE_TABLE" in normalized_query

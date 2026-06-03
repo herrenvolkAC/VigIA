@@ -273,8 +273,11 @@ document.getElementById('legajo-q').addEventListener('keydown',e=>{ if(e.key==='
   try{
     await requireAuth();
     document.getElementById('user-label').textContent=`${authUser.display_name||authUser.username} - ${authUser.role||''}`;
-    const today=localDate(); document.getElementById('fecha-hasta').value=today; document.getElementById('fecha-desde').value='2026-01-01';
-    const params=new URLSearchParams(location.search); if(params.get('legajo')){ selectedLegajo=params.get('legajo'); document.getElementById('legajo-q').value=selectedLegajo; await loadHistoria(); }
+    const today=localDate();
+    const params=new URLSearchParams(location.search);
+    document.getElementById('fecha-hasta').value=params.get('fecha_hasta')||today;
+    document.getElementById('fecha-desde').value=params.get('fecha_desde')||'2026-01-01';
+    if(params.get('legajo')){ selectedLegajo=params.get('legajo'); document.getElementById('legajo-q').value=selectedLegajo; await loadHistoria(); }
   }catch(err){ if(err.message!=='redirect') setStatus(err.message||'No se pudo iniciar.', 'error'); }
 })();
 </script>

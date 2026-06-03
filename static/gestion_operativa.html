@@ -138,7 +138,7 @@
     .daily-hero-title{font-size:24px;line-height:1.1;font-weight:700;color:var(--ink);margin:4px 0 7px}
     .daily-hero-sub{font-size:12px;color:var(--ink-soft)}
     .daily-save-state{min-width:250px;border:1px solid var(--rule);padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:#F8FAF7}
-    .daily-toolbar{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(150px,.8fr) minmax(130px,.7fr) minmax(180px,1fr) auto auto auto minmax(210px,1fr);gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px;margin-bottom:14px}
+    .daily-toolbar{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(150px,.8fr) minmax(130px,.7fr) minmax(180px,1fr) auto auto auto auto minmax(210px,1fr);gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px;margin-bottom:14px}
     .daily-form{display:block}
     .daily-group{background:var(--panel);border:1px solid var(--rule);border-radius:0;margin-bottom:12px;overflow:hidden}
     .daily-group-head{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#F6F8F5;border-bottom:1px solid var(--rule);padding:9px 12px}
@@ -203,6 +203,9 @@
     .section{overflow:hidden;margin-bottom:14px}
     .section-head{padding:9px 12px;border-bottom:1px solid var(--rule);background:#F6F8F5}
     .section-title,.chart-title,.story-title,.ai-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+    .chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+    .chart-action{height:30px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;justify-content:center;padding:0 10px;text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+    .chart-action:hover{background:var(--green);border-color:var(--green);color:#fff}
     .chart-subtitle{font-size:11px;line-height:1.35;color:var(--ink-soft);margin:6px 0 10px;max-width:760px}
     .section-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green)}
     table{min-width:1120px;border-collapse:collapse;background:var(--panel)}
@@ -236,6 +239,28 @@
     .legend-item{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}
     .legend-swatch{border-radius:0}
     .chart-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}
+    .matrix-wrap{width:100%;overflow:auto;border:1px solid var(--rule);background:#fff}
+    .matrix-svg{display:block;min-width:100%}
+    .matrix-cell{cursor:pointer}
+    .matrix-label{font-family:'IBM Plex Mono',monospace;font-size:8px;fill:var(--ink-soft)}
+    .matrix-date{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--ink-soft)}
+    .legajo-line{fill:none;stroke-width:1.35;opacity:.58;cursor:pointer}
+    .legajo-line:hover{opacity:1;stroke-width:2.6}
+    .legajo-point{cursor:pointer;opacity:.78}
+    .legajo-point:hover{opacity:1}
+    .rank-toolbar{display:flex;align-items:center;gap:8px;margin:8px 0 12px}
+    .rank-toggle{height:30px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:0 10px;cursor:pointer}
+    .rank-toggle.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+    .rank-bar{cursor:pointer;opacity:.86}
+    .rank-bar:hover{opacity:1}
+    .rank-bar.selected{stroke:var(--ink);stroke-width:2}
+    .sector-checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;max-height:158px;overflow:auto;border:1px solid var(--rule);background:var(--panel);padding:10px}
+    .sector-check{display:flex;align-items:center;gap:8px;min-height:28px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+    .sector-check input{width:16px;height:16px;accent-color:var(--green)}
+    .sector-check strong{font-weight:600;color:var(--ink)}
+    .wide-field{grid-column:span 3}
+    .source-banner{border:1px solid var(--blue);border-left:4px solid var(--blue);background:#EEF6FF;color:var(--ink);padding:10px 12px;margin:0 0 14px;font-size:12px;line-height:1.45}
+    .source-banner strong{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:3px}
     .ai-panel{padding:12px;margin-bottom:14px;border-top:3px solid var(--red)}
     .ai-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
     .ai-help{width:28px;height:28px;min-height:28px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600}
@@ -302,6 +327,7 @@
     <nav class="gestion-tabs" aria-label="Módulos">
       <button class="gestion-tab active" id="tab-cambios" type="button" onclick="setMainTab('cambios')">Cambio de almacenes</button>
       <button class="gestion-tab" id="tab-productividad" type="button" onclick="setMainTab('productividad')">Analisis de productividad</button>
+      <button class="gestion-tab" id="tab-legajos" type="button" onclick="setMainTab('legajos')">Analisis de Legajos</button>
       <button class="gestion-tab" id="tab-daily" type="button" onclick="setMainTab('daily')">Carga de Daily</button>
     </nav>
   </header>
@@ -421,6 +447,66 @@
     </div>
   </div>
 
+  <div class="module-panel" id="panel-legajos">
+    <div class="source-banner">
+      <strong>Fuente de productividad</strong>
+      La productividad se toma del modulo de Productividad. No es productividad calculada desde WMS/WF.
+    </div>
+    <section class="toolbar">
+      <div class="field">
+        <label for="leg-fecha-desde">Fecha inicio</label>
+        <input type="date" id="leg-fecha-desde">
+      </div>
+      <div class="field">
+        <label for="leg-fecha-hasta">Fecha fin</label>
+        <input type="date" id="leg-fecha-hasta">
+      </div>
+      <div class="field">
+        <label for="leg-dotacion">Dotacion</label>
+        <select id="leg-dotacion" onchange="onLegajosDotacionChange()">
+          <option value="ALL">Todos</option>
+          <option value="Externos">Externos</option>
+          <option value="Propios">Propios</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="leg-proveedor">Proveedor</label>
+        <select id="leg-proveedor" onchange="renderLegajosFromMemory()">
+          <option value="ALL">Todos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="leg-fecha-ingreso-desde">Ingreso desde</label>
+        <input type="date" id="leg-fecha-ingreso-desde" onchange="renderLegajosFromMemory()">
+      </div>
+      <div class="field">
+        <label for="leg-funcion">Funcion</label>
+        <select id="leg-funcion" onchange="renderLegajosFromMemory()">
+          <option value="ALL">Todas</option>
+        </select>
+      </div>
+      <button class="primary-btn" id="btn-leg-consultar" type="button" onclick="consultarAnalisisLegajos()">Consultar</button>
+      <div class="status" id="leg-status">Fuente: modulo de Productividad. No WMS/WF.</div>
+      <div class="field wide-field">
+        <label>Sectores</label>
+        <div class="sector-checks" id="leg-sector-checks">
+          <div class="empty">Cargando sectores.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chart-grid" id="leg-chart-grid"></section>
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title">Detalle por legajo</div>
+        <div class="section-count" id="leg-grid-count">0 registros</div>
+      </div>
+      <div class="table-wrap" id="leg-grid-wrap">
+        <div class="empty">Sin consulta ejecutada.</div>
+      </div>
+    </section>
+  </div>
+
   <div class="module-panel" id="panel-daily">
     <section class="daily-hero" id="daily-meta">
       <div>
@@ -458,6 +544,7 @@
         <input type="text" id="daily-plan" placeholder="Opcional" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </div>
       <button class="primary-btn" id="btn-daily-refresh" type="button" onclick="loadDailyConfig()">Actualizar</button>
+      <button class="primary-btn" id="btn-daily-auto" type="button" onclick="calcularDailyAutomatico()">Calcular Automatico</button>
       <button class="primary-btn" id="btn-daily-parametros" type="button" onclick="abrirParametrosDaily()">Parametros</button>
       <button class="primary-btn" id="btn-daily-export" type="button" onclick="exportarCsvDaily()">Exportar CSV</button>
       <div class="status" id="daily-status">Cargando configuracion Daily.</div>
@@ -502,8 +589,17 @@
   let lastProdResult = null;
   let lastProdView = null;
   let selectedProdAlmacen = 'ALL';
+  let loadingLegajos = false;
+  let legajosSectorOptions = [];
+  let legajosProveedorOptions = [];
+  let legajosFuncionOptions = [];
+  let lastLegajosRawResult = null;
+  let lastLegajosResult = null;
+  let legajosRankingMode = 'top';
+  let selectedLegajoRanking = '';
   let dailyConfig = null;
   let dailyParametros = [];
+  let dailyAutoResults = {};
   let dailyParamClave = '';
   let dailyAdminParametros = [];
 
@@ -587,7 +683,7 @@
   }
 
   function setMainTab(tab) {
-    ['cambios', 'productividad', 'daily'].forEach(id => {
+    ['cambios', 'productividad', 'legajos', 'daily'].forEach(id => {
       document.getElementById(`tab-${id}`)?.classList.toggle('active', id === tab);
       document.getElementById(`panel-${id}`)?.classList.toggle('active', id === tab);
     });
@@ -595,8 +691,9 @@
     if (title) {
       title.textContent = tab === 'productividad'
         ? 'Analisis de productividad'
-        : (tab === 'daily' ? 'Carga de Daily' : 'Cambio de almacenes');
+        : (tab === 'legajos' ? 'Analisis de Legajos' : (tab === 'daily' ? 'Carga de Daily' : 'Cambio de almacenes'));
     }
+    if (tab === 'legajos') initAnalisisLegajos();
     if (tab === 'daily' && !dailyConfig) loadDailyConfig();
   }
 
@@ -676,6 +773,24 @@
       return acc;
     }, {});
     form.innerHTML = Object.entries(groups).map(([group, params]) => renderDailyGroup(group, params)).join('');
+  }
+
+  function applyDailyAutoResultForCurrentSector() {
+    const sector = document.getElementById('daily-sector')?.value || '';
+    const results = Array.isArray(dailyAutoResults[sector])
+      ? dailyAutoResults[sector]
+      : (dailyAutoResults[sector] ? [dailyAutoResults[sector]] : []);
+    let applied = 0;
+    results.forEach(result => {
+      const input = [...document.querySelectorAll('#daily-form [data-param-id]')]
+        .find(el => el.dataset.paramId === result.id_parametro);
+      if (!input) return;
+      input.value = result.valor ?? '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      applied += 1;
+    });
+    if (applied) setDailySaveState('Automatico calculado - pendiente de guardar');
+    return applied > 0;
   }
 
   function renderDailyGroup(group, params) {
@@ -785,12 +900,54 @@
       if (!paramResp.ok) throw new Error(paramData.detail || 'No se pudieron cargar parametros.');
       dailyParametros = paramData.parametros || [];
       renderDailyParametros();
-      setDailyStatus(`${num(dailyParametros.length)} parametros listos para cargar.`);
-      setDailySaveState('Sin guardar.');
+      const applied = applyDailyAutoResultForCurrentSector();
+      setDailyStatus(`${num(dailyParametros.length)} parametros listos para cargar.${applied ? ' Productividad automatica precargada.' : ''}`);
+      if (!applied) setDailySaveState('Sin guardar.');
     } catch (err) {
       dailyParametros = [];
       renderDailyParametros();
       setDailyStatus(err.message || 'No se pudieron cargar parametros.', 'error');
+    }
+  }
+
+  async function calcularDailyAutomatico() {
+    const tipo = document.getElementById('daily-tipo')?.value || 'Operacion';
+    if (tipo !== 'Operacion') {
+      setDailyStatus('El calculo automatico inicial aplica solo a Daily Operacion.', 'error');
+      return;
+    }
+    const btn = document.getElementById('btn-daily-auto');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Calculando...';
+    }
+    setDailyStatus('Consultando Oracle para productividad automatica.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/calcular-automatico', {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo calcular automatico.');
+      dailyAutoResults = data.by_sector || {};
+      const applied = applyDailyAutoResultForCurrentSector();
+      const summary = Object.entries(dailyAutoResults)
+        .map(([sector, items]) => {
+          const values = (Array.isArray(items) ? items : [items])
+            .map(item => `${item.proceso || 'Dato'} ${num(item.valor)}`)
+            .join(', ');
+          return `${sector}: ${values}`;
+        })
+        .join(' | ');
+      setDailyStatus(`Calculo automatico listo.${summary ? ` ${summary}.` : ''}${applied ? '' : ' Cambia al sector calculado para aplicar el valor.'}`);
+      setDailySaveState('Automatico calculado - pendiente de guardar');
+    } catch (err) {
+      setDailyStatus(err.message || 'No se pudo calcular automatico.', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Calcular Automatico';
+      }
     }
   }
 
@@ -1279,6 +1436,7 @@
       const x = points.length === 1 ? width / 2 : pad.left + (index / (points.length - 1)) * (width - pad.left - pad.right);
       const y = height - pad.bottom - ((Number(point.valor || 0) / maxValue) * (height - pad.top - pad.bottom));
       const payload = encodeChartPoint({
+        context: chart.context || 'productividad',
         metric: chart.metric,
         label: chart.label,
         fecha: point.fecha,
@@ -1286,7 +1444,8 @@
         serie_tipo: seriesType || 'total',
         valor: point.valor,
       });
-      return `<circle class="${cssClass}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${color}" onclick="inspectProdChartPoint('${payload}')"><title>${escapeHtml(point.fecha || '')} · ${escapeHtml(seriesName || 'Total')}: ${escapeHtml(fmtMetric(point.valor, ''))}</title></circle>`;
+      const handler = chart.context === 'legajos' ? 'inspectLegajosChartPoint' : 'inspectProdChartPoint';
+      return `<circle class="${cssClass}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${color}" onclick="${handler}('${payload}')"><title>${escapeHtml(point.fecha || '')} · ${escapeHtml(seriesName || 'Total')}: ${escapeHtml(fmtMetric(point.valor, ''))}</title></circle>`;
     }).join('');
   }
 
@@ -1295,7 +1454,7 @@
     const width = 760;
     const height = 260;
     const pad = { top: 18, right: 24, bottom: 34, left: 46 };
-    const storeSeries = Array.isArray(chart.almacenes) ? chart.almacenes : [];
+    const storeSeries = Array.isArray(chart.almacenes) ? chart.almacenes : (Array.isArray(chart.series) ? chart.series : []);
     const allValues = [
       ...(chart.total || []).map(point => Number(point.valor || 0)),
       ...storeSeries.flatMap(series => (series.points || []).map(point => Number(point.valor || 0))),
@@ -1325,9 +1484,15 @@
       `<span class="legend-item"><span class="legend-swatch"></span>Total</span>`,
       ...storeSeries.map((series, index) => `<span class="legend-item"><span class="legend-swatch" style="background:${palette[index % palette.length]}"></span>${escapeHtml(series.almacen || series.sector || '-')}</span>`),
     ].join('');
+    const action = chart.action_href
+      ? `<a class="chart-action" href="${escapeHtml(chart.action_href)}">${escapeHtml(chart.action_label || 'Ver detalle')}</a>`
+      : '';
     return `
       <article class="chart-card ${isPrimary ? 'primary-chart' : ''}">
-        <div class="chart-title">${escapeHtml(chart.label || 'Tendencia')}</div>
+        <div class="chart-head">
+          <div class="chart-title">${escapeHtml(chart.label || 'Tendencia')}</div>
+          ${action}
+        </div>
         ${chart.description ? `<div class="chart-subtitle">${escapeHtml(chart.description)}</div>` : ''}
         <svg class="line-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(chart.label || 'Tendencia')}">
           ${gridLines}
@@ -1340,6 +1505,730 @@
         <div class="chart-note">${escapeHtml(chart.note || 'Linea negra: total consolidado. Lineas de color: almacenes. Click en un punto para ver detalle en grilla.')}</div>
       </article>
     `;
+  }
+
+  function setLegajosStatus(text, cls = '') {
+    const el = document.getElementById('leg-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `status ${cls}`.trim();
+  }
+
+  function selectedLegajosSectores() {
+    if (document.getElementById('leg-sector-all')?.checked) return [];
+    return [...document.querySelectorAll('#leg-sector-checks input[type="checkbox"]:checked')]
+      .filter(input => input.id !== 'leg-sector-all')
+      .map(input => input.value)
+      .filter(Boolean);
+  }
+
+  function renderLegajosSectorChecks() {
+    const wrap = document.getElementById('leg-sector-checks');
+    if (!wrap) return;
+    if (!legajosSectorOptions.length) {
+      wrap.innerHTML = '<div class="empty">No hay sectores cargados en legajero/personas.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <label class="sector-check"><input type="checkbox" id="leg-sector-all" checked onchange="toggleAllLegajosSectores(this.checked)"><strong>Todos</strong></label>
+      ${legajosSectorOptions.map(sector => `
+        <label class="sector-check">
+          <input type="checkbox" value="${escapeHtml(sector)}" checked onchange="syncLegajosAllCheck()">
+          <span>${escapeHtml(sector)}</span>
+        </label>
+      `).join('')}
+    `;
+  }
+
+  function toggleAllLegajosSectores(checked) {
+    document.querySelectorAll('#leg-sector-checks input[type="checkbox"]').forEach(input => {
+      input.checked = checked;
+    });
+    renderLegajosFromMemory();
+  }
+
+  function syncLegajosAllCheck() {
+    const all = document.getElementById('leg-sector-all');
+    if (!all) return;
+    const boxes = [...document.querySelectorAll('#leg-sector-checks input[type="checkbox"]')].filter(input => input.id !== 'leg-sector-all');
+    all.checked = boxes.length > 0 && boxes.every(input => input.checked);
+    renderLegajosFromMemory();
+  }
+
+  async function initAnalisisLegajos() {
+    if (!document.getElementById('leg-fecha-desde')?.value) {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(end.getDate() - 30);
+      document.getElementById('leg-fecha-desde').value = localDateValue(start);
+      document.getElementById('leg-fecha-hasta').value = localDateValue(end);
+    }
+    if (legajosSectorOptions.length) return;
+    try {
+      setLegajosStatus('Cargando sectores desde legajero local.');
+      const resp = await fetch('/api/gestion-operativa/analisis-legajos/sectores', { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudieron cargar sectores.');
+      legajosSectorOptions = Array.isArray(data.sectores) ? data.sectores : [];
+      legajosProveedorOptions = Array.isArray(data.proveedores) ? data.proveedores : [];
+      legajosFuncionOptions = Array.isArray(data.funciones) ? data.funciones : [];
+      renderLegajosSectorChecks();
+      renderLegajosProveedorOptions();
+      renderLegajosFuncionOptions();
+      setLegajosStatus('Selecciona fechas y sectores. Fuente: modulo de Productividad, no WMS/WF.');
+    } catch (err) {
+      setLegajosStatus(err.message || 'No se pudieron cargar sectores.', 'error');
+    }
+  }
+
+  function renderLegajosProveedorOptions() {
+    const select = document.getElementById('leg-proveedor');
+    if (!select) return;
+    select.innerHTML = [
+      '<option value="ALL">Todos</option>',
+      ...legajosProveedorOptions.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`),
+    ].join('');
+  }
+
+  function renderLegajosFuncionOptions() {
+    const select = document.getElementById('leg-funcion');
+    if (!select) return;
+    const current = select.value || 'ALL';
+    const funciones = [...new Set(legajosFuncionOptions.filter(Boolean))]
+      .sort((a, b) => String(a).localeCompare(String(b), 'es'));
+    select.innerHTML = [
+      '<option value="ALL">Todas</option>',
+      ...funciones.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`),
+    ].join('');
+    select.value = funciones.includes(current) ? current : 'ALL';
+  }
+
+  function onLegajosDotacionChange() {
+    const dotacion = document.getElementById('leg-dotacion')?.value || 'ALL';
+    const proveedor = document.getElementById('leg-proveedor');
+    if (!proveedor) return;
+    const disabled = dotacion === 'Propios';
+    proveedor.disabled = disabled;
+    if (disabled) proveedor.value = 'ALL';
+    renderLegajosFromMemory();
+  }
+
+  function legajosPassLocalFilters(row) {
+    const sectors = selectedLegajosSectores();
+    const dotacion = document.getElementById('leg-dotacion')?.value || 'ALL';
+    const proveedor = document.getElementById('leg-proveedor')?.value || 'ALL';
+    const fechaIngresoDesde = document.getElementById('leg-fecha-ingreso-desde')?.value || '';
+    const funcion = document.getElementById('leg-funcion')?.value || 'ALL';
+    if (sectors.length && !sectors.includes(row.sector || 'SIN SECTOR')) return false;
+    if (dotacion !== 'ALL' && (row.dotacion || '') !== dotacion) return false;
+    if (proveedor !== 'ALL' && (row.proveedor || 'SIN PROVEEDOR') !== proveedor) return false;
+    if (funcion !== 'ALL' && (row.funcion || '') !== funcion) return false;
+    if (fechaIngresoDesde) {
+      const fechaIngreso = String(row.fecha_ingreso || '').slice(0, 10);
+      if (!fechaIngreso || fechaIngreso < fechaIngresoDesde) return false;
+    }
+    return true;
+  }
+
+  function legajosFilteredRowsFromMemory() {
+    const rows = Array.isArray(lastLegajosRawResult?.grid) ? lastLegajosRawResult.grid : [];
+    return rows.filter(legajosPassLocalFilters);
+  }
+
+  function aggregateLegajosRows(rows = []) {
+    const productivity = rows.reduce((acc, row) => acc + Number(row.productividad || 0), 0);
+    const legajos = new Set(rows.map(row => row.legajo).filter(Boolean));
+    return {
+      productividad: productivity,
+      productividad_promedio: legajos.size ? productivity / legajos.size : 0,
+      operarios: legajos.size,
+      registros: rows.length,
+      sectores: new Set(rows.map(row => row.sector).filter(Boolean)).size,
+      funciones: new Set(rows.map(row => row.funcion).filter(Boolean)).size,
+      tipos: new Set(rows.map(row => row.tipo).filter(Boolean)).size,
+    };
+  }
+
+  function dateRangeFromRows(rows = []) {
+    return [...new Set(rows.map(row => row.fecha).filter(Boolean))].sort();
+  }
+
+  function buildLegajosTrendData(rows = [], dates = []) {
+    const byLegajo = new Map();
+    rows.forEach(row => {
+      const value = Number(row.productividad || 0);
+      if (!row.legajo || value <= 0) return;
+      if (!byLegajo.has(row.legajo)) byLegajo.set(row.legajo, []);
+      byLegajo.get(row.legajo).push(row);
+    });
+    const trends = [];
+    byLegajo.forEach((items, legajo) => {
+      const daily = {};
+      const funciones = new Set();
+      const tipos = new Set();
+      items.forEach(item => {
+        daily[item.fecha] = (daily[item.fecha] || 0) + Number(item.productividad || 0);
+        if (item.funcion) funciones.add(item.funcion);
+        if (item.tipo) tipos.add(item.tipo);
+      });
+      const activeDates = Object.keys(daily).filter(day => daily[day] > 0).sort();
+      if (activeDates.length < 3) return;
+      const split = Math.max(1, Math.floor(activeDates.length / 2));
+      const firstDates = activeDates.slice(0, split);
+      const lastDates = activeDates.slice(split);
+      const avg = days => days.reduce((acc, day) => acc + Number(daily[day] || 0), 0) / Math.max(days.length, 1);
+      const firstAvg = avg(firstDates);
+      const lastAvg = avg(lastDates.length ? lastDates : activeDates.slice(-split));
+      const delta = lastAvg - firstAvg;
+      const deltaPct = firstAvg ? ((lastAvg - firstAvg) / firstAvg) * 100 : null;
+      const sample = items[0] || {};
+      trends.push({
+        legajo,
+        nombre: sample.nombre || legajo,
+        sector: sample.sector || 'SIN SECTOR',
+        funciones: [...funciones].slice(0, 3),
+        tipos: [...tipos].slice(0, 3),
+        dias: activeDates.length,
+        primer_promedio: firstAvg,
+        ultimo_promedio: lastAvg,
+        delta,
+        delta_pct: deltaPct,
+        productividad_actual: daily[activeDates[activeDates.length - 1]] || 0,
+        daily: Object.fromEntries(dates.map(fecha => [fecha, Number(daily[fecha] || 0)])),
+      });
+    });
+    const improving = trends.filter(item => item.delta > 0).sort((a, b) => (b.delta_pct ?? -999999) - (a.delta_pct ?? -999999)).slice(0, 8);
+    const worsening = trends.filter(item => item.delta < 0).sort((a, b) => (a.delta_pct ?? 999999) - (b.delta_pct ?? 999999)).slice(0, 8);
+    const label = item => {
+      const name = String(item.nombre || item.legajo || '');
+      return { ...item, label: `${name.length > 24 ? name.slice(0, 24) + '...' : name} (${item.legajo})` };
+    };
+    return { improving: improving.map(label), worsening: worsening.map(label), count: trends.length };
+  }
+
+  function lineChartFromOperators(metric, label, description, dates, operators) {
+    const total = dates.map(fecha => {
+      const values = operators.map(op => Number(op.daily?.[fecha] || 0)).filter(value => value > 0);
+      return { fecha, valor: values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0 };
+    });
+    return {
+      metric,
+      label,
+      unit: '',
+      description,
+      context: 'legajos',
+      series_type: 'legajo',
+      total,
+      series: operators.slice(0, 6).map(op => ({
+        legajo: op.legajo,
+        sector: op.label,
+        almacen: op.label,
+        points: dates.map(fecha => ({ fecha, valor: Number(op.daily?.[fecha] || 0) })),
+      })),
+    };
+  }
+
+  function buildLegajosProductividadStats(rows = []) {
+    const dates = dateRangeFromRows(rows);
+    const byLegajo = new Map();
+    rows.forEach(row => {
+      if (!row.legajo || !row.fecha) return;
+      if (!byLegajo.has(row.legajo)) {
+        byLegajo.set(row.legajo, {
+          legajo: row.legajo,
+          nombre: row.nombre || row.legajo,
+          sector: row.sector || '',
+          funcion: row.funcion || '',
+          daily: {},
+        });
+      }
+      const item = byLegajo.get(row.legajo);
+      item.daily[row.fecha] = (item.daily[row.fecha] || 0) + Number(row.productividad || 0);
+    });
+    const legajos = [...byLegajo.values()]
+      .map(item => ({
+        ...item,
+        total: dates.reduce((acc, fecha) => acc + Number(item.daily[fecha] || 0), 0),
+        activeDays: dates.filter(fecha => Number(item.daily[fecha] || 0) > 0).length,
+      }))
+      .filter(item => item.total > 0)
+      .map(item => ({ ...item, promedio: item.activeDays ? item.total / item.activeDays : 0 }))
+      .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es'));
+    return { dates, legajos };
+  }
+
+  function topLegajosRanking(legajos = []) {
+    return [...legajos]
+      .sort((a, b) => legajosRankingMode === 'bottom'
+        ? a.promedio - b.promedio
+        : b.promedio - a.promedio)
+      .slice(0, 10);
+  }
+
+  function selectedLegajoFromRanking(group = []) {
+    if (selectedLegajoRanking && group.some(item => item.legajo === selectedLegajoRanking)) return selectedLegajoRanking;
+    return group[0]?.legajo || '';
+  }
+
+  function renderLegajosRankingChart(rows = []) {
+    const { dates, legajos } = buildLegajosProductividadStats(rows);
+    const group = topLegajosRanking(legajos);
+    selectedLegajoRanking = selectedLegajoFromRanking(group);
+    if (!dates.length || !group.length) {
+      return '<article class="chart-card primary-chart"><div class="chart-title">Ranking productividad promedio</div><div class="empty">Sin datos para graficar.</div></article>';
+    }
+    const width = 1200;
+    const rowH = 34;
+    const height = 58 + group.length * rowH;
+    const pad = { top: 18, right: 92, bottom: 30, left: 260 };
+    const maxValue = Math.max(...group.map(item => Number(item.promedio || 0)), 1);
+    const chartW = width - pad.left - pad.right;
+    const bars = group.map((item, index) => {
+      const y = pad.top + index * rowH + 7;
+      const barW = Math.max(2, (Number(item.promedio || 0) / maxValue) * chartW);
+      const label = `${item.nombre || item.legajo} (${item.legajo})`;
+      const shortLabel = label.length > 34 ? label.slice(0, 34) + '...' : label;
+      const payload = encodeChartPoint({ legajo: item.legajo, serie: label });
+      const selected = item.legajo === selectedLegajoRanking ? ' selected' : '';
+      return `
+        <text x="8" y="${y + 15}" class="bar-label">${escapeHtml(shortLabel)}</text>
+        <rect class="rank-bar${selected}" x="${pad.left}" y="${y}" width="${barW.toFixed(1)}" height="18" fill="${legajosRankingMode === 'bottom' ? '#C2410C' : '#0F766E'}" onclick="selectLegajoRanking('${payload}')">
+          <title>${escapeHtml(label)} - promedio ${escapeHtml(fmtMetric(item.promedio))} en ${item.activeDays} dias con actividad</title>
+        </rect>
+        <text x="${pad.left + barW + 8}" y="${y + 14}" class="bar-value">${escapeHtml(fmtMetric(item.promedio))}</text>
+      `;
+    }).join('');
+    return `
+      <article class="chart-card primary-chart">
+        <div class="chart-title">Ranking productividad promedio</div>
+        <div class="chart-subtitle">Promedio calculado solo sobre dias con actividad. Eje X: bultos/productividad promedio. Eje Y: legajos.</div>
+        <div class="rank-toolbar">
+          <button class="rank-toggle ${legajosRankingMode === 'top' ? 'active' : ''}" type="button" onclick="setLegajosRankingMode('top')">10 mejores</button>
+          <button class="rank-toggle ${legajosRankingMode === 'bottom' ? 'active' : ''}" type="button" onclick="setLegajosRankingMode('bottom')">10 peores</button>
+        </div>
+        <svg class="matrix-svg" viewBox="0 0 ${width} ${height}" width="100%" height="${height}" role="img" aria-label="Ranking productividad promedio">
+          <line class="line-axis" x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}"></line>
+          ${bars}
+        </svg>
+        <div class="chart-note">Click en una barra para ver el promedio diario del grupo y la actividad dia a dia del legajo seleccionado.</div>
+      </article>
+    `;
+  }
+
+  function renderLegajosGroupAverageChart(rows = []) {
+    const { dates, legajos } = buildLegajosProductividadStats(rows);
+    const group = topLegajosRanking(legajos);
+    if (!dates.length || !group.length) {
+      return '<article class="chart-card"><div class="chart-title">Promedio grupo 10</div><div class="empty">Sin datos para graficar.</div></article>';
+    }
+    const groupLegajos = new Set(group.map(item => item.legajo));
+    const chart = {
+      metric: 'promedio_grupo_10',
+      label: legajosRankingMode === 'bottom' ? 'Promedio diario 10 peores' : 'Promedio diario 10 mejores',
+      unit: '',
+      description: 'Promedio diario del grupo visible. Cada punto promedia solo legajos del grupo con actividad en ese dia.',
+      context: 'legajos',
+      total: dates.map(fecha => {
+        const values = group
+          .map(item => Number(item.daily?.[fecha] || 0))
+          .filter(value => value > 0);
+        return { fecha, valor: values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0 };
+      }),
+      series: [
+        {
+          sector: legajosRankingMode === 'bottom' ? '10 peores' : '10 mejores',
+          points: dates.map(fecha => {
+            const values = rows
+              .filter(row => row.fecha === fecha && groupLegajos.has(row.legajo))
+              .reduce((map, row) => {
+                map[row.legajo] = (map[row.legajo] || 0) + Number(row.productividad || 0);
+                return map;
+              }, {});
+            const daily = Object.values(values).filter(value => Number(value) > 0);
+            return { fecha, valor: daily.length ? daily.reduce((a, b) => a + b, 0) / daily.length : 0 };
+          }),
+        },
+      ],
+      note: 'Linea negra: promedio del grupo. La linea de color replica el grupo visible para facilitar lectura.',
+    };
+    return renderLineChart(chart, true);
+  }
+
+  function renderLegajosSelectedDailyChart(rows = []) {
+    const { dates, legajos } = buildLegajosProductividadStats(rows);
+    const group = topLegajosRanking(legajos);
+    selectedLegajoRanking = selectedLegajoFromRanking(group);
+    const selected = legajos.find(item => item.legajo === selectedLegajoRanking);
+    if (!dates.length || !selected) {
+      return '<article class="chart-card"><div class="chart-title">Actividad diaria legajo</div><div class="empty">Selecciona una barra del ranking.</div></article>';
+    }
+    const label = `${selected.nombre || selected.legajo} (${selected.legajo})`;
+    const fechaDesde = document.getElementById('leg-fecha-desde')?.value || '';
+    const fechaHasta = document.getElementById('leg-fecha-hasta')?.value || '';
+    const historiaParams = new URLSearchParams({ legajo: selected.legajo });
+    if (fechaDesde) historiaParams.set('fecha_desde', fechaDesde);
+    if (fechaHasta) historiaParams.set('fecha_hasta', fechaHasta);
+    const chart = {
+      metric: 'legajo_seleccionado',
+      label: 'Actividad diaria legajo seleccionado',
+      unit: '',
+      description: `${label}. Eje X: fechas. Eje Y: bultos/productividad diaria.`,
+      context: 'legajos',
+      series_type: 'legajo',
+      total: dates.map(fecha => ({ fecha, valor: Number(selected.daily?.[fecha] || 0) })),
+      series: [
+        {
+          legajo: selected.legajo,
+          sector: label,
+          almacen: label,
+          points: dates.map(fecha => ({ fecha, valor: Number(selected.daily?.[fecha] || 0) })),
+        },
+      ],
+      note: 'Se muestra un unico legajo para leer la tendencia sin ruido visual.',
+      action_label: 'Ver historia',
+      action_href: `/historia-legajo?${historiaParams.toString()}`,
+    };
+    return renderLineChart(chart, true);
+  }
+
+  function renderLegajosProductividadLines(rows = []) {
+    const { dates, legajos } = buildLegajosProductividadStats(rows);
+    if (!dates.length || !legajos.length) {
+      return '<article class="chart-card primary-chart"><div class="chart-title">Tendencia por legajo</div><div class="empty">Sin datos para graficar.</div></article>';
+    }
+    const palette = ['#0f766e','#2563eb','#c2410c','#9333ea','#ca8a04','#be123c','#15803d','#475569','#0891b2','#7c3aed'];
+    const width = Math.max(1680, 70 + dates.length * 48);
+    const height = 430;
+    const pad = { top: 20, right: 26, bottom: 42, left: 58 };
+    const maxValue = Math.max(...legajos.flatMap(item => dates.map(fecha => Number(item.daily[fecha] || 0))), 1);
+    const niceMax = maxValue * 1.12;
+    const pointXY = (value, index) => {
+      const x = dates.length === 1 ? width / 2 : pad.left + (index / Math.max(dates.length - 1, 1)) * (width - pad.left - pad.right);
+      const y = height - pad.bottom - ((Number(value || 0) / niceMax) * (height - pad.top - pad.bottom));
+      return { x, y };
+    };
+    const gridLines = [0, .25, .5, .75, 1].map(ratio => {
+      const y = pad.top + ratio * (height - pad.top - pad.bottom);
+      const label = fmtMetric(niceMax * (1 - ratio));
+      return `<line class="line-grid" x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}"></line><text x="4" y="${y + 4}" font-size="10" fill="#8f7d74">${escapeHtml(label)}</text>`;
+    }).join('');
+    const dateLabels = dates.map((date, index) => {
+      const { x } = pointXY(0, index);
+      return `<text x="${x}" y="${height - 9}" text-anchor="middle" font-size="10" fill="#8f7d74">${escapeHtml(String(date).slice(5))}</text>`;
+    }).join('');
+    const series = legajos.map((item, lineIndex) => {
+      const color = palette[lineIndex % palette.length];
+      const points = dates.map((fecha, index) => ({ fecha, value: Number(item.daily[fecha] || 0), ...pointXY(Number(item.daily[fecha] || 0), index) }));
+      const path = points.map((point, index) => `${index ? 'L' : 'M'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
+      const label = `${item.nombre} (${item.legajo})`;
+      const payloadLine = encodeChartPoint({ legajo: item.legajo, serie: label });
+      const circles = points
+        .filter(point => point.value > 0)
+        .map(point => {
+          const payload = encodeChartPoint({ fecha: point.fecha, legajo: item.legajo, serie: label, valor: point.value });
+          return `<circle class="legajo-point" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="2.6" fill="${color}" onclick="inspectLegajosMatrixPoint('${payload}')"><title>${escapeHtml(point.fecha)} · ${escapeHtml(label)}: ${escapeHtml(fmtMetric(point.value))}</title></circle>`;
+        }).join('');
+      return `<path class="legajo-line" d="${path}" stroke="${color}" onclick="inspectLegajoLine('${payloadLine}')"><title>${escapeHtml(label)} · dias ${item.activeDays} · total ${escapeHtml(fmtMetric(item.total))}</title></path>${circles}`;
+    }).join('');
+    return `
+      <article class="chart-card primary-chart">
+        <div class="chart-title">Tendencia por legajo</div>
+        <div class="chart-subtitle">Eje X: fechas. Eje Y: productividad. Cada linea representa un legajo; usa filtros para reducir ruido.</div>
+        <div class="matrix-wrap">
+          <svg class="matrix-svg" viewBox="0 0 ${width} ${height}" width="100%" height="${height}" role="img" aria-label="Tendencia por legajo">
+            ${gridLines}
+            <line class="line-axis" x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}"></line>
+            ${dateLabels}
+            ${series}
+          </svg>
+        </div>
+        <div class="chart-note">${num(legajos.length)} legajos visibles. Click en una linea para ver el legajo; click en un punto para ver fecha y legajo.</div>
+      </article>
+    `;
+  }
+
+  function renderLegajosKpis(summary = {}) {
+    const delta = summary.delta_productividad_pct;
+    const deltaText = delta === null || delta === undefined ? 'Sin comparacion' : `${delta >= 0 ? '+' : ''}${fmtMetric(delta, '%')} vs primer dia`;
+    const items = [
+      ['Prod. real', summary.productividad, 'Suma de PROD_REAL'],
+      ['Prom. legajo', summary.productividad_promedio, 'PROD_REAL promedio'],
+      ['Legajos', summary.operarios, 'Con productividad registrada'],
+      ['Sectores', summary.sectores, 'Sectores seleccionados con datos'],
+      ['Registros', summary.registros, 'Fecha, legajo, funcion y tipo'],
+      ['Con tendencia', summary.legajos_con_tendencia, 'Legajos con 3+ dias productivos'],
+      ['Funciones', summary.funciones, 'Funciones productivas'],
+      ['Tendencia', delta ?? 0, deltaText],
+    ];
+    document.getElementById('leg-kpi-grid').innerHTML = items.map(([label, value, sub]) => `
+      <article class="kpi">
+        <div class="kpi-label">${escapeHtml(label)}</div>
+        <div class="kpi-value">${fmtMetric(value)}</div>
+        <div class="kpi-sub">${escapeHtml(sub)}</div>
+      </article>
+    `).join('');
+  }
+
+  function renderLegajoDateMatrix(rows = []) {
+    const dates = dateRangeFromRows(rows);
+    const byLegajo = new Map();
+    rows.forEach(row => {
+      if (!row.legajo) return;
+      if (!byLegajo.has(row.legajo)) {
+        byLegajo.set(row.legajo, { legajo: row.legajo, nombre: row.nombre || row.legajo, sector: row.sector || '', daily: {} });
+      }
+      const item = byLegajo.get(row.legajo);
+      item.daily[row.fecha] = (item.daily[row.fecha] || 0) + Number(row.productividad || 0);
+    });
+    const legajos = [...byLegajo.values()].sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es'));
+    if (!dates.length || !legajos.length) {
+      return '<article class="chart-card primary-chart"><div class="chart-title">Mapa fecha por legajo</div><div class="empty">Sin datos para graficar.</div></article>';
+    }
+    const left = 190;
+    const top = 34;
+    const cellW = Math.max(20, Math.min(44, Math.floor(780 / Math.max(dates.length, 1))));
+    const rowH = legajos.length > 220 ? 8 : (legajos.length > 120 ? 10 : 13);
+    const width = left + dates.length * cellW + 24;
+    const height = top + legajos.length * rowH + 28;
+    const max = Math.max(...legajos.flatMap(item => dates.map(date => Number(item.daily[date] || 0))), 1);
+    const colorFor = value => {
+      if (!value) return '#F6F8F5';
+      const ratio = Math.min(1, value / max);
+      const light = Math.round(92 - ratio * 52);
+      return `hsl(148, 48%, ${light}%)`;
+    };
+    const dateLabels = dates.map((date, i) => {
+      const x = left + i * cellW + cellW / 2;
+      return `<text class="matrix-date" x="${x}" y="22" text-anchor="middle" transform="rotate(-45 ${x} 22)">${escapeHtml(String(date).slice(5))}</text>`;
+    }).join('');
+    const rowsSvg = legajos.map((item, rowIndex) => {
+      const y = top + rowIndex * rowH;
+      const name = `${item.nombre || item.legajo} (${item.legajo})`;
+      const label = name.length > 31 ? name.slice(0, 31) + '...' : name;
+      const cells = dates.map((date, colIndex) => {
+        const value = Number(item.daily[date] || 0);
+        const x = left + colIndex * cellW;
+        const payload = encodeChartPoint({ fecha: date, legajo: item.legajo, serie: name, valor: value });
+        return `<rect class="matrix-cell" x="${x}" y="${y}" width="${Math.max(1, cellW - 1)}" height="${Math.max(1, rowH - 1)}" fill="${colorFor(value)}" onclick="inspectLegajosMatrixPoint('${payload}')"><title>${escapeHtml(date)} · ${escapeHtml(name)}: ${escapeHtml(fmtMetric(value))}</title></rect>`;
+      }).join('');
+      return `<text class="matrix-label" x="8" y="${y + rowH - 2}">${escapeHtml(label)}</text>${cells}`;
+    }).join('');
+    return `
+      <article class="chart-card primary-chart">
+        <div class="chart-title">Mapa fecha por legajo</div>
+        <div class="chart-subtitle">Eje X: fechas. Eje Y: legajos. La intensidad indica PROD_REAL del modulo de Productividad.</div>
+        <div class="matrix-wrap">
+          <svg class="matrix-svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Mapa fecha por legajo">
+            ${dateLabels}
+            ${rowsSvg}
+          </svg>
+        </div>
+        <div class="chart-note">Click en una celda para ver el detalle del legajo en esa fecha.</div>
+      </article>
+    `;
+  }
+
+  function renderLegajosCharts(charts = []) {
+    document.getElementById('leg-chart-grid').innerHTML = charts.length
+      ? charts.map(chart => typeof chart === 'string' ? chart : renderLineChart({ ...chart, context: 'legajos' }, chart.metric === 'legajo_matrix')).join('')
+      : '<article class="chart-card"><div class="chart-title">Productividad</div><div class="empty">Sin datos para graficar.</div></article>';
+  }
+
+  function renderLegajosTrendStrip(trends = {}) {
+    const improving = Array.isArray(trends.improving) ? trends.improving : [];
+    const worsening = Array.isArray(trends.worsening) ? trends.worsening : [];
+    const cards = [
+      ['Mayor mejora', improving[0], 'delta_pct', 'Comparacion entre inicio y cierre del rango'],
+      ['Segunda mejora', improving[1], 'delta_pct', 'Otro legajo con tendencia positiva'],
+      ['Mayor caida', worsening[0], 'delta_pct', 'Comparacion entre inicio y cierre del rango'],
+      ['Segunda caida', worsening[1], 'delta_pct', 'Otro legajo con tendencia negativa'],
+    ];
+    document.getElementById('leg-trend-strip').innerHTML = cards.map(([title, item, field, sub]) => {
+      if (!item) return `<article class="insight"><strong>${escapeHtml(title)}: Sin datos</strong><span>${escapeHtml(sub)}</span></article>`;
+      const pct = item[field];
+      const value = pct === null || pct === undefined ? fmtMetric(item.delta) : `${pct >= 0 ? '+' : ''}${fmtMetric(pct, '%')}`;
+      return `
+        <article class="insight">
+          <strong>${escapeHtml(title)}: ${escapeHtml(item.nombre || item.legajo)} · ${escapeHtml(value)}</strong>
+          <span>${escapeHtml(item.legajo || '')} · ${escapeHtml(item.sector || '')} · ${escapeHtml(sub)}</span>
+        </article>
+      `;
+    }).join('');
+  }
+
+  function renderLegajosGrid(rows = []) {
+    document.getElementById('leg-grid-count').textContent = `${num(rows.length)} registros`;
+    const wrap = document.getElementById('leg-grid-wrap');
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty">No hay registros del modulo de Productividad para el filtro.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Sector</th>
+            <th>Legajo</th>
+            <th>Funcion</th>
+            <th>Funcion prod.</th>
+            <th>Dotacion</th>
+            <th>Proveedor</th>
+            <th>Ingreso</th>
+            <th>Antiguedad</th>
+            <th>Productividad</th>
+            <th>Tipo</th>
+            <th>Fuente</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `
+            <tr>
+              <td>${escapeHtml(row.fecha || '-')}</td>
+              <td>${escapeHtml(row.sector || '-')}</td>
+              <td><strong>${escapeHtml(row.nombre || row.legajo || '-')}</strong><br><span class="muted">${escapeHtml(row.legajo || '')}</span></td>
+              <td>${escapeHtml(row.funcion || '-')}<br><span class="muted">${escapeHtml(row.posicion || '')}</span></td>
+              <td>${escapeHtml(row.funcion_productiva || '-')}</td>
+              <td>${escapeHtml(row.dotacion || '-')}</td>
+              <td>${escapeHtml(row.proveedor || '-')}</td>
+              <td>${escapeHtml(row.fecha_ingreso || '-')}</td>
+              <td>${row.antiguedad_anios === null || row.antiguedad_anios === undefined ? '-' : fmtMetric(row.antiguedad_anios, ' anios')}</td>
+              <td>${fmtMetric(row.productividad)}</td>
+              <td>${escapeHtml(row.tipo || '-')}</td>
+              <td><span class="chip baja">Modulo Productividad</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderLegajosResult(data) {
+    lastLegajosRawResult = data;
+    selectedLegajoRanking = '';
+    renderLegajosFuncionOptions();
+    renderLegajosFromMemory();
+  }
+
+  function renderLegajosFromMemory() {
+    if (!lastLegajosRawResult) return;
+    const rows = legajosFilteredRowsFromMemory();
+    const dates = dateRangeFromRows(rows);
+    const trends = buildLegajosTrendData(rows, dates);
+    const charts = [
+      renderLegajosRankingChart(rows),
+      renderLegajosSelectedDailyChart(rows),
+    ];
+    lastLegajosResult = {
+      ...lastLegajosRawResult,
+      grid: rows,
+      charts,
+      summary: { ...aggregateLegajosRows(rows), legajos_con_tendencia: trends.count },
+      operator_trends: trends,
+      filtered_rows_count: rows.length,
+    };
+    renderLegajosCharts(charts);
+    renderLegajosGrid(rows);
+    const sourceRows = Number(lastLegajosRawResult.raw_rows_count || lastLegajosRawResult.grid?.length || 0);
+    setLegajosStatus(`Dataset en memoria: ${num(sourceRows)} filas; filtro actual: ${num(rows.length)}. Cambiar filtros no consulta nuevamente.`);
+  }
+
+  function setLegajosRankingMode(mode) {
+    legajosRankingMode = mode === 'bottom' ? 'bottom' : 'top';
+    selectedLegajoRanking = '';
+    renderLegajosFromMemory();
+  }
+
+  function selectLegajoRanking(encodedPayload) {
+    let payload = {};
+    try {
+      payload = JSON.parse(decodeURIComponent(encodedPayload || ''));
+    } catch (_) {
+      return;
+    }
+    selectedLegajoRanking = payload.legajo || '';
+    renderLegajosFromMemory();
+    const rows = Array.isArray(lastLegajosResult?.grid) ? lastLegajosResult.grid : [];
+    const filtered = rows.filter(row => row.legajo === selectedLegajoRanking);
+    renderLegajosGrid(filtered);
+    setLegajosStatus(`Legajo seleccionado ${payload.serie || selectedLegajoRanking}: ${num(filtered.length)} registros.`);
+  }
+
+  function inspectLegajosChartPoint(encodedPayload) {
+    let payload = {};
+    try {
+      payload = JSON.parse(decodeURIComponent(encodedPayload || ''));
+    } catch (_) {
+      return;
+    }
+    const rows = Array.isArray(lastLegajosResult?.grid) ? lastLegajosResult.grid : [];
+    const fecha = payload.fecha || '';
+    const serie = payload.serie || 'Total';
+    let filtered = rows.filter(row => row.fecha === fecha);
+    if ((payload.serie_tipo || '') === 'sector' && serie !== 'Total') {
+      filtered = filtered.filter(row => (row.sector || 'SIN SECTOR') === serie);
+    }
+    if ((payload.serie_tipo || '') === 'legajo' && serie !== 'Total') {
+      const match = String(serie).match(/\(([^)]+)\)\s*$/);
+      const legajo = match ? match[1] : serie;
+      filtered = filtered.filter(row => (row.legajo || '') === legajo);
+    }
+    renderLegajosGrid(filtered);
+    setLegajosStatus(`${payload.label || 'Grafico'} · ${fecha} · ${serie}: ${num(filtered.length)} legajos.`);
+  }
+
+  function inspectLegajosMatrixPoint(encodedPayload) {
+    let payload = {};
+    try {
+      payload = JSON.parse(decodeURIComponent(encodedPayload || ''));
+    } catch (_) {
+      return;
+    }
+    const rows = Array.isArray(lastLegajosResult?.grid) ? lastLegajosResult.grid : [];
+    const filtered = rows.filter(row => row.fecha === payload.fecha && row.legajo === payload.legajo);
+    renderLegajosGrid(filtered);
+    setLegajosStatus(`Mapa fecha x legajo · ${payload.fecha} · ${payload.serie}: ${num(filtered.length)} registros.`);
+  }
+
+  function inspectLegajoLine(encodedPayload) {
+    let payload = {};
+    try {
+      payload = JSON.parse(decodeURIComponent(encodedPayload || ''));
+    } catch (_) {
+      return;
+    }
+    const rows = Array.isArray(lastLegajosResult?.grid) ? lastLegajosResult.grid : [];
+    const filtered = rows.filter(row => row.legajo === payload.legajo);
+    renderLegajosGrid(filtered);
+    setLegajosStatus(`Tendencia por legajo · ${payload.serie}: ${num(filtered.length)} registros.`);
+  }
+
+  async function consultarAnalisisLegajos() {
+    if (loadingLegajos) return;
+    const fechaDesde = document.getElementById('leg-fecha-desde')?.value;
+    const fechaHasta = document.getElementById('leg-fecha-hasta')?.value;
+    if (!fechaDesde || !fechaHasta) {
+      setLegajosStatus('Selecciona fecha inicio y fin.', 'error');
+      return;
+    }
+    loadingLegajos = true;
+    document.getElementById('btn-leg-consultar').disabled = true;
+    setLegajosStatus('Consultando modulo de Productividad. Los filtros se aplican luego en memoria.');
+    try {
+      const params = new URLSearchParams({
+        fecha_desde: fechaDesde,
+        fecha_hasta: fechaHasta,
+      });
+      const resp = await fetch(`/api/gestion-operativa/analisis-legajos?${params.toString()}`, { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo consultar analisis de legajos.');
+      renderLegajosResult(data);
+    } catch (err) {
+      setLegajosStatus(err.message || 'No se pudo consultar analisis de legajos.', 'error');
+    } finally {
+      loadingLegajos = false;
+      document.getElementById('btn-leg-consultar').disabled = false;
+    }
   }
 
   function renderProdGrid(rows = [], context = '') {

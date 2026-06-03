@@ -36,7 +36,14 @@ from routers.productividad_analisis import (
     _build_picking_idle_analysis,
     _turn_label,
     _turn_range_for_date,
+    query_productive_db_daily_clark_real,
+    query_productive_db_daily_despacho_plan,
+    query_productive_db_daily_despacho_real,
+    query_productive_db_daily_picking_plan,
+    query_productive_db_daily_picking_real,
+    query_productive_db_daily_spc_plan,
     query_productive_db_gestion_productividad_picking,
+    query_productive_db_historia_productividad_bulk,
     query_productive_db_picking_tiempos_muertos,
 )
 
@@ -66,6 +73,37 @@ class DailyParametrosUpdateRequest(BaseModel):
 
 class DailyExportRequest(BaseModel):
     clave: str
+
+
+DAILY_PICKING_REAL_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_PROD_PICKING_NOA_6A6",
+    "Secos": "OP_PROD_PICKING_SECOS_6A6",
+    "Refrigerados": "OP_PROD_PICKING_REFRI_6A6",
+}
+DAILY_DESPACHO_REAL_PARAM_IDS_BY_SECTOR = {
+    "Secos": "OP_PROD_DESPACHO_SECOS_6A6",
+    "Refrigerados": "OP_PROD_DESPACHO_REFRI_6A6",
+}
+DAILY_CLARK_REAL_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_PROD_CLARK_NOA_6A6",
+    "Secos": "OP_PROD_CLARK_SECOS_6A6",
+    "Refrigerados": "OP_PROD_CLARK_REFRI_6A6",
+}
+DAILY_PICKING_PLAN_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_CUMP_PICKING_PLAN_6A6",
+    "Secos": "OP_CUMP_PICKING_PLAN_6A6",
+    "Refrigerados": "OP_CUMP_PICKING_PLAN_6A6",
+}
+DAILY_DESPACHO_PLAN_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_CUMP_DESPACHO_PLAN_6A6",
+    "Secos": "OP_CUMP_DESPACHO_PLAN_6A6",
+    "Refrigerados": "OP_CUMP_DESPACHO_PLAN_6A6",
+}
+DAILY_SPC_PLAN_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_CUMP_SPC_PLAN_6A6",
+    "Secos": "OP_CUMP_SPC_PLAN_6A6",
+    "Refrigerados": "OP_CUMP_SPC_PLAN_6A6",
+}
 
 
 SHIFT_LABELS = {"manana": "Mañana", "tarde": "Tarde", "noche": "Noche"}
@@ -99,6 +137,18 @@ def _parse_dt(value: Any) -> datetime | None:
 
 def _fmt_dt(value: datetime | None) -> str | None:
     return value.strftime("%Y-%m-%d %H:%M:%S") if value else None
+
+
+def _fmt_daily_oracle_dt(value: Any) -> str:
+    if isinstance(value, datetime):
+        return value.strftime("%Y-%m-%d %H:%M:%S")
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    try:
+        return datetime.fromisoformat(text).strftime("%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return text.replace("T", " ")[:19]
 
 
 def _to_float(value: Any) -> float:
@@ -151,6 +201,427 @@ async def _load_latest_legajero_profiles() -> dict[str, dict[str, str]]:
         }
         for row in rows
         if _norm_legajo(row["legajo"])
+    }
+
+
+def _date_only(value: Any) -> str:
+    dt = _parse_dt(value)
+    if dt:
+        return dt.strftime("%Y-%m-%d")
+    text = str(value or "").strip()
+    if len(text) >= 8 and text[:8].isdigit():
+        return f"{text[:4]}-{text[4:6]}-{text[6:8]}"
+    return text[:10]
+
+
+def _pct_change(current: float, previous: float) -> float | None:
+    if previous == 0:
+        return None
+    return round(((current - previous) / previous) * 100, 2)
+
+
+def _legajos_chart(
+    metric: str,
+    label: str,
+    unit: str,
+    description: str,
+    by_date_sector: dict[tuple[str, str], dict[str, Any]],
+    totals_by_date: dict[str, dict[str, Any]],
+    dates: list[str],
+    sectors: list[str],
+) -> dict[str, Any]:
+    return {
+        "metric": metric,
+        "label": label,
+        "unit": unit,
+        "description": description,
+        "total": [{"fecha": fecha, "valor": round(float(totals_by_date.get(fecha, {}).get(metric) or 0), 2)} for fecha in dates],
+        "series_type": "sector",
+        "series": [
+            {
+                "sector": sector,
+                "points": [
+                    {"fecha": fecha, "valor": round(float(by_date_sector.get((fecha, sector), {}).get(metric) or 0), 2)}
+                    for fecha in dates
+                ],
+            }
+            for sector in sectors
+        ],
+    }
+
+
+def _legajos_operator_chart(
+    metric: str,
+    label: str,
+    unit: str,
+    description: str,
+    dates: list[str],
+    total_points: list[dict[str, Any]],
+    operators: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "metric": metric,
+        "label": label,
+        "unit": unit,
+        "description": description,
+        "total": total_points,
+        "series_type": "legajo",
+        "series": [
+            {
+                "legajo": item["legajo"],
+                "sector": item["label"],
+                "almacen": item["label"],
+                "points": [{"fecha": fecha, "valor": round(_to_float(item["daily"].get(fecha)), 2)} for fecha in dates],
+            }
+            for item in operators
+        ],
+    }
+
+
+def _build_legajos_operator_trends(rows: list[dict[str, Any]], dates: list[str], totals_by_date: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    by_legajo: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        if _to_float(row.get("productividad")) <= 0:
+            continue
+        legajo = _norm_legajo(row.get("legajo"))
+        if legajo:
+            by_legajo[legajo].append(row)
+
+    trends = []
+    for legajo, items in by_legajo.items():
+        daily: dict[str, float] = defaultdict(float)
+        funciones: set[str] = set()
+        tipos: set[str] = set()
+        for item in items:
+            daily[str(item.get("fecha") or "")] += _to_float(item.get("productividad"))
+            if item.get("funcion"):
+                funciones.add(str(item["funcion"]))
+            if item.get("tipo"):
+                tipos.add(str(item["tipo"]))
+        ordered_dates = sorted(day for day, value in daily.items() if value > 0)
+        if len(ordered_dates) < 3:
+            continue
+        split = max(1, len(ordered_dates) // 2)
+        first_dates = ordered_dates[:split]
+        last_dates = ordered_dates[split:] or ordered_dates[-split:]
+        first_avg = sum(daily[day] for day in first_dates) / len(first_dates)
+        last_avg = sum(daily[day] for day in last_dates) / len(last_dates)
+        delta = last_avg - first_avg
+        delta_pct = _pct_change(last_avg, first_avg)
+        sample = items[0]
+        trends.append(
+            {
+                "legajo": legajo,
+                "nombre": sample.get("nombre") or legajo,
+                "sector": sample.get("sector") or "SIN SECTOR",
+                "funciones": sorted(funciones)[:3],
+                "tipos": sorted(tipos)[:3],
+                "dias": len(ordered_dates),
+                "primer_promedio": round(first_avg, 2),
+                "ultimo_promedio": round(last_avg, 2),
+                "delta": round(delta, 2),
+                "delta_pct": delta_pct,
+                "productividad_actual": round(daily[ordered_dates[-1]], 2),
+                "daily": {fecha: round(daily.get(fecha, 0), 2) for fecha in dates},
+            }
+        )
+
+    improving = sorted(
+        [item for item in trends if item["delta"] > 0],
+        key=lambda item: (item["delta_pct"] if item["delta_pct"] is not None else -999999, item["delta"]),
+        reverse=True,
+    )[:8]
+    worsening = sorted(
+        [item for item in trends if item["delta"] < 0],
+        key=lambda item: (item["delta_pct"] if item["delta_pct"] is not None else 999999, item["delta"]),
+    )[:8]
+    total_points = [{"fecha": fecha, "valor": round(_to_float(totals_by_date.get(fecha, {}).get("productividad_promedio")), 2)} for fecha in dates]
+
+    def with_label(item: dict[str, Any]) -> dict[str, Any]:
+        label_name = str(item.get("nombre") or item.get("legajo") or "")
+        if len(label_name) > 24:
+            label_name = label_name[:24] + "..."
+        return {**item, "label": f"{label_name} ({item.get('legajo')})"}
+
+    return {
+        "improving": [with_label(item) for item in improving],
+        "worsening": [with_label(item) for item in worsening],
+        "charts": [
+            _legajos_operator_chart(
+                "legajos_mejoran",
+                "Legajos que mejoran",
+                "",
+                "Lineas por legajo con mayor mejora entre el inicio y el cierre del rango.",
+                dates,
+                total_points,
+                [with_label(item) for item in improving[:6]],
+            ),
+            _legajos_operator_chart(
+                "legajos_empeoran",
+                "Legajos que empeoran",
+                "",
+                "Lineas por legajo con mayor caida entre el inicio y el cierre del rango.",
+                dates,
+                total_points,
+                [with_label(item) for item in worsening[:6]],
+            ),
+        ],
+        "count": len(trends),
+    }
+
+
+async def _load_legajos_sector_options() -> list[str]:
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT DISTINCT COALESCE(NULLIF(TRIM(desc_sector_generico), ''), 'SIN SECTOR') AS sector
+            FROM rrhh_personas
+            WHERE active = 1
+            ORDER BY sector
+            """
+        ) as cur:
+            rows = await cur.fetchall()
+    sectors = [str(row["sector"] or "SIN SECTOR") for row in rows]
+    if "SIN SECTOR" not in sectors:
+        sectors.append("SIN SECTOR")
+    return sorted(sectors, key=lambda value: value.upper())
+
+
+async def _load_legajos_filter_options() -> dict[str, Any]:
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT DISTINCT COALESCE(NULLIF(TRIM(razon_social), ''), 'SIN PROVEEDOR') AS proveedor
+            FROM rrhh_personas
+            WHERE active = 1
+              AND COALESCE(NULLIF(TRIM(desc_grupo_personal), ''), '') = 'Externos'
+            ORDER BY proveedor
+            """
+        ) as cur:
+            proveedores = [str(row["proveedor"] or "SIN PROVEEDOR") for row in await cur.fetchall()]
+        async with db.execute(
+            """
+            SELECT DISTINCT COALESCE(NULLIF(TRIM(desc_funcion), ''), 'SIN FUNCION') AS funcion
+            FROM rrhh_personas
+            WHERE active = 1
+            ORDER BY funcion
+            """
+        ) as cur:
+            funciones = [str(row["funcion"] or "SIN FUNCION") for row in await cur.fetchall()]
+    return {
+        "sectores": await _load_legajos_sector_options(),
+        "dotaciones": ["Todos", "Externos", "Propios"],
+        "proveedores": proveedores,
+        "funciones": funciones,
+    }
+
+
+def _years_between(start: Any, end_date: datetime) -> float | None:
+    text = str(start or "").strip()
+    if not text:
+        return None
+    try:
+        start_dt = datetime.strptime(text[:10], "%Y-%m-%d")
+    except ValueError:
+        return None
+    return round(max((end_date.date() - start_dt.date()).days, 0) / 365.25, 2)
+
+
+def _matches_antiguedad(years: float | None, bucket: str) -> bool:
+    if not bucket or bucket == "ALL":
+        return True
+    if years is None:
+        return False
+    try:
+        low, high = [float(part) for part in bucket.split("-", 1)]
+    except ValueError:
+        return True
+    return low <= years < high
+
+
+async def _build_legajos_productividad_payload(
+    fecha_desde: str,
+    fecha_hasta: str,
+    sectores: list[str],
+    dotacion: str = "ALL",
+    proveedor: str = "ALL",
+    antiguedad: str = "ALL",
+) -> dict[str, Any]:
+    selected = [str(item).strip() for item in sectores if str(item).strip()]
+    all_sectors = await _load_legajos_sector_options()
+    sector_filter_active = bool(selected) and set(selected) != set(all_sectors)
+    dotacion = str(dotacion or "ALL").strip()
+    proveedor = str(proveedor or "ALL").strip()
+    antiguedad = str(antiguedad or "ALL").strip()
+    fecha_hasta_dt = datetime.strptime(fecha_hasta[:10], "%Y-%m-%d")
+    raw_rows = await asyncio.to_thread(
+        query_productive_db_historia_productividad_bulk,
+        fecha_desde.replace("-", "")[:8],
+        fecha_hasta.replace("-", "")[:8],
+    )
+    logger.info(
+        "[gestion-operativa:analisis-legajos] Modulo Productividad rango=%s..%s filas=%s sectores=%s",
+        fecha_desde,
+        fecha_hasta,
+        len(raw_rows),
+        ",".join(selected) if selected else "ALL",
+    )
+    legajos = {_norm_legajo(row.get("LEGAJO") or row.get("legajo")) for row in raw_rows}
+    legajos.discard("")
+    people_by_legajo: dict[str, dict[str, Any]] = {}
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        db.row_factory = aiosqlite.Row
+        if legajos:
+            placeholders = ",".join("?" for _ in legajos)
+            async with db.execute(
+                f"""
+                SELECT legajo, nombre, desc_sector_generico, desc_funcion, desc_posicion
+                     , desc_grupo_personal, proveedor, razon_social, fecha_ingreso
+                FROM rrhh_personas
+                WHERE LTRIM(legajo, '0') IN ({placeholders})
+                """,
+                tuple(legajos),
+            ) as cur:
+                people_by_legajo = {
+                    _norm_legajo(row["legajo"]): dict(row)
+                    for row in await cur.fetchall()
+                }
+
+    rows: list[dict[str, Any]] = []
+    for raw in raw_rows:
+        data = {str(key).lower(): value for key, value in raw.items()}
+        legajo = _norm_legajo(data.get("legajo"))
+        person = people_by_legajo.get(legajo, {})
+        sector = str(person.get("desc_sector_generico") or "SIN SECTOR").strip() or "SIN SECTOR"
+        grupo_personal = str(person.get("desc_grupo_personal") or "").strip() or "SIN GRUPO"
+        razon_social = str(person.get("razon_social") or "").strip() or "SIN PROVEEDOR"
+        fecha_ingreso = str(person.get("fecha_ingreso") or "").strip()
+        funcion_legajero = str(person.get("desc_funcion") or "").strip() or "SIN FUNCION"
+        funcion_productiva = str(data.get("funcion") or "").strip() or "SIN FUNCION PRODUCTIVA"
+        antiguedad_anios = _years_between(person.get("fecha_ingreso"), fecha_hasta_dt)
+        if sector_filter_active and sector not in selected:
+            continue
+        if dotacion != "ALL" and grupo_personal != dotacion:
+            continue
+        if proveedor != "ALL" and razon_social != proveedor:
+            continue
+        if not _matches_antiguedad(antiguedad_anios, antiguedad):
+            continue
+        rows.append(
+            {
+                "fecha": _date_only(data.get("fecha")),
+                "legajo": legajo,
+                "nombre": person.get("nombre") or legajo,
+                "sector": sector,
+                "funcion": funcion_legajero,
+                "funcion_productiva": funcion_productiva,
+                "posicion": str(person.get("desc_posicion") or "").strip(),
+                "dotacion": grupo_personal,
+                "proveedor": razon_social,
+                "fecha_ingreso": fecha_ingreso[:10] if fecha_ingreso else "",
+                "antiguedad_anios": antiguedad_anios,
+                "tipo": str(data.get("tipo") or "").strip(),
+                "productividad": round(_to_float(data.get("productividad")), 2),
+            }
+        )
+
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    totals_rows_by_date: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        fecha = _date_only(row.get("fecha"))
+        sector = str(row.get("sector") or "SIN SECTOR")
+        row["fecha"] = fecha
+        groups[(fecha, sector)].append(row)
+        totals_rows_by_date[fecha].append(row)
+
+    def aggregate(items: list[dict[str, Any]]) -> dict[str, Any]:
+        productividad = sum(_to_float(row.get("productividad")) for row in items)
+        operarios = len({_norm_legajo(row.get("legajo")) for row in items if _norm_legajo(row.get("legajo"))})
+        funciones = len({str(row.get("funcion") or "").strip() for row in items if str(row.get("funcion") or "").strip()})
+        tipos = len({str(row.get("tipo") or "").strip() for row in items if str(row.get("tipo") or "").strip()})
+        return {
+            "operarios": operarios,
+            "registros": len(items),
+            "funciones": funciones,
+            "tipos": tipos,
+            "productividad": round(productividad, 2),
+            "productividad_promedio": round(productividad / operarios, 2) if operarios else 0,
+        }
+
+    dates = sorted(totals_rows_by_date)
+    sectors = sorted({sector for _, sector in groups}, key=lambda value: value.upper())
+    by_date_sector = {
+        key: {"fecha": key[0], "sector": key[1], **aggregate(items)}
+        for key, items in groups.items()
+    }
+    totals_by_date = {
+        fecha: {"fecha": fecha, "sector": "TOTAL", **aggregate(items)}
+        for fecha, items in totals_rows_by_date.items()
+    }
+    summary = aggregate(rows)
+    first = totals_by_date.get(dates[0], {}) if dates else {}
+    last = totals_by_date.get(dates[-1], {}) if dates else {}
+    summary.update({
+        "dias": len(dates),
+        "sectores": len(sectors),
+        "corridas": 0,
+        "delta_productividad_pct": _pct_change(_to_float(last.get("productividad")), _to_float(first.get("productividad"))) if dates else None,
+    })
+    operator_trends = _build_legajos_operator_trends(rows, dates, totals_by_date)
+    summary["legajos_con_tendencia"] = operator_trends["count"]
+    charts = [
+        _legajos_chart("productividad", "Productividad total", "", "Suma de PROD_REAL del modulo de Productividad por dia y sector. No se calcula desde WMS/WF.", by_date_sector, totals_by_date, dates, sectors),
+        _legajos_chart("productividad_promedio", "Productividad promedio por legajo", "", "PROD_REAL promedio por legajo con productividad registrada en el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
+        _legajos_chart("operarios", "Legajos con productividad", "", "Cantidad de legajos con registros de PROD_REAL en el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
+        _legajos_chart("registros", "Registros de productividad", "", "Cantidad de combinaciones fecha, legajo, funcion y tipo devueltas por el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
+        _legajos_chart("funciones", "Funciones productivas", "", "Cantidad de funciones distintas informadas por el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
+        _legajos_chart("tipos", "Tipos de unidad", "", "Cantidad de tipos de unidad de produccion distintos informados por el modulo.", by_date_sector, totals_by_date, dates, sectors),
+        *operator_trends["charts"],
+    ]
+    grid = [
+        {
+            "fecha": row.get("fecha"),
+            "sector": row.get("sector"),
+            "legajo": row.get("legajo"),
+            "nombre": row.get("nombre"),
+            "funcion": row.get("funcion"),
+            "funcion_productiva": row.get("funcion_productiva"),
+            "posicion": row.get("posicion"),
+            "dotacion": row.get("dotacion"),
+            "proveedor": row.get("proveedor"),
+            "fecha_ingreso": row.get("fecha_ingreso"),
+            "antiguedad_anios": row.get("antiguedad_anios"),
+            "tipo": row.get("tipo"),
+            "productividad": row.get("productividad"),
+        }
+        for row in rows
+    ]
+    return {
+        "source": "modulo_productividad_pv",
+        "source_label": "Modulo de Productividad: PV_DIA_LABORAL + PV_LIQUIDAC_DIA_DET2 + PV_GRUPO_DE_FUNCIONES_CAB. No WMS/WF.",
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "raw_rows_count": len(raw_rows),
+        "filtered_rows_count": len(rows),
+        "sector_filter_active": sector_filter_active,
+        "sector_options": all_sectors,
+        "selected_sectors": selected,
+        "selected_filters": {"dotacion": dotacion, "proveedor": proveedor, "antiguedad": antiguedad},
+        "summary": summary,
+        "by_sector_day": list(by_date_sector.values()),
+        "totals_by_day": list(totals_by_date.values()),
+        "operator_trends": {
+            "improving": operator_trends["improving"],
+            "worsening": operator_trends["worsening"],
+            "count": operator_trends["count"],
+        },
+        "charts": charts,
+        "grid": grid,
     }
 
 
@@ -838,6 +1309,41 @@ async def _require_request_auth(request: Request) -> dict[str, Any]:
     return auth
 
 
+@router.get("/analisis-legajos/sectores")
+async def analisis_legajos_sectores(request: Request):
+    await _require_request_auth(request)
+    return await _load_legajos_filter_options()
+
+
+@router.get("/analisis-legajos")
+async def analisis_legajos(
+    request: Request,
+    fecha_desde: str = Query(..., description="YYYY-MM-DD"),
+    fecha_hasta: str = Query(..., description="YYYY-MM-DD"),
+    sectores: str = Query("", description="Sectores separados por coma"),
+    dotacion: str = Query("ALL"),
+    proveedor: str = Query("ALL"),
+    antiguedad: str = Query("ALL"),
+):
+    await _require_request_auth(request)
+    try:
+        desde = datetime.strptime(fecha_desde[:10], "%Y-%m-%d")
+        hasta = datetime.strptime(fecha_hasta[:10], "%Y-%m-%d")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Fechas invalidas. Usa YYYY-MM-DD.") from exc
+    if hasta < desde:
+        raise HTTPException(status_code=400, detail="fecha_hasta debe ser mayor o igual a fecha_desde.")
+    selected = [item.strip() for item in sectores.split(",") if item.strip()]
+    return await _build_legajos_productividad_payload(
+        fecha_desde[:10],
+        fecha_hasta[:10],
+        selected,
+        dotacion=dotacion,
+        proveedor=proveedor,
+        antiguedad=antiguedad,
+    )
+
+
 @router.get("/daily/config")
 async def daily_config(request: Request):
     auth = await _require_request_auth(request)
@@ -894,6 +1400,110 @@ async def daily_exportar_csv(req: DailyExportRequest, request: Request):
     return {
         "csv_path": str(csv_path),
         "consolidado_csv_path": str(consolidado_csv_path),
+    }
+
+
+@router.post("/daily/calcular-automatico")
+async def daily_calcular_automatico(request: Request):
+    await _require_request_auth(request)
+    daily = calculate_daily_window()
+    if not daily.get("can_load"):
+        raise HTTPException(status_code=400, detail=daily.get("reason") or "La Daily no esta habilitada.")
+
+    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
+    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
+    if not fecha_desde or not fecha_hasta:
+        raise HTTPException(status_code=400, detail="No se pudo calcular la ventana de Daily.")
+
+    try:
+        picking_rows, despacho_rows, clark_rows, picking_plan_rows, despacho_plan_rows, spc_plan_rows = await asyncio.gather(
+            asyncio.to_thread(query_productive_db_daily_picking_real, fecha_desde, fecha_hasta),
+            asyncio.to_thread(query_productive_db_daily_despacho_real, fecha_desde, fecha_hasta),
+            asyncio.to_thread(query_productive_db_daily_clark_real, fecha_desde, fecha_hasta),
+            asyncio.to_thread(query_productive_db_daily_picking_plan, fecha_desde, fecha_hasta),
+            asyncio.to_thread(query_productive_db_daily_despacho_plan, fecha_desde, fecha_hasta),
+            asyncio.to_thread(query_productive_db_daily_spc_plan, fecha_desde, fecha_hasta),
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Error calculando Daily automatico")
+        raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle: {exc}") from exc
+
+    sector_map = {
+        "NOA": "Noa",
+        "SECOS": "Secos",
+        "REFRIGERADOS": "Refrigerados",
+    }
+    results: list[dict[str, Any]] = []
+    by_sector: dict[str, list[dict[str, Any]]] = defaultdict(list)
+
+    def add_productividad_result(
+        row: dict[str, Any],
+        proceso: str,
+        param_ids_by_sector: dict[str, str],
+        cantidad_field: str,
+    ) -> None:
+        sector_oracle = str(row.get("ALMACEN") or row.get("almacen") or "").strip().upper()
+        sector = sector_map.get(sector_oracle, sector_oracle.title())
+        id_parametro = param_ids_by_sector.get(sector, "")
+        if not id_parametro:
+            return
+        item = {
+            "sector": sector,
+            "sector_oracle": sector_oracle,
+            "proceso": proceso,
+            "id_parametro": id_parametro,
+            "valor": _to_float(row.get("PRODUCCION") or row.get("produccion")),
+            "produccion": _to_float(row.get("PRODUCCION") or row.get("produccion")),
+            "cantidad": _to_float(row.get(cantidad_field) or row.get(cantidad_field.lower())),
+            "legajos": _to_float(row.get("LEGAJOS") or row.get("legajos")),
+            "segundos": _to_float(row.get("SEGUNDOS") or row.get("segundos")),
+        }
+        results.append(item)
+        by_sector[sector].append(item)
+
+    def add_valor_result(
+        row: dict[str, Any],
+        proceso: str,
+        param_ids_by_sector: dict[str, str],
+        valor_field: str,
+    ) -> None:
+        sector_oracle = str(row.get("ALMACEN") or row.get("almacen") or "").strip().upper()
+        sector = sector_map.get(sector_oracle, sector_oracle.title())
+        id_parametro = param_ids_by_sector.get(sector, "")
+        if not id_parametro:
+            return
+        valor = _to_float(row.get(valor_field) or row.get(valor_field.lower()))
+        item = {
+            "sector": sector,
+            "sector_oracle": sector_oracle,
+            "proceso": proceso,
+            "id_parametro": id_parametro,
+            "valor": valor,
+        }
+        results.append(item)
+        by_sector[sector].append(item)
+
+    for row in picking_rows:
+        add_productividad_result(row, "PICKING", DAILY_PICKING_REAL_PARAM_IDS_BY_SECTOR, "BULTOS")
+    for row in despacho_rows:
+        add_productividad_result(row, "DESPACHO", DAILY_DESPACHO_REAL_PARAM_IDS_BY_SECTOR, "VIAJES")
+    for row in clark_rows:
+        add_productividad_result(row, "CLARK", DAILY_CLARK_REAL_PARAM_IDS_BY_SECTOR, "PALLETS")
+    for row in picking_plan_rows:
+        add_valor_result(row, "PICKING PLAN", DAILY_PICKING_PLAN_PARAM_IDS_BY_SECTOR, "BULTOS_PLANIFICADOS")
+    for row in despacho_plan_rows:
+        add_valor_result(row, "DESPACHO PLAN", DAILY_DESPACHO_PLAN_PARAM_IDS_BY_SECTOR, "VIAJES_PLANIFICADOS")
+    for row in spc_plan_rows:
+        add_valor_result(row, "SPC PLAN", DAILY_SPC_PLAN_PARAM_IDS_BY_SECTOR, "PALLETS_TOTALES_PLANIFICADOS")
+
+    return {
+        "daily": daily,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "results": results,
+        "by_sector": dict(by_sector),
     }
 
 

@@ -1666,11 +1666,13 @@ async def _require_auth(request: Request) -> dict[str, Any]:
     if not auth or auth.get("device_status") != "approved":
         raise HTTPException(status_code=401, detail="No autenticado.")
     await _attach_rrhh_scope(auth)
+    if auth.get("rrhh_scope") == "sin_acceso":
+        raise HTTPException(status_code=403, detail="El usuario no tiene acceso a Novedades CD.")
     return auth
 
 
 async def _attach_rrhh_scope(auth: dict[str, Any]) -> None:
-    if auth.get("role") in FULL_ACCESS_ROLES:
+    if auth.get("role") == "admin":
         auth["rrhh_scope"] = "global"
         auth["rrhh_sectors"] = []
         return
@@ -1689,7 +1691,11 @@ async def _attach_rrhh_scope(auth: dict[str, Any]) -> None:
             (auth.get("username"), RRHH_SCOPE_MODULE),
         ) as cur:
             rows = [dict(row) for row in await cur.fetchall()]
-    if any(row.get("scope") == "global" for row in rows):
+    if any(row.get("scope") == "sin_acceso" for row in rows):
+        scope = "sin_acceso"
+    elif auth.get("role") in FULL_ACCESS_ROLES:
+        scope = "global"
+    elif any(row.get("scope") == "global" for row in rows):
         scope = "global"
     elif any(row.get("scope") == "sector_completo" for row in rows):
         scope = "sector_completo"

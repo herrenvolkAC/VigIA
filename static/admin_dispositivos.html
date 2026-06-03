@@ -260,6 +260,14 @@
             <option value="admin">Admin</option>
           </select>
         </div>
+        <div>
+          <label for="new-rrhh-scope">Novedades CD</label>
+          <select id="new-rrhh-scope">
+            <option value="sin_acceso">Sin acceso</option>
+            <option value="operativo">Operativo</option>
+            <option value="global">Global</option>
+          </select>
+        </div>
         <button class="primary" type="submit">Crear usuario</button>
       </form>
       <div class="users-list" id="users-body">
@@ -353,7 +361,7 @@
   }
 
   function scopeLabel(scope) {
-    return ({ operativo: 'Operativo', sector_completo: 'Sector completo', global: 'Global' })[scope] || 'Operativo';
+    return ({ sin_acceso: 'Sin acceso', operativo: 'Operativo', sector_completo: 'Sector completo', global: 'Global' })[scope] || 'Operativo';
   }
 
   function renderSectorChecks(row) {
@@ -370,7 +378,8 @@
     const selectedCount = (row.rrhh_sectors || []).length;
     const scope = row.rrhh_scope || 'operativo';
     const sectorSummary = scope === 'global' ? 'Todos los sectores'
-      : scope === 'sector_completo' ? `${selectedCount} sector(es)` : 'Sin sectores asignados';
+      : scope === 'sector_completo' ? `${selectedCount} sector(es)`
+      : scope === 'sin_acceso' ? 'No ve Novedades CD' : 'Sin sectores asignados';
     return `
       <article class="user-card" data-user-card="${esc(row.username)}">
         <div class="user-summary">
@@ -383,7 +392,7 @@
           <div class="muted">${esc(sectorSummary)}</div>
           <div class="actions">
             <button data-toggle-user="${esc(row.username)}">Detalle</button>
-            <button data-mail-user="${esc(row.username)}" data-mail-name="${esc(row.display_name || row.username)}">Correo</button>
+            <button data-mail-user="${esc(row.username)}" data-mail-name="${esc(row.display_name || row.username)}" data-mail-scope="${esc(scope)}">Correo</button>
             <button class="${row.active ? 'warn' : 'ok'}" data-user-action="${row.active ? 'deactivate' : 'activate'}" data-username="${esc(row.username)}">
               ${row.active ? 'Desactivar' : 'Activar'}
             </button>
@@ -394,11 +403,12 @@
             <div>
               <label>Alcance Novedades CD</label>
               <select data-scope-select>
+                <option value="sin_acceso" ${scope === 'sin_acceso' ? 'selected' : ''}>Sin acceso</option>
                 <option value="operativo" ${scope === 'operativo' ? 'selected' : ''}>Operativo</option>
                 <option value="sector_completo" ${scope === 'sector_completo' ? 'selected' : ''}>Sector completo</option>
                 <option value="global" ${scope === 'global' ? 'selected' : ''}>Global</option>
               </select>
-              <div class="scope-note">Global ignora sectores. Sector completo habilita jefes/gerentes solo en los sectores marcados.</div>
+              <div class="scope-note">Sin acceso bloquea Novedades CD. Global ignora sectores. Sector completo habilita jefes/gerentes solo en los sectores marcados.</div>
             </div>
             <div>
               <label>Sectores asociados</label>
@@ -490,6 +500,7 @@
     event.preventDefault();
     const username = document.getElementById('new-user').value.trim();
     const password = document.getElementById('new-pass').value;
+    const rrhhScope = document.getElementById('new-rrhh-scope').value;
     try {
       await api('/api/auth/admin/users', {
         method: 'POST',
@@ -499,6 +510,10 @@
           password,
           role: document.getElementById('new-role').value,
         }),
+      });
+      await api('/api/auth/admin/users/scope', {
+        method: 'POST',
+        body: JSON.stringify({ username, module: 'novedades_cd', scope: rrhhScope, sectors: [] }),
       });
       sessionStorage.setItem(`vigia_user_pass_${username.toLowerCase()}`, password);
       event.target.reset();
@@ -522,18 +537,27 @@
       setMessage('No se armo el correo porque falta la contrasena.', true);
       return;
     }
-    const target = document.getElementById('mail-target').value;
-    const selectedApps = mailContext.apps.filter((app) => target === 'both' || app.id === target);
-    const appNames = selectedApps.map((app) => app.label).join(' / ');
-    const links = selectedApps.map((app) => `URL ${app.label}: ${mailContext.origin}${app.path}`);
-    const subject = `Acceso a VigIA - ${appNames}`;
+    const scope = button.dataset.mailScope || 'operativo';
+    const links = [
+      'Seguimiento de Servicios de reparación de Racks: http://w093sisd04:9999/casos.html',
+    ];
+    if (scope !== 'sin_acceso') {
+      links.unshift(
+        'Picking por horas, suerte y dificultad: http://w093sisd04:9999/productividad.html?tab=productividad',
+        'Cambios de almacén, análisis de productividad picking grupal: http://w093sisd04:9999/gestion-operativa.html',
+        'Tablero RRHH: http://w093sisd04:9999/novedades-cd',
+      );
+    }
+    const subject = 'Acceso a VigIA';
     const body = [
       `Hola ${displayName},`,
       '',
-      `Te comparto el acceso a VigIA para ${appNames}.`,
+      'Te comparto el acceso a VigIA.',
       '',
+      'Aplicaciones disponibles:',
       ...links,
-      `Servidor: ${mailContext.server_name || new URL(mailContext.origin).hostname}`,
+      '',
+      'Datos de acceso:',
       `Usuario: ${username}`,
       `Contrasena: ${password}`,
       '',

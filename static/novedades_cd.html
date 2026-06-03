@@ -779,6 +779,9 @@
       ? (sectorScope ? `Perfil con acceso a gerencia/jefatura en sectores habilitados: ${(state.config.data_sectors || []).join(', ')}` : 'Perfil con acceso completo a registros de gerencia/jefatura.')
       : 'Vista operativa: gerencia/jefatura se oculta desde el servidor.';
     $('access-note').classList.toggle('warn', !state.config.can_see_gerencia);
+    if (sectorScope && Array.isArray(state.config.data_sectors) && state.config.data_sectors.length) {
+      setChecklist('sector', state.config.data_sectors);
+    }
   }
   async function loadBatches(){
     const data = await api('/api/rrhh/batches');

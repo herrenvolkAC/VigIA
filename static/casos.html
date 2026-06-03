@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VigIA · Gestión de Casos</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+    :root{--bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;--blue:#0B5FAE}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{background:var(--bg)}
+    body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px, transparent 1px),linear-gradient(90deg, var(--rule) 1px, transparent 1px);background-size:24px 24px}
+    button,input,select,textarea{font:inherit;color:inherit}button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:100%;min-height:100vh;margin:0;padding:0 16px 22px}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}.brand-logo{width:86px;height:44px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}
+    .kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+    h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}.amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}.user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}
+    .user-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+    .user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .logout-btn{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .case-page{padding:0;max-width:none;margin:0}
+    .case-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:14px}
+    .case-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .case-title{font-size:20px;line-height:1.05;font-weight:600;color:var(--ink);margin-top:4px}
+    .case-tabs{display:flex;gap:0;flex-wrap:wrap;margin:12px 0 0;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule)}
+    .case-tab{background:transparent;border:0;color:var(--ink-soft);padding:13px 18px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;min-width:132px;cursor:pointer}
+    .case-tab.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}
+    .case-tab.active::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-radius:50%;background:var(--green);vertical-align:middle}
+    .case-panel{display:none}.case-panel.active{display:block}
+    .grid-kpi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    .kbox{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}
+    .klabel{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}.kvalue{font-family:'IBM Plex Mono',monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;color:var(--ink)}
+    .band{background:var(--panel);border:1px solid var(--rule);margin-bottom:14px}
+    .band-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--rule);background:#F6F8F5}
+    .band-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+    .filters{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:10px;padding:12px}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:0}.field label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    input,select,textarea{width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:8px 10px}
+    input,select{height:34px}
+    textarea{min-height:76px;font-family:'IBM Plex Sans',system-ui,sans-serif;resize:vertical}.checkline{display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ink-soft)}.checkline input{width:auto}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{height:34px;min-height:34px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}.btn.secondary{background:var(--panel);color:var(--ink-soft);border-color:var(--rule)}.btn.secondary:hover{color:var(--blue);border-color:var(--blue)}.btn.warn{background:var(--red);border-color:var(--red)}
+    .table-wrap{overflow:auto;max-height:540px}table{width:100%;border-collapse:collapse;min-width:1080px;background:var(--panel);border:1px solid var(--rule);border-top:0}th,td{border-bottom:1px solid var(--rule);padding:9px 12px;text-align:left;font-size:12px;vertical-align:top}th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}tbody tr:nth-child(odd){background:#F8FAF7}
+    .pill{display:inline-flex;border:1px solid var(--rule);border-radius:2px;padding:4px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;background:var(--panel)}.sla-bad{color:var(--red);border-color:#E0A5AD;background:var(--red-soft)}.sla-soon{color:var(--amber);border-color:#e1bf76;background:var(--amber-soft)}.sla-ok{color:var(--green);border-color:#9FC8AD;background:var(--green-soft)}
+    .form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:12px}.span-2{grid-column:span 2}.span-4{grid-column:1/-1}
+    .check-listbox{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;border:1px solid var(--rule);background:var(--panel);padding:8px;min-height:80px}
+    .check-option{display:flex;align-items:center;gap:8px;min-height:28px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink)}
+    .check-option input{width:16px;height:16px;min-height:16px}
+    .detail-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}.timeline{display:flex;flex-direction:column;gap:8px;padding:12px}.event{border-left:3px solid var(--blue);padding:8px 10px;background:#F8FAF7}.event small{display:block;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;margin-bottom:3px}
+    .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(142px,1fr));gap:10px;padding:12px}.photo{border:1px solid var(--rule);padding:8px;background:var(--panel);min-height:72px;overflow:hidden;color:var(--ink);text-decoration:none}.photo-thumb{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border:1px solid var(--rule);background:#F6F8F5;margin-bottom:7px}.photo-name{display:block;font-size:12px;line-height:1.25;overflow:hidden;text-overflow:ellipsis}.photo-date{display:block;margin-top:4px}.muted{color:var(--ink-soft)}.status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--ink-soft)}
+    .chart-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}.bar{display:grid;grid-template-columns:120px 1fr 40px;gap:8px;align-items:center;margin:8px 0;font-size:12px}.bar-track{height:14px;background:#EAEEEB}.bar-fill{height:14px;background:var(--green)}
+    @media(max-width:1100px){.grid-kpi,.filters,.form-grid,.chart-grid,.detail-grid{grid-template-columns:1fr 1fr}.span-4{grid-column:1/-1}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}}@media(max-width:720px){.paper-app{padding:0 14px 18px}.grid-kpi,.filters,.form-grid,.chart-grid,.detail-grid{grid-template-columns:1fr}.case-tabs{overflow:auto;flex-wrap:nowrap}.case-tab{min-width:120px;padding-left:12px;padding-right:12px}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div>
+        <div class="kicker">Workflow operativo</div>
+        <h1>Gestión de <span class="amp">Casos</span></h1>
+      </div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn">Salir</button>
+    </div>
+  </header>
+<main class="case-page">
+  <div class="status" id="global-status"></div>
+  <nav class="case-tabs">
+    <button class="case-tab active" data-tab="dashboard">Dashboard</button>
+    <button class="case-tab" data-tab="bandeja">Bandeja</button>
+    <button class="case-tab" data-tab="nuevo">Nuevo Caso</button>
+    <button class="case-tab" data-tab="parametros">Parámetros</button>
+    <button class="case-tab" data-tab="usuarios">Usuarios Casos</button>
+    <button class="case-tab" data-tab="reportes">Reportes</button>
+  </nav>
+
+  <section id="panel-dashboard" class="case-panel active">
+    <div class="grid-kpi" id="kpis"></div>
+    <div class="chart-grid" id="charts"></div>
+  </section>
+
+  <section id="panel-bandeja" class="case-panel">
+    <div class="band">
+      <div class="band-head"><div class="band-title">Filtros</div><div class="actions"><button class="btn" onclick="loadBandeja()">Buscar</button><button class="btn secondary" onclick="exportCsv()">Exportar</button></div></div>
+      <div class="filters">
+        <div class="field"><label>Tipo</label><select id="f-tipo"></select></div>
+        <div class="field"><label>Código</label><input id="f-codigo"></div>
+        <div class="field"><label>Estado</label><select id="f-estado"></select></div>
+        <div class="field"><label>Criticidad</label><select id="f-criticidad"></select></div>
+        <div class="field"><label>Desde</label><input id="f-desde" type="date"></div>
+        <div class="field"><label>Hasta</label><input id="f-hasta" type="date"></div>
+        <label class="checkline"><input id="f-mios" type="checkbox"> Solo mis casos</label>
+        <label class="checkline"><input id="f-pendientes" type="checkbox"> Pendientes perfil</label>
+        <label class="checkline"><input id="f-vencidos" type="checkbox"> Vencidos SLA</label>
+      </div>
+    </div>
+    <div class="band"><div class="band-head"><div class="band-title">Bandeja de casos</div><span id="b-count" class="muted"></span></div><div class="table-wrap"><table><thead><tr><th>Código</th><th>Tipo</th><th>Fecha</th><th>Estado</th><th>Asignado</th><th>Criticidad</th><th>Título</th><th>Sector</th><th>Creado por</th><th>Última actualización</th><th>SLA</th><th></th></tr></thead><tbody id="b-body"></tbody></table></div></div>
+  </section>
+
+  <section id="panel-nuevo" class="case-panel">
+    <div class="band">
+      <div class="band-head"><div class="band-title">Nuevo Caso · Reparación de Racks</div><button class="btn" onclick="crearRack()">Guardar</button></div>
+      <div class="form-grid">
+        <div class="field"><label>Zona</label><input id="n-zona" name="caso_rack_zona" placeholder="Zona" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+        <div class="field"><label>Pasillo</label><input id="n-pasillo" name="caso_rack_pasillo" inputmode="numeric" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+        <div class="field"><label>Cara</label><select id="n-cara"></select></div>
+        <div class="field"><label>Ubicación</label><input id="n-ubicaciones" name="caso_rack_ubicaciones" placeholder="55 56,57;58-59/60" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
+        <div class="field span-2"><label>Niveles afectados</label><div class="check-listbox" id="n-niveles"></div></div>
+        <div class="field"><label>Sector</label><select id="n-sector"></select></div>
+        <div class="field"><label>Descripción</label><select id="n-descripcion"></select></div>
+        <div class="field"><label>Criticidad</label><select id="n-criticidad"></select></div>
+        <div class="field"><label>Tipo de Rack</label><select id="n-tipo-rack"></select></div>
+        <div class="field span-4"><label>Comentarios</label><textarea id="n-comentario" name="caso_rack_comentario" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea></div>
+        <div class="field span-4"><label>Fotografías</label><input id="n-fotos" type="file" accept="image/*" multiple></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-detalle" class="case-panel">
+    <div class="band" id="detalle"></div>
+  </section>
+
+  <section id="panel-parametros" class="case-panel">
+    <div class="band"><div class="band-head"><div class="band-title">Parámetros de Racks</div><div class="actions"><select id="p-tabla" onchange="loadParametros()"></select><button class="btn" onclick="guardarParametro()">Guardar</button></div></div>
+      <div class="form-grid">
+        <input id="p-id" type="hidden"><div class="field"><label>Código</label><input id="p-codigo"></div><div class="field span-2"><label>Nombre</label><input id="p-nombre"></div><div class="field"><label>Orden</label><input id="p-orden" type="number" value="0"></div>
+        <div class="field span-4"><label>JSON para parámetros comunes</label><textarea id="p-json" placeholder='{"tipo_id":1,"codigo":"NUEVO","nombre":"Nuevo","activo":1}'></textarea></div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Código</th><th>Nombre</th><th>Orden</th><th>Activo</th><th></th></tr></thead><tbody id="p-body"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="panel-usuarios" class="case-panel">
+    <div class="band">
+      <div class="band-head"><div class="band-title">Perfiles y sectores de Casos</div><button class="btn" onclick="guardarUsuarioCaso()">Guardar</button></div>
+      <div class="form-grid">
+        <div class="field span-2"><label>Usuario</label><select id="u-usuario" onchange="selectUsuarioCaso()"></select></div>
+        <div class="field"><label>Perfil Casos</label><select id="u-perfil"></select></div>
+        <div class="field"><label>Sector Casos</label><input id="u-sector" placeholder="Operación, ADO, CD, etc."></div>
+        <div class="field"><label>Correo</label><input id="u-correo" type="email" placeholder="sector@empresa.com"></div>
+        <label class="checkline"><input id="u-activo" type="checkbox" checked> Activo</label>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol VigIA</th><th>Perfil Casos</th><th>Sector Casos</th><th>Correo</th><th>Activo</th><th></th></tr></thead><tbody id="u-body"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="panel-reportes" class="case-panel">
+    <div class="band"><div class="band-head"><div class="band-title">Reportes</div><button class="btn" onclick="exportCsv()">Descargar CSV</button></div><div style="padding:14px" class="muted">La exportación respeta la estructura genérica e incluye campos específicos de racks cuando corresponda.</div></div>
+  </section>
+</main>
+</div>
+<script src="/js/vigia-core.js"></script>
+<script>
+let authUser=null, configData=null, selectedTicket=null, usuariosCasosData=null;
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function setStatus(msg,err=false){$('global-status').textContent=msg||'';$('global-status').style.color=err?'#b91c1c':'#64748b'}
+async function api(url,opts={}){const res=await fetch(url,{credentials:'same-origin',...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||`HTTP ${res.status}`);return data}
+async function requireAuth(){const r=await fetch('/api/auth/me',{credentials:'same-origin'});if(!r.ok){location.href='/login?next=/casos.html';throw new Error('redirect')}authUser=await r.json();$('user-label').textContent=`${authUser.display_name||authUser.username} · ${authUser.role}`;sessionStorage.setItem('vigia_session',JSON.stringify({user:authUser.username,name:authUser.display_name||authUser.username,role:authUser.role}));}
+function opt(rows,blank='Todos'){return `<option value="">${blank}</option>`+(rows||[]).map(r=>`<option value="${r.id}">${esc(r.nombre)}</option>`).join('')}
+function rackOpt(table,blank='Seleccionar'){return opt((configData.rack_params[table]||[]).filter(x=>x.activo),blank)}
+function switchTab(tab){document.querySelectorAll('.case-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.querySelectorAll('.case-panel').forEach(p=>p.classList.remove('active'));$(`panel-${tab}`).classList.add('active')}
+document.querySelectorAll('.case-tab').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+function fillConfig(){const tipo=configData.tipos.find(t=>t.codigo==='REPARACION_RACK');$('f-tipo').innerHTML=opt(configData.tipos);if(tipo)$('f-tipo').value=tipo.id;$('f-estado').innerHTML=opt(configData.estados);$('f-criticidad').innerHTML=opt(configData.criticidades);$('n-cara').innerHTML=rackOpt('rack_cara');$('n-sector').innerHTML=rackOpt('rack_sector');$('n-descripcion').innerHTML=rackOpt('rack_descripcion');$('n-tipo-rack').innerHTML=rackOpt('rack_tipo');$('n-niveles').innerHTML=(configData.rack_params.rack_nivel||[]).filter(x=>x.activo).map(r=>`<label class="check-option"><input type="checkbox" value="${r.id}">${esc(r.nombre)}</label>`).join('');$('n-criticidad').innerHTML=opt(configData.criticidades,'Seleccionar');$('p-tabla').innerHTML=['rack_zona','rack_cara','rack_nivel','rack_sector','rack_descripcion','rack_tipo','ticket_tipo','ticket_estado','ticket_estado_transicion','ticket_criticidad','ticket_permiso_perfil'].map(t=>`<option>${t}</option>`).join('')}
+function abrirMailto(mailto){if(!mailto)return false;if(mailto.mailto_url){window.location.href=mailto.mailto_url;return true}setStatus(`No hay correos configurados para ${mailto.destino||'el destino'} ni para el creador del caso.`,true);return false}
+async function loadUsuariosCasos(){try{usuariosCasosData=await api('/api/casos/admin/usuarios-perfiles');$('u-perfil').innerHTML=(usuariosCasosData.perfiles||[]).map(p=>`<option>${esc(p)}</option>`).join('');$('u-usuario').innerHTML=(usuariosCasosData.usuarios||[]).map(u=>`<option value="${esc(u.username)}">${esc(u.username)} · ${esc(u.display_name||'')}</option>`).join('');$('u-body').innerHTML=(usuariosCasosData.usuarios||[]).map(u=>`<tr><td><strong>${esc(u.username)}</strong></td><td>${esc(u.display_name||'')}</td><td>${esc(u.role)}</td><td><span class="pill">${esc(u.casos_perfil||'-')}</span></td><td>${esc(u.casos_sector||'')}</td><td>${esc(u.casos_correo||'')}</td><td>${u.casos_activo?'Sí':'No'}</td><td><button class="btn secondary" onclick="editUsuarioCaso('${esc(u.username)}')">Editar</button></td></tr>`).join('')||'<tr><td colspan="8" class="muted">Sin usuarios.</td></tr>';selectUsuarioCaso()}catch(e){$('u-body').innerHTML='<tr><td colspan="8" class="muted">Solo ADMIN puede administrar perfiles de Casos.</td></tr>'}}
+function currentUsuarioCaso(){return (usuariosCasosData?.usuarios||[]).find(u=>u.username===$('u-usuario').value)}
+function selectUsuarioCaso(){const u=currentUsuarioCaso();if(!u)return;$('u-perfil').value=u.casos_perfil||((u.role||'').toLowerCase()==='admin'?'ADMIN':'OPERACION');$('u-sector').value=u.casos_sector||'';$('u-correo').value=u.casos_correo||'';$('u-activo').checked=u.casos_activo!==0}
+function editUsuarioCaso(username){$('u-usuario').value=username;selectUsuarioCaso();switchTab('usuarios')}
+async function guardarUsuarioCaso(){try{await api('/api/casos/admin/usuarios-perfiles',{method:'POST',body:JSON.stringify({username:$('u-usuario').value,perfil:$('u-perfil').value,sector:$('u-sector').value,correo:$('u-correo').value,activo:$('u-activo').checked?1:0})});setStatus('Perfil de Casos guardado.');await loadUsuariosCasos()}catch(e){setStatus(e.message,true)}}
+function slaClass(row){if(row.es_final)return 'sla-ok';const end=new Date((row.sla_vencimiento||'').replace(' ','T'));if(!end.getTime())return '';const h=(end-new Date())/36e5;return h<0?'sla-bad':h<8?'sla-soon':'sla-ok'}
+async function loadBandeja(){const p=new URLSearchParams();[['tipo_id','f-tipo'],['codigo_visible','f-codigo'],['estado_id','f-estado'],['criticidad_id','f-criticidad'],['fecha_desde','f-desde'],['fecha_hasta','f-hasta']].forEach(([k,id])=>{if($(id).value)p.set(k,$(id).value)});if($('f-mios').checked)p.set('solo_mis_casos','true');if($('f-pendientes').checked)p.set('pendientes_mi_perfil','true');if($('f-vencidos').checked)p.set('vencidos_sla','true');const d=await api('/api/casos?'+p);$('b-count').textContent=`${d.count} casos`;$('b-body').innerHTML=d.items.map(r=>`<tr><td><strong>${esc(r.codigo_visible)}</strong></td><td>${esc(r.tipo)}</td><td>${esc(r.fecha_creacion)}</td><td>${esc(r.estado)}</td><td><span class="pill">${esc(r.perfil_asignado||r.sector_asignado||'-')}</span></td><td><span class="pill" style="border-color:${esc(r.criticidad_color)}">${esc(r.criticidad)}</span></td><td>${esc(r.titulo)}</td><td>${esc(r.sector)}</td><td>${esc(r.creado_por)}</td><td>${esc(r.fecha_ultima_actualizacion)}</td><td><span class="pill ${slaClass(r)}">${esc(r.sla_vencimiento)}</span></td><td><button class="btn secondary" onclick="openDetalle(${r.id})">Abrir</button></td></tr>`).join('')||'<tr><td colspan="12" class="muted">Sin casos.</td></tr>'}
+async function loadDashboard(){const d=await api('/api/casos/dashboard');const k=d.kpis||{};$('kpis').innerHTML=[['Casos abiertos',k.abiertos],['Cerrados hoy',k.cerrados_hoy],['Críticos abiertos',k.criticos_abiertos],['Vencidos SLA',k.vencidos_sla],['Pendientes perfil',k.pendientes]].map(x=>`<div class="kbox"><div class="klabel">${x[0]}</div><div class="kvalue">${Number(x[1]||0)}</div></div>`).join('');const groups=d.groups||{};$('charts').innerHTML=['por_tipo','por_estado','por_criticidad','por_sector','racks_por_zona','racks_por_tipo','racks_por_descripcion'].map(key=>chart(key.replaceAll('_',' '),groups[key]||[])).join('')}
+function chart(title,rows){const max=Math.max(1,...rows.map(r=>Number(r.value||0)));return `<div class="band"><div class="band-head"><div class="band-title">${esc(title)}</div></div><div style="padding:12px">${rows.map(r=>`<div class="bar"><span>${esc(r.label)}</span><div class="bar-track"><div class="bar-fill" style="width:${Number(r.value||0)/max*100}%"></div></div><strong>${r.value}</strong></div>`).join('')||'<span class="muted">Sin datos</span>'}</div></div>`}
+function fileToBase64(file){return new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok({nombre_original:file.name,tipo_mime:file.type,contenido_base64:r.result});r.onerror=bad;r.readAsDataURL(file)})}
+async function crearRack(){try{const fotos=await Promise.all([...$('n-fotos').files].map(fileToBase64));const body={zona_text:$('n-zona').value,pasillo:$('n-pasillo').value,cara_id:+$('n-cara').value,ubicaciones:$('n-ubicaciones').value,niveles:[...$('n-niveles').querySelectorAll('input:checked')].map(o=>+o.value),sector_rack_id:+$('n-sector').value,descripcion_rack_id:+$('n-descripcion').value,criticidad_id:+$('n-criticidad').value,tipo_rack_id:+$('n-tipo-rack').value,comentario_operativo:$('n-comentario').value,fotografias:fotos};const r=await api('/api/casos/rack',{method:'POST',body:JSON.stringify(body)});setStatus(`Caso creado ${r.codigo_visible}`);await loadBandeja();await loadDashboard();openDetalle(r.ticket_id);abrirMailto(r.mailto)}catch(e){setStatus(e.message,true)}}
+function renderAdjunto(a){const url=`/api/casos/adjuntos/${a.id}/download`;const isImg=String(a.tipo_mime||'').startsWith('image/');return `<a class="photo" href="${url}" target="_blank" title="${esc(a.nombre_original)}">${isImg?`<img class="photo-thumb" src="${url}" alt="${esc(a.nombre_original)}" loading="lazy">`:''}<span class="photo-name">${esc(a.nombre_original)}</span><span class="photo-date muted">${esc(a.fecha)}</span></a>`}
+async function openDetalle(id){selectedTicket=id;const d=await api(`/api/casos/ticket/${id}`);const t=d.ticket,r=d.rack||{};switchTab('detalle');$('detalle').innerHTML=`<div class="band-head"><div><div class="band-title">${esc(t.codigo_visible)} · ${esc(t.tipo_nombre)}</div><div class="muted">${esc(t.estado_nombre)} · Asignado a ${esc(t.perfil_asignado||'-')} · ${esc(t.criticidad_nombre)} · SLA ${esc(t.sla_vencimiento)}</div></div><div class="actions">${d.transiciones.map(x=>`<button class="btn" title="Pasa a ${esc(x.perfil_destino||'-')}" onclick="cambiarEstado(${x.estado_destino_id},${x.requiere_comentario})">${esc(x.estado_destino)}</button>`).join('')}</div></div><div class="detail-grid"><div><div class="form-grid"><div class="field"><label>Título</label><div>${esc(t.titulo)}</div></div><div class="field"><label>Creado por</label><div>${esc(t.creado_por_nombre||t.usuario_creacion_id)}</div></div><div class="field"><label>Fecha</label><div>${esc(t.fecha_creacion)}</div></div><div class="field"><label>Asignado a</label><div><span class="pill">${esc(t.perfil_asignado||'-')}</span></div></div><div class="field"><label>Sector creación</label><div>${esc(t.sector_creacion_id)}</div></div><div class="field span-4"><label>Datos de Rack</label><div>Zona ${esc(r.zona)} · Pasillo ${esc(r.pasillo)} · Cara ${esc(r.cara)} · Ubicaciones ${esc(r.ubicaciones)} · Niveles ${(r.niveles||[]).join(', ')} · ${esc(r.sector_rack)} · ${esc(r.descripcion_rack)} · ${esc(r.tipo_rack)}</div></div><div class="field span-4"><label>Comentario operativo</label><div>${esc(r.comentario_operativo)}</div></div></div><div class="band-head"><div class="band-title">Adjuntos</div><input type="file" id="d-file" onchange="subirAdjunto()"></div><div class="photo-grid">${d.adjuntos.map(renderAdjunto).join('')||'<div class="muted">Sin adjuntos.</div>'}</div></div><div><div class="band-head"><div class="band-title">Comentarios</div></div><div class="timeline">${d.comentarios.map(c=>`<div class="event"><small>${esc(c.fecha)} · ${esc(c.usuario_id)}</small>${esc(c.comentario)}</div>`).join('')||'<div class="muted">Sin comentarios.</div>'}<textarea id="d-comentario" placeholder="Agregar comentario"></textarea><button class="btn secondary" onclick="addComentario()">Comentar</button></div><div class="band-head"><div class="band-title">Historial</div></div><div class="timeline">${d.historial.map(h=>`<div class="event"><small>${esc(h.fecha)} · ${esc(h.usuario_id)} · ${esc(h.perfil)}</small><strong>${esc(h.accion)}</strong> ${esc(h.estado_anterior||'')} → ${esc(h.estado_nuevo||'')}<br>${esc(h.comentario||'')}</div>`).join('')}</div></div></div>`}
+async function addComentario(){await api(`/api/casos/ticket/${selectedTicket}/comentarios`,{method:'POST',body:JSON.stringify({comentario:$('d-comentario').value})});openDetalle(selectedTicket)}
+async function subirAdjunto(){const f=$('d-file').files[0];if(!f)return;const body=await fileToBase64(f);await api(`/api/casos/ticket/${selectedTicket}/adjuntos`,{method:'POST',body:JSON.stringify(body)});openDetalle(selectedTicket)}
+async function cambiarEstado(estado,requiere){const comentario=prompt(requiere?'Comentario obligatorio':'Comentario opcional')||'';if(requiere&&!comentario.trim())return;const r=await api(`/api/casos/ticket/${selectedTicket}/estado`,{method:'POST',body:JSON.stringify({estado_destino_id:estado,comentario})});await loadBandeja();await loadDashboard();openDetalle(selectedTicket);abrirMailto(r.mailto)}
+function isCommonParam(){return $('p-tabla').value.startsWith('ticket_')}
+async function loadParametros(){const t=$('p-tabla').value;const d=await api(isCommonParam()?`/api/casos/parametros-comunes/${t}`:`/api/casos/parametros/${t}`);const cols=d.columns||['id','codigo','nombre','orden','activo'];$('p-body').innerHTML=d.items.map(r=>`<tr>${cols.slice(0,5).map(c=>`<td>${esc(r[c])}</td>`).join('')}<td><button class="btn secondary" onclick='editParam(${JSON.stringify(r)})'>Editar</button></td></tr>`).join('')}
+function editParam(r){$('p-id').value=r.id||'';$('p-codigo').value=r.codigo||'';$('p-nombre').value=r.nombre||'';$('p-orden').value=r.orden||0;$('p-json').value=JSON.stringify(r,null,2)}
+async function guardarParametro(){if(isCommonParam()){let payload=JSON.parse($('p-json').value||'{}');if($('p-id').value)payload.id=+$('p-id').value;await api(`/api/casos/parametros-comunes/${$('p-tabla').value}`,{method:'POST',body:JSON.stringify(payload)})}else{await api(`/api/casos/parametros/${$('p-tabla').value}`,{method:'POST',body:JSON.stringify({id:$('p-id').value?+$('p-id').value:null,codigo:$('p-codigo').value,nombre:$('p-nombre').value,orden:+$('p-orden').value,activo:1})})}$('p-id').value='';$('p-codigo').value='';$('p-nombre').value='';$('p-json').value='';await loadParametros();configData=await api('/api/casos/config');fillConfig()}
+function exportCsv(){location.href='/api/casos/export/csv'}
+$('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
+(async()=>{try{await requireAuth();configData=await api('/api/casos/config');fillConfig();await loadDashboard();await loadBandeja();await loadParametros();await loadUsuariosCasos();setStatus(`Perfil de casos: ${configData.perfil}${configData.sector?' · Sector '+configData.sector:''}`)}catch(e){if(e.message!=='redirect')setStatus(e.message,true)}})();
+</script>
+</body>
+</html>

@@ -368,7 +368,7 @@ async def set_user_scope(req: UserScopeRequest, request: Request):
     scope = req.scope.strip().lower()
     if module != "novedades_cd":
         raise HTTPException(status_code=400, detail="Modulo no soportado.")
-    if scope not in {"operativo", "sector_completo", "global"}:
+    if scope not in {"sin_acceso", "operativo", "sector_completo", "global"}:
         raise HTTPException(status_code=400, detail="Alcance invalido.")
     sectors = []
     for sector in req.sectors or []:
@@ -385,7 +385,15 @@ async def set_user_scope(req: UserScopeRequest, request: Request):
             "UPDATE auth_user_module_scopes SET active = 0, updated_at = ? WHERE username = ? AND module = ?",
             (_now(), username, module),
         )
-        if scope == "operativo":
+        if scope == "sin_acceso":
+            await db.execute(
+                """
+                INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
+                VALUES (?, ?, 'sin_acceso', NULL, 1)
+                """,
+                (username, module),
+            )
+        elif scope == "operativo":
             await db.execute(
                 """
                 INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
