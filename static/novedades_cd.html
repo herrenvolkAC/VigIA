@@ -438,7 +438,7 @@
   }
   function fmtMaybe(v){ return typeof v === 'number' ? fmt(v) : v; }
   function bars(rows, valueKey, labelKey='label', tone='green', maxRows=10){
-    const data = [...(rows || [])]
+    let data = [...(rows || [])]
       .sort((a,b) => Number(b[valueKey] || 0) - Number(a[valueKey] || 0))
       .slice(0, maxRows);
     const max = Math.max(...data.map(r => Number(r[valueKey] || 0)), 1);
@@ -628,9 +628,15 @@
   }
   function sortValue(value){
     if (value === null || value === undefined || value === '') return '';
-    const numeric = Number(String(value).replace(/\./g,'').replace(',', '.'));
-    if (!Number.isNaN(numeric) && String(value).trim() !== '') return numeric;
-    return String(value).toUpperCase();
+    if (typeof value === 'number') return Number.isFinite(value) ? value : '';
+    const text = String(value).trim();
+    if (!text) return '';
+    const normalized = text.includes(',')
+      ? text.replace(/\./g, '').replace(',', '.')
+      : text;
+    const numeric = Number(normalized);
+    if (!Number.isNaN(numeric)) return numeric;
+    return text.toUpperCase();
   }
   function sortedRows(id, rows){
     const sort = state.tableSort[id];
@@ -671,7 +677,7 @@
     $(id).__cols = cols;
   }
   const rankCol = {key:'rank', label:'#', mono:true};
-  const personCols = [rankCol, {key:'empleado', label:'Empleado'}, {key:'funcion', label:'Funcion'}];
+  const personCols = [rankCol, {key:'legajo', label:'Legajo', mono:true}, {key:'empleado', label:'Empleado'}, {key:'funcion', label:'Funcion'}];
   const groupCols = [{key:'grupo_personal', label:'Grupo Personal'}, {key:'area_personal', label:'Area Personal'}];
   const ausCols = [
     {key:'dias_reg',label:'Dias Reg.',mono:true},
@@ -684,7 +690,7 @@
     aus_pct:[...personCols,...ausCols,{key:'pct_aus',label:'% Aus.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
     ctrl:[...personCols,...ausCols,{key:'ctrl',label:'Dias Ctrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
     no_ctrl:[...personCols,...ausCols,{key:'no_ctrl',label:'Dias NoCtrl.',mono:true},{key:'motivos_aus',label:'Motivos Aus.'},{key:'otros_motivos',label:'Otros Motivos'},...groupCols],
-    he_total:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_che',label:'Dias c/HE',mono:true},{key:'hs_extra',label:'Hs. Extra',mono:true,format:'number'},...groupCols],
+    he_total:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_che',label:'Dias c/HE',mono:true},{key:'hs_extra',label:'Hs. Extra',mono:true,format:'number'},{key:'hs_extra_prom_dia',label:'Prom. HE/Dia',mono:true,format:'number'},...groupCols],
     he_50:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_he_50',label:'Dias c/HE',mono:true},{key:'hs_50',label:'Hs. 50%',mono:true,format:'number'},...groupCols],
     he_100:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'dias_he_100',label:'Dias c/HE',mono:true},{key:'hs_100',label:'Hs. 100%',mono:true,format:'number'},...groupCols],
     tarde:[...personCols,{key:'dias_reg',label:'Dias Reg.',mono:true},{key:'c_tarde',label:'Veces Tarde',mono:true},{key:'min_tarde',label:'Min. Acum.',mono:true,format:'integer'},...groupCols],
@@ -702,10 +708,14 @@
   };
   function renderDetail(rows){
     const mode = detailModes[state.detailMode] || detailModes.aus_pct;
-    const data = [...(rows || [])]
+    let data = [...(rows || [])]
       .filter(mode.filter)
       .sort((a,b) => Number(b[mode.key] || 0) - Number(a[mode.key] || 0) || Number(b.dias_aus || 0) - Number(a.dias_aus || 0))
       .map((row, index) => ({...row, rank:`${index + 1}°`}));
+    data = data.map(row => ({
+      ...row,
+      hs_extra_prom_dia: Number(row.dias_reg || 0) > 0 ? Number(row.hs_extra || 0) / Number(row.dias_reg || 0) : 0,
+    }));
     state.tableSort['ranking-table'] = {key:mode.key, dir:'desc'};
     renderTable('ranking-table', detailColumns[state.detailMode] || detailColumns.aus_pct, data);
   }
@@ -779,7 +789,7 @@
       ? (sectorScope ? `Perfil con acceso a gerencia/jefatura en sectores habilitados: ${(state.config.data_sectors || []).join(', ')}` : 'Perfil con acceso completo a registros de gerencia/jefatura.')
       : 'Vista operativa: gerencia/jefatura se oculta desde el servidor.';
     $('access-note').classList.toggle('warn', !state.config.can_see_gerencia);
-    if (sectorScope && Array.isArray(state.config.data_sectors) && state.config.data_sectors.length) {
+    if (Array.isArray(state.config.data_sectors) && state.config.data_sectors.length) {
       setChecklist('sector', state.config.data_sectors);
     }
   }

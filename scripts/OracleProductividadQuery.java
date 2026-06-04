@@ -593,7 +593,9 @@ public class OracleProductividadQuery {
                 "SELECT " +
                 "    A.FECHA, " +
                 "    A.LEGAJO, " +
-                "    SUM(B.PROD_REAL) AS PRODUCTIVIDAD, " +
+                "    SUM(B.PROD_REAL) AS PRODUCCION, " +
+                "    SUM(B.TIEMPO_DURANTE_PH_EN_SEGUNDOS) AS TIEMPONETO, " +
+                "    SUM(B.TIEMPO_TOTAL_EN_SEGUNDOS) AS TIEMPOTOTAL, " +
                 "    C.DESCRIPCION AS FUNCION, " +
                 "    C.ID_DE_UNIDAD_DE_PRODUCCION AS TIPO " +
                 "FROM PV_DIA_LABORAL A " +

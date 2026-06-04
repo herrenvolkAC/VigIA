@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 from db.schema import init_db
 from db.casos import init_cases_db
 from db.daily_operativa import init_daily_db
+from db.panol_insumos import init_panol_db
 from routers.auth_local import current_auth, ensure_bootstrap_admin, router as auth_router
 from routers.ai import router as ai_router
 from routers.data import router as data_router
@@ -37,6 +38,7 @@ from routers.rrhh_novedades import (
     start_rrhh_folder_monitor,
     stop_rrhh_folder_monitor,
 )
+from routers.panol_insumos import router as panol_insumos_router
 from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -60,6 +62,7 @@ async def lifespan(app: FastAPI):
     await init_db()
     await init_cases_db()
     await init_daily_db()
+    await init_panol_db()
     await ensure_bootstrap_admin()
     start_historia_actividad_scheduler()
     start_rrhh_folder_monitor()
@@ -97,6 +100,7 @@ app.include_router(gestion_operativa_router)
 app.include_router(casos_router)
 app.include_router(historia_legajo_router)
 app.include_router(rrhh_novedades_router)
+app.include_router(panol_insumos_router)
 app.include_router(websocket_router)
 app.include_router(auth_router)
 
@@ -112,6 +116,8 @@ PROTECTED_PAGE_PATHS = {
     "/historia-legajo.html",
     "/casos",
     "/casos.html",
+    "/panol-insumos",
+    "/panol-insumos.html",
 }
 PROTECTED_API_PREFIXES = (
     "/api/productividad/tnc",
@@ -120,10 +126,15 @@ PROTECTED_API_PREFIXES = (
     "/api/historia-legajo",
     "/api/rrhh",
     "/api/casos",
+    "/panol-insumos/api",
 )
 ADMIN_PAGE_PATHS = {
     "/admin/dispositivos",
     "/admin/dispositivos.html",
+    "/admin/usuarios",
+    "/admin/usuarios.html",
+    "/admin/accesos",
+    "/admin/accesos.html",
 }
 
 
@@ -231,9 +242,21 @@ async def page_historia_legajo(): return FileResponse(STATIC_DIR / "historia_leg
 @app.get("/casos",      include_in_schema=False)
 async def page_casos(): return FileResponse(STATIC_DIR / "casos.html")
 
+@app.get("/panol-insumos.html", include_in_schema=False)
+@app.get("/panol-insumos",      include_in_schema=False)
+async def page_panol_insumos(): return FileResponse(STATIC_DIR / "panol_insumos.html")
+
 @app.get("/admin/dispositivos.html", include_in_schema=False)
 @app.get("/admin/dispositivos",      include_in_schema=False)
 async def page_admin_dispositivos(): return FileResponse(STATIC_DIR / "admin_dispositivos.html")
+
+@app.get("/admin/usuarios.html", include_in_schema=False)
+@app.get("/admin/usuarios",      include_in_schema=False)
+async def page_admin_usuarios(): return FileResponse(STATIC_DIR / "admin_usuarios.html")
+
+@app.get("/admin/accesos.html", include_in_schema=False)
+@app.get("/admin/accesos",      include_in_schema=False)
+async def page_admin_accesos(): return FileResponse(STATIC_DIR / "admin_accesos.html")
 
 @app.get("/recepcion.html",    include_in_schema=False)
 @app.get("/recepcion",         include_in_schema=False)

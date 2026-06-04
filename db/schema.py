@@ -1070,10 +1070,28 @@ CREATE TABLE IF NOT EXISTS auth_user_module_scopes (
 );
 """
 
+CREATE_AUTH_USER_APP_ACCESS = """
+CREATE TABLE IF NOT EXISTS auth_user_app_access (
+    access_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    module TEXT NOT NULL,
+    enabled INTEGER NOT NULL DEFAULT 0,
+    profile TEXT,
+    scope TEXT,
+    sector TEXT,
+    email TEXT,
+    metadata_json TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(username, module)
+);
+"""
+
 CREATE_AUTH_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_auth_devices_username ON auth_devices(username, status)",
     "CREATE INDEX IF NOT EXISTS idx_auth_sessions_username ON auth_sessions(username, expires_at)",
     "CREATE INDEX IF NOT EXISTS idx_auth_scopes_username_module ON auth_user_module_scopes(username, module, active)",
+    "CREATE INDEX IF NOT EXISTS idx_auth_app_access_user_module ON auth_user_app_access(username, module, enabled)",
 ]
 
 
@@ -1177,6 +1195,7 @@ async def init_db():
         await db.execute(CREATE_AUTH_DEVICES)
         await db.execute(CREATE_AUTH_SESSIONS)
         await db.execute(CREATE_AUTH_USER_MODULE_SCOPES)
+        await db.execute(CREATE_AUTH_USER_APP_ACCESS)
         async with db.execute("PRAGMA table_info(picking_analysis_cache_runs)") as cur:
             picking_cache_cols = {row[1] for row in await cur.fetchall()}
         if "resumen_hash" not in picking_cache_cols:

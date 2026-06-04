@@ -1,0 +1,3 @@
+username,password,display_name,role,panol_profile,novedades_cd,casos,panol
+admin,CAMBIAR_CLAVE,Administrador,admin,ADMIN,1,1,1
+operador,CAMBIAR_CLAVE,Operador,user,OPERACION,1,0,1

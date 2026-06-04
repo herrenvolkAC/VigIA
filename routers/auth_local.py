@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import hmac
+import json
 import os
 import secrets
 import sqlite3
@@ -11,7 +12,7 @@ from typing import Any
 import aiosqlite
 from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from db.schema import DB_PATH
 
@@ -23,6 +24,7 @@ SESSION_DAYS = int(os.getenv("VIGIA_AUTH_SESSION_DAYS", "1"))
 DEVICE_DAYS = int(os.getenv("VIGIA_AUTH_DEVICE_DAYS", "180"))
 BOOTSTRAP_USER = os.getenv("VIGIA_AUTH_BOOTSTRAP_USER", "admin").strip().lower()
 BOOTSTRAP_PASSWORD = os.getenv("VIGIA_AUTH_BOOTSTRAP_PASSWORD", "1234")
+AUTO_APPROVE_DEVICES = os.getenv("VIGIA_AUTH_AUTO_APPROVE_DEVICES", "").strip().lower() in {"1", "true", "yes", "si"}
 
 
 class LoginRequest(BaseModel):
@@ -49,7 +51,18 @@ class UserScopeRequest(BaseModel):
     username: str
     module: str = "novedades_cd"
     scope: str = "operativo"
-    sectors: list[str] = []
+    sectors: list[str] = Field(default_factory=list)
+
+
+class UserAccessRequest(BaseModel):
+    username: str
+    module: str
+    enabled: bool = True
+    profile: str | None = None
+    scope: str | None = None
+    sector: str | None = None
+    email: str | None = None
+    sectors: list[str] = Field(default_factory=list)
 
 
 def _now() -> str:
@@ -114,7 +127,60 @@ def _normalize_username(value: str) -> str:
     return value.strip().lower()
 
 
+APP_MODULES = [
+    {"id": "novedades_cd", "label": "Novedades CD", "path": "/novedades-cd"},
+    {"id": "casos", "label": "Gestion de Casos", "path": "/casos.html"},
+    {"id": "panol", "label": "Panol Insumos", "path": "/panol-insumos"},
+]
+
+CASOS_FALLBACK_PROFILES = ["OPERACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "ADMIN"]
+
+AUTH_ACCESS_SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS auth_user_app_access (
+    access_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    module TEXT NOT NULL,
+    enabled INTEGER NOT NULL DEFAULT 0,
+    profile TEXT,
+    scope TEXT,
+    sector TEXT,
+    email TEXT,
+    metadata_json TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(username, module)
+);
+"""
+
+AUTH_ACCESS_INDEX_SQL = (
+    "CREATE INDEX IF NOT EXISTS idx_auth_app_access_user_module "
+    "ON auth_user_app_access(username, module, enabled)"
+)
+
+
+def _clean_text(value: str | None) -> str:
+    return " ".join(str(value or "").split())
+
+
+def _clean_sectors(values: list[str] | None) -> list[str]:
+    sectors: list[str] = []
+    for sector in values or []:
+        value = _clean_text(sector)
+        if value and value not in sectors:
+            sectors.append(value)
+    return sectors
+
+
+async def ensure_auth_access_schema() -> None:
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        await db.execute(AUTH_ACCESS_SCHEMA_SQL)
+        await db.execute(AUTH_ACCESS_INDEX_SQL)
+        await db.commit()
+
+
 async def ensure_bootstrap_admin() -> None:
+    await ensure_auth_access_schema()
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT COUNT(*) FROM auth_users") as cur:
             count = (await cur.fetchone())[0]
@@ -213,7 +279,11 @@ async def login(req: LoginRequest, request: Request):
             """
         ) as cur:
             approved_admin_devices = (await cur.fetchone())[0]
-        auto_status = "approved" if user["role"] == "admin" and device is None and approved_admin_devices == 0 else "pending"
+        auto_status = (
+            "approved"
+            if AUTO_APPROVE_DEVICES or (user["role"] == "admin" and device is None and approved_admin_devices == 0)
+            else "pending"
+        )
         if device is None:
             await db.execute(
                 """
@@ -300,6 +370,11 @@ async def _require_admin(request: Request) -> dict[str, Any]:
     return auth
 
 
+async def _fetch_rows(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
+    async with db.execute(sql, args) as cur:
+        return [dict(row) for row in await cur.fetchall()]
+
+
 @router.get("/admin/devices")
 async def list_devices(request: Request):
     await _require_admin(request)
@@ -360,6 +435,313 @@ async def list_rrhh_sectors(request: Request):
     return {"sectors": rows}
 
 
+async def _case_profiles(db: aiosqlite.Connection) -> list[str]:
+    try:
+        rows = []
+        async with db.execute(
+            """
+            SELECT DISTINCT perfil
+            FROM ticket_permiso_perfil
+            WHERE activo = 1
+            ORDER BY perfil
+            """
+        ) as cur:
+            rows = [row[0] for row in await cur.fetchall() if row[0]]
+        return sorted({*CASOS_FALLBACK_PROFILES, *rows})
+    except sqlite3.OperationalError:
+        return CASOS_FALLBACK_PROFILES
+
+
+async def _upsert_app_access(
+    db: aiosqlite.Connection,
+    *,
+    username: str,
+    module: str,
+    enabled: bool,
+    profile: str = "",
+    scope: str = "",
+    sector: str = "",
+    email: str = "",
+    metadata: dict[str, Any] | None = None,
+) -> None:
+    await db.execute(
+        """
+        INSERT INTO auth_user_app_access
+            (username, module, enabled, profile, scope, sector, email, metadata_json, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(username, module) DO UPDATE SET
+            enabled=excluded.enabled,
+            profile=excluded.profile,
+            scope=excluded.scope,
+            sector=excluded.sector,
+            email=excluded.email,
+            metadata_json=excluded.metadata_json,
+            updated_at=excluded.updated_at
+        """,
+        (
+            username,
+            module,
+            1 if enabled else 0,
+            profile or None,
+            scope or None,
+            sector or None,
+            email or None,
+            json.dumps(metadata or {}, ensure_ascii=True),
+            _now(),
+        ),
+    )
+
+
+async def _set_rrhh_scope_db(db: aiosqlite.Connection, username: str, scope: str, sectors: list[str]) -> None:
+    await db.execute(
+        "UPDATE auth_user_module_scopes SET active = 0, updated_at = ? WHERE username = ? AND module = 'novedades_cd'",
+        (_now(), username),
+    )
+    if scope in {"sin_acceso", "operativo", "global"}:
+        await db.execute(
+            """
+            INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
+            VALUES (?, 'novedades_cd', ?, NULL, 1)
+            """,
+            (username, scope),
+        )
+        return
+    for sector in sectors:
+        await db.execute(
+            """
+            INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
+            VALUES (?, 'novedades_cd', 'sector_completo', ?, 1)
+            """,
+            (username, sector),
+        )
+
+
+async def _set_cases_access_db(
+    db: aiosqlite.Connection,
+    *,
+    username: str,
+    enabled: bool,
+    profile: str,
+    sector: str,
+    email: str,
+) -> None:
+    await db.execute(
+        """
+        INSERT INTO ticket_usuario_perfil (username, tipo_codigo, perfil, sector, correo, activo, updated_at)
+        VALUES (?, 'REPARACION_RACK', ?, ?, ?, ?, ?)
+        ON CONFLICT(username, tipo_codigo) DO UPDATE SET
+            perfil=excluded.perfil,
+            sector=excluded.sector,
+            correo=excluded.correo,
+            activo=excluded.activo,
+            updated_at=excluded.updated_at
+        """,
+        (username, profile, sector or None, email or None, 1 if enabled else 0, _now()),
+    )
+
+
+@router.get("/admin/access-context")
+async def access_context(request: Request):
+    await _require_admin(request)
+    await ensure_auth_access_schema()
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        users = await _fetch_rows(
+            db,
+            """
+            SELECT username, display_name, role, active
+            FROM auth_users
+            ORDER BY username
+            """,
+        )
+        rrhh_sectors = [
+            row["value"]
+            for row in await _fetch_rows(
+                db,
+                """
+                SELECT DISTINCT desc_sector_generico value
+                FROM rrhh_legajero
+                WHERE TRIM(COALESCE(desc_sector_generico, '')) <> ''
+                ORDER BY value
+                """,
+            )
+        ]
+        casos_profiles = await _case_profiles(db)
+        access_rows = await _fetch_rows(db, "SELECT * FROM auth_user_app_access")
+        rrhh_rows = await _fetch_rows(
+            db,
+            """
+            SELECT username, scope, sector
+            FROM auth_user_module_scopes
+            WHERE module = 'novedades_cd' AND active = 1
+            """,
+        )
+        try:
+            casos_rows = await _fetch_rows(
+                db,
+                """
+                SELECT username, perfil, sector, correo, activo
+                FROM ticket_usuario_perfil
+                WHERE tipo_codigo = 'REPARACION_RACK'
+                """,
+            )
+        except sqlite3.OperationalError:
+            casos_rows = []
+
+    accesses: dict[str, dict[str, Any]] = {}
+    for user in users:
+        accesses[user["username"]] = {
+            "novedades_cd": {"module": "novedades_cd", "enabled": False, "scope": "sin_acceso", "sectors": []},
+            "casos": {"module": "casos", "enabled": False, "profile": "", "sector": "", "email": ""},
+            "panol": {"module": "panol", "enabled": False, "profile": "", "scope": "", "sector": "", "email": ""},
+        }
+
+    for row in access_rows:
+        username = row["username"]
+        module = row["module"]
+        if username not in accesses or module not in accesses[username]:
+            continue
+        metadata = {}
+        try:
+            metadata = json.loads(row["metadata_json"] or "{}")
+        except json.JSONDecodeError:
+            metadata = {}
+        accesses[username][module].update(
+            {
+                "enabled": bool(row["enabled"]),
+                "profile": row["profile"] or "",
+                "scope": row["scope"] or "",
+                "sector": row["sector"] or "",
+                "email": row["email"] or "",
+                "sectors": metadata.get("sectors") or [],
+            }
+        )
+
+    rrhh_by_user: dict[str, list[dict[str, Any]]] = {}
+    for row in rrhh_rows:
+        rrhh_by_user.setdefault(row["username"], []).append(row)
+    for username, rows in rrhh_by_user.items():
+        if username not in accesses:
+            continue
+        if any(row["scope"] == "sin_acceso" for row in rows):
+            scope = "sin_acceso"
+        elif any(row["scope"] == "global" for row in rows):
+            scope = "global"
+        elif any(row["scope"] == "sector_completo" for row in rows):
+            scope = "sector_completo"
+        else:
+            scope = "operativo"
+        sectors = [row["sector"] for row in rows if row["sector"]]
+        accesses[username]["novedades_cd"].update(
+            {"enabled": scope != "sin_acceso", "scope": scope, "sectors": sectors}
+        )
+
+    for row in casos_rows:
+        username = row["username"]
+        if username not in accesses:
+            continue
+        accesses[username]["casos"].update(
+            {
+                "enabled": bool(row["activo"]),
+                "profile": row["perfil"] or "",
+                "sector": row["sector"] or "",
+                "email": row["correo"] or "",
+            }
+        )
+
+    return {
+        "users": users,
+        "modules": APP_MODULES,
+        "accesses": accesses,
+        "rrhh_sectors": rrhh_sectors,
+        "casos_profiles": casos_profiles,
+        "panol_profiles": ["OPERACION", "ADMIN"],
+    }
+
+
+@router.post("/admin/users/access")
+async def set_user_access(req: UserAccessRequest, request: Request):
+    await _require_admin(request)
+    await ensure_auth_access_schema()
+    username = _normalize_username(req.username)
+    module = (req.module or "").strip().lower()
+    if module not in {"novedades_cd", "casos", "panol"}:
+        raise HTTPException(status_code=400, detail="Modulo no soportado.")
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT 1 FROM auth_users WHERE username = ?", (username,)) as cur:
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+
+        if module == "novedades_cd":
+            scope = (req.scope or ("operativo" if req.enabled else "sin_acceso")).strip().lower()
+            if not req.enabled:
+                scope = "sin_acceso"
+            if scope not in {"sin_acceso", "operativo", "sector_completo", "global"}:
+                raise HTTPException(status_code=400, detail="Alcance invalido.")
+            sectors = _clean_sectors(req.sectors)
+            if scope == "sector_completo" and not sectors:
+                raise HTTPException(status_code=400, detail="El alcance por sector requiere al menos un sector.")
+            await _set_rrhh_scope_db(db, username, scope, sectors)
+            await _upsert_app_access(
+                db,
+                username=username,
+                module=module,
+                enabled=scope != "sin_acceso",
+                scope=scope,
+                metadata={"sectors": sectors},
+            )
+        elif module == "casos":
+            profile = (req.profile or "OPERACION").strip().upper()
+            profiles = await _case_profiles(db)
+            if profile not in profiles:
+                raise HTTPException(status_code=400, detail="Perfil de casos invalido.")
+            sector = _clean_text(req.sector)
+            email = (req.email or "").strip()
+            await _set_cases_access_db(
+                db,
+                username=username,
+                enabled=req.enabled,
+                profile=profile,
+                sector=sector,
+                email=email,
+            )
+            await _upsert_app_access(
+                db,
+                username=username,
+                module=module,
+                enabled=req.enabled,
+                profile=profile,
+                scope="perfil",
+                sector=sector,
+                email=email,
+            )
+        else:
+            profile = (req.profile or "").strip().upper()
+            scope = _clean_text(req.scope)
+            sector = _clean_text(req.sector)
+            email = (req.email or "").strip()
+            await _upsert_app_access(
+                db,
+                username=username,
+                module=module,
+                enabled=req.enabled,
+                profile=profile,
+                scope=scope,
+                sector=sector,
+                email=email,
+            )
+        await db.commit()
+    return {"ok": True}
+
+
+@router.post("/admin/db/ensure-access-schema")
+async def admin_ensure_access_schema(request: Request):
+    await _require_admin(request)
+    await ensure_auth_access_schema()
+    return {"ok": True, "table": "auth_user_app_access"}
+
+
 @router.post("/admin/users/scope")
 async def set_user_scope(req: UserScopeRequest, request: Request):
     await _require_admin(request)
@@ -370,54 +752,22 @@ async def set_user_scope(req: UserScopeRequest, request: Request):
         raise HTTPException(status_code=400, detail="Modulo no soportado.")
     if scope not in {"sin_acceso", "operativo", "sector_completo", "global"}:
         raise HTTPException(status_code=400, detail="Alcance invalido.")
-    sectors = []
-    for sector in req.sectors or []:
-        value = " ".join(str(sector).split())
-        if value and value not in sectors:
-            sectors.append(value)
+    sectors = _clean_sectors(req.sectors)
     if scope == "sector_completo" and not sectors:
         raise HTTPException(status_code=400, detail="El alcance por sector requiere al menos un sector.")
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT 1 FROM auth_users WHERE username = ?", (username,)) as cur:
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Usuario no encontrado.")
-        await db.execute(
-            "UPDATE auth_user_module_scopes SET active = 0, updated_at = ? WHERE username = ? AND module = ?",
-            (_now(), username, module),
+        await _set_rrhh_scope_db(db, username, scope, sectors)
+        await _upsert_app_access(
+            db,
+            username=username,
+            module=module,
+            enabled=scope != "sin_acceso",
+            scope=scope,
+            metadata={"sectors": sectors},
         )
-        if scope == "sin_acceso":
-            await db.execute(
-                """
-                INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
-                VALUES (?, ?, 'sin_acceso', NULL, 1)
-                """,
-                (username, module),
-            )
-        elif scope == "operativo":
-            await db.execute(
-                """
-                INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
-                VALUES (?, ?, 'operativo', NULL, 1)
-                """,
-                (username, module),
-            )
-        elif scope == "global":
-            await db.execute(
-                """
-                INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
-                VALUES (?, ?, 'global', NULL, 1)
-                """,
-                (username, module),
-            )
-        else:
-            for sector in sectors:
-                await db.execute(
-                    """
-                    INSERT INTO auth_user_module_scopes (username, module, scope, sector, active)
-                    VALUES (?, ?, 'sector_completo', ?, 1)
-                    """,
-                    (username, module, sector),
-                )
         await db.commit()
     return {"ok": True}
 
@@ -431,8 +781,10 @@ async def mail_context(request: Request):
         "server_name": (os.getenv("COMPUTERNAME") or socket.gethostname() or "").strip(),
         "apps": [
             {"id": "tnc", "label": "Tiempos muertos y TNC", "path": "/tiempos-muertos"},
-            {"id": "rrhh", "label": "Novedades CD", "path": "/novedades-cd"},
+            {"id": "novedades_cd", "label": "Novedades CD", "path": "/novedades-cd"},
+            {"id": "casos", "label": "Gestion de Casos", "path": "/casos.html"},
             {"id": "historia", "label": "Historia de Legajo", "path": "/historia-legajo"},
+            {"id": "panol", "label": "Panol Insumos", "path": "/panol-insumos"},
         ],
     }
 

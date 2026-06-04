@@ -5,589 +5,65 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VigIA - Dispositivos</title>
   <style>
-    :root {
-      --bg: #F2F4F1;
-      --panel: #FFFFFF;
-      --ink: #0E1620;
-      --ink-soft: #5C6773;
-      --rule: #D4DBD8;
-      --rule-strong: #A9B4AC;
-      --green: #1F7A4D;
-      --green-soft: #E5F3E9;
-      --amber: #B25F00;
-      --amber-soft: #FBE7C8;
-      --red: #C8102E;
-      --red-soft: #F7D7DA;
-      --blue: #0B5FAE;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--ink);
-      font-family: "Segoe UI", system-ui, sans-serif;
-      background-color: var(--bg);
-      background-image:
-        linear-gradient(var(--rule) 1px, transparent 1px),
-        linear-gradient(90deg, var(--rule) 1px, transparent 1px);
-      background-size: 24px 24px;
-    }
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-      padding: 16px 24px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--rule-strong);
-    }
-    .brand { display: flex; align-items: center; gap: 14px; }
-    .brand img { width: 56px; height: auto; }
-    .kicker, th, label, button, .pill {
-      font-family: Consolas, "Courier New", monospace;
-      text-transform: uppercase;
-      letter-spacing: .14em;
-    }
-    .kicker { color: var(--ink-soft); font-size: 10px; }
-    h1 { margin: 2px 0 0; font-size: 22px; }
-    main { padding: 22px 24px 40px; display: grid; gap: 18px; }
-    section {
-      background: var(--panel);
-      border: 1px solid var(--rule);
-      padding: 18px;
-    }
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    h2 { margin: 0; font-size: 17px; }
-    .muted { color: var(--ink-soft); font-size: 12px; }
-    table { width: 100%; border-collapse: collapse; background: var(--panel); }
-    th {
-      text-align: left;
-      color: var(--ink-soft);
-      background: #F6F8F5;
-      font-size: 10px;
-      padding: 10px 8px;
-      border-bottom: 1px solid var(--rule);
-    }
-    td {
-      padding: 10px 8px;
-      border-bottom: 1px solid var(--rule);
-      font-size: 13px;
-      vertical-align: top;
-    }
-    tr:nth-child(odd) td { background: #F8FAF7; }
-    .mono { font-family: Consolas, "Courier New", monospace; }
-    .ua { max-width: 420px; color: var(--ink-soft); font-size: 12px; }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      min-height: 22px;
-      padding: 3px 8px;
-      border: 1px solid var(--rule);
-      font-size: 10px;
-      font-weight: 700;
-    }
-    .pending { color: var(--amber); background: var(--amber-soft); border-color: var(--amber); }
-    .approved { color: var(--green); background: var(--green-soft); border-color: var(--green); }
-    .rejected, .revoked { color: var(--red); background: var(--red-soft); border-color: var(--red); }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    button, a.button {
-      min-height: 34px;
-      border: 1px solid var(--rule);
-      background: var(--panel);
-      color: var(--ink);
-      padding: 8px 12px;
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 11px;
-    }
-    button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-    button.ok { color: var(--green); border-color: var(--green); background: var(--green-soft); }
-    button.warn { color: var(--red); border-color: var(--red); background: var(--red-soft); }
-    button:focus, input:focus, select:focus, a.button:focus { outline: 2px solid var(--green); outline-offset: 1px; }
-    form { display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: 12px; align-items: end; }
-    label { display: block; color: var(--ink-soft); font-size: 10px; margin-bottom: 6px; }
-    input, select {
-      width: 100%;
-      min-height: 36px;
-      border: 1px solid var(--rule);
-      background: var(--panel);
-      color: var(--ink);
-      padding: 7px 9px;
-    }
-    .password-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-    }
-    .password-row button {
-      min-width: 42px;
-      padding-inline: 10px;
-    }
-    .message { min-height: 18px; color: var(--ink-soft); font-size: 12px; }
-    .mail-controls { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; }
-    .mail-controls label { margin-bottom: 4px; }
-    .mail-controls select { min-width: 230px; }
-    .users-list { display: grid; gap: 10px; margin-top: 14px; }
-    .user-card { border: 1px solid var(--rule); background: var(--panel); }
-    .user-summary {
-      display: grid;
-      grid-template-columns: minmax(150px, 1fr) minmax(180px, 1.1fr) 92px 190px auto;
-      gap: 10px;
-      align-items: center;
-      padding: 10px 12px;
-    }
-    .user-summary:nth-child(odd) { background: #F8FAF7; }
-    .user-name { font-weight: 700; }
-    .user-detail { display: none; border-top: 1px solid var(--rule); padding: 12px; background: #F8FAF7; }
-    .user-card.open .user-detail { display: block; }
-    .scope-form { display: grid; grid-template-columns: 220px 1fr auto; gap: 12px; align-items: start; }
-    .sector-checks {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(180px, 1fr));
-      gap: 4px 12px;
-      max-height: 260px;
-      overflow: auto;
-      border: 1px solid var(--rule);
-      background: var(--panel);
-      padding: 8px;
-    }
-    .sector-check {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 26px;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 12px;
-    }
-    .sector-check input { width: auto; min-height: 0; }
-    .scope-note { margin-top: 6px; color: var(--ink-soft); font-size: 12px; }
-    @media (max-width: 900px) {
-      form { grid-template-columns: 1fr; }
-      table { min-width: 900px; }
-      .table-wrap { overflow-x: auto; }
-      .user-summary, .scope-form, .sector-checks { grid-template-columns: 1fr; }
-    }
+    :root{--bg:#f2f4f1;--panel:#fff;--ink:#0e1620;--soft:#5c6773;--rule:#d4dbd8;--strong:#a9b4ac;--green:#1f7a4d;--green-bg:#e5f3e9;--red:#c8102e;--red-bg:#f7d7da;--amber:#b25f00;--amber-bg:#fbe7c8}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,sans-serif}
+    header{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:16px 24px;background:var(--panel);border-bottom:1px solid var(--strong)}
+    .brand{display:flex;align-items:center;gap:14px}.brand img{width:52px}.kicker,th,button,.button{font-family:Consolas,"Courier New",monospace;text-transform:uppercase;letter-spacing:.12em}.kicker{font-size:10px;color:var(--soft)}h1{font-size:22px;margin:2px 0 0}
+    main{padding:22px 24px 40px}.band{background:var(--panel);border:1px solid var(--rule);padding:18px}.band-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    h2{margin:0;font-size:17px}.muted{font-size:12px;color:var(--soft)}.actions{display:flex;gap:8px;flex-wrap:wrap}
+    button,.button{min-height:34px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:8px 12px;text-decoration:none;cursor:pointer;font-size:11px}
+    .primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}.ok{color:var(--green);background:var(--green-bg);border-color:var(--green)}.warn{color:var(--red);background:var(--red-bg);border-color:var(--red)}
+    table{width:100%;border-collapse:collapse;background:var(--panel)}th{text-align:left;color:var(--soft);background:#f6f8f5;font-size:10px;padding:10px 8px;border-bottom:1px solid var(--rule)}
+    td{padding:10px 8px;border-bottom:1px solid var(--rule);font-size:13px;vertical-align:top}tr:nth-child(odd) td{background:#f8faf7}.mono{font-family:Consolas,"Courier New",monospace}.ua{max-width:430px;color:var(--soft);font-size:12px}
+    .pill{display:inline-flex;min-height:22px;align-items:center;padding:3px 8px;border:1px solid var(--rule);font:700 10px Consolas,"Courier New",monospace;text-transform:uppercase;letter-spacing:.12em}
+    .pending{color:var(--amber);background:var(--amber-bg);border-color:var(--amber)}.approved{color:var(--green);background:var(--green-bg);border-color:var(--green)}.rejected,.revoked{color:var(--red);background:var(--red-bg);border-color:var(--red)}
+    .message{min-height:18px;font-size:12px;color:var(--soft);margin-bottom:8px}.table-wrap{overflow-x:auto}
   </style>
 </head>
 <body>
   <header>
     <div class="brand">
       <img src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
-      <div>
-        <div class="kicker">Admin - acceso local</div>
-        <h1>Dispositivos y usuarios</h1>
-      </div>
+      <div><div class="kicker">Admin - seguridad local</div><h1>Dispositivos</h1></div>
     </div>
-    <div class="actions">
-      <a class="button" href="/tiempos-muertos">TNC</a>
+    <nav class="actions">
+      <a class="button" href="/admin/usuarios">Usuarios</a>
+      <a class="button" href="/admin/accesos">Accesos</a>
+      <a class="button" href="/selector">Selector</a>
       <button id="logout-btn">Salir</button>
-    </div>
+    </nav>
   </header>
-
   <main>
-    <section>
-      <div class="section-head">
+    <section class="band">
+      <div class="band-head">
         <div>
-          <h2>Solicitudes de acceso</h2>
-          <div class="muted">Cada navegador aprobado queda habilitado para entrar con su usuario.</div>
+          <h2>Solicitudes de navegador</h2>
+          <div class="muted">Cada navegador aprobado queda asociado al usuario que hizo el primer ingreso.</div>
         </div>
         <button class="primary" id="refresh-btn">Refrescar</button>
       </div>
       <div class="message" id="message"></div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Estado</th>
-              <th>Usuario</th>
-              <th>Dispositivo</th>
-              <th>IP</th>
-              <th>Primer ingreso</th>
-              <th>Ultimo uso</th>
-              <th>Navegador</th>
-              <th>Accion</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Estado</th><th>Usuario</th><th>Dispositivo</th><th>IP</th><th>Primer ingreso</th><th>Ultimo uso</th><th>Navegador</th><th>Accion</th></tr></thead>
           <tbody id="devices-body"></tbody>
         </table>
       </div>
     </section>
-
-    <section>
-      <div class="section-head">
-        <div>
-          <h2>Usuarios habilitados</h2>
-          <div class="muted">Alta local simple. La contrasena no se guarda en claro.</div>
-        </div>
-        <div class="mail-controls">
-          <div>
-            <label for="mail-target">Correo para</label>
-            <select id="mail-target">
-              <option value="tnc">TNC</option>
-              <option value="rrhh">Novedades CD</option>
-              <option value="both">TNC + Novedades CD</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <form id="user-form">
-        <div>
-          <label for="new-user">Usuario</label>
-          <input id="new-user" autocomplete="off" required>
-        </div>
-        <div>
-          <label for="new-name">Nombre</label>
-          <input id="new-name" autocomplete="off">
-        </div>
-        <div>
-          <label for="new-pass">Contrasena</label>
-          <div class="password-row">
-            <input id="new-pass" type="text" autocomplete="new-password" minlength="4" required>
-            <button type="button" id="generate-pass" title="Generar contrasena">AUTO</button>
-          </div>
-        </div>
-        <div>
-          <label for="new-role">Rol</label>
-          <select id="new-role">
-            <option value="user">Usuario</option>
-            <option value="rrhh">RRHH</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        <div>
-          <label for="new-rrhh-scope">Novedades CD</label>
-          <select id="new-rrhh-scope">
-            <option value="sin_acceso">Sin acceso</option>
-            <option value="operativo">Operativo</option>
-            <option value="global">Global</option>
-          </select>
-        </div>
-        <button class="primary" type="submit">Crear usuario</button>
-      </form>
-      <div class="users-list" id="users-body">
-      </div>
-    </section>
   </main>
-
-<script>
-  const messageEl = document.getElementById('message');
-  const devicesBody = document.getElementById('devices-body');
-  const usersBody = document.getElementById('users-body');
-  let rrhhSectors = [];
-  let mailContext = {
-    origin: window.location.origin,
-    server_name: window.location.hostname,
-    apps: [
-      { id: 'tnc', label: 'Tiempos muertos y TNC', path: '/tiempos-muertos' },
-      { id: 'rrhh', label: 'Novedades CD', path: '/novedades-cd' },
-    ],
-  };
-
-  function esc(value) {
-    return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[ch]));
-  }
-
-  function setMessage(text, isError = false) {
-    messageEl.textContent = text || '';
-    messageEl.style.color = isError ? 'var(--red)' : 'var(--ink-soft)';
-  }
-
-  function randomPassword(length = 8) {
-    const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    const bytes = new Uint8Array(length);
-    crypto.getRandomValues(bytes);
-    return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
-  }
-
-  async function copyText(text) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  async function api(path, options = {}) {
-    const res = await fetch(path, {
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-      ...options,
-    });
-    if (res.status === 401) {
-      window.location.href = '/login?next=/admin/dispositivos';
-      return null;
-    }
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || 'La operacion no pudo completarse.');
-    return data;
-  }
-
-  async function loadDevices() {
-    const data = await api('/api/auth/admin/devices');
-    if (!data) return;
-    devicesBody.innerHTML = data.devices.map((row) => `
-      <tr>
-        <td><span class="pill ${esc(row.status)}">${esc(row.status)}</span></td>
-        <td class="mono">${esc(row.username)}</td>
-        <td class="mono">${esc(row.device_short)}</td>
-        <td class="mono">${esc(row.ip_address)}</td>
-        <td class="mono">${esc(row.first_seen)}</td>
-        <td class="mono">${esc(row.last_seen)}</td>
-        <td class="ua">${esc(row.user_agent)}</td>
-        <td>
-          <div class="actions">
-            ${row.status !== 'approved' ? `<button class="ok" data-action="approve" data-device="${esc(row.device_id)}">Aprobar</button>` : ''}
-            ${row.status === 'pending' ? `<button data-action="reject" data-device="${esc(row.device_id)}">Rechazar</button>` : ''}
-            ${row.status === 'approved' ? `<button class="warn" data-action="revoke" data-device="${esc(row.device_id)}">Revocar</button>` : ''}
-          </div>
-        </td>
-      </tr>
-    `).join('') || '<tr><td colspan="8" class="muted">Sin solicitudes registradas.</td></tr>';
-  }
-
-  async function loadUsers() {
-    const data = await api('/api/auth/admin/users');
-    if (!data) return;
-    usersBody.innerHTML = data.users.map(renderUserCard).join('') || '<div class="muted">Sin usuarios registrados.</div>';
-  }
-
-  function scopeLabel(scope) {
-    return ({ sin_acceso: 'Sin acceso', operativo: 'Operativo', sector_completo: 'Sector completo', global: 'Global' })[scope] || 'Operativo';
-  }
-
-  function renderSectorChecks(row) {
-    const selected = new Set(row.rrhh_sectors || []);
-    return rrhhSectors.map((sector) => `
-      <label class="sector-check" title="${esc(sector)}">
-        <input type="checkbox" data-sector-check value="${esc(sector)}" ${selected.has(sector) ? 'checked' : ''}>
-        <span>${esc(sector)}</span>
-      </label>
-    `).join('') || '<div class="muted">No hay sectores importados todavia.</div>';
-  }
-
-  function renderUserCard(row) {
-    const selectedCount = (row.rrhh_sectors || []).length;
-    const scope = row.rrhh_scope || 'operativo';
-    const sectorSummary = scope === 'global' ? 'Todos los sectores'
-      : scope === 'sector_completo' ? `${selectedCount} sector(es)`
-      : scope === 'sin_acceso' ? 'No ve Novedades CD' : 'Sin sectores asignados';
-    return `
-      <article class="user-card" data-user-card="${esc(row.username)}">
-        <div class="user-summary">
-          <div>
-            <div class="mono user-name">${esc(row.username)}</div>
-            <div class="muted">${esc(row.display_name || '')}</div>
-          </div>
-          <div><span class="pill">${esc(scopeLabel(scope))}</span></div>
-          <div class="mono">${esc(row.role)}</div>
-          <div class="muted">${esc(sectorSummary)}</div>
-          <div class="actions">
-            <button data-toggle-user="${esc(row.username)}">Detalle</button>
-            <button data-mail-user="${esc(row.username)}" data-mail-name="${esc(row.display_name || row.username)}" data-mail-scope="${esc(scope)}">Correo</button>
-            <button class="${row.active ? 'warn' : 'ok'}" data-user-action="${row.active ? 'deactivate' : 'activate'}" data-username="${esc(row.username)}">
-              ${row.active ? 'Desactivar' : 'Activar'}
-            </button>
-          </div>
-        </div>
-        <div class="user-detail" data-scope-user="${esc(row.username)}">
-          <div class="scope-form">
-            <div>
-              <label>Alcance Novedades CD</label>
-              <select data-scope-select>
-                <option value="sin_acceso" ${scope === 'sin_acceso' ? 'selected' : ''}>Sin acceso</option>
-                <option value="operativo" ${scope === 'operativo' ? 'selected' : ''}>Operativo</option>
-                <option value="sector_completo" ${scope === 'sector_completo' ? 'selected' : ''}>Sector completo</option>
-                <option value="global" ${scope === 'global' ? 'selected' : ''}>Global</option>
-              </select>
-              <div class="scope-note">Sin acceso bloquea Novedades CD. Global ignora sectores. Sector completo habilita jefes/gerentes solo en los sectores marcados.</div>
-            </div>
-            <div>
-              <label>Sectores asociados</label>
-              <div class="sector-checks">${renderSectorChecks(row)}</div>
-            </div>
-            <button class="primary" data-save-scope="${esc(row.username)}">Guardar</button>
-          </div>
-        </div>
-      </article>
-    `;
-  }
-
-  async function loadMailContext() {
-    const data = await api('/api/auth/admin/mail-context');
-    if (!data) return;
-    mailContext = data;
-  }
-
-  async function loadRrhhSectors() {
-    const data = await api('/api/auth/admin/rrhh-sectors');
-    if (!data) return;
-    rrhhSectors = data.sectors || [];
-  }
-
-  async function refreshAll() {
-    try {
-      setMessage('Consultando...');
-      await loadRrhhSectors();
-      await Promise.all([loadDevices(), loadUsers(), loadMailContext()]);
-      setMessage('Actualizado.');
-    } catch (error) {
-      setMessage(error.message, true);
-    }
-  }
-
-  devicesBody.addEventListener('click', async (event) => {
-    const button = event.target.closest('button[data-action]');
-    if (!button) return;
-    try {
-      await api(`/api/auth/admin/devices/${button.dataset.action}`, {
-        method: 'POST',
-        body: JSON.stringify({ device_id: button.dataset.device }),
-      });
-      await refreshAll();
-    } catch (error) {
-      setMessage(error.message, true);
-    }
-  });
-
-  usersBody.addEventListener('click', async (event) => {
-    const toggleButton = event.target.closest('button[data-toggle-user]');
-    if (toggleButton) {
-      const card = toggleButton.closest('[data-user-card]');
-      card.classList.toggle('open');
-      toggleButton.textContent = card.classList.contains('open') ? 'Cerrar' : 'Detalle';
-      return;
-    }
-    const scopeButton = event.target.closest('button[data-save-scope]');
-    if (scopeButton) {
-      const row = scopeButton.closest('[data-scope-user]');
-      const scope = row.querySelector('[data-scope-select]').value;
-      const sectors = Array.from(row.querySelectorAll('[data-sector-check]:checked')).map((option) => option.value);
-      try {
-        await api('/api/auth/admin/users/scope', {
-          method: 'POST',
-          body: JSON.stringify({ username: scopeButton.dataset.saveScope, module: 'novedades_cd', scope, sectors }),
-        });
-        setMessage('Alcance actualizado.');
-        await refreshAll();
-      } catch (error) {
-        setMessage(error.message, true);
-      }
-      return;
-    }
-    const button = event.target.closest('button[data-user-action]');
-    if (!button) return;
-    try {
-      await api(`/api/auth/admin/users/${button.dataset.userAction}`, {
-        method: 'POST',
-        body: JSON.stringify({ username: button.dataset.username }),
-      });
-      await refreshAll();
-    } catch (error) {
-      setMessage(error.message, true);
-    }
-  });
-
-  document.getElementById('user-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const username = document.getElementById('new-user').value.trim();
-    const password = document.getElementById('new-pass').value;
-    const rrhhScope = document.getElementById('new-rrhh-scope').value;
-    try {
-      await api('/api/auth/admin/users', {
-        method: 'POST',
-        body: JSON.stringify({
-          username,
-          display_name: document.getElementById('new-name').value.trim(),
-          password,
-          role: document.getElementById('new-role').value,
-        }),
-      });
-      await api('/api/auth/admin/users/scope', {
-        method: 'POST',
-        body: JSON.stringify({ username, module: 'novedades_cd', scope: rrhhScope, sectors: [] }),
-      });
-      sessionStorage.setItem(`vigia_user_pass_${username.toLowerCase()}`, password);
-      event.target.reset();
-      await refreshAll();
-    } catch (error) {
-      setMessage(error.message, true);
-    }
-  });
-
-  usersBody.addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-mail-user]');
-    if (!button) return;
-    const username = button.dataset.mailUser;
-    const displayName = button.dataset.mailName || username;
-    const storageKey = `vigia_user_pass_${username.toLowerCase()}`;
-    let password = sessionStorage.getItem(storageKey) || '';
-    if (!password) {
-      password = prompt(`Contrasena inicial para ${username}:`) || '';
-    }
-    if (!password) {
-      setMessage('No se armo el correo porque falta la contrasena.', true);
-      return;
-    }
-    const scope = button.dataset.mailScope || 'operativo';
-    const links = [
-      'Seguimiento de Servicios de reparación de Racks: http://w093sisd04:9999/casos.html',
-    ];
-    if (scope !== 'sin_acceso') {
-      links.unshift(
-        'Picking por horas, suerte y dificultad: http://w093sisd04:9999/productividad.html?tab=productividad',
-        'Cambios de almacén, análisis de productividad picking grupal: http://w093sisd04:9999/gestion-operativa.html',
-        'Tablero RRHH: http://w093sisd04:9999/novedades-cd',
-      );
-    }
-    const subject = 'Acceso a VigIA';
-    const body = [
-      `Hola ${displayName},`,
-      '',
-      'Te comparto el acceso a VigIA.',
-      '',
-      'Aplicaciones disponibles:',
-      ...links,
-      '',
-      'Datos de acceso:',
-      `Usuario: ${username}`,
-      `Contrasena: ${password}`,
-      '',
-      'Por favor ingresa desde la PC/navegador que vas a usar habitualmente para validar tu primer ingreso.',
-      'Despues de iniciar sesion, el acceso va a quedar pendiente de aprobacion.',
-      'Cuando termines ese primer ingreso, avisame para validar y habilitar el dispositivo.',
-      '',
-      'Gracias.'
-    ].join('\n');
-    copyText(body).then((copied) => {
-      setMessage(copied
-        ? 'Correo copiado al portapapeles y abierto con la app predeterminada.'
-        : 'Correo abierto con la app predeterminada.');
-    });
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  });
-
-  document.getElementById('refresh-btn').addEventListener('click', refreshAll);
-  document.getElementById('generate-pass').addEventListener('click', () => {
-    const passInput = document.getElementById('new-pass');
-    passInput.value = randomPassword(8);
-    passInput.focus();
-    passInput.select();
-  });
-  document.getElementById('logout-btn').addEventListener('click', async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
-    window.location.href = '/login';
-  });
-
-  refreshAll();
-</script>
+  <script>
+    const body=document.getElementById('devices-body'),msg=document.getElementById('message');
+    function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+    function setMsg(t,e=false){msg.textContent=t||'';msg.style.color=e?'var(--red)':'var(--soft)'}
+    async function api(path,opt={}){const r=await fetch(path,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});if(r.status===401){location.href='/login?next=/admin/dispositivos';return null}const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||'La operacion no pudo completarse.');return d}
+    async function load(){setMsg('Consultando...');const d=await api('/api/auth/admin/devices');if(!d)return;body.innerHTML=(d.devices||[]).map(row=>`<tr>
+      <td><span class="pill ${esc(row.status)}">${esc(row.status)}</span></td><td class="mono">${esc(row.username)}</td><td class="mono">${esc(row.device_short)}</td><td class="mono">${esc(row.ip_address)}</td><td class="mono">${esc(row.first_seen)}</td><td class="mono">${esc(row.last_seen)}</td><td class="ua">${esc(row.user_agent)}</td>
+      <td><div class="actions">${row.status!=='approved'?`<button class="ok" data-action="approve" data-device="${esc(row.device_id)}">Aprobar</button>`:''}${row.status==='pending'?`<button data-action="reject" data-device="${esc(row.device_id)}">Rechazar</button>`:''}${row.status==='approved'?`<button class="warn" data-action="revoke" data-device="${esc(row.device_id)}">Revocar</button>`:''}</div></td>
+    </tr>`).join('')||'<tr><td colspan="8" class="muted">Sin solicitudes registradas.</td></tr>';setMsg('Actualizado.')}
+    body.addEventListener('click',async ev=>{const b=ev.target.closest('button[data-action]');if(!b)return;try{await api(`/api/auth/admin/devices/${b.dataset.action}`,{method:'POST',body:JSON.stringify({device_id:b.dataset.device})});await load()}catch(e){setMsg(e.message,true)}});
+    document.getElementById('refresh-btn').onclick=()=>load().catch(e=>setMsg(e.message,true));
+    document.getElementById('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
+    load().catch(e=>setMsg(e.message,true));
+  </script>
 </body>
 </html>

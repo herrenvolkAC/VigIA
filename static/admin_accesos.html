@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VigIA - Accesos</title>
+  <style>
+    :root{--bg:#f2f4f1;--panel:#fff;--ink:#0e1620;--soft:#5c6773;--rule:#d4dbd8;--strong:#a9b4ac;--green:#1f7a4d;--green-bg:#e5f3e9;--red:#c8102e;--red-bg:#f7d7da}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,sans-serif}
+    header{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:16px 24px;background:var(--panel);border-bottom:1px solid var(--strong)}
+    .brand{display:flex;align-items:center;gap:14px}.brand img{width:52px}.kicker,label,button,.button{font-family:Consolas,"Courier New",monospace;text-transform:uppercase;letter-spacing:.12em}.kicker{font-size:10px;color:var(--soft)}h1{font-size:22px;margin:2px 0 0}
+    main{padding:22px 24px 40px;display:grid;gap:18px}.band,.access-card{background:var(--panel);border:1px solid var(--rule);padding:18px}.band-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    h2{margin:0;font-size:17px}h3{margin:0 0 12px;font-size:16px}.muted{font-size:12px;color:var(--soft)}.actions{display:flex;gap:8px;flex-wrap:wrap}
+    button,.button{min-height:34px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:8px 12px;text-decoration:none;cursor:pointer;font-size:11px}.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+    label{display:block;font-size:10px;color:var(--soft);margin-bottom:6px}input,select{width:100%;min-height:36px;border:1px solid var(--rule);background:var(--panel);padding:7px 9px}.message{min-height:18px;font-size:12px;color:var(--soft)}
+    .user-row{display:grid;grid-template-columns:minmax(220px,380px) auto;gap:12px;align-items:end}.cards{display:grid;grid-template-columns:repeat(3,minmax(220px,1fr));gap:14px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.span{grid-column:1/-1}
+    .toggle{display:flex;align-items:center;gap:8px;margin-bottom:12px}.toggle input{width:auto;min-height:auto}.checks{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:4px 10px;max-height:240px;overflow:auto;border:1px solid var(--rule);padding:8px}.check{display:flex;align-items:center;gap:7px;font:12px Consolas,"Courier New",monospace}.check input{width:auto;min-height:auto}
+    @media(max-width:1000px){.cards,.user-row,.form-grid,.checks{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
+      <div><div class="kicker">Admin - permisos por aplicacion</div><h1>Accesos</h1></div>
+    </div>
+    <nav class="actions">
+      <a class="button" href="/admin/dispositivos">Dispositivos</a>
+      <a class="button" href="/admin/usuarios">Usuarios</a>
+      <a class="button" href="/selector">Selector</a>
+      <button id="logout-btn">Salir</button>
+    </nav>
+  </header>
+  <main>
+    <section class="band">
+      <div class="band-head"><div><h2>Usuario</h2><div class="muted">Elegi una persona y configura sus aplicaciones sin mezclarlo con la aprobacion del dispositivo.</div></div><button class="primary" id="refresh-btn">Refrescar</button></div>
+      <div class="user-row"><div><label for="user-select">Usuario</label><select id="user-select"></select></div><div class="message" id="message"></div></div>
+    </section>
+    <section class="cards" id="cards"></section>
+  </main>
+  <script>
+    const userSelect=document.getElementById('user-select'),cards=document.getElementById('cards'),msg=document.getElementById('message');let ctx=null;
+    function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+    function setMsg(t,e=false){msg.textContent=t||'';msg.style.color=e?'var(--red)':'var(--soft)'}
+    async function api(path,opt={}){const r=await fetch(path,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});if(r.status===401){location.href='/login?next=/admin/accesos';return null}const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||'La operacion no pudo completarse.');return d}
+    function currentUser(){return userSelect.value}
+    function access(module){return ((ctx.accesses||{})[currentUser()]||{})[module]||{}}
+    function sectorChecks(selected){const picked=new Set(selected||[]);return (ctx.rrhh_sectors||[]).map(s=>`<label class="check"><input type="checkbox" data-rrhh-sector value="${esc(s)}" ${picked.has(s)?'checked':''}><span>${esc(s)}</span></label>`).join('')||'<div class="muted">No hay sectores importados todavia.</div>'}
+    function options(values,current){return values.map(v=>`<option value="${esc(v)}" ${String(v)===String(current)?'selected':''}>${esc(v)}</option>`).join('')}
+    function render(){const u=currentUser();if(!u){cards.innerHTML='<div class="muted">Sin usuarios.</div>';return}const rrhh=access('novedades_cd'),casos=access('casos'),panol=access('panol');cards.innerHTML=`
+      <article class="access-card" data-card="novedades_cd">
+        <h3>Novedades CD</h3>
+        <label class="toggle"><input type="checkbox" id="rrhh-enabled" ${rrhh.enabled?'checked':''}> Habilitado</label>
+        <div class="form-grid">
+          <div class="span"><label for="rrhh-scope">Alcance</label><select id="rrhh-scope">
+            <option value="sin_acceso" ${rrhh.scope==='sin_acceso'?'selected':''}>Sin acceso</option>
+            <option value="operativo" ${rrhh.scope==='operativo'?'selected':''}>Operativo</option>
+            <option value="sector_completo" ${rrhh.scope==='sector_completo'?'selected':''}>Sector completo</option>
+            <option value="global" ${rrhh.scope==='global'?'selected':''}>Global</option>
+          </select></div>
+          <div class="span"><label>Sectores</label><div class="checks">${sectorChecks(rrhh.sectors)}</div></div>
+          <button class="primary" data-save="novedades_cd">Guardar</button>
+        </div>
+      </article>
+      <article class="access-card" data-card="casos">
+        <h3>Gestion de Casos</h3>
+        <label class="toggle"><input type="checkbox" id="casos-enabled" ${casos.enabled?'checked':''}> Habilitado</label>
+        <div class="form-grid">
+          <div><label for="casos-profile">Perfil</label><select id="casos-profile">${options(ctx.casos_profiles||[],casos.profile||'OPERACION')}</select></div>
+          <div><label for="casos-sector">Sector</label><input id="casos-sector" value="${esc(casos.sector||'')}"></div>
+          <div class="span"><label for="casos-email">Correo</label><input id="casos-email" type="email" value="${esc(casos.email||'')}"></div>
+          <button class="primary" data-save="casos">Guardar</button>
+        </div>
+      </article>
+      <article class="access-card" data-card="panol">
+        <h3>Panol Insumos</h3>
+        <label class="toggle"><input type="checkbox" id="panol-enabled" ${panol.enabled?'checked':''}> Habilitado</label>
+        <div class="form-grid">
+          <div><label for="panol-profile">Perfil</label><select id="panol-profile">${options(ctx.panol_profiles||[],panol.profile||'OPERACION')}</select></div>
+          <div class="span muted">OPERACION opera movimientos e inventarios. ADMIN tambien crea articulos e importa stock CD.</div>
+          <button class="primary" data-save="panol">Guardar</button>
+        </div>
+      </article>`}
+    async function load(){setMsg('Consultando...');ctx=await api('/api/auth/admin/access-context');if(!ctx)return;const query=new URLSearchParams(location.search);const preferred=query.get('user');userSelect.innerHTML=(ctx.users||[]).map(u=>`<option value="${esc(u.username)}">${esc(u.username)} - ${esc(u.display_name||'')} (${esc(u.role)})</option>`).join('');if(preferred&&[...userSelect.options].some(o=>o.value===preferred))userSelect.value=preferred;render();setMsg('Actualizado.')}
+    async function save(module){const username=currentUser();let body={username,module,enabled:true};if(module==='novedades_cd'){const scope=document.getElementById('rrhh-scope').value;body.enabled=document.getElementById('rrhh-enabled').checked&&scope!=='sin_acceso';body.scope=body.enabled?scope:'sin_acceso';body.sectors=[...document.querySelectorAll('[data-rrhh-sector]:checked')].map(x=>x.value)}else if(module==='casos'){body.enabled=document.getElementById('casos-enabled').checked;body.profile=document.getElementById('casos-profile').value;body.sector=document.getElementById('casos-sector').value;body.email=document.getElementById('casos-email').value}else{body.enabled=document.getElementById('panol-enabled').checked;body.profile=document.getElementById('panol-profile').value;body.scope='perfil';body.sector='';body.email=''}await api('/api/auth/admin/users/access',{method:'POST',body:JSON.stringify(body)});ctx=await api('/api/auth/admin/access-context');render();setMsg('Acceso actualizado.')}
+    cards.addEventListener('click',ev=>{const b=ev.target.closest('button[data-save]');if(!b)return;save(b.dataset.save).catch(e=>setMsg(e.message,true))});
+    userSelect.addEventListener('change',render);
+    document.getElementById('refresh-btn').onclick=()=>load().catch(e=>setMsg(e.message,true));
+    document.getElementById('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
+    load().catch(e=>setMsg(e.message,true));
+  </script>
+</body>
+</html>

@@ -220,6 +220,10 @@ def _pct_change(current: float, previous: float) -> float | None:
     return round(((current - previous) / previous) * 100, 2)
 
 
+def _productividad_hora(produccion: float, segundos: float) -> float:
+    return produccion / (segundos / 3600) if segundos > 0 else 0
+
+
 def _legajos_chart(
     metric: str,
     label: str,
@@ -281,7 +285,7 @@ def _legajos_operator_chart(
 def _build_legajos_operator_trends(rows: list[dict[str, Any]], dates: list[str], totals_by_date: dict[str, dict[str, Any]]) -> dict[str, Any]:
     by_legajo: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
-        if _to_float(row.get("productividad")) <= 0:
+        if _to_float(row.get("produccion")) <= 0:
             continue
         legajo = _norm_legajo(row.get("legajo"))
         if legajo:
@@ -289,26 +293,37 @@ def _build_legajos_operator_trends(rows: list[dict[str, Any]], dates: list[str],
 
     trends = []
     for legajo, items in by_legajo.items():
-        daily: dict[str, float] = defaultdict(float)
+        daily: dict[str, dict[str, float]] = defaultdict(lambda: {"produccion": 0.0, "tiempo_neto": 0.0})
         funciones: set[str] = set()
         tipos: set[str] = set()
         for item in items:
-            daily[str(item.get("fecha") or "")] += _to_float(item.get("productividad"))
+            day = str(item.get("fecha") or "")
+            daily[day]["produccion"] += _to_float(item.get("produccion"))
+            daily[day]["tiempo_neto"] += _to_float(item.get("tiempo_neto_segundos"))
             if item.get("funcion"):
                 funciones.add(str(item["funcion"]))
             if item.get("tipo"):
                 tipos.add(str(item["tipo"]))
-        ordered_dates = sorted(day for day, value in daily.items() if value > 0)
+        ordered_dates = sorted(day for day, value in daily.items() if value["produccion"] > 0 and value["tiempo_neto"] > 0)
         if len(ordered_dates) < 3:
             continue
         split = max(1, len(ordered_dates) // 2)
         first_dates = ordered_dates[:split]
         last_dates = ordered_dates[split:] or ordered_dates[-split:]
-        first_avg = sum(daily[day] for day in first_dates) / len(first_dates)
-        last_avg = sum(daily[day] for day in last_dates) / len(last_dates)
+        def avg(days: list[str]) -> float:
+            produccion = sum(daily[day]["produccion"] for day in days)
+            tiempo_neto = sum(daily[day]["tiempo_neto"] for day in days)
+            return _productividad_hora(produccion, tiempo_neto)
+
+        first_avg = avg(first_dates)
+        last_avg = avg(last_dates)
         delta = last_avg - first_avg
         delta_pct = _pct_change(last_avg, first_avg)
         sample = items[0]
+        daily_productividad = {
+            fecha: _productividad_hora(daily.get(fecha, {}).get("produccion", 0), daily.get(fecha, {}).get("tiempo_neto", 0))
+            for fecha in dates
+        }
         trends.append(
             {
                 "legajo": legajo,
@@ -321,8 +336,8 @@ def _build_legajos_operator_trends(rows: list[dict[str, Any]], dates: list[str],
                 "ultimo_promedio": round(last_avg, 2),
                 "delta": round(delta, 2),
                 "delta_pct": delta_pct,
-                "productividad_actual": round(daily[ordered_dates[-1]], 2),
-                "daily": {fecha: round(daily.get(fecha, 0), 2) for fecha in dates},
+                "productividad_actual": round(daily_productividad.get(ordered_dates[-1], 0), 2),
+                "daily": {fecha: round(daily_productividad.get(fecha, 0), 2) for fecha in dates},
             }
         )
 
@@ -503,6 +518,11 @@ async def _build_legajos_productividad_payload(
         fecha_ingreso = str(person.get("fecha_ingreso") or "").strip()
         funcion_legajero = str(person.get("desc_funcion") or "").strip() or "SIN FUNCION"
         funcion_productiva = str(data.get("funcion") or "").strip() or "SIN FUNCION PRODUCTIVA"
+        produccion = _to_float(data.get("produccion") if data.get("produccion") is not None else data.get("productividad"))
+        tiempo_neto = _to_float(data.get("tiemponeto"))
+        tiempo_total = _to_float(data.get("tiempototal"))
+        productividad_neta = (produccion / (tiempo_neto / 3600)) if tiempo_neto > 0 else 0
+        productividad_bruta = (produccion / (tiempo_total / 3600)) if tiempo_total > 0 else 0
         antiguedad_anios = _years_between(person.get("fecha_ingreso"), fecha_hasta_dt)
         if sector_filter_active and sector not in selected:
             continue
@@ -526,7 +546,12 @@ async def _build_legajos_productividad_payload(
                 "fecha_ingreso": fecha_ingreso[:10] if fecha_ingreso else "",
                 "antiguedad_anios": antiguedad_anios,
                 "tipo": str(data.get("tipo") or "").strip(),
-                "productividad": round(_to_float(data.get("productividad")), 2),
+                "produccion": round(produccion, 2),
+                "tiempo_neto_segundos": round(tiempo_neto, 2),
+                "tiempo_total_segundos": round(tiempo_total, 2),
+                "productividad": round(productividad_neta, 2),
+                "productividad_neta": round(productividad_neta, 2),
+                "productividad_bruta": round(productividad_bruta, 2),
             }
         )
 
@@ -540,17 +565,26 @@ async def _build_legajos_productividad_payload(
         totals_rows_by_date[fecha].append(row)
 
     def aggregate(items: list[dict[str, Any]]) -> dict[str, Any]:
-        productividad = sum(_to_float(row.get("productividad")) for row in items)
+        produccion = sum(_to_float(row.get("produccion")) for row in items)
+        tiempo_neto = sum(_to_float(row.get("tiempo_neto_segundos")) for row in items)
+        tiempo_total = sum(_to_float(row.get("tiempo_total_segundos")) for row in items)
         operarios = len({_norm_legajo(row.get("legajo")) for row in items if _norm_legajo(row.get("legajo"))})
         funciones = len({str(row.get("funcion") or "").strip() for row in items if str(row.get("funcion") or "").strip()})
         tipos = len({str(row.get("tipo") or "").strip() for row in items if str(row.get("tipo") or "").strip()})
+        productividad_neta = produccion / (tiempo_neto / 3600) if tiempo_neto > 0 else 0
+        productividad_bruta = produccion / (tiempo_total / 3600) if tiempo_total > 0 else 0
         return {
             "operarios": operarios,
             "registros": len(items),
             "funciones": funciones,
             "tipos": tipos,
-            "productividad": round(productividad, 2),
-            "productividad_promedio": round(productividad / operarios, 2) if operarios else 0,
+            "produccion": round(produccion, 2),
+            "tiempo_neto_segundos": round(tiempo_neto, 2),
+            "tiempo_total_segundos": round(tiempo_total, 2),
+            "productividad": round(productividad_neta, 2),
+            "productividad_neta": round(productividad_neta, 2),
+            "productividad_bruta": round(productividad_bruta, 2),
+            "productividad_promedio": round(productividad_neta, 2),
         }
 
     dates = sorted(totals_rows_by_date)
@@ -575,8 +609,9 @@ async def _build_legajos_productividad_payload(
     operator_trends = _build_legajos_operator_trends(rows, dates, totals_by_date)
     summary["legajos_con_tendencia"] = operator_trends["count"]
     charts = [
-        _legajos_chart("productividad", "Productividad total", "", "Suma de PROD_REAL del modulo de Productividad por dia y sector. No se calcula desde WMS/WF.", by_date_sector, totals_by_date, dates, sectors),
-        _legajos_chart("productividad_promedio", "Productividad promedio por legajo", "", "PROD_REAL promedio por legajo con productividad registrada en el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
+        _legajos_chart("productividad_neta", "Productividad neta", " bultos/h", "Produccion / horas netas del modulo de Productividad. Se calcula con suma de bultos y suma de segundos.", by_date_sector, totals_by_date, dates, sectors),
+        _legajos_chart("productividad_bruta", "Productividad bruta", " bultos/h", "Produccion / horas totales del modulo de Productividad. Se calcula con suma de bultos y suma de segundos.", by_date_sector, totals_by_date, dates, sectors),
+        _legajos_chart("produccion", "Produccion", "", "Suma de PROD_REAL del modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
         _legajos_chart("operarios", "Legajos con productividad", "", "Cantidad de legajos con registros de PROD_REAL en el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
         _legajos_chart("registros", "Registros de productividad", "", "Cantidad de combinaciones fecha, legajo, funcion y tipo devueltas por el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
         _legajos_chart("funciones", "Funciones productivas", "", "Cantidad de funciones distintas informadas por el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
@@ -597,7 +632,12 @@ async def _build_legajos_productividad_payload(
             "fecha_ingreso": row.get("fecha_ingreso"),
             "antiguedad_anios": row.get("antiguedad_anios"),
             "tipo": row.get("tipo"),
+            "produccion": row.get("produccion"),
+            "tiempo_neto_segundos": row.get("tiempo_neto_segundos"),
+            "tiempo_total_segundos": row.get("tiempo_total_segundos"),
             "productividad": row.get("productividad"),
+            "productividad_neta": row.get("productividad_neta"),
+            "productividad_bruta": row.get("productividad_bruta"),
         }
         for row in rows
     ]

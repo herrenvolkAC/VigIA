@@ -85,7 +85,9 @@ QUERY_HISTORIA_PRODUCTIVIDAD_BULK = """
 SELECT
     A.FECHA,
     A.LEGAJO,
-    SUM(B.PROD_REAL) AS PRODUCTIVIDAD,
+    SUM(B.PROD_REAL) AS PRODUCCION,
+    SUM(B.TIEMPO_DURANTE_PH_EN_SEGUNDOS) AS TIEMPONETO,
+    SUM(B.TIEMPO_TOTAL_EN_SEGUNDOS) AS TIEMPOTOTAL,
     C.DESCRIPCION AS FUNCION,
     C.ID_DE_UNIDAD_DE_PRODUCCION AS TIPO
 FROM PV_DIA_LABORAL A
@@ -2115,7 +2117,7 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         query_key = "historia_productividad_legajo"
     elif (
         "PV_LIQUIDAC_DIA_DET2" in normalized_query
-        and "SUM(B.PROD_REAL) AS PRODUCTIVIDAD" in normalized_query
+        and "SUM(B.PROD_REAL) AS PRODUCCION" in normalized_query
         and "ID_DE_UNIDAD_DE_PRODUCCION AS TIPO" in normalized_query
     ):
         query_key = "historia_productividad_bulk"

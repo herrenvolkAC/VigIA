@@ -476,8 +476,14 @@
         </select>
       </div>
       <div class="field">
-        <label for="leg-fecha-ingreso-desde">Ingreso desde</label>
-        <input type="date" id="leg-fecha-ingreso-desde" onchange="renderLegajosFromMemory()">
+        <label for="leg-estrato">Estrato</label>
+        <select id="leg-estrato" onchange="renderLegajosFromMemory()">
+          <option value="ALL">Todos</option>
+          <option value="LT15">Menor a 15 dias (&lt;15)</option>
+          <option value="LT30">Entre 15 y 30 (&lt;30)</option>
+          <option value="LT45">Entre 30 y 45 (&lt;45)</option>
+          <option value="GT45">Mayor a 45 (&gt;45)</option>
+        </select>
       </div>
       <div class="field">
         <label for="leg-funcion">Funcion</label>
@@ -1613,20 +1619,41 @@
     renderLegajosFromMemory();
   }
 
+  function daysBetweenDateStrings(fromDate, toDate) {
+    const from = String(fromDate || '').slice(0, 10);
+    const to = String(toDate || '').slice(0, 10);
+    if (!from || !to) return null;
+    const [fy, fm, fd] = from.split('-').map(Number);
+    const [ty, tm, td] = to.split('-').map(Number);
+    if (![fy, fm, fd, ty, tm, td].every(Number.isFinite)) return null;
+    const fromUtc = Date.UTC(fy, fm - 1, fd);
+    const toUtc = Date.UTC(ty, tm - 1, td);
+    return Math.floor((toUtc - fromUtc) / 86400000);
+  }
+
+  function rowMatchesEstrato(row, estrato) {
+    if (!estrato || estrato === 'ALL') return true;
+    const fechaHasta = document.getElementById('leg-fecha-hasta')?.value || row.fecha || '';
+    const days = daysBetweenDateStrings(row.fecha_ingreso, fechaHasta);
+    if (days === null || days < 0) return false;
+    if (estrato === 'LT15') return days < 15;
+    if (estrato === 'LT30') return days >= 15 && days < 30;
+    if (estrato === 'LT45') return days >= 30 && days < 45;
+    if (estrato === 'GT45') return days > 45;
+    return true;
+  }
+
   function legajosPassLocalFilters(row) {
     const sectors = selectedLegajosSectores();
     const dotacion = document.getElementById('leg-dotacion')?.value || 'ALL';
     const proveedor = document.getElementById('leg-proveedor')?.value || 'ALL';
-    const fechaIngresoDesde = document.getElementById('leg-fecha-ingreso-desde')?.value || '';
+    const estrato = document.getElementById('leg-estrato')?.value || 'ALL';
     const funcion = document.getElementById('leg-funcion')?.value || 'ALL';
     if (sectors.length && !sectors.includes(row.sector || 'SIN SECTOR')) return false;
     if (dotacion !== 'ALL' && (row.dotacion || '') !== dotacion) return false;
     if (proveedor !== 'ALL' && (row.proveedor || 'SIN PROVEEDOR') !== proveedor) return false;
     if (funcion !== 'ALL' && (row.funcion || '') !== funcion) return false;
-    if (fechaIngresoDesde) {
-      const fechaIngreso = String(row.fecha_ingreso || '').slice(0, 10);
-      if (!fechaIngreso || fechaIngreso < fechaIngresoDesde) return false;
-    }
+    if (!rowMatchesEstrato(row, estrato)) return false;
     return true;
   }
 
@@ -1635,12 +1662,34 @@
     return rows.filter(legajosPassLocalFilters);
   }
 
+  function productividadHora(produccion, segundos) {
+    const prod = Number(produccion || 0);
+    const secs = Number(segundos || 0);
+    return secs > 0 ? prod / (secs / 3600) : 0;
+  }
+
+  function sumLegajosMetrics(rows = []) {
+    return rows.reduce((acc, row) => {
+      acc.produccion += Number(row.produccion || row.productividad || 0);
+      acc.tiempoNeto += Number(row.tiempo_neto_segundos || 0);
+      acc.tiempoTotal += Number(row.tiempo_total_segundos || 0);
+      return acc;
+    }, { produccion: 0, tiempoNeto: 0, tiempoTotal: 0 });
+  }
+
   function aggregateLegajosRows(rows = []) {
-    const productivity = rows.reduce((acc, row) => acc + Number(row.productividad || 0), 0);
+    const totals = sumLegajosMetrics(rows);
+    const productividadNeta = productividadHora(totals.produccion, totals.tiempoNeto);
+    const productividadBruta = productividadHora(totals.produccion, totals.tiempoTotal);
     const legajos = new Set(rows.map(row => row.legajo).filter(Boolean));
     return {
-      productividad: productivity,
-      productividad_promedio: legajos.size ? productivity / legajos.size : 0,
+      produccion: totals.produccion,
+      tiempo_neto_segundos: totals.tiempoNeto,
+      tiempo_total_segundos: totals.tiempoTotal,
+      productividad: productividadNeta,
+      productividad_neta: productividadNeta,
+      productividad_bruta: productividadBruta,
+      productividad_promedio: productividadNeta,
       operarios: legajos.size,
       registros: rows.length,
       sectores: new Set(rows.map(row => row.sector).filter(Boolean)).size,
@@ -1656,7 +1705,7 @@
   function buildLegajosTrendData(rows = [], dates = []) {
     const byLegajo = new Map();
     rows.forEach(row => {
-      const value = Number(row.productividad || 0);
+      const value = Number(row.produccion || row.productividad || 0);
       if (!row.legajo || value <= 0) return;
       if (!byLegajo.has(row.legajo)) byLegajo.set(row.legajo, []);
       byLegajo.get(row.legajo).push(row);
@@ -1667,16 +1716,27 @@
       const funciones = new Set();
       const tipos = new Set();
       items.forEach(item => {
-        daily[item.fecha] = (daily[item.fecha] || 0) + Number(item.productividad || 0);
+        if (!daily[item.fecha]) daily[item.fecha] = { produccion: 0, tiempoNeto: 0, tiempoTotal: 0 };
+        daily[item.fecha].produccion += Number(item.produccion || item.productividad || 0);
+        daily[item.fecha].tiempoNeto += Number(item.tiempo_neto_segundos || 0);
+        daily[item.fecha].tiempoTotal += Number(item.tiempo_total_segundos || 0);
         if (item.funcion) funciones.add(item.funcion);
         if (item.tipo) tipos.add(item.tipo);
       });
-      const activeDates = Object.keys(daily).filter(day => daily[day] > 0).sort();
+      const dailyProductivity = Object.fromEntries(Object.entries(daily).map(([day, value]) => [day, productividadHora(value.produccion, value.tiempoNeto)]));
+      const activeDates = Object.keys(daily).filter(day => daily[day].produccion > 0 && daily[day].tiempoNeto > 0).sort();
       if (activeDates.length < 3) return;
       const split = Math.max(1, Math.floor(activeDates.length / 2));
       const firstDates = activeDates.slice(0, split);
       const lastDates = activeDates.slice(split);
-      const avg = days => days.reduce((acc, day) => acc + Number(daily[day] || 0), 0) / Math.max(days.length, 1);
+      const avg = days => {
+        const totals = days.reduce((acc, day) => {
+          acc.produccion += Number(daily[day]?.produccion || 0);
+          acc.tiempoNeto += Number(daily[day]?.tiempoNeto || 0);
+          return acc;
+        }, { produccion: 0, tiempoNeto: 0 });
+        return productividadHora(totals.produccion, totals.tiempoNeto);
+      };
       const firstAvg = avg(firstDates);
       const lastAvg = avg(lastDates.length ? lastDates : activeDates.slice(-split));
       const delta = lastAvg - firstAvg;
@@ -1693,8 +1753,8 @@
         ultimo_promedio: lastAvg,
         delta,
         delta_pct: deltaPct,
-        productividad_actual: daily[activeDates[activeDates.length - 1]] || 0,
-        daily: Object.fromEntries(dates.map(fecha => [fecha, Number(daily[fecha] || 0)])),
+        productividad_actual: dailyProductivity[activeDates[activeDates.length - 1]] || 0,
+        daily: Object.fromEntries(dates.map(fecha => [fecha, Number(dailyProductivity[fecha] || 0)])),
       });
     });
     const improving = trends.filter(item => item.delta > 0).sort((a, b) => (b.delta_pct ?? -999999) - (a.delta_pct ?? -999999)).slice(0, 8);
@@ -1743,16 +1803,25 @@
         });
       }
       const item = byLegajo.get(row.legajo);
-      item.daily[row.fecha] = (item.daily[row.fecha] || 0) + Number(row.productividad || 0);
+      if (!item.daily[row.fecha]) item.daily[row.fecha] = { produccion: 0, tiempoNeto: 0, tiempoTotal: 0 };
+      item.daily[row.fecha].produccion += Number(row.produccion || row.productividad || 0);
+      item.daily[row.fecha].tiempoNeto += Number(row.tiempo_neto_segundos || 0);
+      item.daily[row.fecha].tiempoTotal += Number(row.tiempo_total_segundos || 0);
     });
     const legajos = [...byLegajo.values()]
       .map(item => ({
         ...item,
-        total: dates.reduce((acc, fecha) => acc + Number(item.daily[fecha] || 0), 0),
-        activeDays: dates.filter(fecha => Number(item.daily[fecha] || 0) > 0).length,
+        produccion: dates.reduce((acc, fecha) => acc + Number(item.daily[fecha]?.produccion || 0), 0),
+        tiempoNeto: dates.reduce((acc, fecha) => acc + Number(item.daily[fecha]?.tiempoNeto || 0), 0),
+        tiempoTotal: dates.reduce((acc, fecha) => acc + Number(item.daily[fecha]?.tiempoTotal || 0), 0),
+        activeDays: dates.filter(fecha => Number(item.daily[fecha]?.produccion || 0) > 0 && Number(item.daily[fecha]?.tiempoNeto || 0) > 0).length,
       }))
-      .filter(item => item.total > 0)
-      .map(item => ({ ...item, promedio: item.activeDays ? item.total / item.activeDays : 0 }))
+      .filter(item => item.produccion > 0)
+      .map(item => ({
+        ...item,
+        promedio: productividadHora(item.produccion, item.tiempoNeto),
+        promedio_bruto: productividadHora(item.produccion, item.tiempoTotal),
+      }))
       .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es'));
     return { dates, legajos };
   }
@@ -1775,7 +1844,7 @@
     const group = topLegajosRanking(legajos);
     selectedLegajoRanking = selectedLegajoFromRanking(group);
     if (!dates.length || !group.length) {
-      return '<article class="chart-card primary-chart"><div class="chart-title">Ranking productividad promedio</div><div class="empty">Sin datos para graficar.</div></article>';
+      return '<article class="chart-card primary-chart"><div class="chart-title">Ranking productividad neta</div><div class="empty">Sin datos para graficar.</div></article>';
     }
     const width = 1200;
     const rowH = 34;
@@ -1800,8 +1869,8 @@
     }).join('');
     return `
       <article class="chart-card primary-chart">
-        <div class="chart-title">Ranking productividad promedio</div>
-        <div class="chart-subtitle">Promedio calculado solo sobre dias con actividad. Eje X: bultos/productividad promedio. Eje Y: legajos.</div>
+        <div class="chart-title">Ranking productividad neta</div>
+        <div class="chart-subtitle">Calculado como suma de produccion / suma de segundos netos del rango. Eje X: bultos/h. Eje Y: legajos.</div>
         <div class="rank-toolbar">
           <button class="rank-toggle ${legajosRankingMode === 'top' ? 'active' : ''}" type="button" onclick="setLegajosRankingMode('top')">10 mejores</button>
           <button class="rank-toggle ${legajosRankingMode === 'bottom' ? 'active' : ''}" type="button" onclick="setLegajosRankingMode('bottom')">10 peores</button>
@@ -1871,17 +1940,17 @@
     const chart = {
       metric: 'legajo_seleccionado',
       label: 'Actividad diaria legajo seleccionado',
-      unit: '',
-      description: `${label}. Eje X: fechas. Eje Y: bultos/productividad diaria.`,
+      unit: ' bultos/h',
+      description: `${label}. Eje X: fechas. Eje Y: productividad neta diaria por hora.`,
       context: 'legajos',
       series_type: 'legajo',
-      total: dates.map(fecha => ({ fecha, valor: Number(selected.daily?.[fecha] || 0) })),
+      total: dates.map(fecha => ({ fecha, valor: productividadHora(selected.daily?.[fecha]?.produccion, selected.daily?.[fecha]?.tiempoNeto) })),
       series: [
         {
           legajo: selected.legajo,
           sector: label,
           almacen: label,
-          points: dates.map(fecha => ({ fecha, valor: Number(selected.daily?.[fecha] || 0) })),
+          points: dates.map(fecha => ({ fecha, valor: productividadHora(selected.daily?.[fecha]?.produccion, selected.daily?.[fecha]?.tiempoNeto) })),
         },
       ],
       note: 'Se muestra un unico legajo para leer la tendencia sin ruido visual.',
@@ -2076,7 +2145,9 @@
             <th>Proveedor</th>
             <th>Ingreso</th>
             <th>Antiguedad</th>
-            <th>Productividad</th>
+            <th>Produccion</th>
+            <th>Prod. neta</th>
+            <th>Prod. bruta</th>
             <th>Tipo</th>
             <th>Fuente</th>
           </tr>
@@ -2093,7 +2164,9 @@
               <td>${escapeHtml(row.proveedor || '-')}</td>
               <td>${escapeHtml(row.fecha_ingreso || '-')}</td>
               <td>${row.antiguedad_anios === null || row.antiguedad_anios === undefined ? '-' : fmtMetric(row.antiguedad_anios, ' anios')}</td>
-              <td>${fmtMetric(row.productividad)}</td>
+              <td>${fmtMetric(row.produccion)}</td>
+              <td>${fmtMetric(row.productividad_neta || row.productividad, ' b/h')}</td>
+              <td>${fmtMetric(row.productividad_bruta, ' b/h')}</td>
               <td>${escapeHtml(row.tipo || '-')}</td>
               <td><span class="chip baja">Modulo Productividad</span></td>
             </tr>

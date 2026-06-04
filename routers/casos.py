@@ -114,7 +114,7 @@ async def _case_profile(auth: dict[str, Any], tipo_codigo: str = "REPARACION_RAC
         return str(row["perfil"]).upper()
     if str(auth.get("role") or "").lower() == "admin":
         return "ADMIN"
-    return str(os.getenv("VIGIA_CASOS_DEFAULT_PROFILE", "OPERACION")).upper()
+    return ""
 
 
 async def _case_assignment(auth: dict[str, Any], tipo_codigo: str = "REPARACION_RACK") -> dict[str, str]:
@@ -134,8 +134,9 @@ async def _case_assignment(auth: dict[str, Any], tipo_codigo: str = "REPARACION_
         )
     if row:
         return {"perfil": str(row.get("perfil") or "").upper(), "sector": row.get("sector") or ""}
-    perfil = "ADMIN" if str(auth.get("role") or "").lower() == "admin" else str(os.getenv("VIGIA_CASOS_DEFAULT_PROFILE", "OPERACION")).upper()
-    return {"perfil": perfil, "sector": ""}
+    if str(auth.get("role") or "").lower() == "admin":
+        return {"perfil": "ADMIN", "sector": "ADMIN"}
+    return {"perfil": "", "sector": ""}
 
 
 async def _require_auth(request: Request) -> tuple[dict[str, Any], str]:
@@ -143,6 +144,8 @@ async def _require_auth(request: Request) -> tuple[dict[str, Any], str]:
     if not auth or auth.get("device_status") != "approved":
         raise HTTPException(status_code=401, detail="No autenticado.")
     assignment = await _case_assignment(auth)
+    if not assignment["perfil"]:
+        raise HTTPException(status_code=403, detail="Sin acceso a Gestion de Casos.")
     return auth, assignment["perfil"]
 
 
