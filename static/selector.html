@@ -1,205 +1,239 @@
-﻿<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VigIA · Selector de Operación</title>
-  <link rel="stylesheet" href="/css/vigia.css">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>VigIA - Selector</title>
+  <style>
+    :root{
+      --bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;
+      --rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;
+      --amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--blue:#0B5FAE;
+      --module-color:#1F7A4D;--module-soft:#E5F3E9;
+    }
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{
+      margin:0;min-height:100vh;color:var(--ink);
+      font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);
+      background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);
+      background-size:24px 24px;
+    }
+    button{font:inherit;color:inherit;cursor:pointer}
+    button:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+    .paper-app{width:100%;min-height:100vh;padding:0 16px 16px}
+    .paper-header{
+      display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;
+      padding:12px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom-color:var(--rule-strong);
+    }
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-logo{width:86px;height:42px;object-fit:contain}
+    .brand-rule{width:1px;height:28px;background:var(--rule)}
+    .kicker,.label{
+      font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;
+      text-transform:uppercase;color:var(--ink-soft);
+    }
+    .kicker{margin-bottom:3px}
+    h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}
+    .amp{color:var(--red)}
+    .header-status{
+      justify-self:center;display:flex;align-items:center;gap:9px;
+      font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);
+    }
+    .status-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+    .header-right{display:flex;align-items:center;gap:10px}
+    .user-chip{display:flex;align-items:center;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}
+    .user-value{
+      font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);
+      max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .logout-btn{
+      min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);
+      padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    }
+    .logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .env-banner{
+      display:none;margin:8px 0 0;border:1px solid var(--amber);background:var(--amber-soft);color:#6F4300;
+      padding:7px 11px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    }
+    .env-banner.visible{display:block}
+    .selector-heading{
+      display:grid;grid-template-columns:1fr auto;align-items:end;gap:18px;
+      margin-top:10px;padding:11px 12px;background:var(--panel);border:1px solid var(--rule);
+    }
+    .selector-heading h2{font-size:16px;font-weight:600;margin:2px 0 0}
+    .selector-note{font-size:11px;color:var(--ink-soft);margin-top:3px}
+    .module-count{
+      font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--green);border:1px solid #C8E2D0;background:var(--green-soft);padding:5px 8px;
+    }
+    .module-grid{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px;
+    }
+    .module-card{
+      position:relative;overflow:hidden;display:grid;grid-template-columns:58px 1fr;grid-template-rows:auto 1fr auto;
+      column-gap:12px;min-width:0;min-height:140px;padding:12px 13px;background:var(--panel);
+      border:1px solid var(--rule);border-top:4px solid var(--module-color);color:var(--ink);text-decoration:none;
+      transition:border-color .15s ease,background-color .15s ease,transform .15s ease;
+    }
+    .module-card::after{
+      content:"";position:absolute;right:-22px;top:-28px;width:76px;height:76px;border-radius:50%;
+      background:var(--module-soft);opacity:.65;pointer-events:none;
+    }
+    .module-card.active:hover{border-color:var(--module-color);background:#F8FAF7;transform:translateY(-2px)}
+    .module-card.inactive{filter:saturate(.45);opacity:.72;color:var(--ink-soft);background:#F8FAF7}
+    .module-icon{
+      position:relative;z-index:1;grid-row:1 / span 2;width:56px;height:56px;display:grid;place-items:center;
+      border:1px solid color-mix(in srgb,var(--module-color) 45%,var(--rule));background:var(--module-soft);color:var(--module-color);
+      font-size:30px;font-family:'IBM Plex Sans',system-ui,sans-serif;font-weight:600;line-height:1;
+    }
+    .module-title{position:relative;z-index:1;font-size:14px;font-weight:600;line-height:1.15;min-width:0}
+    .module-description{
+      position:relative;z-index:1;grid-column:2;font-size:11px;line-height:1.35;color:var(--ink-soft);margin-top:5px;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    }
+    .module-footer{
+      grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:8px;
+      padding-top:8px;margin-top:8px;border-top:1px solid var(--rule);
+      font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);
+    }
+    .module-state{display:flex;align-items:center;gap:6px}
+    .module-state::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--rule-strong)}
+    .active .module-state{color:var(--module-color)}
+    .active .module-state::before{background:var(--module-color)}
+    .module-arrow{font-size:13px;color:var(--module-color);letter-spacing:0}
+    .inactive .module-arrow{display:none}
+    .productividad{--module-color:#0B5FAE;--module-soft:#E4F0FB}
+    .rrhh{--module-color:#1F7A4D;--module-soft:#E5F3E9}
+    .gestion{--module-color:#6D4AA2;--module-soft:#EEE8F7}
+    .casos{--module-color:#C8102E;--module-soft:#F7D7DA}
+    .panol{--module-color:#B25F00;--module-soft:#FBE7C8}
+    .historia{--module-color:#007C91;--module-soft:#DFF2F4}
+    .reposicion{--module-color:#2E8B57;--module-soft:#E1F2E8}
+    .recepcion{--module-color:#D07800;--module-soft:#FCEACD}
+    .mapa{--module-color:#3765A3;--module-soft:#E4ECF7}
+    .control{--module-color:#A83B7A;--module-soft:#F4E2ED}
+    .trafico{--module-color:#8B5E34;--module-soft:#EFE6DC}
+    .generales{--module-color:#58636E;--module-soft:#E8EBED}
+    @media(max-width:1100px){
+      .module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .paper-header{grid-template-columns:auto 1fr}.header-status{display:none}.header-right{justify-self:end}
+    }
+    @media(max-width:780px){
+      .paper-app{padding:0 10px 12px}.paper-header{grid-template-columns:1fr;padding:10px}
+      .header-right{justify-self:start}.module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .selector-heading{grid-template-columns:1fr}.module-count{justify-self:start}
+    }
+    @media(max-width:520px){.module-grid{grid-template-columns:1fr}.module-card{min-height:118px}}
+  </style>
 </head>
 <body>
-
-<div id="vigia-header"></div>
-
-<div class="selector-page">
-  <section class="selector-hero">
-    <div class="selector-hero-main">
-      <div class="selector-hero-kicker">Centro de distribución</div>
-      <div class="selector-title">Seleccioná el proceso</div>
-      <div class="selector-sub">Elegí la pantalla operativa que querés supervisar en este turno. Picking se abre por módulo para que cada equipo llegue directo al tablero que necesita.</div>
-      <div class="selector-hero-meta">
-        <span class="selector-meta-pill">Visual Coto</span>
-        <span class="selector-meta-pill">Navegación simple</span>
-        <span class="selector-meta-pill">Módulo activo destacado</span>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div>
+        <div class="kicker">Módulo operativo</div>
+        <h1>Selector <span class="amp">VigIA</span></h1>
       </div>
     </div>
-    <div class="selector-hero-side">
-      <img class="selector-side-logo" src="/resources/CotoLogo.svg" alt="Logo Coto">
-      <div class="selector-side-title">Acceso rápido por pantalla</div>
-      <div class="selector-side-copy">El selector queda como puerta de entrada. Las tarjetas activas abren una vista concreta y las tarjetas futuras marcan los procesos que todavía no tienen pantalla propia.</div>
+    <div class="header-status"><span class="status-dot"></span><span>Acceso centralizado</span></div>
+    <div class="header-right">
+      <div class="user-chip">
+        <div><div class="label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div>
+      </div>
+      <button class="logout-btn" id="logout-btn">Salir</button>
     </div>
+  </header>
+  <div class="env-banner" id="env-banner"></div>
+
+  <section class="selector-heading">
+    <div>
+      <div class="label">Centro de distribución</div>
+      <h2>Aplicaciones operativas</h2>
+      <div class="selector-note">Seleccioná el módulo de trabajo para continuar.</div>
+    </div>
+    <div class="module-count" id="module-count">Cargando módulos...</div>
   </section>
 
-  <div class="proceso-grid" id="proceso-grid"></div>
+  <main class="module-grid" id="module-grid"></main>
 </div>
 
-<script src="/js/vigia-core.js"></script>
-<script src="/js/vigia-nav.js"></script>
 <script>
-  const session = checkAuth();
-  if (!session) throw new Error('redirect');
-
-  initHeader('selector', { showClock: true });
-
-  const PROCESOS = [
-    {
-      id: 'productividad',
-      label: 'Productividad',
-      icon: '👷',
-      url: '/productividad.html',
-      activo: true,
-      tag: null,
-      descripcion: 'Productividad online, ranking por operario, análisis de dificultad de picking y lectura por hora.',
-    },
-    {
-      id: 'planificacion',
-      label: 'Planificación',
-      icon: '📅',
-      url: '/planificacion.html',
-      activo: true,
-      tag: null,
-      descripcion: 'Cumplimiento de plan por ola y sugerencia de plantel óptimo para cubrir la operación.',
-    },
-    {
-      id: 'gestion',
-      label: 'Gestión Operativa',
-      icon: '⚙️',
-      url: '/gestion-operativa.html',
-      activo: true,
-      tag: null,
-      descripcion: 'Herramientas de apoyo para coordinación de piso, comenzando por cambios de almacén.',
-    },
-    {
-      id: 'casos',
-      label: 'Gestión de Casos',
-      icon: '🎫',
-      url: '/casos.html',
-      activo: true,
-      tag: null,
-      descripcion: 'Tickets operativos con workflow, SLA, adjuntos, comentarios e historial por tipo de caso.',
-    },
-    {
-      id: 'panol',
-      label: 'Pañol Insumos',
-      icon: '📦',
-      url: '/panol-insumos.html',
-      activo: true,
-      tag: null,
-      descripcion: 'Stock operativo de Jaula y Oficina ADO, inventarios por turno, consumo calculado e importación de stock CD.',
-    },
-    {
-      id: 'historia',
-      label: 'Historia de Legajo',
-      icon: '🧾',
-      url: '/historia-legajo.html',
-      activo: true,
-      tag: null,
-      descripcion: 'Ficha operativa 360 por legajo: RRHH, novedades, TNC, fichadas y productividad en una sola vista.',
-    },
-    {
-      id: 'reposicion',
-      label: 'Reposición',
-      icon: '🔄',
-      url: null,
-      activo: false,
-      tag: 'proximo',
-      descripcion: 'Reposición de posiciones vacías. Control de cobertura de racks y priorización de zonas críticas del almacén.',
-    },
-    {
-      id: 'recepcion',
-      label: 'Recepción',
-      icon: '📥',
-      url: null,
-      activo: false,
-      tag: 'proximo',
-      descripcion: 'Ingreso y control de mercadería de proveedores. Gestión de muelles, verificación de cantidades y calidad.',
-    },
-    {
-      id: 'mapa',
-      label: 'Mapa',
-      icon: '🗺️',
-      url: null,
-      activo: false,
-      tag: 'desarrollo',
-      descripcion: 'Slotting y layout del almacén. Distribución de posiciones, zonas, pasillos y asignación de familias de productos.',
-    },
-    {
-      id: 'control',
-      label: 'Control de Procesos',
-      icon: '🎛️',
-      url: null,
-      activo: false,
-      tag: 'desarrollo',
-      descripcion: 'Monitoreo integral de KPIs operativos. Tablero de gestión, alertas de proceso y tendencias del turno.',
-    },
-    {
-      id: 'trafico',
-      label: 'Tráfico',
-      icon: '🚛',
-      url: null,
-      activo: false,
-      tag: 'desarrollo',
-      descripcion: 'Gestión de entradas y salidas de transporte. Programación de muelles, control de flota y proveedores.',
-    },
-    {
-      id: 'generales',
-      label: 'Generales',
-      icon: '🏭',
-      url: null,
-      activo: false,
-      tag: 'desarrollo',
-      descripcion: 'Operaciones transversales del centro de distribución. Administración de recursos, mantenimiento y soporte operativo.',
-    },
+  const MODULES = [
+    {id:'productividad',icon:'👷',label:'Productividad',url:'/productividad.html',active:true,description:'Productividad online, ranking por operario y lectura del turno.'},
+    {id:'rrhh',icon:'👥',label:'Tablero RRHH',url:'/novedades-cd',active:true,description:'Novedades CD, ausentismo, horas extra, francos e indicadores.'},
+    {id:'gestion',icon:'⚙️',label:'Gestión Operativa',url:'/gestion-operativa.html',active:true,description:'Herramientas de coordinación y seguimiento operativo de piso.'},
+    {id:'casos',icon:'🎫',label:'Gestión de Casos',url:'/casos.html',active:true,description:'Tickets operativos, SLA, adjuntos, comentarios e historial.'},
+    {id:'panol',icon:'📦',label:'Pañol Insumos',url:'/panol-insumos.html',active:true,description:'Stock, inventarios, movimientos e importación de stock CD.'},
+    {id:'historia',icon:'🧾',label:'Historia de Legajo',url:'/historia-legajo.html',active:true,description:'Ficha operativa integral por legajo y actividad histórica.'},
+    {id:'reposicion',icon:'🔄',label:'Reposición',active:false,state:'Próximamente',description:'Cobertura de posiciones y priorización de zonas críticas.'},
+    {id:'recepcion',icon:'📥',label:'Recepción',active:false,state:'Próximamente',description:'Ingreso y control de mercadería, proveedores y muelles.'},
+    {id:'mapa',icon:'🗺️',label:'Mapa',active:false,state:'En desarrollo',description:'Slotting, layout y distribución de posiciones del almacén.'},
+    {id:'control',icon:'🎛️',label:'Control de Procesos',active:false,state:'En desarrollo',description:'Monitoreo integral de KPIs, alertas y tendencias.'},
+    {id:'trafico',icon:'🚛',label:'Tráfico',active:false,state:'En desarrollo',description:'Programación de muelles, flota, entradas y salidas.'},
+    {id:'generales',icon:'🏭',label:'Generales',active:false,state:'En desarrollo',description:'Recursos, mantenimiento y soporte operativo transversal.'},
   ];
 
-  function renderCards(turnoData) {
-    const grid = document.getElementById('proceso-grid');
-    grid.innerHTML = PROCESOS.map(p => {
-      const cls = p.activo ? `proceso-card ${p.id} activo` : `proceso-card ${p.id} inactivo`;
+  const $ = id => document.getElementById(id);
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
-      let statusHtml;
-      if (p.activo) {
-        statusHtml = `<div class="proceso-status"><span class="status-dot on"></span><span style="color:var(--accent)">En curso</span></div>`;
-      } else if (p.tag === 'desarrollo') {
-        statusHtml = `<div class="proceso-status"><span class="status-dot off"></span><span class="desarrollo-tag">En desarrollo</span></div>`;
-      } else {
-        statusHtml = `<div class="proceso-status"><span class="status-dot off"></span><span class="proximo-tag">Próximamente</span></div>`;
-      }
-
-      let kpiHtml = '';
-      if ((p.id === 'productividad' || p.id === 'planificacion' || p.id === 'gestion') && turnoData) {
-        const pct = turnoData.pct_avance != null ? `<strong>${turnoData.pct_avance}%</strong> completado` : '';
-        kpiHtml = pct
-          ? `<div class="proceso-kpi">Turno ${turnoData.turno} · ${pct}</div>`
-          : `<div class="proceso-kpi">Turno ${turnoData.turno || '—'} · en curso</div>`;
-      }
-
+  function renderModules() {
+    $('module-grid').innerHTML = MODULES.map(module => {
       const content = `
-        <div class="proceso-icon-wrap"><span class="proceso-icon">${p.icon}</span></div>
-        <div class="proceso-nombre">${p.label}</div>
-        <div class="proceso-desc">${p.descripcion}</div>
-        ${statusHtml}
-        ${kpiHtml}
-      `;
-
-      return p.activo
-        ? `<a href="${p.url}" class="${cls}">${content}</a>`
-        : `<div class="${cls}">${content}</div>`;
+        <div class="module-icon" aria-hidden="true">${esc(module.icon)}</div>
+        <div class="module-title">${esc(module.label)}</div>
+        <div class="module-description">${esc(module.description)}</div>
+        <div class="module-footer">
+          <span class="module-state">${module.active ? 'Disponible' : esc(module.state)}</span>
+          <span class="module-arrow">→</span>
+        </div>`;
+      return module.active
+        ? `<a class="module-card active ${esc(module.id)}" href="${esc(module.url)}">${content}</a>`
+        : `<article class="module-card inactive ${esc(module.id)}">${content}</article>`;
     }).join('');
+    $('module-count').textContent = `${MODULES.filter(module => module.active).length} módulos disponibles`;
   }
 
-  async function loadTurno() {
+  async function loadAppInfo() {
     try {
-      const res = await fetch('/api/turno/activo');
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      const turnoData = data?.turno || null;
-      renderCards(turnoData);
-    } catch {
-      renderCards(null);
-    }
+      const res = await fetch('/api/app-info', {credentials:'same-origin'});
+      if (!res.ok) return;
+      const info = await res.json();
+      if (info.show_banner && info.banner) {
+        $('env-banner').textContent = info.banner;
+        $('env-banner').classList.add('visible');
+      }
+    } catch (_) {}
   }
 
-  loadTurno();
+  async function initSelector() {
+    const res = await fetch('/api/auth/me', {credentials:'same-origin'}).catch(() => null);
+    if (!res || !res.ok) {
+      window.location.replace('/login?next=/selector.html');
+      return;
+    }
+    const user = await res.json();
+    sessionStorage.setItem('vigia_session', JSON.stringify({
+      user:user.username,name:user.display_name || user.username,role:user.role,
+    }));
+    $('user-label').textContent = user.display_name || user.username;
+    renderModules();
+    await loadAppInfo();
+  }
+
+  $('logout-btn').onclick = async () => {
+    sessionStorage.removeItem('vigia_session');
+    await fetch('/api/auth/logout', {method:'POST',credentials:'same-origin'}).catch(() => {});
+    window.location.replace('/login');
+  };
+
+  initSelector();
 </script>
 </body>
 </html>

@@ -21,6 +21,7 @@ from fastapi import APIRouter, Body, HTTPException, Query, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
+from db.auth import attach_auth_db, auth_db
 from db.casos import PERFILES, init_cases_db
 from db.schema import DB_PATH
 from routers.auth_local import current_auth
@@ -350,6 +351,7 @@ def _validate_pasillo(value: str) -> str:
 
 
 async def _ticket_row(db: aiosqlite.Connection, ticket_id: int) -> dict[str, Any]:
+    await attach_auth_db(db)
     row = await _fetch_one(
         db,
         """
@@ -360,7 +362,7 @@ async def _ticket_row(db: aiosqlite.Connection, ticket_id: int) -> dict[str, Any
         JOIN ticket_tipo tt ON tt.id = t.tipo_id
         JOIN ticket_estado e ON e.id = t.estado_id
         JOIN ticket_criticidad c ON c.id = t.criticidad_id
-        LEFT JOIN auth_users u ON u.username = t.usuario_creacion_id
+        LEFT JOIN authdb.auth_users u ON u.username = t.usuario_creacion_id
         WHERE t.id = ? AND t.activo = 1
         """,
         (ticket_id,),
@@ -439,13 +441,14 @@ async def listar_usuarios_perfiles(request: Request, tipo_codigo: str = "REPARAC
     tipo_codigo = tipo_codigo.strip().upper() or "REPARACION_RACK"
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
+        await attach_auth_db(db)
         usuarios = await _fetch_all(
             db,
             """
             SELECT u.username, u.display_name, u.role, u.active,
                    cup.perfil casos_perfil, cup.sector casos_sector, cup.correo casos_correo,
                    cup.activo casos_activo, cup.updated_at casos_updated_at
-            FROM auth_users u
+            FROM authdb.auth_users u
             LEFT JOIN ticket_usuario_perfil cup
                    ON cup.username = u.username AND cup.tipo_codigo = ?
             ORDER BY u.username
@@ -480,10 +483,11 @@ async def guardar_usuario_perfil(req: UsuarioPerfilCasoRequest, request: Request
         raise HTTPException(status_code=400, detail="Usuario obligatorio.")
     if perfil not in PERFILES:
         raise HTTPException(status_code=400, detail="Perfil de casos invalido.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db(attach_operational=False) as db:
         async with db.execute("SELECT 1 FROM auth_users WHERE username = ?", (username,)) as cur:
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+    async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT 1 FROM ticket_tipo WHERE codigo = ?", (tipo_codigo,)) as cur:
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Tipo de caso no encontrado.")

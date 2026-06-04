@@ -30,6 +30,7 @@ from routers.analisis_inteligente import (
     analizar_anomalia_zscore,
     ejecutar_todos_analisis
 )
+from db.schema import DB_PATH
 
 router = APIRouter(prefix="/api", tags=["operarios"])
 
@@ -280,9 +281,7 @@ async def listar_operarios():
     Example: /api/operarios
     """
     import aiosqlite
-    from pathlib import Path
 
-    DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
     try:
         async with aiosqlite.connect(str(DB_PATH)) as db:
@@ -333,10 +332,8 @@ async def get_operarios_ranking(dias: int = 1):
     Sorted by picks DESC. Marca como bajo estándar si vel>35s o error>3%.
     """
     import aiosqlite
-    from pathlib import Path
 
     try:
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
             fecha_desde = (datetime.now() - __import__('datetime').timedelta(days=dias)).strftime('%Y-%m-%d')
@@ -424,9 +421,7 @@ async def get_detalle_operario(operario_id: str):
     Example: /api/operarios/OP_00045
     """
     import aiosqlite
-    from pathlib import Path
 
-    DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
     try:
         async with aiosqlite.connect(str(DB_PATH)) as db:
@@ -511,9 +506,7 @@ async def get_historico_operario(operario_id: str, dias: int = Query(30, ge=1, l
     """
     try:
         import aiosqlite
-        from pathlib import Path
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
@@ -572,9 +565,7 @@ async def get_metricas_comparativas():
     """
     try:
         import aiosqlite
-        from pathlib import Path
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
@@ -661,9 +652,7 @@ async def get_clusters():
     """
     try:
         import aiosqlite
-        from pathlib import Path
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
@@ -766,9 +755,7 @@ async def get_benchmark_operario(operario_id: str):
     """
     try:
         import aiosqlite
-        from pathlib import Path
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
@@ -873,9 +860,7 @@ async def get_recomendaciones_enriquecidas(operario_id: str, provider: str = "")
 
         # ========== 2. OBTENER ANÁLISIS BASE ==========
         import aiosqlite
-        from pathlib import Path
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
@@ -1000,9 +985,7 @@ async def get_recomendaciones_operario(operario_id: str):
     """
     try:
         import aiosqlite
-        from pathlib import Path
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
@@ -1174,7 +1157,6 @@ async def get_alertas_enriquecidas(dias: int = 1, provider: str = ""):
     """
     import os
     import aiosqlite
-    from pathlib import Path
     import time
     from utils.cache import get_cache, set_cache
     from routers.ai import _call_ai
@@ -1195,7 +1177,6 @@ async def get_alertas_enriquecidas(dias: int = 1, provider: str = ""):
             cached["cached"] = True
             return cached
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         # Obtener alertas actuales (tasa error, caída, anomalías)
         async with aiosqlite.connect(str(DB_PATH)) as db:
@@ -1325,7 +1306,6 @@ async def get_reportes_enriquecido(tipo: str = "diario", formato: str = "json", 
     """
     import os
     import aiosqlite
-    from pathlib import Path
     import time
     from utils.cache import get_cache, set_cache
     from routers.ai import _call_ai
@@ -1346,7 +1326,6 @@ async def get_reportes_enriquecido(tipo: str = "diario", formato: str = "json", 
             cached["cached"] = True
             return cached
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         # Determinar rango de fechas
         if tipo == "diario":
@@ -1508,10 +1487,8 @@ async def get_alertas_activas(dias: int = 1):
     """
     try:
         import aiosqlite
-        from pathlib import Path
         from datetime import datetime, timedelta
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row
@@ -1611,10 +1588,8 @@ async def generar_reporte(
     """
     try:
         import aiosqlite
-        from pathlib import Path
         import json
 
-        DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
         async with aiosqlite.connect(str(DB_PATH)) as db:
             db.row_factory = aiosqlite.Row

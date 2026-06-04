@@ -15,7 +15,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from dotenv import load_dotenv
 
-from db.schema import init_db
+load_dotenv(override=True)
+
+from db.schema import DB_PATH, init_db
+from db.auth import init_auth_db
 from db.casos import init_cases_db
 from db.daily_operativa import init_daily_db
 from db.panol_insumos import init_panol_db
@@ -42,8 +45,6 @@ from routers.panol_insumos import router as panol_insumos_router
 from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
-load_dotenv(override=True)
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
@@ -60,6 +61,7 @@ RESOURCES_DIR = Path(__file__).parent / "resources"
 async def lifespan(app: FastAPI):
     logger.info("Inicializando VigIA v2.0...")
     await init_db()
+    await init_auth_db()
     await init_cases_db()
     await init_daily_db()
     await init_panol_db()
@@ -309,8 +311,6 @@ async def config_ia():
 @app.get("/api/turno/activo/v3", include_in_schema=False)
 async def turno_activo_v3():
     """Igual que /api/turno/activo pero agrega campo proceso para el selector."""
-    import os
-    DB_PATH = os.getenv("DB_PATH", str(Path(__file__).parent / "vigia.db"))
     try:
         async with aiosqlite.connect(DB_PATH) as db:
             db.row_factory = aiosqlite.Row

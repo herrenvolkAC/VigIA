@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import aiosqlite
 
+from db.auth import attach_auth_db
 from db.schema import DB_PATH
 
 
@@ -312,6 +313,7 @@ PERFILES = ["OPERACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO",
 async def init_cases_db() -> None:
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("PRAGMA busy_timeout = 10000")
+        await attach_auth_db(db)
         for statement in [
             CREATE_TICKET_TIPO,
             CREATE_TICKET_ESTADO,
@@ -431,7 +433,7 @@ async def seed_cases_db(db: aiosqlite.Connection) -> None:
         """
         INSERT OR IGNORE INTO ticket_usuario_perfil (username, tipo_codigo, perfil, sector, correo, activo)
         SELECT username, 'REPARACION_RACK', 'ADMIN', 'ADMIN', NULL, 1
-        FROM auth_users
+        FROM authdb.auth_users
         WHERE LOWER(role) = 'admin'
         """
     )

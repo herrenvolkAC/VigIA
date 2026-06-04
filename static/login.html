@@ -57,12 +57,23 @@
   const errEl = document.getElementById('login-error');
   const nextUrl = new URLSearchParams(window.location.search).get('next') || '/selector.html';
 
+  function saveSession(data) {
+    sessionStorage.setItem('vigia_session', JSON.stringify({
+      user: data.username,
+      name: data.display_name || data.username,
+      role: data.role,
+    }));
+  }
+
   async function checkSession() {
     try {
       const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
       if (!res.ok) return;
       const data = await res.json();
-      if (data.device_status === 'approved') window.location.href = nextUrl;
+      if (data.device_status === 'approved') {
+        saveSession(data);
+        window.location.replace(nextUrl);
+      }
       if (data.device_status === 'pending') window.location.href = '/api/auth/pending';
     } catch (_) {}
   }
@@ -93,7 +104,8 @@
         return;
       }
       if (data.device_status === 'approved') {
-        window.location.href = nextUrl;
+        saveSession(data);
+        window.location.replace(nextUrl);
         return;
       }
       window.location.href = '/api/auth/pending';

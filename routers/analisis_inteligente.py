@@ -11,13 +11,12 @@ Autor: Claude AI
 Fecha: 2026-04-20
 """
 import aiosqlite
-from pathlib import Path
 import json
 from datetime import datetime, timedelta
 from statistics import mean, stdev, median
 from typing import Dict, List, Any
 
-DB_PATH = Path(__file__).parent.parent / "vigia.db"
+from db.schema import DB_PATH
 
 
 # ============================================================================

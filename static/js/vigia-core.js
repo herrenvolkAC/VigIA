@@ -21,9 +21,10 @@ function getSession() {
   return JSON.parse(sessionStorage.getItem('vigia_session') || 'null');
 }
 
-function logout() {
+async function logout() {
   sessionStorage.removeItem('vigia_session');
-  window.location.href = '/login.html';
+  await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+  window.location.replace('/login.html');
 }
 
 // ── API key helpers ───────────────────────────────────────────────────────────

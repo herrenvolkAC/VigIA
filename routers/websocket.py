@@ -19,7 +19,7 @@ from datetime import datetime
 from typing import Dict, Set, Any
 import asyncio
 
-DB_PATH = Path(__file__).parent.parent / "vigia.db"
+from db.schema import DB_PATH
 
 router = APIRouter(prefix="/ws", tags=["websocket"])
 

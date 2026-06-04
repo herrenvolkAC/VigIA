@@ -11,6 +11,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.alertas import generar_alertas, obtener_comparativas
 from pydantic import BaseModel
+from db.schema import DB_PATH
 
 
 # ============================================================================
@@ -23,8 +24,6 @@ class RebalanceRequest(BaseModel):
     operarios_mover: List[str]  # IDs de operarios a mover
     zona_origen: str
     zona_destino: str
-
-DB_PATH = Path(__file__).parent.parent / "vigia.db"
 
 router = APIRouter(prefix="/api", tags=["turnos"])
 

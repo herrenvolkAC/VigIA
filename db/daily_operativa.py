@@ -16,26 +16,10 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import aiosqlite
 
-try:
-    from dotenv import load_dotenv
-except ImportError:  # pragma: no cover - python-dotenv is already a project dependency.
-    load_dotenv = None
-
-if load_dotenv:
-    load_dotenv()
+from db.paths import resolve_db_path
 
 
-def _daily_db_path() -> Path:
-    configured = os.getenv("DAILY_OPERATIVA_DB_PATH", "").strip()
-    if configured:
-        path = Path(os.path.expandvars(configured)).expanduser()
-        if path.suffix.lower() != ".db" or path.is_dir():
-            return path / "daily_operativa.db"
-        return path
-    return Path(__file__).resolve().parent / "daily_operativa.db"
-
-
-DAILY_DB_PATH = _daily_db_path()
+DAILY_DB_PATH = resolve_db_path("DAILY_OPERATIVA_DB_PATH", "daily_operativa.db", Path(__file__).resolve().parent)
 DAILY_POWERBI_CSV_PATH = DAILY_DB_PATH.with_name("daily_powerbi.csv")
 DAILY_CONSOLIDADO_CSV_PATH = DAILY_DB_PATH.with_name("daily_consolidado_powerbi.csv")
 try:

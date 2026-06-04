@@ -28,6 +28,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from db.schema import DB_PATH
+from db.auth import auth_db
 from routers.auth_local import current_auth
 
 try:
@@ -1678,9 +1679,7 @@ async def _attach_rrhh_scope(auth: dict[str, Any]) -> None:
         return
     sectors: list[str] = []
     scope = "sin_acceso"
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        await _ensure_consolidated_temp(db, sanciones=False, fichadas=False)
+    async with auth_db(attach_operational=False) as db:
         async with db.execute(
             """
             SELECT scope, sector

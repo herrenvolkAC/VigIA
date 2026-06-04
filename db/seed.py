@@ -10,9 +10,7 @@ import json
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
-from schema import init_db
-
-DB_PATH = Path(__file__).parent.parent / "vigia.db"
+from schema import DB_PATH, init_db
 
 
 async def seed_turno():

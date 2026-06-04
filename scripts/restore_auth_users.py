@@ -1,8 +1,8 @@
 r"""
-Restaura usuarios y accesos de VigIA directamente sobre vigia.db.
+Restaura usuarios y accesos de VigIA directamente sobre vigia_auth.db.
 
 Uso:
-    python scripts/restore_auth_users.py --csv usuarios_produccion.csv --db C:\VigIA\vigia.db
+    python scripts/restore_auth_users.py --csv usuarios_produccion.csv --db C:\VigIA\vigia_auth.db
 
 CSV esperado:
 username,password,display_name,role,panol_profile,novedades_cd,casos,panol
@@ -182,7 +182,7 @@ def restore_user(conn: sqlite3.Connection, row: dict[str, str]) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv", required=True, type=Path, help="CSV con usuarios y claves.")
-    parser.add_argument("--db", required=True, type=Path, help="Ruta a vigia.db.")
+    parser.add_argument("--db", required=True, type=Path, help="Ruta a vigia_auth.db.")
     args = parser.parse_args()
 
     if not args.db.exists():

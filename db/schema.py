@@ -3,10 +3,11 @@ VigIA · db/schema.py
 Definición de tablas SQLite y conexión con aiosqlite.
 """
 import aiosqlite
-import os
-from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "vigia.db"
+from db.paths import ROOT_DIR, resolve_db_path
+
+
+DB_PATH = resolve_db_path("VIGIA_OPERATIVA_DB_PATH", "vigia.db", ROOT_DIR)
 
 CREATE_TURNOS = """
 CREATE TABLE IF NOT EXISTS turnos (
@@ -1097,6 +1098,7 @@ CREATE_AUTH_INDEXES = [
 
 async def init_db():
     """Crea las tablas si no existen."""
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("PRAGMA journal_mode = WAL")
         await db.execute("PRAGMA busy_timeout = 10000")

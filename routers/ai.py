@@ -16,6 +16,8 @@ import httpx
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from db.schema import DB_PATH
+
 logger = logging.getLogger("vigia.ai")
 router = APIRouter()
 
@@ -294,7 +296,7 @@ async def _call_ai(provider: str, system: str, messages: list) -> tuple[str, str
 async def get_historico_context(turno: str, fecha_str: str) -> dict:
     """Devuelve contexto historico y metadatos para generar sugerencias."""
     try:
-        async with aiosqlite.connect("vigia.db") as db:
+        async with aiosqlite.connect(DB_PATH) as db:
             db.row_factory = aiosqlite.Row
 
             try:

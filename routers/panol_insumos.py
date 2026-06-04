@@ -13,8 +13,8 @@ from openpyxl import load_workbook
 from pydantic import BaseModel
 import xlrd
 
+from db.auth import auth_db
 from db.panol_insumos import panol_db
-from db.schema import DB_PATH
 from routers.auth_local import current_auth
 
 
@@ -108,8 +108,7 @@ async def _require_panol_access(request: Request, *, full: bool = False) -> dict
         auth["panol_full"] = True
         return auth
 
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
+    async with auth_db(attach_operational=False) as db:
         try:
             row = await _fetch_one(
                 db,

@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
-from db.schema import DB_PATH
+from db.auth import auth_db
 
 router = APIRouter(prefix="/api/auth", tags=["auth-local"])
 
@@ -172,7 +172,7 @@ def _clean_sectors(values: list[str] | None) -> list[str]:
 
 
 async def ensure_auth_access_schema() -> None:
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db() as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         await db.execute(AUTH_ACCESS_SCHEMA_SQL)
         await db.execute(AUTH_ACCESS_INDEX_SQL)
@@ -181,7 +181,7 @@ async def ensure_auth_access_schema() -> None:
 
 async def ensure_bootstrap_admin() -> None:
     await ensure_auth_access_schema()
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db() as db:
         async with db.execute("SELECT COUNT(*) FROM auth_users") as cur:
             count = (await cur.fetchone())[0]
         if count == 0 and BOOTSTRAP_USER and BOOTSTRAP_PASSWORD:
@@ -201,7 +201,7 @@ async def current_auth(request: Request) -> dict[str, Any] | None:
     if not token or not device_id:
         return None
     token_hash = _token_hash(token)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db() as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         db.row_factory = aiosqlite.Row
         async with db.execute(
@@ -250,15 +250,14 @@ def _set_cookie(response: Response, name: str, value: str, max_age_days: int) ->
         samesite="lax",
     )
 
-
 @router.post("/login")
 async def login(req: LoginRequest, request: Request):
     username = _normalize_username(req.username)
     device_id = request.cookies.get(DEVICE_COOKIE) or secrets.token_urlsafe(32)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db() as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
-            "SELECT username, password_hash, role, active FROM auth_users WHERE username = ?",
+            "SELECT username, password_hash, display_name, role, active FROM auth_users WHERE username = ?",
             (username,),
         ) as cur:
             user = await cur.fetchone()
@@ -330,7 +329,15 @@ async def login(req: LoginRequest, request: Request):
         )
         await db.commit()
 
-    response = JSONResponse({"ok": True, "username": username, "role": user["role"], "device_status": device_status})
+    response = JSONResponse(
+        {
+            "ok": True,
+            "username": username,
+            "display_name": user["display_name"],
+            "role": user["role"],
+            "device_status": device_status,
+        }
+    )
     _set_cookie(response, SESSION_COOKIE, session_token, SESSION_DAYS)
     _set_cookie(response, DEVICE_COOKIE, device_id, DEVICE_DAYS)
     return response
@@ -340,7 +347,7 @@ async def login(req: LoginRequest, request: Request):
 async def logout(request: Request):
     token = request.cookies.get(SESSION_COOKIE, "")
     if token:
-        async with aiosqlite.connect(DB_PATH) as db:
+        async with auth_db() as db:
             await db.execute("DELETE FROM auth_sessions WHERE session_token_hash = ?", (_token_hash(token),))
             await db.commit()
     response = JSONResponse({"ok": True})
@@ -378,7 +385,7 @@ async def _fetch_rows(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] 
 @router.get("/admin/devices")
 async def list_devices(request: Request):
     await _require_admin(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db() as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
             """
@@ -399,7 +406,7 @@ async def list_devices(request: Request):
 @router.get("/admin/users")
 async def list_users(request: Request):
     await _require_admin(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db() as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
             """
@@ -421,7 +428,7 @@ async def list_users(request: Request):
 @router.get("/admin/rrhh-sectors")
 async def list_rrhh_sectors(request: Request):
     await _require_admin(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db(attach_operational=True) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
             """
@@ -544,7 +551,7 @@ async def _set_cases_access_db(
 async def access_context(request: Request):
     await _require_admin(request)
     await ensure_auth_access_schema()
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db(attach_operational=True) as db:
         db.row_factory = aiosqlite.Row
         users = await _fetch_rows(
             db,
@@ -667,7 +674,7 @@ async def set_user_access(req: UserAccessRequest, request: Request):
     module = (req.module or "").strip().lower()
     if module not in {"novedades_cd", "casos", "panol"}:
         raise HTTPException(status_code=400, detail="Modulo no soportado.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db(attach_operational=True) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("SELECT 1 FROM auth_users WHERE username = ?", (username,)) as cur:
             if await cur.fetchone() is None:
@@ -755,7 +762,7 @@ async def set_user_scope(req: UserScopeRequest, request: Request):
     sectors = _clean_sectors(req.sectors)
     if scope == "sector_completo" and not sectors:
         raise HTTPException(status_code=400, detail="El alcance por sector requiere al menos un sector.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db() as db:
         async with db.execute("SELECT 1 FROM auth_users WHERE username = ?", (username,)) as cur:
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Usuario no encontrado.")
@@ -797,7 +804,7 @@ async def create_user(req: UserCreateRequest, request: Request):
     if not username or len(req.password) < 4:
         raise HTTPException(status_code=400, detail="Usuario requerido y contraseña mínima de 4 caracteres.")
     try:
-        async with aiosqlite.connect(DB_PATH) as db:
+        async with auth_db() as db:
             await db.execute(
                 """
                 INSERT INTO auth_users (username, password_hash, display_name, role, active)
@@ -815,7 +822,7 @@ async def _set_user_active(req: UserActionRequest, request: Request, active: int
     await _require_admin(request)
     username = _normalize_username(req.username)
     if active == 0:
-        async with aiosqlite.connect(DB_PATH) as db:
+        async with auth_db() as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("SELECT role, active FROM auth_users WHERE username = ?", (username,)) as cur:
                 target = await cur.fetchone()
@@ -836,7 +843,7 @@ async def _set_user_active(req: UserActionRequest, request: Request, active: int
             await db.execute("DELETE FROM auth_sessions WHERE username = ?", (username,))
             await db.commit()
     else:
-        async with aiosqlite.connect(DB_PATH) as db:
+        async with auth_db() as db:
             await db.execute(
                 "UPDATE auth_users SET active = 1, updated_at = ? WHERE username = ?",
                 (_now(), username),
@@ -863,7 +870,7 @@ async def _set_device_status(req: DeviceActionRequest, request: Request, status:
         "rejected": ("rejected_at", "rejected_by"),
         "revoked": ("revoked_at", "revoked_by"),
     }[status]
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with auth_db() as db:
         await db.execute(
             f"UPDATE auth_devices SET status = ?, {fields[0]} = ?, {fields[1]} = ? WHERE device_id = ?",
             (status, now, admin["username"], req.device_id),

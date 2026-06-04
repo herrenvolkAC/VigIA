@@ -3,25 +3,15 @@ Base SQLite independiente para el modulo Panol Insumos.
 """
 from __future__ import annotations
 
-import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import AsyncIterator
 
 import aiosqlite
 
-
-def _panol_db_path() -> Path:
-    configured = os.getenv("PANOL_INSUMOS_DB_PATH", "").strip()
-    if configured:
-        path = Path(os.path.expandvars(configured)).expanduser()
-        if path.suffix.lower() != ".db" or path.is_dir():
-            return path / "panol_insumos.db"
-        return path
-    return Path(__file__).resolve().parent.parent / "panol_insumos.db"
+from db.paths import ROOT_DIR, resolve_db_path
 
 
-PANOL_DB_PATH = _panol_db_path()
+PANOL_DB_PATH = resolve_db_path("PANOL_INSUMOS_DB_PATH", "panol_insumos.db", ROOT_DIR)
 
 
 CREATE_ARTICULOS = """
