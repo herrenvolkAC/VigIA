@@ -128,10 +128,21 @@ def _normalize_username(value: str) -> str:
 
 
 APP_MODULES = [
-    {"id": "novedades_cd", "label": "Novedades CD", "path": "/novedades-cd"},
+    {"id": "productividad", "label": "Productividad", "path": "/productividad.html"},
+    {"id": "novedades_cd", "label": "Tablero RRHH", "path": "/novedades-cd"},
+    {"id": "gestion_operativa", "label": "Gestion Operativa", "path": "/gestion-operativa.html"},
     {"id": "casos", "label": "Gestion de Casos", "path": "/casos.html"},
     {"id": "panol", "label": "Panol Insumos", "path": "/panol-insumos"},
+    {"id": "historia_legajo", "label": "Historia de Legajo", "path": "/historia-legajo.html"},
+    {"id": "opex", "label": "OpEX", "path": "/opex.html"},
+    {"id": "recepcion", "label": "Recepcion", "path": "/recepcion.html", "available": False},
+    {"id": "mapa", "label": "Mapa", "path": "", "available": False},
+    {"id": "control_procesos", "label": "Control de Procesos", "path": "", "available": False},
+    {"id": "trafico", "label": "Trafico", "path": "", "available": False},
+    {"id": "generales", "label": "Generales", "path": "", "available": False},
 ]
+APP_MODULE_IDS = {module["id"] for module in APP_MODULES}
+DEFAULT_ENABLED_MODULES = {"productividad", "gestion_operativa", "historia_legajo"}
 
 CASOS_FALLBACK_PROFILES = ["OPERACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "ADMIN"]
 
@@ -193,6 +204,53 @@ async def ensure_bootstrap_admin() -> None:
                 (BOOTSTRAP_USER, _hash_password(BOOTSTRAP_PASSWORD), "Administrador"),
             )
             await db.commit()
+
+
+async def module_access_for_user(username: str, role: str = "user") -> dict[str, bool]:
+    if role == "admin":
+        return {module["id"]: True for module in APP_MODULES}
+    access = {module["id"]: module["id"] in DEFAULT_ENABLED_MODULES for module in APP_MODULES}
+    async with auth_db(attach_operational=True) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_rows(
+            db,
+            "SELECT module, enabled FROM auth_user_app_access WHERE username = ?",
+            (username,),
+        )
+        for row in rows:
+            if row["module"] in access:
+                access[row["module"]] = bool(row["enabled"])
+        async with db.execute(
+            """
+            SELECT scope FROM auth_user_module_scopes
+            WHERE username = ? AND module = 'novedades_cd' AND active = 1
+            """,
+            (username,),
+        ) as cur:
+            scopes = [row[0] for row in await cur.fetchall()]
+        if scopes:
+            access["novedades_cd"] = any(scope != "sin_acceso" for scope in scopes)
+        try:
+            async with db.execute(
+                """
+                SELECT activo FROM ticket_usuario_perfil
+                WHERE username = ? AND tipo_codigo = 'REPARACION_RACK'
+                """,
+                (username,),
+            ) as cur:
+                row = await cur.fetchone()
+            if row is not None:
+                access["casos"] = bool(row[0])
+        except sqlite3.OperationalError:
+            pass
+    return access
+
+
+async def user_has_module_access(auth: dict[str, Any], module: str) -> bool:
+    if module not in APP_MODULE_IDS:
+        return False
+    access = await module_access_for_user(auth["username"], auth.get("role") or "user")
+    return bool(access.get(module))
 
 
 async def current_auth(request: Request) -> dict[str, Any] | None:
@@ -365,6 +423,17 @@ async def me(request: Request):
         "role": auth["role"],
         "display_name": auth.get("display_name"),
         "device_status": auth.get("device_status"),
+    }
+
+
+@router.get("/apps")
+async def my_apps(request: Request):
+    auth = await current_auth(request)
+    if not auth or auth.get("device_status") != "approved":
+        raise HTTPException(status_code=401, detail="No autenticado.")
+    return {
+        "modules": APP_MODULES,
+        "access": await module_access_for_user(auth["username"], auth.get("role") or "user"),
     }
 
 
@@ -597,11 +666,14 @@ async def access_context(request: Request):
 
     accesses: dict[str, dict[str, Any]] = {}
     for user in users:
+        defaults = await module_access_for_user(user["username"], user["role"])
         accesses[user["username"]] = {
-            "novedades_cd": {"module": "novedades_cd", "enabled": False, "scope": "sin_acceso", "sectors": []},
-            "casos": {"module": "casos", "enabled": False, "profile": "", "sector": "", "email": ""},
-            "panol": {"module": "panol", "enabled": False, "profile": "", "scope": "", "sector": "", "email": ""},
+            module["id"]: {"module": module["id"], "enabled": defaults[module["id"]]}
+            for module in APP_MODULES
         }
+        accesses[user["username"]]["novedades_cd"].update({"scope": "sin_acceso", "sectors": []})
+        accesses[user["username"]]["casos"].update({"profile": "", "sector": "", "email": ""})
+        accesses[user["username"]]["panol"].update({"profile": "", "scope": "", "sector": "", "email": ""})
 
     for row in access_rows:
         username = row["username"]
@@ -672,7 +744,7 @@ async def set_user_access(req: UserAccessRequest, request: Request):
     await ensure_auth_access_schema()
     username = _normalize_username(req.username)
     module = (req.module or "").strip().lower()
-    if module not in {"novedades_cd", "casos", "panol"}:
+    if module not in APP_MODULE_IDS:
         raise HTTPException(status_code=400, detail="Modulo no soportado.")
     async with auth_db(attach_operational=True) as db:
         db.row_factory = aiosqlite.Row
@@ -782,17 +854,12 @@ async def set_user_scope(req: UserScopeRequest, request: Request):
 @router.get("/admin/mail-context")
 async def mail_context(request: Request):
     await _require_admin(request)
+    selector_origin = os.getenv("VIGIA_PUBLIC_ORIGIN", "").strip().rstrip("/") or _server_origin(request)
     return {
-        "origin": _server_origin(request),
+        "origin": selector_origin,
+        "selector_url": f"{selector_origin}/selector.html",
         "request_origin": _request_origin(request),
         "server_name": (os.getenv("COMPUTERNAME") or socket.gethostname() or "").strip(),
-        "apps": [
-            {"id": "tnc", "label": "Tiempos muertos y TNC", "path": "/tiempos-muertos"},
-            {"id": "novedades_cd", "label": "Novedades CD", "path": "/novedades-cd"},
-            {"id": "casos", "label": "Gestion de Casos", "path": "/casos.html"},
-            {"id": "historia", "label": "Historia de Legajo", "path": "/historia-legajo"},
-            {"id": "panol", "label": "Panol Insumos", "path": "/panol-insumos"},
-        ],
     }
 
 

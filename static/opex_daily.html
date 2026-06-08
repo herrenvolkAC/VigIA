@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>VigIA - OpEX Daily</title>
+  <style>
+    :root{--bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--red:#C8102E;--blue:#0B5FAE}
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:24px 24px}
+    button,input,select,textarea{font:inherit;color:inherit}
+    button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:100%;min-height:100vh;padding:0 16px 22px}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-logo{width:86px;height:44px;object-fit:contain}
+    .brand-rule{width:1px;height:28px;background:var(--rule)}
+    .paper-kicker,.user-label,.field label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .paper-title{font-size:20px;line-height:1.05;font-weight:600;margin:0;color:var(--ink)}
+    .amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}
+    .paper-link,.logout-btn{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}
+    .paper-link:hover{color:var(--blue);border-color:var(--blue)}
+    .logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}
+    .user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .daily-page{padding:0;max-width:none;margin:0}
+    .daily-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule)}
+    .daily-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .daily-title{font-size:20px;line-height:1.05;font-weight:600;color:var(--ink);margin:0 0 11px}
+    .daily-hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:16px 18px;margin-bottom:0}
+    .daily-hero-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .daily-hero-title{font-size:24px;line-height:1.1;font-weight:700;color:var(--ink);margin:4px 0 7px}
+    .daily-hero-sub{font-size:12px;color:var(--ink-soft)}
+    .daily-save-state{min-width:250px;border:1px solid var(--rule);padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:#F8FAF7}
+    .daily-toolbar{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(150px,.8fr) minmax(130px,.7fr) minmax(180px,1fr) auto auto auto auto auto minmax(210px,1fr);gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px;margin-bottom:14px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field input,.field select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
+    .primary-btn{height:34px;min-height:34px;border:1px solid var(--ink);border-radius:0;background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px;box-shadow:none;white-space:nowrap}
+    .primary-btn:disabled{opacity:.55;cursor:wait}
+    .exception-btn{display:none;border-color:var(--amber);background:var(--amber)}
+    .exception-btn.visible{display:inline-block}
+    .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);line-height:1.35;align-self:stretch}
+    .status.error{color:var(--red);font-weight:500}
+    .daily-form{display:block}
+    .daily-group{background:var(--panel);border:1px solid var(--rule);border-radius:0;margin-bottom:12px;overflow:hidden}
+    .daily-group-head{display:flex;justify-content:space-between;gap:12px;align-items:center;background:#F6F8F5;border-bottom:1px solid var(--rule);padding:9px 12px}
+    .daily-group-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+    .section-count{font-size:12px;color:var(--ink-soft)}
+    .daily-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}
+    .daily-fields.productividad{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .daily-pair-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}
+    .daily-param{display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid var(--rule);border-top:3px solid var(--green);padding:12px;background:#fff}
+    .daily-param-title{font-size:13px;line-height:1.3;color:var(--ink);font-weight:700}
+    .daily-param-process{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-weight:600}
+    .daily-param-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.35;color:var(--ink-soft)}
+    .daily-param-target{font-size:12px;color:var(--ink-soft)}
+    .daily-param-target strong{color:var(--ink)}
+    .daily-auto-values{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .daily-value-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+    .daily-value-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+    .daily-value-field input[readonly]{background:#E3E8E6;color:#0B4F79;border-color:#8D9A94;border-left:4px solid var(--blue);font-weight:700}
+    .daily-value-field input[readonly]:focus{outline-color:var(--blue)}
+    .daily-auto-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .daily-auto-detail{height:28px;min-height:28px;border:1px solid var(--green);background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:0 9px}
+    .daily-auto-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft)}
+    .daily-param input,.daily-param textarea{width:100%;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:8px 10px}
+    .daily-param input{height:38px;font-size:15px}
+    .daily-param textarea{min-height:96px;resize:vertical;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:13px}
+    .daily-pair{border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px;background:#fff}
+    .daily-pair-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px}
+    .daily-pair-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .daily-pair-fields .daily-param{border:0;border-top:0;padding:0;background:transparent}
+    .daily-pair-fields .daily-param-title{font-size:11px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;color:var(--ink-soft)}
+    .daily-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:12px 0 18px}
+    .empty{padding:28px 16px;color:var(--ink-soft);font-size:12px;background:var(--panel);border:1px solid var(--rule)}
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(14,22,32,.42);z-index:30;align-items:center;justify-content:center;padding:24px}
+    .modal-backdrop.open{display:flex}
+    .modal-panel{width:min(1180px,100%);max-height:88vh;background:var(--panel);border:1px solid var(--rule-strong);display:flex;flex-direction:column}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--rule);background:#F6F8F5}
+    .modal-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);font-weight:600}
+    .modal-body{padding:12px;overflow:auto}
+    .modal-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px;border-top:1px solid var(--rule);background:var(--panel)}
+    .ghost-btn{height:34px;min-height:34px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:1040px}
+    th{position:sticky;top:0;background:#F6F8F5;color:var(--ink-soft);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-align:left;padding:12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+    td{padding:12px;border-bottom:1px solid var(--rule);font-size:12px;color:var(--ink);vertical-align:top}
+    .muted{color:var(--ink-soft)}
+    .param-table input[type="text"]{height:30px;width:100%;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:0 8px}
+    .param-table input[type="checkbox"]{width:18px;height:18px}
+    .clark-detail-table{min-width:760px}
+    .sql-preview{white-space:pre;overflow:auto;max-height:58vh;border:1px solid var(--rule);background:#F8FAF7;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.45;color:var(--ink)}
+    @media(max-width:1180px){.daily-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-fields,.daily-fields.productividad,.daily-pair-grid{grid-template-columns:1fr}.daily-hero{grid-template-columns:1fr}.daily-save-state{min-width:0}}
+    @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header{grid-template-columns:1fr}.header-right{justify-self:start;flex-wrap:wrap}.daily-head{display:block;padding:10px 12px}.daily-toolbar{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div>
+        <div class="paper-kicker">OpEX</div>
+        <h1 class="paper-title">Daily <span class="amp">Operativa</span></h1>
+      </div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/opex">OpEX</a>
+      <a class="paper-link" href="/selector">Inicio</a>
+      <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn" type="button" onclick="logout()">Salir</button>
+    </div>
+  </header>
+
+  <main class="daily-page">
+    <header class="daily-head">
+      <div>
+        <div class="daily-kicker">OpEX Daily</div>
+        <h1 class="daily-title">Carga de Daily</h1>
+      </div>
+    </header>
+
+    <section class="daily-hero" id="daily-meta">
+      <div>
+        <div class="daily-hero-kicker">Carga de Daily</div>
+        <div class="daily-hero-title">Detectando Daily...</div>
+        <div class="daily-hero-sub">Validando usuario y ventana operativa.</div>
+      </div>
+      <div class="daily-save-state" id="daily-save-state">Sin guardar.</div>
+    </section>
+
+    <section class="daily-toolbar">
+      <div class="field">
+        <label for="daily-tipo">Tipo Daily</label>
+        <select id="daily-tipo" onchange="onDailyTipoChange()">
+          <option value="Operacion">Operacion</option>
+          <option value="Logistica Inversa">Logistica Inversa</option>
+          <option value="Planeamiento">Planeamiento</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="daily-sector">Sector</label>
+        <select id="daily-sector" onchange="loadDailyParametros()"></select>
+      </div>
+      <div class="field">
+        <label for="daily-turno">Turno</label>
+        <select id="daily-turno">
+          <option value="Completo">Completo</option>
+          <option value="Manana">Manana</option>
+          <option value="Tarde">Tarde</option>
+          <option value="Noche">Noche</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="daily-plan">Plan</label>
+        <input type="text" id="daily-plan" placeholder="Opcional" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <button class="primary-btn" id="btn-daily-refresh" type="button" onclick="loadDailyConfig()">Actualizar</button>
+      <button class="primary-btn" id="btn-daily-auto" type="button" onclick="calcularDailyAutomatico()">Calcular Automatico</button>
+      <button class="primary-btn exception-btn" id="btn-daily-retry" type="button" onclick="reintentarPrecargaDaily()">Reintentar precarga Daily</button>
+      <button class="primary-btn" id="btn-daily-parametros" type="button" onclick="abrirParametrosDaily()">Parametros</button>
+      <button class="primary-btn" id="btn-daily-export" type="button" onclick="exportarCsvDaily()">Exportar CSV</button>
+      <div class="status" id="daily-status">Cargando configuracion Daily.</div>
+    </section>
+
+    <section class="daily-form" id="daily-form">
+      <div class="empty">Selecciona tipo y sector para cargar parametros.</div>
+    </section>
+    <div class="daily-actions">
+      <button class="primary-btn" id="btn-daily-save" type="button" onclick="guardarDaily()">Guardar Daily</button>
+    </div>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="daily-param-modal" role="dialog" aria-modal="true" aria-label="Parametros Daily">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-title">Parametros de cumplimiento</div>
+      <button class="ghost-btn" type="button" onclick="cerrarParametrosDaily()">Cerrar</button>
+    </div>
+    <div class="modal-body">
+      <div class="status" id="daily-param-status">Carga los parametros con la clave del modulo.</div>
+      <div class="table-wrap" id="daily-param-wrap">
+        <div class="empty">Sin parametros cargados.</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost-btn" type="button" onclick="cerrarParametrosDaily()">Cancelar</button>
+      <button class="primary-btn" id="btn-daily-param-save" type="button" onclick="guardarParametrosDaily()">Guardar parametros</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="clark-detail-modal" role="dialog" aria-modal="true" aria-label="SQL Productividad Clark">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-title" id="clark-detail-title">SQL Productividad Clark</div>
+      <button class="ghost-btn" type="button" onclick="cerrarDetalleClark()">Cerrar</button>
+    </div>
+    <div class="modal-body">
+      <div class="status" id="clark-detail-status">SQL agregado de pallets por operario.</div>
+      <div class="table-wrap" id="clark-detail-wrap">
+        <div class="empty">Sin detalle cargado.</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost-btn" type="button" onclick="cerrarDetalleClark()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let authUser = null;
+  let loadingDaily = false;
+  let dailyConfig = null;
+  let dailyParametros = [];
+  let dailyAutoResults = {};
+  let dailyParamClave = '';
+  let dailyAdminParametros = [];
+  let clarkDetailCache = {};
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+  }
+
+  function num(value) {
+    return Number(value || 0).toLocaleString('es-AR');
+  }
+
+  function cssEscape(value) {
+    if (window.CSS?.escape) return CSS.escape(String(value));
+    return String(value).replace(/["\\]/g, '\\$&');
+  }
+
+  async function logout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    } finally {
+      window.location.href = '/login';
+    }
+  }
+
+  async function requireAuth() {
+    const resp = await fetch('/api/auth/me', { credentials: 'same-origin' });
+    if (resp.status === 401) {
+      window.location.href = '/login?next=/opex-daily.html';
+      throw new Error('redirect');
+    }
+    if (resp.status === 403) {
+      window.location.href = '/api/auth/pending';
+      throw new Error('redirect');
+    }
+    if (!resp.ok) throw new Error('No se pudo validar la sesion.');
+    const data = await resp.json();
+    if (data.device_status !== 'approved') {
+      window.location.href = '/api/auth/pending';
+      throw new Error('redirect');
+    }
+    authUser = data;
+  }
+
+  function setDailyStatus(text, tone = '') {
+    const el = document.getElementById('daily-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `status ${tone}`;
+  }
+
+  function setDailySaveState(text) {
+    const el = document.getElementById('daily-save-state');
+    if (el) el.textContent = text;
+  }
+
+  function canRetryDailyAuto() {
+    return authUser?.role === 'admin';
+  }
+
+  function setRetryVisible(show) {
+    const btn = document.getElementById('btn-daily-retry');
+    if (!btn) return;
+    btn.classList.toggle('visible', Boolean(show && canRetryDailyAuto()));
+  }
+
+  function apiErrorMessage(data, fallback) {
+    const detail = data?.detail;
+    if (typeof detail === 'string') return detail;
+    if (detail?.message) return detail.message;
+    return fallback;
+  }
+
+  function buildDailyAutoSummary(results) {
+    return Object.entries(results || {})
+      .map(([sector, items]) => {
+        const values = (Array.isArray(items) ? items : [items])
+          .map(item => `${item.proceso || 'Dato'} ${num(item.valor)}`)
+          .join(', ');
+        return `${sector}: ${values}`;
+      })
+      .join(' | ');
+  }
+
+  function applyDailyAutoPayload(data) {
+    dailyAutoResults = data?.by_sector || {};
+    clarkDetailCache = {};
+    renderDailyParametros();
+    const applied = applyDailyAutoResultForCurrentSector();
+    const summary = buildDailyAutoSummary(dailyAutoResults);
+    setRetryVisible(false);
+    setDailyStatus(`Calculo automatico listo.${summary ? ` ${summary}.` : ''}${applied ? '' : ' Cambia al sector calculado para aplicar el valor.'}`);
+    setDailySaveState('Automatico calculado - pendiente de guardar');
+  }
+
+  function renderDailyMeta() {
+    const daily = dailyConfig?.daily || {};
+    const meta = document.getElementById('daily-meta');
+    if (!meta) return;
+    const inicio = daily.fecha_inicio ? daily.fecha_inicio.replace('T', ' ').slice(0, 16) : '-';
+    const fin = daily.fecha_fin ? daily.fecha_fin.replace('T', ' ').slice(0, 16) : '-';
+    meta.innerHTML = `
+      <div>
+        <div class="daily-hero-kicker">Carga de Daily</div>
+        <div class="daily-hero-title">${escapeHtml(daily.daily_label || 'Daily no habilitada')}</div>
+        <div class="daily-hero-sub">Usuario: ${escapeHtml(dailyConfig?.usuario_carga || '-')} - Inicio ${escapeHtml(inicio)} - Fin ${escapeHtml(fin)}</div>
+      </div>
+      <div class="daily-save-state" id="daily-save-state">Sin guardar.</div>
+    `;
+  }
+
+  function fillDailySectorOptions() {
+    const tipo = document.getElementById('daily-tipo')?.value || 'Operacion';
+    const sectors = dailyConfig?.sector_options?.[tipo] || ['Noa', 'Secos', 'Refrigerados'];
+    const select = document.getElementById('daily-sector');
+    if (!select) return;
+    select.innerHTML = sectors.map(sector => `<option value="${escapeHtml(sector)}">${escapeHtml(sector)}</option>`).join('');
+  }
+
+  function onDailyTipoChange() {
+    fillDailySectorOptions();
+    loadDailyParametros();
+  }
+
+  function processLabel(value) {
+    return String(value || '').replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, ch => ch.toUpperCase());
+  }
+
+  function shortFieldLabel(value) {
+    const text = String(value || '');
+    if (/planificado|planificados|planificadas/i.test(text)) return 'Planificado';
+    if (/real|reales|armados|recepcionados|movilizados|despachados|surtidos/i.test(text)) return 'Real';
+    return text;
+  }
+
+  function renderTarget(param) {
+    if (param.valor_esperado === null || param.valor_esperado === undefined || param.valor_esperado === '') return '';
+    return `<div class="daily-param-target">Meta: <strong>${escapeHtml(param.valor_esperado)}</strong> ${escapeHtml(param.unidad || '')}</div>`;
+  }
+
+  function isDailyAutoParam(param) {
+    return ['CLARK', 'PICKING', 'RECEPCION'].includes(String(param.proceso || '').toUpperCase())
+      || ['OP_DOT_PICKING_LEGAJOS_6A8', 'OP_DOT_SPC_LEGAJOS_6A8', 'OP_DOT_RECEPCION_LEGAJOS_6A8'].includes(String(param.id_parametro || ''));
+  }
+
+  function renderDailyField(param) {
+    const id = `daily-param-${param.id_parametro}`;
+    const meta = [param.proceso, param.ventana_horaria, param.fuente, param.unidad].filter(Boolean).join(' - ');
+    const label = `${param.nombre || param.id_parametro}`;
+    const desc = param.descripcion || '';
+    if (param.tipo_campo === 'texto') {
+      return `
+        <div class="daily-param">
+          <div class="daily-param-process">${escapeHtml(processLabel(param.proceso || ''))}</div>
+          <label class="daily-param-title" for="${escapeHtml(id)}">${escapeHtml(label)}</label>
+          <div class="daily-param-meta">${escapeHtml(meta || desc)}</div>
+          <textarea id="${escapeHtml(id)}" data-param-id="${escapeHtml(param.id_parametro)}" placeholder="Ingresar comentario" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+        </div>
+      `;
+    }
+    const type = param.tipo_campo === 'fecha' ? 'date' : (param.tipo_campo === 'hora' ? 'time' : 'text');
+    const placeholder = param.tipo_campo === 'numerico' ? '0' : 'Ingresar valor';
+    const autoItem = dailyAutoItemForParam(param.id_parametro);
+    const splitAutoField = isDailyAutoParam(param) || Boolean(autoItem);
+    const inputHtml = splitAutoField ? `
+        <div class="daily-auto-values">
+          <div class="daily-value-field">
+            <div class="daily-value-label">Automatico</div>
+            <input id="${escapeHtml(id)}-auto" data-auto-value-for="${escapeHtml(param.id_parametro)}" type="text" value="${escapeHtml(autoItem?.valor ?? '')}" readonly tabindex="-1">
+          </div>
+          <div class="daily-value-field">
+            <label class="daily-value-label" for="${escapeHtml(id)}">Usuario</label>
+            <input id="${escapeHtml(id)}" data-param-id="${escapeHtml(param.id_parametro)}" type="${type}" inputmode="${param.tipo_campo === 'numerico' ? 'decimal' : 'text'}" placeholder="${escapeHtml(placeholder)}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          </div>
+        </div>
+      ` : `
+        <input id="${escapeHtml(id)}" data-param-id="${escapeHtml(param.id_parametro)}" type="${type}" inputmode="${param.tipo_campo === 'numerico' ? 'decimal' : 'text'}" placeholder="${escapeHtml(placeholder)}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      `;
+    return `
+      <div class="daily-param">
+        <div class="daily-param-process">${escapeHtml(processLabel(param.proceso || ''))}</div>
+        <label class="daily-param-title" for="${escapeHtml(id)}">${escapeHtml(shortFieldLabel(label))}</label>
+        <div class="daily-param-meta">${escapeHtml(meta || desc)}</div>
+        ${renderTarget(param)}
+        ${inputHtml}
+        <div class="daily-auto-actions" data-auto-actions-for="${escapeHtml(param.id_parametro)}"></div>
+      </div>
+    `;
+  }
+
+  function renderDailyPairs(params) {
+    const grouped = params.reduce((acc, param) => {
+      const key = param.proceso || param.id_parametro;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(param);
+      return acc;
+    }, {});
+    return Object.entries(grouped).map(([process, items]) => `
+      <article class="daily-pair">
+        <div class="daily-pair-title">${escapeHtml(processLabel(process))}</div>
+        <div class="daily-pair-fields">${items.map(renderDailyField).join('')}</div>
+      </article>
+    `).join('');
+  }
+
+  function renderDailyGroup(group, params) {
+    const isPairGroup = ['CUMPLIMIENTO', 'AVANCE'].includes(String(group).toUpperCase());
+    const body = isPairGroup
+      ? `<div class="daily-pair-grid">${renderDailyPairs(params)}</div>`
+      : `<div class="daily-fields ${String(group).toLowerCase()}">${params.map(renderDailyField).join('')}</div>`;
+    return `
+      <section class="daily-group">
+        <div class="daily-group-head">
+          <div class="daily-group-title">${escapeHtml(group)}</div>
+          <div class="section-count">${num(params.length)} campos</div>
+        </div>
+        ${body}
+      </section>
+    `;
+  }
+
+  function renderDailyParametros() {
+    const form = document.getElementById('daily-form');
+    if (!form) return;
+    if (!dailyParametros.length) {
+      form.innerHTML = '<div class="empty">No hay parametros activos para la seleccion.</div>';
+      return;
+    }
+    const groups = dailyParametros.reduce((acc, param) => {
+      const group = param.grupo || 'OTROS';
+      if (!acc[group]) acc[group] = [];
+      acc[group].push(param);
+      return acc;
+    }, {});
+    form.innerHTML = Object.entries(groups).map(([group, params]) => renderDailyGroup(group, params)).join('');
+    renderDailyAutoActions();
+  }
+
+  function currentDailyAutoItems() {
+    const sector = document.getElementById('daily-sector')?.value || '';
+    const results = Array.isArray(dailyAutoResults[sector])
+      ? dailyAutoResults[sector]
+      : (dailyAutoResults[sector] ? [dailyAutoResults[sector]] : []);
+    return results;
+  }
+
+  function dailyAutoItemForParam(paramId) {
+    return currentDailyAutoItems().find(item => item.id_parametro === paramId) || null;
+  }
+
+  function renderDailyAutoActions() {
+    document.querySelectorAll('[data-auto-actions-for]').forEach(container => {
+      const paramId = container.dataset.autoActionsFor;
+      const item = dailyAutoItemForParam(paramId);
+      if (!item || !['CLARK', 'PICKING', 'RECEPCION'].includes(item.proceso)) {
+        container.innerHTML = '';
+        return;
+      }
+      const isReal = ['OP_CUMP_PICKING_REAL_6A6', 'OP_CUMP_RECEPCION_REAL_6A6'].includes(item.id_parametro);
+      const isDotacion = ['OP_DOT_PICKING_LEGAJOS_6A8', 'OP_DOT_SPC_LEGAJOS_6A8', 'OP_DOT_RECEPCION_LEGAJOS_6A8'].includes(item.id_parametro);
+      const quantityLabel = isDotacion
+        ? `${num(item.valor)} legajos`
+        : item.proceso === 'PICKING'
+        ? `${num(item.bultos || item.cantidad)} bultos${isReal ? ' reales' : ''}`
+        : `${num(item.pallets || item.cantidad)} pallets`;
+      const operatorLabel = (isReal || isDotacion) ? '' : ` / ${num(item.legajos)} operarios`;
+      container.innerHTML = `
+        ${canRetryDailyAuto() ? `<button class="daily-auto-detail" type="button" onclick="abrirDetalleClark('${escapeHtml(paramId)}')">Ver</button>` : ''}
+        <span class="daily-auto-note">${quantityLabel}${operatorLabel}</span>
+      `;
+    });
+  }
+
+  function applyDailyAutoResultForCurrentSector() {
+    const results = currentDailyAutoItems();
+    let applied = 0;
+    results.forEach(result => {
+      const autoInput = document.querySelector(`#daily-form [data-auto-value-for="${cssEscape(result.id_parametro)}"]`);
+      if (autoInput) {
+        autoInput.value = result.valor ?? '';
+        applied += 1;
+      }
+    });
+    if (applied) setDailySaveState('Automatico calculado - pendiente de guardar');
+    renderDailyAutoActions();
+    return applied > 0;
+  }
+
+  async function abrirDetalleClark(paramId) {
+    const item = dailyAutoItemForParam(paramId);
+    const modal = document.getElementById('clark-detail-modal');
+    const title = document.getElementById('clark-detail-title');
+    const status = document.getElementById('clark-detail-status');
+    const wrap = document.getElementById('clark-detail-wrap');
+    if (!item || !wrap || !canRetryDailyAuto()) return;
+    const process = item.proceso === 'PICKING' ? 'Picking' : (item.proceso === 'RECEPCION' ? 'Recepcion' : 'Clark');
+    const endpoint = item.proceso === 'PICKING'
+      ? '/api/gestion-operativa/daily/picking-sql'
+      : (item.proceso === 'RECEPCION' ? '/api/gestion-operativa/daily/recepcion-sql' : '/api/gestion-operativa/daily/clark-sql');
+    const cacheKey = `${item.proceso}_SQL`;
+    if (title) title.textContent = `SQL Productividad ${process} - ${item.sector || ''}`;
+    if (status) status.textContent = `Cargando SQL agregado de ${process}.`;
+    wrap.innerHTML = '<div class="empty">Cargando SQL.</div>';
+    modal?.classList.add('open');
+    try {
+      if (!clarkDetailCache[cacheKey]) {
+        const resp = await fetch(endpoint, { credentials: 'same-origin' });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(apiErrorMessage(data, `No se pudo cargar el SQL ${process}.`));
+        clarkDetailCache[cacheKey] = data;
+      }
+      renderDetalleClark(clarkDetailCache[cacheKey], item);
+    } catch (err) {
+      if (status) {
+        status.textContent = err.message || `No se pudo cargar el SQL ${process}.`;
+        status.className = 'status error';
+      }
+      wrap.innerHTML = '<div class="empty">No se pudo cargar el SQL.</div>';
+    }
+  }
+
+  function renderDetalleClark(data, item) {
+    const modal = document.getElementById('clark-detail-modal');
+    const status = document.getElementById('clark-detail-status');
+    const wrap = document.getElementById('clark-detail-wrap');
+    if (!wrap) return;
+    if (status) {
+      status.className = 'status';
+      status.textContent = `${data?.query_key || 'daily_auto_real'} | ${data?.fecha_desde || ''} a ${data?.fecha_hasta || ''}. No ejecuta Oracle desde esta vista.`;
+    }
+    wrap.innerHTML = `<pre class="sql-preview">${escapeHtml(data?.sql_preview || data?.sql_template || '')}</pre>`;
+    modal?.classList.add('open');
+  }
+
+  function cerrarDetalleClark() {
+    document.getElementById('clark-detail-modal')?.classList.remove('open');
+  }
+
+  async function loadDailyConfig() {
+    setDailyStatus('Cargando configuracion Daily.');
+    setRetryVisible(false);
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/config', { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo cargar la configuracion.');
+      dailyConfig = data;
+      fillDailySectorOptions();
+      renderDailyMeta();
+      if (!data.daily?.can_load) {
+        document.getElementById('btn-daily-save').disabled = true;
+        setDailyStatus(data.daily?.reason || 'La Daily no esta habilitada.', 'error');
+        return;
+      }
+      document.getElementById('btn-daily-save').disabled = false;
+      await loadDailyParametros();
+    } catch (err) {
+      setDailyStatus(err.message || 'No se pudo cargar Daily.', 'error');
+    }
+  }
+
+  async function loadDailyParametros() {
+    const tipo = document.getElementById('daily-tipo')?.value || 'Operacion';
+    const sector = document.getElementById('daily-sector')?.value || 'Noa';
+    setDailyStatus('Cargando parametros.');
+    try {
+      const params = new URLSearchParams({ tipo_daily: tipo, sector });
+      const paramResp = await fetch(`/api/gestion-operativa/daily/parametros?${params.toString()}`, { credentials: 'same-origin' });
+      const paramData = await paramResp.json();
+      if (!paramResp.ok) throw new Error(paramData.detail || 'No se pudieron cargar parametros.');
+      dailyParametros = paramData.parametros || [];
+      renderDailyParametros();
+      const applied = applyDailyAutoResultForCurrentSector();
+      setDailyStatus(`${num(dailyParametros.length)} parametros listos para cargar.${applied ? ' Productividad automatica precargada.' : ''}`);
+      if (!applied) setDailySaveState('Sin guardar.');
+    } catch (err) {
+      dailyParametros = [];
+      renderDailyParametros();
+      setDailyStatus(err.message || 'No se pudieron cargar parametros.', 'error');
+    }
+  }
+
+  async function calcularDailyAutomatico() {
+    const tipo = document.getElementById('daily-tipo')?.value || 'Operacion';
+    if (tipo !== 'Operacion') {
+      setDailyStatus('El calculo automatico inicial aplica solo a Daily Operacion.', 'error');
+      return;
+    }
+    const btn = document.getElementById('btn-daily-auto');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Leyendo...';
+    }
+    setRetryVisible(false);
+    setDailyStatus('Leyendo cache local de productividad automatica.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/calcular-automatico', {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(apiErrorMessage(data, 'No se pudo leer el cache automatico.'));
+      applyDailyAutoPayload(data);
+    } catch (err) {
+      setRetryVisible(true);
+      const suffix = canRetryDailyAuto() ? ' Puedes ejecutar la precarga de excepcion.' : '';
+      setDailyStatus(`${err.message || 'No se pudo leer el cache automatico.'}${suffix}`, 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Calcular Automatico';
+      }
+    }
+  }
+
+  async function reintentarPrecargaDaily() {
+    if (!canRetryDailyAuto()) return;
+    const tipo = document.getElementById('daily-tipo')?.value || 'Operacion';
+    if (tipo !== 'Operacion') {
+      setDailyStatus('La precarga de excepcion aplica solo a Daily Operacion.', 'error');
+      return;
+    }
+    if (!window.confirm('Esta excepcion consulta Oracle para cargar todos los procesos pendientes habilitados. Continuar?')) return;
+    const btn = document.getElementById('btn-daily-retry');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Reintentando...';
+    }
+    setDailyStatus('Ejecutando precarga de excepcion. Recepcion, Clark y Picking estan habilitados.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/auto/retry-pending', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force: false }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(apiErrorMessage(data, 'No se pudo ejecutar la precarga de excepcion.'));
+      applyDailyAutoPayload(data);
+    } catch (err) {
+      setRetryVisible(true);
+      setDailyStatus(err.message || 'No se pudo ejecutar la precarga de excepcion.', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Reintentar precarga Daily';
+      }
+    }
+  }
+
+  async function guardarDaily() {
+    if (loadingDaily) return;
+    const daily = dailyConfig?.daily || {};
+    if (!daily.can_load) {
+      setDailyStatus(daily.reason || 'La Daily no esta habilitada.', 'error');
+      return;
+    }
+    const respuestas = {};
+    document.querySelectorAll('#daily-form [data-param-id]').forEach(input => {
+      const paramId = input.dataset.paramId;
+      const autoInput = document.querySelector(`#daily-form [data-auto-value-for="${cssEscape(paramId)}"]`);
+      respuestas[paramId] = autoInput
+        ? { automatico: autoInput.value || '', usuario: input.value || '' }
+        : (input.value || '');
+    });
+    const payload = {
+      tipo_daily: document.getElementById('daily-tipo')?.value || 'Operacion',
+      sector: document.getElementById('daily-sector')?.value || '',
+      turno: document.getElementById('daily-turno')?.value || '',
+      plan: document.getElementById('daily-plan')?.value || '',
+      action: 'replace',
+      respuestas,
+    };
+    loadingDaily = true;
+    const btn = document.getElementById('btn-daily-save');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    setDailyStatus('Guardando Daily.');
+    setDailySaveState('Guardando...');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/cargas', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo guardar la Daily.');
+      setDailyStatus(`Daily guardada: registro ${data.carga_id}, version ${data.version}, ${num(data.parametros_guardados)} parametros. CSV: ${data.csv_path || '-'}`);
+      await loadDailyParametros();
+      setDailySaveState('Guardado - CSV actualizado');
+    } catch (err) {
+      setDailyStatus(err.message || 'No se pudo guardar la Daily.', 'error');
+    } finally {
+      loadingDaily = false;
+      btn.disabled = false;
+      btn.textContent = 'Guardar Daily';
+    }
+  }
+
+  async function exportarCsvDaily() {
+    const clave = window.prompt('Clave de parametros');
+    if (clave === null) return;
+    const btn = document.getElementById('btn-daily-export');
+    btn.disabled = true;
+    btn.textContent = 'Exportando...';
+    setDailyStatus('Exportando CSV para PowerBI.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/exportar-csv', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clave }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo exportar el CSV.');
+      setDailyStatus(`CSV exportado. Consolidado: ${data.consolidado_csv_path || '-'} | Vista: ${data.csv_path || '-'}`);
+      setDailySaveState('CSV exportado manualmente');
+    } catch (err) {
+      setDailyStatus(err.message || 'No se pudo exportar el CSV.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Exportar CSV';
+    }
+  }
+
+  function setDailyParamStatus(text, tone = '') {
+    const el = document.getElementById('daily-param-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `status ${tone}`;
+  }
+
+  async function abrirParametrosDaily() {
+    const clave = window.prompt('Clave de parametros');
+    if (clave === null) return;
+    dailyParamClave = clave;
+    document.getElementById('daily-param-modal')?.classList.add('open');
+    await cargarParametrosAdmin();
+  }
+
+  function cerrarParametrosDaily() {
+    document.getElementById('daily-param-modal')?.classList.remove('open');
+  }
+
+  async function cargarParametrosAdmin() {
+    setDailyParamStatus('Cargando parametros.');
+    const wrap = document.getElementById('daily-param-wrap');
+    if (wrap) wrap.innerHTML = '<div class="empty">Cargando parametros.</div>';
+    try {
+      const params = new URLSearchParams({ clave: dailyParamClave });
+      const resp = await fetch(`/api/gestion-operativa/daily/parametros/admin?${params.toString()}`, { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudieron cargar parametros.');
+      dailyAdminParametros = data.parametros || [];
+      renderParametrosAdmin();
+      setDailyParamStatus(`${num(dailyAdminParametros.length)} parametros listos.`);
+    } catch (err) {
+      dailyAdminParametros = [];
+      if (wrap) wrap.innerHTML = '<div class="empty">No se pudieron cargar parametros.</div>';
+      setDailyParamStatus(err.message || 'No se pudieron cargar parametros.', 'error');
+    }
+  }
+
+  function renderParametrosAdmin() {
+    const wrap = document.getElementById('daily-param-wrap');
+    if (!wrap) return;
+    if (!dailyAdminParametros.length) {
+      wrap.innerHTML = '<div class="empty">Sin parametros cargados.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table class="param-table">
+        <thead>
+          <tr>
+            <th>Activo</th>
+            <th>Tipo</th>
+            <th>Sector</th>
+            <th>Grupo</th>
+            <th>Proceso</th>
+            <th>Indicador</th>
+            <th>Unidad</th>
+            <th>Regla</th>
+            <th>Meta</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dailyAdminParametros.map(param => `
+            <tr data-param-id="${escapeHtml(param.id_parametro)}">
+              <td><input type="checkbox" data-param-active ${Number(param.activo || 0) ? 'checked' : ''}></td>
+              <td>${escapeHtml(param.tipo_daily || '')}</td>
+              <td>${escapeHtml(param.sector_aplicable || '')}</td>
+              <td>${escapeHtml(param.grupo || '')}</td>
+              <td>${escapeHtml(param.proceso || '')}</td>
+              <td><strong>${escapeHtml(param.nombre || '')}</strong><br><span class="muted">${escapeHtml(param.descripcion || '')}</span></td>
+              <td>${escapeHtml(param.unidad || '')}</td>
+              <td>${escapeHtml(param.regla_cumplimiento || '')}</td>
+              <td><input type="text" data-param-meta value="${escapeHtml(param.valor_esperado ?? '')}" inputmode="decimal"></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function guardarParametrosDaily() {
+    const rows = [...document.querySelectorAll('#daily-param-wrap tr[data-param-id]')].map(row => ({
+      id_parametro: row.dataset.paramId,
+      activo: row.querySelector('[data-param-active]')?.checked || false,
+      valor_esperado: row.querySelector('[data-param-meta]')?.value || '',
+    }));
+    const btn = document.getElementById('btn-daily-param-save');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    setDailyParamStatus('Guardando parametros.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/parametros/admin', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clave: dailyParamClave, parametros: rows }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudieron guardar parametros.');
+      setDailyParamStatus(`Parametros actualizados: ${num(data.updated)}.`);
+      await cargarParametrosAdmin();
+      await loadDailyParametros();
+    } catch (err) {
+      setDailyParamStatus(err.message || 'No se pudieron guardar parametros.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Guardar parametros';
+    }
+  }
+
+  (async function bootstrap() {
+    try {
+      await requireAuth();
+      const userLabel = document.getElementById('user-label');
+      if (userLabel) userLabel.textContent = `${authUser.display_name || authUser.username} - ${authUser.role || ''}`;
+      await loadDailyConfig();
+    } catch (err) {
+      if (err.message !== 'redirect') setDailyStatus(err.message || 'No se pudo iniciar OpEX Daily.', 'error');
+    }
+  })();
+</script>
+</body>
+</html>

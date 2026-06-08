@@ -104,45 +104,84 @@ public class OracleProductividadQuery {
                 "ORDER BY A.COPECREA, A.FCREAREG";
         } else if ("daily_picking_real".equalsIgnoreCase(queryKey)) {
             sql = """
-                WITH prm AS (
+                WITH TODOS AS (
                   SELECT
-                    TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
-                    TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') AS p_to
-                  FROM dual
-                ),
-                pck AS (
-                  SELECT
-                    h.COPECREA,
-                    h.QCANTIDA,
                     CASE
-                      WHEN UPPER(TRIM(h.CZONAORI)) = 'T06' THEN 4
-                      WHEN h.CZONAORI IS NOT NULL
-                       AND INSTR(UPPER(TRIM(h.CZONAORI)), 'T') > 0 THEN 2
-                      WHEN UPPER(TRIM(h.CZONAORI)) IN ('N01','N02','N04','N05','N07','N09','N10','N15') THEN 6
-                      ELSE 1
-                    END AS division
+                      WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
+                      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+                      WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
+                      ELSE 'OTROS'
+                    END AS ALMACEN,
+                    h.QCANTIDA AS BULTOS,
+                    l.LEGAJO
                   FROM f132hist h
-                  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
-                    AND h.FCREAREG <  (SELECT p_to FROM prm)
-                    AND h.CDESCRIP = 'Picking'
+                  LEFT JOIN PV_LEGAJO l
+                    ON h.COPECREA = l.legajo
+                  LEFT JOIN (
+                    SELECT DISTINCT CDIVISIO, CZONALMA
+                    FROM VW_UBICACIONES_DIVISION
+                  ) SUB1
+                    ON SUB1.CZONALMA = h.CZONAORI
+                  WHERE h.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
+                    AND h.FCREAREG <  TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
+                    AND h.CDESCRIP IN ('Picking')
+                    AND h.QCANTIDA > 0
                 )
                 SELECT
-                  CASE division
-                    WHEN 1 THEN 'SECOS'
-                    WHEN 2 THEN 'REFRIGERADOS'
-                    WHEN 4 THEN 'REFRIGERADOS'
-                    WHEN 6 THEN 'NOA'
-                  END AS ALMACEN,
-                  COUNT(DISTINCT COPECREA) AS LEGAJOS,
-                  SUM(QCANTIDA) AS BULTOS,
-                  ROUND(SUM(QCANTIDA) / COUNT(DISTINCT COPECREA), 2) AS PRODUCCION
-                FROM pck
-                GROUP BY CASE division
-                  WHEN 1 THEN 'SECOS'
-                  WHEN 2 THEN 'REFRIGERADOS'
-                  WHEN 4 THEN 'REFRIGERADOS'
-                  WHEN 6 THEN 'NOA'
-                END
+                  ALMACEN,
+                  SUM(BULTOS) AS BULTOS,
+                  COUNT(DISTINCT LEGAJO) AS LEGAJOS,
+                  ROUND(SUM(BULTOS) / COUNT(DISTINCT LEGAJO), 2) AS PRODUCCION
+                FROM TODOS
+                WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
+                GROUP BY ALMACEN
+                """;
+        } else if ("daily_recepcion_real".equalsIgnoreCase(queryKey)) {
+            sql = """
+                WITH mdiv AS (
+                  SELECT
+                    s.CREFEREN,
+                    d.CDIVISIO
+                  FROM f602asec s
+                  JOIN F601SECT d
+                    ON d.CNSECTOR = s.CNSECTOR
+                   AND s.CALMACEN = d.CALMACEN
+                  WHERE s.CALMACEN = '93'
+                ),
+                Todos AS (
+                  SELECT
+                    CASE
+                      WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
+                      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+                      WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
+                      ELSE 'OTROS'
+                    END AS ALMACEN,
+                    COUNT(DISTINCT h.CNUPALET) AS PALLETS,
+                    h.COPECREA AS LEGAJO
+                  FROM f132hist h
+                  LEFT JOIN mdiv SUB1
+                    ON SUB1.CREFEREN = h.CREFEREN
+                  WHERE h.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
+                    AND h.FCREAREG <  TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
+                    AND h.CDESCRIP = 'REVISION PALETS ENTRADA'
+                    AND h.QCANTIDA > 0
+                  GROUP BY
+                    h.COPECREA,
+                    CASE
+                      WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
+                      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+                      WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
+                      ELSE 'OTROS'
+                    END
+                )
+                SELECT
+                  ALMACEN,
+                  SUM(PALLETS) AS PALLETS,
+                  COUNT(DISTINCT LEGAJO) AS LEGAJOS,
+                  ROUND(SUM(PALLETS) / COUNT(DISTINCT LEGAJO), 2) AS PRODUCCION
+                FROM Todos
+                WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
+                GROUP BY ALMACEN
                 """;
         } else if ("daily_despacho_real".equalsIgnoreCase(queryKey)) {
             sql = """
@@ -325,208 +364,48 @@ public class OracleProductividadQuery {
                 """;
         } else if ("daily_clark_real".equalsIgnoreCase(queryKey)) {
             sql = """
-                WITH prm AS (
-                  SELECT
-                    TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
-                    TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') AS p_to,
-                    15 AS tol_min
-                  FROM dual
-                ),
-                mdiv AS (
+                WITH mdiv AS (
                   SELECT
                     s.CREFEREN,
-                    d.CDIVISIO
+                    CASE d.CDIVISIO
+                      WHEN 1 THEN 'SECOS'
+                      WHEN 2 THEN 'REFRIGERADOS'
+                      WHEN 6 THEN 'NOA'
+                      ELSE 'OTROS'
+                    END AS ALMACEN
                   FROM f602asec s
                   JOIN F601SECT d
                     ON d.CNSECTOR = s.CNSECTOR
                 ),
-                leg AS (
-                  SELECT DISTINCT h.COPECREA
+                base AS (
+                  SELECT
+                    (
+                      SELECT b.ALMACEN
+                      FROM mdiv b
+                      WHERE h.CREFEREN = b.CREFEREN
+                        AND ROWNUM = 1
+                    ) AS ALMACEN,
+                    h.COPECREA AS LEGAJO,
+                    h.CNUPALET AS PALLET
                   FROM f132hist h
-                  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
-                    AND h.FCREAREG <  (SELECT p_to FROM prm)
+                  WHERE h.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
+                    AND h.FCREAREG <  TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
                     AND h.CDESCRIP IN (
                       'GUARADO PALETS ENTRADA',
                       'EXTRACCION DE REAPROS',
                       'EXTRACCION TRASPASOS',
                       'SURTIDO P.COMPLETOS'
                     )
-                ),
-                bas AS (
-                  SELECT
-                    h.COPECREA,
-                    h.FCREAREG,
-                    h.CDESCRIP,
-                    h.QCANTIDA,
-                    h.QPESOREG,
-                    h.CZONAORI,
-                    h.CUBIORIG,
-                    h.CNUPALET,
-                    h.CREFEREN,
-                    pv.TURNO AS tur_pv
-                  FROM f132hist h
-                  JOIN leg l
-                    ON l.COPECREA = h.COPECREA
-                  LEFT JOIN PV_DIA_LABORAL pv
-                    ON TO_CHAR(pv.LEGAJO) = TO_CHAR(h.COPECREA)
-                   AND pv.FECHA = TO_NUMBER(TO_CHAR(h.FCREAREG,'YYYYMMDD'))
-                  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
-                    AND h.FCREAREG <  (SELECT p_to FROM prm)
-                ),
-                enr AS (
-                  SELECT
-                    b.COPECREA,
-                    b.FCREAREG,
-                    b.CDESCRIP,
-                    b.QCANTIDA,
-                    b.QPESOREG,
-                    b.CZONAORI,
-                    b.CUBIORIG,
-                    b.CNUPALET,
-                    b.CREFEREN,
-                    b.tur_pv,
-                    CASE
-                      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '060000'
-                       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000' THEN 'TM'
-                      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '140000'
-                       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000' THEN 'TT'
-                      ELSE 'TN'
-                    END AS tur_real,
-                    CASE
-                      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('06:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
-                       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '060000'
-                       AND b.tur_pv = 1 THEN 'TM'
-                      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('14:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
-                       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000'
-                       AND b.tur_pv = 2 THEN 'TT'
-                      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('22:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
-                       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000'
-                       AND b.tur_pv = 3 THEN 'TN'
-                      ELSE
-                        CASE
-                          WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '060000'
-                           AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000' THEN 'TM'
-                          WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '140000'
-                           AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000' THEN 'TT'
-                          ELSE 'TN'
-                        END
-                    END AS turno,
-                    m.CDIVISIO AS division
-                  FROM bas b
-                  LEFT JOIN mdiv m
-                    ON m.CREFEREN = b.CREFEREN
-                ),
-                enr2 AS (
-                  SELECT
-                    e.*,
-                    CASE
-                      WHEN e.turno = 'TM'
-                       AND TO_CHAR(e.FCREAREG,'HH24MISS') < '060000'
-                      THEN TRUNC(e.FCREAREG)
-                      ELSE TRUNC(e.FCREAREG - INTERVAL '6' HOUR)
-                    END AS dia_op
-                  FROM enr e
-                ),
-                ven AS (
-                  SELECT
-                    e.COPECREA,
-                    e.FCREAREG,
-                    e.CDESCRIP,
-                    e.QCANTIDA,
-                    e.QPESOREG,
-                    e.CZONAORI,
-                    e.CUBIORIG,
-                    e.CNUPALET,
-                    e.CREFEREN,
-                    e.turno,
-                    e.dia_op,
-                    e.division
-                  FROM enr2 e
-                  WHERE e.FCREAREG >= (SELECT p_from FROM prm)
-                    AND e.FCREAREG <  (SELECT p_to FROM prm)
-                ),
-                mapv AS (
-                  SELECT
-                    v.*,
-                    CASE
-                      WHEN TO_CHAR(v.dia_op, 'DY', 'NLS_DATE_LANGUAGE=ENGLISH') IN ('FRI','SAT','SUN')
-                      THEN TRUNC(NEXT_DAY(v.dia_op, 'LUNES'))
-                      ELSE v.dia_op + 1
-                    END AS dia_daily
-                  FROM ven v
-                ),
-                seq AS (
-                  SELECT
-                    m.*,
-                    LAG(m.FCREAREG) OVER (
-                      PARTITION BY m.COPECREA, m.dia_op, m.turno
-                      ORDER BY m.FCREAREG, m.CDESCRIP, m.CNUPALET, m.CREFEREN
-                    ) AS f_prev_turno
-                  FROM mapv m
-                ),
-                dur AS (
-                  SELECT
-                    s.*,
-                    CASE
-                      WHEN s.f_prev_turno IS NULL THEN 0
-                      ELSE (s.FCREAREG - s.f_prev_turno) * 86400
-                    END AS dur_s_turno
-                  FROM seq s
-                ),
-                clk AS (
-                  SELECT
-                    d.COPECREA,
-                    d.FCREAREG,
-                    d.CDESCRIP,
-                    d.CNUPALET,
-                    d.turno,
-                    d.dia_op,
-                    d.dia_daily,
-                    d.division,
-                    d.dur_s_turno
-                  FROM dur d
-                  WHERE d.CDESCRIP IN (
-                    'GUARADO PALETS ENTRADA',
-                    'EXTRACCION DE REAPROS',
-                    'EXTRACCION TRASPASOS',
-                    'SURTIDO P.COMPLETOS'
-                  )
-                ),
-                agt AS (
-                  SELECT
-                    m.dia_op,
-                    m.dia_daily,
-                    m.turno,
-                    m.COPECREA,
-                    m.division,
-                    COUNT(m.CNUPALET) AS pallets_totales,
-                    COUNT(DISTINCT m.CNUPALET) AS pallets_distintos,
-                    SUM(m.dur_s_turno) / 3600 AS hs_clark_total
-                  FROM clk m
-                  GROUP BY
-                    m.dia_op,
-                    m.dia_daily,
-                    m.turno,
-                    m.COPECREA,
-                    m.division
+                    AND h.CNUPALET > 0
                 )
                 SELECT
-                  CASE division
-                    WHEN 1 THEN 'SECOS'
-                    WHEN 2 THEN 'REFRIGERADOS'
-                    WHEN 6 THEN 'NOA'
-                  END AS ALMACEN,
-                  COUNT(DISTINCT COPECREA) AS LEGAJOS,
-                  SUM(pallets_totales) AS PALLETS,
-                  SUM(pallets_distintos) AS PALLETS_DISTINTOS,
-                  ROUND(SUM(pallets_totales) / COUNT(DISTINCT COPECREA), 2) AS PRODUCCION
-                FROM agt
-                WHERE division IN (1, 2, 6)
-                GROUP BY CASE division
-                  WHEN 1 THEN 'SECOS'
-                  WHEN 2 THEN 'REFRIGERADOS'
-                  WHEN 6 THEN 'NOA'
-                END
+                  ALMACEN,
+                  COUNT(DISTINCT LEGAJO) AS LEGAJOS,
+                  COUNT(PALLET) AS PALLETS,
+                  ROUND(COUNT(PALLET) / NULLIF(COUNT(DISTINCT LEGAJO), 0), 2) AS PRODUCCION
+                FROM base
+                WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
+                GROUP BY ALMACEN
                 """;
         } else if ("gestion_productividad_picking".equalsIgnoreCase(queryKey)) {
             sql =
@@ -906,7 +785,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_tnc_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
+                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_tnc_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

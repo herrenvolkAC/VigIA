@@ -1079,51 +1079,99 @@ def query_productive_db_online(fecha_desde: str, fecha_hasta: str) -> list[dict[
 
 
 QUERY_DAILY_PICKING_REAL = """
-WITH prm AS (
+WITH TODOS AS (
   SELECT
-    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
-    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
-  FROM dual
-),
-pck AS (
-  SELECT
-    h.COPECREA,
-    h.QCANTIDA,
     CASE
-      WHEN UPPER(TRIM(h.CZONAORI)) = 'T06' THEN 4
-      WHEN h.CZONAORI IS NOT NULL
-       AND INSTR(UPPER(TRIM(h.CZONAORI)), 'T') > 0 THEN 2
-      WHEN UPPER(TRIM(h.CZONAORI)) IN ('N01','N02','N04','N05','N07','N09','N10','N15') THEN 6
-      ELSE 1
-    END AS division
+      WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
+      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+      WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
+      ELSE 'OTROS'
+    END AS ALMACEN,
+    h.QCANTIDA AS BULTOS,
+    l.LEGAJO
   FROM f132hist h
-  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
-    AND h.FCREAREG <  (SELECT p_to FROM prm)
-    AND h.CDESCRIP = 'Picking'
+  LEFT JOIN PV_LEGAJO l
+    ON h.COPECREA = l.legajo
+  LEFT JOIN (
+    SELECT DISTINCT CDIVISIO, CZONALMA
+    FROM VW_UBICACIONES_DIVISION
+  ) SUB1
+    ON SUB1.CZONALMA = h.CZONAORI
+  WHERE h.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+    AND h.FCREAREG <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+    AND h.CDESCRIP IN ('Picking')
+    AND h.QCANTIDA > 0
 )
 SELECT
-  CASE division
-    WHEN 1 THEN 'SECOS'
-    WHEN 2 THEN 'REFRIGERADOS'
-    WHEN 4 THEN 'REFRIGERADOS'
-    WHEN 6 THEN 'NOA'
-  END AS ALMACEN,
-  COUNT(DISTINCT COPECREA) AS LEGAJOS,
-  SUM(QCANTIDA) AS BULTOS,
-  ROUND(SUM(QCANTIDA) / COUNT(DISTINCT COPECREA), 2) AS PRODUCCION
-FROM pck
-GROUP BY CASE division
-  WHEN 1 THEN 'SECOS'
-  WHEN 2 THEN 'REFRIGERADOS'
-  WHEN 4 THEN 'REFRIGERADOS'
-  WHEN 6 THEN 'NOA'
-END
+  ALMACEN,
+  SUM(BULTOS) AS BULTOS,
+  COUNT(DISTINCT LEGAJO) AS LEGAJOS,
+  ROUND(SUM(BULTOS) / COUNT(DISTINCT LEGAJO), 2) AS PRODUCCION
+FROM TODOS
+WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
+GROUP BY ALMACEN
 """
 
 
 def query_productive_db_daily_picking_real(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_DAILY_PICKING_REAL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+QUERY_DAILY_RECEPCION_REAL = """
+WITH mdiv AS (
+  SELECT
+    s.CREFEREN,
+    d.CDIVISIO
+  FROM f602asec s
+  JOIN F601SECT d
+    ON d.CNSECTOR = s.CNSECTOR
+   AND s.CALMACEN = d.CALMACEN
+  WHERE s.CALMACEN = '93'
+),
+Todos AS (
+  SELECT
+    CASE
+      WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
+      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+      WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
+      ELSE 'OTROS'
+    END AS ALMACEN,
+    COUNT(DISTINCT h.CNUPALET) AS PALLETS,
+    h.COPECREA AS LEGAJO
+  FROM f132hist h
+  LEFT JOIN mdiv SUB1
+    ON SUB1.CREFEREN = h.CREFEREN
+  WHERE h.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+    AND h.FCREAREG <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+    AND h.CDESCRIP = 'REVISION PALETS ENTRADA'
+    AND h.QCANTIDA > 0
+  GROUP BY
+    h.COPECREA,
+    CASE
+      WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
+      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+      WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
+      ELSE 'OTROS'
+    END
+)
+SELECT
+  ALMACEN,
+  SUM(PALLETS) AS PALLETS,
+  COUNT(DISTINCT LEGAJO) AS LEGAJOS,
+  ROUND(SUM(PALLETS) / COUNT(DISTINCT LEGAJO), 2) AS PRODUCCION
+FROM Todos
+WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
+GROUP BY ALMACEN
+"""
+
+
+def query_productive_db_daily_recepcion_real(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_RECEPCION_REAL,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )
@@ -1344,7 +1392,7 @@ def query_productive_db_daily_spc_plan(fecha_desde: str, fecha_hasta: str) -> li
     )
 
 
-QUERY_DAILY_CLARK_REAL = """
+QUERY_DAILY_CLARK_REAL_OLD = """
 WITH prm AS (
   SELECT
     TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
@@ -1550,12 +1598,110 @@ END
 """
 
 
+QUERY_DAILY_CLARK_DETAIL = """
+WITH mdiv AS (
+  SELECT
+    s.CREFEREN,
+    CASE d.CDIVISIO
+      WHEN 1 THEN 'SECOS'
+      WHEN 2 THEN 'REFRIGERADOS'
+      WHEN 6 THEN 'NOA'
+      ELSE 'OTROS'
+    END AS ALMACEN
+  FROM f602asec s
+  JOIN F601SECT d
+    ON d.CNSECTOR = s.CNSECTOR
+)
+SELECT
+  (
+    SELECT b.ALMACEN
+    FROM mdiv b
+    WHERE h.CREFEREN = b.CREFEREN
+      AND ROWNUM = 1
+  ) AS ALMACEN,
+  h.COPECREA AS LEGAJO,
+  l.nombre AS NOMBRE,
+  h.FCREAREG,
+  h.CNUPALET AS PALLET,
+  h.CDESCRIP AS OPERACION
+FROM f132hist h
+LEFT JOIN PV_LEGAJO l
+  ON h.COPECREA = l.legajo
+WHERE h.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+  AND h.FCREAREG <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+  AND h.CDESCRIP IN (
+    'GUARADO PALETS ENTRADA',
+    'EXTRACCION DE REAPROS',
+    'EXTRACCION TRASPASOS',
+    'SURTIDO P.COMPLETOS'
+  )
+  AND h.CNUPALET > 0
+  AND (
+    SELECT b.ALMACEN
+    FROM mdiv b
+    WHERE h.CREFEREN = b.CREFEREN
+      AND ROWNUM = 1
+  ) IN ('SECOS', 'REFRIGERADOS', 'NOA')
+ORDER BY ALMACEN, h.COPECREA, h.FCREAREG, h.CNUPALET
+"""
+
+
+QUERY_DAILY_CLARK_REAL = """
+WITH mdiv AS (
+  SELECT
+    s.CREFEREN,
+    CASE d.CDIVISIO
+      WHEN 1 THEN 'SECOS'
+      WHEN 2 THEN 'REFRIGERADOS'
+      WHEN 6 THEN 'NOA'
+      ELSE 'OTROS'
+    END AS ALMACEN
+  FROM f602asec s
+  JOIN F601SECT d
+    ON d.CNSECTOR = s.CNSECTOR
+),
+base AS (
+  SELECT
+    (
+      SELECT b.ALMACEN
+      FROM mdiv b
+      WHERE h.CREFEREN = b.CREFEREN
+        AND ROWNUM = 1
+    ) AS ALMACEN,
+    h.COPECREA AS LEGAJO,
+    h.CNUPALET AS PALLET
+  FROM f132hist h
+  WHERE h.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+    AND h.FCREAREG <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+    AND h.CDESCRIP IN (
+      'GUARADO PALETS ENTRADA',
+      'EXTRACCION DE REAPROS',
+      'EXTRACCION TRASPASOS',
+      'SURTIDO P.COMPLETOS'
+    )
+    AND h.CNUPALET > 0
+)
+SELECT
+  ALMACEN,
+  COUNT(DISTINCT LEGAJO) AS LEGAJOS,
+  COUNT(PALLET) AS PALLETS,
+  ROUND(COUNT(PALLET) / NULLIF(COUNT(DISTINCT LEGAJO), 0), 2) AS PRODUCCION
+FROM base
+WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
+GROUP BY ALMACEN
+"""
+
+
 def query_productive_db_daily_clark_real(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_DAILY_CLARK_REAL,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )
+
+
+def query_productive_db_daily_clark_detail(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    raise RuntimeError("Detalle Clark deshabilitado: usar daily_clark_real agregado.")
 
 
 def query_productive_db_historia_productividad_legajo(fecha_desde: str, fecha_hasta: str, legajo: str) -> list[dict[str, Any]]:
@@ -2139,10 +2285,22 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         query_key = "historia_actividad_operaciones"
     elif (
         "F132HIST" in normalized_query
-        and "H.CDESCRIP = 'PICKING'" in normalized_query
-        and "SUM(QCANTIDA) AS BULTOS" in normalized_query
+        and "CDESCRIP" in normalized_query
+        and "PICKING" in normalized_query
+        and (
+            "SUM(QCANTIDA) AS BULTOS" in normalized_query
+            or "SUM(BULTOS) AS BULTOS" in normalized_query
+        )
+        and "VW_UBICACIONES_DIVISION" in normalized_query
     ):
         query_key = "daily_picking_real"
+    elif (
+        "F602ASEC" in normalized_query
+        and "REVISION PALETS ENTRADA" in normalized_query
+        and "SUM(PALLETS) AS PALLETS" in normalized_query
+        and "COUNT(DISTINCT LEGAJO) AS LEGAJOS" in normalized_query
+    ):
+        query_key = "daily_recepcion_real"
     elif (
         "F922TRAF" in normalized_query
         and "COUNT(DISTINCT HOJARUTA) AS VIAJES" in normalized_query
@@ -2168,6 +2326,12 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         and "CODIGODETIPODEDARSENA" in normalized_query
     ):
         query_key = "daily_despacho_plan"
+    elif (
+        "F601SECT" in normalized_query
+        and "GUARADO PALETS ENTRADA" in normalized_query
+        and "COUNT(PALLET) AS PALLETS" in normalized_query
+    ):
+        query_key = "daily_clark_real"
     elif (
         "F601SECT" in normalized_query
         and "GUARADO PALETS ENTRADA" in normalized_query

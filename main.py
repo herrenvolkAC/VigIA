@@ -22,7 +22,7 @@ from db.auth import init_auth_db
 from db.casos import init_cases_db
 from db.daily_operativa import init_daily_db
 from db.panol_insumos import init_panol_db
-from routers.auth_local import current_auth, ensure_bootstrap_admin, router as auth_router
+from routers.auth_local import current_auth, ensure_bootstrap_admin, router as auth_router, user_has_module_access
 from routers.ai import router as ai_router
 from routers.data import router as data_router
 from routers.turnos import router as turnos_router
@@ -30,6 +30,7 @@ from routers.operarios import router as operarios_router
 from routers.productividad_analisis import router as productividad_analisis_router
 from routers.plantel_operativo import router as plantel_operativo_router
 from routers.gestion_operativa import router as gestion_operativa_router
+from routers.gestion_operativa import start_daily_auto_scheduler, stop_daily_auto_scheduler
 from routers.casos import router as casos_router
 from routers.historia_legajo import (
     router as historia_legajo_router,
@@ -66,6 +67,7 @@ async def lifespan(app: FastAPI):
     await init_daily_db()
     await init_panol_db()
     await ensure_bootstrap_admin()
+    start_daily_auto_scheduler()
     start_historia_actividad_scheduler()
     start_rrhh_folder_monitor()
     provider = os.getenv("AI_PROVIDER", "claude")
@@ -80,6 +82,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         await stop_rrhh_folder_monitor()
+        await stop_daily_auto_scheduler()
         await stop_historia_actividad_scheduler()
         logger.info("VigIA detenido.")
 
@@ -112,6 +115,10 @@ PROTECTED_PAGE_PATHS = {
     "/tiempos-muertos.html",
     "/gestion-operativa",
     "/gestion-operativa.html",
+    "/opex",
+    "/opex.html",
+    "/opex-daily",
+    "/opex-daily.html",
     "/novedades-cd",
     "/novedades-cd.html",
     "/historia-legajo",
@@ -138,6 +145,40 @@ ADMIN_PAGE_PATHS = {
     "/admin/accesos",
     "/admin/accesos.html",
 }
+PAGE_MODULES = {
+    "/productividad": "productividad",
+    "/productividad.html": "productividad",
+    "/picking": "productividad",
+    "/picking.html": "productividad",
+    "/produccion": "productividad",
+    "/produccion.html": "productividad",
+    "/gestion-operativa": "gestion_operativa",
+    "/gestion-operativa.html": "gestion_operativa",
+    "/opex": "opex",
+    "/opex.html": "opex",
+    "/opex-daily": "opex",
+    "/opex-daily.html": "opex",
+    "/novedades-cd": "novedades_cd",
+    "/novedades-cd.html": "novedades_cd",
+    "/historia-legajo": "historia_legajo",
+    "/historia-legajo.html": "historia_legajo",
+    "/casos": "casos",
+    "/casos.html": "casos",
+    "/panol-insumos": "panol",
+    "/panol-insumos.html": "panol",
+    "/reposicion": "reposicion",
+    "/reposicion.html": "reposicion",
+    "/recepcion": "recepcion",
+    "/recepcion.html": "recepcion",
+}
+API_MODULE_PREFIXES = (
+    ("/api/gestion-operativa/daily", "opex"),
+    ("/api/gestion-operativa", "gestion_operativa"),
+    ("/api/historia-legajo", "historia_legajo"),
+    ("/api/rrhh", "novedades_cd"),
+    ("/api/casos", "casos"),
+    ("/panol-insumos/api", "panol"),
+)
 
 
 def _login_redirect(path: str) -> RedirectResponse:
@@ -150,8 +191,10 @@ async def auth_gate(request: Request, call_next):
     is_protected_page = path in PROTECTED_PAGE_PATHS
     is_admin_page = path in ADMIN_PAGE_PATHS
     is_protected_api = any(path.startswith(prefix) for prefix in PROTECTED_API_PREFIXES)
+    is_module_page = path in PAGE_MODULES
+    is_module_api = any(path.startswith(prefix) for prefix, _ in API_MODULE_PREFIXES)
 
-    if not (is_protected_page or is_admin_page or is_protected_api):
+    if not (is_protected_page or is_admin_page or is_protected_api or is_module_page or is_module_api):
         return await call_next(request)
 
     auth = await current_auth(request)
@@ -167,6 +210,14 @@ async def auth_gate(request: Request, call_next):
 
     if is_admin_page and auth.get("role") != "admin":
         return JSONResponse({"detail": "Requiere administrador."}, status_code=403)
+
+    module = PAGE_MODULES.get(path)
+    if not module:
+        module = next((module_id for prefix, module_id in API_MODULE_PREFIXES if path.startswith(prefix)), None)
+    if module and not await user_has_module_access(auth, module):
+        if is_protected_api or path.startswith("/api/") or path.startswith("/panol-insumos/api"):
+            return JSONResponse({"detail": "No tenes acceso habilitado a este modulo."}, status_code=403)
+        return RedirectResponse(f"/selector?denied={quote(module)}", status_code=303)
 
     return await call_next(request)
 
@@ -199,6 +250,8 @@ _PAGES = [
     "/produccion",   "productividad.html",
     "/recepcion",    "recepcion.html",
     "/reposicion",   "reposicion.html",
+    "/opex",         "opex.html",
+    "/opex-daily",   "opex_daily.html",
     "/planificacion","planificacion.html",
     "/fase1",        "fase1_dashboard.html",
 ]
@@ -231,6 +284,14 @@ async def page_tiempos_muertos(): return FileResponse(STATIC_DIR / "tiempos_muer
 @app.get("/gestion-operativa.html", include_in_schema=False)
 @app.get("/gestion-operativa",      include_in_schema=False)
 async def page_gestion_operativa(): return FileResponse(STATIC_DIR / "gestion_operativa.html")
+
+@app.get("/opex.html", include_in_schema=False)
+@app.get("/opex",      include_in_schema=False)
+async def page_opex(): return FileResponse(STATIC_DIR / "opex.html")
+
+@app.get("/opex-daily.html", include_in_schema=False)
+@app.get("/opex-daily",      include_in_schema=False)
+async def page_opex_daily(): return FileResponse(STATIC_DIR / "opex_daily.html")
 
 @app.get("/novedades-cd.html", include_in_schema=False)
 @app.get("/novedades-cd",      include_in_schema=False)

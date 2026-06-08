@@ -100,6 +100,10 @@ CREATE TABLE IF NOT EXISTS daily_carga_detalle (
     id_parametro                TEXT NOT NULL,
     valor_real_texto            TEXT,
     valor_real_numero           REAL,
+    valor_auto_texto            TEXT,
+    valor_auto_numero           REAL,
+    valor_usuario_texto         TEXT,
+    valor_usuario_numero        REAL,
     valor_esperado_snapshot     REAL,
     desvio                      REAL,
     porcentaje_cumplimiento     REAL,
@@ -164,6 +168,10 @@ SELECT
     d.valor_esperado_snapshot AS valor_esperado,
     d.valor_real_texto,
     d.valor_real_numero,
+    d.valor_auto_texto,
+    d.valor_auto_numero,
+    d.valor_usuario_texto,
+    d.valor_usuario_numero,
     d.desvio,
     d.porcentaje_cumplimiento,
     d.porcentaje_desvio,
@@ -289,6 +297,16 @@ async def init_daily_db() -> None:
         await db.execute(CREATE_DAILY_PARAMETROS)
         await db.execute(CREATE_DAILY_DETALLE)
         await db.execute(CREATE_DAILY_CONSOLIDADO_HISTORICO)
+        async with db.execute("PRAGMA table_info(daily_carga_detalle)") as cur:
+            detalle_columns = {str(row[1]) for row in await cur.fetchall()}
+        if "valor_auto_texto" not in detalle_columns:
+            await db.execute("ALTER TABLE daily_carga_detalle ADD COLUMN valor_auto_texto TEXT")
+        if "valor_auto_numero" not in detalle_columns:
+            await db.execute("ALTER TABLE daily_carga_detalle ADD COLUMN valor_auto_numero REAL")
+        if "valor_usuario_texto" not in detalle_columns:
+            await db.execute("ALTER TABLE daily_carga_detalle ADD COLUMN valor_usuario_texto TEXT")
+        if "valor_usuario_numero" not in detalle_columns:
+            await db.execute("ALTER TABLE daily_carga_detalle ADD COLUMN valor_usuario_numero REAL")
         for statement in CREATE_INDEXES:
             await db.execute(statement)
         await db.execute("DROP VIEW IF EXISTS vw_daily_powerbi")
@@ -1037,19 +1055,30 @@ async def save_daily_carga(
         carga_id = int(cursor.lastrowid)
         for param in parametros:
             raw_value = respuestas.get(param["id_parametro"], "")
-            text_value = "" if raw_value is None else str(raw_value).strip()
-            numeric_value = parse_number(text_value) if param["tipo_campo"] == "numerico" else None
-            metrics = calculate_metrics(numeric_value, param.get("valor_esperado"), param.get("regla_cumplimiento") or "informativo")
+            if isinstance(raw_value, dict):
+                user_raw = raw_value.get("usuario", "")
+                auto_raw = raw_value.get("automatico", "")
+            else:
+                user_raw = raw_value
+                auto_raw = ""
+            user_text = "" if user_raw is None else str(user_raw).strip()
+            auto_text = "" if auto_raw is None else str(auto_raw).strip()
+            user_numeric = parse_number(user_text) if param["tipo_campo"] == "numerico" else None
+            auto_numeric = parse_number(auto_text) if param["tipo_campo"] == "numerico" and auto_text else None
+            metrics = calculate_metrics(user_numeric, param.get("valor_esperado"), param.get("regla_cumplimiento") or "informativo")
             await db.execute(
                 """
                 INSERT INTO daily_carga_detalle (
                     carga_id, id_parametro, valor_real_texto, valor_real_numero,
+                    valor_auto_texto, valor_auto_numero,
+                    valor_usuario_texto, valor_usuario_numero,
                     valor_esperado_snapshot, desvio, porcentaje_cumplimiento,
                     porcentaje_desvio, estado_cumplimiento, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    carga_id, param["id_parametro"], text_value, numeric_value,
+                    carga_id, param["id_parametro"], user_text, user_numeric,
+                    auto_text, auto_numeric, user_text, user_numeric,
                     param.get("valor_esperado"), metrics["desvio"],
                     metrics["porcentaje_cumplimiento"], metrics["porcentaje_desvio"],
                     metrics["estado_cumplimiento"], now,

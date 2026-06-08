@@ -86,6 +86,7 @@
     }
     .module-card.active:hover{border-color:var(--module-color);background:#F8FAF7;transform:translateY(-2px)}
     .module-card.inactive{filter:saturate(.45);opacity:.72;color:var(--ink-soft);background:#F8FAF7}
+    .module-card.denied{filter:grayscale(1);opacity:.48;cursor:not-allowed;border-top-color:var(--rule-strong)}
     .module-icon{
       position:relative;z-index:1;grid-row:1 / span 2;width:56px;height:56px;display:grid;place-items:center;
       border:1px solid color-mix(in srgb,var(--module-color) 45%,var(--rule));background:var(--module-soft);color:var(--module-color);
@@ -106,14 +107,14 @@
     .active .module-state{color:var(--module-color)}
     .active .module-state::before{background:var(--module-color)}
     .module-arrow{font-size:13px;color:var(--module-color);letter-spacing:0}
-    .inactive .module-arrow{display:none}
+    .inactive .module-arrow,.denied .module-arrow{display:none}
     .productividad{--module-color:#0B5FAE;--module-soft:#E4F0FB}
     .rrhh{--module-color:#1F7A4D;--module-soft:#E5F3E9}
     .gestion{--module-color:#6D4AA2;--module-soft:#EEE8F7}
     .casos{--module-color:#C8102E;--module-soft:#F7D7DA}
     .panol{--module-color:#B25F00;--module-soft:#FBE7C8}
     .historia{--module-color:#007C91;--module-soft:#DFF2F4}
-    .reposicion{--module-color:#2E8B57;--module-soft:#E1F2E8}
+    .opex{--module-color:#2E8B57;--module-soft:#E1F2E8}
     .recepcion{--module-color:#D07800;--module-soft:#FCEACD}
     .mapa{--module-color:#3765A3;--module-soft:#E4ECF7}
     .control{--module-color:#A83B7A;--module-soft:#F4E2ED}
@@ -167,15 +168,15 @@
 <script>
   const MODULES = [
     {id:'productividad',icon:'👷',label:'Productividad',url:'/productividad.html',active:true,description:'Productividad online, ranking por operario y lectura del turno.'},
-    {id:'rrhh',icon:'👥',label:'Tablero RRHH',url:'/novedades-cd',active:true,description:'Novedades CD, ausentismo, horas extra, francos e indicadores.'},
-    {id:'gestion',icon:'⚙️',label:'Gestión Operativa',url:'/gestion-operativa.html',active:true,description:'Herramientas de coordinación y seguimiento operativo de piso.'},
+    {id:'novedades_cd',style:'rrhh',icon:'👥',label:'Tablero RRHH',url:'/novedades-cd',active:true,description:'Novedades CD, ausentismo, horas extra, francos e indicadores.'},
+    {id:'gestion_operativa',style:'gestion',icon:'⚙️',label:'Gestión Operativa',url:'/gestion-operativa.html',active:true,description:'Herramientas de coordinación y seguimiento operativo de piso.'},
     {id:'casos',icon:'🎫',label:'Gestión de Casos',url:'/casos.html',active:true,description:'Tickets operativos, SLA, adjuntos, comentarios e historial.'},
     {id:'panol',icon:'📦',label:'Pañol Insumos',url:'/panol-insumos.html',active:true,description:'Stock, inventarios, movimientos e importación de stock CD.'},
-    {id:'historia',icon:'🧾',label:'Historia de Legajo',url:'/historia-legajo.html',active:true,description:'Ficha operativa integral por legajo y actividad histórica.'},
-    {id:'reposicion',icon:'🔄',label:'Reposición',active:false,state:'Próximamente',description:'Cobertura de posiciones y priorización de zonas críticas.'},
+    {id:'historia_legajo',style:'historia',icon:'🧾',label:'Historia de Legajo',url:'/historia-legajo.html',active:true,description:'Ficha operativa integral por legajo y actividad histórica.'},
+    {id:'opex',icon:'O',label:'OpEX',url:'/opex.html',active:true,description:'Seguimiento diario de metas, desvios y acciones operativas para alinear los equipos.'},
     {id:'recepcion',icon:'📥',label:'Recepción',active:false,state:'Próximamente',description:'Ingreso y control de mercadería, proveedores y muelles.'},
     {id:'mapa',icon:'🗺️',label:'Mapa',active:false,state:'En desarrollo',description:'Slotting, layout y distribución de posiciones del almacén.'},
-    {id:'control',icon:'🎛️',label:'Control de Procesos',active:false,state:'En desarrollo',description:'Monitoreo integral de KPIs, alertas y tendencias.'},
+    {id:'control_procesos',style:'control',icon:'🎛️',label:'Control de Procesos',active:false,state:'En desarrollo',description:'Monitoreo integral de KPIs, alertas y tendencias.'},
     {id:'trafico',icon:'🚛',label:'Tráfico',active:false,state:'En desarrollo',description:'Programación de muelles, flota, entradas y salidas.'},
     {id:'generales',icon:'🏭',label:'Generales',active:false,state:'En desarrollo',description:'Recursos, mantenimiento y soporte operativo transversal.'},
   ];
@@ -183,21 +184,25 @@
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
-  function renderModules() {
+  function renderModules(access) {
     $('module-grid').innerHTML = MODULES.map(module => {
+      const allowed = Boolean(access[module.id]);
+      const available = module.active && allowed;
+      const state = !module.active ? module.state : allowed ? 'Disponible' : 'Sin acceso';
       const content = `
         <div class="module-icon" aria-hidden="true">${esc(module.icon)}</div>
         <div class="module-title">${esc(module.label)}</div>
         <div class="module-description">${esc(module.description)}</div>
         <div class="module-footer">
-          <span class="module-state">${module.active ? 'Disponible' : esc(module.state)}</span>
+          <span class="module-state">${esc(state)}</span>
           <span class="module-arrow">→</span>
         </div>`;
-      return module.active
-        ? `<a class="module-card active ${esc(module.id)}" href="${esc(module.url)}">${content}</a>`
-        : `<article class="module-card inactive ${esc(module.id)}">${content}</article>`;
+      const style = esc(module.style || module.id);
+      return available
+        ? `<a class="module-card active ${style}" href="${esc(module.url)}">${content}</a>`
+        : `<article class="module-card ${module.active ? 'denied' : 'inactive'} ${style}" title="${module.active ? 'Tu usuario no tiene acceso habilitado.' : esc(module.state)}">${content}</article>`;
     }).join('');
-    $('module-count').textContent = `${MODULES.filter(module => module.active).length} módulos disponibles`;
+    $('module-count').textContent = `${MODULES.filter(module => module.active && access[module.id]).length} módulos habilitados`;
   }
 
   async function loadAppInfo() {
@@ -219,11 +224,17 @@
       return;
     }
     const user = await res.json();
+    const appsRes = await fetch('/api/auth/apps', {credentials:'same-origin'});
+    if (!appsRes.ok) {
+      window.location.replace('/login?next=/selector.html');
+      return;
+    }
+    const apps = await appsRes.json();
     sessionStorage.setItem('vigia_session', JSON.stringify({
       user:user.username,name:user.display_name || user.username,role:user.role,
     }));
     $('user-label').textContent = user.display_name || user.username;
-    renderModules();
+    renderModules(apps.access || {});
     await loadAppInfo();
   }
 

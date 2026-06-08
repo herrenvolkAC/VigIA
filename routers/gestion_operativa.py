@@ -8,8 +8,10 @@ import hashlib
 import json
 import logging
 import os
+import time
+from contextlib import suppress
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, time as dt_time, timedelta
 from typing import Any
 
 import aiosqlite
@@ -18,6 +20,7 @@ from pydantic import BaseModel
 
 from db.daily_operativa import (
     DAILY_DB_PATH,
+    LOCAL_TZ,
     calculate_daily_window,
     export_consolidado_powerbi_csv,
     export_powerbi_csv,
@@ -29,6 +32,17 @@ from db.daily_operativa import (
     save_daily_carga,
     update_parametros,
 )
+from db.daily_auto import (
+    DAILY_AUTO_DB_PATH,
+    get_cached_results,
+    get_latest_run,
+    init_daily_auto_db,
+    mark_run_error,
+    save_clark_summary_cache,
+    save_picking_summary_cache,
+    save_recepcion_summary_cache,
+    scheduled_daily_window,
+)
 from db.schema import DB_PATH
 from routers.ai import _call_ai, _extract_json
 from routers.auth_local import current_auth
@@ -36,7 +50,11 @@ from routers.productividad_analisis import (
     _build_picking_idle_analysis,
     _turn_label,
     _turn_range_for_date,
+    QUERY_DAILY_CLARK_REAL,
+    QUERY_DAILY_PICKING_REAL,
+    QUERY_DAILY_RECEPCION_REAL,
     query_productive_db_daily_clark_real,
+    query_productive_db_daily_recepcion_real,
     query_productive_db_daily_despacho_plan,
     query_productive_db_daily_despacho_real,
     query_productive_db_daily_picking_plan,
@@ -50,6 +68,13 @@ from routers.productividad_analisis import (
 logger = logging.getLogger("vigia.gestion_operativa")
 router = APIRouter(prefix="/api/gestion-operativa", tags=["gestion-operativa"])
 GESTION_PRODUCTIVIDAD_IA_PROMPT_VERSION = "gestion_productividad_picking_v1"
+DAILY_AUTO_SCHEDULE_TIME = dt_time(6, 5)
+DAILY_AUTO_SCHEDULE_GRACE_MINUTES = 10
+DAILY_AUTO_CLARK_QUERY_VERSION = "clark_real_aggregate_v2"
+DAILY_AUTO_PICKING_QUERY_VERSION = "picking_real_aggregate_v3"
+DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_real_aggregate_v1"
+_daily_auto_scheduler_task: asyncio.Task | None = None
+_daily_auto_scheduler_stop: asyncio.Event | None = None
 
 
 class ProductividadPickingIARequest(BaseModel):
@@ -73,6 +98,10 @@ class DailyParametrosUpdateRequest(BaseModel):
 
 class DailyExportRequest(BaseModel):
     clave: str
+
+
+class DailyAutoRetryRequest(BaseModel):
+    force: bool = False
 
 
 DAILY_PICKING_REAL_PARAM_IDS_BY_SECTOR = {
@@ -1349,6 +1378,323 @@ async def _require_request_auth(request: Request) -> dict[str, Any]:
     return auth
 
 
+async def run_daily_auto_clark_precache(
+    *,
+    force: bool = False,
+    trigger: str = "scheduler",
+    usuario: str = "",
+) -> dict[str, Any]:
+    daily = scheduled_daily_window()
+    if not daily.get("can_run"):
+        return {"process": "CLARK", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
+    latest_run = await get_latest_run(daily["daily_key"], "CLARK")
+    if not force and _is_current_process_run(latest_run, DAILY_AUTO_CLARK_QUERY_VERSION):
+        return {"process": "CLARK", "status": "skipped", "reason": "Cache Clark ya disponible.", "daily": daily}
+
+    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
+    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
+    started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
+    started = time.perf_counter()
+    logger.info("[daily-auto] Iniciando precarga Clark %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    try:
+        rows = await asyncio.to_thread(query_productive_db_daily_clark_real, fecha_desde, fecha_hasta)
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        saved = await save_clark_summary_cache(
+            daily,
+            rows,
+            started_at=started_at,
+            duration_ms=elapsed_ms,
+            timings={"clark_summary_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_CLARK_QUERY_VERSION},
+            trigger=trigger,
+            usuario=usuario,
+        )
+        logger.info("[daily-auto] Precarga Clark OK: %s filas en %sms", len(rows), elapsed_ms)
+        return {"process": "CLARK", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+    except Exception as exc:
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        await mark_run_error(daily, "CLARK", str(exc), started_at, trigger=trigger, usuario=usuario)
+        logger.exception("[daily-auto] Precarga Clark fallo tras %sms", elapsed_ms)
+        return {"process": "CLARK", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
+
+
+async def run_daily_auto_picking_precache(
+    *,
+    force: bool = False,
+    trigger: str = "scheduler",
+    usuario: str = "",
+) -> dict[str, Any]:
+    daily = scheduled_daily_window()
+    if not daily.get("can_run"):
+        return {"process": "PICKING", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
+    latest_run = await get_latest_run(daily["daily_key"], "PICKING")
+    if not force and _is_current_process_run(latest_run, DAILY_AUTO_PICKING_QUERY_VERSION):
+        return {"process": "PICKING", "status": "skipped", "reason": "Cache Picking ya disponible.", "daily": daily}
+
+    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
+    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
+    started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
+    started = time.perf_counter()
+    logger.info("[daily-auto] Iniciando precarga Picking %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    try:
+        rows = await asyncio.to_thread(query_productive_db_daily_picking_real, fecha_desde, fecha_hasta)
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        saved = await save_picking_summary_cache(
+            daily,
+            rows,
+            started_at=started_at,
+            duration_ms=elapsed_ms,
+            timings={"picking_summary_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_PICKING_QUERY_VERSION},
+            trigger=trigger,
+            usuario=usuario,
+        )
+        logger.info("[daily-auto] Precarga Picking OK: %s filas en %sms", len(rows), elapsed_ms)
+        return {"process": "PICKING", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+    except Exception as exc:
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        await mark_run_error(daily, "PICKING", str(exc), started_at, trigger=trigger, usuario=usuario)
+        logger.exception("[daily-auto] Precarga Picking fallo tras %sms", elapsed_ms)
+        return {"process": "PICKING", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
+
+
+async def run_daily_auto_recepcion_precache(
+    *,
+    force: bool = False,
+    trigger: str = "scheduler",
+    usuario: str = "",
+) -> dict[str, Any]:
+    daily = scheduled_daily_window()
+    if not daily.get("can_run"):
+        return {"process": "RECEPCION", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
+    latest_run = await get_latest_run(daily["daily_key"], "RECEPCION")
+    if not force and _is_current_process_run(latest_run, DAILY_AUTO_RECEPCION_QUERY_VERSION):
+        return {"process": "RECEPCION", "status": "skipped", "reason": "Cache Recepcion ya disponible.", "daily": daily}
+
+    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
+    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
+    started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
+    started = time.perf_counter()
+    logger.info("[daily-auto] Iniciando precarga Recepcion %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    try:
+        rows = await asyncio.to_thread(query_productive_db_daily_recepcion_real, fecha_desde, fecha_hasta)
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        saved = await save_recepcion_summary_cache(
+            daily,
+            rows,
+            started_at=started_at,
+            duration_ms=elapsed_ms,
+            timings={"recepcion_summary_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_RECEPCION_QUERY_VERSION},
+            trigger=trigger,
+            usuario=usuario,
+        )
+        logger.info("[daily-auto] Precarga Recepcion OK: %s filas en %sms", len(rows), elapsed_ms)
+        return {"process": "RECEPCION", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+    except Exception as exc:
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        await mark_run_error(daily, "RECEPCION", str(exc), started_at, trigger=trigger, usuario=usuario)
+        logger.exception("[daily-auto] Precarga Recepcion fallo tras %sms", elapsed_ms)
+        return {"process": "RECEPCION", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
+
+
+async def run_daily_auto_precache_pending(
+    *,
+    force: bool = False,
+    trigger: str = "scheduler",
+    usuario: str = "",
+) -> dict[str, Any]:
+    daily = scheduled_daily_window()
+    blocked_processes = ["DESPACHO", "PICKING PLAN", "DESPACHO PLAN", "SPC PLAN"]
+    if not daily.get("can_run"):
+        return {
+            "status": "skipped",
+            "daily": daily,
+            "trigger": trigger,
+            "processes": [],
+            "blocked_processes": blocked_processes,
+            "reason": daily.get("reason") or "Daily no habilitada.",
+        }
+
+    process_results = [
+        await run_daily_auto_clark_precache(force=force, trigger=trigger, usuario=usuario),
+        await run_daily_auto_picking_precache(force=force, trigger=trigger, usuario=usuario),
+        await run_daily_auto_recepcion_precache(force=force, trigger=trigger, usuario=usuario),
+    ]
+    statuses = {item.get("status") for item in process_results}
+    if "error" in statuses and "success" in statuses:
+        status = "partial"
+    elif "error" in statuses:
+        status = "error"
+    elif "success" in statuses:
+        status = "success"
+    else:
+        status = "skipped"
+    return {
+        "status": status,
+        "daily": daily,
+        "trigger": trigger,
+        "processes": process_results,
+        "blocked_processes": blocked_processes,
+    }
+
+
+async def _daily_auto_cached_payload(daily: dict[str, Any]) -> dict[str, Any]:
+    cached_rows = await get_cached_results(daily["daily_key"])
+    latest_run = await get_latest_run(daily["daily_key"], "CLARK")
+    latest_picking_run = await get_latest_run(daily["daily_key"], "PICKING")
+    latest_recepcion_run = await get_latest_run(daily["daily_key"], "RECEPCION")
+    if latest_run and latest_run.get("status") == "success" and not _is_current_process_run(latest_run, DAILY_AUTO_CLARK_QUERY_VERSION):
+        raise HTTPException(
+            status_code=409,
+            detail="El cache Clark disponible fue generado con una version anterior de la consulta. Requiere precarga de excepcion.",
+        )
+    if latest_picking_run and latest_picking_run.get("status") == "success" and not _is_current_process_run(latest_picking_run, DAILY_AUTO_PICKING_QUERY_VERSION):
+        raise HTTPException(
+            status_code=409,
+            detail="El cache Picking disponible fue generado con una version anterior de la consulta. Requiere precarga de excepcion.",
+        )
+    if latest_recepcion_run and latest_recepcion_run.get("status") == "success" and not _is_current_process_run(latest_recepcion_run, DAILY_AUTO_RECEPCION_QUERY_VERSION):
+        raise HTTPException(
+            status_code=409,
+            detail="El cache Recepcion disponible fue generado con una version anterior de la consulta. Requiere precarga de excepcion.",
+        )
+    if not _is_current_process_run(latest_run, DAILY_AUTO_CLARK_QUERY_VERSION):
+        if latest_run and latest_run.get("status") == "error":
+            raise HTTPException(
+                status_code=409,
+                detail=f"La precarga automatica de Clark fallo: {latest_run.get('error') or 'sin detalle'}. No se consulta Oracle desde la pantalla.",
+            )
+        raise HTTPException(
+            status_code=409,
+            detail="Todavia no hay cache automatica vigente de Clark para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+        )
+    if not _is_current_process_run(latest_picking_run, DAILY_AUTO_PICKING_QUERY_VERSION):
+        if latest_picking_run and latest_picking_run.get("status") == "error":
+            raise HTTPException(
+                status_code=409,
+                detail=f"La precarga automatica de Picking fallo: {latest_picking_run.get('error') or 'sin detalle'}. No se consulta Oracle desde la pantalla.",
+            )
+        raise HTTPException(
+            status_code=409,
+            detail="Todavia no hay cache automatica vigente de Picking para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+        )
+    if not _is_current_process_run(latest_recepcion_run, DAILY_AUTO_RECEPCION_QUERY_VERSION):
+        if latest_recepcion_run and latest_recepcion_run.get("status") == "error":
+            raise HTTPException(
+                status_code=409,
+                detail=f"La precarga automatica de Recepcion fallo: {latest_recepcion_run.get('error') or 'sin detalle'}. No se consulta Oracle desde la pantalla.",
+            )
+        raise HTTPException(
+            status_code=409,
+            detail="Todavia no hay cache automatica vigente de Recepcion para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+        )
+    if not cached_rows:
+        raise HTTPException(
+            status_code=409,
+            detail="Todavia no hay cache automatica vigente para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+        )
+
+    results: list[dict[str, Any]] = []
+    by_sector: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in cached_rows:
+        item = {
+            "sector": row.get("sector"),
+            "sector_oracle": row.get("sector_oracle"),
+            "proceso": row.get("process"),
+            "id_parametro": row.get("id_parametro"),
+            "valor": _to_float(row.get("valor")),
+            "produccion": _to_float(row.get("valor")),
+            "cantidad": _to_float(row.get("cantidad")),
+            "pallets": _to_float(row.get("cantidad")) if row.get("process") in {"CLARK", "RECEPCION"} else 0,
+            "bultos": _to_float(row.get("cantidad")) if row.get("process") == "PICKING" else 0,
+            "legajos": _to_float(row.get("legajos")),
+            "segundos": 0,
+            "details_count": int(row.get("details_count") or 0),
+            "cache_finished_at": row.get("finished_at"),
+            "cache_duration_ms": row.get("duration_ms"),
+        }
+        results.append(item)
+        by_sector[str(item["sector"] or "")].append(item)
+
+    return {
+        "daily": daily,
+        "fecha_desde": _fmt_daily_oracle_dt(daily.get("fecha_inicio")),
+        "fecha_hasta": _fmt_daily_oracle_dt(daily.get("fecha_fin")),
+        "source": "daily_auto_cache",
+        "db_path": str(DAILY_AUTO_DB_PATH),
+        "blocked_processes": ["DESPACHO", "PICKING PLAN", "DESPACHO PLAN", "SPC PLAN"],
+        "message": "Modo cache local: Recepcion, Clark y Picking habilitados. No se consulta Oracle desde la pantalla.",
+        "results": results,
+        "by_sector": dict(by_sector),
+    }
+
+
+def _next_daily_auto_run_after(now: datetime) -> datetime:
+    current = now.astimezone(LOCAL_TZ)
+    candidate = datetime.combine(current.date(), DAILY_AUTO_SCHEDULE_TIME, tzinfo=LOCAL_TZ)
+    if candidate <= current:
+        candidate += timedelta(days=1)
+    return candidate
+
+
+def _is_current_process_run(run: dict[str, Any] | None, query_version: str) -> bool:
+    if not run or run.get("status") != "success":
+        return False
+    try:
+        timings = json.loads(run.get("timings_json") or "{}")
+    except Exception:
+        timings = {}
+    return timings.get("query_version") == query_version
+
+
+async def _daily_auto_scheduler_loop() -> None:
+    assert _daily_auto_scheduler_stop is not None
+    await init_daily_auto_db()
+    logger.info("[daily-auto] Scheduler iniciado. Proxima ejecucion diaria a las 06:05.")
+    while not _daily_auto_scheduler_stop.is_set():
+        now = datetime.now(LOCAL_TZ)
+        window = scheduled_daily_window(now)
+        today_run_time = datetime.combine(now.date(), DAILY_AUTO_SCHEDULE_TIME, tzinfo=LOCAL_TZ)
+        run_limit = today_run_time + timedelta(minutes=DAILY_AUTO_SCHEDULE_GRACE_MINUTES)
+        if (
+            window.get("can_run")
+            and today_run_time <= now < run_limit
+            and (
+                not _is_current_process_run(await get_latest_run(window["daily_key"], "CLARK"), DAILY_AUTO_CLARK_QUERY_VERSION)
+                or not _is_current_process_run(await get_latest_run(window["daily_key"], "PICKING"), DAILY_AUTO_PICKING_QUERY_VERSION)
+                or not _is_current_process_run(await get_latest_run(window["daily_key"], "RECEPCION"), DAILY_AUTO_RECEPCION_QUERY_VERSION)
+            )
+        ):
+            await run_daily_auto_precache_pending(trigger="scheduler")
+            continue
+        next_run = _next_daily_auto_run_after(now)
+        sleep_seconds = max(30.0, min((next_run - now).total_seconds(), 1800.0))
+        with suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(_daily_auto_scheduler_stop.wait(), timeout=sleep_seconds)
+
+
+def start_daily_auto_scheduler() -> None:
+    global _daily_auto_scheduler_task, _daily_auto_scheduler_stop
+    if _daily_auto_scheduler_task and not _daily_auto_scheduler_task.done():
+        return
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return
+    _daily_auto_scheduler_stop = asyncio.Event()
+    _daily_auto_scheduler_task = loop.create_task(_daily_auto_scheduler_loop())
+
+
+async def stop_daily_auto_scheduler() -> None:
+    global _daily_auto_scheduler_task, _daily_auto_scheduler_stop
+    if _daily_auto_scheduler_stop:
+        _daily_auto_scheduler_stop.set()
+    if _daily_auto_scheduler_task:
+        _daily_auto_scheduler_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await _daily_auto_scheduler_task
+    _daily_auto_scheduler_task = None
+    _daily_auto_scheduler_stop = None
+
+
 @router.get("/analisis-legajos/sectores")
 async def analisis_legajos_sectores(request: Request):
     await _require_request_auth(request)
@@ -1449,101 +1795,121 @@ async def daily_calcular_automatico(request: Request):
     daily = calculate_daily_window()
     if not daily.get("can_load"):
         raise HTTPException(status_code=400, detail=daily.get("reason") or "La Daily no esta habilitada.")
+    return await _daily_auto_cached_payload(daily)
 
+
+@router.post("/daily/auto/retry-pending")
+async def daily_auto_retry_pending(req: DailyAutoRetryRequest, request: Request):
+    auth = await _require_request_auth(request)
+    if auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Requiere administrador.")
+    usuario = str(auth.get("display_name") or auth.get("username") or "").strip()
+    retry = await run_daily_auto_precache_pending(
+        force=bool(req.force),
+        trigger="manual_exception",
+        usuario=usuario,
+    )
+    daily = calculate_daily_window()
+    if not daily.get("can_load"):
+        raise HTTPException(status_code=400, detail=daily.get("reason") or "La Daily no esta habilitada.")
+    try:
+        payload = await _daily_auto_cached_payload(daily)
+    except HTTPException as exc:
+        if exc.status_code == 409:
+            raise HTTPException(status_code=409, detail={"message": exc.detail, "retry": retry}) from exc
+        raise
+    payload["retry"] = retry
+    payload["message"] = "Precarga de excepcion ejecutada. La pantalla muestra datos desde cache local."
+    return payload
+
+
+def _daily_clark_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
+    return (
+        QUERY_DAILY_CLARK_REAL
+        .replace(":fecha_desde", f"'{fecha_desde}'")
+        .replace(":fecha_hasta", f"'{fecha_hasta}'")
+        .strip()
+    )
+
+
+def _daily_picking_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
+    return (
+        QUERY_DAILY_PICKING_REAL
+        .replace(":fecha_desde", f"'{fecha_desde}'")
+        .replace(":fecha_hasta", f"'{fecha_hasta}'")
+        .strip()
+    )
+
+
+def _daily_recepcion_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
+    return (
+        QUERY_DAILY_RECEPCION_REAL
+        .replace(":fecha_desde", f"'{fecha_desde}'")
+        .replace(":fecha_hasta", f"'{fecha_hasta}'")
+        .strip()
+    )
+
+
+@router.get("/daily/clark-sql")
+async def daily_clark_sql(request: Request):
+    auth = await _require_request_auth(request)
+    if auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Requiere administrador.")
+    daily = calculate_daily_window()
+    if not daily.get("can_load"):
+        raise HTTPException(status_code=400, detail=daily.get("reason") or "La Daily no esta habilitada.")
     fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
     fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
-    if not fecha_desde or not fecha_hasta:
-        raise HTTPException(status_code=400, detail="No se pudo calcular la ventana de Daily.")
-
-    try:
-        picking_rows, despacho_rows, clark_rows, picking_plan_rows, despacho_plan_rows, spc_plan_rows = await asyncio.gather(
-            asyncio.to_thread(query_productive_db_daily_picking_real, fecha_desde, fecha_hasta),
-            asyncio.to_thread(query_productive_db_daily_despacho_real, fecha_desde, fecha_hasta),
-            asyncio.to_thread(query_productive_db_daily_clark_real, fecha_desde, fecha_hasta),
-            asyncio.to_thread(query_productive_db_daily_picking_plan, fecha_desde, fecha_hasta),
-            asyncio.to_thread(query_productive_db_daily_despacho_plan, fecha_desde, fecha_hasta),
-            asyncio.to_thread(query_productive_db_daily_spc_plan, fecha_desde, fecha_hasta),
-        )
-    except RuntimeError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
-    except Exception as exc:
-        logger.exception("Error calculando Daily automatico")
-        raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle: {exc}") from exc
-
-    sector_map = {
-        "NOA": "Noa",
-        "SECOS": "Secos",
-        "REFRIGERADOS": "Refrigerados",
-    }
-    results: list[dict[str, Any]] = []
-    by_sector: dict[str, list[dict[str, Any]]] = defaultdict(list)
-
-    def add_productividad_result(
-        row: dict[str, Any],
-        proceso: str,
-        param_ids_by_sector: dict[str, str],
-        cantidad_field: str,
-    ) -> None:
-        sector_oracle = str(row.get("ALMACEN") or row.get("almacen") or "").strip().upper()
-        sector = sector_map.get(sector_oracle, sector_oracle.title())
-        id_parametro = param_ids_by_sector.get(sector, "")
-        if not id_parametro:
-            return
-        item = {
-            "sector": sector,
-            "sector_oracle": sector_oracle,
-            "proceso": proceso,
-            "id_parametro": id_parametro,
-            "valor": _to_float(row.get("PRODUCCION") or row.get("produccion")),
-            "produccion": _to_float(row.get("PRODUCCION") or row.get("produccion")),
-            "cantidad": _to_float(row.get(cantidad_field) or row.get(cantidad_field.lower())),
-            "legajos": _to_float(row.get("LEGAJOS") or row.get("legajos")),
-            "segundos": _to_float(row.get("SEGUNDOS") or row.get("segundos")),
-        }
-        results.append(item)
-        by_sector[sector].append(item)
-
-    def add_valor_result(
-        row: dict[str, Any],
-        proceso: str,
-        param_ids_by_sector: dict[str, str],
-        valor_field: str,
-    ) -> None:
-        sector_oracle = str(row.get("ALMACEN") or row.get("almacen") or "").strip().upper()
-        sector = sector_map.get(sector_oracle, sector_oracle.title())
-        id_parametro = param_ids_by_sector.get(sector, "")
-        if not id_parametro:
-            return
-        valor = _to_float(row.get(valor_field) or row.get(valor_field.lower()))
-        item = {
-            "sector": sector,
-            "sector_oracle": sector_oracle,
-            "proceso": proceso,
-            "id_parametro": id_parametro,
-            "valor": valor,
-        }
-        results.append(item)
-        by_sector[sector].append(item)
-
-    for row in picking_rows:
-        add_productividad_result(row, "PICKING", DAILY_PICKING_REAL_PARAM_IDS_BY_SECTOR, "BULTOS")
-    for row in despacho_rows:
-        add_productividad_result(row, "DESPACHO", DAILY_DESPACHO_REAL_PARAM_IDS_BY_SECTOR, "VIAJES")
-    for row in clark_rows:
-        add_productividad_result(row, "CLARK", DAILY_CLARK_REAL_PARAM_IDS_BY_SECTOR, "PALLETS")
-    for row in picking_plan_rows:
-        add_valor_result(row, "PICKING PLAN", DAILY_PICKING_PLAN_PARAM_IDS_BY_SECTOR, "BULTOS_PLANIFICADOS")
-    for row in despacho_plan_rows:
-        add_valor_result(row, "DESPACHO PLAN", DAILY_DESPACHO_PLAN_PARAM_IDS_BY_SECTOR, "VIAJES_PLANIFICADOS")
-    for row in spc_plan_rows:
-        add_valor_result(row, "SPC PLAN", DAILY_SPC_PLAN_PARAM_IDS_BY_SECTOR, "PALLETS_TOTALES_PLANIFICADOS")
-
     return {
         "daily": daily,
         "fecha_desde": fecha_desde,
         "fecha_hasta": fecha_hasta,
-        "results": results,
-        "by_sector": dict(by_sector),
+        "query_key": "daily_clark_real",
+        "sql_template": QUERY_DAILY_CLARK_REAL.strip(),
+        "sql_preview": _daily_clark_sql_preview(fecha_desde, fecha_hasta),
+        "message": "Consulta agregada de Clark. Este endpoint no ejecuta Oracle; solo expone el SQL para revision admin.",
+    }
+
+
+@router.get("/daily/picking-sql")
+async def daily_picking_sql(request: Request):
+    auth = await _require_request_auth(request)
+    if auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Requiere administrador.")
+    daily = calculate_daily_window()
+    if not daily.get("can_load"):
+        raise HTTPException(status_code=400, detail=daily.get("reason") or "La Daily no esta habilitada.")
+    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
+    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
+    return {
+        "daily": daily,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "query_key": "daily_picking_real",
+        "sql_template": QUERY_DAILY_PICKING_REAL.strip(),
+        "sql_preview": _daily_picking_sql_preview(fecha_desde, fecha_hasta),
+        "message": "Consulta agregada de Picking. Este endpoint no ejecuta Oracle; solo expone el SQL para revision admin.",
+    }
+
+
+@router.get("/daily/recepcion-sql")
+async def daily_recepcion_sql(request: Request):
+    auth = await _require_request_auth(request)
+    if auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Requiere administrador.")
+    daily = calculate_daily_window()
+    if not daily.get("can_load"):
+        raise HTTPException(status_code=400, detail=daily.get("reason") or "La Daily no esta habilitada.")
+    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
+    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
+    return {
+        "daily": daily,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "query_key": "daily_recepcion_real",
+        "sql_template": QUERY_DAILY_RECEPCION_REAL.strip(),
+        "sql_preview": _daily_recepcion_sql_preview(fecha_desde, fecha_hasta),
+        "message": "Consulta agregada de Recepcion. Este endpoint no ejecuta Oracle; solo expone el SQL para revision admin.",
     }
 
 
