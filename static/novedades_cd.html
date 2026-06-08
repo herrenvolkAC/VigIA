@@ -86,7 +86,12 @@
     .import-line{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
     .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);border-top:0}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 12px}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--ink);background:#EDF2EE}.paper-table th .sort-mark{float:right;color:var(--green);letter-spacing:0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 12px;font-size:13px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}
     .table-wrap{overflow:auto;max-height:540px}.hidden{display:none!important}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
-    @media(max-width:1100px){.filters,.import-line{grid-template-columns:1fr 1fr}.check-grid{grid-template-columns:1fr}.dashboard-grid,.paired-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}}
+    .legajero-tools{display:grid;grid-template-columns:minmax(240px,1fr) minmax(180px,.7fr) minmax(180px,.7fr) auto auto auto auto;gap:10px;align-items:end;margin-top:14px;padding:12px;border:1px solid var(--rule);background:var(--panel)}
+    .selection-count{align-self:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);white-space:nowrap}.row-check{width:15px;height:15px;min-height:15px}.temp-pill{display:inline-block;padding:3px 6px;border:1px solid #C8E2D0;background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px}.temp-pill.none{border-color:var(--rule);background:#F6F8F5;color:var(--ink-soft)}
+    .change-box{margin-top:12px;border:1px solid var(--green);background:#F8FAF7;padding:12px}.change-grid{display:grid;grid-template-columns:1.2fr .7fr .7fr 1.4fr .9fr auto;gap:10px;align-items:end}.change-summary{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
+    .danger-cta{height:34px;border:1px solid var(--red);background:var(--panel);color:var(--red);padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase}.small-btn{min-height:26px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 7px}
+    #legajero-table{min-width:1500px}#funcion-lotes-table{min-width:1250px}
+    @media(max-width:1100px){.filters,.import-line,.change-grid,.legajero-tools{grid-template-columns:1fr 1fr}.check-grid{grid-template-columns:1fr}.dashboard-grid,.paired-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}}
     @media(max-width:700px){.paper-app{padding:0 14px 18px}.filters,.import-line,.kpi-row{grid-template-columns:1fr}.tab-list{overflow:auto}.tab-btn{min-width:120px;padding-left:12px;padding-right:12px}}
   </style>
 </head>
@@ -116,6 +121,7 @@
       <button class="tab-btn active" data-tab="indicadores">Indicadores</button>
       <button class="tab-btn" data-tab="datos">Datos</button>
       <button class="tab-btn" data-tab="francos">Francos</button>
+      <button class="tab-btn" data-tab="legajero">Legajero</button>
       <button class="tab-btn" data-tab="importacion">Importacion</button>
     </div>
   </div>
@@ -265,6 +271,37 @@
     </div>
   </section>
 
+  <section class="paper-panel" id="panel-legajero">
+    <section class="legajero-tools">
+      <div class="field"><label class="label" for="legajero-search">Buscar en legajero</label><input class="paper-input" id="legajero-search" placeholder="Legajo, nombre, sector o funcion"></div>
+      <div class="field"><label class="label" for="legajero-sector">Sector</label><select class="paper-select" id="legajero-sector"><option value="">Todos</option></select></div>
+      <div class="field"><label class="label" for="legajero-cargo">Cargo</label><select class="paper-select" id="legajero-cargo"><option value="">Todos</option></select></div>
+      <button class="link-btn" id="legajero-exportar">Exportar Excel</button>
+      <button class="link-btn" id="legajero-select-visible">Seleccionar visibles</button>
+      <button class="link-btn" id="legajero-clear-selection">Limpiar seleccion</button>
+      <div class="selection-count" id="legajero-selection-count">0 seleccionados</div>
+    </section>
+    <section class="change-box hidden" id="funcion-change-box">
+      <div class="change-grid">
+        <div class="field"><label class="label" for="funcion-destino">Funcion temporal</label><input class="paper-input" id="funcion-destino" list="funciones-list" placeholder="Seleccionar o escribir funcion"><datalist id="funciones-list"></datalist></div>
+        <div class="field"><label class="label" for="funcion-desde">Fecha inicio</label><input class="paper-input" type="date" id="funcion-desde"></div>
+        <div class="field"><label class="label" for="funcion-hasta">Fecha fin opcional</label><input class="paper-input" type="date" id="funcion-hasta"></div>
+        <div class="field"><label class="label" for="funcion-motivo">Motivo</label><input class="paper-input" id="funcion-motivo" placeholder="Motivo obligatorio"></div>
+        <div class="field"><label class="label" for="funcion-conflicto">Si hay conflicto</label><select class="paper-select" id="funcion-conflicto"><option value="omitir">Omitir legajo</option><option value="reemplazar">Reemplazar anterior</option></select></div>
+        <button class="primary-cta" id="funcion-confirmar">Confirmar cambio</button>
+      </div>
+      <div class="change-summary" id="funcion-change-summary"></div>
+    </section>
+    <section class="chart-panel" style="margin-top:12px;min-height:260px">
+      <div class="chart-title"><strong>Legajero completo</strong><span id="legajero-total">Cargando...</span></div>
+      <div class="table-wrap"><table class="paper-table" id="legajero-table"></table></div>
+    </section>
+    <section class="chart-panel" style="margin-top:12px;min-height:220px">
+      <div class="chart-title"><strong>Historial de cambios temporales</strong><span>Ultimos 100 lotes</span></div>
+      <div class="table-wrap"><table class="paper-table" id="funcion-lotes-table"></table></div>
+    </section>
+  </section>
+
   <section class="paper-panel" id="panel-importacion">
     <section class="import-line" id="import-box">
       <div class="field"><label class="label" for="folder-path">Carpeta fuente RRHH</label><input class="paper-input" id="folder-path" placeholder="C:\Ingenieria\VigIA\Docs\Panel_Choferes\PROCESADOS\2026_05"></div>
@@ -282,7 +319,7 @@
 </div>
 
 <script>
-  const state = { config:null, batches:[], filtersLoaded:false, importLoaded:false, activeTab:'indicadores', indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
+  const state = { config:null, batches:[], filtersLoaded:false, importLoaded:false, legajeroLoaded:false, legajeroRows:[], legajeroLotes:[], legajeroSelected:new Set(), legajeroExpanded:new Set(), legajeroSort:{key:'nombre',dir:'asc'}, legajeroLotesSort:{key:'created_at',dir:'desc'}, canEditFunciones:false, activeTab:'indicadores', indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
   const STORAGE_KEY = 'vigia.novedades_cd.advanced_filters.v1';
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
@@ -383,7 +420,7 @@
       ['Empleados', k.empleados, 'ok', 'Legajos visibles'],
       ['Ausentismo', `${fmt(k.ausentismo_pct)}%`, k.ausentismo_pct > 8 ? 'bad' : 'warn', `${fmt(k.ausencias)} eventos`],
       ['Sanciones', k.sanciones, k.sanciones ? 'bad' : 'ok', 'Sanciones reales'],
-      ['Hs. trabajadas', k.horas_trabajadas, 'ok', 'Total filtrado'],
+      ['Hs. extra', k.horas_extra, Number(k.horas_extra || 0) > 0 ? 'warn' : 'ok', 'Total periodo'],
     ];
     $('kpis').innerHTML = cells.map(([label,value,tone,foot]) => `
       <div class="kpi-cell ${tone}"><div class="label">${esc(label)}</div><div class="kpi-number">${esc(fmtMaybe(value))}</div><div class="kpi-foot"><span>${esc(foot)}</span><span class="metric">RRHH</span></div></div>
@@ -843,13 +880,258 @@
       if (manageApply) setApplyLoading(false);
     }
   }
+  function filteredLegajeroRows(){
+    const text = $('legajero-search').value.trim().toUpperCase();
+    const sector = $('legajero-sector').value;
+    const cargo = $('legajero-cargo').value;
+    return state.legajeroRows.filter(row => {
+      if (sector && String(row.sector || '') !== sector) return false;
+      if (cargo && String(row.funcion_legajero || '') !== cargo) return false;
+      if (!text) return true;
+      return [row.legajo, row.nombre, row.unidad, row.sector, row.funcion_legajero, row.funcion_temporal_vigente, row.proxima_funcion_temporal]
+        .some(value => String(value || '').toUpperCase().includes(text));
+    });
+  }
+  function setLegajeroCombo(id, values){
+    const select = $(id);
+    const current = select.value;
+    select.innerHTML = '<option value="">Todos</option>' + values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
+    if (values.includes(current)) select.value = current;
+  }
+  function updateLegajeroCargoCombo(){
+    const sector = $('legajero-sector').value;
+    const rows = sector
+      ? state.legajeroRows.filter(row => String(row.sector || '') === sector)
+      : state.legajeroRows;
+    const cargos = Array.from(new Set(rows.map(row => String(row.funcion_legajero || '').trim()).filter(Boolean)))
+      .sort((a,b) => a.localeCompare(b, 'es'));
+    setLegajeroCombo('legajero-cargo', cargos);
+  }
+  function sortRowsBy(rows, sort){
+    const direction = sort.dir === 'desc' ? -1 : 1;
+    return [...rows].sort((a,b) => {
+      const av = sortValue(a[sort.key]), bv = sortValue(b[sort.key]);
+      if (av < bv) return -1 * direction;
+      if (av > bv) return 1 * direction;
+      return 0;
+    });
+  }
+  function sortableHeader(label, grid, key, sort){
+    const mark = sort.key === key ? `<span class="sort-mark">${sort.dir === 'desc' ? '▼' : '▲'}</span>` : '';
+    return `<th class="sortable legajero-sort" data-grid="${grid}" data-key="${key}" title="Ordenar por ${esc(label)}">${esc(label)}${mark}</th>`;
+  }
+  function temporalText(item){
+    if (!item) return '<span class="temp-pill none">Sin asignacion</span>';
+    return `<span class="temp-pill">${esc(item.funcion || '')}</span><div class="mono" style="margin-top:4px">${esc(item.fecha_inicio || '')} a ${esc(item.fecha_fin || 'sin fin')}</div>`;
+  }
+  function renderTemporalDetail(row){
+    const items = row.temporales || [];
+    if (!items.length) return '<div class="empty">Sin asignaciones temporales.</div>';
+    return `<div style="display:grid;gap:6px;padding:8px 0">${items.map(item => `
+      <div style="display:grid;grid-template-columns:120px 1fr 170px 1.6fr;gap:10px;align-items:center;border-bottom:1px solid var(--rule);padding:6px 0">
+        <span class="temp-pill ${item.estado === 'programada' ? '' : 'none'}">${esc(item.estado || '')}</span>
+        <strong>${esc(item.funcion || '')}</strong>
+        <span class="mono">${esc(item.fecha_inicio || '')} a ${esc(item.fecha_fin || 'sin fin')}</span>
+        <span>${esc(item.motivo || '')}</span>
+      </div>
+    `).join('')}</div>`;
+  }
+  function updateLegajeroSelection(){
+    const count = state.legajeroSelected.size;
+    $('legajero-selection-count').textContent = `${count} seleccionado${count === 1 ? '' : 's'}`;
+    $('funcion-change-box').classList.toggle('hidden', !state.canEditFunciones || count === 0);
+    $('funcion-change-summary').textContent = count ? `Se creara una unica asignacion para ${count} legajo(s).` : '';
+  }
+  function renderLegajeroLegacy(){
+    const rows = sortRowsBy(filteredLegajeroRows(), state.legajeroSort);
+    $('legajero-total').textContent = `${rows.length} de ${state.legajeroRows.length} legajos`;
+    $('legajero-table').innerHTML = `<thead><tr>
+      <th style="width:42px"><input class="row-check" type="checkbox" id="legajero-check-all" title="Seleccionar visibles"></th>
+      ${sortableHeader('Legajo','legajero','legajo',state.legajeroSort)}
+      ${sortableHeader('Nombre','legajero','nombre',state.legajeroSort)}
+      ${sortableHeader('Sector','legajero','sector',state.legajeroSort)}
+      ${sortableHeader('Unidad','legajero','unidad',state.legajeroSort)}
+      ${sortableHeader('Funcion Legajero','legajero','funcion_legajero',state.legajeroSort)}
+      ${sortableHeader('Funcion temporal','legajero','funcion_temporal',state.legajeroSort)}
+      ${sortableHeader('Vigencia','legajero','fecha_inicio',state.legajeroSort)}
+      ${sortableHeader('Motivo','legajero','motivo',state.legajeroSort)}
+    </tr></thead><tbody>${rows.map(row => {
+      const checked = state.legajeroSelected.has(String(row.legajo)) ? 'checked' : '';
+      const temp = row.funcion_temporal
+        ? `<span class="temp-pill">${esc(row.funcion_temporal)} · ${esc(row.estado_temporal || 'vigente')}</span>`
+        : '<span class="temp-pill none">Sin asignacion</span>';
+      const vigencia = row.funcion_temporal ? `${esc(row.fecha_inicio || '')} a ${esc(row.fecha_fin || 'sin fin')}` : '';
+      return `<tr>
+        <td><input class="row-check legajero-row-check" type="checkbox" value="${esc(row.legajo)}" ${checked}></td>
+        <td class="mono">${esc(row.legajo)}</td><td>${esc(row.nombre)}</td><td>${esc(row.sector || '')}</td><td>${esc(row.unidad || '')}</td>
+        <td>${esc(row.funcion_legajero || '')}</td><td>${temp}</td><td class="mono">${vigencia}</td><td>${esc(row.motivo || '')}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="9">Sin legajos.</td></tr>'}</tbody>`;
+    const all = $('legajero-check-all');
+    if (all) {
+      all.checked = rows.length > 0 && rows.every(row => state.legajeroSelected.has(String(row.legajo)));
+      all.disabled = !state.canEditFunciones || rows.length === 0;
+    }
+    document.querySelectorAll('.legajero-row-check').forEach(input => input.disabled = !state.canEditFunciones);
+    updateLegajeroSelection();
+  }
+  function renderLegajero(){
+    const rows = sortRowsBy(filteredLegajeroRows(), state.legajeroSort);
+    $('legajero-total').textContent = `${rows.length} de ${state.legajeroRows.length} legajos`;
+    $('legajero-table').innerHTML = `<thead><tr>
+      <th style="width:42px"><input class="row-check" type="checkbox" id="legajero-check-all" title="Seleccionar visibles"></th>
+      ${sortableHeader('Legajo','legajero','legajo',state.legajeroSort)}
+      ${sortableHeader('Nombre','legajero','nombre',state.legajeroSort)}
+      ${sortableHeader('Sector','legajero','sector',state.legajeroSort)}
+      ${sortableHeader('Unidad','legajero','unidad',state.legajeroSort)}
+      ${sortableHeader('Funcion Legajero','legajero','funcion_legajero',state.legajeroSort)}
+      ${sortableHeader('Temporal vigente','legajero','funcion_temporal_vigente',state.legajeroSort)}
+      ${sortableHeader('Proxima temporal','legajero','proxima_fecha_inicio',state.legajeroSort)}
+      ${sortableHeader('Mas','legajero','temporales_count',state.legajeroSort)}
+    </tr></thead><tbody>${rows.map(row => {
+      const checked = state.legajeroSelected.has(String(row.legajo)) ? 'checked' : '';
+      const expanded = state.legajeroExpanded.has(String(row.legajo));
+      const more = Number(row.temporales_count || 0) > 0
+        ? `<button class="small-btn legajero-detail-toggle" data-legajo="${esc(row.legajo)}">${expanded ? 'Ocultar' : 'Ver'} ${esc(row.temporales_count)}</button>`
+        : '<span class="temp-pill none">Sin detalle</span>';
+      return `<tr>
+        <td><input class="row-check legajero-row-check" type="checkbox" value="${esc(row.legajo)}" ${checked}></td>
+        <td class="mono">${esc(row.legajo)}</td><td>${esc(row.nombre)}</td><td>${esc(row.sector || '')}</td><td>${esc(row.unidad || '')}</td>
+        <td>${esc(row.funcion_legajero || '')}</td><td>${temporalText(row.temporal_vigente)}</td><td>${temporalText(row.proxima_temporal)}</td><td>${more}</td>
+      </tr>${expanded ? `<tr><td></td><td colspan="8">${renderTemporalDetail(row)}</td></tr>` : ''}`;
+    }).join('') || '<tr><td colspan="9">Sin legajos.</td></tr>'}</tbody>`;
+    const all = $('legajero-check-all');
+    if (all) {
+      all.checked = rows.length > 0 && rows.every(row => state.legajeroSelected.has(String(row.legajo)));
+      all.disabled = !state.canEditFunciones || rows.length === 0;
+    }
+    document.querySelectorAll('.legajero-row-check').forEach(input => input.disabled = !state.canEditFunciones);
+    updateLegajeroSelection();
+  }
+  function renderFuncionLotes(){
+    const canEdit = state.canEditFunciones;
+    const rows = sortRowsBy(state.legajeroLotes, state.legajeroLotesSort);
+    $('funcion-lotes-table').innerHTML = `<thead><tr>
+      ${sortableHeader('Lote','lotes','lote_id',state.legajeroLotesSort)}
+      ${sortableHeader('Funcion','lotes','funcion',state.legajeroLotesSort)}
+      ${sortableHeader('Vigencia','lotes','fecha_inicio',state.legajeroLotesSort)}
+      ${sortableHeader('Legajos','lotes','cantidad_legajos',state.legajeroLotesSort)}
+      ${sortableHeader('Motivo','lotes','motivo',state.legajeroLotesSort)}
+      ${sortableHeader('Usuario','lotes','created_by',state.legajeroLotesSort)}
+      ${sortableHeader('Creado','lotes','created_at',state.legajeroLotesSort)}
+      ${sortableHeader('Estado','lotes','cancelled_at',state.legajeroLotesSort)}
+      <th>Accion</th>
+    </tr></thead><tbody>${rows.map(row => {
+      const cancelled = Boolean(row.cancelled_at);
+      const estado = cancelled ? `Cancelado: ${row.cancel_reason || ''}` : `${Number(row.activos || 0)} activos`;
+      const action = canEdit && !cancelled ? `<button class="danger-cta cancel-funcion-lote" data-lote="${row.lote_id}">Cancelar</button>` : '';
+      return `<tr><td class="mono">${row.lote_id}</td><td>${esc(row.funcion)}</td><td class="mono">${esc(row.fecha_inicio)} a ${esc(row.fecha_fin || 'sin fin')}</td><td class="mono">${esc(row.cantidad_legajos)}</td><td>${esc(row.motivo)}</td><td class="mono">${esc(row.created_by)}</td><td class="mono">${esc(row.created_at)}</td><td>${esc(estado)}</td><td>${action}</td></tr>`;
+    }).join('') || '<tr><td colspan="9">Sin cambios temporales registrados.</td></tr>'}</tbody>`;
+  }
+  async function loadLegajeroFunciones(){
+    setStatus('Consultando legajero completo...');
+    const data = await api('/api/rrhh/legajero-funciones');
+    state.legajeroRows = data.rows || [];
+    state.legajeroLotes = data.lotes || [];
+    state.canEditFunciones = Boolean(data.can_edit);
+    state.legajeroLoaded = true;
+    setLegajeroCombo('legajero-sector', Array.from(new Set(state.legajeroRows.map(row => String(row.sector || '').trim()).filter(Boolean))).sort((a,b) => a.localeCompare(b, 'es')));
+    updateLegajeroCargoCombo();
+    $('funciones-list').innerHTML = (data.funciones || []).map(item => `<option value="${esc(item.descripcion)}"></option>`).join('');
+    $('funcion-desde').value = data.today || '';
+    renderLegajero();
+    renderFuncionLotes();
+    setStatus(`Legajero actualizado: ${state.legajeroRows.length} registros.`);
+  }
+  async function createFuncionCambio(){
+    const legajos = Array.from(state.legajeroSelected);
+    const body = {
+      legajos,
+      funcion: $('funcion-destino').value.trim(),
+      fecha_inicio: $('funcion-desde').value,
+      fecha_fin: $('funcion-hasta').value || null,
+      motivo: $('funcion-motivo').value.trim(),
+      conflicto: $('funcion-conflicto').value,
+    };
+    if (!body.funcion || !body.fecha_inicio || !body.motivo) {
+      setStatus('Completa funcion temporal, fecha de inicio y motivo.', true);
+      return;
+    }
+    if (body.conflicto === 'reemplazar' && !confirm('Esta accion cancelara asignaciones superpuestas de los legajos seleccionados. Continuar?')) return;
+    $('funcion-confirmar').disabled = true;
+    try {
+      setStatus(`Creando cambio temporal para ${legajos.length} legajo(s)...`);
+      const data = await api('/api/rrhh/legajero-funciones/cambios', {method:'POST', body:JSON.stringify(body)});
+      state.legajeroSelected.clear();
+      $('funcion-motivo').value = '';
+      $('funcion-hasta').value = '';
+      await loadLegajeroFunciones();
+      const extras = [
+        data.omitidos_conflicto?.length ? `${data.omitidos_conflicto.length} omitidos por conflicto` : '',
+        data.reemplazados?.length ? `${data.reemplazados.length} asignaciones reemplazadas` : '',
+        data.desconocidos?.length ? `${data.desconocidos.length} legajos no encontrados` : '',
+      ].filter(Boolean).join(' | ');
+      setStatus(data.ok ? `Cambio creado en lote ${data.lote_id}.${extras ? ' ' + extras : ''}` : `No se crearon cambios. ${extras}`, !data.ok);
+    } finally {
+      $('funcion-confirmar').disabled = false;
+    }
+  }
+  async function cancelFuncionLote(loteId){
+    const motivo = prompt('Motivo obligatorio de cancelacion del lote:');
+    if (!motivo?.trim()) return;
+    await api(`/api/rrhh/legajero-funciones/lotes/${encodeURIComponent(loteId)}/cancelar`, {method:'POST', body:JSON.stringify({motivo:motivo.trim()})});
+    await loadLegajeroFunciones();
+    setStatus(`Lote ${loteId} cancelado.`);
+  }
+  async function exportLegajero(){
+    const rows = sortRowsBy(filteredLegajeroRows(), state.legajeroSort).map(row => ({
+      ...row,
+      vigente_vigencia: row.temporal_vigente ? `${row.temporal_vigente.fecha_inicio || ''} a ${row.temporal_vigente.fecha_fin || 'sin fin'}` : '',
+      proxima_vigencia: row.proxima_temporal ? `${row.proxima_temporal.fecha_inicio || ''} a ${row.proxima_temporal.fecha_fin || 'sin fin'}` : '',
+    }));
+    if (!rows.length) {
+      setStatus('No hay legajos visibles para exportar.', true);
+      return;
+    }
+    $('legajero-exportar').disabled = true;
+    try {
+      setStatus(`Generando Excel con ${rows.length} legajo(s)...`);
+      const response = await fetch('/api/rrhh/legajero-funciones/exportar', {
+        method:'POST',
+        credentials:'same-origin',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({rows}),
+      });
+      if (response.status === 401) { location.href = '/login?next=/novedades-cd'; return; }
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.detail || 'No se pudo exportar el Legajero.');
+      }
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition') || '';
+      const match = disposition.match(/filename="?([^"]+)"?/i);
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = match?.[1] || 'legajero_funciones.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+      setStatus(`Excel generado con ${rows.length} legajo(s).`);
+    } finally {
+      $('legajero-exportar').disabled = false;
+    }
+  }
   function activateMainTab(tab){
     state.activeTab = tab;
+    document.querySelector('.filters')?.classList.toggle('hidden', tab === 'legajero');
+    $('access-note')?.classList.toggle('hidden', tab === 'legajero');
     document.querySelectorAll('.tab-btn[data-tab]').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.paper-panel').forEach(x => x.classList.remove('active'));
     document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
     $(`panel-${tab}`)?.classList.add('active');
     if (tab === 'importacion' && !state.importLoaded) loadBatches().catch(e => setStatus(e.message, true));
+    if (tab === 'legajero' && !state.legajeroLoaded) loadLegajeroFunciones().catch(e => setStatus(e.message, true));
   }
   function activateInnerTab(tab){
     document.querySelectorAll('.inner-tab').forEach(x => x.classList.remove('active'));
@@ -896,6 +1178,10 @@
     renderFrancos(data || {}, candidatos || {});
   }
   async function applyCurrentView(){
+    if (state.activeTab === 'legajero') {
+      await loadLegajeroFunciones();
+      return;
+    }
     if (state.activeTab === 'francos') {
       setStatus('Consultando francos...');
       await loadFrancos();
@@ -952,6 +1238,27 @@
     renderDetail($('ranking-table').__allRows || []);
   });
   document.addEventListener('click', (event) => {
+    const cancelLote = event.target.closest('.cancel-funcion-lote[data-lote]');
+    if (cancelLote) {
+      cancelFuncionLote(cancelLote.dataset.lote).catch(e => setStatus(e.message, true));
+      return;
+    }
+    const detailToggle = event.target.closest('.legajero-detail-toggle[data-legajo]');
+    if (detailToggle) {
+      const legajo = String(detailToggle.dataset.legajo || '');
+      if (state.legajeroExpanded.has(legajo)) state.legajeroExpanded.delete(legajo); else state.legajeroExpanded.add(legajo);
+      renderLegajero();
+      return;
+    }
+    const legajeroSort = event.target.closest('.legajero-sort[data-grid][data-key]');
+    if (legajeroSort) {
+      const target = legajeroSort.dataset.grid === 'lotes' ? state.legajeroLotesSort : state.legajeroSort;
+      const key = legajeroSort.dataset.key;
+      target.dir = target.key === key && target.dir === 'asc' ? 'desc' : 'asc';
+      target.key = key;
+      if (legajeroSort.dataset.grid === 'lotes') renderFuncionLotes(); else renderLegajero();
+      return;
+    }
     const point = event.target.closest('.point[data-drill-date]');
     if (point) {
       drillDownDay(point.dataset.drillDate);
@@ -969,6 +1276,20 @@
     renderTable(th.dataset.table, table.__cols, table.__rows);
   });
   document.addEventListener('change', (event) => {
+    if (event.target.id === 'legajero-check-all') {
+      filteredLegajeroRows().forEach(row => {
+        const legajo = String(row.legajo);
+        if (event.target.checked) state.legajeroSelected.add(legajo); else state.legajeroSelected.delete(legajo);
+      });
+      renderLegajero();
+      return;
+    }
+    if (event.target.classList.contains('legajero-row-check')) {
+      const legajo = String(event.target.value);
+      if (event.target.checked) state.legajeroSelected.add(legajo); else state.legajeroSelected.delete(legajo);
+      updateLegajeroSelection();
+      return;
+    }
     const input = event.target.closest('input[type="checkbox"][data-filter]');
     if (!input) return;
     const key = input.dataset.filter;
@@ -989,6 +1310,17 @@
   });
   $('toggle-filters').onclick = () => { $('filter-panel').classList.toggle('open'); saveFilters(); };
   $('apply-filters').onclick = applyAllTabs;
+  $('legajero-search').oninput = renderLegajero;
+  $('legajero-sector').onchange = () => { updateLegajeroCargoCombo(); renderLegajero(); };
+  $('legajero-cargo').onchange = renderLegajero;
+  $('legajero-exportar').onclick = () => exportLegajero().catch(e => setStatus(e.message, true));
+  $('legajero-select-visible').onclick = () => {
+    if (!state.canEditFunciones) return;
+    filteredLegajeroRows().forEach(row => state.legajeroSelected.add(String(row.legajo)));
+    renderLegajero();
+  };
+  $('legajero-clear-selection').onclick = () => { state.legajeroSelected.clear(); renderLegajero(); };
+  $('funcion-confirmar').onclick = () => createFuncionCambio().catch(e => setStatus(e.message, true));
   $('import-latest').onclick = () => importRequest('/api/rrhh/import/latest', {force:true});
   $('import-folder').onclick = () => importRequest('/api/rrhh/import/folder', {folder_path:$('folder-path').value, force:true});
   $('logout-btn').onclick = async () => { await fetch('/api/auth/logout', {method:'POST', credentials:'same-origin'}); location.href='/login'; };

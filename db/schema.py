@@ -921,6 +921,52 @@ CREATE TABLE IF NOT EXISTS rrhh_francos_reglas (
 );
 """
 
+CREATE_RRHH_FUNCIONES_CATALOGO = """
+CREATE TABLE IF NOT EXISTS rrhh_funciones_catalogo (
+    funcion_id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    descripcion             TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    active                  INTEGER NOT NULL DEFAULT 1,
+    created_by              TEXT,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_by              TEXT,
+    updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+CREATE_RRHH_FUNCION_CAMBIO_LOTES = """
+CREATE TABLE IF NOT EXISTS rrhh_funcion_cambio_lotes (
+    lote_id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    funcion_id              INTEGER REFERENCES rrhh_funciones_catalogo(funcion_id),
+    funcion_descripcion     TEXT NOT NULL,
+    fecha_inicio            DATE NOT NULL,
+    fecha_fin               DATE,
+    motivo                  TEXT NOT NULL,
+    cantidad_legajos        INTEGER NOT NULL DEFAULT 0,
+    created_by              TEXT NOT NULL,
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    cancelled_by            TEXT,
+    cancelled_at            DATETIME,
+    cancel_reason           TEXT
+);
+"""
+
+CREATE_RRHH_FUNCION_CAMBIO_DETALLE = """
+CREATE TABLE IF NOT EXISTS rrhh_funcion_cambio_detalle (
+    detalle_id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    lote_id                 INTEGER NOT NULL REFERENCES rrhh_funcion_cambio_lotes(lote_id),
+    legajo                  TEXT NOT NULL,
+    nombre_snapshot         TEXT,
+    sector_snapshot         TEXT,
+    funcion_maestra_snapshot TEXT,
+    estado                  TEXT NOT NULL DEFAULT 'activo',
+    created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+    cancelled_by            TEXT,
+    cancelled_at            DATETIME,
+    cancel_reason           TEXT,
+    UNIQUE(lote_id, legajo)
+);
+"""
+
 CREATE_CUMPLIMIENTO_ONLINE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_cumpl_online_turno_inicio ON cumplimiento_online_snapshots(turno_key, turno_inicio, bloque_hasta)",
 ]
@@ -1014,6 +1060,9 @@ CREATE_RRHH_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_rrhh_sanciones_creacion ON rrhh_sanciones(batch_id, creacion)",
     "CREATE INDEX IF NOT EXISTS idx_rrhh_francos_saldo ON rrhh_francos_inicial(saldo_inicial)",
     "CREATE INDEX IF NOT EXISTS idx_rrhh_francos_reglas ON rrhh_francos_reglas(active, prioridad)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_funcion_lotes_vigencia ON rrhh_funcion_cambio_lotes(fecha_inicio, fecha_fin, cancelled_at)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_funcion_detalle_legajo ON rrhh_funcion_cambio_detalle(legajo, estado, lote_id)",
+    "CREATE INDEX IF NOT EXISTS idx_rrhh_funcion_detalle_lote ON rrhh_funcion_cambio_detalle(lote_id, estado)",
 ]
 
 CREATE_AUTH_USERS = """
@@ -1152,6 +1201,9 @@ async def init_db():
         await db.execute(CREATE_RRHH_AUSENTISMO_REGLAS)
         await db.execute(CREATE_RRHH_FRANCOS_INICIAL)
         await db.execute(CREATE_RRHH_FRANCOS_REGLAS)
+        await db.execute(CREATE_RRHH_FUNCIONES_CATALOGO)
+        await db.execute(CREATE_RRHH_FUNCION_CAMBIO_LOTES)
+        await db.execute(CREATE_RRHH_FUNCION_CAMBIO_DETALLE)
         async with db.execute("PRAGMA table_info(rrhh_actividad_diaria)") as cur:
             rrhh_act_cols = {row[1] for row in await cur.fetchall()}
         for column_name, column_type in {

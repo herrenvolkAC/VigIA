@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import io
 import re
 import shutil
 import sqlite3
@@ -25,6 +26,7 @@ from typing import Any
 
 import aiosqlite
 from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from db.schema import DB_PATH
@@ -73,6 +75,27 @@ class ImportFolderRequest(BaseModel):
     folder_path: str | None = None
     batch_key: str | None = None
     force: bool = False
+
+
+class FuncionCatalogoRequest(BaseModel):
+    descripcion: str
+
+
+class FuncionCambioRequest(BaseModel):
+    legajos: list[str]
+    funcion: str
+    fecha_inicio: date
+    fecha_fin: date | None = None
+    motivo: str
+    conflicto: str = "omitir"
+
+
+class FuncionCambioCancelRequest(BaseModel):
+    motivo: str
+
+
+class LegajeroExportRequest(BaseModel):
+    rows: list[dict[str, Any]]
 
 
 def _env_bool(name: str, default: bool = False) -> bool:
@@ -1719,6 +1742,11 @@ def _require_import_role(auth: dict[str, Any]) -> None:
         raise HTTPException(status_code=403, detail="Requiere perfil admin o RRHH.")
 
 
+def _require_rrhh_write_role(auth: dict[str, Any]) -> None:
+    if auth.get("role") not in FULL_ACCESS_ROLES:
+        raise HTTPException(status_code=403, detail="Requiere perfil admin o RRHH.")
+
+
 async def _latest_batch_id() -> int | None:
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute(
@@ -1962,6 +1990,353 @@ async def _ensure_consolidated_temp(
         CREATE INDEX temp.idx_tmp_fichadas_legajo ON fichadas_consolidadas(legajo);
         """
         )
+
+
+@router.get("/legajero-funciones")
+async def list_legajero_funciones(request: Request):
+    auth = await _require_auth(request)
+    today = date.today().isoformat()
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        db.row_factory = aiosqlite.Row
+        await db.execute(
+            """
+            INSERT OR IGNORE INTO rrhh_funciones_catalogo (descripcion, created_by)
+            SELECT DISTINCT TRIM(l.desc_funcion), 'legajero'
+            FROM rrhh_legajero l
+            WHERE l.batch_id = (
+                SELECT batch_id FROM rrhh_import_batches
+                WHERE status = 'complete'
+                ORDER BY imported_at DESC, batch_id DESC LIMIT 1
+            )
+              AND TRIM(COALESCE(l.desc_funcion, '')) <> ''
+            """
+        )
+        await db.commit()
+        async with db.execute(
+            """
+            SELECT p.legajo, p.nombre, p.desc_unidad_organizativa unidad,
+                   p.desc_sector_generico sector, p.desc_funcion funcion_legajero
+            FROM rrhh_legajero p
+            WHERE p.batch_id = (
+                SELECT batch_id FROM rrhh_import_batches
+                WHERE status = 'complete'
+                ORDER BY imported_at DESC, batch_id DESC LIMIT 1
+            )
+            ORDER BY p.nombre COLLATE NOCASE, p.legajo
+            """
+        ) as cur:
+            rows = [dict(row) for row in await cur.fetchall()]
+        async with db.execute(
+            """
+            SELECT d.legajo, d.detalle_id, d.lote_id, l.funcion_descripcion,
+                   l.fecha_inicio, l.fecha_fin, l.motivo, l.created_by, l.created_at
+            FROM rrhh_funcion_cambio_detalle d
+            JOIN rrhh_funcion_cambio_lotes l ON l.lote_id = d.lote_id
+            WHERE d.estado = 'activo'
+              AND l.cancelled_at IS NULL
+              AND (l.fecha_fin IS NULL OR l.fecha_fin >= ?)
+            ORDER BY d.legajo, l.fecha_inicio, d.detalle_id
+            """,
+            (today,),
+        ) as cur:
+            temporales_rows = [dict(row) for row in await cur.fetchall()]
+        async with db.execute(
+            """
+            SELECT funcion_id, descripcion
+            FROM rrhh_funciones_catalogo
+            WHERE active = 1
+            ORDER BY descripcion COLLATE NOCASE
+            """
+        ) as cur:
+            funciones = [dict(row) for row in await cur.fetchall()]
+        async with db.execute(
+            """
+            SELECT l.lote_id, l.funcion_descripcion funcion, l.fecha_inicio, l.fecha_fin,
+                   l.motivo, l.cantidad_legajos, l.created_by, l.created_at,
+                   l.cancelled_by, l.cancelled_at, l.cancel_reason,
+                   SUM(CASE WHEN d.estado = 'activo' THEN 1 ELSE 0 END) activos
+            FROM rrhh_funcion_cambio_lotes l
+            LEFT JOIN rrhh_funcion_cambio_detalle d ON d.lote_id = l.lote_id
+            GROUP BY l.lote_id
+            ORDER BY l.created_at DESC, l.lote_id DESC
+            LIMIT 100
+            """
+        ) as cur:
+            lotes = [dict(row) for row in await cur.fetchall()]
+    temporales_by_legajo: dict[str, list[dict[str, Any]]] = {}
+    for temporal in temporales_rows:
+        estado = "programada" if str(temporal.get("fecha_inicio") or "") > today else "vigente"
+        item = {
+            "detalle_id": temporal.get("detalle_id"),
+            "lote_id": temporal.get("lote_id"),
+            "funcion": temporal.get("funcion_descripcion"),
+            "fecha_inicio": temporal.get("fecha_inicio"),
+            "fecha_fin": temporal.get("fecha_fin"),
+            "estado": estado,
+            "motivo": temporal.get("motivo"),
+            "created_by": temporal.get("created_by"),
+            "created_at": temporal.get("created_at"),
+        }
+        temporales_by_legajo.setdefault(str(temporal.get("legajo") or ""), []).append(item)
+    for row in rows:
+        asignaciones = temporales_by_legajo.get(str(row.get("legajo") or ""), [])
+        vigentes = [item for item in asignaciones if item["estado"] == "vigente"]
+        futuras = [item for item in asignaciones if item["estado"] == "programada"]
+        vigente = sorted(vigentes, key=lambda item: (item.get("fecha_inicio") or "", item.get("detalle_id") or 0), reverse=True)
+        proxima = sorted(futuras, key=lambda item: (item.get("fecha_inicio") or "", item.get("detalle_id") or 0))
+        row["temporales"] = asignaciones
+        row["temporal_vigente"] = vigente[0] if vigente else None
+        row["proxima_temporal"] = proxima[0] if proxima else None
+        row["temporales_count"] = len(asignaciones)
+        row["futuras_count"] = len(futuras)
+        row["funcion_temporal_vigente"] = (vigente[0].get("funcion") if vigente else "") or ""
+        row["proxima_funcion_temporal"] = (proxima[0].get("funcion") if proxima else "") or ""
+        row["proxima_fecha_inicio"] = (proxima[0].get("fecha_inicio") if proxima else "") or ""
+    return {
+        "rows": rows,
+        "funciones": funciones,
+        "lotes": lotes,
+        "can_edit": auth.get("role") in FULL_ACCESS_ROLES,
+        "today": today,
+    }
+
+
+@router.post("/legajero-funciones/catalogo")
+async def create_funcion_catalogo(req: FuncionCatalogoRequest, request: Request):
+    auth = await _require_auth(request)
+    _require_rrhh_write_role(auth)
+    descripcion = _norm(req.descripcion)
+    if not descripcion:
+        raise HTTPException(status_code=400, detail="La descripcion de la funcion es obligatoria.")
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        await db.execute(
+            """
+            INSERT INTO rrhh_funciones_catalogo (descripcion, created_by, updated_by)
+            VALUES (?, ?, ?)
+            ON CONFLICT(descripcion) DO UPDATE SET active = 1, updated_by = excluded.updated_by,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (descripcion, auth["username"], auth["username"]),
+        )
+        await db.commit()
+    return {"ok": True, "descripcion": descripcion}
+
+
+@router.post("/legajero-funciones/cambios")
+async def create_funcion_cambio(req: FuncionCambioRequest, request: Request):
+    auth = await _require_auth(request)
+    _require_rrhh_write_role(auth)
+    funcion = _norm(req.funcion)
+    motivo = _norm(req.motivo)
+    legajos = list(dict.fromkeys(_norm_legajo(item) for item in req.legajos if _norm_legajo(item)))
+    if not legajos:
+        raise HTTPException(status_code=400, detail="Selecciona al menos un legajo.")
+    if not funcion:
+        raise HTTPException(status_code=400, detail="La funcion temporal es obligatoria.")
+    if not motivo:
+        raise HTTPException(status_code=400, detail="El motivo es obligatorio.")
+    if req.fecha_fin and req.fecha_fin < req.fecha_inicio:
+        raise HTTPException(status_code=400, detail="La fecha de fin no puede ser anterior a la fecha de inicio.")
+    if req.conflicto not in {"omitir", "reemplazar"}:
+        raise HTTPException(status_code=400, detail="Modo de conflicto invalido.")
+
+    fecha_inicio = req.fecha_inicio.isoformat()
+    fecha_fin = req.fecha_fin.isoformat() if req.fecha_fin else None
+    placeholders = ",".join("?" for _ in legajos)
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        db.row_factory = aiosqlite.Row
+        await db.execute("BEGIN IMMEDIATE")
+        async with db.execute(
+            f"""
+            SELECT legajo, nombre, desc_sector_generico, desc_funcion
+            FROM rrhh_legajero
+            WHERE batch_id = (
+                SELECT batch_id FROM rrhh_import_batches
+                WHERE status = 'complete'
+                ORDER BY imported_at DESC, batch_id DESC LIMIT 1
+            )
+              AND legajo IN ({placeholders})
+            """,
+            tuple(legajos),
+        ) as cur:
+            personas = {row["legajo"]: dict(row) for row in await cur.fetchall()}
+        desconocidos = [legajo for legajo in legajos if legajo not in personas]
+        async with db.execute(
+            f"""
+            SELECT d.detalle_id, d.legajo, d.lote_id, l.funcion_descripcion,
+                   l.fecha_inicio, l.fecha_fin
+            FROM rrhh_funcion_cambio_detalle d
+            JOIN rrhh_funcion_cambio_lotes l ON l.lote_id = d.lote_id
+            WHERE d.estado = 'activo' AND l.cancelled_at IS NULL
+              AND d.legajo IN ({placeholders})
+              AND NOT (
+                  COALESCE(l.fecha_fin, '9999-12-31') < ?
+                  OR COALESCE(?, '9999-12-31') < l.fecha_inicio
+              )
+            """,
+            (*legajos, fecha_inicio, fecha_fin),
+        ) as cur:
+            conflictos_rows = [dict(row) for row in await cur.fetchall()]
+        conflictos_legajos = {row["legajo"] for row in conflictos_rows}
+        if req.conflicto == "reemplazar" and conflictos_rows:
+            detail_ids = [row["detalle_id"] for row in conflictos_rows]
+            detail_placeholders = ",".join("?" for _ in detail_ids)
+            await db.execute(
+                f"""
+                UPDATE rrhh_funcion_cambio_detalle
+                SET estado = 'cancelado', cancelled_by = ?, cancelled_at = CURRENT_TIMESTAMP,
+                    cancel_reason = 'Reemplazado por nueva asignacion'
+                WHERE detalle_id IN ({detail_placeholders})
+                """,
+                (auth["username"], *detail_ids),
+            )
+        incluidos = [
+            legajo for legajo in legajos
+            if legajo in personas and (req.conflicto == "reemplazar" or legajo not in conflictos_legajos)
+        ]
+        if not incluidos:
+            await db.rollback()
+            return {
+                "ok": False,
+                "lote_id": None,
+                "incluidos": [],
+                "omitidos_conflicto": sorted(conflictos_legajos),
+                "desconocidos": desconocidos,
+            }
+        await db.execute(
+            """
+            INSERT INTO rrhh_funciones_catalogo (descripcion, created_by, updated_by)
+            VALUES (?, ?, ?)
+            ON CONFLICT(descripcion) DO UPDATE SET active = 1, updated_by = excluded.updated_by,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (funcion, auth["username"], auth["username"]),
+        )
+        async with db.execute(
+            "SELECT funcion_id FROM rrhh_funciones_catalogo WHERE descripcion = ? COLLATE NOCASE",
+            (funcion,),
+        ) as cur:
+            funcion_id = (await cur.fetchone())["funcion_id"]
+        cursor = await db.execute(
+            """
+            INSERT INTO rrhh_funcion_cambio_lotes (
+                funcion_id, funcion_descripcion, fecha_inicio, fecha_fin, motivo,
+                cantidad_legajos, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (funcion_id, funcion, fecha_inicio, fecha_fin, motivo, len(incluidos), auth["username"]),
+        )
+        lote_id = cursor.lastrowid
+        await db.executemany(
+            """
+            INSERT INTO rrhh_funcion_cambio_detalle (
+                lote_id, legajo, nombre_snapshot, sector_snapshot, funcion_maestra_snapshot
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    lote_id,
+                    legajo,
+                    personas[legajo].get("nombre"),
+                    personas[legajo].get("desc_sector_generico"),
+                    personas[legajo].get("desc_funcion"),
+                )
+                for legajo in incluidos
+            ],
+        )
+        await db.commit()
+    return {
+        "ok": True,
+        "lote_id": lote_id,
+        "incluidos": incluidos,
+        "omitidos_conflicto": sorted(conflictos_legajos) if req.conflicto == "omitir" else [],
+        "reemplazados": sorted(conflictos_legajos) if req.conflicto == "reemplazar" else [],
+        "desconocidos": desconocidos,
+    }
+
+
+@router.post("/legajero-funciones/lotes/{lote_id}/cancelar")
+async def cancel_funcion_cambio_lote(lote_id: int, req: FuncionCambioCancelRequest, request: Request):
+    auth = await _require_auth(request)
+    _require_rrhh_write_role(auth)
+    motivo = _norm(req.motivo)
+    if not motivo:
+        raise HTTPException(status_code=400, detail="El motivo de cancelacion es obligatorio.")
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        cursor = await db.execute(
+            """
+            UPDATE rrhh_funcion_cambio_lotes
+            SET cancelled_by = ?, cancelled_at = CURRENT_TIMESTAMP, cancel_reason = ?
+            WHERE lote_id = ? AND cancelled_at IS NULL
+            """,
+            (auth["username"], motivo, lote_id),
+        )
+        if cursor.rowcount == 0:
+            await db.rollback()
+            raise HTTPException(status_code=404, detail="Lote inexistente o ya cancelado.")
+        await db.execute(
+            """
+            UPDATE rrhh_funcion_cambio_detalle
+            SET estado = 'cancelado', cancelled_by = ?, cancelled_at = CURRENT_TIMESTAMP,
+                cancel_reason = ?
+            WHERE lote_id = ? AND estado = 'activo'
+            """,
+            (auth["username"], motivo, lote_id),
+        )
+        await db.commit()
+    return {"ok": True, "lote_id": lote_id}
+
+
+@router.post("/legajero-funciones/exportar")
+async def export_legajero_funciones(req: LegajeroExportRequest, request: Request):
+    await _require_auth(request)
+    try:
+        import xlsxwriter
+    except ImportError as exc:
+        raise HTTPException(status_code=500, detail="Falta instalar xlsxwriter para exportar XLSX.") from exc
+    rows = req.rows[:10000]
+    columns = [
+        ("legajo", "Legajo"),
+        ("nombre", "Nombre"),
+        ("sector", "Sector"),
+        ("unidad", "Unidad"),
+        ("funcion_legajero", "Funcion Legajero"),
+        ("funcion_temporal_vigente", "Temporal vigente"),
+        ("vigente_vigencia", "Vigencia vigente"),
+        ("proxima_funcion_temporal", "Proxima temporal"),
+        ("proxima_vigencia", "Vigencia proxima"),
+        ("temporales_count", "Asignaciones temporales"),
+    ]
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+    worksheet = workbook.add_worksheet("Legajero")
+    header_fmt = workbook.add_format({
+        "bold": True, "bg_color": "#1F7A4D", "font_color": "#FFFFFF",
+        "border": 1, "align": "center",
+    })
+    text_fmt = workbook.add_format({"border": 1})
+    for col_idx, (_, label) in enumerate(columns):
+        worksheet.write(0, col_idx, label, header_fmt)
+    for row_idx, row in enumerate(rows, start=1):
+        for col_idx, (key, _) in enumerate(columns):
+            worksheet.write(row_idx, col_idx, str(row.get(key) or ""), text_fmt)
+    for col_idx, (key, label) in enumerate(columns):
+        max_len = max([len(label), *(len(str(row.get(key) or "")) for row in rows[:1000])])
+        worksheet.set_column(col_idx, col_idx, min(max(max_len + 2, 12), 48))
+    worksheet.freeze_panes(1, 0)
+    worksheet.autofilter(0, 0, max(len(rows), 1), len(columns) - 1)
+    workbook.close()
+    output.seek(0)
+    filename = f"legajero_funciones_{date.today().isoformat()}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/config")
