@@ -108,7 +108,7 @@ public class OracleProductividadQuery {
                   SELECT
                     CASE
                       WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
-                      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+                      WHEN SUB1.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
                       WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
                       ELSE 'OTROS'
                     END AS ALMACEN,
@@ -152,7 +152,7 @@ public class OracleProductividadQuery {
                   SELECT
                     CASE
                       WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
-                      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+                      WHEN SUB1.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
                       WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
                       ELSE 'OTROS'
                     END AS ALMACEN,
@@ -169,7 +169,7 @@ public class OracleProductividadQuery {
                     h.COPECREA,
                     CASE
                       WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
-                      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+                      WHEN SUB1.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
                       WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
                       ELSE 'OTROS'
                     END
@@ -185,40 +185,79 @@ public class OracleProductividadQuery {
                 """;
         } else if ("daily_despacho_real".equalsIgnoreCase(queryKey)) {
             sql = """
-                WITH params AS (
+                SELECT
+                  CASE
+                    WHEN a.CDIVISIO = 1 OR a.CDIVISIO = 3 THEN 'SECOS'
+                    WHEN a.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
+                    WHEN a.CDIVISIO = 6 THEN 'NOA'
+                    ELSE 'OTROS'
+                  END AS ALMACEN,
+                  COUNT(DISTINCT a.CNUVIAJE) AS VIAJES,
+                  COUNT(DISTINCT a.CARGADOR) AS CARGADORES,
+                  ROUND(COUNT(DISTINCT a.CNUVIAJE) / NULLIF(COUNT(DISTINCT a.CARGADOR), 0), 2) AS PRODUCCION
+                FROM f922traf a
+                WHERE a.FECIERRE >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
+                  AND a.FECIERRE <  TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
+                  AND a.CALMACEN = '93'
+                GROUP BY
+                  CASE
+                    WHEN a.CDIVISIO = 1 OR a.CDIVISIO = 3 THEN 'SECOS'
+                    WHEN a.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
+                    WHEN a.CDIVISIO = 6 THEN 'NOA'
+                    ELSE 'OTROS'
+                END
+                """;
+        } else if ("daily_planificacion".equalsIgnoreCase(queryKey)) {
+            sql = """
+                WITH mdiv AS (
                   SELECT
-                    TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
-                    TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') AS p_to
-                  FROM dual
+                    s.CREFEREN,
+                    d.CDIVISIO
+                  FROM f602asec s
+                  JOIN F601SECT d
+                    ON d.CNSECTOR = s.CNSECTOR
+                   AND s.CALMACEN = d.CALMACEN
+                  WHERE s.CALMACEN = '93'
                 ),
                 base AS (
                   SELECT
-                    t.hojaruta,
-                    t.cargador AS legajo_cargador,
+                    v.CODIGO AS CODIGODEVIAJE,
                     CASE
-                      WHEN t.cdivisio IN (1,6) THEN 1
-                      WHEN t.cdivisio IN (2,4) THEN 2
-                      ELSE NULL
-                    END AS division
-                  FROM f922traf t
-                  WHERE t.inicarga >= (SELECT p_from FROM params)
-                    AND t.inicarga <  (SELECT p_to FROM params)
-                    AND t.calmacen IN ('093','93')
+                      WHEN p.TIPO = 'PALLET DE PICKING' THEN 'PICKING'
+                      WHEN p.TIPO = 'PALLET DE PICKING (CONSOLIDADO)' THEN 'PICKING'
+                      ELSE 'SURTIDO PALLET COMPLETO'
+                    END AS TIPO,
+                    d.PALLET_ID,
+                    d.CANTIDAD,
+                    CASE z.CDIVISIO
+                      WHEN 1 THEN 'SECOS'
+                      WHEN 2 THEN 'REFRIGERADOS'
+                      WHEN 4 THEN 'REFRIGERADOS'
+                      WHEN 6 THEN 'NOA'
+                      ELSE TO_CHAR(z.CDIVISIO)
+                    END AS ALMACEN
+                  FROM TR_VIAJE v
+                  JOIN TR_CARGAS c
+                    ON v.CODIGO = c.CODIGODEVIAJE
+                  JOIN TR_PALLET p
+                    ON c.NUMERODEPALLET = p.NUMERO
+                  JOIN TR_DETALLE_DE_PALLET_NEW d
+                    ON d.PALLET_ID = p.NUMERO
+                  JOIN mdiv z
+                    ON z.CREFEREN = d.PLU
+                  WHERE v.FECHAYHORADEINICIO >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
+                    AND v.FECHAYHORADEINICIO <  TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
                 )
                 SELECT
-                  CASE division
-                    WHEN 1 THEN 'SECOS'
-                    WHEN 2 THEN 'REFRIGERADOS'
-                  END AS ALMACEN,
-                  COUNT(DISTINCT legajo_cargador) AS LEGAJOS,
-                  COUNT(DISTINCT hojaruta) AS VIAJES,
-                  ROUND(COUNT(DISTINCT hojaruta) / COUNT(DISTINCT legajo_cargador), 2) AS PRODUCCION
+                  ALMACEN,
+                  COUNT(DISTINCT CODIGODEVIAJE) AS VIAJES_PLANIFICADOS,
+                  COUNT(DISTINCT CASE WHEN TIPO = 'PICKING' THEN PALLET_ID END) AS PALLETS_PICKING_PLANIFICADOS,
+                  SUM(CASE WHEN TIPO = 'PICKING' THEN CANTIDAD ELSE 0 END) AS BULTOS_PICKING_PLANIFICADOS,
+                  COUNT(DISTINCT CASE WHEN TIPO = 'SURTIDO PALLET COMPLETO' THEN PALLET_ID END) AS PALLETS_SPC_PLANIFICADOS,
+                  SUM(CASE WHEN TIPO = 'SURTIDO PALLET COMPLETO' THEN CANTIDAD ELSE 0 END) AS BULTOS_SPC_PLANIFICADOS
                 FROM base
-                WHERE division IN (1, 2)
-                GROUP BY CASE division
-                  WHEN 1 THEN 'SECOS'
-                  WHEN 2 THEN 'REFRIGERADOS'
-                END
+                WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
+                GROUP BY ALMACEN
                 """;
         } else if ("daily_picking_plan".equalsIgnoreCase(queryKey)) {
             sql = """
@@ -235,7 +274,9 @@ public class OracleProductividadQuery {
                     (v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) AS FECHA_ARMADO_PLAN,
                     TRUNC((v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) - INTERVAL '6' HOUR) AS dia_operativo,
                     CASE
-                      WHEN v.CODIGODETIPODEDARSENA IN (1, 2, 6) THEN v.CODIGODETIPODEDARSENA
+                      WHEN v.CODIGODETIPODEDARSENA = 1 THEN 1
+                      WHEN v.CODIGODETIPODEDARSENA IN (2, 4) THEN 2
+                      WHEN v.CODIGODETIPODEDARSENA = 6 THEN 6
                       ELSE NULL
                     END AS division
                   FROM TR_VIAJE v, params p
@@ -288,7 +329,7 @@ public class OracleProductividadQuery {
                     v.CODIGO,
                     CASE
                       WHEN v.CODIGODETIPODEDARSENA = 1 THEN 1
-                      WHEN v.CODIGODETIPODEDARSENA = 2 THEN 2
+                      WHEN v.CODIGODETIPODEDARSENA IN (2, 4) THEN 2
                       ELSE NULL
                     END AS division
                   FROM TR_VIAJE v
@@ -324,7 +365,7 @@ public class OracleProductividadQuery {
                     (v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) AS FECHA_ARMADO_PLAN,
                     CASE
                       WHEN v.CODIGODETIPODEDARSENA = 1 THEN 1
-                      WHEN v.CODIGODETIPODEDARSENA = 2 THEN 2
+                      WHEN v.CODIGODETIPODEDARSENA IN (2, 4) THEN 2
                       ELSE NULL
                     END AS division
                   FROM TR_VIAJE v
@@ -370,6 +411,7 @@ public class OracleProductividadQuery {
                     CASE d.CDIVISIO
                       WHEN 1 THEN 'SECOS'
                       WHEN 2 THEN 'REFRIGERADOS'
+                      WHEN 4 THEN 'REFRIGERADOS'
                       WHEN 6 THEN 'NOA'
                       ELSE 'OTROS'
                     END AS ALMACEN
@@ -785,7 +827,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_tnc_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
+                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_tnc_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

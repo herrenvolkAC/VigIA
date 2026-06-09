@@ -367,8 +367,11 @@
   }
 
   function isDailyAutoParam(param) {
-    return ['CLARK', 'PICKING', 'RECEPCION'].includes(String(param.proceso || '').toUpperCase())
-      || ['OP_DOT_PICKING_LEGAJOS_6A8', 'OP_DOT_SPC_LEGAJOS_6A8', 'OP_DOT_RECEPCION_LEGAJOS_6A8'].includes(String(param.id_parametro || ''));
+    return ['CLARK', 'PICKING', 'RECEPCION', 'DESPACHO', 'SPC', 'PLANIFICACION'].includes(String(param.proceso || '').toUpperCase())
+      || [
+        'OP_DOT_PICKING_LEGAJOS_6A8', 'OP_DOT_SPC_LEGAJOS_6A8', 'OP_DOT_RECEPCION_LEGAJOS_6A8', 'OP_DOT_DESPACHO_LEGAJOS_6A8',
+        'OP_CUMP_PICKING_PLAN_6A6', 'OP_CUMP_SPC_PLAN_6A6', 'OP_CUMP_DESPACHO_PLAN_6A6'
+      ].includes(String(param.id_parametro || ''));
   }
 
   function renderDailyField(param) {
@@ -480,18 +483,27 @@
     document.querySelectorAll('[data-auto-actions-for]').forEach(container => {
       const paramId = container.dataset.autoActionsFor;
       const item = dailyAutoItemForParam(paramId);
-      if (!item || !['CLARK', 'PICKING', 'RECEPCION'].includes(item.proceso)) {
+      if (!item || !['CLARK', 'PICKING', 'RECEPCION', 'DESPACHO', 'PLANIFICACION'].includes(item.proceso)) {
         container.innerHTML = '';
         return;
       }
-      const isReal = ['OP_CUMP_PICKING_REAL_6A6', 'OP_CUMP_RECEPCION_REAL_6A6'].includes(item.id_parametro);
-      const isDotacion = ['OP_DOT_PICKING_LEGAJOS_6A8', 'OP_DOT_SPC_LEGAJOS_6A8', 'OP_DOT_RECEPCION_LEGAJOS_6A8'].includes(item.id_parametro);
+      const isReal = ['OP_CUMP_PICKING_REAL_6A6', 'OP_CUMP_RECEPCION_REAL_6A6', 'OP_CUMP_DESPACHO_REAL_6A6'].includes(item.id_parametro);
+      const isPlan = ['OP_CUMP_PICKING_PLAN_6A6', 'OP_CUMP_SPC_PLAN_6A6', 'OP_CUMP_DESPACHO_PLAN_6A6'].includes(item.id_parametro);
+      const isDotacion = ['OP_DOT_PICKING_LEGAJOS_6A8', 'OP_DOT_SPC_LEGAJOS_6A8', 'OP_DOT_RECEPCION_LEGAJOS_6A8', 'OP_DOT_DESPACHO_LEGAJOS_6A8'].includes(item.id_parametro);
       const quantityLabel = isDotacion
         ? `${num(item.valor)} legajos`
+        : item.id_parametro === 'OP_CUMP_PICKING_PLAN_6A6'
+        ? `${num(item.valor)} bultos planificados`
+        : item.id_parametro === 'OP_CUMP_SPC_PLAN_6A6'
+        ? `${num(item.valor)} pallets planificados`
+        : item.id_parametro === 'OP_CUMP_DESPACHO_PLAN_6A6'
+        ? `${num(item.valor)} viajes planificados`
         : item.proceso === 'PICKING'
         ? `${num(item.bultos || item.cantidad)} bultos${isReal ? ' reales' : ''}`
+        : item.proceso === 'DESPACHO'
+        ? `${num(item.viajes || item.cantidad)} viajes${isReal ? ' reales' : ''}`
         : `${num(item.pallets || item.cantidad)} pallets`;
-      const operatorLabel = (isReal || isDotacion) ? '' : ` / ${num(item.legajos)} operarios`;
+      const operatorLabel = (isReal || isDotacion || isPlan) ? '' : ` / ${num(item.legajos)} operarios`;
       container.innerHTML = `
         ${canRetryDailyAuto() ? `<button class="daily-auto-detail" type="button" onclick="abrirDetalleClark('${escapeHtml(paramId)}')">Ver</button>` : ''}
         <span class="daily-auto-note">${quantityLabel}${operatorLabel}</span>
@@ -521,10 +533,14 @@
     const status = document.getElementById('clark-detail-status');
     const wrap = document.getElementById('clark-detail-wrap');
     if (!item || !wrap || !canRetryDailyAuto()) return;
-    const process = item.proceso === 'PICKING' ? 'Picking' : (item.proceso === 'RECEPCION' ? 'Recepcion' : 'Clark');
+    const process = item.proceso === 'PICKING' ? 'Picking' : (item.proceso === 'RECEPCION' ? 'Recepcion' : (item.proceso === 'DESPACHO' ? 'Despacho' : (item.proceso === 'PLANIFICACION' ? 'Planificacion' : 'Clark')));
     const endpoint = item.proceso === 'PICKING'
       ? '/api/gestion-operativa/daily/picking-sql'
-      : (item.proceso === 'RECEPCION' ? '/api/gestion-operativa/daily/recepcion-sql' : '/api/gestion-operativa/daily/clark-sql');
+      : (item.proceso === 'RECEPCION'
+        ? '/api/gestion-operativa/daily/recepcion-sql'
+        : (item.proceso === 'DESPACHO'
+          ? '/api/gestion-operativa/daily/despacho-sql'
+          : (item.proceso === 'PLANIFICACION' ? '/api/gestion-operativa/daily/planificacion-sql' : '/api/gestion-operativa/daily/clark-sql')));
     const cacheKey = `${item.proceso}_SQL`;
     if (title) title.textContent = `SQL Productividad ${process} - ${item.sector || ''}`;
     if (status) status.textContent = `Cargando SQL agregado de ${process}.`;
@@ -653,7 +669,7 @@
       btn.disabled = true;
       btn.textContent = 'Reintentando...';
     }
-    setDailyStatus('Ejecutando precarga de excepcion. Recepcion, Clark y Picking estan habilitados.');
+    setDailyStatus('Ejecutando precarga de excepcion. Recepcion, Clark, Picking y Despacho estan habilitados.');
     try {
       const resp = await fetch('/api/gestion-operativa/daily/auto/retry-pending', {
         method: 'POST',

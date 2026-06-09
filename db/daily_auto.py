@@ -149,6 +149,41 @@ RECEPCION_DOTACION_PARAM_IDS_BY_SECTOR = {
     "Refrigerados": "OP_DOT_RECEPCION_LEGAJOS_6A8",
 }
 
+DESPACHO_PARAM_IDS_BY_SECTOR = {
+    "Secos": "OP_PROD_DESPACHO_SECOS_6A6",
+    "Refrigerados": "OP_PROD_DESPACHO_REFRI_6A6",
+}
+
+DESPACHO_REAL_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_CUMP_DESPACHO_REAL_6A6",
+    "Secos": "OP_CUMP_DESPACHO_REAL_6A6",
+    "Refrigerados": "OP_CUMP_DESPACHO_REAL_6A6",
+}
+
+DESPACHO_DOTACION_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_DOT_DESPACHO_LEGAJOS_6A8",
+    "Secos": "OP_DOT_DESPACHO_LEGAJOS_6A8",
+    "Refrigerados": "OP_DOT_DESPACHO_LEGAJOS_6A8",
+}
+
+PICKING_PLAN_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_CUMP_PICKING_PLAN_6A6",
+    "Secos": "OP_CUMP_PICKING_PLAN_6A6",
+    "Refrigerados": "OP_CUMP_PICKING_PLAN_6A6",
+}
+
+SPC_PLAN_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_CUMP_SPC_PLAN_6A6",
+    "Secos": "OP_CUMP_SPC_PLAN_6A6",
+    "Refrigerados": "OP_CUMP_SPC_PLAN_6A6",
+}
+
+DESPACHO_PLAN_PARAM_IDS_BY_SECTOR = {
+    "Noa": "OP_CUMP_DESPACHO_PLAN_6A6",
+    "Secos": "OP_CUMP_DESPACHO_PLAN_6A6",
+    "Refrigerados": "OP_CUMP_DESPACHO_PLAN_6A6",
+}
+
 
 def _now_text() -> str:
     return datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
@@ -673,6 +708,195 @@ async def save_recepcion_summary_cache(
     return {"run_id": run_id, "rows": len(rows), "resultados": result_count}
 
 
+async def save_despacho_summary_cache(
+    daily: dict[str, Any],
+    rows: list[dict[str, Any]],
+    *,
+    started_at: str,
+    duration_ms: float,
+    timings: dict[str, Any] | None = None,
+    trigger: str = "scheduler",
+    usuario: str = "",
+) -> dict[str, Any]:
+    await init_daily_auto_db()
+    now = _now_text()
+    valid_rows = []
+    for row in rows:
+        if _row_value(row, "ALMACEN") is not None and _row_value(row, "VIAJES") is not None:
+            valid_rows.append(row)
+    if rows and not valid_rows:
+        raise ValueError("La consulta Despacho no devolvio filas agregadas esperadas (ALMACEN/VIAJES).")
+    async with aiosqlite.connect(DAILY_AUTO_DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        await db.execute("PRAGMA foreign_keys = ON")
+        await db.execute("BEGIN")
+        await db.execute(
+            """
+            INSERT INTO daily_auto_runs (
+                daily_key, daily_label, fecha_inicio, fecha_fin, fecha_carga,
+                process, status, started_at, finished_at, duration_ms,
+                row_count, timings_json, error, run_trigger, usuario, updated_at
+            ) VALUES (?, ?, ?, ?, ?, 'DESPACHO', 'success', ?, ?, ?, ?, ?, NULL, ?, ?, ?)
+            ON CONFLICT(daily_key, process) DO UPDATE SET
+                daily_label = excluded.daily_label,
+                fecha_inicio = excluded.fecha_inicio,
+                fecha_fin = excluded.fecha_fin,
+                fecha_carga = excluded.fecha_carga,
+                status = 'success',
+                started_at = excluded.started_at,
+                finished_at = excluded.finished_at,
+                duration_ms = excluded.duration_ms,
+                row_count = excluded.row_count,
+                timings_json = excluded.timings_json,
+                error = NULL,
+                run_trigger = excluded.run_trigger,
+                usuario = excluded.usuario,
+                updated_at = excluded.updated_at
+            """,
+            (
+                daily["daily_key"], daily["daily_label"], daily["fecha_inicio"], daily["fecha_fin"],
+                daily["fecha_carga"], started_at, now, duration_ms, len(rows),
+                json.dumps(timings or {}, ensure_ascii=False), trigger, usuario, now,
+            ),
+        )
+        async with db.execute(
+            "SELECT id FROM daily_auto_runs WHERE daily_key = ? AND process = 'DESPACHO'",
+            (daily["daily_key"],),
+        ) as cur:
+            run_row = await cur.fetchone()
+        run_id = int(run_row[0])
+        await db.execute("DELETE FROM daily_auto_resultados WHERE daily_key = ? AND process = 'DESPACHO'", (daily["daily_key"],))
+
+        result_count = 0
+        for row in valid_rows:
+            sector_oracle = str(_row_value(row, "ALMACEN") or "").strip().upper()
+            sector = SECTOR_MAP.get(sector_oracle)
+            if not sector:
+                continue
+            viajes = float(_row_value(row, "VIAJES") or 0)
+            cargadores = float(_row_value(row, "CARGADORES") or _row_value(row, "LEGAJOS") or 0)
+            valor = float(_row_value(row, "PRODUCCION") or 0)
+            items: list[tuple[str, float]] = [
+                (DESPACHO_REAL_PARAM_IDS_BY_SECTOR[sector], viajes),
+                (DESPACHO_DOTACION_PARAM_IDS_BY_SECTOR[sector], cargadores),
+            ]
+            if sector in DESPACHO_PARAM_IDS_BY_SECTOR:
+                items.insert(0, (DESPACHO_PARAM_IDS_BY_SECTOR[sector], valor))
+            for id_parametro, item_value in items:
+                await db.execute(
+                    """
+                    INSERT INTO daily_auto_resultados (
+                        run_id, daily_key, process, sector, sector_oracle, id_parametro,
+                        valor, cantidad, legajos, details_count
+                    ) VALUES (?, ?, 'DESPACHO', ?, ?, ?, ?, ?, ?, 0)
+                    """,
+                    (
+                        run_id, daily["daily_key"], sector, sector_oracle, id_parametro,
+                        item_value, viajes, cargadores,
+                    ),
+                )
+                result_count += 1
+        await db.commit()
+    if rows and result_count == 0:
+        raise ValueError("La consulta Despacho no genero resultados para sectores habilitados.")
+    return {"run_id": run_id, "rows": len(rows), "resultados": result_count}
+
+
+async def save_planificacion_summary_cache(
+    daily: dict[str, Any],
+    rows: list[dict[str, Any]],
+    *,
+    started_at: str,
+    duration_ms: float,
+    timings: dict[str, Any] | None = None,
+    trigger: str = "scheduler",
+    usuario: str = "",
+) -> dict[str, Any]:
+    await init_daily_auto_db()
+    now = _now_text()
+    valid_rows = []
+    for row in rows:
+        if _row_value(row, "ALMACEN") is not None and _row_value(row, "VIAJES_PLANIFICADOS") is not None:
+            valid_rows.append(row)
+    if rows and not valid_rows:
+        raise ValueError("La consulta Planificacion no devolvio filas agregadas esperadas (ALMACEN/VIAJES_PLANIFICADOS).")
+    async with aiosqlite.connect(DAILY_AUTO_DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        await db.execute("PRAGMA foreign_keys = ON")
+        await db.execute("BEGIN")
+        await db.execute(
+            """
+            INSERT INTO daily_auto_runs (
+                daily_key, daily_label, fecha_inicio, fecha_fin, fecha_carga,
+                process, status, started_at, finished_at, duration_ms,
+                row_count, timings_json, error, run_trigger, usuario, updated_at
+            ) VALUES (?, ?, ?, ?, ?, 'PLANIFICACION', 'success', ?, ?, ?, ?, ?, NULL, ?, ?, ?)
+            ON CONFLICT(daily_key, process) DO UPDATE SET
+                daily_label = excluded.daily_label,
+                fecha_inicio = excluded.fecha_inicio,
+                fecha_fin = excluded.fecha_fin,
+                fecha_carga = excluded.fecha_carga,
+                status = 'success',
+                started_at = excluded.started_at,
+                finished_at = excluded.finished_at,
+                duration_ms = excluded.duration_ms,
+                row_count = excluded.row_count,
+                timings_json = excluded.timings_json,
+                error = NULL,
+                run_trigger = excluded.run_trigger,
+                usuario = excluded.usuario,
+                updated_at = excluded.updated_at
+            """,
+            (
+                daily["daily_key"], daily["daily_label"], daily["fecha_inicio"], daily["fecha_fin"],
+                daily["fecha_carga"], started_at, now, duration_ms, len(rows),
+                json.dumps(timings or {}, ensure_ascii=False), trigger, usuario, now,
+            ),
+        )
+        async with db.execute(
+            "SELECT id FROM daily_auto_runs WHERE daily_key = ? AND process = 'PLANIFICACION'",
+            (daily["daily_key"],),
+        ) as cur:
+            run_row = await cur.fetchone()
+        run_id = int(run_row[0])
+        await db.execute("DELETE FROM daily_auto_resultados WHERE daily_key = ? AND process = 'PLANIFICACION'", (daily["daily_key"],))
+
+        result_count = 0
+        for row in valid_rows:
+            sector_oracle = str(_row_value(row, "ALMACEN") or "").strip().upper()
+            sector = SECTOR_MAP.get(sector_oracle)
+            if not sector:
+                continue
+            viajes = float(_row_value(row, "VIAJES_PLANIFICADOS") or 0)
+            bultos_picking = float(_row_value(row, "BULTOS_PICKING_PLANIFICADOS") or 0)
+            pallets_picking = float(_row_value(row, "PALLETS_PICKING_PLANIFICADOS") or 0)
+            pallets_spc = float(_row_value(row, "PALLETS_SPC_PLANIFICADOS") or 0)
+            bultos_spc = float(_row_value(row, "BULTOS_SPC_PLANIFICADOS") or 0)
+            items = [
+                (PICKING_PLAN_PARAM_IDS_BY_SECTOR[sector], bultos_picking, bultos_picking, pallets_picking),
+                (SPC_PLAN_PARAM_IDS_BY_SECTOR[sector], pallets_spc, pallets_spc, bultos_spc),
+                (DESPACHO_PLAN_PARAM_IDS_BY_SECTOR[sector], viajes, viajes, 0),
+            ]
+            for id_parametro, valor, cantidad, details_count in items:
+                await db.execute(
+                    """
+                    INSERT INTO daily_auto_resultados (
+                        run_id, daily_key, process, sector, sector_oracle, id_parametro,
+                        valor, cantidad, legajos, details_count
+                    ) VALUES (?, ?, 'PLANIFICACION', ?, ?, ?, ?, ?, 0, ?)
+                    """,
+                    (
+                        run_id, daily["daily_key"], sector, sector_oracle, id_parametro,
+                        valor, cantidad, int(details_count or 0),
+                    ),
+                )
+                result_count += 1
+        await db.commit()
+    if rows and result_count == 0:
+        raise ValueError("La consulta Planificacion no genero resultados para sectores habilitados.")
+    return {"run_id": run_id, "rows": len(rows), "resultados": result_count}
+
+
 async def get_latest_run(daily_key: str, process: str = "CLARK") -> dict[str, Any] | None:
     await init_daily_auto_db()
     async with aiosqlite.connect(DAILY_AUTO_DB_PATH) as db:
@@ -700,7 +924,7 @@ async def get_cached_results(daily_key: str) -> list[dict[str, Any]]:
             SELECT r.*, run.status, run.finished_at, run.duration_ms
             FROM daily_auto_resultados r
             JOIN daily_auto_runs run ON run.id = r.run_id
-            WHERE r.daily_key = ? AND r.process IN ('CLARK', 'PICKING', 'RECEPCION') AND run.status = 'success'
+            WHERE r.daily_key = ? AND r.process IN ('CLARK', 'PICKING', 'RECEPCION', 'DESPACHO', 'PLANIFICACION') AND run.status = 'success'
             ORDER BY r.sector, r.process
             """,
             (daily_key,),

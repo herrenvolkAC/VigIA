@@ -1083,7 +1083,7 @@ WITH TODOS AS (
   SELECT
     CASE
       WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
-      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+      WHEN SUB1.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
       WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
       ELSE 'OTROS'
     END AS ALMACEN,
@@ -1136,7 +1136,7 @@ Todos AS (
   SELECT
     CASE
       WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
-      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+      WHEN SUB1.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
       WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
       ELSE 'OTROS'
     END AS ALMACEN,
@@ -1153,7 +1153,7 @@ Todos AS (
     h.COPECREA,
     CASE
       WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
-      WHEN SUB1.CDIVISIO = 2 THEN 'REFRIGERADOS'
+      WHEN SUB1.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
       WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
       ELSE 'OTROS'
     END
@@ -1178,39 +1178,26 @@ def query_productive_db_daily_recepcion_real(fecha_desde: str, fecha_hasta: str)
 
 
 QUERY_DAILY_DESPACHO_REAL = """
-WITH params AS (
-  SELECT
-    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
-    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
-  FROM dual
-),
-base AS (
-  SELECT
-    t.hojaruta,
-    t.cargador AS legajo_cargador,
-    CASE
-      WHEN t.cdivisio IN (1,6) THEN 1
-      WHEN t.cdivisio IN (2,4) THEN 2
-      ELSE NULL
-    END AS division
-  FROM f922traf t
-  WHERE t.inicarga >= (SELECT p_from FROM params)
-    AND t.inicarga <  (SELECT p_to FROM params)
-    AND t.calmacen IN ('093','93')
-)
 SELECT
-  CASE division
-    WHEN 1 THEN 'SECOS'
-    WHEN 2 THEN 'REFRIGERADOS'
+  CASE
+    WHEN a.CDIVISIO = 1 OR a.CDIVISIO = 3 THEN 'SECOS'
+    WHEN a.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
+    WHEN a.CDIVISIO = 6 THEN 'NOA'
+    ELSE 'OTROS'
   END AS ALMACEN,
-  COUNT(DISTINCT legajo_cargador) AS LEGAJOS,
-  COUNT(DISTINCT hojaruta) AS VIAJES,
-  ROUND(COUNT(DISTINCT hojaruta) / COUNT(DISTINCT legajo_cargador), 2) AS PRODUCCION
-FROM base
-WHERE division IN (1, 2)
-GROUP BY CASE division
-  WHEN 1 THEN 'SECOS'
-  WHEN 2 THEN 'REFRIGERADOS'
+  COUNT(DISTINCT a.CNUVIAJE) AS VIAJES,
+  COUNT(DISTINCT a.CARGADOR) AS CARGADORES,
+  ROUND(COUNT(DISTINCT a.CNUVIAJE) / NULLIF(COUNT(DISTINCT a.CARGADOR), 0), 2) AS PRODUCCION
+FROM f922traf a
+WHERE a.FECIERRE >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+  AND a.FECIERRE <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+  AND a.CALMACEN = '93'
+GROUP BY
+  CASE
+    WHEN a.CDIVISIO = 1 OR a.CDIVISIO = 3 THEN 'SECOS'
+    WHEN a.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
+    WHEN a.CDIVISIO = 6 THEN 'NOA'
+    ELSE 'OTROS'
 END
 """
 
@@ -1223,173 +1210,97 @@ def query_productive_db_daily_despacho_real(fecha_desde: str, fecha_hasta: str) 
     )
 
 
-QUERY_DAILY_PICKING_PLAN = """
-WITH params AS (
+QUERY_DAILY_PLANIFICACION = """
+WITH mdiv AS (
   SELECT
-    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
-    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
-  FROM dual
+    s.CREFEREN,
+    d.CDIVISIO
+  FROM f602asec s
+  JOIN F601SECT d
+    ON d.CNSECTOR = s.CNSECTOR
+   AND s.CALMACEN = d.CALMACEN
+  WHERE s.CALMACEN = '93'
 ),
 base AS (
   SELECT
-    v.CODIGO,
-    v.FECHAYHORADEINICIO,
-    (v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) AS FECHA_ARMADO_PLAN,
-    TRUNC((v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) - INTERVAL '6' HOUR) AS dia_operativo,
+    v.CODIGO AS CODIGODEVIAJE,
     CASE
-      WHEN v.CODIGODETIPODEDARSENA IN (1, 2, 6) THEN v.CODIGODETIPODEDARSENA
-      ELSE NULL
-    END AS division
-  FROM TR_VIAJE v, params p
-  WHERE v.FECHAYHORADEINICIO >= p.p_from
-    AND v.FECHAYHORADEINICIO <  p.p_to
-),
-viaje_pallet AS (
-  SELECT
-    m.CODIGO AS CODIGODEVIAJE,
-    m.division,
-    c.NUMERODEPALLET AS PALLET_ID,
-    NVL(
-      (SELECT SUM(d.cantidad)
-       FROM TR_DETALLE_DE_PALLET_NEW d
-       WHERE d.pallet_id = p.NUMERO),
-      0
-    ) AS bultos_pallet
-  FROM base m
-  JOIN TR_CARGAS c ON m.CODIGO = c.CODIGODEVIAJE
-  JOIN TR_PALLET p ON c.NUMERODEPALLET = p.NUMERO
-  WHERE UPPER(p.TIPO) IN ('PALLET DE PICKING','PALLET DE PICKING (CONSOLIDADO)')
+      WHEN p.TIPO = 'PALLET DE PICKING' THEN 'PICKING'
+      WHEN p.TIPO = 'PALLET DE PICKING (CONSOLIDADO)' THEN 'PICKING'
+      ELSE 'SURTIDO PALLET COMPLETO'
+    END AS TIPO,
+    d.PALLET_ID,
+    d.CANTIDAD,
+    CASE z.CDIVISIO
+      WHEN 1 THEN 'SECOS'
+      WHEN 2 THEN 'REFRIGERADOS'
+      WHEN 4 THEN 'REFRIGERADOS'
+      WHEN 6 THEN 'NOA'
+      ELSE TO_CHAR(z.CDIVISIO)
+    END AS ALMACEN
+  FROM TR_VIAJE v
+  JOIN TR_CARGAS c
+    ON v.CODIGO = c.CODIGODEVIAJE
+  JOIN TR_PALLET p
+    ON c.NUMERODEPALLET = p.NUMERO
+  JOIN TR_DETALLE_DE_PALLET_NEW d
+    ON d.PALLET_ID = p.NUMERO
+  JOIN mdiv z
+    ON z.CREFEREN = d.PLU
+  WHERE v.FECHAYHORADEINICIO >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+    AND v.FECHAYHORADEINICIO <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
 )
 SELECT
-  CASE division
-    WHEN 1 THEN 'SECOS'
-    WHEN 2 THEN 'REFRIGERADOS'
-    WHEN 6 THEN 'NOA'
-  END AS ALMACEN,
-  SUM(bultos_pallet) AS BULTOS_PLANIFICADOS,
+  ALMACEN,
   COUNT(DISTINCT CODIGODEVIAJE) AS VIAJES_PLANIFICADOS,
-  COUNT(DISTINCT PALLET_ID) AS PALLETS_PICKING_PLANIFICADOS
-FROM viaje_pallet
-WHERE division IN (1, 2, 6)
-GROUP BY CASE division
-  WHEN 1 THEN 'SECOS'
-  WHEN 2 THEN 'REFRIGERADOS'
-  WHEN 6 THEN 'NOA'
-END
+  COUNT(DISTINCT CASE WHEN TIPO = 'PICKING' THEN PALLET_ID END) AS PALLETS_PICKING_PLANIFICADOS,
+  SUM(CASE WHEN TIPO = 'PICKING' THEN CANTIDAD ELSE 0 END) AS BULTOS_PICKING_PLANIFICADOS,
+  COUNT(DISTINCT CASE WHEN TIPO = 'SURTIDO PALLET COMPLETO' THEN PALLET_ID END) AS PALLETS_SPC_PLANIFICADOS,
+  SUM(CASE WHEN TIPO = 'SURTIDO PALLET COMPLETO' THEN CANTIDAD ELSE 0 END) AS BULTOS_SPC_PLANIFICADOS
+FROM base
+WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
+GROUP BY ALMACEN
 """
+
+
+QUERY_DAILY_PICKING_PLAN = QUERY_DAILY_PLANIFICACION
+QUERY_DAILY_DESPACHO_PLAN = QUERY_DAILY_PLANIFICACION
+QUERY_DAILY_SPC_PLAN = QUERY_DAILY_PLANIFICACION
+
+
+def query_productive_db_daily_planificacion(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_PLANIFICACION,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
 
 
 def query_productive_db_daily_picking_plan(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
-    return _query_productive_db_sql(
-        QUERY_DAILY_PICKING_PLAN,
-        fecha_desde=fecha_desde,
-        fecha_hasta=fecha_hasta,
-    )
-
-
-QUERY_DAILY_DESPACHO_PLAN = """
-WITH params AS (
-  SELECT
-    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
-    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
-  FROM dual
-),
-base AS (
-  SELECT
-    v.CODIGO,
-    CASE
-      WHEN v.CODIGODETIPODEDARSENA = 1 THEN 1
-      WHEN v.CODIGODETIPODEDARSENA = 2 THEN 2
-      ELSE NULL
-    END AS division
-  FROM TR_VIAJE v
-  WHERE v.FECHAYHORADEINICIO >= (SELECT p_from FROM params)
-    AND v.FECHAYHORADEINICIO <  (SELECT p_to FROM params)
-)
-SELECT
-  CASE division
-    WHEN 1 THEN 'SECOS'
-    WHEN 2 THEN 'REFRIGERADOS'
-  END AS ALMACEN,
-  COUNT(*) AS VIAJES_PLANIFICADOS
-FROM base
-WHERE division IN (1, 2)
-GROUP BY CASE division
-  WHEN 1 THEN 'SECOS'
-  WHEN 2 THEN 'REFRIGERADOS'
-END
-"""
+    rows = query_productive_db_daily_planificacion(fecha_desde, fecha_hasta)
+    return [
+        {
+            **row,
+            "BULTOS_PLANIFICADOS": row.get("BULTOS_PICKING_PLANIFICADOS", row.get("bultos_picking_planificados", 0)),
+            "PALLETS_PICKING_PLANIFICADOS": row.get("PALLETS_PICKING_PLANIFICADOS", row.get("pallets_picking_planificados", 0)),
+        }
+        for row in rows
+    ]
 
 
 def query_productive_db_daily_despacho_plan(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
-    return _query_productive_db_sql(
-        QUERY_DAILY_DESPACHO_PLAN,
-        fecha_desde=fecha_desde,
-        fecha_hasta=fecha_hasta,
-    )
-
-
-QUERY_DAILY_SPC_PLAN = """
-WITH params AS (
-  SELECT
-    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
-    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to
-  FROM dual
-),
-base AS (
-  SELECT
-    v.CODIGO,
-    v.FECHAYHORADEINICIO,
-    v.CODIGODETIPODEDARSENA,
-    (v.FECHAYHORADEINICIO - INTERVAL '2' HOUR) AS FECHA_ARMADO_PLAN,
-    CASE
-      WHEN v.CODIGODETIPODEDARSENA = 1 THEN 1
-      WHEN v.CODIGODETIPODEDARSENA = 2 THEN 2
-      ELSE NULL
-    END AS division
-  FROM TR_VIAJE v
-  WHERE v.FECHAYHORADEINICIO >= (SELECT p_from FROM params)
-    AND v.FECHAYHORADEINICIO <  (SELECT p_to FROM params)
-),
-viaje_pallet AS (
-  SELECT
-    m.division,
-    m.CODIGO AS CODIGODEVIAJE,
-    c.NUMERODEPALLET AS PALLET_ID,
-    p.TIPO
-  FROM base m
-  JOIN TR_CARGAS c
-    ON m.CODIGO = c.CODIGODEVIAJE
-  JOIN TR_PALLET p
-    ON c.NUMERODEPALLET = p.NUMERO
-),
-no_picking AS (
-  SELECT *
-  FROM viaje_pallet
-  WHERE UPPER(TIPO) NOT IN ('PALLET DE PICKING','PALLET DE PICKING (CONSOLIDADO)')
-)
-SELECT
-  CASE division
-    WHEN 1 THEN 'SECOS'
-    WHEN 2 THEN 'REFRIGERADOS'
-  END AS ALMACEN,
-  COUNT(DISTINCT PALLET_ID) AS PALLETS_TOTALES_PLANIFICADOS,
-  COUNT(DISTINCT CODIGODEVIAJE) AS VIAJES_PLANIFICADOS
-FROM no_picking
-WHERE division IN (1, 2)
-GROUP BY CASE division
-  WHEN 1 THEN 'SECOS'
-  WHEN 2 THEN 'REFRIGERADOS'
-END
-"""
+    return query_productive_db_daily_planificacion(fecha_desde, fecha_hasta)
 
 
 def query_productive_db_daily_spc_plan(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
-    return _query_productive_db_sql(
-        QUERY_DAILY_SPC_PLAN,
-        fecha_desde=fecha_desde,
-        fecha_hasta=fecha_hasta,
-    )
+    rows = query_productive_db_daily_planificacion(fecha_desde, fecha_hasta)
+    return [
+        {
+            **row,
+            "PALLETS_TOTALES_PLANIFICADOS": row.get("PALLETS_SPC_PLANIFICADOS", row.get("pallets_spc_planificados", 0)),
+        }
+        for row in rows
+    ]
 
 
 QUERY_DAILY_CLARK_REAL_OLD = """
@@ -1582,6 +1493,7 @@ SELECT
   CASE division
     WHEN 1 THEN 'SECOS'
     WHEN 2 THEN 'REFRIGERADOS'
+    WHEN 4 THEN 'REFRIGERADOS'
     WHEN 6 THEN 'NOA'
   END AS ALMACEN,
   COUNT(DISTINCT COPECREA) AS LEGAJOS,
@@ -1589,10 +1501,11 @@ SELECT
   SUM(pallets_distintos) AS PALLETS_DISTINTOS,
   ROUND(SUM(pallets_totales) / COUNT(DISTINCT COPECREA), 2) AS PRODUCCION
 FROM agt
-WHERE division IN (1, 2, 6)
+WHERE division IN (1, 2, 4, 6)
 GROUP BY CASE division
   WHEN 1 THEN 'SECOS'
   WHEN 2 THEN 'REFRIGERADOS'
+  WHEN 4 THEN 'REFRIGERADOS'
   WHEN 6 THEN 'NOA'
 END
 """
@@ -1605,6 +1518,7 @@ WITH mdiv AS (
     CASE d.CDIVISIO
       WHEN 1 THEN 'SECOS'
       WHEN 2 THEN 'REFRIGERADOS'
+      WHEN 4 THEN 'REFRIGERADOS'
       WHEN 6 THEN 'NOA'
       ELSE 'OTROS'
     END AS ALMACEN
@@ -1653,6 +1567,7 @@ WITH mdiv AS (
     CASE d.CDIVISIO
       WHEN 1 THEN 'SECOS'
       WHEN 2 THEN 'REFRIGERADOS'
+      WHEN 4 THEN 'REFRIGERADOS'
       WHEN 6 THEN 'NOA'
       ELSE 'OTROS'
     END AS ALMACEN
@@ -2303,10 +2218,19 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         query_key = "daily_recepcion_real"
     elif (
         "F922TRAF" in normalized_query
-        and "COUNT(DISTINCT HOJARUTA) AS VIAJES" in normalized_query
-        and "T.CALMACEN IN ('093','93')" in normalized_query
+        and "COUNT(DISTINCT" in normalized_query
+        and "CNUVIAJE" in normalized_query
+        and "CARGADOR" in normalized_query
+        and "CALMACEN = '93'" in normalized_query
     ):
         query_key = "daily_despacho_real"
+    elif (
+        "TR_DETALLE_DE_PALLET_NEW" in normalized_query
+        and "BULTOS_PICKING_PLANIFICADOS" in normalized_query
+        and "PALLETS_SPC_PLANIFICADOS" in normalized_query
+        and "VIAJES_PLANIFICADOS" in normalized_query
+    ):
+        query_key = "daily_planificacion"
     elif (
         "TR_DETALLE_DE_PALLET_NEW" in normalized_query
         and "BULTOS_PLANIFICADOS" in normalized_query
