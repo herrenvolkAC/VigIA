@@ -900,6 +900,9 @@ CREATE TABLE IF NOT EXISTS rrhh_francos_inicial (
     nombre                  TEXT,
     saldo_inicial           REAL NOT NULL DEFAULT 0,
     fecha_corte             DATE,
+    derecho                 REAL NOT NULL DEFAULT 0,
+    disfrute                REAL NOT NULL DEFAULT 0,
+    fecha_corte_origen      TEXT,
     source_file             TEXT,
     raw_json                TEXT,
     imported_by             TEXT,
@@ -1224,6 +1227,15 @@ async def init_db():
             rrhh_cod_cols = {row[1] for row in await cur.fetchall()}
         if "codigo_normalizado" not in rrhh_cod_cols:
             await db.execute("ALTER TABLE rrhh_codigos_ausentismo ADD COLUMN codigo_normalizado TEXT")
+        async with db.execute("PRAGMA table_info(rrhh_francos_inicial)") as cur:
+            rrhh_francos_cols = {row[1] for row in await cur.fetchall()}
+        for column_name, column_type in {
+            "derecho": "REAL NOT NULL DEFAULT 0",
+            "disfrute": "REAL NOT NULL DEFAULT 0",
+            "fecha_corte_origen": "TEXT",
+        }.items():
+            if column_name not in rrhh_francos_cols:
+                await db.execute(f"ALTER TABLE rrhh_francos_inicial ADD COLUMN {column_name} {column_type}")
         await db.executemany(
             """
             INSERT OR IGNORE INTO rrhh_francos_reglas (tipo, patron, delta, prioridad)

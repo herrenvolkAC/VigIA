@@ -456,11 +456,14 @@
       {key:'sector',label:'Sector'},
       {key:'funcion',label:'Funcion'},
       {key:'saldo_inicial',label:'Saldo inicial',mono:true,format:'number'},
+      {key:'derecho',label:'Derecho',mono:true,format:'number'},
+      {key:'disfrute',label:'Disfrute',mono:true,format:'number'},
       {key:'creditos',label:'Creditos',mono:true,format:'number'},
       {key:'debitos',label:'Debitos',mono:true,format:'number'},
       {key:'saldo_actual',label:'Saldo actual',mono:true,format:'number'},
       {key:'movimientos',label:'Mov.',mono:true,format:'integer'},
       {key:'fecha_corte',label:'Corte',mono:true},
+      {key:'fecha_corte_origen',label:'Origen corte',mono:true},
     ], data?.rows || []);
     renderTable('francos-mov-table', [
       {key:'fecha',label:'Fecha',mono:true},
@@ -888,7 +891,7 @@
       if (sector && String(row.sector || '') !== sector) return false;
       if (cargo && String(row.funcion_legajero || '') !== cargo) return false;
       if (!text) return true;
-      return [row.legajo, row.nombre, row.unidad, row.sector, row.funcion_legajero, row.funcion_temporal_vigente, row.proxima_funcion_temporal]
+      return [row.legajo, row.nombre, row.unidad, row.sector, row.funcion_legajero, row.funcion_temporal_vigente, row.proxima_funcion_temporal, temporalLoadedBy(row)]
         .some(value => String(value || '').toUpperCase().includes(text));
     });
   }
@@ -910,7 +913,8 @@
   function sortRowsBy(rows, sort){
     const direction = sort.dir === 'desc' ? -1 : 1;
     return [...rows].sort((a,b) => {
-      const av = sortValue(a[sort.key]), bv = sortValue(b[sort.key]);
+      const av = sortValue(sort.key === 'temporal_cargado_por' ? temporalLoadedBy(a) : a[sort.key]);
+      const bv = sortValue(sort.key === 'temporal_cargado_por' ? temporalLoadedBy(b) : b[sort.key]);
       if (av < bv) return -1 * direction;
       if (av > bv) return 1 * direction;
       return 0;
@@ -924,15 +928,26 @@
     if (!item) return '<span class="temp-pill none">Sin asignacion</span>';
     return `<span class="temp-pill">${esc(item.funcion || '')}</span><div class="mono" style="margin-top:4px">${esc(item.fecha_inicio || '')} a ${esc(item.fecha_fin || 'sin fin')}</div>`;
   }
+  function temporalLoadedBy(row){
+    const vigente = row.temporal_vigente || {};
+    const proxima = row.proxima_temporal || {};
+    return row.temporal_cargado_por
+      || vigente.created_by_display
+      || proxima.created_by_display
+      || vigente.created_by
+      || proxima.created_by
+      || '';
+  }
   function renderTemporalDetail(row){
     const items = row.temporales || [];
     if (!items.length) return '<div class="empty">Sin asignaciones temporales.</div>';
     return `<div style="display:grid;gap:6px;padding:8px 0">${items.map(item => `
-      <div style="display:grid;grid-template-columns:120px 1fr 170px 1.6fr;gap:10px;align-items:center;border-bottom:1px solid var(--rule);padding:6px 0">
+      <div style="display:grid;grid-template-columns:120px 1fr 170px 1.4fr 1fr;gap:10px;align-items:center;border-bottom:1px solid var(--rule);padding:6px 0">
         <span class="temp-pill ${item.estado === 'programada' ? '' : 'none'}">${esc(item.estado || '')}</span>
         <strong>${esc(item.funcion || '')}</strong>
         <span class="mono">${esc(item.fecha_inicio || '')} a ${esc(item.fecha_fin || 'sin fin')}</span>
         <span>${esc(item.motivo || '')}</span>
+        <span>${esc(item.created_by_display || item.created_by || '')}</span>
       </div>
     `).join('')}</div>`;
   }
@@ -987,6 +1002,7 @@
       ${sortableHeader('Funcion Legajero','legajero','funcion_legajero',state.legajeroSort)}
       ${sortableHeader('Temporal vigente','legajero','funcion_temporal_vigente',state.legajeroSort)}
       ${sortableHeader('Proxima temporal','legajero','proxima_fecha_inicio',state.legajeroSort)}
+      ${sortableHeader('Cargado por','legajero','temporal_cargado_por',state.legajeroSort)}
       ${sortableHeader('Mas','legajero','temporales_count',state.legajeroSort)}
     </tr></thead><tbody>${rows.map(row => {
       const checked = state.legajeroSelected.has(String(row.legajo)) ? 'checked' : '';
@@ -997,9 +1013,9 @@
       return `<tr>
         <td><input class="row-check legajero-row-check" type="checkbox" value="${esc(row.legajo)}" ${checked}></td>
         <td class="mono">${esc(row.legajo)}</td><td>${esc(row.nombre)}</td><td>${esc(row.sector || '')}</td><td>${esc(row.unidad || '')}</td>
-        <td>${esc(row.funcion_legajero || '')}</td><td>${temporalText(row.temporal_vigente)}</td><td>${temporalText(row.proxima_temporal)}</td><td>${more}</td>
-      </tr>${expanded ? `<tr><td></td><td colspan="8">${renderTemporalDetail(row)}</td></tr>` : ''}`;
-    }).join('') || '<tr><td colspan="9">Sin legajos.</td></tr>'}</tbody>`;
+        <td>${esc(row.funcion_legajero || '')}</td><td>${temporalText(row.temporal_vigente)}</td><td>${temporalText(row.proxima_temporal)}</td><td>${esc(temporalLoadedBy(row))}</td><td>${more}</td>
+      </tr>${expanded ? `<tr><td></td><td colspan="9">${renderTemporalDetail(row)}</td></tr>` : ''}`;
+    }).join('') || '<tr><td colspan="10">Sin legajos.</td></tr>'}</tbody>`;
     const all = $('legajero-check-all');
     if (all) {
       all.checked = rows.length > 0 && rows.every(row => state.legajeroSelected.has(String(row.legajo)));
@@ -1017,7 +1033,7 @@
       ${sortableHeader('Vigencia','lotes','fecha_inicio',state.legajeroLotesSort)}
       ${sortableHeader('Legajos','lotes','cantidad_legajos',state.legajeroLotesSort)}
       ${sortableHeader('Motivo','lotes','motivo',state.legajeroLotesSort)}
-      ${sortableHeader('Usuario','lotes','created_by',state.legajeroLotesSort)}
+      ${sortableHeader('Cargado por','lotes','created_by_display',state.legajeroLotesSort)}
       ${sortableHeader('Creado','lotes','created_at',state.legajeroLotesSort)}
       ${sortableHeader('Estado','lotes','cancelled_at',state.legajeroLotesSort)}
       <th>Accion</th>
@@ -1025,7 +1041,7 @@
       const cancelled = Boolean(row.cancelled_at);
       const estado = cancelled ? `Cancelado: ${row.cancel_reason || ''}` : `${Number(row.activos || 0)} activos`;
       const action = canEdit && !cancelled ? `<button class="danger-cta cancel-funcion-lote" data-lote="${row.lote_id}">Cancelar</button>` : '';
-      return `<tr><td class="mono">${row.lote_id}</td><td>${esc(row.funcion)}</td><td class="mono">${esc(row.fecha_inicio)} a ${esc(row.fecha_fin || 'sin fin')}</td><td class="mono">${esc(row.cantidad_legajos)}</td><td>${esc(row.motivo)}</td><td class="mono">${esc(row.created_by)}</td><td class="mono">${esc(row.created_at)}</td><td>${esc(estado)}</td><td>${action}</td></tr>`;
+      return `<tr><td class="mono">${row.lote_id}</td><td>${esc(row.funcion)}</td><td class="mono">${esc(row.fecha_inicio)} a ${esc(row.fecha_fin || 'sin fin')}</td><td class="mono">${esc(row.cantidad_legajos)}</td><td>${esc(row.motivo)}</td><td>${esc(row.created_by_display || row.created_by || '')}</td><td class="mono">${esc(row.created_at)}</td><td>${esc(estado)}</td><td>${action}</td></tr>`;
     }).join('') || '<tr><td colspan="9">Sin cambios temporales registrados.</td></tr>'}</tbody>`;
   }
   async function loadLegajeroFunciones(){
@@ -1087,7 +1103,9 @@
     const rows = sortRowsBy(filteredLegajeroRows(), state.legajeroSort).map(row => ({
       ...row,
       vigente_vigencia: row.temporal_vigente ? `${row.temporal_vigente.fecha_inicio || ''} a ${row.temporal_vigente.fecha_fin || 'sin fin'}` : '',
+      vigente_cargado_por: row.temporal_vigente ? (row.temporal_vigente.created_by_display || row.temporal_vigente.created_by || '') : '',
       proxima_vigencia: row.proxima_temporal ? `${row.proxima_temporal.fecha_inicio || ''} a ${row.proxima_temporal.fecha_fin || 'sin fin'}` : '',
+      proxima_cargado_por: row.proxima_temporal ? (row.proxima_temporal.created_by_display || row.proxima_temporal.created_by || '') : '',
     }));
     if (!rows.length) {
       setStatus('No hay legajos visibles para exportar.', true);

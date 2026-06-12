@@ -30,7 +30,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from db.schema import DB_PATH
-from db.auth import auth_db
+from db.auth import attach_auth_db, auth_db
 from routers.auth_local import current_auth
 
 try:
@@ -127,6 +127,30 @@ def _env_path(name: str, default: Path | None = None) -> Path | None:
 def _francos_fecha_inicial() -> str:
     raw = os.getenv("RRHH_FRANCOS_FECHA_INICIAL", "2026-05-26").strip()
     return _to_date(raw) or "2026-05-26"
+
+
+def _francos_fecha_desde_archivo(path: Path) -> tuple[str, str]:
+    name = path.stem
+    patterns = (
+        r"(?<!\d)(\d{1,2})[._-](\d{1,2})[._-](\d{4})(?!\d)",
+        r"(?<!\d)(\d{4})[._-](\d{1,2})[._-](\d{1,2})(?!\d)",
+    )
+    for idx, pattern in enumerate(patterns):
+        match = re.search(pattern, name)
+        if not match:
+            continue
+        try:
+            if idx == 0:
+                day, month, year = (int(part) for part in match.groups())
+            else:
+                year, month, day = (int(part) for part in match.groups())
+            return date(year, month, day).isoformat(), "nombre_archivo"
+        except ValueError:
+            pass
+    try:
+        return datetime.fromtimestamp(path.stat().st_mtime).date().isoformat(), "fecha_modificacion_archivo"
+    except OSError:
+        return _francos_fecha_inicial(), "configuracion"
 
 
 def _now() -> str:
@@ -1195,7 +1219,26 @@ def _first_present(data: dict[str, Any], keys: tuple[str, ...]) -> Any:
     return None
 
 
+def _first_present_or_col(data: dict[str, Any], row: list[Any], keys: tuple[str, ...], col_idx: int) -> Any:
+    value = _first_present(data, keys)
+    if value is not None and value != "":
+        return value
+    return row[col_idx] if col_idx < len(row) else None
+
+
+def _ensure_francos_inicial_schema(cur: sqlite3.Cursor) -> None:
+    columns = {row[1] for row in cur.execute("PRAGMA table_info(rrhh_francos_inicial)").fetchall()}
+    for column_name, column_type in {
+        "derecho": "REAL NOT NULL DEFAULT 0",
+        "disfrute": "REAL NOT NULL DEFAULT 0",
+        "fecha_corte_origen": "TEXT",
+    }.items():
+        if column_name not in columns:
+            cur.execute(f"ALTER TABLE rrhh_francos_inicial ADD COLUMN {column_name} {column_type}")
+
+
 def _import_francos_inicial(cur: sqlite3.Cursor, path: Path, imported_by: str) -> int:
+    _ensure_francos_inicial_schema(cur)
     rows = _read_workbook_rows(path)
     if not rows:
         return 0
@@ -1212,34 +1255,44 @@ def _import_francos_inicial(cur: sqlite3.Cursor, path: Path, imported_by: str) -
     now = _now()
     legajo_keys = ("legajo", "numero_de_personal", "nro_personal", "numero_personal")
     saldo_keys = ("saldo_francos", "saldo", "francos", "dias", "dias_franco", "cuenta_corriente", "saldo_actual", "resto_global")
+    derecho_keys = ("derecho",)
+    disfrute_keys = ("disfrute",)
     nombre_keys = ("nombre", "empleado", "apellido_y_nombre", "nombre_del_empleado_o_candidato")
     fecha_keys = ("fecha_corte", "fecha", "corte", "fecha_saldo")
-    fecha_inicial = _francos_fecha_inicial()
+    fecha_archivo, fecha_origen = _francos_fecha_desde_archivo(path)
     for row in rows[header_idx + 1:]:
         data = _row_dict(headers, row)
-        legajo = _norm_legajo(_first_present(data, legajo_keys))
+        legajo = _norm_legajo(_first_present_or_col(data, row, legajo_keys, 2))
         if not legajo:
             continue
+        fecha_corte = _to_date(_first_present(data, fecha_keys))
         payload.append((
             legajo,
             _norm(_first_present(data, nombre_keys)),
-            _to_float(_first_present(data, saldo_keys)),
-            _to_date(_first_present(data, fecha_keys)) or fecha_inicial,
+            _to_float(_first_present_or_col(data, row, saldo_keys, 8)),
+            fecha_corte or fecha_archivo,
+            _to_float(_first_present_or_col(data, row, derecho_keys, 9)),
+            _to_float(_first_present_or_col(data, row, disfrute_keys, 10)),
+            "columna_excel" if fecha_corte else fecha_origen,
             str(path),
             _raw_json(headers, row),
             imported_by,
             now,
         ))
+    cur.execute("DELETE FROM rrhh_francos_inicial")
     cur.executemany(
         """
         INSERT INTO rrhh_francos_inicial (
-            legajo, nombre, saldo_inicial, fecha_corte, source_file,
-            raw_json, imported_by, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            legajo, nombre, saldo_inicial, fecha_corte, derecho, disfrute,
+            fecha_corte_origen, source_file, raw_json, imported_by, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(legajo) DO UPDATE SET
             nombre = excluded.nombre,
             saldo_inicial = excluded.saldo_inicial,
             fecha_corte = excluded.fecha_corte,
+            derecho = excluded.derecho,
+            disfrute = excluded.disfrute,
+            fecha_corte_origen = excluded.fecha_corte_origen,
             source_file = excluded.source_file,
             raw_json = excluded.raw_json,
             imported_by = excluded.imported_by,
@@ -1999,6 +2052,7 @@ async def list_legajero_funciones(request: Request):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         db.row_factory = aiosqlite.Row
+        await attach_auth_db(db)
         await db.execute(
             """
             INSERT OR IGNORE INTO rrhh_funciones_catalogo (descripcion, created_by)
@@ -2030,9 +2084,12 @@ async def list_legajero_funciones(request: Request):
         async with db.execute(
             """
             SELECT d.legajo, d.detalle_id, d.lote_id, l.funcion_descripcion,
-                   l.fecha_inicio, l.fecha_fin, l.motivo, l.created_by, l.created_at
+                   l.fecha_inicio, l.fecha_fin, l.motivo, l.created_by,
+                   COALESCE(NULLIF(TRIM(u.display_name), ''), l.created_by) created_by_display,
+                   l.created_at
             FROM rrhh_funcion_cambio_detalle d
             JOIN rrhh_funcion_cambio_lotes l ON l.lote_id = d.lote_id
+            LEFT JOIN authdb.auth_users u ON u.username = l.created_by
             WHERE d.estado = 'activo'
               AND l.cancelled_at IS NULL
               AND (l.fecha_fin IS NULL OR l.fecha_fin >= ?)
@@ -2053,11 +2110,14 @@ async def list_legajero_funciones(request: Request):
         async with db.execute(
             """
             SELECT l.lote_id, l.funcion_descripcion funcion, l.fecha_inicio, l.fecha_fin,
-                   l.motivo, l.cantidad_legajos, l.created_by, l.created_at,
+                   l.motivo, l.cantidad_legajos, l.created_by,
+                   COALESCE(NULLIF(TRIM(u.display_name), ''), l.created_by) created_by_display,
+                   l.created_at,
                    l.cancelled_by, l.cancelled_at, l.cancel_reason,
                    SUM(CASE WHEN d.estado = 'activo' THEN 1 ELSE 0 END) activos
             FROM rrhh_funcion_cambio_lotes l
             LEFT JOIN rrhh_funcion_cambio_detalle d ON d.lote_id = l.lote_id
+            LEFT JOIN authdb.auth_users u ON u.username = l.created_by
             GROUP BY l.lote_id
             ORDER BY l.created_at DESC, l.lote_id DESC
             LIMIT 100
@@ -2076,6 +2136,7 @@ async def list_legajero_funciones(request: Request):
             "estado": estado,
             "motivo": temporal.get("motivo"),
             "created_by": temporal.get("created_by"),
+            "created_by_display": temporal.get("created_by_display") or temporal.get("created_by"),
             "created_at": temporal.get("created_at"),
         }
         temporales_by_legajo.setdefault(str(temporal.get("legajo") or ""), []).append(item)
@@ -2093,6 +2154,11 @@ async def list_legajero_funciones(request: Request):
         row["funcion_temporal_vigente"] = (vigente[0].get("funcion") if vigente else "") or ""
         row["proxima_funcion_temporal"] = (proxima[0].get("funcion") if proxima else "") or ""
         row["proxima_fecha_inicio"] = (proxima[0].get("fecha_inicio") if proxima else "") or ""
+        row["temporal_cargado_por"] = (
+            (vigente[0].get("created_by_display") if vigente else "")
+            or (proxima[0].get("created_by_display") if proxima else "")
+            or ""
+        )
     return {
         "rows": rows,
         "funciones": funciones,
@@ -2307,8 +2373,10 @@ async def export_legajero_funciones(req: LegajeroExportRequest, request: Request
         ("funcion_legajero", "Funcion Legajero"),
         ("funcion_temporal_vigente", "Temporal vigente"),
         ("vigente_vigencia", "Vigencia vigente"),
+        ("vigente_cargado_por", "Vigente cargado por"),
         ("proxima_funcion_temporal", "Proxima temporal"),
         ("proxima_vigencia", "Vigencia proxima"),
+        ("proxima_cargado_por", "Proxima cargada por"),
         ("temporales_count", "Asignaciones temporales"),
     ]
     output = io.BytesIO()
@@ -3052,7 +3120,10 @@ async def get_francos(
                    COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), '') sector,
                    COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''), '') funcion,
                    COALESCE(fi.saldo_inicial, 0) saldo_inicial,
-                   fi.fecha_corte
+                   COALESCE(fi.derecho, 0) derecho,
+                   COALESCE(fi.disfrute, 0) disfrute,
+                   fi.fecha_corte,
+                   fi.fecha_corte_origen
             FROM rrhh_francos_inicial fi
             LEFT JOIN latest_legajero l ON l.legajo = fi.legajo
             WHERE {" AND ".join(initial_where)}
@@ -3106,7 +3177,10 @@ async def get_francos(
                 "sector": row.get("sector_legajero") or row.get("sector") or "",
                 "funcion": row.get("funcion") or "",
                 "saldo_inicial": 0,
+                "derecho": 0,
+                "disfrute": 0,
                 "fecha_corte": None,
+                "fecha_corte_origen": None,
             },
         )
         item["nombre"] = item.get("nombre") or row.get("nombre") or "Sin nombre"
