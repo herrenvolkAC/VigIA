@@ -42,6 +42,21 @@ public class OracleProductividadQuery {
         }
     }
 
+    private static String[] splitList(String value) {
+        if (value == null || value.trim().isEmpty()) return new String[] {"__SIN_LEGAJOS__"};
+        return value.split("\\s*,\\s*");
+    }
+
+    private static String placeholders(String value) {
+        String[] items = splitList(value);
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < items.length; i++) {
+            if (i > 0) out.append(",");
+            out.append("?");
+        }
+        return out.toString();
+    }
+
     private static void appendGenericJsonRow(ResultSet rs, StringBuilder out) throws Exception {
         var meta = rs.getMetaData();
         int columns = meta.getColumnCount();
@@ -77,9 +92,155 @@ public class OracleProductividadQuery {
         String fechaHasta = args[4];
         String queryKey = args.length >= 6 ? args[5] : "productividad";
         String legajo = args.length >= 7 ? args[6] : "";
+        String operacionArg = args.length >= 8 ? args[7] : "PICKING";
+        String nivelArg = args.length >= 9 ? args[8] : "";
+        String grupoFuncionesArg = args.length >= 10 ? args[9] : "1";
+        String fechaOperativaArg = args.length >= 11 ? args[10] : "";
 
         String sql;
-        if ("picking_analysis".equalsIgnoreCase(queryKey)) {
+        if ("premio_escala".equalsIgnoreCase(queryKey)) {
+            sql = """
+                SELECT
+                    D.DESCRIPCION AS OPERACION,
+                    D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA,
+                    F.DESCRIPCION AS GRUPOPRODUCTIVO,
+                    E.NIVEL,
+                    E.DESDE AS DESDE_ACTUAL,
+                    E.HASTA AS HASTA_ACTUAL,
+                    E.PREMIO AS PREMIO_ACTUAL,
+                    ROUND(E.DESDE/8, 0) AS DESDE_X_HORA,
+                    ROUND(E.HASTA/8, 0) AS HASTA_X_HORA,
+                    ROUND(E.PREMIO/8, 0) AS PREMIO_X_HORA
+                FROM PV_ESCALA_DE_PREMIOS E
+                JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
+                JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
+                WHERE E.ID_DE_GRUPO_DE_FUNCIONES = ?
+                ORDER BY 1, 3, 4
+                """;
+        } else if ("premio_pago_actual".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    A.FECHA, " +
+                "    A.LEGAJO, " +
+                "    D.DESCRIPCION AS OPERACION, " +
+                "    C.PROD_REAL AS PRODUCTIVIDAD, " +
+                "    B.A_PAGAR_TOTAL, " +
+                "    B.ID_PV_UNIDAD_DE_PRODUCCION AS ULMEDIDA " +
+                "FROM PV_DIA_LABORAL A " +
+                "JOIN PV_LIQUIDAC_DIA_DET1 B ON A.ID = B.ID_PV_DIA_LABORAL " +
+                "JOIN PV_LIQUIDAC_DIA_DET2 C ON A.ID = C.ID_PV_DIA_LABORAL AND B.ID_PV_GRUPO_DE_FUNCIONES = C.ID_PV_GRUPO_DE_FUNCIONES " +
+                "JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = B.ID_PV_GRUPO_DE_FUNCIONES " +
+                "JOIN PV_ESCALA_DE_PREMIOS E ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES AND C.ID_PV_GRUPO_PRODUCTIVO = E.ID_DE_GRUPO_PRODUCTIVO AND B.OBJETIVO_NIVEL_ALCANZADO = E.NIVEL " +
+                "WHERE A.FECHA = ? " +
+                "  AND D.DESCRIPCION = ? " +
+                "  AND E.NIVEL = ? " +
+                "  AND A.LEGAJO IN (" + placeholders(legajo) + ") " +
+                "ORDER BY A.LEGAJO";
+        } else if ("premio_produccion_hora".equalsIgnoreCase(queryKey)) {
+            sql =
+                "WITH TODO AS ( " +
+                "SELECT " +
+                "    TO_CHAR(TO_DATE(?, 'YYYY-MM-DD'), 'YYYY-MM-DD') AS fecha, " +
+                "    TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) AS hora, " +
+                "    COPECREA AS OPERARIO, " +
+                "    UPPER(CDESCRIP) AS OPERACION, " +
+                "    SUM(QCANTIDA) AS CANTIDAD, " +
+                "    CASE SUB1.DESCDIVI " +
+                "        WHEN 'SECTOR SECOS' THEN 'SECOS + NOA ' " +
+                "        WHEN 'VARIOS NO ALIMENTOS' THEN 'SECOS + NOA ' " +
+                "        ELSE SUB1.DESCDIVI " +
+                "    END AS ALMACEN " +
+                "FROM F132HIST A " +
+                "LEFT JOIN (SELECT DISTINCT CZONALMA, DESCDIVI FROM VW_UBICACIONES_DIVISION) SUB1 ON SUB1.CZONALMA = A.CZONAORI " +
+                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND COPECREA IN (" + placeholders(legajo) + ") " +
+                "  AND UPPER(CDESCRIP) = ? " +
+                "GROUP BY " +
+                "    TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')), " +
+                "    COPECREA, " +
+                "    UPPER(CDESCRIP), " +
+                "    CASE SUB1.DESCDIVI " +
+                "        WHEN 'SECTOR SECOS' THEN 'SECOS + NOA ' " +
+                "        WHEN 'VARIOS NO ALIMENTOS' THEN 'SECOS + NOA ' " +
+                "        ELSE SUB1.DESCDIVI " +
+                "    END " +
+                "ORDER BY TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) " +
+                ") SELECT * FROM TODO";
+        } else if ("premio_caso_modelo_rango".equalsIgnoreCase(queryKey)) {
+            sql =
+                "WITH FECHA_PARAM AS (SELECT TO_DATE(?, 'YYYY/MM/DD') AS FECHA_BASE FROM DUAL), " +
+                "PARAMS AS (SELECT FECHA_BASE, FECHA_BASE + (6 / 24) AS FECHA_DESDE, FECHA_BASE + 1 + (10.5 / 24) AS FECHA_HASTA, TO_NUMBER(TO_CHAR(FECHA_BASE, 'YYYYMMDD')) AS FECHA_PREMIO FROM FECHA_PARAM), " +
+                "ESCALAS AS (SELECT D.DESCRIPCION AS OPERACION, D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA, F.DESCRIPCION AS GRUPOPRODUCTIVO, E.NIVEL, E.DESDE AS DESDE_ACTUAL, E.HASTA AS HASTA_ACTUAL, E.PREMIO AS PREMIO_ACTUAL, ROUND(E.DESDE/8, 0) AS DESDE_X_HORA, ROUND(E.HASTA/8, 0) AS HASTA_X_HORA, ROUND(E.PREMIO/8, 0) AS PREMIO_X_HORA FROM PV_ESCALA_DE_PREMIOS E JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID WHERE E.ID_DE_GRUPO_DE_FUNCIONES = 1), " +
+                "COMPARACION AS (SELECT A.FECHA, A.LEGAJO, D.DESCRIPCION AS OPERACION, C.PROD_REAL, C.PROD_REAL/8 AS PROD_REAL_X_HORA, B.A_PAGAR_TOTAL, B.ID_PV_UNIDAD_DE_PRODUCCION, TURNO AS TURNOPROD FROM PV_DIA_LABORAL A JOIN PV_LIQUIDAC_DIA_DET1 B ON A.ID = B.ID_PV_DIA_LABORAL JOIN PV_LIQUIDAC_DIA_DET2 C ON A.ID = C.ID_PV_DIA_LABORAL AND B.ID_PV_GRUPO_DE_FUNCIONES = C.ID_PV_GRUPO_DE_FUNCIONES JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = B.ID_PV_GRUPO_DE_FUNCIONES JOIN PV_ESCALA_DE_PREMIOS E ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES AND C.ID_PV_GRUPO_PRODUCTIVO = E.ID_DE_GRUPO_PRODUCTIVO AND B.OBJETIVO_NIVEL_ALCANZADO = E.NIVEL JOIN PARAMS param ON A.FECHA = PARAM.FECHA_PREMIO WHERE D.DESCRIPCION = 'PICKING' AND B.ID_PV_GRUPO_PRODUCTIVO = 21), " +
+                "F132_SOURCE AS (SELECT A.FCREAREG, A.COPECREA, A.CDESCRIP, A.QCANTIDA, A.CZONAORI FROM F132HIST A JOIN PARAMS B ON A.FCREAREG >= B.FECHA_DESDE AND A.FCREAREG <= B.FECHA_HASTA WHERE A.COPECREA IN (SELECT LEGAJO FROM COMPARACION) AND (A.FCREAREG <= B.FECHA_BASE + 1 + (6 / 24) OR A.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION WHERE TURNOPROD = '3')) AND UPPER(A.CDESCRIP) = 'PICKING' UNION ALL SELECT A.FCREAREG, A.COPECREA, A.CDESCRIP, A.QCANTIDA, A.CZONAORI FROM F132HIST_HIST A JOIN PARAMS B ON A.FCREAREG >= B.FECHA_DESDE AND A.FCREAREG <= B.FECHA_HASTA WHERE A.COPECREA IN (SELECT LEGAJO FROM COMPARACION) AND (A.FCREAREG <= B.FECHA_BASE + 1 + (6 / 24) OR A.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION WHERE TURNOPROD = '3')) AND UPPER(A.CDESCRIP) = 'PICKING' AND NOT EXISTS (SELECT 1 FROM F132HIST X JOIN PARAMS P ON X.FCREAREG >= P.FECHA_DESDE AND X.FCREAREG <= P.FECHA_HASTA WHERE X.COPECREA IN (SELECT LEGAJO FROM COMPARACION) AND (X.FCREAREG <= P.FECHA_BASE + 1 + (6 / 24) OR X.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION WHERE TURNOPROD = '3')) AND UPPER(X.CDESCRIP) = 'PICKING')), " +
+                "TODO AS (SELECT TRUNC(FECHA_DESDE) AS FECHA, TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) AS HORA, CASE WHEN TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) >= 6 AND TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) < 14 THEN '1' WHEN TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) >= 14 AND TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) < 22 THEN '2' ELSE '3' END AS TURNO, COPECREA AS OPERARIO, UPPER(CDESCRIP) AS OPERACION, SUM(QCANTIDA) AS CANTIDAD, CASE SUB1.DESCDIVI WHEN 'SECTOR SECOS' THEN 'SECOS + NOA ' WHEN 'VARIOS NO ALIMENTOS' THEN 'SECOS + NOA ' ELSE SUB1.DESCDIVI END AS ALMACEN FROM F132_SOURCE A JOIN PARAMS B ON A.FCREAREG >= B.FECHA_DESDE AND A.FCREAREG <= B.FECHA_HASTA LEFT JOIN (SELECT DISTINCT CZONALMA, DESCDIVI FROM VW_UBICACIONES_DIVISION) SUB1 ON SUB1.CZONALMA = A.CZONAORI WHERE COPECREA IN (SELECT LEGAJO FROM COMPARACION) AND (A.FCREAREG <= B.FECHA_BASE + 1 + (6 / 24) OR COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION WHERE TURNOPROD = '3')) AND UPPER(CDESCRIP) = 'PICKING' GROUP BY TRUNC(FECHA_DESDE), TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')), COPECREA, UPPER(CDESCRIP), CASE SUB1.DESCDIVI WHEN 'SECTOR SECOS' THEN 'SECOS + NOA ' WHEN 'VARIOS NO ALIMENTOS' THEN 'SECOS + NOA ' ELSE SUB1.DESCDIVI END), " +
+                "TODOPREMIO AS (SELECT A.*, B.DESDE_X_HORA, B.HASTA_X_HORA, ROUND(B.PREMIO_ACTUAL/8, 2) AS PREMIO_NUEVO FROM TODO A LEFT JOIN ESCALAS B ON B.GRUPOPRODUCTIVO = 'SECOS + NOA ' AND A.CANTIDAD > B.DESDE_X_HORA AND A.CANTIDAD <= B.HASTA_X_HORA), " +
+                "AGG AS (SELECT A.*, B.TURNOPROD, B.PROD_REAL AS PRODUCTIVIDAD_ANTERIOR, B.A_PAGAR_TOTAL AS PREMIO_ANTERIOR, CASE WHEN A.TURNO = B.TURNOPROD THEN A.CANTIDAD ELSE 0 END AS DENTROTURNO FROM TODOPREMIO A JOIN COMPARACION B ON A.OPERARIO = B.LEGAJO), " +
+                "FINAL AS (SELECT FECHA, OPERARIO, OPERACION, SUM(CANTIDAD) AS BULTOS, ALMACEN, SUM(PREMIO_NUEVO) AS PREMIO_X_HORAS, SUM(CASE WHEN TURNO = TURNOPROD THEN PREMIO_NUEVO ELSE 0 END) AS PREMIO_X_HORAS_SIN_EXTRAS, PRODUCTIVIDAD_ANTERIOR, PREMIO_ANTERIOR, SUM(DENTROTURNO) AS BULTOSTURNO FROM AGG GROUP BY FECHA, OPERARIO, OPERACION, ALMACEN, PRODUCTIVIDAD_ANTERIOR, PREMIO_ANTERIOR) " +
+                "SELECT DISTINCT A.*, B.PREMIO_ACTUAL, A.PREMIO_ANTERIOR - A.PREMIO_X_HORAS AS DIFERENCIA_X_HORAS, A.PREMIO_ANTERIOR - B.PREMIO_ACTUAL AS DIFERENCIA_SIN_EXTRAS, A.PREMIO_ANTERIOR - A.PREMIO_X_HORAS_SIN_EXTRAS AS DIFERENCIA_X_HORAS_SIN_EXTRAS FROM FINAL A JOIN ESCALAS B ON B.GRUPOPRODUCTIVO = A.ALMACEN AND A.BULTOSTURNO >= B.DESDE_ACTUAL AND A.BULTOSTURNO < B.HASTA_ACTUAL ORDER BY A.FECHA, A.OPERARIO";
+        } else if ("premio_caso_modelo_detalle".equalsIgnoreCase(queryKey)) {
+            sql =
+                "WITH FECHA_PARAM AS (SELECT TO_DATE(?, 'YYYY/MM/DD') AS FECHA_BASE FROM DUAL), " +
+                "PARAMS AS (SELECT FECHA_BASE, FECHA_BASE + (6 / 24) AS FECHA_DESDE, FECHA_BASE + 1 + (10.5 / 24) AS FECHA_HASTA, TO_NUMBER(TO_CHAR(FECHA_BASE, 'YYYYMMDD')) AS FECHA_PREMIO FROM FECHA_PARAM), " +
+                "ESCALAS AS (SELECT D.DESCRIPCION AS OPERACION, D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA, F.DESCRIPCION AS GRUPOPRODUCTIVO, E.NIVEL, E.DESDE AS DESDE_ACTUAL, E.HASTA AS HASTA_ACTUAL, E.PREMIO AS PREMIO_ACTUAL, ROUND(E.DESDE / 8, 0) AS DESDE_X_HORA, ROUND(E.HASTA / 8, 0) AS HASTA_X_HORA, ROUND(E.PREMIO / 8, 0) AS PREMIO_X_HORA FROM PV_ESCALA_DE_PREMIOS E JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID WHERE E.ID_DE_GRUPO_DE_FUNCIONES = 1), " +
+                "COMPARACION AS (SELECT A.FECHA, A.LEGAJO, D.DESCRIPCION AS OPERACION, C.PROD_REAL, C.PROD_REAL / 8 AS PROD_REAL_X_HORA, B.A_PAGAR_TOTAL, B.ID_PV_UNIDAD_DE_PRODUCCION, A.TURNO AS TURNOPROD, CASE WHEN B.PENALIZACION_EXCESO_TNC > 0 THEN 'PENALIZACION TNC' ELSE 'SIN PENALIZACION' END AS PENALIZACION_TNC, CASE WHEN B.PENALIZACION_POR_ERROR > 0 THEN 'PENALIZACION ERROR' ELSE '' END AS PENALIZACION_ERROR FROM PV_DIA_LABORAL A JOIN PV_LIQUIDAC_DIA_DET1 B ON A.ID = B.ID_PV_DIA_LABORAL JOIN PV_LIQUIDAC_DIA_DET2 C ON A.ID = C.ID_PV_DIA_LABORAL AND B.ID_PV_GRUPO_DE_FUNCIONES = C.ID_PV_GRUPO_DE_FUNCIONES JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = B.ID_PV_GRUPO_DE_FUNCIONES JOIN PV_ESCALA_DE_PREMIOS E ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES AND C.ID_PV_GRUPO_PRODUCTIVO = E.ID_DE_GRUPO_PRODUCTIVO AND B.OBJETIVO_NIVEL_ALCANZADO = E.NIVEL JOIN PARAMS PARAM ON A.FECHA = PARAM.FECHA_PREMIO WHERE D.DESCRIPCION = 'PICKING' AND B.ID_PV_GRUPO_PRODUCTIVO = 21 AND A.LEGAJO = ?), " +
+                "F132_SOURCE AS (SELECT A.FCREAREG, A.COPECREA, A.CDESCRIP, A.QCANTIDA, A.CZONAORI FROM F132HIST A JOIN PARAMS B ON A.FCREAREG >= B.FECHA_DESDE AND A.FCREAREG <= B.FECHA_HASTA WHERE A.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION) AND (A.FCREAREG <= B.FECHA_BASE + 1 + (6 / 24) OR A.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION WHERE TURNOPROD = '3')) AND UPPER(A.CDESCRIP) = 'PICKING' UNION ALL SELECT A.FCREAREG, A.COPECREA, A.CDESCRIP, A.QCANTIDA, A.CZONAORI FROM F132HIST_HIST A JOIN PARAMS B ON A.FCREAREG >= B.FECHA_DESDE AND A.FCREAREG <= B.FECHA_HASTA WHERE A.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION) AND (A.FCREAREG <= B.FECHA_BASE + 1 + (6 / 24) OR A.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION WHERE TURNOPROD = '3')) AND UPPER(A.CDESCRIP) = 'PICKING' AND NOT EXISTS (SELECT 1 FROM F132HIST X JOIN PARAMS P ON X.FCREAREG >= P.FECHA_DESDE AND X.FCREAREG <= P.FECHA_HASTA WHERE X.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION) AND (X.FCREAREG <= P.FECHA_BASE + 1 + (6 / 24) OR X.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION WHERE TURNOPROD = '3')) AND UPPER(X.CDESCRIP) = 'PICKING')), " +
+                "TODO AS (SELECT TRUNC(B.FECHA_DESDE) AS FECHA, TO_NUMBER(TO_CHAR(A.FCREAREG, 'HH24')) AS HORA, CASE WHEN TO_NUMBER(TO_CHAR(A.FCREAREG, 'HH24')) >= 6 AND TO_NUMBER(TO_CHAR(A.FCREAREG, 'HH24')) < 14 THEN '1' WHEN TO_NUMBER(TO_CHAR(A.FCREAREG, 'HH24')) >= 14 AND TO_NUMBER(TO_CHAR(A.FCREAREG, 'HH24')) < 22 THEN '2' ELSE '3' END AS TURNO, A.COPECREA AS OPERARIO, UPPER(A.CDESCRIP) AS OPERACION, SUM(A.QCANTIDA) AS CANTIDAD, CASE SUB1.DESCDIVI WHEN 'SECTOR SECOS' THEN 'SECOS + NOA ' WHEN 'VARIOS NO ALIMENTOS' THEN 'SECOS + NOA ' ELSE SUB1.DESCDIVI END AS ALMACEN FROM F132_SOURCE A JOIN PARAMS B ON A.FCREAREG >= B.FECHA_DESDE AND A.FCREAREG <= B.FECHA_HASTA LEFT JOIN (SELECT DISTINCT CZONALMA, DESCDIVI FROM VW_UBICACIONES_DIVISION) SUB1 ON SUB1.CZONALMA = A.CZONAORI WHERE A.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION) AND (A.FCREAREG <= B.FECHA_BASE + 1 + (6 / 24) OR A.COPECREA IN (SELECT TO_CHAR(LEGAJO) FROM COMPARACION WHERE TURNOPROD = '3')) AND UPPER(A.CDESCRIP) = 'PICKING' GROUP BY TRUNC(B.FECHA_DESDE), TO_NUMBER(TO_CHAR(A.FCREAREG, 'HH24')), A.COPECREA, UPPER(A.CDESCRIP), CASE SUB1.DESCDIVI WHEN 'SECTOR SECOS' THEN 'SECOS + NOA ' WHEN 'VARIOS NO ALIMENTOS' THEN 'SECOS + NOA ' ELSE SUB1.DESCDIVI END), " +
+                "TODOPREMIO AS (SELECT A.*, B.DESDE_X_HORA, B.HASTA_X_HORA, ROUND(B.PREMIO_ACTUAL / 8, 2) AS PREMIO_NUEVO FROM TODO A LEFT JOIN ESCALAS B ON B.GRUPOPRODUCTIVO = 'SECOS + NOA ' AND A.CANTIDAD > B.DESDE_X_HORA AND A.CANTIDAD <= B.HASTA_X_HORA), " +
+                "AGG AS (SELECT A.*, B.TURNOPROD, B.PROD_REAL AS PRODUCTIVIDAD_ANTERIOR, B.A_PAGAR_TOTAL AS PREMIO_ANTERIOR, CASE WHEN A.TURNO = B.TURNOPROD THEN A.CANTIDAD ELSE 0 END AS DENTROTURNO, B.PENALIZACION_TNC, B.PENALIZACION_ERROR FROM TODOPREMIO A JOIN COMPARACION B ON TO_CHAR(A.OPERARIO) = TO_CHAR(B.LEGAJO)), " +
+                "AGG2 AS (SELECT A.FECHA, A.HORA, CASE A.TURNO WHEN '1' THEN 'MAÑANA' WHEN '2' THEN 'TARDE' ELSE 'NOCHE' END AS TURNO, A.OPERARIO, B.NOMBRE, A.OPERACION, A.CANTIDAD AS BULTOS, A.ALMACEN, A.DESDE_X_HORA AS BULTOS_HORA_MIN, A.HASTA_X_HORA AS BULTOS_HORA_MAX, A.PREMIO_NUEVO AS PREMIO_X_HORA, A.PRODUCTIVIDAD_ANTERIOR AS PROD_MODULO, A.PREMIO_ANTERIOR AS PAGO_MODULO, A.DENTROTURNO AS BULTOS_MODULO, A.PENALIZACION_TNC, A.PENALIZACION_ERROR, SUM(A.DENTROTURNO) OVER (PARTITION BY A.OPERARIO) AS BULTOSTURNO FROM AGG A JOIN PV_LEGAJO B ON A.OPERARIO = B.LEGAJO) " +
+                "SELECT A.*, B.PREMIO_ACTUAL AS PREMIO_SIN_EXTRA FROM AGG2 A JOIN ESCALAS B ON B.GRUPOPRODUCTIVO = A.ALMACEN AND A.BULTOSTURNO >= B.DESDE_ACTUAL AND A.BULTOSTURNO < B.HASTA_ACTUAL ORDER BY A.HORA";
+        } else if ("premio_caso_modelo_final".equalsIgnoreCase(queryKey)) {
+            sql =
+                "WITH ESCALAS AS ( " +
+                "SELECT D.DESCRIPCION AS OPERACION, D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA, F.DESCRIPCION AS GRUPOPRODUCTIVO, E.NIVEL, " +
+                "       E.DESDE AS DESDE_ACTUAL, E.HASTA AS HASTA_ACTUAL, E.PREMIO AS PREMIO_ACTUAL, " +
+                "       ROUND(E.DESDE/8, 0) AS DESDE_X_HORA, ROUND(E.HASTA/8, 0) AS HASTA_X_HORA, ROUND(E.PREMIO/8, 0) AS PREMIO_X_HORA " +
+                "FROM PV_ESCALA_DE_PREMIOS E " +
+                "JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES " +
+                "JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID " +
+                "WHERE E.ID_DE_GRUPO_DE_FUNCIONES = ? " +
+                "), TODO AS ( " +
+                "SELECT TO_DATE(?, 'YYYY-MM-DD') AS FECHA, TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) AS HORA, " +
+                "       CASE WHEN TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) >= 6 AND TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) < 14 THEN '1' " +
+                "            WHEN TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) >= 14 AND TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')) < 22 THEN '2' ELSE '3' END AS TURNO, " +
+                "       COPECREA AS OPERARIO, UPPER(CDESCRIP) AS OPERACION, SUM(QCANTIDA) AS CANTIDAD, " +
+                "       CASE SUB1.DESCDIVI WHEN 'SECTOR SECOS' THEN 'SECOS + NOA ' WHEN 'VARIOS NO ALIMENTOS' THEN 'SECOS + NOA ' ELSE SUB1.DESCDIVI END AS ALMACEN " +
+                "FROM F132HIST A " +
+                "LEFT JOIN (SELECT DISTINCT CZONALMA, DESCDIVI FROM VW_UBICACIONES_DIVISION) SUB1 ON SUB1.CZONALMA = A.CZONAORI " +
+                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND COPECREA IN (" + placeholders(legajo) + ") " +
+                "  AND UPPER(CDESCRIP) = ? " +
+                "GROUP BY TO_NUMBER(TO_CHAR(FCREAREG, 'HH24')), COPECREA, UPPER(CDESCRIP), " +
+                "       CASE SUB1.DESCDIVI WHEN 'SECTOR SECOS' THEN 'SECOS + NOA ' WHEN 'VARIOS NO ALIMENTOS' THEN 'SECOS + NOA ' ELSE SUB1.DESCDIVI END " +
+                "), TODOPREMIO AS ( " +
+                "SELECT A.*, B.DESDE_X_HORA, B.HASTA_X_HORA, ROUND(B.PREMIO_ACTUAL/8, 2) AS PREMIO_NUEVO " +
+                "FROM TODO A LEFT JOIN ESCALAS B ON B.GRUPOPRODUCTIVO = 'SECOS + NOA ' AND A.CANTIDAD > B.DESDE_X_HORA AND A.CANTIDAD <= B.HASTA_X_HORA " +
+                "), COMPARACION AS ( " +
+                "SELECT A.FECHA, A.LEGAJO, D.DESCRIPCION AS OPERACION, C.PROD_REAL, C.PROD_REAL/8 AS PROD_REAL_X_HORA, " +
+                "       B.A_PAGAR_TOTAL, B.ID_PV_UNIDAD_DE_PRODUCCION, TURNO AS TURNOPROD " +
+                "FROM PV_DIA_LABORAL A " +
+                "JOIN PV_LIQUIDAC_DIA_DET1 B ON A.ID = B.ID_PV_DIA_LABORAL " +
+                "JOIN PV_LIQUIDAC_DIA_DET2 C ON A.ID = C.ID_PV_DIA_LABORAL AND B.ID_PV_GRUPO_DE_FUNCIONES = C.ID_PV_GRUPO_DE_FUNCIONES " +
+                "JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = B.ID_PV_GRUPO_DE_FUNCIONES " +
+                "JOIN PV_ESCALA_DE_PREMIOS E ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES AND C.ID_PV_GRUPO_PRODUCTIVO = E.ID_DE_GRUPO_PRODUCTIVO AND B.OBJETIVO_NIVEL_ALCANZADO = E.NIVEL " +
+                "WHERE A.FECHA = TO_CHAR(TO_DATE(?, 'YYYY-MM-DD'), 'YYYYMMDD') AND D.DESCRIPCION = ? AND A.LEGAJO IN (" + placeholders(legajo) + ") " +
+                "), AGG AS ( " +
+                "SELECT A.*, B.TURNOPROD, B.PROD_REAL AS PRODUCTIVIDAD_ANTERIOR, B.A_PAGAR_TOTAL AS PREMIO_ANTERIOR, " +
+                "       CASE WHEN A.TURNO = B.TURNOPROD THEN A.CANTIDAD ELSE 0 END AS DENTROTURNO " +
+                "FROM TODOPREMIO A JOIN COMPARACION B ON A.OPERARIO = B.LEGAJO " +
+                "), FINAL AS ( " +
+                "SELECT FECHA, OPERARIO, OPERACION, SUM(CANTIDAD) AS BULTOS, ALMACEN, SUM(PREMIO_NUEVO) AS PREMIO_X_HORAS, " +
+                "       PRODUCTIVIDAD_ANTERIOR, PREMIO_ANTERIOR, SUM(DENTROTURNO) AS BULTOSTURNO " +
+                "FROM AGG GROUP BY FECHA, OPERARIO, OPERACION, ALMACEN, PRODUCTIVIDAD_ANTERIOR, PREMIO_ANTERIOR " +
+                ") " +
+                "SELECT A.*, B.PREMIO_ACTUAL, A.PREMIO_ANTERIOR - A.PREMIO_X_HORAS AS DIFERENCIA_X_HORAS, " +
+                "       A.PREMIO_ANTERIOR - B.PREMIO_ACTUAL AS DIFERENCIA_SIN_EXTRAS " +
+                "FROM FINAL A LEFT JOIN ESCALAS B ON B.GRUPOPRODUCTIVO = A.ALMACEN AND A.BULTOSTURNO >= B.DESDE_ACTUAL AND A.BULTOSTURNO < B.HASTA_ACTUAL " +
+                "ORDER BY A.OPERARIO";
+        } else if ("picking_analysis".equalsIgnoreCase(queryKey)) {
             sql =
                 "SELECT " +
                 "    NVL(SUB1.DESCDIVI, 'SIN MAPEAR') AS ALMACEN, " +
@@ -794,7 +955,47 @@ public class OracleProductividadQuery {
             Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
             PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey)) {
+            if ("premio_escala".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, grupoFuncionesArg);
+            } else if ("premio_pago_actual".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaDesde);
+                ps.setString(2, operacionArg);
+                ps.setString(3, nivelArg);
+                String[] legajos = splitList(legajo);
+                for (int i = 0; i < legajos.length; i++) {
+                    ps.setString(4 + i, legajos[i]);
+                }
+            } else if ("premio_produccion_hora".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaOperativaArg);
+                ps.setString(2, fechaDesde);
+                ps.setString(3, fechaHasta);
+                String[] legajos = splitList(legajo);
+                for (int i = 0; i < legajos.length; i++) {
+                    ps.setString(4 + i, legajos[i]);
+                }
+                ps.setString(4 + legajos.length, operacionArg);
+            } else if ("premio_caso_modelo_final".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, grupoFuncionesArg);
+                ps.setString(2, fechaOperativaArg);
+                ps.setString(3, fechaDesde);
+                ps.setString(4, fechaHasta);
+                String[] legajos = splitList(legajo);
+                for (int i = 0; i < legajos.length; i++) {
+                    ps.setString(5 + i, legajos[i]);
+                }
+                int offset = 5 + legajos.length;
+                ps.setString(offset, operacionArg);
+                ps.setString(offset + 1, fechaOperativaArg);
+                ps.setString(offset + 2, operacionArg);
+                for (int i = 0; i < legajos.length; i++) {
+                    ps.setString(offset + 3 + i, legajos[i]);
+                }
+            } else if ("premio_caso_modelo_rango".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaOperativaArg.replace("-", "/"));
+            } else if ("premio_caso_modelo_detalle".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaOperativaArg.replace("-", "/"));
+                ps.setString(2, args.length >= 12 ? args[11] : legajo);
+            } else if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
                 ps.setString(2, fechaHasta);
                 if ("gestion_productividad_picking".equalsIgnoreCase(queryKey)) {
@@ -827,7 +1028,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_tnc_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
+                    if ("premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

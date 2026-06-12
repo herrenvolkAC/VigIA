@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>VigIA - Analisis Premio Productividad</title>
+  <style>
+    :root{--bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;--blue:#0B5FAE}
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:24px 24px}
+    button,input,select{font:inherit;color:inherit}button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:100%;min-height:100vh;margin:0;padding:0 16px 22px}.mono{font-family:'IBM Plex Mono',monospace}.label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft)}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}.brand-logo{width:86px;height:44px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}.kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+    h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}.amp{color:var(--red)}.header-right{display:flex;align-items:center;gap:12px}.user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}.user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .paper-link,.logout-btn,.secondary-cta{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}.paper-link:hover,.secondary-cta:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover{color:var(--red);border-color:var(--red)}.row-link{min-height:22px;padding:2px 6px;color:var(--blue);border-color:#B8D2E8}
+    .paper-tabs{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule);overflow:auto}.tab-list{display:flex}.tab-btn{background:transparent;border:0;color:var(--ink-soft);padding:13px 14px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;min-width:118px;white-space:nowrap}.tab-btn.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}
+    .filters{display:grid;grid-template-columns:150px 150px 170px 130px 1fr;gap:10px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.case-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px;min-width:0}.case-cell strong{display:block;margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input,.paper-select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}.primary-cta{height:34px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}.primary-cta:disabled,.secondary-cta:disabled{opacity:.55;cursor:default}
+    .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
+    .paper-panel{display:none}.paper-panel.active{display:block}.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}.kpi-number{font-family:'IBM Plex Mono',monospace;font-size:28px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}.kpi-foot{font-size:11px;color:var(--ink-soft)}
+    .dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.chart-panel,.text-panel{background:var(--panel);border:1px solid var(--rule);min-height:280px;padding:12px;display:flex;flex-direction:column;min-width:0}.text-panel{min-height:0}.chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+    .bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(112px,1fr) minmax(120px,2fr) 82px;gap:8px;align-items:center;font-size:12px}.bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:14px;background:#EAEEEB;position:relative}.bar-fill{height:100%;background:var(--green);min-width:2px}.bar-fill.blue{background:var(--blue)}.bar-fill.amber{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-value{font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--ink-soft)}
+    .evolution-panel{min-height:320px;margin-top:14px}.evolution-wrap{overflow:auto}.line-chart{width:100%;min-width:900px;height:250px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart polyline{fill:none;stroke-width:2.2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart polyline.red{stroke:var(--red)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart circle.red{fill:var(--red)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--green)}.legend-dot.blue{background:var(--blue)}.legend-dot.amber{background:var(--amber)}.legend-dot.red{background:var(--red)}
+    .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);margin-top:12px}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 10px}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--blue);background:#EEF4F0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 10px;font-size:12px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}.table-wrap{overflow:auto;max-height:540px}.pill{display:inline-block;padding:3px 6px;border:1px solid #C8E2D0;background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px}.pill.warn{border-color:#E1BF76;background:var(--amber-soft);color:#6F4300}.pill.bad{border-color:#E8A0AA;background:var(--red-soft);color:var(--red)}
+    .tool-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.summary-filters{display:grid;grid-template-columns:160px 160px auto 1fr;gap:10px;align-items:end;margin-top:12px;padding:10px 12px;background:var(--panel);border:1px solid var(--rule)}.summary-filter-info{justify-self:end;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.mini-filters{display:none!important}.hidden{display:none!important}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}.notes{display:grid;gap:8px;margin:0;padding:0;list-style:none}.notes li{border-left:3px solid var(--green);background:#F8FAF7;padding:10px 12px;font-size:13px;line-height:1.45}.warn-list li{border-left-color:var(--amber)}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(14,22,32,.38);display:none;align-items:center;justify-content:center;padding:22px;z-index:20}.modal-backdrop.active{display:flex}.modal-panel{width:min(1500px,96vw);max-height:90vh;background:var(--panel);border:1px solid var(--rule-strong);box-shadow:0 18px 60px rgba(14,22,32,.22);display:flex;flex-direction:column}.modal-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--rule);background:#F6F8F5}.modal-body{padding:12px;overflow:auto}.modal-summary{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px;margin-bottom:10px}.summary-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:8px 9px;min-width:0}.summary-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.modal-body .table-wrap{max-height:58vh}.icon-btn{min-width:34px;height:34px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace}
+    @media(max-width:1200px){.filters{grid-template-columns:1fr 1fr 1fr}.dashboard-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}.summary-filters,.mini-filters{grid-template-columns:1fr 1fr}.summary-filter-info{justify-self:start}}
+    @media(max-width:700px){.paper-app{padding:0 12px 18px}.filters,.kpi-row,.summary-filters,.mini-filters{grid-template-columns:1fr}.tab-btn{min-width:112px;padding-left:10px;padding-right:10px}.kpi-number{font-size:24px}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div>
+        <div class="kicker">Auditoria y simulacion</div>
+        <h1>Analisis Premio <span class="amp">Productividad</span></h1>
+      </div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/selector.html">Selector</a>
+      <div class="user-chip"><div><div class="label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn">Salir</button>
+    </div>
+  </header>
+
+  <div class="paper-tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" data-tab="resumen">Resumen</button>
+      <button class="tab-btn" data-tab="actual">Modelo actual</button>
+      <button class="tab-btn" data-tab="escala">Escala</button>
+      <button class="tab-btn" data-tab="hora">Simulacion hora</button>
+      <button class="tab-btn" data-tab="diaria">Comparacion diaria</button>
+      <button class="tab-btn" data-tab="detalle">Detalle hora</button>
+      <button class="tab-btn" data-tab="fuera">Fuera turno</button>
+      <button class="tab-btn" data-tab="cache">Datos/cache</button>
+    </div>
+  </div>
+
+  <section class="filters">
+    <div class="field"><label class="label" for="rango-desde">Fecha desde</label><input class="paper-input" type="date" id="rango-desde"></div>
+    <div class="field"><label class="label" for="rango-hasta">Fecha hasta</label><input class="paper-input" type="date" id="rango-hasta"></div>
+    <div class="case-cell"><div class="label">Operacion fija</div><strong>PICKING</strong></div>
+    <button class="primary-cta" id="consultar-rango">Consultar</button>
+    <div class="case-cell"><div class="label">Ciclo diario</div><strong>Incluye ambos extremos - 06:00 a 06:00 - siempre desde cache</strong></div>
+  </section>
+  <div class="status" id="status">Cargando rango desde cache...</div>
+
+  <section class="paper-panel active" id="panel-resumen">
+    <section class="kpi-row" id="kpis-resumen"></section>
+    <article class="chart-panel evolution-panel">
+      <div class="chart-title"><strong>Evolucion de pagos</strong><span>Pagado vs escenarios por dia</span></div>
+      <div id="chart-evolucion-pagos"></div>
+    </article>
+    <section class="dashboard-grid">
+      <article class="chart-panel"><div class="chart-title"><strong>Comparativo de pago</strong><span>Pagado vs escenarios</span></div><div id="chart-premio"></div></article>
+      <article class="chart-panel"><div class="chart-title"><strong>Diferencia estimada</strong><span>Por escenario</span></div><div id="chart-fuera"></div></article>
+    </section>
+    <section class="summary-filters">
+      <div class="field"><label class="label" for="resumen-f-fecha">Fecha detalle</label><input class="paper-input" type="date" id="resumen-f-fecha"></div>
+      <div class="field"><label class="label" for="resumen-f-legajo">Legajo detalle</label><input class="paper-input" id="resumen-f-legajo" inputmode="numeric" placeholder="Todos"></div>
+      <button class="secondary-cta" id="limpiar-resumen-filtros">Limpiar</button>
+      <div class="summary-filter-info" id="resumen-filter-info">Sin filtros</div>
+    </section>
+    <div class="table-wrap"><table class="paper-table" id="tabla-caso-final"></table></div>
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Lectura critica</strong><span>Caso modelo</span></div><ul class="notes" id="interpretacion"></ul></article>
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Validaciones</strong><span>Cache</span></div><ul class="notes warn-list" id="validaciones"></ul></article>
+  </section>
+
+  <section class="paper-panel" id="panel-actual">
+    <section class="kpi-row" id="kpis-actual"></section>
+    <section class="dashboard-grid">
+      <article class="chart-panel"><div class="chart-title"><strong>Premio por operacion</strong><span>Modelo vigente</span></div><div id="actual-operacion"></div></article>
+      <article class="chart-panel"><div class="chart-title"><strong>Premio por almacen</strong><span>Modelo vigente</span></div><div id="actual-almacen"></div></article>
+      <article class="chart-panel"><div class="chart-title"><strong>Premio por turno</strong><span>Modelo vigente</span></div><div id="actual-turno"></div></article>
+    </section>
+    <div class="table-wrap"><table class="paper-table" id="tabla-actual"></table></div>
+  </section>
+
+  <section class="paper-panel" id="panel-escala">
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Escala diaria vs horaria</strong><span>Division uniforme por 8</span></div><div id="escala-regla" class="mono"></div></article>
+    <div class="table-wrap"><table class="paper-table" id="tabla-escala"></table></div>
+  </section>
+
+  <section class="paper-panel" id="panel-hora">
+    <section class="kpi-row" id="kpis-hora"></section>
+    <section class="dashboard-grid">
+      <article class="chart-panel"><div class="chart-title"><strong>Por operacion</strong><span>Diferencia</span></div><div id="hora-operacion"></div></article>
+      <article class="chart-panel"><div class="chart-title"><strong>Por almacen</strong><span>Diferencia</span></div><div id="hora-almacen"></div></article>
+      <article class="chart-panel"><div class="chart-title"><strong>Por turno</strong><span>Diferencia</span></div><div id="hora-turno"></div></article>
+    </section>
+    <div class="table-wrap"><table class="paper-table" id="tabla-hora-legajo"></table></div>
+  </section>
+
+  <section class="paper-panel" id="panel-diaria">
+    <section class="mini-filters">
+      <div class="field"><label class="label">Fecha</label><input class="paper-input" type="date" id="f-fecha"></div>
+      <div class="field"><label class="label">Legajo</label><input class="paper-input" id="f-legajo"></div>
+      <div class="field"><label class="label">Turno</label><select class="paper-select" id="f-turno"><option value="">Todos</option><option>Mañana</option><option>Tarde</option><option>Noche</option></select></div>
+      <div class="field"><label class="label">Operacion</label><input class="paper-input" id="f-operacion"></div>
+      <div class="field"><label class="label">Almacen</label><input class="paper-input" id="f-almacen"></div>
+      <label class="mono"><input type="checkbox" id="f-fuera"> Fuera turno</label>
+      <label class="mono"><input type="checkbox" id="f-pos"> Positivas</label>
+      <label class="mono"><input type="checkbox" id="f-neg"> Negativas</label>
+    </section>
+    <div class="table-wrap"><table class="paper-table" id="tabla-diaria"></table></div>
+  </section>
+
+  <section class="paper-panel" id="panel-detalle">
+    <div class="table-wrap"><table class="paper-table" id="tabla-detalle"></table></div>
+  </section>
+
+  <section class="paper-panel" id="panel-fuera">
+    <section class="dashboard-grid">
+      <article class="chart-panel"><div class="chart-title"><strong>Premio fuera por legajo</strong><span>Ranking</span></div><div id="fuera-legajo"></div></article>
+      <article class="chart-panel"><div class="chart-title"><strong>Premio fuera por fecha</strong><span>Ranking</span></div><div id="fuera-fecha"></div></article>
+      <article class="chart-panel"><div class="chart-title"><strong>Premio fuera por operacion</strong><span>Ranking</span></div><div id="fuera-operacion"></div></article>
+    </section>
+    <div class="table-wrap"><table class="paper-table" id="tabla-fuera"></table></div>
+  </section>
+
+  <section class="paper-panel" id="panel-cache">
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Simulacion activa</strong><span>SQLite/cache</span></div><div id="cache-info"></div></article>
+  </section>
+</div>
+
+<div class="modal-backdrop" id="detalle-modal" role="dialog" aria-modal="true" aria-labelledby="detalle-title">
+  <section class="modal-panel">
+    <header class="modal-head">
+      <div>
+        <div class="label" id="detalle-status">Detalle por hora</div>
+        <strong id="detalle-title">Detalle por legajo</strong>
+      </div>
+      <button class="icon-btn" id="cerrar-detalle" title="Cerrar">X</button>
+    </header>
+    <div class="modal-body">
+      <div class="modal-summary" id="detalle-summary"></div>
+      <div class="table-wrap"><table class="paper-table" id="tabla-detalle-legajo"></table></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const state = {activeTab:'resumen', simId:null, loading:false, loadError:'', fechaDesde:'', fechaHasta:'', resumenRows:[], sorts:{}};
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const fmt = value => new Intl.NumberFormat('es-AR', {maximumFractionDigits:2}).format(Number(value || 0));
+  const money = value => '$ ' + fmt(value);
+  function localDateInput(date){
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  }
+  function maxQueryDate(){
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return localDateInput(d);
+  }
+  function setupDateLimits(){
+    const max = maxQueryDate();
+    ['rango-desde','rango-hasta','resumen-f-fecha'].forEach(id => { $(id).max = max; });
+    $('rango-desde').value = max;
+    $('rango-hasta').value = max;
+    state.fechaDesde = max;
+    state.fechaHasta = max;
+  }
+
+  function setStatus(text, error=false){ $('status').textContent = text; $('status').classList.toggle('error', error); }
+  function setBusy(isBusy){
+    state.loading = isBusy;
+    $('consultar-rango').disabled = isBusy;
+    $('rango-desde').disabled = isBusy;
+    $('rango-hasta').disabled = isBusy;
+    $('resumen-f-fecha').disabled = isBusy;
+    $('resumen-f-legajo').disabled = isBusy;
+    $('limpiar-resumen-filtros').disabled = isBusy;
+    document.querySelectorAll('.tab-btn,.row-link,#cerrar-detalle').forEach(el => { el.disabled = isBusy; });
+    $('consultar-rango').textContent = isBusy ? 'Consultando...' : 'Consultar';
+  }
+  async function api(path, options={}){
+    const res = await fetch(path, {credentials:'same-origin', headers:{'Content-Type':'application/json'}, ...options});
+    if (res.status === 401) { location.href = '/login?next=/analisis-premio-productividad.html'; return {}; }
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'No se pudo completar la operacion.'); }
+    return res.json();
+  }
+  function qs(params){ return Object.entries(params).filter(([,v]) => v !== '' && v !== null && v !== undefined && v !== false).map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&'); }
+  function kpi(label, value, foot='', cls=''){ return `<article class="kpi-cell ${cls}"><div class="label">${esc(label)}</div><div class="kpi-number">${esc(value)}</div><div class="kpi-foot">${esc(foot)}</div></article>`; }
+  function productividadFoot(bultos, legajos, dias=1){
+    const qtyBultos = Number(bultos || 0);
+    const qtyLegajos = Number(legajos || 0);
+    const qtyDias = Math.max(1, Number(dias || 1));
+    const bultosDia = qtyBultos / qtyDias;
+    const prod = qtyLegajos ? bultosDia / qtyLegajos : 0;
+    return `Bultos/dia ${fmt(bultosDia)} · Legajos ${fmt(qtyLegajos)} · Productividad ${fmt(prod)}`;
+  }
+  function bars(id, rows, key='valor', label='grupo'){
+    const max = Math.max(...(rows || []).map(r => Math.abs(Number(r[key] || 0))), 1);
+    $(id).innerHTML = `<div class="bars">${(rows || []).slice(0,10).map((r,i) => {
+      const val = Number(r[key] || 0); const pct = Math.max(2, Math.abs(val) / max * 100);
+      const cls = val < 0 ? 'bad' : i % 3 === 1 ? 'blue' : i % 3 === 2 ? 'amber' : '';
+      return `<div class="bar-row"><div class="bar-label" title="${esc(r[label])}">${esc(r[label])}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div><div class="bar-value">${fmt(val)}</div></div>`;
+    }).join('') || '<div class="empty">Sin datos</div>'}</div>`;
+  }
+  function groupPaymentsByDate(rows){
+    const map = new Map();
+    (rows || []).forEach(row => {
+      const fecha = String(row.fecha || '').slice(0, 10);
+      if (!fecha) return;
+      const item = map.get(fecha) || {fecha, premio:0, sinExtras:0, horas:0, horasSinExtras:0};
+      item.premio += Number(row.premio_anterior || 0);
+      item.sinExtras += Number(row.premio_actual || 0);
+      item.horas += Number(row.premio_x_horas || 0);
+      item.horasSinExtras += Number(row.premio_x_horas_sin_extras || 0);
+      map.set(fecha, item);
+    });
+    return [...map.values()].sort((a,b) => a.fecha.localeCompare(b.fecha));
+  }
+  function renderPaymentEvolution(id, rows){
+    const data = groupPaymentsByDate(rows);
+    const w=1800,h=250,left=72,right=18,top=18,bottom=42;
+    const max = Math.max(...data.flatMap(r => [r.premio, r.sinExtras, r.horas, r.horasSinExtras]), 1);
+    const plotW = w - left - right, plotH = h - top - bottom;
+    const xFor = i => left + (data.length === 1 ? plotW / 2 : i * plotW / (data.length - 1));
+    const yFor = v => top + plotH - (Number(v || 0) / max) * plotH;
+    const series = [
+      {key:'premio', label:'Pagado actual', tone:'ok'},
+      {key:'sinExtras', label:'Sin extras', tone:'amber'},
+      {key:'horas', label:'Por horas con extras', tone:'blue'},
+      {key:'horasSinExtras', label:'Por horas sin extras', tone:'red'},
+    ];
+    const mid = max / 2;
+    const tickCount = Math.min(7, data.length);
+    const tickIndexes = [...new Set(Array.from({length:tickCount},(_,i)=>Math.round(i * (data.length - 1) / Math.max(tickCount - 1, 1))))];
+    $(id).innerHTML = data.length ? `
+      <div class="evolution-wrap">
+        <svg class="line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Evolucion de pagos">
+          <line class="grid" x1="${left}" y1="${yFor(max)}" x2="${w-right}" y2="${yFor(max)}"></line>
+          <line class="grid" x1="${left}" y1="${yFor(mid)}" x2="${w-right}" y2="${yFor(mid)}"></line>
+          <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line>
+          <line class="axis" x1="${left}" y1="${h-bottom}" x2="${w-right}" y2="${h-bottom}"></line>
+          <text class="axis-label" x="4" y="${yFor(max)+4}">${esc(money(max))}</text>
+          <text class="axis-label" x="4" y="${yFor(mid)+4}">${esc(money(mid))}</text>
+          <text class="axis-label" x="4" y="${h-bottom+4}">$ 0</text>
+          ${tickIndexes.map(i => {
+            const x = xFor(i);
+            const label = String(data[i]?.fecha || '').slice(5);
+            return `<line class="grid" x1="${x}" y1="${h-bottom}" x2="${x}" y2="${h-bottom+4}"></line><text class="axis-label" x="${Math.max(2, Math.min(x - 16, w - right - 34))}" y="${h-8}">${esc(label)}</text>`;
+          }).join('')}
+          ${series.map(s => `<polyline class="${s.tone}" points="${data.map((r,i)=>`${xFor(i)},${yFor(r[s.key])}`).join(' ')}"></polyline>`).join('')}
+          ${series.map(s => data.map((r,i) => {
+            const x = xFor(i), y = yFor(r[s.key]);
+            const textX = Math.min(x + 8, w - right - 190);
+            const textY = Math.max(y - 8, top + 10);
+            return `
+              <g class="point">
+                <circle class="${s.tone}" cx="${x}" cy="${y}" r="3"></circle>
+                <circle class="point-hit" cx="${x}" cy="${y}" r="12"></circle>
+                <text class="point-label" x="${textX}" y="${textY}">${esc(r.fecha)} - ${esc(s.label)} - ${esc(money(r[s.key]))}</text>
+              </g>`;
+          }).join('')).join('')}
+        </svg>
+      </div>
+      <div class="chart-legend">
+        <span><i class="legend-dot"></i>Pagado actual</span>
+        <span><i class="legend-dot amber"></i>Sin extras</span>
+        <span><i class="legend-dot blue"></i>Por horas con extras</span>
+        <span><i class="legend-dot red"></i>Por horas sin extras</span>
+      </div>
+    ` : '<div class="empty">Sin datos</div>';
+  }
+  function sortValue(row, col){
+    const value = row[col.key];
+    if (col.num || col.money || typeof value === 'number') return Number(value || 0);
+    return String(value ?? '').toLocaleLowerCase('es-AR');
+  }
+  function sortedRows(id, cols, rows){
+    const sort = state.sorts[id];
+    const data = [...(rows || [])];
+    if (!sort) return data;
+    const col = cols.find(c => c.key === sort.key);
+    if (!col) return data;
+    data.sort((a,b) => {
+      const av = sortValue(a, col); const bv = sortValue(b, col);
+      if (av < bv) return sort.dir === 'asc' ? -1 : 1;
+      if (av > bv) return sort.dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return data;
+  }
+  function table(id, cols, rows){
+    const sort = state.sorts[id];
+    const data = sortedRows(id, cols, rows);
+    $(id).innerHTML = `<thead><tr>${cols.map(c => {
+      const mark = sort?.key === c.key ? (sort.dir === 'asc' ? ' ↑' : ' ↓') : '';
+      return `<th class="sortable" data-key="${esc(c.key)}" style="${c.w ? `width:${c.w}` : ''}" title="Ordenar por ${esc(c.label)}">${esc(c.label)}${mark}</th>`;
+    }).join('')}</tr></thead><tbody>${data.map(row => `<tr>${cols.map(c => {
+      const raw = row[c.key]; const shown = c.money ? money(raw) : c.num ? fmt(raw) : c.bool ? (raw ? '<span class="pill warn">Si</span>' : '<span class="pill">No</span>') : esc(raw);
+      const val = c.link ? `<button class="secondary-cta row-link" data-action="${esc(c.link)}" data-key="${esc(c.key)}">${shown}</button>` : shown;
+      return `<td class="${c.mono ? 'mono' : ''}" title="${esc(raw)}">${val}</td>`;
+    }).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}">Sin datos.</td></tr>`}</tbody>`;
+    $(id).querySelectorAll('th.sortable').forEach(th => {
+      th.onclick = () => {
+        const key = th.dataset.key;
+        const current = state.sorts[id];
+        state.sorts[id] = current?.key === key && current.dir === 'asc' ? {key, dir:'desc'} : {key, dir:'asc'};
+        table(id, cols, rows);
+      };
+    });
+    $(id).querySelectorAll('[data-action="detalle-legajo"]').forEach(btn => {
+      btn.onclick = event => {
+        event.stopPropagation();
+        const tr = btn.closest('tr');
+        const index = Array.from(tr.parentElement.children).indexOf(tr);
+        const row = data[index];
+        cargarDetalleLegajo(row.fecha, row.operario).catch(e => setStatus(e.message, true));
+      };
+    });
+  }
+  function dateList(desde, hasta){
+    const start = new Date(`${desde}T00:00:00`);
+    const end = new Date(`${hasta}T00:00:00`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return [];
+    if (end < start) return [];
+    const out = [];
+    const cur = new Date(start);
+    while (cur <= end) {
+      out.push(cur.toISOString().slice(0,10));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return out;
+  }
+  function resumenFilteredRows(){
+    const fecha = $('resumen-f-fecha').value;
+    const legajo = $('resumen-f-legajo').value.trim();
+    return (state.resumenRows || []).filter(row => {
+      const okFecha = !fecha || String(row.fecha || '').slice(0,10) === fecha;
+      const okLegajo = !legajo || String(row.operario || '').includes(legajo);
+      return okFecha && okLegajo;
+    });
+  }
+  function renderResumenGrid(){
+    const rows = resumenFilteredRows();
+    table('tabla-caso-final', finalCols(), rows);
+    const total = state.resumenRows.length;
+    const fecha = $('resumen-f-fecha').value;
+    const legajo = $('resumen-f-legajo').value.trim();
+    const filtros = [fecha ? `fecha ${fecha}` : '', legajo ? `legajo ${legajo}` : ''].filter(Boolean).join(' · ');
+    $('resumen-filter-info').textContent = filtros ? `${fmt(rows.length)} de ${fmt(total)} registros · ${filtros}` : `${fmt(total)} registros`;
+  }
+  async function ensureSimulation(){
+    return consultarRango(false);
+  }
+  async function consultarRango(force=false){
+    if (state.loading) return false;
+    state.fechaDesde = $('rango-desde').value;
+    state.fechaHasta = $('rango-hasta').value;
+    if (!state.fechaDesde || !state.fechaHasta) {
+      setStatus('Indica fecha desde y fecha hasta.', true);
+      return false;
+    }
+    const max = maxQueryDate();
+    if (state.fechaDesde > max || state.fechaHasta > max) {
+      setStatus(`La fecha maxima permitida es ${max}. No se puede consultar el dia actual ni futuro.`, true);
+      return false;
+    }
+    setBusy(true);
+    try {
+      const days = dateList(state.fechaDesde, state.fechaHasta);
+      if (!days.length) {
+        setStatus('Fecha hasta no puede ser menor a fecha desde.', true);
+        return false;
+      }
+      const cobertura = await api('/api/analisis-premio-productividad/cache-cobertura?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
+      const faltantes = cobertura.faltantes || [];
+      setStatus(faltantes.length
+        ? `Cache diaria: ${fmt(cobertura.dias_cache)}/${fmt(cobertura.dias)} dias. Faltantes que iran a Oracle: ${faltantes.slice(0,6).join(', ')}${faltantes.length > 6 ? '...' : ''}.`
+        : `Cache diaria completa: ${fmt(cobertura.dias_cache)}/${fmt(cobertura.dias)} dias. No deberia consultar Oracle.`
+      );
+      if (!force && !faltantes.length) {
+        const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
+        data.meta = {
+          ...(data.meta || {}),
+          dias_oracle: 0,
+          dias_cache: cobertura.dias_cache,
+          detalle_dias: (cobertura.cache || []).map(x => ({fecha:x.fecha, estado:'cache', rows:x.rows})),
+        };
+        state.loadError = '';
+        renderResumen(data);
+        setStatus(`Rango listo desde cache. Dias: ${cobertura.dias || 0}, desde Oracle: 0, ya cacheados: ${cobertura.dias_cache || 0}.`);
+        return true;
+      }
+      const estados = [];
+      const diasAConsultar = force ? days : faltantes;
+      for (let i = 0; i < diasAConsultar.length; i++) {
+        const day = diasAConsultar[i];
+        setStatus(`Consultando faltante ${day} (${i + 1}/${diasAConsultar.length}). Se completa desde Oracle...`);
+        const parcial = await api('/api/analisis-premio-productividad/consultar-rango', {
+          method:'POST',
+          body:JSON.stringify({fecha_desde:day, fecha_hasta:day, force})
+        });
+        const detalleDia = parcial.meta?.detalle_dias || [];
+        estados.push(...detalleDia);
+        const estadoDia = detalleDia[0]?.estado || 'cache';
+        const rowsDia = detalleDia[0]?.rows || 0;
+        setStatus(`${day} listo desde ${estadoDia === 'oracle' ? 'Oracle' : 'cache'} (${fmt(rowsDia)} registros).`);
+      }
+      setStatus('Leyendo rango completo desde cache SQLite...');
+      const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
+      const detailDate = $('resumen-f-fecha').value;
+      if (detailDate && (detailDate < state.fechaDesde || detailDate > state.fechaHasta)) $('resumen-f-fecha').value = '';
+      data.meta = {
+        ...(data.meta || {}),
+        detalle_dias: estados,
+        dias_oracle: estados.filter(x => x.estado === 'oracle').length,
+        dias_cache: force ? estados.filter(x => x.estado === 'cache').length : cobertura.dias_cache,
+      };
+      state.loadError = '';
+      renderResumen(data);
+      const m = data.meta || {};
+      setStatus(`Rango listo desde cache. Dias: ${m.dias || 0}, desde Oracle: ${m.dias_oracle || 0}, ya cacheados: ${m.dias_cache || 0}.`);
+      return true;
+    } finally {
+      setBusy(false);
+    }
+  }
+  function simQuery(extra={}){
+    return qs({simulacion_id:state.simId, ...extra});
+  }
+  async function loadResumen(){
+    const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
+    renderResumen(data);
+  }
+  function renderResumen(data){
+    const k = data.kpis || {};
+    const dias = data.meta?.dias || new Set((data.rows || []).map(row => String(row.fecha || '').slice(0,10)).filter(Boolean)).size || 1;
+    const footTotal = productividadFoot(k.bultos, k.operarios, dias);
+    const footTurno = productividadFoot(k.bultosturno, k.operarios, dias);
+    const footExtra = productividadFoot(k.bultos_extra, k.operarios_extra, dias);
+    $('kpis-resumen').innerHTML = [
+      kpi('Pagado actual', money(k.premio_anterior), footTotal),
+      kpi('Sin extras', money(k.premio_actual), footTurno, 'warn'),
+      kpi('Por horas con extras', money(k.premio_x_horas), footExtra, 'warn'),
+      kpi('Por horas sin extras', money(k.premio_x_horas_sin_extras), footTurno, 'warn'),
+      kpi('Operarios', fmt(k.operarios), 'Casos modelo'),
+      kpi('Diferencia sin extras', money(k.diferencia_sin_extras), footTurno, 'ok'),
+      kpi('Diferencia por horas', money(k.diferencia_x_horas), footExtra, 'ok'),
+      kpi('Diferencia por horas sin extras', money(k.diferencia_x_horas_sin_extras), footTurno, 'ok'),
+    ].join('');
+    bars('chart-premio', data.graficos?.comparativo || []);
+    bars('chart-fuera', data.graficos?.ahorros || []);
+    renderPaymentEvolution('chart-evolucion-pagos', data.rows || []);
+    state.resumenRows = data.rows || [];
+    renderResumenGrid();
+    $('interpretacion').innerHTML = [
+      `El caso compara lo efectivamente pagado contra dos escenarios: premio fragmentado por hora y premio diario recalculado solo con bultos dentro del turno productivo.`,
+      `La diferencia por horas compara el pago actual contra el pago de productividad por tramos horarios.`,
+      `La diferencia sin extras compara el pago actual contra el premio diario recalculado solo con bultos dentro del turno del colaborador.`,
+      `La diferencia por horas sin extras compara el pago actual contra el pago horario excluyendo tramos fuera del turno.`
+    ].map(x => `<li>${esc(x)}</li>`).join('');
+    $('validaciones').innerHTML = '<li>Resultado mostrado desde cache diaria pp_caso_modelo_dia. Oracle se consulta solo para dias faltantes.</li>';
+  }
+  async function loadActual(){
+    const data = await api('/api/analisis-premio-productividad/modelo-actual?' + simQuery());
+    const k = data.kpis || {};
+    $('kpis-actual').innerHTML = [kpi('Total pagado', money(k.total_pagado)), kpi('Premiados', fmt(k.cantidad_premiados)), kpi('Premio promedio', money(k.premio_promedio)), kpi('Casos fuera turno', fmt(k.casos_fuera_turno), '', k.casos_fuera_turno ? 'warn' : 'ok')].join('');
+    bars('actual-operacion', data.por_operacion || [], 'premio_actual'); bars('actual-almacen', data.por_almacen || [], 'premio_actual'); bars('actual-turno', data.por_turno || [], 'premio_actual');
+    table('tabla-actual', commonDailyCols(), data.detalle || []);
+  }
+  async function loadEscala(){
+    const data = await api('/api/analisis-premio-productividad/escala?' + simQuery());
+    $('escala-regla').textContent = data.regla || '';
+    table('tabla-escala', [
+      {key:'OPERACION',label:'Operacion'},
+      {key:'ULMEDIDA',label:'UL medida',mono:true},
+      {key:'GRUPOPRODUCTIVO',label:'Grupo productivo'},
+      {key:'NIVEL',label:'Nivel',num:true},
+      {key:'DESDE_ACTUAL',label:'Desde actual',num:true},
+      {key:'HASTA_ACTUAL',label:'Hasta actual',num:true},
+      {key:'PREMIO_ACTUAL',label:'Premio actual',money:true},
+      {key:'DESDE_X_HORA',label:'Desde x hora',num:true},
+      {key:'HASTA_X_HORA',label:'Hasta x hora',num:true},
+      {key:'PREMIO_X_HORA',label:'Premio x hora',money:true}
+    ], data.rows || []);
+  }
+  async function loadHora(){
+    const data = await api('/api/analisis-premio-productividad/simulacion-hora?' + simQuery());
+    const g = data.general || {};
+    $('kpis-hora').innerHTML = [
+      kpi('Actual', money(g.premio_actual)), kpi('Simulado total', money(g.premio_simulado_total)), kpi('Dentro turno', money(g.premio_simulado_dentro_turno)), kpi('Fuera turno', money(g.premio_simulado_fuera_turno), '', g.premio_simulado_fuera_turno ? 'warn' : 'ok'),
+      kpi('Dif. total', money(g.diferencia_simulado_vs_actual), '', g.diferencia_simulado_vs_actual >= 0 ? 'ok' : 'bad'), kpi('Dif. dentro', money(g.diferencia_dentro_turno_vs_actual), '', g.diferencia_dentro_turno_vs_actual >= 0 ? 'ok' : 'bad')
+    ].join('');
+    bars('hora-operacion', data.por_operacion || [], 'diferencia_simulado_vs_actual'); bars('hora-almacen', data.por_almacen || [], 'diferencia_simulado_vs_actual'); bars('hora-turno', data.por_turno || [], 'diferencia_simulado_vs_actual');
+    table('tabla-hora-legajo', groupCols(), data.por_legajo || []);
+  }
+  function commonDailyCols(){
+    return [
+      {key:'fecha',label:'Fecha',mono:true,w:'92px'},{key:'legajo',label:'Legajo',mono:true,w:'90px'},{key:'nombre',label:'Nombre',w:'150px'},{key:'turno',label:'Turno',w:'86px'},{key:'operacion',label:'Operacion'},{key:'almacen',label:'Almacen'},
+      {key:'produccion_total',label:'Prod total',num:true},{key:'produccion_dentro_turno',label:'Prod dentro',num:true},{key:'produccion_fuera_turno',label:'Prod fuera',num:true},{key:'premio_actual',label:'Actual',money:true},
+      {key:'premio_simulado_total',label:'Sim total',money:true},{key:'premio_simulado_dentro_turno',label:'Sim dentro',money:true},{key:'premio_simulado_fuera_turno',label:'Sim fuera',money:true},
+      {key:'diferencia_simulado_vs_actual',label:'Dif total',money:true},{key:'diferencia_dentro_turno_vs_actual',label:'Dif dentro',money:true},{key:'tiene_produccion_fuera_turno',label:'Fuera turno',bool:true,w:'100px'}
+    ];
+  }
+  function groupCols(){
+    return [{key:'grupo',label:'Grupo'},{key:'casos',label:'Casos',num:true},{key:'premio_actual',label:'Actual',money:true},{key:'premio_simulado_total',label:'Sim total',money:true},{key:'premio_simulado_dentro_turno',label:'Sim dentro',money:true},{key:'premio_simulado_fuera_turno',label:'Sim fuera',money:true},{key:'diferencia_simulado_vs_actual',label:'Dif total',money:true},{key:'diferencia_dentro_turno_vs_actual',label:'Dif dentro',money:true}];
+  }
+  function finalCols(){
+    return [
+      {key:'fecha',label:'Fecha',mono:true,w:'92px'},
+      {key:'operario',label:'Operario',mono:true,w:'100px',link:'detalle-legajo'},
+      {key:'operacion',label:'Operacion'},
+      {key:'bultos',label:'Bultos',num:true},
+      {key:'almacen',label:'Almacen'},
+      {key:'premio_x_horas',label:'Premio x horas',money:true},
+      {key:'premio_x_horas_sin_extras',label:'Premio x horas sin extras',money:true},
+      {key:'productividad_anterior',label:'Prod anterior',num:true},
+      {key:'premio_anterior',label:'Premio anterior',money:true},
+      {key:'bultosturno',label:'Bultos turno',num:true},
+      {key:'premio_actual',label:'Premio sin extras',money:true},
+      {key:'diferencia_x_horas',label:'Diferencia x horas',money:true},
+      {key:'diferencia_sin_extras',label:'Diferencia sin extras',money:true},
+      {key:'diferencia_x_horas_sin_extras',label:'Diferencia x horas sin extras',money:true},
+    ];
+  }
+  function detalleLegajoCols(){
+    return [
+      {key:'hora',label:'Hora',num:true,w:'70px'},
+      {key:'turno',label:'Turno',w:'92px'},
+      {key:'bultos',label:'Bultos',num:true},
+      {key:'bultos_hora_min',label:'Min hora',num:true},
+      {key:'bultos_hora_max',label:'Max hora',num:true},
+      {key:'premio_x_hora',label:'Premio hora',money:true},
+      {key:'bultos_modulo',label:'Bultos modulo',num:true},
+    ];
+  }
+  function summaryCell(label, value, moneyValue=false, numValue=false){
+    const shown = moneyValue ? money(value) : numValue ? fmt(value) : value;
+    return `<div class="summary-cell"><div class="label">${esc(label)}</div><strong title="${esc(shown)}">${esc(shown)}</strong></div>`;
+  }
+  function renderDetalleSummary(rows, kpis){
+    const first = rows[0] || {};
+    const turnos = [...new Set((rows || []).map(r => r.turno).filter(Boolean))].join(', ');
+    $('detalle-summary').innerHTML = [
+      summaryCell('Fecha', first.fecha || ''),
+      summaryCell('Turno', turnos || first.turno || ''),
+      summaryCell('Operario', first.operario || ''),
+      summaryCell('Nombre', first.nombre || ''),
+      summaryCell('Operacion', first.operacion || ''),
+      summaryCell('Almacen', first.almacen || ''),
+      summaryCell('Prod modulo', first.prod_modulo || 0, false, true),
+      summaryCell('Pago modulo', first.pago_modulo || 0, true),
+      summaryCell('Bultos modulo', kpis.bultos_modulo || 0, false, true),
+      summaryCell('Bultos turno', kpis.bultosturno || 0, false, true),
+      summaryCell('Premio sin extra', kpis.premio_sin_extra || first.premio_sin_extra || 0, true),
+      summaryCell('Penalizacion TNC', kpis.penalizacion_tnc || first.penalizacion_tnc || ''),
+      summaryCell('Penalizacion error', kpis.penalizacion_error || first.penalizacion_error || ''),
+    ].join('');
+  }
+  async function cargarDetalleLegajo(fecha, legajo){
+    if (state.loading) return;
+    setBusy(true);
+    $('detalle-modal').classList.add('active');
+    $('detalle-title').textContent = `Detalle legajo ${legajo}`;
+    $('detalle-status').textContent = 'Consultando cache...';
+    try {
+      const data = await api('/api/analisis-premio-productividad/detalle-legajo?' + qs({fecha, legajo}));
+      renderDetalleSummary(data.rows || [], data.kpis || {});
+      table('tabla-detalle-legajo', detalleLegajoCols(), data.rows || []);
+      const m = data.meta || {}; const k = data.kpis || {};
+      $('detalle-status').textContent = `${esc(m.fecha)} · ${esc(m.origen)} · ${fmt(k.horas)} horas · ${fmt(k.bultos)} bultos`;
+      setStatus(`Detalle ${legajo} cargado desde ${m.origen === 'oracle' ? 'Oracle y cacheado' : 'cache'}.`);
+    } finally {
+      setBusy(false);
+    }
+  }
+  function cerrarDetalle(){
+    if (state.loading) return;
+    $('detalle-modal').classList.remove('active');
+  }
+  async function loadDiaria(){
+    const query = simQuery({fecha:$('f-fecha').value, legajo:$('f-legajo').value, turno:$('f-turno').value, operacion:$('f-operacion').value, almacen:$('f-almacen').value, solo_fuera_turno:$('f-fuera').checked, solo_positivas:$('f-pos').checked, solo_negativas:$('f-neg').checked});
+    const data = await api('/api/analisis-premio-productividad/comparacion-diaria?' + query);
+    table('tabla-diaria', commonDailyCols(), data.rows || []);
+  }
+  async function loadDetalle(){
+    const data = await api('/api/analisis-premio-productividad/detalle-hora?' + simQuery());
+    table('tabla-detalle', [
+      {key:'fecha',label:'Fecha',mono:true,w:'92px'},{key:'legajo',label:'Legajo',mono:true,w:'90px'},{key:'nombre',label:'Nombre',w:'150px'},{key:'turno',label:'Turno',w:'86px'},{key:'hora',label:'Hora',num:true,w:'70px'},{key:'hora_inicio',label:'Inicio',mono:true,w:'128px'},{key:'hora_fin',label:'Fin',mono:true,w:'128px'},
+      {key:'operacion',label:'Operacion'},{key:'almacen',label:'Almacen'},{key:'produccion',label:'Produccion',num:true},{key:'tipo_hora',label:'Tipo hora',w:'150px'},{key:'dentro_turno',label:'Dentro',bool:true,w:'80px'},{key:'nivel_simulado',label:'Nivel simulado'},{key:'premio_hora_simulado',label:'Premio hora',money:true}
+    ], data.rows || []);
+  }
+  async function loadFuera(){
+    const data = await api('/api/analisis-premio-productividad/impacto-fuera-turno?' + simQuery());
+    bars('fuera-legajo', data.por_legajo || [], 'premio_simulado_fuera_turno'); bars('fuera-fecha', data.por_fecha || [], 'premio_simulado_fuera_turno'); bars('fuera-operacion', data.por_operacion || [], 'premio_simulado_fuera_turno');
+    table('tabla-fuera', commonDailyCols(), data.ranking || []);
+  }
+  async function loadCache(){
+    const data = await api('/api/analisis-premio-productividad/datos-cache?' + simQuery());
+    const s = data.simulacion || {}; const c = data.counts || {};
+    $('cache-info').innerHTML = `<table class="paper-table"><tbody>
+      <tr><th>Simulacion</th><td>${esc(s.nombre || '')}</td></tr><tr><th>Estado</th><td><span class="pill">${esc(s.estado || '')}</span></td></tr>
+      <tr><th>Parametros</th><td>${esc(s.fecha_desde)} a ${esc(s.fecha_hasta)} | legajos: ${esc(s.legajos || 'todos')} | ${esc(s.operacion || 'todas')} / ${esc(s.almacen || 'todos')} / ${esc(s.turno || 'todos')} | grupo func.: ${esc(s.grupo_funciones_id || '')} | nivel: ${esc(s.nivel || '')}</td></tr>
+      <tr><th>Creacion</th><td class="mono">${esc(s.fecha_creacion || '')}</td></tr><tr><th>Ultima consulta Oracle</th><td class="mono">${esc(s.ultima_consulta_oracle || 'sin consulta')}</td></tr>
+      <tr><th>Origen datos</th><td>${esc(s.origen_datos || '')}</td></tr><tr><th>Base SQLite</th><td class="mono">${esc(data.db_path || '')}</td></tr>
+      ${Object.entries(c).map(([k,v]) => `<tr><th>${esc(k)}</th><td class="mono">${esc(v)}</td></tr>`).join('')}
+    </tbody></table>`;
+  }
+  async function loadTab(tab=state.activeTab){
+    state.activeTab = tab; setStatus('Leyendo desde SQLite/cache...');
+    if (tab === 'resumen') await loadResumen();
+    if (tab === 'actual') await loadActual();
+    if (tab === 'escala') await loadEscala();
+    if (tab === 'hora') await loadHora();
+    if (tab === 'diaria') await loadDiaria();
+    if (tab === 'detalle') await loadDetalle();
+    if (tab === 'fuera') await loadFuera();
+    if (tab === 'cache') await loadCache();
+    setStatus('Datos actualizados desde cache SQLite.');
+  }
+  function activate(tab){
+    if (state.loading) return;
+    document.querySelectorAll('.tab-btn').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
+    document.querySelectorAll('.paper-panel').forEach(x => x.classList.remove('active'));
+    $(`panel-${tab}`).classList.add('active');
+    loadTab(tab).catch(e => setStatus(e.message, true));
+  }
+  async function init(){
+    setupDateLimits();
+    const me = await api('/api/auth/me'); $('user-label').textContent = me.display_name || me.username;
+    const ok = await ensureSimulation();
+    if (ok) {
+      await loadTab('resumen');
+    } else {
+      state.activeTab = 'cache';
+      document.querySelectorAll('.tab-btn').forEach(x => x.classList.toggle('active', x.dataset.tab === 'cache'));
+      document.querySelectorAll('.paper-panel').forEach(x => x.classList.remove('active'));
+      $('panel-cache').classList.add('active');
+      await loadCache().catch(() => {});
+      setStatus(state.loadError, true);
+    }
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.onclick = () => activate(btn.dataset.tab));
+  $('consultar-rango').onclick = () => consultarRango(false).catch(e => setStatus(e.message, true));
+  $('resumen-f-fecha').oninput = renderResumenGrid;
+  $('resumen-f-legajo').oninput = renderResumenGrid;
+  $('limpiar-resumen-filtros').onclick = () => {
+    $('resumen-f-fecha').value = '';
+    $('resumen-f-legajo').value = '';
+    renderResumenGrid();
+  };
+  $('cerrar-detalle').onclick = cerrarDetalle;
+  $('detalle-modal').onclick = event => { if (event.target.id === 'detalle-modal') cerrarDetalle(); };
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') cerrarDetalle(); });
+  $('logout-btn').onclick = async () => { await fetch('/api/auth/logout', {method:'POST', credentials:'same-origin'}); location.href='/login'; };
+  init().catch(e => setStatus(e.message, true));
+</script>
+</body>
+</html>

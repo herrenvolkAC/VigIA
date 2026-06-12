@@ -30,6 +30,7 @@ offline_packages/
 # Artefactos compilados locales
 *.class
 scripts/java_build/
+logs/*.log
 
 # IDEs
 .vscode/

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>VigIA - Simulador Operativo</title>
+  <style>
+    :root{--bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;--blue:#0B5FAE}
+    *{box-sizing:border-box}html{background:var(--bg)}
+    body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:24px 24px}
+    button,input,select{font:inherit;color:inherit}button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:100%;min-height:100vh;margin:0;padding:0 16px 24px}.mono{font-family:'IBM Plex Mono',monospace}.label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft)}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}.brand-logo{width:86px;height:44px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}
+    .kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}.amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}.user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}.user-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}.user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .paper-link,.logout-btn,.secondary-cta{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}.paper-link:hover,.secondary-cta:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover,.danger-cta:hover{color:var(--red);border-color:var(--red)}
+    .hero{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-top:12px;padding:14px 12px;background:var(--panel);border:1px solid var(--rule)}.hero h2{font-size:18px;margin:3px 0}.hero-sub{font-size:12px;color:var(--ink-soft)}.hero-actions{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.file-input{height:34px;max-width:300px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px}.primary-cta{height:34px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}.danger-cta{height:34px;border:1px solid var(--red);background:var(--panel);color:var(--red);padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase}.status{min-height:30px;padding:8px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
+    .section{margin-top:14px;background:var(--panel);border:1px solid var(--rule)}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border-bottom:1px solid var(--rule);background:#F8FAF7}.section-title{font-weight:600}.section-note{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+    .kpi-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:12px}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:11px 12px;min-height:96px}.kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}.kpi-number{font-family:'IBM Plex Mono',monospace;font-size:27px;line-height:1.05;font-weight:600;margin:9px 0 5px;white-space:nowrap}.kpi-foot{font-size:11px;color:var(--ink-soft)}.reading{margin:0 12px 12px;padding:10px 12px;border:1px solid var(--rule);background:#F8FAF7;font-size:13px;color:var(--ink)}
+    .two-col{display:grid;grid-template-columns:.8fr 1.2fr;gap:12px;padding:12px}.bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:80px 1fr 62px;gap:8px;align-items:center;font-size:12px}.bar-track{height:16px;background:#EAEEEB}.bar-fill{height:100%;background:var(--green);min-width:2px}.bar-value{text-align:right;color:var(--ink-soft)}
+    .filters{display:grid;grid-template-columns:1.3fr 110px 150px 150px 140px 140px auto;gap:10px;align-items:end;padding:12px;border-bottom:1px solid var(--rule);background:var(--panel)}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input,.paper-select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
+    .table-wrap{overflow:auto;max-height:500px}.paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel)}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 10px}.paper-table td{border-bottom:1px solid var(--rule);padding:8px 10px;font-size:12px;line-height:1.25;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}.mini-table th,.mini-table td{font-size:12px}
+    .scenario-grid{display:grid;grid-template-columns:300px 1fr;gap:12px;padding:12px}.scenario-controls{border:1px solid var(--rule);background:#F8FAF7;padding:12px;display:flex;flex-direction:column;gap:10px}.scenario-output{display:grid;gap:10px}.decision-panel{border:1px solid var(--green);background:var(--green-soft);padding:12px}.decision-panel h3{margin:0 0 6px;font-size:15px}.decision-panel p{margin:0;font-size:13px;line-height:1.45}.decision-score{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;color:var(--green);float:right;margin-left:12px}.chart-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.compare-chart{border:1px solid var(--rule);background:var(--panel);padding:10px;min-height:180px}.compare-chart h3{margin:0 0 9px;font-size:13px}.impact-row{display:grid;grid-template-columns:minmax(84px,1fr) 1.4fr 48px;gap:7px;align-items:center;margin:7px 0;font-size:11px}.impact-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.impact-track{height:13px;background:#EAEEEB}.impact-fill{height:100%;background:var(--blue);min-width:2px}.impact-fill.good{background:var(--green)}.impact-fill.bad{background:var(--red)}.impact-value{text-align:right;color:var(--ink-soft)}.solution-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:12px;border-bottom:1px solid var(--rule);background:#F8FAF7}.solution-chip{border:1px solid var(--rule);background:var(--panel);padding:8px}.solution-chip b{display:block;font-family:'IBM Plex Mono',monospace;font-size:18px;color:var(--green)}.solution-chip span{font-size:11px;color:var(--ink-soft)}.scenario-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.scenario-card{position:relative;border:1px solid var(--rule);background:var(--panel);padding:10px;min-height:220px}.scenario-card.best{border-color:var(--green);border-top:3px solid var(--green)}.scenario-card h3{font-size:14px;margin:0 34px 8px 0}.help-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;min-height:26px;border:1px solid var(--rule);background:#F8FAF7;color:var(--blue);font-family:'IBM Plex Mono',monospace;font-weight:600;padding:0}.help-btn:hover{border-color:var(--blue)}.scenario-list{margin:8px 0 0;padding-left:17px;color:var(--ink-soft);font-size:12px;line-height:1.45}.scenario-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.metric-box{border:1px solid var(--rule);padding:6px;background:#F8FAF7}.metric-box b{display:block;font-family:'IBM Plex Mono',monospace;color:var(--green);font-size:16px}.metric-box b.bad{color:var(--red)}.metric-box b.neutral{color:var(--blue)}.scenario-read{margin-top:8px;border-left:3px solid var(--rule-strong);padding:7px 8px;background:#F8FAF7;font-size:12px;line-height:1.4;color:var(--ink-soft)}.critical-text{padding:12px;display:grid;gap:8px}.critical-text p{margin:0;border:1px solid var(--rule);background:#F8FAF7;padding:10px;font-size:13px;line-height:1.45}.modal-backdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(14,22,32,.42);z-index:1000;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(780px,100%);max-height:86vh;overflow:auto;background:var(--panel);border:1px solid var(--rule-strong);box-shadow:0 24px 70px rgba(14,22,32,.22)}.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--rule);background:#F8FAF7}.modal-head h2{font-size:17px;margin:0}.modal-close{width:32px;min-height:32px;border:1px solid var(--rule);background:var(--panel)}.modal-body{padding:12px}.formula-row{border:1px solid var(--rule);padding:10px;margin-bottom:8px;background:#F8FAF7}.formula-row strong{display:block;margin-bottom:4px}.formula-row code{display:block;white-space:normal;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:4px}.base-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}.base-cell{border:1px solid var(--rule);padding:8px}.base-cell b{display:block;font-family:'IBM Plex Mono',monospace;color:var(--green)}
+    .export-actions{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none!important}.empty{padding:18px 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+    @media(max-width:1180px){.kpi-row{grid-template-columns:repeat(3,1fr)}.filters,.scenario-grid,.two-col{grid-template-columns:1fr}.chart-grid,.scenario-cards{grid-template-columns:1fr 1fr}.paper-header,.hero{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}}
+    @media(max-width:760px){.paper-app{padding:0 10px 18px}.kpi-row,.chart-grid,.scenario-cards{grid-template-columns:1fr}.hero-actions{display:grid;grid-template-columns:1fr}.file-input{max-width:none}.filters{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div><div class="kicker">Productividad operativa</div><h1>Simulador <span class="amp">Operativo</span></h1></div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/selector.html">Selector</a>
+      <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn">Salir</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="label">Estudio actual</div>
+      <h2>Analisis de demanda, preparacion y escenarios de mejora</h2>
+      <div class="hero-sub" id="last-import">Sin importacion vigente.</div>
+    </div>
+    <div class="hero-actions">
+      <input class="file-input" id="csv-file" type="file" accept=".csv,text/csv">
+      <button class="primary-cta" id="import-btn">Importar CSV</button>
+      <button class="secondary-cta" id="reload-btn">Recargar estudio</button>
+      <button class="danger-cta" id="delete-btn">Borrar estudio actual</button>
+    </div>
+  </section>
+  <div class="status" id="status">Listo.</div>
+
+  <section class="section">
+    <div class="section-head"><div><div class="label">Resumen ejecutivo</div><div class="section-title">Indicadores generales</div></div><div class="export-actions"><button class="secondary-cta" data-export="resumen">Exportar resumen</button></div></div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="reading" id="reading">Importa un CSV para iniciar el estudio operativo.</div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="label">Distribucion de extraccion</div><div class="section-title">Lineas por ocupacion de unidad logistica</div></div><div class="section-note">Fragmentacion</div></div>
+    <div class="two-col">
+      <div class="bars" id="distribution-bars"></div>
+      <div class="table-wrap"><table class="paper-table mini-table" id="distribution-table"></table></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="label">Ranking</div><div class="section-title">Articulos criticos</div></div><div class="export-actions"><button class="secondary-cta" data-export="ranking">Exportar ranking</button></div></div>
+    <div class="filters">
+      <div class="field"><label class="label" for="filter-search">PLU / descripcion</label><input class="paper-input" id="filter-search" autocomplete="off"></div>
+      <div class="field"><label class="label" for="filter-min">Min lineas</label><input class="paper-input" id="filter-min" type="number" min="1" value="1"></div>
+      <div class="field"><label class="label" for="filter-class">Clase</label><select class="paper-select" id="filter-class"><option value="">Todas</option><option>&lt;=25%</option><option>25-50%</option><option>50-80%</option><option>80-99%</option><option>100%+</option></select></div>
+      <div class="field"><label class="label" for="filter-branch">Sucursal</label><input class="paper-input" id="filter-branch"></div>
+      <div class="field"><label class="label" for="filter-from">Desde</label><input class="paper-input" id="filter-from" type="date"></div>
+      <div class="field"><label class="label" for="filter-to">Hasta</label><input class="paper-input" id="filter-to" type="date"></div>
+      <button class="primary-cta" id="apply-filters">Aplicar</button>
+    </div>
+    <div class="solution-strip" id="solution-strip"></div>
+    <div class="table-wrap"><table class="paper-table" id="ranking-table"></table></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="label">Repeticion</div><div class="section-title">Local / articulo</div></div><div class="section-note">Agrupado por sucursal + PLU</div></div>
+    <div class="table-wrap"><table class="paper-table" id="repeat-table"></table></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="label">Simulador de escenarios</div><div class="section-title">Parametros y resultados</div></div><button class="secondary-cta" data-export="comparador">Exportar comparador</button></div>
+    <div class="scenario-grid">
+      <div class="scenario-controls">
+        <div class="field"><label class="label" for="round-min">Redondear si cantidad >= % UxP</label><input class="paper-input" id="round-min" type="number" min="0" max="100" value="0"></div>
+        <div class="field"><label class="label" for="round-top">Aplicar a top criticos</label><input class="paper-input" id="round-top" type="number" min="0" value="0"><small class="mono">0 = todos los SKU</small></div>
+        <div class="field"><label class="label" for="window-days">Agrupar demanda en bloques de</label><select class="paper-select" id="window-days"><option value="2">2 dias</option><option value="3" selected>3 dias</option><option value="5">5 dias</option></select><small class="mono">Ej.: 5 dias = consolidar cada sucursal + PLU dentro de bloques de 5 dias, no preparar cada linea por separado.</small></div>
+        <div class="field"><label class="label" for="mini-min-lines">Mini-pallet: min lineas SKU</label><input class="paper-input" id="mini-min-lines" type="number" min="1" value="3"></div>
+        <div class="field"><label class="label" for="mini-coverage">Mini-pallet: cobertura min %</label><input class="paper-input" id="mini-coverage" type="number" min="0" max="100" value="35"></div>
+        <div class="field"><label class="label" for="mini-tolerance">Mini-pallet: sobreenvio max %</label><input class="paper-input" id="mini-tolerance" type="number" min="0" max="100" value="20"></div>
+        <button class="primary-cta" id="simulate-btn">Simular</button>
+      </div>
+      <div class="scenario-output">
+        <div class="decision-panel" id="scenario-decision"></div>
+        <div class="chart-grid" id="scenario-charts"></div>
+        <div class="scenario-cards" id="scenario-cards"></div>
+      </div>
+    </div>
+    <div class="table-wrap"><table class="paper-table" id="comparison-table"></table></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="label">Lectura critica automatica</div><div class="section-title">Reglas de interpretacion</div></div><div class="section-note">No IA</div></div>
+    <div class="critical-text" id="critical-text"></div>
+  </section>
+</div>
+
+<div class="modal-backdrop" id="scenario-modal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="scenario-modal-title">
+    <div class="modal-head">
+      <h2 id="scenario-modal-title">Detalle del escenario</h2>
+      <button class="modal-close" id="scenario-modal-close" aria-label="Cerrar">×</button>
+    </div>
+    <div class="modal-body" id="scenario-modal-body"></div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const fmt = value => Number(value || 0).toLocaleString('es-AR', {maximumFractionDigits:1});
+  const pct = value => `${fmt(value)}%`;
+  const state = {summary:null, scenarios:[]};
+
+  function setStatus(message, error=false){$('status').textContent = message;$('status').classList.toggle('error', error);}
+  async function api(path, options={}){
+    const res = await fetch(path, {credentials:'same-origin', cache:'no-store', ...options});
+    if (res.status === 401) { location.href = `/login?next=${encodeURIComponent(location.pathname)}`; return; }
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'No se pudo completar la operacion.'); }
+    return res.json();
+  }
+  function download(path){ window.location.href = path; }
+  function renderTable(id, columns, rows){
+    const table = $(id);
+    table.innerHTML = `<thead><tr>${columns.map(col => `<th style="${col.w ? `width:${col.w}` : ''}">${esc(col.label)}</th>`).join('')}</tr></thead><tbody>${
+      (rows || []).map(row => `<tr>${columns.map(col => `<td class="${col.mono ? 'mono' : ''}" title="${esc(row[col.key])}">${col.format ? col.format(row[col.key], row) : esc(row[col.key] ?? '')}</td>`).join('')}</tr>`).join('') ||
+      `<tr><td colspan="${columns.length}" class="empty">Sin datos</td></tr>`
+    }</tbody>`;
+  }
+  function renderSummary(data){
+    state.summary = data;
+    const k = data.kpis || {};
+    $('last-import').textContent = data.meta?.last_import_at ? `Ultima importacion: ${data.meta.last_import_at} | ${data.meta.rows_imported || 0} lineas` : 'Sin importacion vigente.';
+    const cards = [
+      ['Lineas importadas', k.lineas, '', 'ok'], ['Unidades totales', k.unidades, '', 'ok'], ['SKU', k.skus, '', ''], ['Sucursales', k.sucursales, '', ''], ['Viajes', k.viajes, '', ''],
+      ['Pallet completo', pct(k.pct_pallet_completo), 'lineas', 'ok'], ['<=25% pallet', pct(k.pct_le25), 'lineas', 'bad'], ['<=50% pallet', pct(k.pct_le50), 'lineas', 'warn'], ['Ocupacion promedio', pct(k.ocupacion_promedio), 'por linea', ''], ['Periodo', k.fecha_min ? `${k.fecha_min}<br>${k.fecha_max}` : '-', '', '']
+    ];
+    $('kpis').innerHTML = cards.map(([label, value, foot, cls]) => `<article class="kpi-cell ${cls}"><div class="label">${esc(label)}</div><div class="kpi-number">${value}</div><div class="kpi-foot">${esc(foot)}</div></article>`).join('');
+    $('reading').textContent = data.lectura || '';
+    const max = Math.max(1, ...(data.distribucion || []).map(x => x.lineas || 0));
+    $('distribution-bars').innerHTML = (data.distribucion || []).map(x => `<div class="bar-row"><div class="mono">${esc(x.clase)}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(2,(x.lineas||0)/max*100)}%"></div></div><div class="bar-value mono">${fmt(x.lineas)}</div></div>`).join('');
+    renderTable('distribution-table', [{key:'clase',label:'Clase'}, {key:'lineas',label:'Lineas',mono:true}], data.distribucion || []);
+  }
+  function filterParams(){
+    const p = new URLSearchParams();
+    p.set('search', $('filter-search').value.trim());
+    p.set('min_lineas', $('filter-min').value || '1');
+    p.set('clase', $('filter-class').value);
+    p.set('sucursal', $('filter-branch').value.trim());
+    p.set('fecha_desde', $('filter-from').value);
+    p.set('fecha_hasta', $('filter-to').value);
+    return p.toString();
+  }
+  async function loadRanking(){
+    const data = await api(`/api/simulador-operativo/ranking-sku?${filterParams()}`);
+    $('solution-strip').innerHTML = (data.resumen_soluciones || []).map(item => `<div class="solution-chip"><b>${fmt(item.skus)}</b><span>${esc(item.solucion)}</span></div>`).join('') || '<div class="empty">Sin recomendaciones por articulo</div>';
+    renderTable('ranking-table', [
+      {key:'plu',label:'PLU',mono:true,w:'90px'}, {key:'descripcion',label:'Descripcion',w:'260px'}, {key:'lineas',label:'Lineas',mono:true}, {key:'unidades',label:'Unidades',mono:true,format:fmt},
+      {key:'uxp',label:'UxP',mono:true,format:fmt}, {key:'sucursales',label:'Suc.',mono:true}, {key:'viajes',label:'Viajes',mono:true}, {key:'ocupacion_promedio',label:'Ocup. prom.',mono:true,format:pct},
+      {key:'pct_le25',label:'<=25%',mono:true,format:pct}, {key:'pct_le50',label:'<=50%',mono:true,format:pct}, {key:'score_criticidad',label:'Score',mono:true,format:fmt},
+      {key:'solucion_sugerida',label:'Solucion sugerida',w:'170px'}, {key:'motivo_solucion',label:'Motivo',w:'320px'}
+    ], data.rows || []);
+  }
+  async function loadRepeat(){
+    const data = await api(`/api/simulador-operativo/repeticion-local-sku?${filterParams()}`);
+    renderTable('repeat-table', [
+      {key:'sucursal',label:'Sucursal',mono:true,w:'100px'}, {key:'plu',label:'PLU',mono:true,w:'90px'}, {key:'descripcion',label:'Descripcion',w:'260px'}, {key:'dias_demanda',label:'Dias',mono:true},
+      {key:'lineas',label:'Lineas',mono:true}, {key:'unidades',label:'Unidades',mono:true,format:fmt}, {key:'uxp',label:'UxP',mono:true,format:fmt}, {key:'promedio_diario',label:'Prom. diario',mono:true,format:fmt},
+      {key:'maximo_diario',label:'Max. diario',mono:true,format:fmt}, {key:'viajes',label:'Viajes',mono:true}, {key:'primera_fecha',label:'Primera',mono:true}, {key:'ultima_fecha',label:'Ultima',mono:true}
+    ], data.rows || []);
+  }
+  function shortScenario(name){
+    return String(name || '').replace('Redondeo a unidad logistica','Redondeo').replace('Calendarizacion','Calend.').replace('Pallet secundario dinamico','Mini-pallet SKU').replace('Pallet secundario','Mini-pallet').replace('Islas de preparacion','Islas');
+  }
+  function renderImpactChart(title, rows, kind='good'){
+    const max = Math.max(1, ...(rows || []).map(row => Number(row.valor || 0)));
+    return `<article class="compare-chart"><h3>${esc(title)}</h3>${(rows || []).map(row => {
+      const value = Number(row.valor || 0);
+      const fill = Math.max(2, value / max * 100);
+      return `<div class="impact-row"><div class="impact-label" title="${esc(row.escenario)}">${esc(shortScenario(row.escenario))}</div><div class="impact-track"><div class="impact-fill ${kind}" style="width:${fill}%"></div></div><div class="impact-value mono">${pct(value)}</div></div>`;
+    }).join('') || '<div class="empty">Sin datos</div>'}</article>`;
+  }
+  function renderScenarios(data){
+    state.scenarios = data.escenarios || [];
+    const recommendation = data.recomendacion_principal || {};
+    $('scenario-decision').innerHTML = `<div class="decision-score">${fmt(recommendation.indice || 0)}</div><h3>${esc(recommendation.escenario || 'Sin recomendacion')}</h3><p>${esc(recommendation.motivo || 'Importa datos para comparar alternativas.')}</p>`;
+    const charts = data.graficos || {};
+    $('scenario-charts').innerHTML = [
+      renderImpactChart('Reduccion de lineas', charts.reduccion_lineas || [], 'good'),
+      renderImpactChart('Reduccion parcial', charts.reduccion_parciales || [], 'good'),
+      renderImpactChart('Unidades extra', charts.unidades_extra || [], 'bad'),
+      renderImpactChart('Indice operativo', charts.conveniencia || [], 'good'),
+    ].join('');
+    const adv = {
+      'Redondeo a unidad logistica': ['reduce manipulacion','aumenta preparacion por pallet completo','facil de implementar','no requiere cambio fisico importante'],
+      'Calendarizacion': ['agrupa demanda del mismo local y SKU','5 dias = un bloque de consolidacion','reduce repeticiones de preparacion','no necesariamente aumenta unidades enviadas'],
+      'Pallet secundario dinamico': ['define una unidad secundaria por articulo','usa la cantidad mas frecuente pedida por los locales','permite prearmar trabajo antes de preparar pedidos'],
+      'Pallet secundario': ['aprovecha paletizacion previa','reduce trabajo posterior','acerca la unidad logistica a la demanda real'],
+      'Palomeros': ['ordena acumulacion por local','desacopla extraccion y consolidacion','facilita control visual'],
+      'Islas de preparacion': ['reduce recorridos','mejora ergonomia','permite especializar recursos']
+    };
+    const risk = {
+      'Redondeo a unidad logistica': ['aumenta inventario en sucursal','puede generar sobrestock','requiere validacion comercial'],
+      'Calendarizacion': ['menor frecuencia de reposicion','mas stock promedio en sucursal','requiere coordinacion con planificacion'],
+      'Pallet secundario dinamico': ['puede generar mas posiciones','requiere disciplina para no armar mini-pallets sin demanda repetible','puede agregar unidades si se tolera redondear hacia arriba'],
+      'Pallet secundario': ['puede generar mas posiciones','puede crear WIP','puede trasladar trabajo a recepcion'],
+      'Palomeros': ['no reduce manipulaciones por si mismo','requiere espacio','puede acumularse sin reglas'],
+      'Islas de preparacion': ['requiere espacio fisico','no elimina demanda fraccionada','puede generar doble manipulacion']
+    };
+    $('scenario-cards').innerHTML = state.scenarios.map(s => {
+      const key = Object.keys(adv).find(k => s.escenario.startsWith(k)) || s.escenario;
+      const isBest = recommendation.escenario === s.escenario;
+      return `<article class="scenario-card ${isBest ? 'best' : ''}"><button class="help-btn" data-scenario-help="${indexOfScenario(s)}" title="Ver calculo">?</button><h3>${esc(s.escenario)}</h3><div class="scenario-metrics">
+        <div class="metric-box"><b>${pct(s.reduccion_lineas_pct)}</b><span>Reduce lineas</span></div>
+        <div class="metric-box"><b>${pct(s.reduccion_parciales_pct)}</b><span>Reduce parciales</span></div>
+        <div class="metric-box"><b class="${Number(s.pct_incremento_unidades||0)>0?'bad':'neutral'}">${pct(s.pct_incremento_unidades)}</b><span>Unid. extra</span></div>
+        <div class="metric-box"><b>${fmt(s.indice_conveniencia)}</b><span>Indice</span></div>
+      </div><div class="scenario-read">${esc(s.lectura_operativa || s.recomendacion || '')}</div>${key !== 'Situacion actual' ? `<ul class="scenario-list">${(adv[key]||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul><ul class="scenario-list">${(risk[key]||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : ''}</article>`;
+    }).join('');
+    renderTable('comparison-table', [
+      {key:'escenario',label:'Escenario',w:'220px'}, {key:'lineas_actuales',label:'Lineas act.',mono:true,format:fmt}, {key:'lineas_simuladas',label:'Lineas sim.',mono:true,format:fmt}, {key:'reduccion_lineas_pct',label:'Reduce lineas',mono:true,format:pct},
+      {key:'unidades_actuales',label:'Unid. act.',mono:true,format:fmt}, {key:'unidades_simuladas',label:'Unid. sim.',mono:true,format:fmt}, {key:'pct_incremento_unidades',label:'Unid. extra %',mono:true,format:pct},
+      {key:'reduccion_parciales_pct',label:'Reduce parciales',mono:true,format:pct}, {key:'mejora_ocupacion_pp',label:'Ocup. pp',mono:true,format:v=>`${fmt(v)} pp`}, {key:'indice_conveniencia',label:'Indice',mono:true,format:fmt},
+      {key:'impacto',label:'Impacto'}, {key:'complejidad',label:'Complejidad'}, {key:'riesgo',label:'Riesgo'}, {key:'recomendacion',label:'Recomendacion',w:'210px'}
+    ], state.scenarios);
+    $('critical-text').innerHTML = (data.lectura_critica || []).map(text => `<p>${esc(text)}</p>`).join('');
+  }
+  function indexOfScenario(target){ return state.scenarios.findIndex(item => item.escenario === target.escenario); }
+  function openScenarioModal(index){
+    const scenario = state.scenarios[Number(index)];
+    if (!scenario) return;
+    const exp = scenario.explicacion || {};
+    $('scenario-modal-title').textContent = scenario.escenario;
+    const base = exp.datos_base || {};
+    const top = exp.propuestas_top || [];
+    const proposalTable = top.length ? `<h3>Propuestas por articulo</h3><div class="table-wrap"><table class="paper-table"><thead><tr><th>PLU</th><th>Descripcion</th><th>Mini-pallet</th><th>Lineas</th><th>Cobertura exacta</th><th>Cobertura tolerancia</th><th>Unid. extra</th></tr></thead><tbody>${top.map(row => `<tr><td class="mono">${esc(row.plu)}</td><td>${esc(row.descripcion)}</td><td class="mono">${fmt(row.mini_pallet)}</td><td class="mono">${fmt(row.lineas)}</td><td class="mono">${pct(row.cobertura_exacta)}</td><td class="mono">${pct(row.cobertura_con_tolerancia)}</td><td class="mono">${fmt(row.unidades_extra)}</td></tr>`).join('')}</tbody></table></div>` : '';
+    $('scenario-modal-body').innerHTML = `<p>${esc(exp.resumen || scenario.lectura_operativa || '')}</p>
+      ${(exp.formulas || []).map(item => `<div class="formula-row"><strong>${esc(item.indicador)}</strong><div>${esc(item.formula)}</div><code>${esc(item.calculo)}</code></div>`).join('')}
+      <div class="base-grid">${Object.entries(base).map(([key,value]) => `<div class="base-cell"><span class="label">${esc(key.replaceAll('_',' '))}</span><b>${fmt(value)}</b></div>`).join('')}</div>
+      ${proposalTable}
+      <p class="scenario-read">Lectura: estos calculos comparan el escenario contra la situacion actual del estudio importado. El indice no reemplaza validacion operativa: sirve para ordenar candidatos segun beneficio, costo de unidades, complejidad y riesgo.</p>`;
+    $('scenario-modal').classList.add('open');
+    $('scenario-modal').setAttribute('aria-hidden','false');
+  }
+  function closeScenarioModal(){
+    $('scenario-modal').classList.remove('open');
+    $('scenario-modal').setAttribute('aria-hidden','true');
+  }
+  async function simulate(){
+    const body = {
+      redondeo_min_pct:Number($('round-min').value || 0),
+      redondeo_top:Number($('round-top').value || 0),
+      calendario_ventana:Number($('window-days').value || 3),
+      mini_min_lineas:Number($('mini-min-lines').value || 3),
+      mini_cobertura_min:Number($('mini-coverage').value || 35),
+      mini_tolerancia_extra_pct:Number($('mini-tolerance').value || 20)
+    };
+    renderScenarios(await api('/api/simulador-operativo/escenarios', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}));
+  }
+  async function refreshAll(){
+    const summary = await api(`/api/simulador-operativo/resumen?_=${Date.now()}`);
+    renderSummary(summary);
+    await Promise.all([loadRanking(), loadRepeat()]);
+    await simulate();
+    return Number(summary?.kpis?.lineas || 0);
+  }
+  $('import-btn').onclick = async () => {
+    const file = $('csv-file').files[0];
+    if (!file) { setStatus('Selecciona un CSV para importar.', true); return; }
+    setStatus(`Importando ${file.name}...`);
+    try {
+      const data = await api('/api/simulador-operativo/importar', {method:'POST', headers:{'Content-Type':'text/csv', 'X-Filename': encodeURIComponent(file.name)}, body:await file.arrayBuffer()});
+      renderSummary(data);
+      await Promise.all([loadRanking(), loadRepeat(), simulate()]);
+      const imp = data.importacion || {};
+      setStatus(`Importacion completa: ${imp.importadas || 0} lineas validas, ${imp.rechazadas || 0} rechazadas.`);
+    } catch(e) { setStatus(e.message, true); }
+  };
+  $('delete-btn').onclick = async () => {
+    if (!confirm('Borrar el estudio actual?')) return;
+    await api('/api/simulador-operativo/estudio', {method:'DELETE'});
+    await refreshAll();
+    setStatus('Estudio actual borrado.');
+  };
+  $('apply-filters').onclick = async () => { setStatus('Aplicando filtros...'); await Promise.all([loadRanking(), loadRepeat()]); setStatus('Filtros aplicados.'); };
+  $('reload-btn').onclick = async () => {
+    setStatus('Recargando ultimo estudio guardado...');
+    const rows = await refreshAll();
+    if (rows > 0) setStatus(`Ultimo estudio recargado desde SQLite: ${fmt(rows)} lineas.`);
+    else setStatus('No hay un estudio guardado en SQLite. Importa nuevamente el CSV para iniciar el analisis.', true);
+  };
+  $('simulate-btn').onclick = () => simulate().catch(e => setStatus(e.message, true));
+  document.addEventListener('click', event => {
+    const help = event.target.closest('[data-scenario-help]');
+    if (help) {
+      openScenarioModal(help.dataset.scenarioHelp);
+      return;
+    }
+    if (event.target.id === 'scenario-modal' || event.target.id === 'scenario-modal-close') {
+      closeScenarioModal();
+    }
+  });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeScenarioModal(); });
+  document.querySelectorAll('[data-export]').forEach(btn => btn.onclick = () => download(`/api/simulador-operativo/export?tipo=${encodeURIComponent(btn.dataset.export)}`));
+  $('logout-btn').onclick = async () => { await fetch('/api/auth/logout', {method:'POST', credentials:'same-origin'}); location.href='/login'; };
+  (async function init(){
+    try {
+      const me = await api('/api/auth/me');
+      $('user-label').textContent = me.display_name || me.username;
+      await refreshAll();
+      setStatus('Listo. Importa un CSV o revisa el ultimo estudio disponible.');
+    } catch(e) { setStatus(e.message, true); }
+  })();
+</script>
+</body>
+</html>

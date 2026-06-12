@@ -43,6 +43,11 @@ from routers.rrhh_novedades import (
     stop_rrhh_folder_monitor,
 )
 from routers.panol_insumos import router as panol_insumos_router
+from routers.simulador_operativo import init_simulador_db, router as simulador_operativo_router
+from routers.analisis_premio_productividad import (
+    init_premio_productividad_db,
+    router as analisis_premio_productividad_router,
+)
 from routers.websocket import router as websocket_router
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -66,6 +71,8 @@ async def lifespan(app: FastAPI):
     await init_cases_db()
     await init_daily_db()
     await init_panol_db()
+    await init_simulador_db()
+    await init_premio_productividad_db()
     await ensure_bootstrap_admin()
     start_daily_auto_scheduler()
     start_historia_actividad_scheduler()
@@ -106,6 +113,8 @@ app.include_router(casos_router)
 app.include_router(historia_legajo_router)
 app.include_router(rrhh_novedades_router)
 app.include_router(panol_insumos_router)
+app.include_router(simulador_operativo_router)
+app.include_router(analisis_premio_productividad_router)
 app.include_router(websocket_router)
 app.include_router(auth_router)
 
@@ -127,6 +136,10 @@ PROTECTED_PAGE_PATHS = {
     "/casos.html",
     "/panol-insumos",
     "/panol-insumos.html",
+    "/simulador-operativo",
+    "/simulador-operativo.html",
+    "/analisis-premio-productividad",
+    "/analisis-premio-productividad.html",
 }
 PROTECTED_API_PREFIXES = (
     "/api/productividad/tnc",
@@ -136,6 +149,8 @@ PROTECTED_API_PREFIXES = (
     "/api/rrhh",
     "/api/casos",
     "/panol-insumos/api",
+    "/api/simulador-operativo",
+    "/api/analisis-premio-productividad",
 )
 ADMIN_PAGE_PATHS = {
     "/admin/dispositivos",
@@ -166,6 +181,10 @@ PAGE_MODULES = {
     "/casos.html": "casos",
     "/panol-insumos": "panol",
     "/panol-insumos.html": "panol",
+    "/simulador-operativo": "simulador_operativo",
+    "/simulador-operativo.html": "simulador_operativo",
+    "/analisis-premio-productividad": "analisis_premio_productividad",
+    "/analisis-premio-productividad.html": "analisis_premio_productividad",
     "/reposicion": "reposicion",
     "/reposicion.html": "reposicion",
     "/recepcion": "recepcion",
@@ -178,6 +197,8 @@ API_MODULE_PREFIXES = (
     ("/api/rrhh", "novedades_cd"),
     ("/api/casos", "casos"),
     ("/panol-insumos/api", "panol"),
+    ("/api/simulador-operativo", "simulador_operativo"),
+    ("/api/analisis-premio-productividad", "analisis_premio_productividad"),
 )
 
 
@@ -308,6 +329,18 @@ async def page_casos(): return FileResponse(STATIC_DIR / "casos.html")
 @app.get("/panol-insumos.html", include_in_schema=False)
 @app.get("/panol-insumos",      include_in_schema=False)
 async def page_panol_insumos(): return FileResponse(STATIC_DIR / "panol_insumos.html")
+
+@app.get("/simulador-operativo.html", include_in_schema=False)
+@app.get("/simulador-operativo",      include_in_schema=False)
+async def page_simulador_operativo(): return FileResponse(STATIC_DIR / "simulador_operativo.html")
+
+@app.get("/analisis-premio-productividad.html", include_in_schema=False)
+@app.get("/analisis-premio-productividad",      include_in_schema=False)
+async def page_analisis_premio_productividad():
+    return FileResponse(
+        STATIC_DIR / "analisis_premio_productividad.html",
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
 
 @app.get("/admin/dispositivos.html", include_in_schema=False)
 @app.get("/admin/dispositivos",      include_in_schema=False)

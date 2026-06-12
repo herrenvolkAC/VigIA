@@ -135,6 +135,8 @@ APP_MODULES = [
     {"id": "panol", "label": "Panol Insumos", "path": "/panol-insumos"},
     {"id": "historia_legajo", "label": "Historia de Legajo", "path": "/historia-legajo.html"},
     {"id": "opex", "label": "OpEX", "path": "/opex.html"},
+    {"id": "simulador_operativo", "label": "Simulador Operativo", "path": "/simulador-operativo.html"},
+    {"id": "analisis_premio_productividad", "label": "Analisis Premio Productividad", "path": "/analisis-premio-productividad.html"},
     {"id": "recepcion", "label": "Recepcion", "path": "/recepcion.html", "available": False},
     {"id": "mapa", "label": "Mapa", "path": "", "available": False},
     {"id": "control_procesos", "label": "Control de Procesos", "path": "", "available": False},

@@ -47,7 +47,12 @@
     function access(module){return ((ctx.accesses||{})[currentUser()]||{})[module]||{}}
     function sectorChecks(selected){const picked=new Set(selected||[]);return (ctx.rrhh_sectors||[]).map(s=>`<label class="check"><input type="checkbox" data-rrhh-sector value="${esc(s)}" ${picked.has(s)?'checked':''}><span>${esc(s)}</span></label>`).join('')||'<div class="muted">No hay sectores importados todavia.</div>'}
     function options(values,current){return values.map(v=>`<option value="${esc(v)}" ${String(v)===String(current)?'selected':''}>${esc(v)}</option>`).join('')}
-    function appModules(){const modules=[...(ctx.modules||[])];if(!modules.some(m=>m.id==='opex'))modules.push({id:'opex',label:'OpEX',path:'/opex.html'});return modules}
+    function appModules(){
+      const modules=[...(ctx.modules||[])];
+      if(!modules.some(m=>m.id==='opex'))modules.push({id:'opex',label:'OpEX',path:'/opex.html'});
+      if(!modules.some(m=>m.id==='simulador_operativo'))modules.push({id:'simulador_operativo',label:'Simulador Operativo',path:'/simulador-operativo.html'});
+      return modules;
+    }
     function simpleCards(){return appModules().filter(m=>!['novedades_cd','casos','panol'].includes(m.id)).map(m=>{const item=access(m.id);return `<article class="access-card" data-card="${esc(m.id)}"><h3>${esc(m.label)}</h3><label class="toggle"><input type="checkbox" id="access-${esc(m.id)}" ${item.enabled?'checked':''}> Habilitado</label><div class="muted">${m.available===false?'Modulo todavia no disponible. El permiso queda preparado para su activacion.':'Controla la tarjeta del selector y el acceso directo al modulo.'}</div><div style="margin-top:12px"><button class="primary" data-save="${esc(m.id)}">Guardar</button></div></article>`}).join('')}
     function render(){const u=currentUser();if(!u){cards.innerHTML='<div class="muted">Sin usuarios.</div>';return}const rrhh=access('novedades_cd'),casos=access('casos'),panol=access('panol');cards.innerHTML=`
       <article class="access-card" data-card="novedades_cd">
