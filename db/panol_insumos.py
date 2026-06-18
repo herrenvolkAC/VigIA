@@ -111,6 +111,22 @@ CREATE TABLE IF NOT EXISTS consumos_calculados (
 );
 """
 
+CREATE_PRODUCCION_MOVIMIENTOS = """
+CREATE TABLE IF NOT EXISTS produccion_movimientos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    articulo_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL,
+    ubicacion_destino_id INTEGER,
+    cantidad REAL NOT NULL,
+    turno TEXT NOT NULL,
+    observacion TEXT,
+    usuario TEXT,
+    fecha_hora TEXT,
+    FOREIGN KEY (articulo_id) REFERENCES articulos(id),
+    FOREIGN KEY (ubicacion_destino_id) REFERENCES ubicaciones(id)
+);
+"""
+
 INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_articulos_codigo ON articulos(codigo)",
     "CREATE INDEX IF NOT EXISTS idx_movimientos_articulo_fecha ON movimientos(articulo_id, fecha_hora)",
@@ -119,6 +135,9 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_stock_cd_articulo_fecha ON stock_cd_importado(articulo_id, fecha_importacion)",
     "CREATE INDEX IF NOT EXISTS idx_inventario_articulo_fecha ON inventario_turno(articulo_id, fecha_hora)",
     "CREATE INDEX IF NOT EXISTS idx_consumos_articulo_fecha ON consumos_calculados(articulo_id, fecha_hora)",
+    "CREATE INDEX IF NOT EXISTS idx_produccion_articulo_fecha ON produccion_movimientos(articulo_id, fecha_hora)",
+    "CREATE INDEX IF NOT EXISTS idx_produccion_destino_fecha ON produccion_movimientos(ubicacion_destino_id, fecha_hora)",
+    "CREATE INDEX IF NOT EXISTS idx_produccion_turno_fecha ON produccion_movimientos(turno, fecha_hora)",
 ]
 
 
@@ -135,6 +154,7 @@ async def init_panol_db() -> None:
             CREATE_STOCK_CD,
             CREATE_INVENTARIO,
             CREATE_CONSUMOS,
+            CREATE_PRODUCCION_MOVIMIENTOS,
         ):
             await db.execute(stmt)
         for stmt in INDEXES:
@@ -147,8 +167,31 @@ async def init_panol_db() -> None:
             """,
             [
                 ("JAULA", "Jaula",),
+                ("Envíos a Domicilio", "Envíos a Domicilio",),
+                ("Noa", "Noa",),
                 ("OFICINA_ADO", "Oficina ADO",),
+                ("Refrigerados", "Refrigerados",),
+                ("Secos", "Secos",),
+                ("Sector 126", "Sector 126",),
+                ("Sucursales", "Sucursales",),
             ],
+        )
+        envios = "Env\u00edos a Domicilio"
+        await db.execute(
+            """
+            INSERT OR IGNORE INTO ubicaciones (codigo, descripcion, activo)
+            VALUES (?, ?, 1)
+            """,
+            (envios, envios),
+        )
+        await db.execute(
+            """
+            UPDATE ubicaciones
+            SET activo = 0
+            WHERE codigo LIKE 'Env%os a Domicilio'
+              AND codigo <> ?
+            """,
+            (envios,),
         )
         await db.executemany(
             """

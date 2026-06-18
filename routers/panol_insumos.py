@@ -46,6 +46,19 @@ class MovementRequest(BaseModel):
     observacion: str = ""
 
 
+class ProductionRequest(BaseModel):
+    articulo_id: int
+    cantidad: float
+    observacion: str = ""
+
+
+class ProductionDeliveryRequest(BaseModel):
+    articulo_id: int
+    ubicacion_destino_id: int
+    cantidad: float
+    observacion: str = ""
+
+
 class InventoryLine(BaseModel):
     articulo_id: int
     stock_fisico: float
@@ -66,6 +79,16 @@ def _now() -> str:
 
 def _today() -> str:
     return datetime.now().strftime("%Y-%m-%d")
+
+
+def _turno_por_hora(fecha_hora: str | None = None) -> str:
+    dt = datetime.strptime(fecha_hora or _now(), "%Y-%m-%d %H:%M:%S")
+    hour = dt.hour
+    if 6 <= hour < 14:
+        return "MANANA"
+    if 14 <= hour < 22:
+        return "TARDE"
+    return "NOCHE"
 
 
 def _norm_code(value: Any) -> str:
@@ -249,6 +272,21 @@ async def _stock_cd(db: aiosqlite.Connection, articulo_id: int) -> float:
         (articulo_id,),
     )
     return float((row or {}).get("stock_cd") or 0)
+
+
+async def _stock_producido(db: aiosqlite.Connection, articulo_id: int) -> float:
+    row = await _fetch_one(
+        db,
+        """
+        SELECT
+            COALESCE(SUM(CASE WHEN tipo = 'PRODUCCION' THEN cantidad ELSE 0 END), 0)
+          - COALESCE(SUM(CASE WHEN tipo = 'ENTREGA' THEN cantidad ELSE 0 END), 0) AS stock
+        FROM produccion_movimientos
+        WHERE articulo_id = ?
+        """,
+        (articulo_id,),
+    )
+    return float((row or {}).get("stock") or 0)
 
 
 @router.get("/context")
@@ -455,6 +493,207 @@ async def list_movements(
             tuple(args),
         )
     return {"items": rows}
+
+
+@router.post("/produccion")
+async def create_production(req: ProductionRequest, request: Request):
+    auth = await _require_panol_access(request)
+    cantidad = float(req.cantidad or 0)
+    if cantidad <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad producida debe ser mayor a cero.")
+    now = _now()
+    turno = _turno_por_hora(now)
+    async with panol_db() as db:
+        article = await _fetch_one(db, "SELECT id FROM articulos WHERE id = ? AND activo = 1", (req.articulo_id,))
+        if not article:
+            raise HTTPException(status_code=404, detail="Articulo no encontrado o inactivo.")
+        await db.execute(
+            """
+            INSERT INTO produccion_movimientos
+                (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, observacion, usuario, fecha_hora)
+            VALUES (?, 'PRODUCCION', NULL, ?, ?, ?, ?, ?)
+            """,
+            (req.articulo_id, cantidad, turno, _clean(req.observacion), auth.get("username"), now),
+        )
+        await db.commit()
+    return {"ok": True, "turno": turno, "fecha_hora": now}
+
+
+@router.post("/produccion/entregas")
+async def create_production_delivery(req: ProductionDeliveryRequest, request: Request):
+    auth = await _require_panol_access(request)
+    cantidad = float(req.cantidad or 0)
+    if cantidad <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad entregada debe ser mayor a cero.")
+    now = _now()
+    turno = _turno_por_hora(now)
+    async with panol_db() as db:
+        article = await _fetch_one(db, "SELECT id FROM articulos WHERE id = ? AND activo = 1", (req.articulo_id,))
+        if not article:
+            raise HTTPException(status_code=404, detail="Articulo no encontrado o inactivo.")
+        destination = await _fetch_one(
+            db,
+            "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1",
+            (req.ubicacion_destino_id,),
+        )
+        if not destination:
+            raise HTTPException(status_code=400, detail="Destino invalido.")
+        stock_actual = await _stock_producido(db, req.articulo_id)
+        if stock_actual + 0.000001 < cantidad:
+            raise HTTPException(status_code=400, detail="La entrega dejaria stock producido negativo.")
+        await db.execute(
+            """
+            INSERT INTO produccion_movimientos
+                (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, observacion, usuario, fecha_hora)
+            VALUES (?, 'ENTREGA', ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                req.articulo_id,
+                req.ubicacion_destino_id,
+                cantidad,
+                turno,
+                _clean(req.observacion),
+                auth.get("username"),
+                now,
+            ),
+        )
+        await db.commit()
+    return {"ok": True, "turno": turno, "fecha_hora": now}
+
+
+@router.get("/produccion/stock")
+async def production_stock(request: Request, q: str = Query("")):
+    await _require_panol_access(request)
+    async with panol_db() as db:
+        rows = await _fetch_rows(
+            db,
+            """
+            SELECT a.id AS articulo_id, a.codigo, a.descripcion, a.categoria, a.unidad,
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0) AS producido,
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS entregado,
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0)
+                 - COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS stock_producido
+            FROM articulos a
+            LEFT JOIN produccion_movimientos pm ON pm.articulo_id = a.id
+            WHERE a.activo = 1
+            GROUP BY a.id, a.codigo, a.descripcion, a.categoria, a.unidad
+            ORDER BY a.codigo
+            """,
+        )
+        today = await _fetch_one(
+            db,
+            """
+            SELECT
+                COALESCE(SUM(CASE WHEN tipo = 'PRODUCCION' THEN cantidad ELSE 0 END), 0) AS producido,
+                COALESCE(SUM(CASE WHEN tipo = 'ENTREGA' THEN cantidad ELSE 0 END), 0) AS entregado
+            FROM produccion_movimientos
+            WHERE fecha_hora >= ?
+            """,
+            (f"{_today()} 00:00:00",),
+        )
+    items = []
+    for row in rows:
+        if q and q.lower() not in f"{row['codigo']} {row['descripcion']}".lower():
+            continue
+        items.append(row)
+    return {
+        "items": items,
+        "metrics": {
+            "producido_hoy": float((today or {}).get("producido") or 0),
+            "entregado_hoy": float((today or {}).get("entregado") or 0),
+            "stock_total_producido": sum(float(row.get("stock_producido") or 0) for row in rows),
+        },
+    }
+
+
+@router.get("/produccion/movimientos")
+async def list_production_movements(
+    request: Request,
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    articulo_id: int | None = Query(None),
+    tipo: str = Query(""),
+    destino_id: int | None = Query(None),
+    turno: str = Query(""),
+):
+    await _require_panol_access(request)
+    where = []
+    args: list[Any] = []
+    if fecha_desde:
+        where.append("pm.fecha_hora >= ?")
+        args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        where.append("pm.fecha_hora <= ?")
+        args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        where.append("pm.articulo_id = ?")
+        args.append(articulo_id)
+    if tipo:
+        where.append("pm.tipo = ?")
+        args.append(_norm_code(tipo))
+    if destino_id:
+        where.append("pm.ubicacion_destino_id = ?")
+        args.append(destino_id)
+    if turno:
+        where.append("pm.turno = ?")
+        args.append(_norm_code(turno))
+    clause = "WHERE " + " AND ".join(where) if where else ""
+    async with panol_db() as db:
+        rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT pm.*, a.codigo, a.descripcion, u.codigo AS destino_codigo
+            FROM produccion_movimientos pm
+            JOIN articulos a ON a.id = pm.articulo_id
+            LEFT JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
+            {clause}
+            ORDER BY pm.fecha_hora DESC, pm.id DESC
+            LIMIT 500
+            """,
+            tuple(args),
+        )
+    return {"items": rows}
+
+
+@router.get("/produccion/indicadores")
+async def production_indicators(request: Request):
+    await _require_panol_access(request)
+    async with panol_db() as db:
+        by_turn = await _fetch_rows(
+            db,
+            """
+            SELECT turno, COALESCE(SUM(cantidad), 0) AS cantidad
+            FROM produccion_movimientos
+            WHERE tipo = 'PRODUCCION'
+            GROUP BY turno
+            ORDER BY cantidad DESC
+            """,
+        )
+        by_sector = await _fetch_rows(
+            db,
+            """
+            SELECT u.id AS ubicacion_id, u.codigo AS sector, COALESCE(SUM(pm.cantidad), 0) AS cantidad
+            FROM produccion_movimientos pm
+            JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
+            WHERE pm.tipo = 'ENTREGA'
+            GROUP BY u.id, u.codigo
+            ORDER BY cantidad DESC
+            """,
+        )
+        by_sector_plu = await _fetch_rows(
+            db,
+            """
+            SELECT u.codigo AS sector, a.codigo, a.descripcion, COALESCE(SUM(pm.cantidad), 0) AS cantidad
+            FROM produccion_movimientos pm
+            JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
+            JOIN articulos a ON a.id = pm.articulo_id
+            WHERE pm.tipo = 'ENTREGA'
+            GROUP BY u.codigo, a.codigo, a.descripcion
+            ORDER BY cantidad DESC, u.codigo, a.codigo
+            LIMIT 200
+            """,
+        )
+    return {"produccion_por_turno": by_turn, "entregas_por_sector": by_sector, "entregas_por_sector_plu": by_sector_plu}
 
 
 @router.get("/stock")

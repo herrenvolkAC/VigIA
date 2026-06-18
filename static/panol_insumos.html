@@ -5,29 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="/resources/APPLogo.png">
   <link rel="stylesheet" href="/css/vigia.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <title>VigIA - Panol Insumos</title>
   <style>
-    :root{--bg:#f2f4f1;--panel:#fff;--ink:#0e1620;--soft:#5c6773;--rule:#d4dbd8;--strong:#a9b4ac;--green:#1f7a4d;--green-bg:#e5f3e9;--red:#c8102e;--red-bg:#f7d7da;--amber:#b25f00;--amber-bg:#fbe7c8;--blue:#0b5fae}
+    :root{--bg:#f2f4f1;--panel:#fff;--ink:#0e1620;--soft:#5c6773;--ink-soft:#5c6773;--rule:#d4dbd8;--strong:#a9b4ac;--rule-strong:#a9b4ac;--green:#1f7a4d;--green-bg:#e5f3e9;--green-soft:#e5f3e9;--red:#c8102e;--red-bg:#f7d7da;--red-soft:#f7d7da;--amber:#b25f00;--amber-bg:#fbe7c8;--amber-soft:#fbe7c8;--blue:#0b5fae}
     *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif}
+    html{background:var(--bg)}
+    body{margin:0;min-height:100vh;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px, transparent 1px),linear-gradient(90deg, var(--rule) 1px, transparent 1px);background-size:24px 24px;color:var(--ink);font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif}
     button,input,select,textarea{font:inherit;color:inherit}
-    button{cursor:pointer}
-    .app{padding:0 16px 28px}
-    .page-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;margin-top:14px;padding:14px 16px;background:var(--panel);border:1px solid var(--strong)}
-    .brand{display:flex;align-items:center;gap:14px;min-width:0}.brand img{width:70px;height:40px;object-fit:contain}.brand-rule{width:1px;height:30px;background:var(--rule)}
-    .kicker,.label,.tab,button,.mono{font-family:"IBM Plex Mono",Consolas,monospace}.kicker,.label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--soft)}
-    h1{margin:0;font-size:21px;line-height:1.05}.amp{color:var(--red)}
-    .head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.chip{border:1px solid var(--rule);background:var(--panel);padding:6px 9px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px;color:var(--green)}
-    .link,.btn{min-height:32px;border:1px solid var(--rule);background:var(--panel);padding:7px 10px;text-decoration:none;color:var(--ink);font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+    button{cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .app{width:100%;min-height:100vh;margin:0;padding:0 16px 28px}
+    .page-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;margin-top:0;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--strong)}
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}.brand img{width:86px;height:44px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}
+    .kicker,.label,.tab,button,.mono{font-family:"IBM Plex Mono",Consolas,monospace}.kicker,.label{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--soft)}.kicker{margin-bottom:4px}
+    h1{margin:0;font-size:20px;line-height:1.05;font-weight:600}.amp{color:var(--red)}
+    .head-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.chip{border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:6px 10px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px;font-weight:600;color:var(--green)}
+    .link,.btn{min-height:32px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:7px 10px;text-decoration:none;color:var(--ink);font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
     .btn.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}.btn.danger{color:var(--red);border-color:var(--red)}.btn:disabled{opacity:.45;cursor:not-allowed}
-    .tabs{display:flex;margin-top:12px;background:var(--panel);border-bottom:1px solid var(--rule);overflow:auto}.tab{border:0;background:transparent;color:var(--soft);padding:13px 16px;min-width:124px;font-size:11px;letter-spacing:.13em;text-transform:uppercase}.tab.active{border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}
+    .tabs{display:flex;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule);overflow:auto}.tab{border:0;background:transparent;color:var(--soft);padding:13px 18px 12px;min-width:132px;font-size:11px;letter-spacing:.16em;text-transform:uppercase}.tab.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}.tab.active::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-radius:50%;background:var(--green);vertical-align:middle}
     .panel{display:none}.panel.active{display:block}.status{min-height:30px;border:1px solid var(--rule);border-top:0;background:var(--panel);padding:8px 12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;color:var(--soft)}.status.error{color:var(--red)}
     .filters,.form-grid,.import-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.form-grid{border-top:1px solid var(--rule);margin-top:12px}.import-line{grid-template-columns:1fr auto auto}
-    .field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.span{grid-column:1/-1}.input,select,textarea{width:100%;min-height:34px;border:1px solid var(--rule);background:var(--panel);padding:7px 9px}.input,select{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px}textarea{min-height:68px;resize:vertical}
-    .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:14px 0}.kpi{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px;min-height:94px}.kpi.warn{border-top-color:var(--amber)}.kpi.ok{border-top-color:var(--green)}.kpi-num{font-family:"IBM Plex Mono",Consolas,monospace;font-size:24px;font-weight:700;margin-top:8px;white-space:nowrap}.kpi.warn .kpi-num{color:var(--amber)}.kpi.ok .kpi-num{color:var(--green)}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.span{grid-column:1/-1}.input,select,textarea{width:100%;min-height:34px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:7px 10px}.input,select{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px;font-weight:500}textarea{min-height:68px;resize:vertical}
+    .kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:14px 0}.kpi{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi.warn{border-top-color:var(--amber)}.kpi.ok{border-top-color:var(--green)}.kpi-num{font-family:"IBM Plex Mono",Consolas,monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi.warn .kpi-num{color:var(--amber)}.kpi.ok .kpi-num{color:var(--green)}
     .table-wrap{overflow:auto;max-height:560px;border:1px solid var(--rule);border-top:0;background:var(--panel)}table{width:100%;border-collapse:collapse;table-layout:fixed}th{position:sticky;top:0;background:#f6f8f5;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule);padding:9px;user-select:none;cursor:pointer}th:hover{color:var(--ink);background:#edf2ee}th.sorted{color:var(--ink)}th.sorted::after{content:attr(data-sort-mark);float:right;color:var(--green);letter-spacing:0}td{border-bottom:1px solid var(--rule);padding:8px 9px;font-size:13px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}tbody tr:nth-child(odd){background:#f8faf7}
     .state{display:inline-block;border:1px solid var(--green);background:var(--green-bg);color:var(--green);padding:3px 7px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px}.state.bad{border-color:var(--red);background:var(--red-bg);color:var(--red)}.muted{color:var(--soft);font-size:12px}.right{text-align:right}.actions{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none!important}
-    .dashboard-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.chart-panel{background:var(--panel);border:1px solid var(--rule);padding:12px;min-height:280px;min-width:0}.chart-panel.wide{grid-column:span 2}.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.chart-head strong{font-size:15px}.chart-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}.bar-list{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(78px,1fr) minmax(110px,2fr) 54px;gap:8px;align-items:center;font-size:12px}.stock-location-chart .bar-row{grid-template-columns:minmax(0,52ch) minmax(110px,1fr) 54px}.stock-location-chart .bar-label{font-size:11px;line-height:1.2;white-space:nowrap}.bar-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-track{height:14px;background:#e9eeeb;display:flex;overflow:hidden}.bar-fill{height:100%;min-width:1px;background:var(--green)}.bar-fill.cd{background:var(--blue)}.bar-fill.jaula{background:var(--green)}.bar-fill.oficina{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-fill.soft{background:var(--rule-strong)}.bar-value{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;color:var(--soft)}.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);text-transform:uppercase}.legend i{display:inline-block;width:12px;height:8px;margin-right:5px}.activity-list{display:flex;flex-direction:column;gap:8px}.activity-item{border-bottom:1px solid var(--rule);padding-bottom:8px;font-size:12px}.activity-item strong{display:block;font-family:"IBM Plex Mono",Consolas,monospace}.activity-item span{color:var(--soft)}.empty-chart{border:1px dashed var(--rule-strong);padding:18px;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;text-transform:uppercase}
+    .dashboard-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.chart-panel{background:var(--panel);border:1px solid var(--rule);padding:12px;min-height:280px;min-width:0}.chart-panel.wide{grid-column:span 2}.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.chart-head strong{font-size:15px}.chart-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}.bar-list{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(78px,1fr) minmax(110px,2fr) 54px;gap:8px;align-items:center;font-size:12px}.stock-location-chart .bar-row{grid-template-columns:minmax(0,52ch) minmax(110px,1fr) 54px}.stock-location-chart .bar-label{font-size:11px;line-height:1.2;white-space:nowrap}.bar-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-track{height:14px;background:#e9eeeb;display:flex;overflow:hidden}.bar-fill{height:100%;min-width:1px;background:var(--green)}.bar-fill.cd{background:var(--blue)}.bar-fill.jaula{background:var(--green)}.bar-fill.oficina{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-fill.soft{background:var(--rule-strong)}.stock-segment{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;font-weight:700;line-height:1;text-shadow:0 1px 1px rgba(0,0,0,.35)}.stock-segment.is-empty{display:none}.bar-value{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;color:var(--soft)}.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);text-transform:uppercase}.legend i{display:inline-block;width:12px;height:8px;margin-right:5px}.activity-list{display:flex;flex-direction:column;gap:8px}.activity-item{border-bottom:1px solid var(--rule);padding-bottom:8px;font-size:12px}.activity-item strong{display:block;font-family:"IBM Plex Mono",Consolas,monospace}.activity-item span{color:var(--soft)}.empty-chart{border:1px dashed var(--rule-strong);padding:18px;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;text-transform:uppercase}
+    .subtabs{display:flex;gap:8px;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:10px 12px}.subtab{border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:8px 12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.subtab.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}.prod-view,.stock-view{display:none}.prod-view.active,.stock-view.active{display:block}.pie-wrap{display:grid;grid-template-columns:160px minmax(0,1fr);gap:14px;align-items:center}.pie{width:150px;height:150px;border-radius:50%;border:1px solid var(--rule);background:#e9eeeb}.chart-legend{display:flex;flex-direction:column;gap:7px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;color:var(--soft)}.chart-legend span{display:flex;align-items:center;gap:7px}.chart-legend i{width:12px;height:12px;display:inline-block}.vertical-chart{display:flex;align-items:flex-end;gap:10px;min-height:230px;overflow:auto;padding:8px 2px 0}.vbar-item{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:48px;max-width:72px}.vbar-track{height:170px;width:34px;background:#e9eeeb;display:flex;flex-direction:column-reverse;overflow:hidden;border:1px solid var(--rule)}.vbar-fill{width:100%;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;text-shadow:0 1px 1px rgba(0,0,0,.35)}.vbar-label{width:100%;text-align:center;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vbar-value{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px}.stack-seg{width:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:9px;text-shadow:0 1px 1px rgba(0,0,0,.35)}#prod-view-indicadores .dashboard-charts{grid-template-columns:repeat(2,minmax(0,1fr))}#prod-view-indicadores .chart-panel.wide{grid-column:auto}
     @media(max-width:1100px){.page-head{grid-template-columns:1fr}.filters,.form-grid,.kpis,.dashboard-charts{grid-template-columns:repeat(2,minmax(0,1fr))}.chart-panel.wide{grid-column:span 2}.import-line{grid-template-columns:1fr 1fr}}
     @media(max-width:850px){.dashboard-charts{grid-template-columns:1fr}.chart-panel.wide{grid-column:auto}.stock-location-chart .bar-row{grid-template-columns:minmax(0,42ch) minmax(90px,1fr) 48px}}
     @media(max-width:700px){.app{padding:0 10px 20px}.filters,.form-grid,.kpis,.import-line{grid-template-columns:1fr}.tab{min-width:112px}.head-actions{align-items:flex-start}}
@@ -50,16 +56,21 @@
   </header>
 
   <nav class="tabs">
-    <button class="tab active" data-tab="dashboard">Dashboard</button>
-    <button class="tab" data-tab="inventario">Inventario</button>
-    <button class="tab" data-tab="movimientos">Movimientos</button>
+    <button class="tab active" data-tab="stock-insumos">Stock Insumos</button>
+    <button class="tab" data-tab="produccion">Produccion</button>
     <button class="tab" data-tab="historial">Historial</button>
     <button class="tab" data-tab="importacion">Importacion CD</button>
     <button class="tab" data-tab="articulos">Articulos</button>
   </nav>
   <div class="status" id="status">Inicializando pantalla...</div>
 
-  <section class="panel active" id="panel-dashboard">
+  <section class="panel active" id="panel-stock-insumos">
+    <div class="subtabs">
+      <button class="subtab active" data-stock-view="dashboard">Dashboard</button>
+      <button class="subtab" data-stock-view="inventario">Inventario</button>
+      <button class="subtab" data-stock-view="movimientos">Movimientos</button>
+    </div>
+    <div class="stock-view active" id="stock-view-dashboard">
     <div class="filters">
       <div class="field"><label class="label">Codigo / descripcion</label><input class="input" id="stock-q"></div>
       <div class="field"><label class="label">Categoria</label><input class="input" id="stock-cat"></div>
@@ -97,6 +108,7 @@
       </article>
     </div>
     <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">CD</th><th class="right">Jaula</th><th class="right">Oficina</th><th class="right">Total</th><th class="right">Minimo</th><th>Estado</th><th class="right">Cobertura</th></tr></thead><tbody id="stock-body"></tbody></table></div>
+    </div>
   </section>
 
   <section class="panel" id="panel-articulos">
@@ -117,7 +129,7 @@
     <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th>Categoria</th><th>Unidad</th><th class="right">Minimo</th><th>Activo</th><th>Accion</th></tr></thead><tbody id="articles-body"></tbody></table></div>
   </section>
 
-  <section class="panel" id="panel-movimientos">
+  <section class="panel stock-view" id="stock-view-movimientos">
     <form class="form-grid" id="movement-form">
       <label class="field"><span class="label">Articulo</span><select id="mov-articulo"></select></label>
       <label class="field"><span class="label">Tipo</span><select id="mov-tipo"><option>ALTA</option><option>BAJA</option><option>TRANSFERENCIA</option><option>AJUSTE_POSITIVO</option><option>AJUSTE_NEGATIVO</option></select></label>
@@ -131,7 +143,57 @@
     <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Codigo</th><th>Tipo</th><th>Origen</th><th>Destino</th><th class="right">Cantidad</th><th>Usuario</th><th>Obs.</th></tr></thead><tbody id="movements-body"></tbody></table></div>
   </section>
 
-  <section class="panel" id="panel-inventario">
+  <section class="panel" id="panel-produccion">
+    <div class="subtabs">
+      <button class="subtab active" data-prod-view="operaciones">Operaciones</button>
+      <button class="subtab" data-prod-view="indicadores">Indicadores</button>
+    </div>
+    <div class="kpis">
+      <div class="kpi ok"><div class="label">Producido hoy</div><div class="kpi-num" id="p-produced-today">0</div></div>
+      <div class="kpi warn"><div class="label">Entregado hoy</div><div class="kpi-num" id="p-delivered-today">0</div></div>
+      <div class="kpi"><div class="label">Stock producido</div><div class="kpi-num" id="p-stock-total">0</div></div>
+    </div>
+    <div class="prod-view active" id="prod-view-operaciones">
+      <form class="form-grid" id="production-form">
+        <label class="field"><span class="label">PLU producido</span><select id="prod-articulo"></select></label>
+        <div class="field"><label class="label">Cantidad producida</label><input class="input" id="prod-cantidad" type="number" step="0.001" min="0.001" required></div>
+        <div class="field span"><label class="label">Observacion</label><textarea id="prod-obs"></textarea></div>
+        <button class="btn primary">Registrar produccion</button>
+      </form>
+      <form class="form-grid" id="delivery-form">
+        <label class="field"><span class="label">PLU entregado</span><select id="deliv-articulo"></select></label>
+        <label class="field"><span class="label">Sector destino</span><select id="deliv-destino"></select></label>
+        <div class="field"><label class="label">Cantidad entregada</label><input class="input" id="deliv-cantidad" type="number" step="0.001" min="0.001" required></div>
+        <div class="field span"><label class="label">Observacion</label><textarea id="deliv-obs"></textarea></div>
+        <button class="btn primary">Registrar entrega</button>
+      </form>
+      <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">Producido</th><th class="right">Entregado</th><th class="right">Stock producido</th></tr></thead><tbody id="production-stock-body"></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Codigo</th><th>Tipo</th><th>Destino</th><th>Turno</th><th class="right">Cantidad</th><th>Usuario</th><th>Obs.</th></tr></thead><tbody id="production-movements-body"></tbody></table></div>
+    </div>
+    <div class="prod-view" id="prod-view-indicadores">
+      <div class="dashboard-charts">
+        <article class="chart-panel">
+          <div class="chart-head"><div><strong>Historico producido</strong><div class="muted">Total por turno</div></div><span>Torta</span></div>
+          <div class="pie-wrap"><div class="pie" id="chart-prod-turn-pie"></div><div class="chart-legend" id="legend-prod-turn"></div></div>
+        </article>
+        <article class="chart-panel">
+          <div class="chart-head"><div><strong>Historico entregado</strong><div class="muted">Total por destino</div></div><span>Torta</span></div>
+          <div class="pie-wrap"><div class="pie" id="chart-prod-sector-pie"></div><div class="chart-legend" id="legend-prod-sector"></div></div>
+        </article>
+        <article class="chart-panel wide">
+          <div class="chart-head"><div><strong>Stock disponible por PLU</strong><div class="muted">Stock producido actual</div></div><span>Barras</span></div>
+          <div class="vertical-chart" id="chart-prod-stock-bars"></div>
+        </article>
+        <article class="chart-panel wide">
+          <div class="chart-head"><div><strong>Stock entregado por PLU</strong><div class="muted">Segmentos por sector destino</div></div><span>Apilado</span></div>
+          <div class="vertical-chart" id="chart-prod-delivered-bars"></div>
+        </article>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Sector</th><th>Codigo</th><th>Descripcion</th><th class="right">Entregado</th></tr></thead><tbody id="production-sector-body"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="panel stock-view" id="stock-view-inventario">
     <div class="filters">
       <div class="field"><label class="label">Fecha</label><input class="input" id="inv-fecha" type="date"></div>
       <label class="field"><span class="label">Ubicacion</span><select id="inv-ubicacion"></select></label>
@@ -165,7 +227,7 @@
 </div>
 
 <script>
-let ctx=null, articles=[], stockRows=[], movementRows=[], indicatorData={};
+let ctx=null, articles=[], stockRows=[], movementRows=[], indicatorData={}, productionStockRows=[], productionMovementRows=[], productionIndicatorData={};
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function num(v){const n=Number(v||0);return Number.isFinite(n)?n:0}
@@ -191,10 +253,11 @@ function renderStackedStock(){
   if(!rows.length){el.innerHTML=emptyChart('Sin stock para graficar');return;}
   el.innerHTML=rows.map(r=>{
     const total=Math.max(num(r.stock_total),1);
-    const cd=num(r.stock_cd)/total*100, jaula=num(r.stock_jaula)/total*100, oficina=num(r.stock_oficina)/total*100;
+    const cdQty=num(r.stock_cd), jaulaQty=num(r.stock_jaula), oficinaQty=num(r.stock_oficina);
+    const cd=cdQty/total*100, jaula=jaulaQty/total*100, oficina=oficinaQty/total*100;
     const fullLabel=`${r.codigo} · ${r.descripcion||''}`;
     const label=fullLabel.length>maxLabelLength?`${fullLabel.slice(0,maxLabelLength-3)}...`:fullLabel;
-    return `<div class="bar-row"><div class="bar-label" title="${esc(fullLabel)}">${esc(label)}</div><div class="bar-track"><div class="bar-fill cd" style="width:${cd}%"></div><div class="bar-fill jaula" style="width:${jaula}%"></div><div class="bar-fill oficina" style="width:${oficina}%"></div></div><div class="bar-value">${fmt(total)}</div></div>`;
+    return `<div class="bar-row"><div class="bar-label" title="${esc(fullLabel)}">${esc(label)}</div><div class="bar-track"><div class="bar-fill stock-segment cd ${cdQty<=0?'is-empty':''}" style="width:${cd}%" title="CD: ${fmt(cdQty)}">${fmt(cdQty)}</div><div class="bar-fill stock-segment jaula ${jaulaQty<=0?'is-empty':''}" style="width:${jaula}%" title="Jaula: ${fmt(jaulaQty)}">${fmt(jaulaQty)}</div><div class="bar-fill stock-segment oficina ${oficinaQty<=0?'is-empty':''}" style="width:${oficina}%" title="Oficina: ${fmt(oficinaQty)}">${fmt(oficinaQty)}</div></div><div class="bar-value">${fmt(total)}</div></div>`;
   }).join('');
 }
 function renderDashboardCharts(){
@@ -209,6 +272,72 @@ function renderDashboardCharts(){
   renderSimpleBars('chart-turn-consumption',turnRows,{empty:'Sin consumo por turno'});
   const recent=movementRows.slice(0,8);
   $('chart-recent-moves').innerHTML=recent.length?recent.map(r=>`<div class="activity-item"><strong>${esc(r.tipo)} · ${esc(r.codigo)} · ${fmt(r.cantidad)}</strong><span>${shortDate(r.fecha_hora)} · ${esc(r.origen_codigo||'-')} → ${esc(r.destino_codigo||'-')} · ${esc(r.usuario||'')}</span></div>`).join(''):emptyChart('Sin movimientos recientes');
+}
+const chartColors=['#0b5fae','#1f7a4d','#b25f00','#c8102e','#5c6773','#2f7f9f','#6a7b38','#8b5a2b'];
+function renderPie(pieId,legendId,rows,empty){
+  const pie=$(pieId), legend=$(legendId);
+  if(!pie||!legend)return;
+  const data=rows.filter(r=>num(r.value)>0);
+  const total=data.reduce((s,r)=>s+num(r.value),0);
+  if(!total){pie.style.background='#e9eeeb';legend.innerHTML=emptyChart(empty);return;}
+  let acc=0;
+  const stops=data.map((r,i)=>{
+    const start=acc/total*100;
+    acc+=num(r.value);
+    const end=acc/total*100;
+    return `${chartColors[i%chartColors.length]} ${start}% ${end}%`;
+  });
+  pie.style.background=`conic-gradient(${stops.join(',')})`;
+  legend.innerHTML=data.map((r,i)=>`<span><i style="background:${chartColors[i%chartColors.length]}"></i>${esc(r.label)} · ${fmt(r.value)}</span>`).join('');
+}
+function renderVerticalBars(elId,rows,empty){
+  const el=$(elId);
+  if(!el)return;
+  const data=rows.filter(r=>num(r.value)>0);
+  if(!data.length){el.innerHTML=emptyChart(empty);return;}
+  const max=Math.max(...data.map(r=>num(r.value)),1);
+  el.innerHTML=data.slice(0,24).map(r=>{
+    const h=Math.max(3,num(r.value)/max*100);
+    return `<div class="vbar-item" title="${esc(r.label)}: ${fmt(r.value)}"><div class="vbar-value">${fmt(r.value)}</div><div class="vbar-track"><div class="vbar-fill" style="height:${h}%"></div></div><div class="vbar-label">${esc(r.label)}</div></div>`;
+  }).join('');
+}
+function renderStackedVerticalBars(elId,rows,empty){
+  const el=$(elId);
+  if(!el)return;
+  const byPlu={};
+  rows.forEach(r=>{
+    const value=num(r.cantidad);
+    if(value<=0)return;
+    const key=r.codigo;
+    if(!byPlu[key])byPlu[key]={label:r.codigo,total:0,segments:[]};
+    byPlu[key].total+=value;
+    byPlu[key].segments.push({label:r.sector,value});
+  });
+  const data=Object.values(byPlu).sort((a,b)=>b.total-a.total);
+  if(!data.length){el.innerHTML=emptyChart(empty);return;}
+  const max=Math.max(...data.map(r=>r.total),1);
+  el.innerHTML=data.slice(0,24).map(r=>{
+    const trackHeight=Math.max(3,r.total/max*100);
+    const segs=r.segments.sort((a,b)=>b.value-a.value).map((s,i)=>{
+      const h=Math.max(3,s.value/r.total*100);
+      return `<div class="stack-seg" style="height:${h}%;background:${chartColors[i%chartColors.length]}" title="${esc(s.label)}: ${fmt(s.value)}">${h>15?fmt(s.value):''}</div>`;
+    }).join('');
+    return `<div class="vbar-item" title="${esc(r.label)}: ${fmt(r.total)}"><div class="vbar-value">${fmt(r.total)}</div><div class="vbar-track" style="height:170px"><div style="height:${trackHeight}%;width:100%;display:flex;flex-direction:column-reverse">${segs}</div></div><div class="vbar-label">${esc(r.label)}</div></div>`;
+  }).join('');
+}
+function renderProductionCharts(){
+  const turnRows=(productionIndicatorData.produccion_por_turno||[]).map(r=>({label:r.turno,value:num(r.cantidad)}));
+  const sectorRows=(productionIndicatorData.entregas_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad)}));
+  renderPie('chart-prod-turn-pie','legend-prod-turn',turnRows,'Sin produccion registrada');
+  renderPie('chart-prod-sector-pie','legend-prod-sector',sectorRows,'Sin entregas registradas');
+  renderVerticalBars('chart-prod-stock-bars',productionStockRows.map(r=>({label:r.codigo,value:num(r.stock_producido)})),'Sin stock producido');
+  renderStackedVerticalBars('chart-prod-delivered-bars',productionIndicatorData.entregas_por_sector_plu||[],'Sin entregas registradas');
+}
+function renderProductionTables(){
+  $('production-stock-body').innerHTML=productionStockRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.producido)}</td><td class="right">${fmt(r.entregado)}</td><td class="right">${fmt(r.stock_producido)}</td></tr>`).join('')||'<tr><td colspan="5">Sin stock producido.</td></tr>';
+  const sectorRows=productionIndicatorData.entregas_por_sector_plu||[];
+  $('production-sector-body').innerHTML=sectorRows.map(r=>`<tr><td>${esc(r.sector)}</td><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.cantidad)}</td></tr>`).join('')||'<tr><td colspan="4">Sin entregas por sector.</td></tr>';
+  $('production-movements-body').innerHTML=productionMovementRows.map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.codigo)}</td><td>${esc(r.tipo)}</td><td>${esc(r.destino_codigo||'-')}</td><td>${esc(r.turno)}</td><td class="right">${fmt(r.cantidad)}</td><td>${esc(r.usuario||'')}</td><td>${esc(r.observacion||'')}</td></tr>`).join('')||'<tr><td colspan="8">Sin movimientos de produccion.</td></tr>';
 }
 function sortValue(text){
   const raw=String(text||'').trim();
@@ -271,29 +400,65 @@ async function api(path,opt={}){
   }
 }
 function optionList(items,empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${items.map(x=>`<option value="${x.id}">${esc(x.codigo)} - ${esc(x.descripcion||'')}</option>`).join('')}`}
+function productionDeliveryOptions(empty=''){const rows=productionStockRows.filter(r=>num(r.stock_producido)>0);return `${empty?`<option value="">${esc(empty)}</option>`:''}${rows.map(x=>`<option value="${x.articulo_id}">${esc(x.codigo)} - ${esc(x.descripcion||'')} (${fmt(x.stock_producido)})</option>`).join('')}`}
 function locationOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${(ctx?.ubicaciones||[]).map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}`}
+function sortedLocations(){return [...(ctx?.ubicaciones||[])].sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||''),'es-AR',{numeric:true,sensitivity:'base'}))}
+function destinationOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${sortedLocations().map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}`}
 function setDefaultLocation(selectId, code){const el=$(selectId);const item=(ctx?.ubicaciones||[]).find(x=>String(x.codigo).toUpperCase()===code);if(el&&item)el.value=String(item.id)}
 function turnOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${(ctx?.turnos||[]).map(x=>`<option value="${esc(x.codigo)}">${esc(x.descripcion||x.codigo)}</option>`).join('')}`}
-async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} · ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('inv-fecha').value=new Date().toISOString().slice(0,10);$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=locationOptions('Sin destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-ubicacion').innerHTML=locationOptions('Todas');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
-async function loadArticles(){const d=await api('/panol-insumos/api/articulos?include_inactive=1');articles=d.items||[];$('mov-articulo').innerHTML=optionList(articles.filter(a=>a.activo));$('hist-articulo').innerHTML=optionList(articles,'Todos');renderArticles();renderInventoryRows();}
+async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} · ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('inv-fecha').value=new Date().toISOString().slice(0,10);$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-ubicacion').innerHTML=locationOptions('Todas');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
+async function loadArticles(){const d=await api('/panol-insumos/api/articulos?include_inactive=1');articles=d.items||[];const active=articles.filter(a=>a.activo);$('mov-articulo').innerHTML=optionList(active);$('prod-articulo').innerHTML=optionList(active);$('deliv-articulo').innerHTML='<option value="">Sin PLU con stock producido</option>';$('hist-articulo').innerHTML=optionList(articles,'Todos');renderArticles();renderInventoryRows();}
 function renderArticles(){$('articles-body').innerHTML=articles.map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.categoria||'')}</td><td>${esc(a.unidad||'UN')}</td><td class="right">${fmt(a.stock_minimo)}</td><td>${a.activo?'Si':'No'}</td><td><button class="btn" data-edit-article="${a.id}">Editar</button></td></tr>`).join('')||'<tr><td colspan="7">Sin articulos.</td></tr>'}
 function renderInventoryRows(){$('inventory-body').innerHTML=articles.filter(a=>a.activo).map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.unidad||'UN')}</td><td><input class="input right" type="number" step="0.001" min="0" data-inv-art="${a.id}" value="0"></td></tr>`).join('')||'<tr><td colspan="4">Crea articulos para cargar inventario.</td></tr>'}
 async function loadStock(){const p=new URLSearchParams();if($('stock-q').value)p.set('q',$('stock-q').value);if($('stock-cat').value)p.set('categoria',$('stock-cat').value);if($('stock-low').value)p.set('bajo_minimo','true');const d=await api(`/panol-insumos/api/stock?${p}`);stockRows=d.items||[];const m=d.metrics||{};$('m-articulos').textContent=m.total_articulos||0;$('m-bajo').textContent=m.bajo_minimo||0;$('m-movs').textContent=m.movimientos_hoy||0;$('m-cd').textContent=shortDate(m.ultima_importacion_cd?.fecha_importacion);$('m-inv').textContent=shortDate(m.ultimo_inventario_oficina?.fecha_hora);$('stock-body').innerHTML=stockRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.stock_cd)}</td><td class="right">${fmt(r.stock_jaula)}</td><td class="right">${fmt(r.stock_oficina)}</td><td class="right">${fmt(r.stock_total)}</td><td class="right">${fmt(r.stock_minimo)}</td><td><span class="state ${r.estado==='BAJO_MINIMO'?'bad':''}">${r.estado==='BAJO_MINIMO'?'Bajo minimo':'OK'}</span></td><td class="right">${r.cobertura_dias==null?'-':fmt(r.cobertura_dias)}</td></tr>`).join('')||'<tr><td colspan="9">Sin stock para mostrar.</td></tr>'}
 async function loadIndicators(){indicatorData=await api('/panol-insumos/api/indicadores')||{}}
 async function loadMovements(){const d=await api('/panol-insumos/api/movimientos');movementRows=d.items||[];$('movements-body').innerHTML=movementRows.map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.codigo)}</td><td>${esc(r.tipo)}</td><td>${esc(r.origen_codigo||'-')}</td><td>${esc(r.destino_codigo||'-')}</td><td class="right">${fmt(r.cantidad)}</td><td>${esc(r.usuario||'')}</td><td>${esc(r.observacion||'')}</td></tr>`).join('')||'<tr><td colspan="8">Sin movimientos.</td></tr>'}
+async function loadProduction(){
+  const stock=await api('/panol-insumos/api/produccion/stock')||{};
+  productionStockRows=stock.items||[];
+  const metrics=stock.metrics||{};
+  $('p-produced-today').textContent=fmt(metrics.producido_hoy);
+  $('p-delivered-today').textContent=fmt(metrics.entregado_hoy);
+  $('p-stock-total').textContent=fmt(metrics.stock_total_producido);
+  $('deliv-articulo').innerHTML=productionDeliveryOptions('Seleccionar PLU');
+  productionIndicatorData=await api('/panol-insumos/api/produccion/indicadores')||{};
+  const moves=await api('/panol-insumos/api/produccion/movimientos')||{};
+  productionMovementRows=moves.items||[];
+  renderProductionCharts();
+  renderProductionTables();
+  initSortableTables();
+}
 async function loadInventoryHistory(){const p=new URLSearchParams();if($('hist-fecha').value)p.set('fecha',$('hist-fecha').value);if($('hist-ubicacion').value)p.set('ubicacion_id',$('hist-ubicacion').value);if($('hist-turno').value)p.set('turno',$('hist-turno').value);if($('hist-articulo').value)p.set('articulo_id',$('hist-articulo').value);const d=await api(`/panol-insumos/api/inventario-turno?${p}`);$('inventory-history-body').innerHTML=(d.items||[]).map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.fecha)}</td><td>${esc(r.ubicacion_codigo||'OFICINA_ADO')}</td><td>${esc(r.turno)}</td><td>${esc(r.codigo)}</td><td class="right">${r.stock_inicial==null?'-':fmt(r.stock_inicial)}</td><td class="right">${r.ingresos_turno==null?'-':fmt(r.ingresos_turno)}</td><td class="right">${fmt(r.stock_fisico)}</td><td class="right">${r.consumo_calculado==null?'-':fmt(r.consumo_calculado)}</td><td>${esc(r.usuario||'')}</td></tr>`).join('')||'<tr><td colspan="10">Sin inventarios.</td></tr>'}
 function resetArticle(){$('article-id').value='';$('article-code').value='';$('article-desc').value='';$('article-cat').value='';$('article-unit').value='UN';$('article-min').value='0';$('article-active').value='1'}
 async function saveArticle(ev){ev.preventDefault();const id=$('article-id').value;const body={codigo:$('article-code').value,descripcion:$('article-desc').value,categoria:$('article-cat').value,unidad:$('article-unit').value,stock_minimo:Number($('article-min').value||0),activo:$('article-active').value==='1'};await api(id?`/panol-insumos/api/articulos/${id}`:'/panol-insumos/api/articulos',{method:id?'PUT':'POST',body:JSON.stringify(body)});resetArticle();await loadArticles();await loadStock();renderDashboardCharts();setStatus('Articulo guardado.')}
-async function saveMovement(ev){ev.preventDefault();const body={articulo_id:Number($('mov-articulo').value),tipo:$('mov-tipo').value,ubicacion_origen_id:$('mov-origen').value?Number($('mov-origen').value):null,ubicacion_destino_id:$('mov-destino').value?Number($('mov-destino').value):null,cantidad:Number($('mov-cantidad').value),motivo:$('mov-motivo').value,observacion:$('mov-obs').value};await api('/panol-insumos/api/movimientos',{method:'POST',body:JSON.stringify(body)});$('movement-form').reset();$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=locationOptions('Sin destino');await loadMovements();await loadStock();renderDashboardCharts();setStatus('Movimiento registrado.')}
+async function saveMovement(ev){ev.preventDefault();const body={articulo_id:Number($('mov-articulo').value),tipo:$('mov-tipo').value,ubicacion_origen_id:$('mov-origen').value?Number($('mov-origen').value):null,ubicacion_destino_id:$('mov-destino').value?Number($('mov-destino').value):null,cantidad:Number($('mov-cantidad').value),motivo:$('mov-motivo').value,observacion:$('mov-obs').value};await api('/panol-insumos/api/movimientos',{method:'POST',body:JSON.stringify(body)});$('movement-form').reset();$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');await loadMovements();await loadStock();renderDashboardCharts();setStatus('Movimiento registrado.')}
+async function saveProduction(ev){ev.preventDefault();const body={articulo_id:Number($('prod-articulo').value),cantidad:Number($('prod-cantidad').value),observacion:$('prod-obs').value};const d=await api('/panol-insumos/api/produccion',{method:'POST',body:JSON.stringify(body)});$('production-form').reset();await loadProduction();setStatus(`Produccion registrada. Turno: ${esc(d.turno||'')}`)}
+async function saveProductionDelivery(ev){ev.preventDefault();if(!$('deliv-articulo').value)throw new Error('No hay PLU con stock producido disponible para entregar.');const body={articulo_id:Number($('deliv-articulo').value),ubicacion_destino_id:Number($('deliv-destino').value),cantidad:Number($('deliv-cantidad').value),observacion:$('deliv-obs').value};const d=await api('/panol-insumos/api/produccion/entregas',{method:'POST',body:JSON.stringify(body)});$('delivery-form').reset();$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');await loadProduction();setStatus(`Entrega registrada. Turno: ${esc(d.turno||'')}`)}
 async function saveInventory(){const items=[...document.querySelectorAll('[data-inv-art]')].map(i=>({articulo_id:Number(i.dataset.invArt),stock_fisico:Number(i.value||0)}));const body={fecha:$('inv-fecha').value,turno:$('inv-turno').value,ubicacion_id:Number($('inv-ubicacion').value),observacion:$('inv-obs').value,items};const d=await api('/panol-insumos/api/inventario-turno',{method:'POST',body:JSON.stringify(body)});await loadIndicators();await loadMovements();await loadInventoryHistory();await loadStock();renderDashboardCharts();setStatus(`Inventario guardado. Ubicacion: ${esc((d.items||[])[0]?.ubicacion||'')}. Lineas: ${(d.items||[]).length}`)}
 async function sendCd(preview){const file=$('cd-file').files[0];if(!file)throw new Error('Selecciona un archivo.');const p=new URLSearchParams({filename:file.name,preview:String(preview)});const body=await file.arrayBuffer();const d=await api(`/panol-insumos/api/importar-stock-cd?${p}`,{method:'POST',body});$('cd-preview-body').innerHTML=(d.matched||[]).map(r=>`<tr><td>${esc(r.codigo)}</td><td class="right">${fmt(r.stock_cd)}</td></tr>`).join('')||'<tr><td colspan="2">Sin codigos coincidentes.</td></tr>';setStatus(`${preview?'Preview':'Importacion'}: ${d.matched_count||0} codigos propios, ${d.ignored||0} ignorados.`);if(!preview){await loadStock();renderDashboardCharts();}}
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(`panel-${b.dataset.tab}`).classList.add('active')});
+function activateStockView(view){
+  document.querySelectorAll('[data-stock-view]').forEach(x=>x.classList.toggle('active',x.dataset.stockView===view));
+  document.querySelectorAll('.stock-view').forEach(x=>x.classList.remove('active'));
+  const target=$(`stock-view-${view}`);
+  if(target)target.classList.add('active');
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  $(`panel-${b.dataset.tab}`)?.classList.add('active');
+  if(b.dataset.tab==='stock-insumos')activateStockView(document.querySelector('[data-stock-view].active')?.dataset.stockView||'dashboard');
+});
+document.querySelectorAll('[data-stock-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelector('[data-tab="stock-insumos"]').classList.add('active');$('panel-stock-insumos').classList.add('active');activateStockView(b.dataset.stockView)});
+document.querySelectorAll('[data-prod-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-prod-view]').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.prod-view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(`prod-view-${b.dataset.prodView}`).classList.add('active')});
 $('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
 $('refresh-stock').onclick=()=>loadStock().then(renderDashboardCharts).catch(e=>setStatus(e.message,true));
 $('article-form').onsubmit=e=>saveArticle(e).catch(err=>setStatus(err.message,true));
 $('new-article').onclick=resetArticle;
 $('articles-body').onclick=ev=>{const b=ev.target.closest('[data-edit-article]');if(!b)return;const a=articles.find(x=>String(x.id)===String(b.dataset.editArticle));if(!a)return;$('article-id').value=a.id;$('article-code').value=a.codigo;$('article-desc').value=a.descripcion;$('article-cat').value=a.categoria||'';$('article-unit').value=a.unidad||'UN';$('article-min').value=a.stock_minimo||0;$('article-active').value=a.activo?'1':'0'};
 $('movement-form').onsubmit=e=>saveMovement(e).catch(err=>setStatus(err.message,true));
+$('production-form').onsubmit=e=>saveProduction(e).catch(err=>setStatus(err.message,true));
+$('delivery-form').onsubmit=e=>saveProductionDelivery(e).catch(err=>setStatus(err.message,true));
 $('save-inventory').onclick=()=>saveInventory().catch(e=>setStatus(e.message,true));
 $('inventory-body').addEventListener('keydown',ev=>{
   if(ev.key!=='Enter')return;
@@ -308,7 +473,7 @@ $('inventory-body').addEventListener('keydown',ev=>{
 $('refresh-history').onclick=()=>loadInventoryHistory().catch(e=>setStatus(e.message,true));
 $('preview-cd').onclick=()=>sendCd(true).catch(e=>setStatus(e.message,true));
 $('import-cd').onclick=()=>sendCd(false).catch(e=>setStatus(e.message,true));
-(async()=>{try{initSortableTables();setStatus('Validando sesion y permisos...');await loadContext();setStatus('Cargando articulos...');await loadArticles();setStatus('Calculando stock...');await loadStock();setStatus('Cargando indicadores...');await loadIndicators();setStatus('Cargando movimientos...');await loadMovements();setStatus('Cargando inventarios...');await loadInventoryHistory();renderDashboardCharts();initSortableTables();setStatus('Listo.')}catch(e){setStatus(e.message,true)}})();
+(async()=>{try{initSortableTables();setStatus('Validando sesion y permisos...');await loadContext();setStatus('Cargando articulos...');await loadArticles();setStatus('Calculando stock...');await loadStock();setStatus('Cargando indicadores...');await loadIndicators();setStatus('Cargando movimientos...');await loadMovements();setStatus('Cargando produccion...');await loadProduction();setStatus('Cargando inventarios...');await loadInventoryHistory();renderDashboardCharts();initSortableTables();setStatus('Listo.')}catch(e){setStatus(e.message,true)}})();
 </script>
 </body>
 </html>
