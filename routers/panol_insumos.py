@@ -3,13 +3,14 @@ from __future__ import annotations
 import csv
 import io
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
+import unicodedata
 
 import aiosqlite
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
-from openpyxl import load_workbook
+from openpyxl import Workbook, load_workbook
 from pydantic import BaseModel
 import xlrd
 
@@ -22,6 +23,7 @@ router = APIRouter(prefix="/panol-insumos/api", tags=["panol-insumos"])
 
 FULL_PROFILES = {"ADMIN", "SUPERVISOR", "TODO"}
 LIMITED_PROFILES = {"OPERACION", "OPERADOR", "USUARIO", ""}
+REQUEST_PROFILES = {"SOLICITANTE", "PEDIDOS"}
 MOVEMENT_TYPES = {"ALTA", "BAJA", "AJUSTE_POSITIVO", "AJUSTE_NEGATIVO", "TRANSFERENCIA"}
 INCOMING_TYPES = {"ALTA", "AJUSTE_POSITIVO"}
 OUTGOING_TYPES = {"BAJA", "AJUSTE_NEGATIVO"}
@@ -32,6 +34,7 @@ class ArticleRequest(BaseModel):
     descripcion: str
     categoria: str = ""
     unidad: str = "UN"
+    uso: str = ""
     stock_minimo: float = 0
     activo: bool = True
 
@@ -59,6 +62,31 @@ class ProductionDeliveryRequest(BaseModel):
     observacion: str = ""
 
 
+class SupplyOrderItemRequest(BaseModel):
+    articulo_id: int
+    cantidad_insumo: float = 0
+    cantidad_produccion: float = 0
+
+
+class SupplyOrderRequest(BaseModel):
+    sector_id: int
+    observacion: str = ""
+    items: list[SupplyOrderItemRequest]
+
+
+class SupplyOrderConfirmItemRequest(BaseModel):
+    item_id: int
+    cantidad_insumo_confirmada: float = 0
+    cantidad_produccion_confirmada: float = 0
+    ubicacion_origen_insumo_id: int | None = None
+    uso_entrega: str = ""
+
+
+class SupplyOrderConfirmRequest(BaseModel):
+    observacion: str = ""
+    items: list[SupplyOrderConfirmItemRequest]
+
+
 class InventoryLine(BaseModel):
     articulo_id: int
     stock_fisico: float
@@ -71,6 +99,10 @@ class InventoryRequest(BaseModel):
     ubicacion_codigo: str = "OFICINA_ADO"
     observacion: str = ""
     items: list[InventoryLine]
+
+
+class OperationalResetRequest(BaseModel):
+    clave: str
 
 
 def _now() -> str:
@@ -91,8 +123,20 @@ def _turno_por_hora(fecha_hora: str | None = None) -> str:
     return "NOCHE"
 
 
+def _logistic_day_bounds() -> tuple[str, str]:
+    now = datetime.now()
+    start = (now.date() - timedelta(days=1)).strftime("%Y-%m-%d") + " 22:00:00"
+    return start, now.strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _norm_code(value: Any) -> str:
     return " ".join(str(value or "").strip().split()).upper()
+
+
+def _norm_key(value: Any) -> str:
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    return "".join(ch for ch in text.lower() if ch.isalnum())
 
 
 def _clean(value: Any) -> str:
@@ -110,6 +154,11 @@ def _to_float(value: Any) -> float:
     if not text:
         return 0.0
     return float(text)
+
+
+def _usage_options(value: Any) -> list[str]:
+    text = str(value or "").replace("\r", "\n").replace(";", "\n").replace(",", "\n")
+    return [_clean(part) for part in text.split("\n") if _clean(part)]
 
 
 async def _fetch_rows(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
@@ -150,12 +199,20 @@ async def _require_panol_access(request: Request, *, full: bool = False) -> dict
 
     profile = _norm_code(row.get("profile") or "OPERACION")
     can_full = profile in FULL_PROFILES
-    if profile not in FULL_PROFILES and profile not in LIMITED_PROFILES:
+    if profile not in FULL_PROFILES and profile not in LIMITED_PROFILES and profile not in REQUEST_PROFILES:
         can_full = False
     if full and not can_full:
         raise HTTPException(status_code=403, detail="Requiere perfil completo de Panol.")
     auth["panol_profile"] = profile or "OPERACION"
     auth["panol_full"] = can_full
+    auth["panol_request_only"] = profile in REQUEST_PROFILES
+    return auth
+
+
+async def _require_panol_operator(request: Request, *, full: bool = False) -> dict[str, Any]:
+    auth = await _require_panol_access(request, full=full)
+    if auth.get("panol_request_only"):
+        raise HTTPException(status_code=403, detail="El perfil solicitante solo puede gestionar pedidos de insumos.")
     return auth
 
 
@@ -212,9 +269,8 @@ async def _latest_inventory(db: aiosqlite.Connection, articulo_id: int, ubicacio
 
 async def _office_transfers_since(db: aiosqlite.Connection, articulo_id: int, since: str | None, until: str) -> tuple[float, float]:
     oficina_id = await _ubicacion_id(db, "OFICINA_ADO")
-    jaula_id = await _ubicacion_id(db, "JAULA")
-    where_since = "AND fecha_hora > ?" if since else ""
-    args: list[Any] = [jaula_id, oficina_id, oficina_id, jaula_id, articulo_id, until]
+    where_since = "AND fecha_hora >= ?" if since else ""
+    args: list[Any] = [oficina_id, oficina_id, articulo_id, until]
     if since:
         args.append(since)
     row = await _fetch_one(
@@ -222,14 +278,15 @@ async def _office_transfers_since(db: aiosqlite.Connection, articulo_id: int, si
         f"""
         SELECT
             COALESCE(SUM(CASE
-                WHEN ubicacion_origen_id = ? AND ubicacion_destino_id = ? THEN cantidad
+                WHEN ubicacion_destino_id = ?
+                     AND tipo IN ('ALTA','AJUSTE_POSITIVO','TRANSFERENCIA') THEN cantidad
                 ELSE 0 END), 0) AS ingresos,
             COALESCE(SUM(CASE
-                WHEN ubicacion_origen_id = ? AND ubicacion_destino_id = ? THEN cantidad
+                WHEN ubicacion_origen_id = ?
+                     AND tipo IN ('BAJA','AJUSTE_NEGATIVO','TRANSFERENCIA') THEN cantidad
                 ELSE 0 END), 0) AS egresos
         FROM movimientos
         WHERE articulo_id = ?
-          AND tipo = 'TRANSFERENCIA'
           AND fecha_hora <= ?
           {where_since}
         """,
@@ -302,6 +359,8 @@ async def context(request: Request):
             "role": auth.get("role"),
             "panol_profile": auth.get("panol_profile"),
             "can_full": bool(auth.get("panol_full")),
+            "can_request": True,
+            "can_operate": not bool(auth.get("panol_request_only")),
         },
         "ubicaciones": ubicaciones,
         "turnos": turnos,
@@ -310,7 +369,7 @@ async def context(request: Request):
 
 @router.get("/articulos")
 async def list_articles(request: Request, include_inactive: bool = Query(False)):
-    await _require_panol_access(request)
+    await _require_panol_operator(request)
     where = "" if include_inactive else "WHERE activo = 1"
     async with panol_db() as db:
         return {
@@ -328,7 +387,7 @@ async def list_articles(request: Request, include_inactive: bool = Query(False))
 
 @router.post("/articulos")
 async def create_article(req: ArticleRequest, request: Request):
-    await _require_panol_access(request, full=True)
+    await _require_panol_operator(request, full=True)
     codigo = _norm_code(req.codigo)
     descripcion = _clean(req.descripcion)
     if not codigo or not descripcion:
@@ -339,14 +398,15 @@ async def create_article(req: ArticleRequest, request: Request):
             await db.execute(
                 """
                 INSERT INTO articulos
-                    (codigo, descripcion, categoria, unidad, stock_minimo, activo, creado_en, actualizado_en)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (codigo, descripcion, categoria, unidad, uso, stock_minimo, activo, creado_en, actualizado_en)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     codigo,
                     descripcion,
                     _clean(req.categoria),
                     _clean(req.unidad) or "UN",
+                    _clean(req.uso),
                     max(float(req.stock_minimo or 0), 0),
                     1 if req.activo else 0,
                     now,
@@ -361,7 +421,7 @@ async def create_article(req: ArticleRequest, request: Request):
 
 @router.put("/articulos/{articulo_id}")
 async def update_article(articulo_id: int, req: ArticleRequest, request: Request):
-    await _require_panol_access(request)
+    await _require_panol_operator(request)
     codigo = _norm_code(req.codigo)
     descripcion = _clean(req.descripcion)
     if not codigo or not descripcion:
@@ -371,7 +431,7 @@ async def update_article(articulo_id: int, req: ArticleRequest, request: Request
             cur = await db.execute(
                 """
                 UPDATE articulos
-                SET codigo = ?, descripcion = ?, categoria = ?, unidad = ?, stock_minimo = ?,
+                SET codigo = ?, descripcion = ?, categoria = ?, unidad = ?, uso = ?, stock_minimo = ?,
                     activo = ?, actualizado_en = ?
                 WHERE id = ?
                 """,
@@ -380,6 +440,7 @@ async def update_article(articulo_id: int, req: ArticleRequest, request: Request
                     descripcion,
                     _clean(req.categoria),
                     _clean(req.unidad) or "UN",
+                    _clean(req.uso),
                     max(float(req.stock_minimo or 0), 0),
                     1 if req.activo else 0,
                     _now(),
@@ -396,7 +457,7 @@ async def update_article(articulo_id: int, req: ArticleRequest, request: Request
 
 @router.post("/movimientos")
 async def create_movement(req: MovementRequest, request: Request):
-    auth = await _require_panol_access(request)
+    auth = await _require_panol_operator(request)
     tipo = _norm_code(req.tipo)
     cantidad = float(req.cantidad or 0)
     if tipo not in MOVEMENT_TYPES:
@@ -457,7 +518,7 @@ async def list_movements(
     tipo: str = Query(""),
     usuario: str = Query(""),
 ):
-    await _require_panol_access(request)
+    await _require_panol_operator(request)
     where = []
     args: list[Any] = []
     if fecha_desde:
@@ -495,9 +556,432 @@ async def list_movements(
     return {"items": rows}
 
 
+async def _stock_insumo_total(db: aiosqlite.Connection, articulo_id: int) -> tuple[float, float, float]:
+    jaula_id = await _ubicacion_id(db, "JAULA")
+    stock_jaula = await _stock_ubicacion(db, articulo_id, jaula_id)
+    stock_oficina = await _stock_oficina(db, articulo_id)
+    return stock_jaula + stock_oficina, stock_jaula, stock_oficina
+
+
+async def _pedido_rows(db: aiosqlite.Connection, where: str, args: tuple[Any, ...], limit: int = 100) -> list[dict[str, Any]]:
+    headers = await _fetch_rows(
+        db,
+        f"""
+        SELECT p.*, u.codigo AS sector_codigo
+        FROM pedidos_insumos p
+        JOIN ubicaciones u ON u.id = p.sector_id
+        {where}
+        ORDER BY p.fecha_solicitud DESC, p.id DESC
+        LIMIT {int(limit)}
+        """,
+        args,
+    )
+    for pedido in headers:
+        pedido["items"] = await _fetch_rows(
+            db,
+            """
+            SELECT i.*, a.codigo, a.descripcion, a.unidad, a.uso, u.codigo AS origen_insumo_codigo
+            FROM pedidos_insumos_items i
+            JOIN articulos a ON a.id = i.articulo_id
+            LEFT JOIN ubicaciones u ON u.id = i.ubicacion_origen_insumo_id
+            WHERE i.pedido_id = ?
+            ORDER BY a.codigo
+            """,
+            (pedido["id"],),
+        )
+    return headers
+
+
+@router.get("/pedidos/catalogo")
+async def supply_order_catalog(request: Request):
+    await _require_panol_access(request)
+    async with panol_db() as db:
+        articles = await _fetch_rows(
+            db,
+            """
+            SELECT id, codigo, descripcion, categoria, unidad, uso
+            FROM articulos
+            WHERE activo = 1
+            ORDER BY codigo
+            """,
+        )
+        items = []
+        for art in articles:
+            stock_insumo, stock_jaula, stock_oficina = await _stock_insumo_total(db, int(art["id"]))
+            stock_produccion = await _stock_producido(db, int(art["id"]))
+            if stock_insumo <= 0 and stock_produccion <= 0:
+                continue
+            items.append(
+                {
+                    **art,
+                    "stock_insumo": stock_insumo,
+                    "stock_jaula": stock_jaula,
+                    "stock_oficina": stock_oficina,
+                    "stock_produccion": stock_produccion,
+                }
+            )
+    return {"items": items}
+
+
+@router.post("/pedidos")
+async def create_supply_order(req: SupplyOrderRequest, request: Request):
+    auth = await _require_panol_access(request)
+    if not req.items:
+        raise HTTPException(status_code=400, detail="El pedido no tiene lineas.")
+    now = _now()
+    clean_obs = _clean(req.observacion)
+    async with panol_db() as db:
+        sector = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (req.sector_id,))
+        if not sector:
+            raise HTTPException(status_code=400, detail="Sector invalido.")
+        lines: list[tuple[int, float, float]] = []
+        seen: set[int] = set()
+        for item in req.items:
+            articulo_id = int(item.articulo_id)
+            if articulo_id in seen:
+                raise HTTPException(status_code=400, detail="No repitas el mismo PLU en el pedido.")
+            seen.add(articulo_id)
+            cantidad_insumo = float(item.cantidad_insumo or 0)
+            cantidad_produccion = float(item.cantidad_produccion or 0)
+            if cantidad_insumo < 0 or cantidad_produccion < 0:
+                raise HTTPException(status_code=400, detail="Las cantidades no pueden ser negativas.")
+            if cantidad_insumo <= 0 and cantidad_produccion <= 0:
+                continue
+            article = await _fetch_one(db, "SELECT id FROM articulos WHERE id = ? AND activo = 1", (articulo_id,))
+            if not article:
+                raise HTTPException(status_code=404, detail=f"Articulo {articulo_id} no encontrado o inactivo.")
+            stock_insumo, _, _ = await _stock_insumo_total(db, articulo_id)
+            stock_produccion = await _stock_producido(db, articulo_id)
+            if cantidad_insumo > stock_insumo + 0.000001:
+                raise HTTPException(status_code=400, detail="La cantidad de insumo pedida supera el stock disponible.")
+            if cantidad_produccion > stock_produccion + 0.000001:
+                raise HTTPException(status_code=400, detail="La cantidad de produccion pedida supera el stock disponible.")
+            lines.append((articulo_id, cantidad_insumo, cantidad_produccion))
+        if not lines:
+            raise HTTPException(status_code=400, detail="Carga al menos una cantidad a pedir.")
+        cur = await db.execute(
+            """
+            INSERT INTO pedidos_insumos
+                (sector_id, estado, usuario_solicita, fecha_solicitud, observacion_solicitud)
+            VALUES (?, 'PENDIENTE', ?, ?, ?)
+            """,
+            (req.sector_id, auth.get("username"), now, clean_obs),
+        )
+        pedido_id = cur.lastrowid
+        await db.executemany(
+            """
+            INSERT INTO pedidos_insumos_items
+                (pedido_id, articulo_id, cantidad_insumo_solicitada, cantidad_produccion_solicitada)
+            VALUES (?, ?, ?, ?)
+            """,
+            [(pedido_id, articulo_id, cantidad_insumo, cantidad_produccion) for articulo_id, cantidad_insumo, cantidad_produccion in lines],
+        )
+        await db.commit()
+    return {"ok": True, "pedido_id": pedido_id, "estado": "PENDIENTE", "fecha_solicitud": now}
+
+
+@router.get("/pedidos/mios")
+async def my_supply_orders(request: Request):
+    auth = await _require_panol_access(request)
+    async with panol_db() as db:
+        return {"items": await _pedido_rows(db, "WHERE p.usuario_solicita = ?", (auth.get("username"),), 150)}
+
+
+@router.get("/pedidos/pendientes")
+async def pending_supply_orders(request: Request):
+    await _require_panol_operator(request)
+    async with panol_db() as db:
+        items = await _pedido_rows(db, "WHERE p.estado = 'PENDIENTE'", (), 150)
+    return {"items": items, "pending_count": len(items)}
+
+
+@router.get("/pedidos/indicadores")
+async def supply_order_indicators(
+    request: Request,
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    articulo_id: int | None = Query(None),
+):
+    await _require_panol_operator(request)
+    where = []
+    args: list[Any] = []
+    if fecha_desde:
+        where.append("p.fecha_solicitud >= ?")
+        args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        where.append("p.fecha_solicitud <= ?")
+        args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        where.append("i.articulo_id = ?")
+        args.append(articulo_id)
+    clause = "WHERE " + " AND ".join(where) if where else ""
+    async with panol_db() as db:
+        metrics = await _fetch_one(
+            db,
+            f"""
+            SELECT
+                COUNT(DISTINCT p.id) AS total,
+                COUNT(DISTINCT CASE WHEN p.estado = 'PENDIENTE' THEN p.id END) AS pendientes,
+                COUNT(DISTINCT CASE WHEN p.estado = 'CONFIRMADO' THEN p.id END) AS confirmados,
+                COUNT(DISTINCT CASE WHEN p.estado = 'CONFIRMADO_PARCIAL' THEN p.id END) AS parciales,
+                COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS solicitado,
+                COALESCE(SUM(i.cantidad_insumo_confirmada + i.cantidad_produccion_confirmada), 0) AS confirmado
+            FROM pedidos_insumos p
+            JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+            {clause}
+            """,
+            tuple(args),
+        )
+        by_sector = await _fetch_rows(
+            db,
+            f"""
+            SELECT u.codigo AS sector,
+                   COUNT(DISTINCT p.id) AS pedidos,
+                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad
+            FROM pedidos_insumos p
+            JOIN ubicaciones u ON u.id = p.sector_id
+            JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+            {clause}
+            GROUP BY u.codigo
+            ORDER BY pedidos DESC, cantidad DESC, u.codigo
+            LIMIT 12
+            """,
+            tuple(args),
+        )
+        by_plu = await _fetch_rows(
+            db,
+            f"""
+            SELECT a.codigo, a.descripcion,
+                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad
+            FROM pedidos_insumos p
+            JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+            JOIN articulos a ON a.id = i.articulo_id
+            {clause}
+            GROUP BY a.codigo, a.descripcion
+            ORDER BY cantidad DESC, a.codigo
+            LIMIT 12
+            """,
+            tuple(args),
+        )
+        recent = await _fetch_rows(
+            db,
+            f"""
+            SELECT p.id, p.estado, p.fecha_solicitud, p.usuario_solicita, u.codigo AS sector,
+                   COUNT(i.id) AS lineas,
+                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad
+            FROM pedidos_insumos p
+            JOIN ubicaciones u ON u.id = p.sector_id
+            JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+            {clause}
+            GROUP BY p.id, p.estado, p.fecha_solicitud, p.usuario_solicita, u.codigo
+            ORDER BY p.fecha_solicitud DESC, p.id DESC
+            LIMIT 8
+            """,
+            tuple(args),
+        )
+    return {
+        "metrics": metrics or {},
+        "pedidos_por_sector": by_sector,
+        "pedidos_por_plu": by_plu,
+        "recientes": recent,
+    }
+
+
+@router.post("/pedidos/{pedido_id}/confirmar")
+async def confirm_supply_order(pedido_id: int, req: SupplyOrderConfirmRequest, request: Request):
+    auth = await _require_panol_operator(request)
+    if not req.items:
+        raise HTTPException(status_code=400, detail="No hay lineas para confirmar.")
+    now = _now()
+    turno = _turno_por_hora(now)
+    clean_obs = _clean(req.observacion)
+    async with panol_db() as db:
+        pedido = await _fetch_one(
+            db,
+            """
+            SELECT p.*, u.codigo AS sector_codigo
+            FROM pedidos_insumos p
+            JOIN ubicaciones u ON u.id = p.sector_id
+            WHERE p.id = ?
+            """,
+            (pedido_id,),
+        )
+        if not pedido:
+            raise HTTPException(status_code=404, detail="Pedido no encontrado.")
+        if pedido["estado"] != "PENDIENTE":
+            raise HTTPException(status_code=400, detail="El pedido ya fue procesado.")
+        requested_items = {
+            int(row["id"]): row
+            for row in await _fetch_rows(
+                db,
+                """
+                SELECT i.*, a.uso
+                FROM pedidos_insumos_items i
+                JOIN articulos a ON a.id = i.articulo_id
+                WHERE i.pedido_id = ?
+                """,
+                (pedido_id,),
+            )
+        }
+        confirm_by_id = {int(item.item_id): item for item in req.items}
+        oficina_id = await _ubicacion_id(db, "OFICINA_ADO")
+        any_partial = False
+        any_confirmed = False
+        for item_id, row in requested_items.items():
+            confirm = confirm_by_id.get(item_id)
+            qty_insumo = float((confirm.cantidad_insumo_confirmada if confirm else 0) or 0)
+            qty_produccion = float((confirm.cantidad_produccion_confirmada if confirm else 0) or 0)
+            selected_usage = _clean(confirm.uso_entrega if confirm else "")
+            if qty_insumo < 0 or qty_produccion < 0:
+                raise HTTPException(status_code=400, detail="Las cantidades confirmadas no pueden ser negativas.")
+            req_insumo = float(row["cantidad_insumo_solicitada"] or 0)
+            req_produccion = float(row["cantidad_produccion_solicitada"] or 0)
+            if qty_insumo > req_insumo + 0.000001 or qty_produccion > req_produccion + 0.000001:
+                raise HTTPException(status_code=400, detail="No se puede confirmar mas de lo solicitado.")
+            if qty_insumo + 0.000001 < req_insumo or qty_produccion + 0.000001 < req_produccion:
+                any_partial = True
+            origin_id = int(confirm.ubicacion_origen_insumo_id) if confirm and confirm.ubicacion_origen_insumo_id else oficina_id
+            if qty_insumo > 0:
+                origin = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (origin_id,))
+                if not origin:
+                    raise HTTPException(status_code=400, detail="Origen de insumo invalido.")
+                stock_origin = await _stock_for_origin(db, int(row["articulo_id"]), origin_id)
+                if stock_origin + 0.000001 < qty_insumo:
+                    raise HTTPException(status_code=400, detail="La confirmacion de insumo dejaria stock negativo.")
+            if qty_produccion > 0:
+                stock_produccion = await _stock_producido(db, int(row["articulo_id"]))
+                if stock_produccion + 0.000001 < qty_produccion:
+                    raise HTTPException(status_code=400, detail="La confirmacion de produccion dejaria stock negativo.")
+            if qty_insumo > 0:
+                await db.execute(
+                    """
+                    INSERT INTO movimientos
+                        (articulo_id, tipo, ubicacion_origen_id, ubicacion_destino_id, cantidad,
+                         motivo, observacion, usuario, fecha_hora)
+                    VALUES (?, 'BAJA', ?, NULL, ?, 'PEDIDO_INSUMOS', ?, ?, ?)
+                    """,
+                    (
+                        int(row["articulo_id"]),
+                        origin_id,
+                        qty_insumo,
+                        clean_obs or f"Pedido #{pedido_id} - {pedido['sector_codigo']}",
+                        auth.get("username"),
+                        now,
+                    ),
+                )
+            if qty_produccion > 0:
+                await db.execute(
+                    """
+                    INSERT INTO produccion_movimientos
+                        (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, observacion, usuario, fecha_hora)
+                    VALUES (?, 'ENTREGA', ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        int(row["articulo_id"]),
+                        int(pedido["sector_id"]),
+                        qty_produccion,
+                        turno,
+                        clean_obs or f"Pedido #{pedido_id}",
+                        auth.get("username"),
+                        now,
+                    ),
+                )
+            if qty_insumo > 0 or qty_produccion > 0:
+                article_usage = _clean(row.get("uso"))
+                if article_usage and not selected_usage:
+                    raise HTTPException(status_code=400, detail="Selecciona el uso de entrega para los PLUs que lo requieren.")
+                if article_usage:
+                    valid_usages = {usage.upper() for usage in _usage_options(article_usage)}
+                    if selected_usage.upper() not in valid_usages:
+                        raise HTTPException(status_code=400, detail="Uso de entrega invalido para el PLU.")
+                any_confirmed = True
+            await db.execute(
+                """
+                UPDATE pedidos_insumos_items
+                SET cantidad_insumo_confirmada = ?,
+                    cantidad_produccion_confirmada = ?,
+                    ubicacion_origen_insumo_id = ?,
+                    uso_entrega = ?
+                WHERE id = ?
+                """,
+                (
+                    qty_insumo,
+                    qty_produccion,
+                    origin_id if qty_insumo > 0 else None,
+                    selected_usage if (qty_insumo > 0 or qty_produccion > 0) else "",
+                    item_id,
+                ),
+            )
+        estado = "CONFIRMADO_PARCIAL" if any_partial else "CONFIRMADO"
+        if not any_confirmed:
+            estado = "CONFIRMADO_PARCIAL"
+        await db.execute(
+            """
+            UPDATE pedidos_insumos
+            SET estado = ?, usuario_confirma = ?, fecha_confirmacion = ?, observacion_confirmacion = ?
+            WHERE id = ?
+            """,
+            (estado, auth.get("username"), now, clean_obs, pedido_id),
+        )
+        await db.commit()
+    return {"ok": True, "pedido_id": pedido_id, "estado": estado, "fecha_confirmacion": now}
+
+
+@router.post("/pedidos/{pedido_id}/cancelar")
+async def cancel_supply_order(pedido_id: int, req: SupplyOrderConfirmRequest, request: Request):
+    auth = await _require_panol_operator(request)
+    async with panol_db() as db:
+        cur = await db.execute(
+            """
+            UPDATE pedidos_insumos
+            SET estado = 'CANCELADO', usuario_confirma = ?, fecha_confirmacion = ?, observacion_confirmacion = ?
+            WHERE id = ? AND estado = 'PENDIENTE'
+            """,
+            (auth.get("username"), _now(), _clean(req.observacion), pedido_id),
+        )
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Pedido pendiente no encontrado.")
+        await db.commit()
+    return {"ok": True, "pedido_id": pedido_id, "estado": "CANCELADO"}
+
+
+@router.post("/admin/reset-operativo")
+async def reset_operational_data(req: OperationalResetRequest, request: Request):
+    await _require_panol_operator(request, full=True)
+    if req.clave != "Ingenieria12345":
+        raise HTTPException(status_code=403, detail="Clave de depuracion invalida.")
+    tables = [
+        "pedidos_insumos_items",
+        "pedidos_insumos",
+        "movimientos",
+        "stock_cd_importado",
+        "inventario_turno",
+        "consumos_calculados",
+        "produccion_movimientos",
+    ]
+    deleted: dict[str, int] = {}
+    async with panol_db() as db:
+        await db.execute("BEGIN")
+        try:
+            for table in tables:
+                row = await _fetch_one(db, f"SELECT COUNT(*) AS qty FROM {table}")
+                deleted[table] = int((row or {}).get("qty") or 0)
+                await db.execute(f"DELETE FROM {table}")
+            placeholders = ",".join("?" for _ in tables)
+            await db.execute(
+                f"DELETE FROM sqlite_sequence WHERE name IN ({placeholders})",
+                tuple(tables),
+            )
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            raise
+    return {"ok": True, "deleted": deleted}
+
+
 @router.post("/produccion")
 async def create_production(req: ProductionRequest, request: Request):
-    auth = await _require_panol_access(request)
+    auth = await _require_panol_operator(request)
     cantidad = float(req.cantidad or 0)
     if cantidad <= 0:
         raise HTTPException(status_code=400, detail="La cantidad producida debe ser mayor a cero.")
@@ -521,7 +1005,7 @@ async def create_production(req: ProductionRequest, request: Request):
 
 @router.post("/produccion/entregas")
 async def create_production_delivery(req: ProductionDeliveryRequest, request: Request):
-    auth = await _require_panol_access(request)
+    auth = await _require_panol_operator(request)
     cantidad = float(req.cantidad or 0)
     if cantidad <= 0:
         raise HTTPException(status_code=400, detail="La cantidad entregada debe ser mayor a cero.")
@@ -562,8 +1046,8 @@ async def create_production_delivery(req: ProductionDeliveryRequest, request: Re
 
 
 @router.get("/produccion/stock")
-async def production_stock(request: Request, q: str = Query("")):
-    await _require_panol_access(request)
+async def production_stock(request: Request, q: str = Query(""), articulo_id: int | None = Query(None)):
+    await _require_panol_operator(request)
     async with panol_db() as db:
         rows = await _fetch_rows(
             db,
@@ -576,9 +1060,11 @@ async def production_stock(request: Request, q: str = Query("")):
             FROM articulos a
             LEFT JOIN produccion_movimientos pm ON pm.articulo_id = a.id
             WHERE a.activo = 1
+              AND (? IS NULL OR a.id = ?)
             GROUP BY a.id, a.codigo, a.descripcion, a.categoria, a.unidad
             ORDER BY a.codigo
             """,
+            (articulo_id, articulo_id),
         )
         today = await _fetch_one(
             db,
@@ -588,8 +1074,9 @@ async def production_stock(request: Request, q: str = Query("")):
                 COALESCE(SUM(CASE WHEN tipo = 'ENTREGA' THEN cantidad ELSE 0 END), 0) AS entregado
             FROM produccion_movimientos
             WHERE fecha_hora >= ?
+              AND (? IS NULL OR articulo_id = ?)
             """,
-            (f"{_today()} 00:00:00",),
+            (f"{_today()} 00:00:00", articulo_id, articulo_id),
         )
     items = []
     for row in rows:
@@ -616,7 +1103,7 @@ async def list_production_movements(
     destino_id: int | None = Query(None),
     turno: str = Query(""),
 ):
-    await _require_panol_access(request)
+    await _require_panol_operator(request)
     where = []
     args: list[Any] = []
     if fecha_desde:
@@ -655,50 +1142,225 @@ async def list_production_movements(
     return {"items": rows}
 
 
+@router.get("/produccion/dia-logistico")
+async def production_logistic_day(request: Request):
+    await _require_panol_operator(request)
+    since, until = _logistic_day_bounds()
+    async with panol_db() as db:
+        produced = await _fetch_rows(
+            db,
+            """
+            SELECT a.id AS articulo_id, a.codigo, a.descripcion,
+                   COALESCE(SUM(pm.cantidad), 0) AS cantidad
+            FROM produccion_movimientos pm
+            JOIN articulos a ON a.id = pm.articulo_id
+            WHERE pm.tipo = 'PRODUCCION'
+              AND pm.fecha_hora >= ?
+              AND pm.fecha_hora <= ?
+            GROUP BY a.id, a.codigo, a.descripcion
+            ORDER BY cantidad DESC, a.codigo
+            LIMIT 20
+            """,
+            (since, until),
+        )
+        delivered = await _fetch_rows(
+            db,
+            """
+            SELECT a.id AS articulo_id, a.codigo, a.descripcion,
+                   u.codigo AS destino_codigo,
+                   COALESCE(SUM(pm.cantidad), 0) AS cantidad
+            FROM produccion_movimientos pm
+            JOIN articulos a ON a.id = pm.articulo_id
+            LEFT JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
+            WHERE pm.tipo = 'ENTREGA'
+              AND pm.fecha_hora >= ?
+              AND pm.fecha_hora <= ?
+            GROUP BY a.id, a.codigo, a.descripcion, u.codigo
+            ORDER BY cantidad DESC, a.codigo, u.codigo
+            LIMIT 20
+            """,
+            (since, until),
+        )
+    return {
+        "desde": since,
+        "hasta": until,
+        "producido": produced,
+        "entregado": delivered,
+    }
+
+
 @router.get("/produccion/indicadores")
-async def production_indicators(request: Request):
-    await _require_panol_access(request)
+async def production_indicators(
+    request: Request,
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    articulo_id: int | None = Query(None),
+):
+    await _require_panol_operator(request)
+    where = []
+    args: list[Any] = []
+    if fecha_desde:
+        where.append("fecha_hora >= ?")
+        args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        where.append("fecha_hora <= ?")
+        args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        where.append("articulo_id = ?")
+        args.append(articulo_id)
+    clause = "AND " + " AND ".join(where) if where else ""
+    pm_clause = clause.replace("fecha_hora", "pm.fecha_hora")
     async with panol_db() as db:
         by_turn = await _fetch_rows(
             db,
-            """
+            f"""
             SELECT turno, COALESCE(SUM(cantidad), 0) AS cantidad
             FROM produccion_movimientos
             WHERE tipo = 'PRODUCCION'
+              {clause}
             GROUP BY turno
             ORDER BY cantidad DESC
             """,
+            tuple(args),
         )
         by_sector = await _fetch_rows(
             db,
-            """
+            f"""
             SELECT u.id AS ubicacion_id, u.codigo AS sector, COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
             JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
             WHERE pm.tipo = 'ENTREGA'
+              {pm_clause}
             GROUP BY u.id, u.codigo
             ORDER BY cantidad DESC
             """,
+            tuple(args),
         )
         by_sector_plu = await _fetch_rows(
             db,
-            """
+            f"""
             SELECT u.codigo AS sector, a.codigo, a.descripcion, COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
             JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
             JOIN articulos a ON a.id = pm.articulo_id
             WHERE pm.tipo = 'ENTREGA'
+              {pm_clause}
             GROUP BY u.codigo, a.codigo, a.descripcion
             ORDER BY cantidad DESC, u.codigo, a.codigo
             LIMIT 200
             """,
+            tuple(args),
         )
-    return {"produccion_por_turno": by_turn, "entregas_por_sector": by_sector, "entregas_por_sector_plu": by_sector_plu}
+    return {
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "articulo_id": articulo_id,
+        "produccion_por_turno": by_turn,
+        "entregas_por_sector": by_sector,
+        "entregas_por_sector_plu": by_sector_plu,
+    }
+
+
+@router.get("/produccion/indicadores/exportar")
+async def export_production_indicators(
+    request: Request,
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    articulo_id: int | None = Query(None),
+):
+    await _require_panol_operator(request)
+    where = []
+    args: list[Any] = []
+    if fecha_desde:
+        where.append("pm.fecha_hora >= ?")
+        args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        where.append("pm.fecha_hora <= ?")
+        args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        where.append("pm.articulo_id = ?")
+        args.append(articulo_id)
+    clause = "AND " + " AND ".join(where) if where else ""
+    async with panol_db() as db:
+        summary = await _fetch_rows(
+            db,
+            f"""
+            SELECT u.codigo AS sector, a.codigo, a.descripcion, COALESCE(SUM(pm.cantidad), 0) AS cantidad
+            FROM produccion_movimientos pm
+            JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
+            JOIN articulos a ON a.id = pm.articulo_id
+            WHERE pm.tipo = 'ENTREGA'
+              {clause}
+            GROUP BY u.codigo, a.codigo, a.descripcion
+            ORDER BY u.codigo, a.codigo
+            """,
+            tuple(args),
+        )
+        movements = await _fetch_rows(
+            db,
+            f"""
+            SELECT pm.fecha_hora, u.codigo AS sector, a.codigo, a.descripcion,
+                   pm.cantidad, pm.turno, pm.usuario, pm.observacion
+            FROM produccion_movimientos pm
+            JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
+            JOIN articulos a ON a.id = pm.articulo_id
+            WHERE pm.tipo = 'ENTREGA'
+              {clause}
+            ORDER BY pm.fecha_hora DESC, u.codigo, a.codigo
+            """,
+            tuple(args),
+        )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Resumen"
+    ws.append(["Rango desde", fecha_desde or "Inicio", "Rango hasta", fecha_hasta or "Actual", "Articulo ID", articulo_id or "Todos"])
+    ws.append([])
+    ws.append(["Sector", "PLU", "Descripcion", "Cantidad entregada"])
+    for row in summary:
+        ws.append([row.get("sector"), row.get("codigo"), row.get("descripcion"), float(row.get("cantidad") or 0)])
+
+    detail = wb.create_sheet("Movimientos")
+    detail.append(["Fecha hora", "Sector", "PLU", "Descripcion", "Cantidad", "Turno", "Usuario", "Observacion"])
+    for row in movements:
+        detail.append(
+            [
+                row.get("fecha_hora"),
+                row.get("sector"),
+                row.get("codigo"),
+                row.get("descripcion"),
+                float(row.get("cantidad") or 0),
+                row.get("turno"),
+                row.get("usuario"),
+                row.get("observacion"),
+            ]
+        )
+    for sheet in (ws, detail):
+        for column_cells in sheet.columns:
+            max_len = max(len(str(cell.value or "")) for cell in column_cells)
+            sheet.column_dimensions[column_cells[0].column_letter].width = min(max(max_len + 2, 12), 48)
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    suffix = f"_{fecha_desde or 'inicio'}_{fecha_hasta or 'actual'}"
+    if articulo_id:
+        suffix += f"_plu_{articulo_id}"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=produccion_entregas_plu_sector{suffix}.xlsx"},
+    )
 
 
 @router.get("/stock")
-async def stock(request: Request, q: str = Query(""), categoria: str = Query(""), bajo_minimo: bool = Query(False)):
-    await _require_panol_access(request)
+async def stock(
+    request: Request,
+    q: str = Query(""),
+    categoria: str = Query(""),
+    bajo_minimo: bool = Query(False),
+    articulo_id: int | None = Query(None),
+):
+    await _require_panol_operator(request)
     async with panol_db() as db:
         jaula_id = await _ubicacion_id(db, "JAULA")
         articles = await _fetch_rows(
@@ -712,6 +1374,8 @@ async def stock(request: Request, q: str = Query(""), categoria: str = Query("")
         )
         items = []
         for art in articles:
+            if articulo_id and int(art["id"]) != articulo_id:
+                continue
             if q and q.lower() not in f"{art['codigo']} {art['descripcion']}".lower():
                 continue
             if categoria and categoria.lower() not in str(art.get("categoria") or "").lower():
@@ -745,15 +1409,20 @@ async def stock(request: Request, q: str = Query(""), categoria: str = Query("")
             db,
             "SELECT fecha_hora, fecha, turno FROM inventario_turno ORDER BY fecha_hora DESC, id DESC LIMIT 1",
         )
+        move_where = "fecha_hora >= ?"
+        move_args: list[Any] = [f"{_today()} 00:00:00"]
+        if articulo_id:
+            move_where += " AND articulo_id = ?"
+            move_args.append(articulo_id)
         today_moves = await _fetch_one(
             db,
-            "SELECT COUNT(*) AS qty FROM movimientos WHERE fecha_hora >= ?",
-            (f"{_today()} 00:00:00",),
+            f"SELECT COUNT(*) AS qty FROM movimientos WHERE {move_where}",
+            tuple(move_args),
         )
     return {
         "items": items,
         "metrics": {
-            "total_articulos": len(articles),
+            "total_articulos": len(items),
             "bajo_minimo": sum(1 for item in items if item["estado"] == "BAJO_MINIMO"),
             "movimientos_hoy": int((today_moves or {}).get("qty") or 0),
             "ultima_importacion_cd": latest_cd,
@@ -783,7 +1452,7 @@ async def _average_daily_consumption(db: aiosqlite.Connection, articulo_id: int,
 
 @router.post("/inventario-turno")
 async def save_inventory(req: InventoryRequest, request: Request):
-    auth = await _require_panol_access(request)
+    auth = await _require_panol_operator(request)
     turno = _norm_code(req.turno)
     fecha = _clean(req.fecha)
     if not fecha or not turno:
@@ -905,7 +1574,7 @@ async def list_inventory(
     articulo_id: int | None = Query(None),
     ubicacion_id: int | None = Query(None),
 ):
-    await _require_panol_access(request)
+    await _require_panol_operator(request)
     where = []
     args: list[Any] = []
     if fecha:
@@ -957,7 +1626,7 @@ def _read_stock_file(file_name: str, content: bytes) -> list[dict[str, Any]]:
         sample = text[:2048]
         dialect = csv.Sniffer().sniff(sample, delimiters=",;|\t") if sample.strip() else csv.excel
         for row in csv.DictReader(io.StringIO(text), dialect=dialect):
-            rows.append(row)
+            rows.append({_norm_key(key): value for key, value in row.items()})
         return rows
     if suffix in {"xlsx", "xlsm"}:
         wb = load_workbook(io.BytesIO(content), read_only=True, data_only=True)
@@ -965,7 +1634,7 @@ def _read_stock_file(file_name: str, content: bytes) -> list[dict[str, Any]]:
         values = list(ws.iter_rows(values_only=True))
         if not values:
             return []
-        headers = [_norm_code(v).lower() for v in values[0]]
+        headers = [_norm_key(v) for v in values[0]]
         for raw in values[1:]:
             rows.append({headers[i]: raw[i] if i < len(raw) else None for i in range(len(headers))})
         return rows
@@ -974,11 +1643,19 @@ def _read_stock_file(file_name: str, content: bytes) -> list[dict[str, Any]]:
         sheet = book.sheet_by_index(0)
         if sheet.nrows == 0:
             return []
-        headers = [_norm_code(sheet.cell_value(0, col)).lower() for col in range(sheet.ncols)]
+        headers = [_norm_key(sheet.cell_value(0, col)) for col in range(sheet.ncols)]
         for row_idx in range(1, sheet.nrows):
             rows.append({headers[col]: sheet.cell_value(row_idx, col) for col in range(sheet.ncols)})
         return rows
     raise HTTPException(status_code=400, detail="Formato no soportado. Usa CSV o Excel .xlsx.")
+
+
+def _row_value(row: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        value = row.get(_norm_key(key))
+        if value is not None and str(value).strip() != "":
+            return value
+    return None
 
 
 @router.post("/importar-stock-cd")
@@ -988,7 +1665,7 @@ async def import_cd_stock(
     preview: bool = Query(True),
     fecha_reporte: str = Query(""),
 ):
-    auth = await _require_panol_access(request, full=True)
+    auth = await _require_panol_operator(request, full=True)
     content = await request.body()
     raw_rows = _read_stock_file(filename or "stock_cd", content)
     now = _now()
@@ -999,16 +1676,23 @@ async def import_cd_stock(
         articles = await _fetch_rows(db, "SELECT id, codigo FROM articulos WHERE activo = 1")
         by_code = {_norm_code(row["codigo"]): int(row["id"]) for row in articles}
         for index, row in enumerate(raw_rows, start=2):
-            codigo = _norm_code(row.get("codigo") or row.get("cod") or row.get("plu") or row.get("referencia"))
+            codigo = _norm_code(_row_value(row, "codigo", "cod", "plu", "referencia", "referencia_plu", "articulo"))
             if not codigo or codigo not in by_code:
                 ignored += 1
                 continue
             try:
                 stock_cd = _to_float(
-                    row.get("stock_cd")
-                    or row.get("stock")
-                    or row.get("cantidad")
-                    or row.get("unidades")
+                    _row_value(
+                        row,
+                        "stock_cd",
+                        "stock",
+                        "cantidad",
+                        "unidades",
+                        "unidad",
+                        "cant_unidades",
+                        "cant.unidades",
+                        "cant unidades",
+                    )
                 )
             except ValueError:
                 errors.append({"fila": index, "codigo": codigo, "error": "Stock CD invalido"})
@@ -1051,40 +1735,59 @@ async def import_cd_stock(
 
 
 @router.get("/indicadores")
-async def indicators(request: Request):
-    await _require_panol_access(request)
+async def indicators(
+    request: Request,
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    articulo_id: int | None = Query(None),
+):
+    await _require_panol_operator(request)
+    where = ["c.consumo_calculado > 0"]
+    args: list[Any] = []
+    if fecha_desde:
+        where.append("c.fecha >= ?")
+        args.append(fecha_desde)
+    if fecha_hasta:
+        where.append("c.fecha <= ?")
+        args.append(fecha_hasta)
+    if articulo_id:
+        where.append("c.articulo_id = ?")
+        args.append(articulo_id)
+    clause = " AND ".join(where)
     async with panol_db() as db:
         daily = await _fetch_rows(
             db,
-            """
+            f"""
             SELECT c.articulo_id, a.codigo, a.descripcion, c.fecha,
                    SUM(c.consumo_calculado) AS consumo
             FROM consumos_calculados c
             JOIN articulos a ON a.id = c.articulo_id
-            WHERE c.consumo_calculado > 0
+            WHERE {clause}
             GROUP BY c.articulo_id, c.fecha
             ORDER BY c.fecha DESC, a.codigo
             LIMIT 200
             """,
+            tuple(args),
         )
         by_turn = await _fetch_rows(
             db,
-            """
+            f"""
             SELECT c.articulo_id, a.codigo, a.descripcion, c.turno,
                    SUM(c.consumo_calculado) AS consumo
             FROM consumos_calculados c
             JOIN articulos a ON a.id = c.articulo_id
-            WHERE c.consumo_calculado > 0
+            WHERE {clause}
             GROUP BY c.articulo_id, c.turno
             ORDER BY a.codigo, c.turno
             """,
+            tuple(args),
         )
     return {"consumo_diario": daily, "consumo_por_turno": by_turn}
 
 
 @router.get("/exportar-stock")
 async def export_stock(request: Request):
-    await _require_panol_access(request)
+    await _require_panol_operator(request)
     data = await stock(request)
     output = io.StringIO()
     writer = csv.writer(output)

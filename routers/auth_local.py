@@ -736,7 +736,7 @@ async def access_context(request: Request):
         "accesses": accesses,
         "rrhh_sectors": rrhh_sectors,
         "casos_profiles": casos_profiles,
-        "panol_profiles": ["OPERACION", "ADMIN"],
+        "panol_profiles": ["SOLICITANTE", "OPERACION", "ADMIN"],
     }
 
 

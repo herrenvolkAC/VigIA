@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS articulos (
     descripcion TEXT NOT NULL,
     categoria TEXT,
     unidad TEXT DEFAULT 'UN',
+    uso TEXT,
     stock_minimo REAL DEFAULT 0,
     activo INTEGER DEFAULT 1,
     creado_en TEXT,
@@ -127,6 +128,38 @@ CREATE TABLE IF NOT EXISTS produccion_movimientos (
 );
 """
 
+CREATE_PEDIDOS_INSUMOS = """
+CREATE TABLE IF NOT EXISTS pedidos_insumos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sector_id INTEGER NOT NULL,
+    estado TEXT NOT NULL,
+    usuario_solicita TEXT,
+    fecha_solicitud TEXT,
+    observacion_solicitud TEXT,
+    usuario_confirma TEXT,
+    fecha_confirmacion TEXT,
+    observacion_confirmacion TEXT,
+    FOREIGN KEY (sector_id) REFERENCES ubicaciones(id)
+);
+"""
+
+CREATE_PEDIDOS_INSUMOS_ITEMS = """
+CREATE TABLE IF NOT EXISTS pedidos_insumos_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pedido_id INTEGER NOT NULL,
+    articulo_id INTEGER NOT NULL,
+    cantidad_insumo_solicitada REAL DEFAULT 0,
+    cantidad_produccion_solicitada REAL DEFAULT 0,
+    cantidad_insumo_confirmada REAL DEFAULT 0,
+    cantidad_produccion_confirmada REAL DEFAULT 0,
+    ubicacion_origen_insumo_id INTEGER,
+    uso_entrega TEXT,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos_insumos(id),
+    FOREIGN KEY (articulo_id) REFERENCES articulos(id),
+    FOREIGN KEY (ubicacion_origen_insumo_id) REFERENCES ubicaciones(id)
+);
+"""
+
 INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_articulos_codigo ON articulos(codigo)",
     "CREATE INDEX IF NOT EXISTS idx_movimientos_articulo_fecha ON movimientos(articulo_id, fecha_hora)",
@@ -138,6 +171,10 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_produccion_articulo_fecha ON produccion_movimientos(articulo_id, fecha_hora)",
     "CREATE INDEX IF NOT EXISTS idx_produccion_destino_fecha ON produccion_movimientos(ubicacion_destino_id, fecha_hora)",
     "CREATE INDEX IF NOT EXISTS idx_produccion_turno_fecha ON produccion_movimientos(turno, fecha_hora)",
+    "CREATE INDEX IF NOT EXISTS idx_pedidos_estado_fecha ON pedidos_insumos(estado, fecha_solicitud)",
+    "CREATE INDEX IF NOT EXISTS idx_pedidos_usuario_fecha ON pedidos_insumos(usuario_solicita, fecha_solicitud)",
+    "CREATE INDEX IF NOT EXISTS idx_pedidos_items_pedido ON pedidos_insumos_items(pedido_id)",
+    "CREATE INDEX IF NOT EXISTS idx_pedidos_items_articulo ON pedidos_insumos_items(articulo_id)",
 ]
 
 
@@ -155,11 +192,15 @@ async def init_panol_db() -> None:
             CREATE_INVENTARIO,
             CREATE_CONSUMOS,
             CREATE_PRODUCCION_MOVIMIENTOS,
+            CREATE_PEDIDOS_INSUMOS,
+            CREATE_PEDIDOS_INSUMOS_ITEMS,
         ):
             await db.execute(stmt)
         for stmt in INDEXES:
             await db.execute(stmt)
         await _ensure_column(db, "inventario_turno", "ubicacion_id", "INTEGER")
+        await _ensure_column(db, "articulos", "uso", "TEXT")
+        await _ensure_column(db, "pedidos_insumos_items", "uso_entrega", "TEXT")
         await db.executemany(
             """
             INSERT OR IGNORE INTO ubicaciones (codigo, descripcion, activo)
