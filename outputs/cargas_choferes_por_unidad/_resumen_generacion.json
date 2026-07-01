@@ -1,0 +1,829 @@
+{
+  "generatedAt": "2026-06-24T19:59:27.822Z",
+  "outputDir": "C:\\Ingenieria\\VigIA\\outputs\\cargas_choferes_por_unidad",
+  "latestBatchId": 20,
+  "summary": {
+    "unitCount": 116,
+    "legajoCount": 1033,
+    "unitsWithoutGerencia": 49,
+    "rowsWithoutGerencia": 256,
+    "fileCount": 116
+  },
+  "files": [
+    {
+      "file": "ACTIVACION DE PLAN.xlsx",
+      "unidad": "ACTIVACION DE PLAN",
+      "legajos": 4,
+      "mappedRows": 4,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ADM DE CONTROL DE PROCESOS 126.xlsx",
+      "unidad": "ADM DE CONTROL DE PROCESOS 126",
+      "legajos": 2,
+      "mappedRows": 2,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ADMINISTRACION DE CARGAS.xlsx",
+      "unidad": "ADMINISTRACION DE CARGAS",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ADMINISTRACION DE OPERACIONES.xlsx",
+      "unidad": "ADMINISTRACION DE OPERACIONES",
+      "legajos": 3,
+      "mappedRows": 3,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ADMINISTRATIVO DE COMEX.xlsx",
+      "unidad": "ADMINISTRATIVO DE COMEX",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ADMINISTRATIVOS DE CDP - REFRIGERADOS.xlsx",
+      "unidad": "ADMINISTRATIVOS DE CDP - REFRIGERADOS",
+      "legajos": 4,
+      "mappedRows": 4,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ADMINISTRATIVOS DE CDP - SECOS NOA.xlsx",
+      "unidad": "ADMINISTRATIVOS DE CDP - SECOS/NOA",
+      "legajos": 4,
+      "mappedRows": 4,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ANALISTAS DE PLANEAMIENTO.xlsx",
+      "unidad": "ANALISTAS DE PLANEAMIENTO",
+      "legajos": 5,
+      "mappedRows": 5,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ANALISTAS DE TRAFICO.xlsx",
+      "unidad": "ANALISTAS DE TRAFICO",
+      "legajos": 2,
+      "mappedRows": 2,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ARMADO GUARDADO NOA (SUPERVISION).xlsx",
+      "unidad": "ARMADO/GUARDADO NOA (SUPERVISION)",
+      "legajos": 7,
+      "mappedRows": 7,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ARMADO NO ALIMENTOS.xlsx",
+      "unidad": "ARMADO NO ALIMENTOS",
+      "legajos": 24,
+      "mappedRows": 24,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ARMADO SECOS - ZONA 2.xlsx",
+      "unidad": "ARMADO SECOS - ZONA 2",
+      "legajos": 22,
+      "mappedRows": 22,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ARMADO SECOS ZONA 1.xlsx",
+      "unidad": "ARMADO SECOS ZONA 1",
+      "legajos": 31,
+      "mappedRows": 31,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ARMADO Y GUARDADO REFRIGERADOS.xlsx",
+      "unidad": "ARMADO Y GUARDADO REFRIGERADOS",
+      "legajos": 5,
+      "mappedRows": 5,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ARMADO Y GUARDADO SECOS -ZONA 2.xlsx",
+      "unidad": "ARMADO Y GUARDADO SECOS -ZONA 2",
+      "legajos": 7,
+      "mappedRows": 7,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ARMADO Y GUARDADO SECOS ZONA 1.xlsx",
+      "unidad": "ARMADO Y GUARDADO SECOS ZONA 1",
+      "legajos": 6,
+      "mappedRows": 6,
+      "unmappedRows": 0
+    },
+    {
+      "file": "AUDITORIA DE CONTROL DE STOCK.xlsx",
+      "unidad": "AUDITORIA DE CONTROL DE STOCK",
+      "legajos": 10,
+      "mappedRows": 10,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CAMARA CONGELADOS -20°C.xlsx",
+      "unidad": "CAMARA CONGELADOS -20°C",
+      "legajos": 11,
+      "mappedRows": 11,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CARGA DE REFRIGERADOS.xlsx",
+      "unidad": "CARGA DE REFRIGERADOS",
+      "legajos": 26,
+      "mappedRows": 26,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CARGA Y DESPACHO REFRIGERADOS.xlsx",
+      "unidad": "CARGA Y DESPACHO REFRIGERADOS",
+      "legajos": 6,
+      "mappedRows": 6,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CHOFERES CORTA DISTANCIA.xlsx",
+      "unidad": "CHOFERES CORTA DISTANCIA",
+      "legajos": 76,
+      "mappedRows": 76,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CHOFERES LARGA DISTANCIA.xlsx",
+      "unidad": "CHOFERES LARGA DISTANCIA",
+      "legajos": 22,
+      "mappedRows": 22,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CHOFERES TORITAJE (CD).xlsx",
+      "unidad": "CHOFERES TORITAJE (CD)",
+      "legajos": 10,
+      "mappedRows": 10,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CONTROL DE PROCESOS.xlsx",
+      "unidad": "CONTROL DE PROCESOS",
+      "legajos": 2,
+      "mappedRows": 2,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CONTROLADORES 126.xlsx",
+      "unidad": "CONTROLADORES 126",
+      "legajos": 2,
+      "mappedRows": 2,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CONTROLADORES REFRIGERADOS.xlsx",
+      "unidad": "CONTROLADORES REFRIGERADOS",
+      "legajos": 5,
+      "mappedRows": 5,
+      "unmappedRows": 0
+    },
+    {
+      "file": "CONTROLADORES SECOS - NOA.xlsx",
+      "unidad": "CONTROLADORES SECOS - NOA",
+      "legajos": 29,
+      "mappedRows": 29,
+      "unmappedRows": 0
+    },
+    {
+      "file": "COORDINACION DE TRAFICO.xlsx",
+      "unidad": "COORDINACION DE TRAFICO",
+      "legajos": 15,
+      "mappedRows": 15,
+      "unmappedRows": 0
+    },
+    {
+      "file": "DESPACHO SECOS - ZONA 1.xlsx",
+      "unidad": "DESPACHO SECOS - ZONA 1",
+      "legajos": 46,
+      "mappedRows": 46,
+      "unmappedRows": 0
+    },
+    {
+      "file": "DEVOLUCIONES.xlsx",
+      "unidad": "DEVOLUCIONES",
+      "legajos": 25,
+      "mappedRows": 25,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ENVASES Y RECICLE.xlsx",
+      "unidad": "ENVASES Y RECICLE",
+      "legajos": 6,
+      "mappedRows": 6,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ENVASES.xlsx",
+      "unidad": "ENVASES",
+      "legajos": 45,
+      "mappedRows": 45,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ENVIOS A DOMICILIO (EMPLEADOS).xlsx",
+      "unidad": "ENVIOS A DOMICILIO (EMPLEADOS)",
+      "legajos": 5,
+      "mappedRows": 5,
+      "unmappedRows": 0
+    },
+    {
+      "file": "ENVIOS A DOMICILIOS.xlsx",
+      "unidad": "ENVIOS A DOMICILIOS",
+      "legajos": 3,
+      "mappedRows": 3,
+      "unmappedRows": 0
+    },
+    {
+      "file": "FRACCIONADO DE FRUTAS Y VERDURAS.xlsx",
+      "unidad": "FRACCIONADO DE FRUTAS Y VERDURAS",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "FRACCIONADO.xlsx",
+      "unidad": "FRACCIONADO",
+      "legajos": 28,
+      "mappedRows": 28,
+      "unmappedRows": 0
+    },
+    {
+      "file": "FRESCOS Y CONGELADOS.xlsx",
+      "unidad": "FRESCOS Y CONGELADOS",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "GUARDADO NO ALIMENTOS.xlsx",
+      "unidad": "GUARDADO NO ALIMENTOS",
+      "legajos": 22,
+      "mappedRows": 22,
+      "unmappedRows": 0
+    },
+    {
+      "file": "GUARDADO SECOS - ZONA 2.xlsx",
+      "unidad": "GUARDADO SECOS - ZONA 2",
+      "legajos": 23,
+      "mappedRows": 23,
+      "unmappedRows": 0
+    },
+    {
+      "file": "GUARDADO SECOS ZONA 1.xlsx",
+      "unidad": "GUARDADO SECOS ZONA 1",
+      "legajos": 32,
+      "mappedRows": 32,
+      "unmappedRows": 0
+    },
+    {
+      "file": "HIELO SECO.xlsx",
+      "unidad": "HIELO SECO",
+      "legajos": 9,
+      "mappedRows": 9,
+      "unmappedRows": 0
+    },
+    {
+      "file": "LOGISTICA INVERSA.xlsx",
+      "unidad": "LOGISTICA INVERSA",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "MADURADERO.xlsx",
+      "unidad": "MADURADERO",
+      "legajos": 4,
+      "mappedRows": 4,
+      "unmappedRows": 0
+    },
+    {
+      "file": "NO ALIMENTOS.xlsx",
+      "unidad": "NO ALIMENTOS",
+      "legajos": 3,
+      "mappedRows": 3,
+      "unmappedRows": 0
+    },
+    {
+      "file": "OTRAS CÁMARAS.xlsx",
+      "unidad": "OTRAS CÁMARAS",
+      "legajos": 40,
+      "mappedRows": 40,
+      "unmappedRows": 0
+    },
+    {
+      "file": "PANEL 3C.xlsx",
+      "unidad": "PANEL 3C",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "PESCADERIA.xlsx",
+      "unidad": "PESCADERIA",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "PLANEAMIENTO COMEX.xlsx",
+      "unidad": "PLANEAMIENTO COMEX",
+      "legajos": 2,
+      "mappedRows": 2,
+      "unmappedRows": 0
+    },
+    {
+      "file": "PLANEAMIENTO INBOUND.xlsx",
+      "unidad": "PLANEAMIENTO INBOUND",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "PLANEAMIENTO SECOS NOA.xlsx",
+      "unidad": "PLANEAMIENTO SECOS/NOA",
+      "legajos": 14,
+      "mappedRows": 14,
+      "unmappedRows": 0
+    },
+    {
+      "file": "PLANIFICACION Y CONTROL DE PRODUCCION.xlsx",
+      "unidad": "PLANIFICACION Y CONTROL DE PRODUCCION",
+      "legajos": 2,
+      "mappedRows": 2,
+      "unmappedRows": 0
+    },
+    {
+      "file": "PROCESOS ESPECIALES.xlsx",
+      "unidad": "PROCESOS ESPECIALES",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "PROGRAMADORES.xlsx",
+      "unidad": "PROGRAMADORES",
+      "legajos": 7,
+      "mappedRows": 7,
+      "unmappedRows": 0
+    },
+    {
+      "file": "RECEPCION DE SECOS - ZONA 2.xlsx",
+      "unidad": "RECEPCION DE SECOS - ZONA 2",
+      "legajos": 25,
+      "mappedRows": 25,
+      "unmappedRows": 0
+    },
+    {
+      "file": "RECEPCION NOA IMPORTADOS.xlsx",
+      "unidad": "RECEPCION NOA IMPORTADOS",
+      "legajos": 11,
+      "mappedRows": 11,
+      "unmappedRows": 0
+    },
+    {
+      "file": "RECEPCION NOA NACIONAL E IMPORTADOS.xlsx",
+      "unidad": "RECEPCION NOA NACIONAL E IMPORTADOS",
+      "legajos": 5,
+      "mappedRows": 5,
+      "unmappedRows": 0
+    },
+    {
+      "file": "RECEPCION NOA NACIONAL.xlsx",
+      "unidad": "RECEPCION NOA NACIONAL",
+      "legajos": 9,
+      "mappedRows": 9,
+      "unmappedRows": 0
+    },
+    {
+      "file": "RECEPCION REFRIGERADOS.xlsx",
+      "unidad": "RECEPCION REFRIGERADOS",
+      "legajos": 33,
+      "mappedRows": 33,
+      "unmappedRows": 0
+    },
+    {
+      "file": "RECEPCION SECOS - ZONA 2.xlsx",
+      "unidad": "RECEPCION SECOS - ZONA 2",
+      "legajos": 2,
+      "mappedRows": 2,
+      "unmappedRows": 0
+    },
+    {
+      "file": "REFRIGERADOS.xlsx",
+      "unidad": "REFRIGERADOS",
+      "legajos": 4,
+      "mappedRows": 4,
+      "unmappedRows": 0
+    },
+    {
+      "file": "SECOS 1 - ALMACEN-BEBIDAS-PANADERIA.xlsx",
+      "unidad": "SECOS 1 - ALMACEN-BEBIDAS-PANADERIA",
+      "legajos": 5,
+      "mappedRows": 5,
+      "unmappedRows": 0
+    },
+    {
+      "file": "SECOS 2 - LIMPIEZA-PERFUMERIA-MASCOTAS.xlsx",
+      "unidad": "SECOS 2 - LIMPIEZA-PERFUMERIA-MASCOTAS",
+      "legajos": 5,
+      "mappedRows": 5,
+      "unmappedRows": 0
+    },
+    {
+      "file": "Sin Gerencia - ADMINISTRAC DE TALLER.xlsx",
+      "unidad": "ADMINISTRAC DE TALLER",
+      "legajos": 2,
+      "mappedRows": 0,
+      "unmappedRows": 2
+    },
+    {
+      "file": "Sin Gerencia - ADMINISTRACION DE MANTENIMIENTO.xlsx",
+      "unidad": "ADMINISTRACION DE MANTENIMIENTO",
+      "legajos": 2,
+      "mappedRows": 0,
+      "unmappedRows": 2
+    },
+    {
+      "file": "Sin Gerencia - ADMINISTRACION DE PERSONAL.xlsx",
+      "unidad": "ADMINISTRACION DE PERSONAL",
+      "legajos": 8,
+      "mappedRows": 0,
+      "unmappedRows": 8
+    },
+    {
+      "file": "Sin Gerencia - ADMINISTRACION DE TRANSPORTE.xlsx",
+      "unidad": "ADMINISTRACION DE TRANSPORTE",
+      "legajos": 4,
+      "mappedRows": 0,
+      "unmappedRows": 4
+    },
+    {
+      "file": "Sin Gerencia - ADMINISTRACION Y CONTROL.xlsx",
+      "unidad": "ADMINISTRACION Y CONTROL",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - ADMINISTRACION Y TESORERIA.xlsx",
+      "unidad": "ADMINISTRACION Y TESORERIA",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - CHAPA Y PINTURA.xlsx",
+      "unidad": "CHAPA Y PINTURA",
+      "legajos": 7,
+      "mappedRows": 0,
+      "unmappedRows": 7
+    },
+    {
+      "file": "Sin Gerencia - CHOFERES FRIGOPOLLO.xlsx",
+      "unidad": "CHOFERES FRIGOPOLLO",
+      "legajos": 12,
+      "mappedRows": 0,
+      "unmappedRows": 12
+    },
+    {
+      "file": "Sin Gerencia - CHOFERES FRIGORIFICO.xlsx",
+      "unidad": "CHOFERES FRIGORIFICO",
+      "legajos": 23,
+      "mappedRows": 0,
+      "unmappedRows": 23
+    },
+    {
+      "file": "Sin Gerencia - CHOFERES TORITAJE (FRIGORIFICO).xlsx",
+      "unidad": "CHOFERES TORITAJE (FRIGORIFICO)",
+      "legajos": 3,
+      "mappedRows": 0,
+      "unmappedRows": 3
+    },
+    {
+      "file": "Sin Gerencia - COMEDOR.xlsx",
+      "unidad": "COMEDOR",
+      "legajos": 8,
+      "mappedRows": 0,
+      "unmappedRows": 8
+    },
+    {
+      "file": "Sin Gerencia - COMISION INTERNA.xlsx",
+      "unidad": "COMISION INTERNA",
+      "legajos": 10,
+      "mappedRows": 0,
+      "unmappedRows": 10
+    },
+    {
+      "file": "Sin Gerencia - CONTROL DE CALIDAD.xlsx",
+      "unidad": "CONTROL DE CALIDAD",
+      "legajos": 14,
+      "mappedRows": 0,
+      "unmappedRows": 14
+    },
+    {
+      "file": "Sin Gerencia - CONTROL DE GASTOS Y FACTURACION.xlsx",
+      "unidad": "CONTROL DE GASTOS Y FACTURACION",
+      "legajos": 2,
+      "mappedRows": 0,
+      "unmappedRows": 2
+    },
+    {
+      "file": "Sin Gerencia - CONTROL DE SERVICIOS.xlsx",
+      "unidad": "CONTROL DE SERVICIOS",
+      "legajos": 5,
+      "mappedRows": 0,
+      "unmappedRows": 5
+    },
+    {
+      "file": "Sin Gerencia - COORDINACIÓN DE PROVEEDORES.xlsx",
+      "unidad": "COORDINACIÓN DE PROVEEDORES",
+      "legajos": 6,
+      "mappedRows": 0,
+      "unmappedRows": 6
+    },
+    {
+      "file": "Sin Gerencia - DESARROLLO DE PROYECTOS.xlsx",
+      "unidad": "DESARROLLO DE PROYECTOS",
+      "legajos": 6,
+      "mappedRows": 0,
+      "unmappedRows": 6
+    },
+    {
+      "file": "Sin Gerencia - EDILICIO.xlsx",
+      "unidad": "EDILICIO",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - EDILICIOS.xlsx",
+      "unidad": "EDILICIOS",
+      "legajos": 21,
+      "mappedRows": 0,
+      "unmappedRows": 21
+    },
+    {
+      "file": "Sin Gerencia - ELECTRICIDAD.xlsx",
+      "unidad": "ELECTRICIDAD",
+      "legajos": 7,
+      "mappedRows": 0,
+      "unmappedRows": 7
+    },
+    {
+      "file": "Sin Gerencia - ELECTROMECANICA.xlsx",
+      "unidad": "ELECTROMECANICA",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - ELECTRONICA Y GPS.xlsx",
+      "unidad": "ELECTRONICA Y GPS",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - FORMACION Y DESARROLLO.xlsx",
+      "unidad": "FORMACION Y DESARROLLO",
+      "legajos": 3,
+      "mappedRows": 0,
+      "unmappedRows": 3
+    },
+    {
+      "file": "Sin Gerencia - GESTION DOCUMENTAL.xlsx",
+      "unidad": "GESTION DOCUMENTAL",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - HIELO SECO Y MADURADERO.xlsx",
+      "unidad": "HIELO SECO Y MADURADERO",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - INGENIERIA DE PROCESOS.xlsx",
+      "unidad": "INGENIERIA DE PROCESOS",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - INGENIERIA DE PROYECTOS.xlsx",
+      "unidad": "INGENIERIA DE PROYECTOS",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - INSTALADORES DE GPS.xlsx",
+      "unidad": "INSTALADORES DE GPS",
+      "legajos": 2,
+      "mappedRows": 0,
+      "unmappedRows": 2
+    },
+    {
+      "file": "Sin Gerencia - LABORALES.xlsx",
+      "unidad": "LABORALES",
+      "legajos": 2,
+      "mappedRows": 0,
+      "unmappedRows": 2
+    },
+    {
+      "file": "Sin Gerencia - LAVADERO DE CAMIONES.xlsx",
+      "unidad": "LAVADERO DE CAMIONES",
+      "legajos": 4,
+      "mappedRows": 0,
+      "unmappedRows": 4
+    },
+    {
+      "file": "Sin Gerencia - LOGISU S.A.xlsx",
+      "unidad": "LOGISU S.A.",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - MANTENIMIENTO.xlsx",
+      "unidad": "MANTENIMIENTO",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - MAPA DE ALMACEN.xlsx",
+      "unidad": "MAPA DE ALMACEN",
+      "legajos": 10,
+      "mappedRows": 0,
+      "unmappedRows": 10
+    },
+    {
+      "file": "Sin Gerencia - MECANICA GENERAL.xlsx",
+      "unidad": "MECANICA GENERAL",
+      "legajos": 9,
+      "mappedRows": 0,
+      "unmappedRows": 9
+    },
+    {
+      "file": "Sin Gerencia - MECANICA PARQUE RODANTE.xlsx",
+      "unidad": "MECANICA PARQUE RODANTE",
+      "legajos": 7,
+      "mappedRows": 0,
+      "unmappedRows": 7
+    },
+    {
+      "file": "Sin Gerencia - MEJORA DE PROCESOS.xlsx",
+      "unidad": "MEJORA DE PROCESOS",
+      "legajos": 5,
+      "mappedRows": 0,
+      "unmappedRows": 5
+    },
+    {
+      "file": "Sin Gerencia - PAÑOL.xlsx",
+      "unidad": "PAÑOL",
+      "legajos": 11,
+      "mappedRows": 0,
+      "unmappedRows": 11
+    },
+    {
+      "file": "Sin Gerencia - PARQUE DE BATERIAS.xlsx",
+      "unidad": "PARQUE DE BATERIAS",
+      "legajos": 4,
+      "mappedRows": 0,
+      "unmappedRows": 4
+    },
+    {
+      "file": "Sin Gerencia - PARQUE RODANTE.xlsx",
+      "unidad": "PARQUE RODANTE",
+      "legajos": 2,
+      "mappedRows": 0,
+      "unmappedRows": 2
+    },
+    {
+      "file": "Sin Gerencia - PLAYA DE COMBUSTIBLE.xlsx",
+      "unidad": "PLAYA DE COMBUSTIBLE",
+      "legajos": 3,
+      "mappedRows": 0,
+      "unmappedRows": 3
+    },
+    {
+      "file": "Sin Gerencia - PUESTO 33 (SUPERVISION).xlsx",
+      "unidad": "PUESTO 33 (SUPERVISION)",
+      "legajos": 5,
+      "mappedRows": 0,
+      "unmappedRows": 5
+    },
+    {
+      "file": "Sin Gerencia - PUESTO 33 (VIGILADORES PROPIOS).xlsx",
+      "unidad": "PUESTO 33 (VIGILADORES PROPIOS)",
+      "legajos": 15,
+      "mappedRows": 0,
+      "unmappedRows": 15
+    },
+    {
+      "file": "Sin Gerencia - SALA DE MAQUINAS.xlsx",
+      "unidad": "SALA DE MAQUINAS",
+      "legajos": 8,
+      "mappedRows": 0,
+      "unmappedRows": 8
+    },
+    {
+      "file": "Sin Gerencia - SEGURIDAD E HIGIENE.xlsx",
+      "unidad": "SEGURIDAD E HIGIENE",
+      "legajos": 4,
+      "mappedRows": 0,
+      "unmappedRows": 4
+    },
+    {
+      "file": "Sin Gerencia - SEGURIDAD.xlsx",
+      "unidad": "SEGURIDAD",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - SENASA.xlsx",
+      "unidad": "SENASA",
+      "legajos": 1,
+      "mappedRows": 0,
+      "unmappedRows": 1
+    },
+    {
+      "file": "Sin Gerencia - SERVICIO MEDICO.xlsx",
+      "unidad": "SERVICIO MEDICO",
+      "legajos": 3,
+      "mappedRows": 0,
+      "unmappedRows": 3
+    },
+    {
+      "file": "Sin Gerencia - TALLER.xlsx",
+      "unidad": "TALLER",
+      "legajos": 3,
+      "mappedRows": 0,
+      "unmappedRows": 3
+    },
+    {
+      "file": "Sin Gerencia - TESORERIA Y ACTIVOS FIJOS.xlsx",
+      "unidad": "TESORERIA Y ACTIVOS FIJOS",
+      "legajos": 3,
+      "mappedRows": 0,
+      "unmappedRows": 3
+    },
+    {
+      "file": "SUPERVISION CDP LOGISTICA INVERSA.xlsx",
+      "unidad": "SUPERVISION CDP LOGISTICA INVERSA",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "SUPERVISION CDP REFRIGERADOS.xlsx",
+      "unidad": "SUPERVISION CDP REFRIGERADOS",
+      "legajos": 1,
+      "mappedRows": 1,
+      "unmappedRows": 0
+    },
+    {
+      "file": "SUPERVISION CDP SECOS - NOA.xlsx",
+      "unidad": "SUPERVISION CDP SECOS - NOA",
+      "legajos": 4,
+      "mappedRows": 4,
+      "unmappedRows": 0
+    },
+    {
+      "file": "TORRE DE CONTROL.xlsx",
+      "unidad": "TORRE DE CONTROL",
+      "legajos": 3,
+      "mappedRows": 3,
+      "unmappedRows": 0
+    },
+    {
+      "file": "TRAFICO.xlsx",
+      "unidad": "TRAFICO",
+      "legajos": 4,
+      "mappedRows": 4,
+      "unmappedRows": 0
+    }
+  ],
+  "regeneratedAt": "2026-06-25T14:31:45.056Z",
+  "templatePath": "\\\\redcoto.com.ar\\patagonia\\CD_Automatizaciones\\Carga PHDT\\ExcelBase\\Ingenieria.xlsx",
+  "rule": "Plantilla Ingenieria.xlsx; columnas A:C desde archivo anterior; columnas D:M repetidas desde fila 4 de plantilla."
+}

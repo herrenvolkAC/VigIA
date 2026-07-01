@@ -27,7 +27,7 @@
     .btn.primary{background:var(--ink);border-color:var(--ink);color:var(--bg)}.btn.danger{color:var(--red);border-color:var(--red)}.btn:disabled{opacity:.45;cursor:not-allowed}
     .tabs{display:flex;align-items:flex-end;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule);overflow:auto}.tab{border:0;background:transparent;color:var(--soft);padding:13px 18px 12px;min-width:132px;font-size:11px;letter-spacing:.16em;text-transform:uppercase}.tab.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}.tab.active::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-radius:50%;background:var(--green);vertical-align:middle}
     .panel{display:none}.panel.active{display:block}.status{min-height:30px;border:1px solid var(--rule);border-top:0;background:var(--panel);padding:8px 12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;color:var(--soft)}.status.error{color:var(--red)}
-    .filters,.form-grid,.import-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.form-grid{border-top:1px solid var(--rule);margin-top:12px}.import-line{grid-template-columns:1fr auto auto auto}.indicator-filters{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(150px,.7fr) minmax(260px,1.4fr) auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
+    .filters,.form-grid,.import-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.form-grid{border-top:1px solid var(--rule);margin-top:12px}.import-line{grid-template-columns:1fr auto auto auto auto}.indicator-filters{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(150px,.7fr) minmax(260px,1.4fr) auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
     .production-pair{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px;margin-top:12px}.production-card{position:relative;border:1px solid var(--rule-strong);border-top-width:4px;padding-top:42px;margin-top:0}.production-card::before{position:absolute;top:12px;left:12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}.production-card::after{content:"";position:absolute;top:13px;right:12px;width:10px;height:10px;border-radius:50%}.production-card.produced{border-top-color:var(--green);background:linear-gradient(90deg,var(--green-soft),transparent 42%),var(--panel)}.production-card.produced::before{content:"Alta de produccion";color:var(--green)}.production-card.produced::after{background:var(--green)}.production-card.delivered{border-top-color:var(--amber);background:linear-gradient(90deg,var(--amber-soft),transparent 42%),var(--panel)}.production-card.delivered::before{content:"Entrega a sector";color:var(--amber)}.production-card.delivered::after{background:var(--amber)}.logistic-summary{border:1px solid var(--rule);border-top:4px solid var(--blue);background:var(--panel);min-height:100%;padding:10px 12px}.logistic-summary.produced{border-top-color:var(--green)}.logistic-summary.delivered{border-top-color:var(--amber)}.summary-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:8px}.summary-head strong{font-size:13px}.summary-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);text-align:right}.summary-list{display:flex;flex-direction:column;gap:6px;max-height:150px;overflow:auto}.summary-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;border-bottom:1px solid var(--rule);padding-bottom:6px;font-size:12px}.summary-item:last-child{border-bottom:0}.summary-item b{font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px}.summary-item small{display:block;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.summary-item .qty{font-family:"IBM Plex Mono",Consolas,monospace;font-weight:600}.production-sections{display:grid;gap:14px;margin-top:14px}.production-section{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue)}.production-section.moves{border-top-color:var(--amber)}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--rule);background:#f8faf7}.section-head strong{font-size:14px}.section-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}.production-section .table-wrap{border:0;max-height:320px}.production-section.moves .table-wrap{max-height:260px}.production-section table th{top:0}
     .field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.span{grid-column:1/-1}.input,select,textarea{width:100%;min-height:34px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:7px 10px}.input,select{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px;font-weight:500}textarea{min-height:68px;resize:vertical}
     .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0}.kpi{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi.warn{border-top-color:var(--amber)}.kpi.ok{border-top-color:var(--green)}.kpi-num{font-family:"IBM Plex Mono",Consolas,monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi.warn .kpi-num{color:var(--amber)}.kpi.ok .kpi-num{color:var(--green)}.indicator-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.indicator-column{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--blue);min-width:0}.indicator-column.stock{border-top-color:var(--green)}.indicator-column.production{border-top-color:var(--amber)}.indicator-column.orders{border-top-color:var(--blue)}.indicator-column-head{padding:12px;border-bottom:1px solid var(--rule);background:#f8faf7}.indicator-column-head strong{font-size:16px}.mini-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px 12px;border-bottom:1px solid var(--rule)}.mini-kpi{border:1px solid var(--rule);background:var(--panel);padding:8px;min-width:0}.mini-kpi .label{font-size:9px;letter-spacing:.12em}.mini-kpi .kpi-num{font-size:22px;margin:6px 0 0}.indicator-column .chart-panel{border:0;border-top:1px solid var(--rule);min-height:256px}.indicator-column .chart-panel:first-of-type{border-top:0}.indicator-column .chart-panel.wide{grid-column:auto}.indicator-column .table-wrap{border:0;border-top:1px solid var(--rule);max-height:260px}
@@ -95,7 +95,7 @@
           <div class="bar-list" id="chart-low-stock"></div>
         </article>
         <article class="chart-panel">
-          <div class="chart-head"><div><strong>Consumo por turno</strong><div class="muted">Acumulado calculado</div></div><span>Turnos</span></div>
+          <div class="chart-head"><div><strong>Consumo por dia logistico</strong><div class="muted">Corte diario 22:00</div></div><span>Dias</span></div>
           <div class="bar-list" id="chart-turn-consumption"></div>
         </article>
       </section>
@@ -110,10 +110,6 @@
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Historico entregado</strong><div class="muted">Total por destino</div></div><span>Torta</span></div>
           <div class="pie-wrap"><div class="pie" id="chart-prod-sector-pie"></div><div class="chart-legend" id="legend-prod-sector"></div></div>
-        </article>
-        <article class="chart-panel">
-          <div class="chart-head"><div><strong>Produccion por turno</strong><div class="muted">Total producido</div></div><span>Torta</span></div>
-          <div class="pie-wrap"><div class="pie" id="chart-prod-turn-pie"></div><div class="chart-legend" id="legend-prod-turn"></div></div>
         </article>
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Entregado por PLU</strong><div class="muted">Segmentos por sector destino</div></div><span>Apilado</span></div>
@@ -286,9 +282,10 @@
       <div class="field"><label class="label">Archivo CSV/XLS/XLSX</label><input class="input" id="cd-file" type="file" accept=".csv,.xls,.xlsx,.xlsm"></div>
       <button class="btn" id="preview-cd">Preview</button>
       <button class="btn primary" id="import-cd">Importar</button>
+      <button class="btn" id="sync-cd-oracle" type="button">Oracle diario</button>
       <button class="btn danger" id="reset-operational" type="button">Depurar operativo</button>
     </div>
-    <div class="muted" style="padding:10px 12px;background:var(--panel);border:1px solid var(--rule);border-top:0">El archivo puede traer todo el CD. Solo se importan codigos existentes en el catalogo propio; el resto se ignora. La depuracion borra stock, movimientos, inventarios, produccion y pedidos; conserva PLUs.</div>
+    <div class="muted" style="padding:10px 12px;background:var(--panel);border:1px solid var(--rule);border-top:0">El archivo puede traer todo el CD. Solo se importan codigos existentes en el catalogo propio; el resto se ignora. Oracle diario calcula stock CD desde la base productiva y evita repetir la carga si ya existe una sincronizacion del dia. La depuracion borra stock, movimientos, inventarios, produccion y pedidos; conserva PLUs.</div>
     <div class="table-wrap"><table><thead><tr><th>Codigo</th><th class="right">Stock CD</th></tr></thead><tbody id="cd-preview-body"></tbody></table></div>
   </section>
 </div>
@@ -333,10 +330,8 @@ function renderDashboardCharts(){
   renderSimpleBars('chart-low-stock',low,{empty:'Sin articulos bajo minimo'});
   const coverage=stockRows.filter(r=>r.cobertura_dias!=null&&Number.isFinite(num(r.cobertura_dias))).sort((a,b)=>num(a.cobertura_dias)-num(b.cobertura_dias)).slice(0,8).map(r=>({label:r.codigo,value:num(r.cobertura_dias),display:fmt(r.cobertura_dias),cls:num(r.cobertura_dias)<7?'bad':'soft'}));
   renderSimpleBars('chart-coverage',coverage,{empty:'Sin consumos calculados'});
-  const byTurn={};
-  (indicatorData.consumo_por_turno||[]).forEach(r=>{byTurn[r.turno]=(byTurn[r.turno]||0)+num(r.consumo)});
-  const turnRows=Object.entries(byTurn).map(([label,value])=>({label,value,cls:'oficina'})).sort((a,b)=>b.value-a.value);
-  renderSimpleBars('chart-turn-consumption',turnRows,{empty:'Sin consumo por turno'});
+  const dayRows=(indicatorData.consumo_por_dia_logistico||[]).map(r=>({label:r.dia_logistico,value:num(r.consumo),cls:'oficina'}));
+  renderSimpleBars('chart-turn-consumption',dayRows,{empty:'Sin consumo por dia logistico'});
   const recentEl=$('chart-recent-moves');
   if(recentEl){
     const recent=movementRows.slice(0,8);
@@ -396,9 +391,7 @@ function renderStackedVerticalBars(elId,rows,empty){
   }).join('');
 }
 function renderProductionCharts(){
-  const turnRows=(productionIndicatorData.produccion_por_turno||[]).map(r=>({label:r.turno,value:num(r.cantidad)}));
   const sectorRows=(productionIndicatorData.entregas_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad)}));
-  renderPie('chart-prod-turn-pie','legend-prod-turn',turnRows,'Sin produccion registrada');
   renderPie('chart-prod-sector-pie','legend-prod-sector',sectorRows,'Sin entregas registradas');
   renderVerticalBars('chart-prod-stock-bars',productionStockRows.map(r=>({label:r.codigo,value:num(r.stock_producido)})),'Sin stock producido');
   renderStackedVerticalBars('chart-prod-delivered-bars',productionIndicatorData.entregas_por_sector_plu||[],'Sin entregas registradas');
@@ -470,10 +463,11 @@ window.addEventListener('error',ev=>setStatus(`Error de pantalla: ${ev.message}`
 window.addEventListener('unhandledrejection',ev=>setStatus(`Error de pantalla: ${ev.reason?.message||ev.reason||'promesa rechazada'}`,true));
 async function api(path,opt={}){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),15000);
+  const {timeoutMs=15000,...fetchOpt}=opt;
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
-    const headers=opt.body instanceof ArrayBuffer?{}:{'Content-Type':'application/json',...(opt.headers||{})};
-    const r=await fetch(path,{credentials:'same-origin',headers,signal:controller.signal,...opt});
+    const headers=fetchOpt.body instanceof ArrayBuffer?{}:{'Content-Type':'application/json',...(fetchOpt.headers||{})};
+    const r=await fetch(path,{credentials:'same-origin',headers,signal:controller.signal,...fetchOpt});
     if(r.status===401){location.href='/login?next=/panol-insumos';return null}
     const d=await r.json().catch(()=>({}));
     if(!r.ok){
@@ -631,6 +625,16 @@ async function saveProduction(ev){ev.preventDefault();const body={articulo_id:Nu
 async function saveProductionDelivery(ev){ev.preventDefault();if(!$('deliv-articulo').value)throw new Error('No hay PLU con stock producido disponible para entregar.');const body={articulo_id:Number($('deliv-articulo').value),ubicacion_destino_id:Number($('deliv-destino').value),cantidad:Number($('deliv-cantidad').value),observacion:$('deliv-obs').value};const d=await api('/panol-insumos/api/produccion/entregas',{method:'POST',body:JSON.stringify(body)});$('delivery-form').reset();$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');await loadProduction();await loadPedidoCatalog();setStatus(`Entrega registrada. Turno: ${esc(d.turno||'')}`)}
 async function saveInventory(){const items=[...document.querySelectorAll('[data-inv-art]')].map(i=>({articulo_id:Number(i.dataset.invArt),stock_fisico:Number(i.value||0)}));const body={fecha:$('inv-fecha').value,turno:$('inv-turno').value,ubicacion_id:Number($('inv-ubicacion').value),observacion:$('inv-obs').value,items};const d=await api('/panol-insumos/api/inventario-turno',{method:'POST',body:JSON.stringify(body)});await loadIndicators();await loadMovements();await loadInventoryHistory();await loadStock();await loadPedidoCatalog();renderDashboardCharts();setStatus(`Inventario guardado. Ubicacion: ${esc((d.items||[])[0]?.ubicacion||'')}. Lineas: ${(d.items||[]).length}`)}
 async function sendCd(preview){const file=$('cd-file').files[0];if(!file)throw new Error('Selecciona un archivo.');const p=new URLSearchParams({filename:file.name,preview:String(preview)});const body=await file.arrayBuffer();const d=await api(`/panol-insumos/api/importar-stock-cd?${p}`,{method:'POST',body});$('cd-preview-body').innerHTML=(d.matched||[]).map(r=>`<tr><td>${esc(r.codigo)}</td><td class="right">${fmt(r.stock_cd)}</td></tr>`).join('')||'<tr><td colspan="2">Sin codigos coincidentes.</td></tr>';setStatus(`${preview?'Preview':'Importacion'}: ${d.matched_count||0} codigos propios, ${d.ignored||0} ignorados.`);if(!preview){await loadStock();renderDashboardCharts();}}
+async function syncCdOracle(force=false){
+  const p=new URLSearchParams({force:String(force)});
+  const d=await api(`/panol-insumos/api/stock-cd/oracle/sincronizar?${p}`,{method:'POST',timeoutMs:180000});
+  if(d.skipped&&!force&&confirm('El stock CD de Oracle ya fue sincronizado hoy. Deseas forzar una nueva carga?'))return syncCdOracle(true);
+  $('cd-preview-body').innerHTML=(d.matched||[]).map(r=>`<tr><td>${esc(r.codigo)}</td><td class="right">${fmt(r.stock_cd)}</td></tr>`).join('')||`<tr><td colspan="2">${d.skipped?'Sincronizacion ya realizada hoy.':'Sin codigos coincidentes.'}</td></tr>`;
+  await loadStock();
+  await loadPedidoCatalog();
+  renderDashboardCharts();
+  setStatus(d.skipped?`Oracle diario: ya sincronizado ${shortDate(d.fecha_importacion)}.`:`Oracle diario: ${d.matched_count||0} PLUs propios actualizados, ${d.zeroed||0} sin stock CD, ${d.ignored||0} ignorados.`);
+}
 async function resetOperationalData(){const clave=prompt('Clave para depurar datos operativos');if(!clave)return;if(!confirm('Se borraran stock CD, movimientos, inventarios, consumos, produccion y pedidos. Los PLUs se conservan.'))return;const d=await api('/panol-insumos/api/admin/reset-operativo',{method:'POST',body:JSON.stringify({clave})});$('cd-preview-body').innerHTML=Object.entries(d.deleted||{}).map(([tabla,cantidad])=>`<tr><td>${esc(tabla)}</td><td class="right">${fmt(cantidad)}</td></tr>`).join('')||'<tr><td colspan="2">Depuracion ejecutada.</td></tr>';await loadStock();await loadIndicators();await loadMovements();await loadProduction();await loadInventoryHistory();await loadPedidoCatalog();await loadMyPedidos();await loadPendingPedidos();await loadPedidoIndicators();renderDashboardCharts();setStatus('Datos operativos depurados. PLUs conservados.')}
 function activateStockView(view){
   document.querySelectorAll('[data-stock-view]').forEach(x=>x.classList.toggle('active',x.dataset.stockView===view));
@@ -666,6 +670,7 @@ $('inventory-body').addEventListener('keydown',ev=>{
 $('refresh-history').onclick=()=>loadInventoryHistory().catch(e=>setStatus(e.message,true));
 $('preview-cd').onclick=()=>sendCd(true).catch(e=>setStatus(e.message,true));
 $('import-cd').onclick=()=>sendCd(false).catch(e=>setStatus(e.message,true));
+$('sync-cd-oracle').onclick=()=>syncCdOracle(false).catch(e=>setStatus(e.message,true));
 $('reset-operational').onclick=()=>resetOperationalData().catch(e=>setStatus(e.message,true));
 $('supply-order-form').onsubmit=e=>savePedido(e).catch(err=>setStatus(err.message,true));
 $('refresh-pending').onclick=()=>loadPendingPedidos().catch(e=>setStatus(e.message,true));

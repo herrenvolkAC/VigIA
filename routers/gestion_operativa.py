@@ -12,6 +12,7 @@ import time
 from contextlib import suppress
 from collections import defaultdict
 from datetime import datetime, time as dt_time, timedelta
+from pathlib import Path
 from typing import Any
 
 import aiosqlite
@@ -34,13 +35,21 @@ from db.daily_operativa import (
 )
 from db.daily_auto import (
     DAILY_AUTO_DB_PATH,
+    get_daily_auto_manual_comparacion,
     get_cached_results,
+    get_despacho_raw_cache_rows,
     get_latest_run,
+    get_productividad_raw_cache_rows,
     save_despacho_summary_cache,
+    save_despacho_raw_cache,
     init_daily_auto_db,
     mark_run_error,
-    save_clark_summary_cache,
+    rebuild_daily_auto_manual_comparacion,
+    replace_daily_manual_comparacion_rows,
+    save_avance_summary_cache,
+    save_clark_raw_summary_cache,
     save_picking_summary_cache,
+    save_productividad_raw_cache,
     save_planificacion_summary_cache,
     save_recepcion_summary_cache,
     scheduled_daily_window,
@@ -54,14 +63,14 @@ from routers.productividad_analisis import (
     _turn_range_for_date,
     QUERY_DAILY_CLARK_REAL,
     QUERY_DAILY_DESPACHO_REAL,
+    QUERY_DAILY_DESPACHO_RAW,
     QUERY_DAILY_PLANIFICACION,
     QUERY_DAILY_PICKING_REAL,
+    QUERY_DAILY_PRODUCTIVIDAD_RAW,
     QUERY_DAILY_RECEPCION_REAL,
-    query_productive_db_daily_clark_real,
+    query_productive_db_daily_productividad_raw,
     query_productive_db_daily_planificacion,
-    query_productive_db_daily_recepcion_real,
-    query_productive_db_daily_despacho_real,
-    query_productive_db_daily_picking_real,
+    query_productive_db_daily_despacho_raw,
     query_productive_db_gestion_productividad_picking,
     query_productive_db_historia_productividad_bulk,
     query_productive_db_picking_tiempos_muertos,
@@ -70,15 +79,40 @@ from routers.productividad_analisis import (
 logger = logging.getLogger("vigia.gestion_operativa")
 router = APIRouter(prefix="/api/gestion-operativa", tags=["gestion-operativa"])
 GESTION_PRODUCTIVIDAD_IA_PROMPT_VERSION = "gestion_productividad_picking_v1"
-DAILY_AUTO_SCHEDULE_TIME = dt_time(6, 5)
+DAILY_AUTO_SCHEDULE_TIME = dt_time(7, 35)
 DAILY_AUTO_SCHEDULE_GRACE_MINUTES = 10
-DAILY_AUTO_CLARK_QUERY_VERSION = "clark_real_aggregate_v3"
-DAILY_AUTO_PICKING_QUERY_VERSION = "picking_real_aggregate_v4"
-DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_real_aggregate_v2"
-DAILY_AUTO_DESPACHO_QUERY_VERSION = "despacho_real_aggregate_v2"
+DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_distinct_pallets_v1"
+DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_prev_movement_v2"
+DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_raw_cache_v1"
+DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION = "despacho_raw_f922traf_hojaruta_v3"
+DAILY_AUTO_DESPACHO_QUERY_VERSION = "despacho_raw_cache_hojaruta_v2"
 DAILY_AUTO_PLANIFICACION_QUERY_VERSION = "planificacion_unificada_v1"
+DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION = "productividad_raw_f132hist_v3"
+DAILY_AUTO_AVANCE_QUERY_VERSION = "avance_6a730_cache_v1"
 _daily_auto_scheduler_task: asyncio.Task | None = None
 _daily_auto_scheduler_stop: asyncio.Event | None = None
+
+
+def _daily_auto_schedule_label() -> str:
+    return DAILY_AUTO_SCHEDULE_TIME.strftime("%H:%M")
+
+
+def _daily_window_for_fecha_carga(fecha_daily: datetime) -> dict[str, Any]:
+    fecha = fecha_daily.date() if isinstance(fecha_daily, datetime) else fecha_daily
+    start_date = fecha - timedelta(days=2) if fecha.weekday() == 0 else fecha - timedelta(days=1)
+    start = datetime.combine(start_date, dt_time(6, 0), tzinfo=LOCAL_TZ)
+    end = datetime.combine(fecha, dt_time(6, 0), tzinfo=LOCAL_TZ)
+    labels = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
+    return {
+        "can_run": True,
+        "can_load": True,
+        "daily_key": f"{start:%Y%m%d0600}_{end:%Y%m%d0600}",
+        "daily_label": f"{labels[start.weekday()]} 06:00 / {labels[end.weekday()]} 06:00",
+        "fecha_inicio": start.isoformat(timespec="seconds"),
+        "fecha_fin": end.isoformat(timespec="seconds"),
+        "fecha_carga": fecha.isoformat(),
+        "now": datetime.now(LOCAL_TZ).isoformat(timespec="seconds"),
+    }
 
 
 class ProductividadPickingIARequest(BaseModel):
@@ -106,6 +140,12 @@ class DailyExportRequest(BaseModel):
 
 class DailyAutoRetryRequest(BaseModel):
     force: bool = False
+
+
+class DailyManualComparacionImportRequest(BaseModel):
+    source_path: str = r"C:\Users\207189\Documents\DailyManual.xlsx"
+    days: int = 15
+    force_auto: bool = False
 
 
 DAILY_PICKING_REAL_PARAM_IDS_BY_SECTOR = {
@@ -145,6 +185,106 @@ EXPECTED_SECTORS_BY_ALMACEN = {
     "SECTOR SECOS": {"CD-SECOS - ZONA 1", "CD-SECOS - ZONA 2"},
     "SECTOR DE F&Q - CONGELADOS": {"CD-REFRIGERADOS"},
     "SECTOR FRUTA-VERDURA": {"CD-REFRIGERADOS"},
+}
+
+DAILY_RAW_SECTOR_TO_ALMACEN = {
+    "Noa": "NOA",
+    "Secos": "SECOS",
+    "Refrigerados": "REFRIGERADOS",
+}
+
+DAILY_MANUAL_XLSX_DEFAULT = Path(r"C:\Users\207189\Documents\DailyManual.xlsx")
+
+DAILY_MANUAL_PARAM_MAP = {
+    ("Productividad", "1-Recep", "REAL"): {
+        "Noa": "OP_PROD_RECEPCION_NOA_6A6",
+        "Secos": "OP_PROD_RECEPCION_SECOS_6A6",
+        "Refrigerados": "OP_PROD_RECEPCION_REFRI_6A6",
+    },
+    ("Productividad", "2-Pick", "REAL"): {
+        "Noa": "OP_PROD_PICKING_NOA_6A6",
+        "Secos": "OP_PROD_PICKING_SECOS_6A6",
+        "Refrigerados": "OP_PROD_PICKING_REFRI_6A6",
+    },
+    ("Productividad", "3-Clark", "REAL"): {
+        "Noa": "OP_PROD_CLARK_NOA_6A6",
+        "Secos": "OP_PROD_CLARK_SECOS_6A6",
+        "Refrigerados": "OP_PROD_CLARK_REFRI_6A6",
+    },
+    ("Productividad", "4-Desp", "REAL"): {
+        "Secos": "OP_PROD_DESPACHO_SECOS_6A6",
+        "Refrigerados": "OP_PROD_DESPACHO_REFRI_6A6",
+    },
+    ("Cumplimiento", "1-Recep", "REAL"): {
+        "Noa": "OP_CUMP_RECEPCION_REAL_6A6",
+        "Secos": "OP_CUMP_RECEPCION_REAL_6A6",
+        "Refrigerados": "OP_CUMP_RECEPCION_REAL_6A6",
+    },
+    ("Cumplimiento", "2-Pick", "REAL"): {
+        "Noa": "OP_CUMP_PICKING_REAL_6A6",
+        "Secos": "OP_CUMP_PICKING_REAL_6A6",
+        "Refrigerados": "OP_CUMP_PICKING_REAL_6A6",
+    },
+    ("Cumplimiento", "2-Pick", "PLAN"): {
+        "Noa": "OP_CUMP_PICKING_PLAN_6A6",
+        "Secos": "OP_CUMP_PICKING_PLAN_6A6",
+        "Refrigerados": "OP_CUMP_PICKING_PLAN_6A6",
+    },
+    ("Cumplimiento", "3-Clark", "REAL"): {
+        "Noa": "OP_CUMP_SPC_REAL_6A6",
+        "Secos": "OP_CUMP_SPC_REAL_6A6",
+        "Refrigerados": "OP_CUMP_SPC_REAL_6A6",
+    },
+    ("Cumplimiento", "3-Clark", "PLAN"): {
+        "Noa": "OP_CUMP_SPC_PLAN_6A6",
+        "Secos": "OP_CUMP_SPC_PLAN_6A6",
+        "Refrigerados": "OP_CUMP_SPC_PLAN_6A6",
+    },
+    ("Cumplimiento", "4-Desp", "REAL"): {
+        "Noa": "OP_CUMP_DESPACHO_REAL_6A6",
+        "Secos": "OP_CUMP_DESPACHO_REAL_6A6",
+        "Refrigerados": "OP_CUMP_DESPACHO_REAL_6A6",
+    },
+    ("Cumplimiento", "4-Desp", "PLAN"): {
+        "Noa": "OP_CUMP_DESPACHO_PLAN_6A6",
+        "Secos": "OP_CUMP_DESPACHO_PLAN_6A6",
+        "Refrigerados": "OP_CUMP_DESPACHO_PLAN_6A6",
+    },
+    ("Avance", "1-Recep", "REAL"): {
+        "Noa": "OP_AVANCE_RECEPCION_REAL_6A8",
+        "Secos": "OP_AVANCE_RECEPCION_REAL_6A8",
+        "Refrigerados": "OP_AVANCE_RECEPCION_REAL_6A8",
+    },
+    ("Avance", "2-Pick", "REAL"): {
+        "Noa": "OP_AVANCE_PICKING_REAL_6A8",
+        "Secos": "OP_AVANCE_PICKING_REAL_6A8",
+        "Refrigerados": "OP_AVANCE_PICKING_REAL_6A8",
+    },
+    ("Avance", "2-Pick", "PLAN"): {
+        "Noa": "OP_AVANCE_PICKING_PLAN_6A8",
+        "Secos": "OP_AVANCE_PICKING_PLAN_6A8",
+        "Refrigerados": "OP_AVANCE_PICKING_PLAN_6A8",
+    },
+    ("Avance", "3-Clark", "REAL"): {
+        "Noa": "OP_AVANCE_SPC_REAL_6A8",
+        "Secos": "OP_AVANCE_SPC_REAL_6A8",
+        "Refrigerados": "OP_AVANCE_SPC_REAL_6A8",
+    },
+    ("Avance", "3-Clark", "PLAN"): {
+        "Noa": "OP_AVANCE_SPC_PLAN_6A8",
+        "Secos": "OP_AVANCE_SPC_PLAN_6A8",
+        "Refrigerados": "OP_AVANCE_SPC_PLAN_6A8",
+    },
+    ("Avance", "4-Desp", "REAL"): {
+        "Noa": "OP_AVANCE_DESPACHO_REAL_6A8",
+        "Secos": "OP_AVANCE_DESPACHO_REAL_6A8",
+        "Refrigerados": "OP_AVANCE_DESPACHO_REAL_6A8",
+    },
+    ("Avance", "4-Desp", "PLAN"): {
+        "Noa": "OP_AVANCE_DESPACHO_PLAN_6A8",
+        "Secos": "OP_AVANCE_DESPACHO_PLAN_6A8",
+        "Refrigerados": "OP_AVANCE_DESPACHO_PLAN_6A8",
+    },
 }
 
 
@@ -194,6 +334,101 @@ def _to_float(value: Any) -> float:
 def _norm_legajo(value: Any) -> str:
     text = str(value or "").strip()
     return text.lstrip("0") or text
+
+
+def _manual_sector(value: Any) -> str:
+    text = str(value or "").strip()
+    if text.lower() == "noa":
+        return "Noa"
+    return normalize_sector(text)
+
+
+def _manual_operacion(up: str) -> str:
+    if up == "1-Recep":
+        return "RECEPCION"
+    if up == "2-Pick":
+        return "PICKING"
+    if up == "3-Clark":
+        return "SPC"
+    if up == "4-Desp":
+        return "DESPACHO"
+    return str(up or "").strip().upper()
+
+
+def _manual_excel_date(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    text = str(value or "").strip()
+    if not text:
+        return None
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            return datetime.strptime(text[:10], fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def _manual_compare_dates_from_excel(path: Path, days: int) -> list[datetime]:
+    try:
+        from openpyxl import load_workbook
+    except ImportError as exc:
+        raise RuntimeError("openpyxl no esta disponible para leer DailyManual.xlsx.") from exc
+    workbook = load_workbook(path, read_only=True, data_only=True)
+    if "CONSOLIDADO" not in workbook.sheetnames:
+        raise RuntimeError("DailyManual.xlsx no contiene la hoja CONSOLIDADO.")
+    today = datetime.now(LOCAL_TZ).date()
+    dates = set()
+    for row in workbook["CONSOLIDADO"].iter_rows(min_row=2, max_col=6, values_only=True):
+        dt = _manual_excel_date(row[5])
+        if dt and dt.date() <= today:
+            dates.add(dt.date())
+    return [datetime.combine(item, dt_time(0, 0)) for item in sorted(dates)[-max(days, 1):]]
+
+
+def _manual_rows_from_excel(path: Path, dates: list[datetime]) -> list[dict[str, Any]]:
+    try:
+        from openpyxl import load_workbook
+    except ImportError as exc:
+        raise RuntimeError("openpyxl no esta disponible para leer DailyManual.xlsx.") from exc
+    target_dates = {item.date().isoformat() for item in dates}
+    workbook = load_workbook(path, read_only=True, data_only=True)
+    if "CONSOLIDADO" not in workbook.sheetnames:
+        raise RuntimeError("DailyManual.xlsx no contiene la hoja CONSOLIDADO.")
+    rows: list[dict[str, Any]] = []
+    ws = workbook["CONSOLIDADO"]
+    for row_index, row in enumerate(ws.iter_rows(min_row=2, max_col=16, values_only=True), 2):
+        fecha_dt = _manual_excel_date(row[5])
+        if not fecha_dt or fecha_dt.date().isoformat() not in target_dates:
+            continue
+        sector = _manual_sector(row[1])
+        if sector not in {"Noa", "Secos", "Refrigerados"}:
+            continue
+        up = str(row[2] or "").strip()
+        metrica = str(row[3] or "").strip()
+        if not up or metrica not in {"Productividad", "Cumplimiento", "Avance"}:
+            continue
+        daily = _daily_window_for_fecha_carga(fecha_dt)
+        for concepto, value_idx in (("REAL", 7), ("PLAN", 8)):
+            id_param = DAILY_MANUAL_PARAM_MAP.get((metrica, up, concepto), {}).get(sector)
+            if not id_param:
+                continue
+            value = _to_float(row[value_idx])
+            rows.append(
+                {
+                    "source_row": row_index,
+                    "concepto": concepto,
+                    "fecha_daily": fecha_dt.date().isoformat(),
+                    "daily_key": daily["daily_key"],
+                    "sector": sector,
+                    "up": up,
+                    "metrica": metrica,
+                    "operacion": _manual_operacion(up),
+                    "id_parametro": id_param,
+                    "valor_manual": value,
+                }
+            )
+    return rows
 
 
 def _expected_sectors_for_almacen(almacen: Any) -> set[str]:
@@ -1382,42 +1617,531 @@ async def _require_request_auth(request: Request) -> dict[str, Any]:
     return auth
 
 
+def _daily_productividad_raw_end(daily: dict[str, Any]) -> datetime:
+    fecha_fin = daily.get("fecha_fin")
+    if isinstance(fecha_fin, datetime):
+        end = fecha_fin
+    else:
+        end = datetime.fromisoformat(str(fecha_fin))
+    return end + timedelta(minutes=90)
+
+
+async def run_daily_auto_productividad_raw_precache(
+    *,
+    force: bool = False,
+    trigger: str = "scheduler",
+    usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    daily = daily_override or scheduled_daily_window()
+    if not daily.get("can_run"):
+        return {"process": "PRODUCTIVIDAD_RAW", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
+    latest_run = await get_latest_run(daily["daily_key"], "PRODUCTIVIDAD_RAW")
+    if not force and _is_current_process_run(latest_run, DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION):
+        return {"process": "PRODUCTIVIDAD_RAW", "status": "skipped", "reason": "Cache crudo de productividad ya disponible.", "daily": daily}
+
+    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
+    fecha_hasta_raw = _daily_productividad_raw_end(daily)
+    fecha_hasta = _fmt_daily_oracle_dt(fecha_hasta_raw)
+    started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
+    started = time.perf_counter()
+    logger.info("[daily-auto] Iniciando precarga cruda productividad %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    try:
+        rows = await asyncio.to_thread(query_productive_db_daily_productividad_raw, fecha_desde, fecha_hasta)
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        saved = await save_productividad_raw_cache(
+            daily,
+            rows,
+            fecha_fin_raw=fecha_hasta_raw.isoformat(timespec="seconds"),
+            started_at=started_at,
+            duration_ms=elapsed_ms,
+            timings={"productividad_raw_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION},
+            trigger=trigger,
+            usuario=usuario,
+            retention_days=30 if str(trigger).startswith("manual_comparison") else 5,
+        )
+        logger.info("[daily-auto] Precarga cruda productividad OK: %s filas en %sms", len(rows), elapsed_ms)
+        return {"process": "PRODUCTIVIDAD_RAW", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+    except Exception as exc:
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        await mark_run_error(daily, "PRODUCTIVIDAD_RAW", str(exc), started_at, trigger=trigger, usuario=usuario)
+        logger.exception("[daily-auto] Precarga cruda productividad fallo tras %sms", elapsed_ms)
+        return {"process": "PRODUCTIVIDAD_RAW", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
+
+
+def _build_picking_rows_from_productividad_raw(
+    daily: dict[str, Any],
+    raw_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    start = _parse_dt(daily.get("fecha_inicio"))
+    end = _parse_dt(daily.get("fecha_fin"))
+    if not start or not end:
+        raise ValueError("Ventana Daily invalida para calcular Picking desde cache crudo.")
+
+    scoped_rows = []
+    for row in raw_rows:
+        ts = _parse_dt(row.get("FCREAREG") or row.get("fecha"))
+        legajo = _norm_legajo(row.get("COPECREA") or row.get("LEGAJO") or row.get("legajo"))
+        if not ts or not legajo:
+            continue
+        if ts < start or ts >= end:
+            continue
+        scoped_rows.append({**row, "_ts": ts, "_legajo": legajo})
+
+    scoped_rows.sort(key=lambda item: (item["_legajo"], item["_ts"], int(item.get("_row_index") or 0)))
+
+    def picking_almacen(row: dict[str, Any]) -> str:
+        zona = str(row.get("CZONAORI") or "").strip().upper()
+        if zona == "T06":
+            return "REFRIGERADOS"
+        if zona and "T" in zona:
+            return "REFRIGERADOS"
+        if zona in {"N01", "N02", "N04", "N05", "N07", "N09", "N10", "N15"}:
+            return "NOA"
+        return "SECOS"
+
+    previous_by_legajo: dict[str, datetime] = {}
+    picking_rows: list[dict[str, Any]] = []
+    for row in scoped_rows:
+        legajo = row["_legajo"]
+        ts = row["_ts"]
+        prev = previous_by_legajo.get(legajo)
+        previous_by_legajo[legajo] = ts
+        operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
+        if operacion != "PICKING":
+            continue
+        seconds = max((ts - prev).total_seconds(), 0.0) if prev else 0.0
+        picking_rows.append(
+            {
+                "ALMACEN": picking_almacen(row),
+                "COPECREA": legajo,
+                "BULTOS_PICKING": _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad")),
+                "HS_PICKING": seconds / 3600,
+                "FCREAREG": ts.isoformat(sep=" "),
+            }
+        )
+    return picking_rows
+
+
+def _build_recepcion_rows_from_productividad_raw(
+    daily: dict[str, Any],
+    raw_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    start = _parse_dt(daily.get("fecha_inicio"))
+    end = _parse_dt(daily.get("fecha_fin"))
+    if not start or not end:
+        raise ValueError("Ventana Daily invalida para calcular Recepcion desde cache crudo.")
+
+    grouped: dict[str, dict[str, set[str]]] = {}
+    for row in raw_rows:
+        ts = _parse_dt(row.get("FCREAREG") or row.get("fecha"))
+        if not ts or ts < start or ts >= end:
+            continue
+        operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
+        if operacion != "REVISION PALETS ENTRADA":
+            continue
+        if _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad")) <= 0:
+            continue
+        almacen = str(row.get("ALMACEN") or "").strip().upper()
+        if almacen not in {"NOA", "SECOS", "REFRIGERADOS"}:
+            continue
+        bucket = grouped.setdefault(almacen, {"pallets": set(), "legajos": set()})
+        pallet = str(row.get("CNUPALET") or "").strip()
+        legajo = _norm_legajo(row.get("COPECREA") or row.get("LEGAJO") or row.get("legajo"))
+        if pallet:
+            bucket["pallets"].add(pallet)
+        if legajo:
+            bucket["legajos"].add(legajo)
+
+    return [
+        {
+            "ALMACEN": almacen,
+            "PALLETS": float(len(values["pallets"])),
+            "LEGAJOS": float(len(values["legajos"])),
+            "PRODUCCION": round(len(values["pallets"]) / len(values["legajos"]), 2) if values["legajos"] else 0.0,
+        }
+        for almacen, values in grouped.items()
+    ]
+
+
+def _build_clark_rows_from_productividad_raw(
+    daily: dict[str, Any],
+    raw_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    start = _parse_dt(daily.get("fecha_inicio"))
+    end = _parse_dt(daily.get("fecha_fin"))
+    if not start or not end:
+        raise ValueError("Ventana Daily invalida para calcular Clark desde cache crudo.")
+
+    clark_ops = {
+        "GUARADO PALETS ENTRADA",
+        "EXTRACCION DE REAPROS",
+        "EXTRACCION TRASPASOS",
+        "SURTIDO P.COMPLETOS",
+    }
+    scoped_rows = []
+    for row in raw_rows:
+        ts = _parse_dt(row.get("FCREAREG") or row.get("fecha"))
+        legajo = _norm_legajo(row.get("COPECREA") or row.get("LEGAJO") or row.get("legajo"))
+        if not ts or not legajo:
+            continue
+        if ts < start or ts >= end:
+            continue
+        scoped_rows.append({**row, "_ts": ts, "_legajo": legajo})
+
+    scoped_rows.sort(key=lambda item: (item["_legajo"], item["_ts"], int(item.get("_row_index") or 0)))
+    grouped: dict[str, dict[str, Any]] = {}
+    previous_by_legajo: dict[str, datetime] = {}
+    for row in scoped_rows:
+        legajo = row["_legajo"]
+        ts = row["_ts"]
+        prev = previous_by_legajo.get(legajo)
+        previous_by_legajo[legajo] = ts
+        operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
+        if operacion not in clark_ops:
+            continue
+        almacen = str(row.get("ALMACEN") or "").strip().upper()
+        if almacen not in {"NOA", "SECOS", "REFRIGERADOS"}:
+            continue
+        bucket = grouped.setdefault(
+            almacen,
+            {
+                "pallets": set(),
+                "hs_clark": 0.0,
+                "legajos_clark": set(),
+                "pallets_spc": set(),
+                "legajos_spc": set(),
+            },
+        )
+        seconds = max((ts - prev).total_seconds(), 0.0) if prev else 0.0
+        bucket["hs_clark"] += seconds / 3600
+        bucket["legajos_clark"].add(legajo)
+        pallet = str(row.get("CNUPALET") or "").strip()
+        if pallet and pallet != "0":
+            bucket["pallets"].add(pallet)
+            if operacion == "SURTIDO P.COMPLETOS":
+                bucket["pallets_spc"].add(pallet)
+        if operacion == "SURTIDO P.COMPLETOS":
+            bucket["legajos_spc"].add(legajo)
+
+    return [
+        {
+            "ALMACEN": almacen,
+            "PALLETS_DISTINTOS": float(len(values["pallets"])),
+            "HS_CLARK_TOTAL": float(values["hs_clark"]),
+            "LEGAJOS_CLARK": float(len(values["legajos_clark"])),
+            "PALLETS_SPC_DISTINTOS": float(len(values["pallets_spc"])),
+            "LEGAJOS_SPC": float(len(values["legajos_spc"])),
+        }
+        for almacen, values in grouped.items()
+    ]
+
+
+async def run_daily_auto_despacho_raw_precache(
+    *,
+    force: bool = False,
+    trigger: str = "scheduler",
+    usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    daily = daily_override or scheduled_daily_window()
+    if not daily.get("can_run"):
+        return {"process": "DESPACHO_RAW", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
+    latest_run = await get_latest_run(daily["daily_key"], "DESPACHO_RAW")
+    if not force and _is_current_process_run(latest_run, DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION):
+        return {"process": "DESPACHO_RAW", "status": "skipped", "reason": "Cache crudo Despacho ya disponible.", "daily": daily}
+
+    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
+    fin_dt = _parse_dt(daily.get("fecha_fin"))
+    fecha_hasta = _fmt_daily_oracle_dt(fin_dt + timedelta(minutes=90) if fin_dt else daily.get("fecha_fin"))
+    started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
+    started = time.perf_counter()
+    logger.info("[daily-auto] Iniciando precarga cruda Despacho %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    try:
+        rows = await asyncio.to_thread(query_productive_db_daily_despacho_raw, fecha_desde, fecha_hasta)
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        saved = await save_despacho_raw_cache(
+            daily,
+            rows,
+            started_at=started_at,
+            duration_ms=elapsed_ms,
+            timings={"despacho_raw_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION},
+            trigger=trigger,
+            usuario=usuario,
+            retention_days=30 if str(trigger).startswith("manual_comparison") else 5,
+        )
+        logger.info("[daily-auto] Precarga cruda Despacho OK: %s filas en %sms", len(rows), elapsed_ms)
+        return {"process": "DESPACHO_RAW", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+    except Exception as exc:
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        await mark_run_error(daily, "DESPACHO_RAW", str(exc), started_at, trigger=trigger, usuario=usuario)
+        logger.exception("[daily-auto] Precarga cruda Despacho fallo tras %sms", elapsed_ms)
+        return {"process": "DESPACHO_RAW", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
+
+
+def _build_despacho_rows_from_raw(daily: dict[str, Any], raw_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    start = _parse_dt(daily.get("fecha_inicio"))
+    end = _parse_dt(daily.get("fecha_fin"))
+    if not start or not end:
+        raise ValueError("Ventana Daily invalida para calcular Despacho desde cache crudo.")
+    grouped: dict[str, dict[str, set[str]]] = {}
+    for row in raw_rows:
+        ts = _parse_dt(row.get("FECIERRE") or row.get("FECHA_CIERRE"))
+        if not ts or ts < start or ts >= end:
+            continue
+        almacen = str(row.get("ALMACEN") or "").strip().upper()
+        if almacen not in {"NOA", "SECOS", "REFRIGERADOS"}:
+            continue
+        bucket = grouped.setdefault(almacen, {"hojas_ruta": set(), "cargadores": set()})
+        hoja_ruta = str(row.get("HOJARUTA") or row.get("CNUVIAJE") or row.get("VIAJE") or "").strip()
+        cargador = _norm_legajo(row.get("CARGADOR"))
+        if hoja_ruta:
+            bucket["hojas_ruta"].add(hoja_ruta)
+        if cargador:
+            bucket["cargadores"].add(cargador)
+    return [
+        {
+            "ALMACEN": almacen,
+            "VIAJES": float(len(values["hojas_ruta"])),
+            "CARGADORES": float(len(values["cargadores"])),
+            "PRODUCCION": round(len(values["hojas_ruta"]) / len(values["cargadores"]), 2) if values["cargadores"] else 0.0,
+        }
+        for almacen, values in grouped.items()
+    ]
+
+
+def _avance_window(daily: dict[str, Any]) -> tuple[datetime, datetime]:
+    start = _parse_dt(daily.get("fecha_fin"))
+    if not start:
+        raise ValueError("Ventana Daily invalida para calcular Avance.")
+    return start, start + timedelta(minutes=90)
+
+
+def _append_avance(rows: list[dict[str, Any]], grouped: dict[str, dict[str, Any]], *, proceso: str, tipo: str, value_key: str) -> None:
+    for almacen, values in grouped.items():
+        rows.append(
+            {
+                "ALMACEN": almacen,
+                "PROCESO": proceso,
+                "TIPO": tipo,
+                "VALOR": float(values.get(value_key, 0)),
+                "LEGAJOS": float(len(values.get("legajos", set()))),
+            }
+        )
+
+
+def _build_avance_real_rows_from_raw(
+    daily: dict[str, Any],
+    productividad_rows: list[dict[str, Any]],
+    despacho_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    start, end = _avance_window(daily)
+    picking: dict[str, dict[str, Any]] = {}
+    spc: dict[str, dict[str, Any]] = {}
+    recepcion: dict[str, dict[str, Any]] = {}
+    for row in productividad_rows:
+        ts = _parse_dt(row.get("FCREAREG") or row.get("fecha"))
+        if not ts or ts < start or ts >= end:
+            continue
+        operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
+        legajo = _norm_legajo(row.get("COPECREA") or row.get("LEGAJO") or row.get("legajo"))
+        cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
+        if operacion == "PICKING":
+            almacen = _daily_picking_raw_almacen(row)
+            bucket = picking.setdefault(almacen, {"valor": 0.0, "legajos": set()})
+            bucket["valor"] += cantidad
+            if legajo:
+                bucket["legajos"].add(legajo)
+        elif operacion == "SURTIDO P.COMPLETOS":
+            almacen = str(row.get("ALMACEN") or "").strip().upper()
+            if almacen in {"NOA", "SECOS", "REFRIGERADOS"}:
+                bucket = spc.setdefault(almacen, {"pallets": set(), "legajos": set()})
+                pallet = str(row.get("CNUPALET") or "").strip()
+                if pallet and pallet != "0":
+                    bucket["pallets"].add(pallet)
+                if legajo:
+                    bucket["legajos"].add(legajo)
+        elif operacion == "REVISION PALETS ENTRADA" and cantidad > 0:
+            almacen = str(row.get("ALMACEN") or "").strip().upper()
+            if almacen in {"NOA", "SECOS", "REFRIGERADOS"}:
+                bucket = recepcion.setdefault(almacen, {"pallets": set(), "legajos": set()})
+                pallet = str(row.get("CNUPALET") or "").strip()
+                if pallet and pallet != "0":
+                    bucket["pallets"].add(pallet)
+                if legajo:
+                    bucket["legajos"].add(legajo)
+
+    despacho: dict[str, dict[str, Any]] = {}
+    for row in despacho_rows:
+        ts = _parse_dt(row.get("FECIERRE") or row.get("FECHA_CIERRE"))
+        if not ts or ts < start or ts >= end:
+            continue
+        almacen = str(row.get("ALMACEN") or "").strip().upper()
+        if almacen not in {"NOA", "SECOS", "REFRIGERADOS"}:
+            continue
+        bucket = despacho.setdefault(almacen, {"hojas_ruta": set(), "legajos": set()})
+        hoja_ruta = str(row.get("HOJARUTA") or row.get("CNUVIAJE") or row.get("VIAJE") or "").strip()
+        cargador = _norm_legajo(row.get("CARGADOR"))
+        if hoja_ruta:
+            bucket["hojas_ruta"].add(hoja_ruta)
+        if cargador:
+            bucket["legajos"].add(cargador)
+
+    rows: list[dict[str, Any]] = []
+    _append_avance(rows, picking, proceso="PICKING", tipo="REAL", value_key="valor")
+    _append_avance(
+        rows,
+        {almacen: {"valor": len(values["pallets"]), "legajos": values["legajos"]} for almacen, values in spc.items()},
+        proceso="SPC",
+        tipo="REAL",
+        value_key="valor",
+    )
+    _append_avance(
+        rows,
+        {almacen: {"valor": len(values["pallets"]), "legajos": values["legajos"]} for almacen, values in recepcion.items()},
+        proceso="RECEPCION",
+        tipo="REAL",
+        value_key="valor",
+    )
+    _append_avance(
+        rows,
+        {almacen: {"valor": len(values["hojas_ruta"]), "legajos": values["legajos"]} for almacen, values in despacho.items()},
+        proceso="DESPACHO",
+        tipo="REAL",
+        value_key="valor",
+    )
+    return rows
+
+
+def _build_avance_plan_rows(plan_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for row in plan_rows:
+        almacen = str(row.get("ALMACEN") or "").strip().upper()
+        if almacen not in {"NOA", "SECOS", "REFRIGERADOS"}:
+            continue
+        rows.extend(
+            [
+                {"ALMACEN": almacen, "PROCESO": "PICKING", "TIPO": "PLAN", "VALOR": _to_float(row.get("BULTOS_PICKING_PLANIFICADOS")), "LEGAJOS": 0},
+                {"ALMACEN": almacen, "PROCESO": "SPC", "TIPO": "PLAN", "VALOR": _to_float(row.get("PALLETS_SPC_PLANIFICADOS")), "LEGAJOS": 0},
+                {"ALMACEN": almacen, "PROCESO": "DESPACHO", "TIPO": "PLAN", "VALOR": _to_float(row.get("VIAJES_PLANIFICADOS")), "LEGAJOS": 0},
+            ]
+        )
+    return rows
+
+
+async def run_daily_auto_avance_precache(
+    *,
+    force: bool = False,
+    trigger: str = "scheduler",
+    usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    daily = daily_override or scheduled_daily_window()
+    if not daily.get("can_run"):
+        return {"process": "AVANCE", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
+    latest_run = await get_latest_run(daily["daily_key"], "AVANCE")
+    if not force and _is_current_process_run(latest_run, DAILY_AUTO_AVANCE_QUERY_VERSION):
+        return {"process": "AVANCE", "status": "skipped", "reason": "Cache Avance ya disponible.", "daily": daily}
+
+    started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
+    started = time.perf_counter()
+    logger.info("[daily-auto] Iniciando calculo Avance 06:00-07:30 desde cache %s", daily["daily_key"])
+    try:
+        raw_run = await get_latest_run(daily["daily_key"], "PRODUCTIVIDAD_RAW")
+        if not _is_current_process_run(raw_run, DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION):
+            raw_result = await run_daily_auto_productividad_raw_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily)
+            if raw_result.get("status") not in {"success", "skipped"}:
+                raise RuntimeError(raw_result.get("error") or raw_result.get("reason") or "No se pudo generar cache crudo de productividad.")
+        despacho_raw_run = await get_latest_run(daily["daily_key"], "DESPACHO_RAW")
+        if not _is_current_process_run(despacho_raw_run, DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION):
+            despacho_raw_result = await run_daily_auto_despacho_raw_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily)
+            if despacho_raw_result.get("status") not in {"success", "skipped"}:
+                raise RuntimeError(despacho_raw_result.get("error") or despacho_raw_result.get("reason") or "No se pudo generar cache crudo de Despacho.")
+
+        avance_inicio, avance_fin = _avance_window(daily)
+        fecha_desde = _fmt_daily_oracle_dt(avance_inicio)
+        fecha_hasta = _fmt_daily_oracle_dt(avance_fin)
+        productividad_rows = await get_productividad_raw_cache_rows(daily["daily_key"])
+        despacho_rows = await get_despacho_raw_cache_rows(daily["daily_key"])
+        real_rows = _build_avance_real_rows_from_raw(daily, productividad_rows, despacho_rows)
+        plan_rows_oracle = await asyncio.to_thread(query_productive_db_daily_planificacion, fecha_desde, fecha_hasta)
+        plan_rows = _build_avance_plan_rows(plan_rows_oracle)
+        rows = real_rows + plan_rows
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        saved = await save_avance_summary_cache(
+            daily,
+            rows,
+            avance_inicio=avance_inicio.isoformat(sep=" "),
+            avance_fin=avance_fin.isoformat(sep=" "),
+            started_at=started_at,
+            duration_ms=elapsed_ms,
+            timings={
+                "avance_local_ms": elapsed_ms,
+                "query_version": DAILY_AUTO_AVANCE_QUERY_VERSION,
+                "productividad_raw_rows": len(productividad_rows),
+                "despacho_raw_rows": len(despacho_rows),
+                "plan_rows": len(plan_rows_oracle),
+            },
+            trigger=trigger,
+            usuario=usuario,
+        )
+        logger.info("[daily-auto] Calculo Avance OK: %s filas en %sms", len(rows), elapsed_ms)
+        return {"process": "AVANCE", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+    except Exception as exc:
+        elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
+        await mark_run_error(daily, "AVANCE", str(exc), started_at, trigger=trigger, usuario=usuario)
+        logger.exception("[daily-auto] Calculo Avance fallo tras %sms", elapsed_ms)
+        return {"process": "AVANCE", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
+
+
 async def run_daily_auto_clark_precache(
     *,
     force: bool = False,
     trigger: str = "scheduler",
     usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    daily = scheduled_daily_window()
+    daily = daily_override or scheduled_daily_window()
     if not daily.get("can_run"):
         return {"process": "CLARK", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
     latest_run = await get_latest_run(daily["daily_key"], "CLARK")
     if not force and _is_current_process_run(latest_run, DAILY_AUTO_CLARK_QUERY_VERSION):
         return {"process": "CLARK", "status": "skipped", "reason": "Cache Clark ya disponible.", "daily": daily}
 
-    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
-    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
     started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
     started = time.perf_counter()
-    logger.info("[daily-auto] Iniciando precarga Clark %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    logger.info("[daily-auto] Iniciando calculo Clark desde cache crudo %s", daily["daily_key"])
     try:
-        rows = await asyncio.to_thread(query_productive_db_daily_clark_real, fecha_desde, fecha_hasta)
+        raw_run = await get_latest_run(daily["daily_key"], "PRODUCTIVIDAD_RAW")
+        raw_result = None
+        if not _is_current_process_run(raw_run, DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION):
+            raw_result = await run_daily_auto_productividad_raw_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily)
+            if raw_result.get("status") not in {"success", "skipped"}:
+                raise RuntimeError(raw_result.get("error") or raw_result.get("reason") or "No se pudo generar cache crudo de productividad.")
+        raw_rows = await get_productividad_raw_cache_rows(daily["daily_key"])
+        rows = _build_clark_rows_from_productividad_raw(daily, raw_rows)
         elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
-        saved = await save_clark_summary_cache(
+        saved = await save_clark_raw_summary_cache(
             daily,
             rows,
             started_at=started_at,
             duration_ms=elapsed_ms,
-            timings={"clark_summary_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_CLARK_QUERY_VERSION},
+            timings={
+                "clark_raw_local_ms": elapsed_ms,
+                "query_version": DAILY_AUTO_CLARK_QUERY_VERSION,
+                "source_process": "PRODUCTIVIDAD_RAW",
+                "raw_rows": len(raw_rows),
+                "raw_precache_status": raw_result.get("status") if raw_result else "hit",
+            },
             trigger=trigger,
             usuario=usuario,
         )
-        logger.info("[daily-auto] Precarga Clark OK: %s filas en %sms", len(rows), elapsed_ms)
-        return {"process": "CLARK", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+        logger.info("[daily-auto] Calculo Clark OK desde crudo: %s almacenes en %sms", len(rows), elapsed_ms)
+        return {"process": "CLARK", "status": "success", "daily": daily, "rows": len(rows), "raw_rows": len(raw_rows), "duration_ms": elapsed_ms, "saved": saved}
     except Exception as exc:
         elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
         await mark_run_error(daily, "CLARK", str(exc), started_at, trigger=trigger, usuario=usuario)
-        logger.exception("[daily-auto] Precarga Clark fallo tras %sms", elapsed_ms)
+        logger.exception("[daily-auto] Calculo Clark desde crudo fallo tras %sms", elapsed_ms)
         return {"process": "CLARK", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
 
 
@@ -1426,37 +2150,49 @@ async def run_daily_auto_picking_precache(
     force: bool = False,
     trigger: str = "scheduler",
     usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    daily = scheduled_daily_window()
+    daily = daily_override or scheduled_daily_window()
     if not daily.get("can_run"):
         return {"process": "PICKING", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
     latest_run = await get_latest_run(daily["daily_key"], "PICKING")
     if not force and _is_current_process_run(latest_run, DAILY_AUTO_PICKING_QUERY_VERSION):
         return {"process": "PICKING", "status": "skipped", "reason": "Cache Picking ya disponible.", "daily": daily}
 
-    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
-    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
     started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
     started = time.perf_counter()
-    logger.info("[daily-auto] Iniciando precarga Picking %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    logger.info("[daily-auto] Iniciando calculo Picking desde cache crudo %s", daily["daily_key"])
     try:
-        rows = await asyncio.to_thread(query_productive_db_daily_picking_real, fecha_desde, fecha_hasta)
+        raw_run = await get_latest_run(daily["daily_key"], "PRODUCTIVIDAD_RAW")
+        raw_result = None
+        if not _is_current_process_run(raw_run, DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION):
+            raw_result = await run_daily_auto_productividad_raw_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily)
+            if raw_result.get("status") not in {"success", "skipped"}:
+                raise RuntimeError(raw_result.get("error") or raw_result.get("reason") or "No se pudo generar cache crudo de productividad.")
+        raw_rows = await get_productividad_raw_cache_rows(daily["daily_key"])
+        rows = _build_picking_rows_from_productividad_raw(daily, raw_rows)
         elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
         saved = await save_picking_summary_cache(
             daily,
             rows,
             started_at=started_at,
             duration_ms=elapsed_ms,
-            timings={"picking_summary_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_PICKING_QUERY_VERSION},
+            timings={
+                "picking_raw_local_ms": elapsed_ms,
+                "query_version": DAILY_AUTO_PICKING_QUERY_VERSION,
+                "source_process": "PRODUCTIVIDAD_RAW",
+                "raw_rows": len(raw_rows),
+                "raw_precache_status": raw_result.get("status") if raw_result else "hit",
+            },
             trigger=trigger,
             usuario=usuario,
         )
-        logger.info("[daily-auto] Precarga Picking OK: %s filas en %sms", len(rows), elapsed_ms)
-        return {"process": "PICKING", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+        logger.info("[daily-auto] Calculo Picking OK desde crudo: %s movimientos picking en %sms", len(rows), elapsed_ms)
+        return {"process": "PICKING", "status": "success", "daily": daily, "rows": len(rows), "raw_rows": len(raw_rows), "duration_ms": elapsed_ms, "saved": saved}
     except Exception as exc:
         elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
         await mark_run_error(daily, "PICKING", str(exc), started_at, trigger=trigger, usuario=usuario)
-        logger.exception("[daily-auto] Precarga Picking fallo tras %sms", elapsed_ms)
+        logger.exception("[daily-auto] Calculo Picking desde crudo fallo tras %sms", elapsed_ms)
         return {"process": "PICKING", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
 
 
@@ -1465,37 +2201,49 @@ async def run_daily_auto_recepcion_precache(
     force: bool = False,
     trigger: str = "scheduler",
     usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    daily = scheduled_daily_window()
+    daily = daily_override or scheduled_daily_window()
     if not daily.get("can_run"):
         return {"process": "RECEPCION", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
     latest_run = await get_latest_run(daily["daily_key"], "RECEPCION")
     if not force and _is_current_process_run(latest_run, DAILY_AUTO_RECEPCION_QUERY_VERSION):
         return {"process": "RECEPCION", "status": "skipped", "reason": "Cache Recepcion ya disponible.", "daily": daily}
 
-    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
-    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
     started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
     started = time.perf_counter()
-    logger.info("[daily-auto] Iniciando precarga Recepcion %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    logger.info("[daily-auto] Iniciando calculo Recepcion desde cache crudo %s", daily["daily_key"])
     try:
-        rows = await asyncio.to_thread(query_productive_db_daily_recepcion_real, fecha_desde, fecha_hasta)
+        raw_run = await get_latest_run(daily["daily_key"], "PRODUCTIVIDAD_RAW")
+        raw_result = None
+        if not _is_current_process_run(raw_run, DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION):
+            raw_result = await run_daily_auto_productividad_raw_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily)
+            if raw_result.get("status") not in {"success", "skipped"}:
+                raise RuntimeError(raw_result.get("error") or raw_result.get("reason") or "No se pudo generar cache crudo de productividad.")
+        raw_rows = await get_productividad_raw_cache_rows(daily["daily_key"])
+        rows = _build_recepcion_rows_from_productividad_raw(daily, raw_rows)
         elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
         saved = await save_recepcion_summary_cache(
             daily,
             rows,
             started_at=started_at,
             duration_ms=elapsed_ms,
-            timings={"recepcion_summary_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_RECEPCION_QUERY_VERSION},
+            timings={
+                "recepcion_raw_local_ms": elapsed_ms,
+                "query_version": DAILY_AUTO_RECEPCION_QUERY_VERSION,
+                "source_process": "PRODUCTIVIDAD_RAW",
+                "raw_rows": len(raw_rows),
+                "raw_precache_status": raw_result.get("status") if raw_result else "hit",
+            },
             trigger=trigger,
             usuario=usuario,
         )
-        logger.info("[daily-auto] Precarga Recepcion OK: %s filas en %sms", len(rows), elapsed_ms)
-        return {"process": "RECEPCION", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+        logger.info("[daily-auto] Calculo Recepcion OK desde crudo: %s almacenes en %sms", len(rows), elapsed_ms)
+        return {"process": "RECEPCION", "status": "success", "daily": daily, "rows": len(rows), "raw_rows": len(raw_rows), "duration_ms": elapsed_ms, "saved": saved}
     except Exception as exc:
         elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
         await mark_run_error(daily, "RECEPCION", str(exc), started_at, trigger=trigger, usuario=usuario)
-        logger.exception("[daily-auto] Precarga Recepcion fallo tras %sms", elapsed_ms)
+        logger.exception("[daily-auto] Calculo Recepcion desde crudo fallo tras %sms", elapsed_ms)
         return {"process": "RECEPCION", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
 
 
@@ -1504,37 +2252,49 @@ async def run_daily_auto_despacho_precache(
     force: bool = False,
     trigger: str = "scheduler",
     usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    daily = scheduled_daily_window()
+    daily = daily_override or scheduled_daily_window()
     if not daily.get("can_run"):
         return {"process": "DESPACHO", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
     latest_run = await get_latest_run(daily["daily_key"], "DESPACHO")
     if not force and _is_current_process_run(latest_run, DAILY_AUTO_DESPACHO_QUERY_VERSION):
         return {"process": "DESPACHO", "status": "skipped", "reason": "Cache Despacho ya disponible.", "daily": daily}
 
-    fecha_desde = _fmt_daily_oracle_dt(daily.get("fecha_inicio"))
-    fecha_hasta = _fmt_daily_oracle_dt(daily.get("fecha_fin"))
     started_at = datetime.now(LOCAL_TZ).isoformat(timespec="seconds")
     started = time.perf_counter()
-    logger.info("[daily-auto] Iniciando precarga Despacho %s %s..%s", daily["daily_key"], fecha_desde, fecha_hasta)
+    logger.info("[daily-auto] Iniciando calculo Despacho desde cache crudo %s", daily["daily_key"])
     try:
-        rows = await asyncio.to_thread(query_productive_db_daily_despacho_real, fecha_desde, fecha_hasta)
+        raw_run = await get_latest_run(daily["daily_key"], "DESPACHO_RAW")
+        raw_result = None
+        if not _is_current_process_run(raw_run, DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION):
+            raw_result = await run_daily_auto_despacho_raw_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily)
+            if raw_result.get("status") not in {"success", "skipped"}:
+                raise RuntimeError(raw_result.get("error") or raw_result.get("reason") or "No se pudo generar cache crudo de Despacho.")
+        raw_rows = await get_despacho_raw_cache_rows(daily["daily_key"])
+        rows = _build_despacho_rows_from_raw(daily, raw_rows)
         elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
         saved = await save_despacho_summary_cache(
             daily,
             rows,
             started_at=started_at,
             duration_ms=elapsed_ms,
-            timings={"despacho_summary_oracle_ms": elapsed_ms, "query_version": DAILY_AUTO_DESPACHO_QUERY_VERSION},
+            timings={
+                "despacho_raw_local_ms": elapsed_ms,
+                "query_version": DAILY_AUTO_DESPACHO_QUERY_VERSION,
+                "source_process": "DESPACHO_RAW",
+                "raw_rows": len(raw_rows),
+                "raw_precache_status": raw_result.get("status") if raw_result else "hit",
+            },
             trigger=trigger,
             usuario=usuario,
         )
-        logger.info("[daily-auto] Precarga Despacho OK: %s filas en %sms", len(rows), elapsed_ms)
-        return {"process": "DESPACHO", "status": "success", "daily": daily, "rows": len(rows), "duration_ms": elapsed_ms, "saved": saved}
+        logger.info("[daily-auto] Calculo Despacho OK desde crudo: %s almacenes en %sms", len(rows), elapsed_ms)
+        return {"process": "DESPACHO", "status": "success", "daily": daily, "rows": len(rows), "raw_rows": len(raw_rows), "duration_ms": elapsed_ms, "saved": saved}
     except Exception as exc:
         elapsed_ms = round((time.perf_counter() - started) * 1000, 1)
         await mark_run_error(daily, "DESPACHO", str(exc), started_at, trigger=trigger, usuario=usuario)
-        logger.exception("[daily-auto] Precarga Despacho fallo tras %sms", elapsed_ms)
+        logger.exception("[daily-auto] Calculo Despacho desde crudo fallo tras %sms", elapsed_ms)
         return {"process": "DESPACHO", "status": "error", "daily": daily, "duration_ms": elapsed_ms, "error": str(exc)}
 
 
@@ -1543,8 +2303,9 @@ async def run_daily_auto_planificacion_precache(
     force: bool = False,
     trigger: str = "scheduler",
     usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    daily = scheduled_daily_window()
+    daily = daily_override or scheduled_daily_window()
     if not daily.get("can_run"):
         return {"process": "PLANIFICACION", "status": "skipped", "reason": daily.get("reason") or "Daily no habilitada.", "daily": daily}
     latest_run = await get_latest_run(daily["daily_key"], "PLANIFICACION")
@@ -1582,8 +2343,9 @@ async def run_daily_auto_precache_pending(
     force: bool = False,
     trigger: str = "scheduler",
     usuario: str = "",
+    daily_override: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    daily = scheduled_daily_window()
+    daily = daily_override or scheduled_daily_window()
     blocked_processes: list[str] = []
     if not daily.get("can_run"):
         return {
@@ -1596,11 +2358,14 @@ async def run_daily_auto_precache_pending(
         }
 
     process_results = [
-        await run_daily_auto_clark_precache(force=force, trigger=trigger, usuario=usuario),
-        await run_daily_auto_picking_precache(force=force, trigger=trigger, usuario=usuario),
-        await run_daily_auto_recepcion_precache(force=force, trigger=trigger, usuario=usuario),
-        await run_daily_auto_despacho_precache(force=force, trigger=trigger, usuario=usuario),
-        await run_daily_auto_planificacion_precache(force=force, trigger=trigger, usuario=usuario),
+        await run_daily_auto_productividad_raw_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily),
+        await run_daily_auto_clark_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily),
+        await run_daily_auto_picking_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily),
+        await run_daily_auto_recepcion_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily),
+        await run_daily_auto_despacho_raw_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily),
+        await run_daily_auto_despacho_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily),
+        await run_daily_auto_planificacion_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily),
+        await run_daily_auto_avance_precache(force=force, trigger=trigger, usuario=usuario, daily_override=daily),
     ]
     statuses = {item.get("status") for item in process_results}
     if "error" in statuses and "success" in statuses:
@@ -1627,6 +2392,7 @@ async def _daily_auto_cached_payload(daily: dict[str, Any]) -> dict[str, Any]:
     latest_recepcion_run = await get_latest_run(daily["daily_key"], "RECEPCION")
     latest_despacho_run = await get_latest_run(daily["daily_key"], "DESPACHO")
     latest_planificacion_run = await get_latest_run(daily["daily_key"], "PLANIFICACION")
+    latest_avance_run = await get_latest_run(daily["daily_key"], "AVANCE")
     if latest_run and latest_run.get("status") == "success" and not _is_current_process_run(latest_run, DAILY_AUTO_CLARK_QUERY_VERSION):
         raise HTTPException(
             status_code=409,
@@ -1652,6 +2418,11 @@ async def _daily_auto_cached_payload(daily: dict[str, Any]) -> dict[str, Any]:
             status_code=409,
             detail="El cache Planificacion disponible fue generado con una version anterior de la consulta. Requiere precarga de excepcion.",
         )
+    if latest_avance_run and latest_avance_run.get("status") == "success" and not _is_current_process_run(latest_avance_run, DAILY_AUTO_AVANCE_QUERY_VERSION):
+        raise HTTPException(
+            status_code=409,
+            detail="El cache Avance disponible fue generado con una version anterior de la consulta. Requiere precarga de excepcion.",
+        )
     if not _is_current_process_run(latest_run, DAILY_AUTO_CLARK_QUERY_VERSION):
         if latest_run and latest_run.get("status") == "error":
             raise HTTPException(
@@ -1660,7 +2431,7 @@ async def _daily_auto_cached_payload(daily: dict[str, Any]) -> dict[str, Any]:
             )
         raise HTTPException(
             status_code=409,
-            detail="Todavia no hay cache automatica vigente de Clark para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+            detail=f"Todavia no hay cache automatica vigente de Clark para esta Daily. La pantalla no consulta Oracle; espera la precarga de las {_daily_auto_schedule_label()} o ejecuta la precarga de excepcion.",
         )
     if not _is_current_process_run(latest_picking_run, DAILY_AUTO_PICKING_QUERY_VERSION):
         if latest_picking_run and latest_picking_run.get("status") == "error":
@@ -1670,7 +2441,7 @@ async def _daily_auto_cached_payload(daily: dict[str, Any]) -> dict[str, Any]:
             )
         raise HTTPException(
             status_code=409,
-            detail="Todavia no hay cache automatica vigente de Picking para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+            detail=f"Todavia no hay cache automatica vigente de Picking para esta Daily. La pantalla no consulta Oracle; espera la precarga de las {_daily_auto_schedule_label()} o ejecuta la precarga de excepcion.",
         )
     if not _is_current_process_run(latest_recepcion_run, DAILY_AUTO_RECEPCION_QUERY_VERSION):
         if latest_recepcion_run and latest_recepcion_run.get("status") == "error":
@@ -1680,7 +2451,7 @@ async def _daily_auto_cached_payload(daily: dict[str, Any]) -> dict[str, Any]:
             )
         raise HTTPException(
             status_code=409,
-            detail="Todavia no hay cache automatica vigente de Recepcion para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+            detail=f"Todavia no hay cache automatica vigente de Recepcion para esta Daily. La pantalla no consulta Oracle; espera la precarga de las {_daily_auto_schedule_label()} o ejecuta la precarga de excepcion.",
         )
     if not _is_current_process_run(latest_despacho_run, DAILY_AUTO_DESPACHO_QUERY_VERSION):
         if latest_despacho_run and latest_despacho_run.get("status") == "error":
@@ -1690,7 +2461,7 @@ async def _daily_auto_cached_payload(daily: dict[str, Any]) -> dict[str, Any]:
             )
         raise HTTPException(
             status_code=409,
-            detail="Todavia no hay cache automatica vigente de Despacho para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+            detail=f"Todavia no hay cache automatica vigente de Despacho para esta Daily. La pantalla no consulta Oracle; espera la precarga de las {_daily_auto_schedule_label()} o ejecuta la precarga de excepcion.",
         )
     if not _is_current_process_run(latest_planificacion_run, DAILY_AUTO_PLANIFICACION_QUERY_VERSION):
         if latest_planificacion_run and latest_planificacion_run.get("status") == "error":
@@ -1700,29 +2471,53 @@ async def _daily_auto_cached_payload(daily: dict[str, Any]) -> dict[str, Any]:
             )
         raise HTTPException(
             status_code=409,
-            detail="Todavia no hay cache automatica vigente de Planificacion para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+            detail=f"Todavia no hay cache automatica vigente de Planificacion para esta Daily. La pantalla no consulta Oracle; espera la precarga de las {_daily_auto_schedule_label()} o ejecuta la precarga de excepcion.",
+        )
+    if not _is_current_process_run(latest_avance_run, DAILY_AUTO_AVANCE_QUERY_VERSION):
+        if latest_avance_run and latest_avance_run.get("status") == "error":
+            raise HTTPException(
+                status_code=409,
+                detail=f"La precarga automatica de Avance fallo: {latest_avance_run.get('error') or 'sin detalle'}. No se consulta Oracle desde la pantalla.",
+            )
+        raise HTTPException(
+            status_code=409,
+            detail=f"Todavia no hay cache automatica vigente de Avance para esta Daily. La pantalla no consulta Oracle; espera la precarga de las {_daily_auto_schedule_label()} o ejecuta la precarga de excepcion.",
         )
     if not cached_rows:
         raise HTTPException(
             status_code=409,
-            detail="Todavia no hay cache automatica vigente para esta Daily. La pantalla no consulta Oracle; espera la precarga de las 06:05 o ejecuta la precarga de excepcion.",
+            detail=f"Todavia no hay cache automatica vigente para esta Daily. La pantalla no consulta Oracle; espera la precarga de las {_daily_auto_schedule_label()} o ejecuta la precarga de excepcion.",
         )
 
     results: list[dict[str, Any]] = []
     by_sector: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in cached_rows:
+        row_process = str(row.get("process") or "")
+        param_id = str(row.get("id_parametro") or "")
+        display_process = row_process
+        if row_process == "AVANCE":
+            if "_PICKING_" in param_id:
+                display_process = "PICKING"
+            elif "_SPC_" in param_id:
+                display_process = "SPC"
+            elif "_RECEPCION_" in param_id:
+                display_process = "RECEPCION"
+            elif "_DESPACHO_" in param_id:
+                display_process = "DESPACHO"
+        cantidad = _to_float(row.get("cantidad"))
         item = {
             "sector": row.get("sector"),
             "sector_oracle": row.get("sector_oracle"),
-            "proceso": row.get("process"),
-            "id_parametro": row.get("id_parametro"),
+            "proceso": display_process,
+            "cache_process": row_process,
+            "id_parametro": param_id,
             "valor": _to_float(row.get("valor")),
             "produccion": _to_float(row.get("valor")),
-            "cantidad": _to_float(row.get("cantidad")),
-            "pallets": _to_float(row.get("cantidad")) if row.get("process") in {"CLARK", "RECEPCION"} else 0,
-            "bultos": _to_float(row.get("cantidad")) if row.get("process") == "PICKING" else 0,
-            "viajes": _to_float(row.get("cantidad")) if row.get("process") == "DESPACHO" else 0,
-            "planificado": _to_float(row.get("cantidad")) if row.get("process") == "PLANIFICACION" else 0,
+            "cantidad": cantidad,
+            "pallets": cantidad if display_process in {"CLARK", "RECEPCION", "SPC"} else 0,
+            "bultos": cantidad if display_process == "PICKING" else 0,
+            "viajes": cantidad if display_process == "DESPACHO" else 0,
+            "planificado": cantidad if row_process == "PLANIFICACION" or "_PLAN_" in param_id else 0,
             "legajos": _to_float(row.get("legajos")),
             "segundos": 0,
             "details_count": int(row.get("details_count") or 0),
@@ -1766,7 +2561,7 @@ def _is_current_process_run(run: dict[str, Any] | None, query_version: str) -> b
 async def _daily_auto_scheduler_loop() -> None:
     assert _daily_auto_scheduler_stop is not None
     await init_daily_auto_db()
-    logger.info("[daily-auto] Scheduler iniciado. Proxima ejecucion diaria a las 06:05.")
+    logger.info("[daily-auto] Scheduler iniciado. Proxima ejecucion diaria a las %s.", _daily_auto_schedule_label())
     while not _daily_auto_scheduler_stop.is_set():
         now = datetime.now(LOCAL_TZ)
         window = scheduled_daily_window(now)
@@ -1777,10 +2572,12 @@ async def _daily_auto_scheduler_loop() -> None:
             and today_run_time <= now < run_limit
             and (
                 not _is_current_process_run(await get_latest_run(window["daily_key"], "CLARK"), DAILY_AUTO_CLARK_QUERY_VERSION)
+                or not _is_current_process_run(await get_latest_run(window["daily_key"], "PRODUCTIVIDAD_RAW"), DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION)
                 or not _is_current_process_run(await get_latest_run(window["daily_key"], "PICKING"), DAILY_AUTO_PICKING_QUERY_VERSION)
                 or not _is_current_process_run(await get_latest_run(window["daily_key"], "RECEPCION"), DAILY_AUTO_RECEPCION_QUERY_VERSION)
                 or not _is_current_process_run(await get_latest_run(window["daily_key"], "DESPACHO"), DAILY_AUTO_DESPACHO_QUERY_VERSION)
                 or not _is_current_process_run(await get_latest_run(window["daily_key"], "PLANIFICACION"), DAILY_AUTO_PLANIFICACION_QUERY_VERSION)
+                or not _is_current_process_run(await get_latest_run(window["daily_key"], "AVANCE"), DAILY_AUTO_AVANCE_QUERY_VERSION)
             )
         ):
             await run_daily_auto_precache_pending(trigger="scheduler")
@@ -1918,6 +2715,163 @@ async def daily_calcular_automatico(request: Request):
     return await _daily_auto_cached_payload(daily)
 
 
+def _daily_comparison_summary(rows: list[dict[str, Any]], fecha_desde: str, fecha_hasta: str) -> dict[str, Any]:
+    ranking: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    heatmap: dict[tuple[str, str], dict[str, Any]] = {}
+    timeseries: dict[str, dict[str, Any]] = {}
+    missing_auto = 0
+    for row in rows:
+        diff_abs = _to_float(row.get("diferencia_abs"))
+        key = (row["sector"], row["operacion"], row["metrica"], row["concepto"])
+        bucket = ranking.setdefault(
+            key,
+            {
+                "sector": row["sector"],
+                "operacion": row["operacion"],
+                "metrica": row["metrica"],
+                "concepto": row["concepto"],
+                "diferencia_abs_total": 0.0,
+                "diferencia_abs_promedio": 0.0,
+                "diferencia_pct_promedio": 0.0,
+                "comparaciones": 0,
+                "sin_automatico": 0,
+            },
+        )
+        bucket["comparaciones"] += 1
+        if row.get("valor_automatico") is None:
+            bucket["sin_automatico"] += 1
+            missing_auto += 1
+        bucket["diferencia_abs_total"] += diff_abs
+        if row.get("diferencia_pct") is not None:
+            bucket["diferencia_pct_promedio"] += abs(_to_float(row.get("diferencia_pct")))
+
+        hkey = (row["sector"], row["operacion"])
+        hbucket = heatmap.setdefault(hkey, {"sector": row["sector"], "operacion": row["operacion"], "diferencia_abs_total": 0.0, "comparaciones": 0})
+        hbucket["diferencia_abs_total"] += diff_abs
+        hbucket["comparaciones"] += 1
+
+        day = str(row["fecha_daily"])
+        tbucket = timeseries.setdefault(day, {"fecha_daily": day, "diferencia_abs_total": 0.0, "comparaciones": 0})
+        tbucket["diferencia_abs_total"] += diff_abs
+        tbucket["comparaciones"] += 1
+
+    ranking_rows = []
+    for item in ranking.values():
+        count = max(int(item["comparaciones"]), 1)
+        item["diferencia_abs_promedio"] = item["diferencia_abs_total"] / count
+        item["diferencia_pct_promedio"] = item["diferencia_pct_promedio"] / count
+        ranking_rows.append(item)
+    ranking_rows.sort(key=lambda item: item["diferencia_abs_total"], reverse=True)
+
+    heatmap_rows = []
+    for item in heatmap.values():
+        count = max(int(item["comparaciones"]), 1)
+        item["diferencia_abs_promedio"] = item["diferencia_abs_total"] / count
+        heatmap_rows.append(item)
+    heatmap_rows.sort(key=lambda item: (item["sector"], item["operacion"]))
+
+    time_rows = []
+    for item in timeseries.values():
+        count = max(int(item["comparaciones"]), 1)
+        item["diferencia_abs_promedio"] = item["diferencia_abs_total"] / count
+        time_rows.append(item)
+    time_rows.sort(key=lambda item: item["fecha_daily"])
+    return {
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "rows": rows,
+        "count": len(rows),
+        "missing_auto": missing_auto,
+        "ranking": ranking_rows[:30],
+        "heatmap": heatmap_rows,
+        "timeseries": time_rows,
+    }
+
+
+@router.get("/daily/comparacion-manual-auto")
+async def daily_comparacion_manual_auto(
+    request: Request,
+    days: int = Query(15, ge=1, le=60),
+):
+    await _require_request_auth(request)
+    path = DAILY_MANUAL_XLSX_DEFAULT
+    if path.exists():
+        dates = _manual_compare_dates_from_excel(path, days)
+        if dates:
+            fecha_desde = dates[0].date().isoformat()
+            fecha_hasta = dates[-1].date().isoformat()
+        else:
+            today = datetime.now(LOCAL_TZ).date()
+            fecha_desde = (today - timedelta(days=days - 1)).isoformat()
+            fecha_hasta = today.isoformat()
+    else:
+        today = datetime.now(LOCAL_TZ).date()
+        fecha_desde = (today - timedelta(days=days - 1)).isoformat()
+        fecha_hasta = today.isoformat()
+    rows = await get_daily_auto_manual_comparacion(fecha_desde, fecha_hasta)
+    return _daily_comparison_summary(rows, fecha_desde, fecha_hasta)
+
+
+@router.post("/daily/comparacion-manual-auto/importar")
+async def daily_comparacion_manual_auto_importar(req: DailyManualComparacionImportRequest, request: Request):
+    auth = await _require_request_auth(request)
+    if auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Requiere administrador.")
+    source = Path(req.source_path).expanduser()
+    if not source.exists():
+        raise HTTPException(status_code=404, detail=f"No existe el archivo {source}.")
+    dates = _manual_compare_dates_from_excel(source, max(int(req.days or 15), 1))
+    if not dates:
+        raise HTTPException(status_code=400, detail="No se encontraron fechas validas en el Excel.")
+    fecha_desde = dates[0].date().isoformat()
+    fecha_hasta = dates[-1].date().isoformat()
+    auto_results = []
+    for fecha in dates:
+        daily = _daily_window_for_fecha_carga(fecha)
+        result = await run_daily_auto_precache_pending(
+            force=bool(req.force_auto),
+            trigger="manual_comparison",
+            usuario=str(auth.get("display_name") or auth.get("username") or ""),
+            daily_override=daily,
+        )
+        auto_results.append({"fecha_daily": fecha.date().isoformat(), "daily_key": daily["daily_key"], "status": result.get("status"), "processes": result.get("processes")})
+    manual_rows = _manual_rows_from_excel(source, dates)
+    imported = await replace_daily_manual_comparacion_rows(
+        manual_rows,
+        source_file=str(source),
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+    compared = await rebuild_daily_auto_manual_comparacion(fecha_desde, fecha_hasta)
+    rows = await get_daily_auto_manual_comparacion(fecha_desde, fecha_hasta)
+    summary = _daily_comparison_summary(rows, fecha_desde, fecha_hasta)
+    summary["imported"] = imported
+    summary["compared"] = compared
+    summary["auto_results"] = auto_results
+    return summary
+
+
+@router.get("/daily/raw-detail")
+async def daily_raw_detail(
+    request: Request,
+    sector: str = Query(...),
+    param_id: str = Query(...),
+    process: str = Query(""),
+):
+    auth = await _require_request_auth(request)
+    if auth.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Requiere administrador.")
+    daily = calculate_daily_window()
+    if not daily.get("can_load"):
+        raise HTTPException(status_code=400, detail=daily.get("reason") or "La Daily no esta habilitada.")
+    return await _build_daily_raw_detail_payload(
+        daily,
+        sector=sector,
+        param_id=param_id,
+        process=process,
+    )
+
+
 @router.post("/daily/auto/retry-pending")
 async def daily_auto_retry_pending(req: DailyAutoRetryRequest, request: Request):
     auth = await _require_request_auth(request)
@@ -1979,6 +2933,24 @@ def _daily_despacho_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
     )
 
 
+def _daily_despacho_raw_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
+    return (
+        QUERY_DAILY_DESPACHO_RAW
+        .replace(":fecha_desde", f"'{fecha_desde}'")
+        .replace(":fecha_hasta", f"'{fecha_hasta}'")
+        .strip()
+    )
+
+
+def _daily_productividad_raw_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
+    return (
+        QUERY_DAILY_PRODUCTIVIDAD_RAW
+        .replace(":fecha_desde", f"'{fecha_desde}'")
+        .replace(":fecha_hasta", f"'{fecha_hasta}'")
+        .strip()
+    )
+
+
 def _daily_planificacion_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
     return (
         QUERY_DAILY_PLANIFICACION
@@ -1986,6 +2958,217 @@ def _daily_planificacion_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
         .replace(":fecha_hasta", f"'{fecha_hasta}'")
         .strip()
     )
+
+
+def _daily_picking_raw_almacen(row: dict[str, Any]) -> str:
+    zona = str(row.get("CZONAORI") or "").strip().upper()
+    if zona == "T06":
+        return "REFRIGERADOS"
+    if zona and "T" in zona:
+        return "REFRIGERADOS"
+    if zona in {"N01", "N02", "N04", "N05", "N07", "N09", "N10", "N15"}:
+        return "NOA"
+    return "SECOS"
+
+
+def _daily_raw_detail_mode(param_id: str, process: str) -> dict[str, Any] | None:
+    param = str(param_id or "").strip().upper()
+    proc = str(process or "").strip().upper()
+    if proc == "PICKING" or param.startswith("OP_PROD_PICKING_") or param in {"OP_CUMP_PICKING_REAL_6A6", "OP_DOT_PICKING_LEGAJOS_6A8"}:
+        return {"process": "PICKING", "operations": {"PICKING"}, "sector_source": "picking", "positive_quantity": False}
+    if proc == "RECEPCION" or param.startswith("OP_PROD_RECEPCION_") or param in {"OP_CUMP_RECEPCION_REAL_6A6", "OP_DOT_RECEPCION_LEGAJOS_6A8"}:
+        return {"process": "RECEPCION", "operations": {"REVISION PALETS ENTRADA"}, "sector_source": "raw", "positive_quantity": True}
+    if proc == "SPC" or param in {"OP_CUMP_SPC_REAL_6A6", "OP_DOT_SPC_LEGAJOS_6A8"} or param.startswith("OP_AVANCE_SPC_"):
+        return {"process": "SPC", "operations": {"SURTIDO P.COMPLETOS"}, "sector_source": "raw", "positive_quantity": False}
+    if proc == "CLARK" or param.startswith("OP_PROD_CLARK_"):
+        if param in {"OP_CUMP_SPC_REAL_6A6", "OP_DOT_SPC_LEGAJOS_6A8"}:
+            return {"process": "SPC", "operations": {"SURTIDO P.COMPLETOS"}, "sector_source": "raw", "positive_quantity": False}
+        return {
+            "process": "CLARK",
+            "operations": {
+                "GUARADO PALETS ENTRADA",
+                "EXTRACCION DE REAPROS",
+                "EXTRACCION TRASPASOS",
+                "SURTIDO P.COMPLETOS",
+            },
+            "sector_source": "raw",
+            "positive_quantity": False,
+        }
+    if proc == "DESPACHO" or param.startswith("OP_PROD_DESPACHO_") or param in {"OP_CUMP_DESPACHO_REAL_6A6", "OP_DOT_DESPACHO_LEGAJOS_6A8"}:
+        return {"process": "DESPACHO", "source": "despacho_raw"}
+    return None
+
+
+def _daily_raw_detail_row(
+    row: dict[str, Any],
+    *,
+    ts: datetime,
+    legajo: str,
+    almacen_calc: str,
+    prev_ts: datetime | None,
+) -> dict[str, Any]:
+    seconds = max((ts - prev_ts).total_seconds(), 0.0) if prev_ts else 0.0
+    cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
+    return {
+        "fecha": ts.strftime("%Y-%m-%d %H:%M:%S"),
+        "legajo": legajo,
+        "operacion": str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip(),
+        "almacen": str(row.get("ALMACEN") or "").strip(),
+        "almacen_calculo": almacen_calc,
+        "zona_origen": str(row.get("CZONAORI") or "").strip(),
+        "ubicacion": str(row.get("CUBIORIG") or "").strip(),
+        "pallet": str(row.get("CNUPALET") or "").strip(),
+        "referencia": str(row.get("CREFEREN") or "").strip(),
+        "cantidad": cantidad,
+        "minutos_desde_anterior": round(seconds / 60, 4),
+        "row_index": row.get("_row_index"),
+    }
+
+
+async def _build_daily_raw_detail_payload(
+    daily: dict[str, Any],
+    *,
+    sector: str,
+    param_id: str,
+    process: str,
+) -> dict[str, Any]:
+    mode = _daily_raw_detail_mode(param_id, process)
+    if not mode:
+        raise HTTPException(status_code=400, detail="El parametro no se calcula desde la cache cruda.")
+    almacen_target = DAILY_RAW_SECTOR_TO_ALMACEN.get(normalize_sector(sector))
+    if not almacen_target:
+        raise HTTPException(status_code=400, detail="Sector invalido para detalle crudo.")
+    if str(param_id or "").upper().startswith("OP_AVANCE_"):
+        start, end = _avance_window(daily)
+    else:
+        start = _parse_dt(daily.get("fecha_inicio"))
+        end = _parse_dt(daily.get("fecha_fin"))
+    if not start or not end:
+        raise HTTPException(status_code=400, detail="Ventana Daily invalida.")
+    detail_fecha_desde = _fmt_daily_oracle_dt(start)
+    detail_fecha_hasta = _fmt_daily_oracle_dt(end)
+    cache_start = _parse_dt(daily.get("fecha_inicio"))
+    cache_end = _parse_dt(daily.get("fecha_fin"))
+    cache_fecha_desde = _fmt_daily_oracle_dt(cache_start) if cache_start else detail_fecha_desde
+    cache_fecha_hasta = _fmt_daily_oracle_dt(cache_end + timedelta(minutes=90)) if cache_end else detail_fecha_hasta
+
+    if mode.get("source") == "despacho_raw":
+        raw_run = await get_latest_run(daily["daily_key"], "DESPACHO_RAW")
+        if not _is_current_process_run(raw_run, DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION):
+            raise HTTPException(status_code=409, detail="La cache cruda de Despacho no esta vigente.")
+        raw_rows = await get_despacho_raw_cache_rows(daily["daily_key"])
+        detail_rows = []
+        for row in raw_rows:
+            ts = _parse_dt(row.get("FECIERRE") or row.get("FECHA_CIERRE"))
+            almacen = str(row.get("ALMACEN") or "").strip().upper()
+            if not ts or ts < start or ts >= end or almacen != almacen_target:
+                continue
+            detail_rows.append(
+                {
+                    "fecha_cierre": ts.strftime("%Y-%m-%d %H:%M:%S"),
+                    "almacen": almacen,
+                    "hoja_ruta": str(row.get("HOJARUTA") or row.get("CNUVIAJE") or row.get("VIAJE") or "").strip(),
+                    "cargador": _norm_legajo(row.get("CARGADOR")),
+                    "division": str(row.get("CDIVISIO") or "").strip(),
+                    "calmacen": str(row.get("CALMACEN") or "").strip(),
+                    "row_index": row.get("_row_index"),
+                }
+            )
+        columns = [
+            {"key": "fecha_cierre", "label": "Fecha cierre"},
+            {"key": "almacen", "label": "Almacen"},
+            {"key": "hoja_ruta", "label": "Hoja ruta"},
+            {"key": "cargador", "label": "Cargador"},
+            {"key": "division", "label": "Division"},
+            {"key": "calmacen", "label": "Calmacen"},
+            {"key": "row_index", "label": "Fila cache"},
+        ]
+        return {
+            "daily": daily,
+            "query_key": "daily_despacho_raw_cache",
+            "source_process": "DESPACHO_RAW",
+            "detail_process": "DESPACHO",
+            "sector": normalize_sector(sector),
+            "almacen": almacen_target,
+            "param_id": param_id,
+            "fecha_desde": detail_fecha_desde,
+            "fecha_hasta": detail_fecha_hasta,
+            "oracle_fecha_desde": cache_fecha_desde,
+            "oracle_fecha_hasta": cache_fecha_hasta,
+            "sql_template": QUERY_DAILY_DESPACHO_RAW.strip(),
+            "sql_preview": _daily_despacho_raw_sql_preview(cache_fecha_desde, cache_fecha_hasta),
+            "columns": columns,
+            "rows": detail_rows,
+            "count": len(detail_rows),
+            "message": "Detalle generado desde cache cruda local de Despacho. No ejecuta Oracle.",
+        }
+
+    raw_run = await get_latest_run(daily["daily_key"], "PRODUCTIVIDAD_RAW")
+    if not _is_current_process_run(raw_run, DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION):
+        raise HTTPException(status_code=409, detail="La cache cruda de productividad no esta vigente.")
+
+    raw_rows = await get_productividad_raw_cache_rows(daily["daily_key"])
+    scoped_rows = []
+    for row in raw_rows:
+        ts = _parse_dt(row.get("FCREAREG") or row.get("fecha"))
+        legajo = _norm_legajo(row.get("COPECREA") or row.get("LEGAJO") or row.get("legajo"))
+        if not ts or not legajo or ts < start or ts >= end:
+            continue
+        scoped_rows.append({**row, "_ts": ts, "_legajo": legajo})
+    scoped_rows.sort(key=lambda item: (item["_legajo"], item["_ts"], int(item.get("_row_index") or 0)))
+
+    detail_rows: list[dict[str, Any]] = []
+    previous_by_legajo: dict[str, datetime] = {}
+    operations = mode["operations"]
+    for row in scoped_rows:
+        legajo = row["_legajo"]
+        ts = row["_ts"]
+        prev = previous_by_legajo.get(legajo)
+        previous_by_legajo[legajo] = ts
+        operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
+        if operacion not in operations:
+            continue
+        cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
+        if mode.get("positive_quantity") and cantidad <= 0:
+            continue
+        almacen_calc = _daily_picking_raw_almacen(row) if mode["sector_source"] == "picking" else str(row.get("ALMACEN") or "").strip().upper()
+        if almacen_calc != almacen_target:
+            continue
+        detail_rows.append(_daily_raw_detail_row(row, ts=ts, legajo=legajo, almacen_calc=almacen_calc, prev_ts=prev))
+
+    columns = [
+        {"key": "fecha", "label": "Fecha"},
+        {"key": "legajo", "label": "Legajo"},
+        {"key": "operacion", "label": "Operacion"},
+        {"key": "almacen", "label": "Almacen crudo"},
+        {"key": "almacen_calculo", "label": "Almacen calculo"},
+        {"key": "zona_origen", "label": "Zona origen"},
+        {"key": "ubicacion", "label": "Ubicacion"},
+        {"key": "pallet", "label": "Pallet"},
+        {"key": "referencia", "label": "Referencia"},
+        {"key": "cantidad", "label": "Cantidad"},
+        {"key": "minutos_desde_anterior", "label": "Min prev"},
+        {"key": "row_index", "label": "Fila cache"},
+    ]
+    return {
+        "daily": daily,
+        "query_key": "daily_productividad_raw_cache",
+        "source_process": "PRODUCTIVIDAD_RAW",
+        "detail_process": mode["process"],
+        "sector": normalize_sector(sector),
+        "almacen": almacen_target,
+        "param_id": param_id,
+        "fecha_desde": detail_fecha_desde,
+        "fecha_hasta": detail_fecha_hasta,
+        "oracle_fecha_desde": cache_fecha_desde,
+        "oracle_fecha_hasta": cache_fecha_hasta,
+        "sql_template": QUERY_DAILY_PRODUCTIVIDAD_RAW.strip(),
+        "sql_preview": _daily_productividad_raw_sql_preview(cache_fecha_desde, cache_fecha_hasta),
+        "columns": columns,
+        "rows": detail_rows,
+        "count": len(detail_rows),
+        "message": "Detalle generado desde cache cruda local. No ejecuta Oracle.",
+    }
 
 
 @router.get("/daily/clark-sql")

@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import csv
 import io
+import asyncio
+import logging
+import os
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from typing import Any
 import unicodedata
 
@@ -17,9 +20,11 @@ import xlrd
 from db.auth import auth_db
 from db.panol_insumos import panol_db
 from routers.auth_local import current_auth
+from routers.productividad_analisis import _query_productive_db_sql
 
 
 router = APIRouter(prefix="/panol-insumos/api", tags=["panol-insumos"])
+logger = logging.getLogger("vigia.panol_insumos")
 
 FULL_PROFILES = {"ADMIN", "SUPERVISOR", "TODO"}
 LIMITED_PROFILES = {"OPERACION", "OPERADOR", "USUARIO", ""}
@@ -27,6 +32,27 @@ REQUEST_PROFILES = {"SOLICITANTE", "PEDIDOS"}
 MOVEMENT_TYPES = {"ALTA", "BAJA", "AJUSTE_POSITIVO", "AJUSTE_NEGATIVO", "TRANSFERENCIA"}
 INCOMING_TYPES = {"ALTA", "AJUSTE_POSITIVO"}
 OUTGOING_TYPES = {"BAJA", "AJUSTE_NEGATIVO"}
+ORACLE_STOCK_CD_SOURCE = "ORACLE_STOCK_CD"
+_stock_cd_scheduler_task: asyncio.Task | None = None
+_stock_cd_scheduler_stop: asyncio.Event | None = None
+_stock_cd_scheduler_last_attempt: str | None = None
+
+QUERY_STOCK_CD_ORACLE = """
+SELECT
+F002.CREFEREN REFERENCIA,
+SUM(P505.QSTKFISI * F209.QCOECONV) AS UNIDADES
+FROM F002ARTI F002 JOIN P505STPA P505 ON P505.CREFEREN = F002.CREFEREN
+JOIN F209CONV F209 ON F209.CREFEREN = P505.CREFEREN AND F209.CVARLOGI = P505.CVARLOGI
+AND F209.CEMPRESA = P505.CEMPRESA
+AND F209.CCONSIGN = P505.CCONSIGN
+AND F209.CPRESENT = P505.CPRESENT
+WHERE F002.CEMPRESA = '1'
+AND F002.DDEPARTA IN (84)
+AND F209.CVARLODP = '0'
+AND F209.CEMPRESA = P505.CEMPRESA
+GROUP BY
+F002.CREFEREN
+"""
 
 
 class ArticleRequest(BaseModel):
@@ -1211,18 +1237,6 @@ async def production_indicators(
     clause = "AND " + " AND ".join(where) if where else ""
     pm_clause = clause.replace("fecha_hora", "pm.fecha_hora")
     async with panol_db() as db:
-        by_turn = await _fetch_rows(
-            db,
-            f"""
-            SELECT turno, COALESCE(SUM(cantidad), 0) AS cantidad
-            FROM produccion_movimientos
-            WHERE tipo = 'PRODUCCION'
-              {clause}
-            GROUP BY turno
-            ORDER BY cantidad DESC
-            """,
-            tuple(args),
-        )
         by_sector = await _fetch_rows(
             db,
             f"""
@@ -1255,7 +1269,6 @@ async def production_indicators(
         "fecha_desde": fecha_desde,
         "fecha_hasta": fecha_hasta,
         "articulo_id": articulo_id,
-        "produccion_por_turno": by_turn,
         "entregas_por_sector": by_sector,
         "entregas_por_sector_plu": by_sector_plu,
     }
@@ -1658,6 +1671,159 @@ def _row_value(row: dict[str, Any], *keys: str) -> Any:
     return None
 
 
+async def _latest_oracle_stock_cd_today(db: aiosqlite.Connection) -> dict[str, Any] | None:
+    return await _fetch_one(
+        db,
+        """
+        SELECT fecha_reporte, fecha_importacion, usuario_importacion
+        FROM stock_cd_importado
+        WHERE archivo_origen = ?
+          AND substr(fecha_reporte, 1, 10) = ?
+        ORDER BY fecha_importacion DESC, id DESC
+        LIMIT 1
+        """,
+        (ORACLE_STOCK_CD_SOURCE, _today()),
+    )
+
+
+async def _sync_cd_stock_from_oracle(usuario: str, *, force: bool = False) -> dict[str, Any]:
+    today = _today()
+    now = _now()
+    async with panol_db() as db:
+        latest = await _latest_oracle_stock_cd_today(db)
+        if latest and not force:
+            return {
+                "ok": True,
+                "skipped": True,
+                "reason": "El stock CD de Oracle ya fue sincronizado hoy.",
+                "fecha_importacion": latest.get("fecha_importacion"),
+                "fecha_reporte": latest.get("fecha_reporte"),
+                "matched_count": 0,
+                "ignored": 0,
+                "zeroed": 0,
+                "matched": [],
+            }
+
+    rows = await asyncio.to_thread(
+        _query_productive_db_sql,
+        QUERY_STOCK_CD_ORACLE,
+        fecha_desde=f"{today} 00:00:00",
+        fecha_hasta=now,
+    )
+
+    stock_by_code: dict[str, float] = {}
+    ignored = 0
+    for row in rows:
+        codigo = _norm_code(row.get("REFERENCIA") or row.get("referencia"))
+        if not codigo:
+            ignored += 1
+            continue
+        stock_by_code[codigo] = stock_by_code.get(codigo, 0.0) + _to_float(row.get("UNIDADES") or row.get("unidades"))
+
+    async with panol_db() as db:
+        articles = await _fetch_rows(db, "SELECT id, codigo FROM articulos WHERE activo = 1")
+        inserts = []
+        matched = []
+        zeroed = 0
+        for art in articles:
+            codigo = _norm_code(art["codigo"])
+            stock_cd = max(float(stock_by_code.get(codigo, 0.0)), 0.0)
+            if codigo in stock_by_code:
+                matched.append({"articulo_id": int(art["id"]), "codigo": codigo, "stock_cd": stock_cd})
+            else:
+                zeroed += 1
+            inserts.append((int(art["id"]), stock_cd, today, ORACLE_STOCK_CD_SOURCE, usuario, now))
+        await db.executemany(
+            """
+            INSERT INTO stock_cd_importado
+                (articulo_id, stock_cd, fecha_reporte, archivo_origen, usuario_importacion, fecha_importacion)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            inserts,
+        )
+        await db.commit()
+
+    return {
+        "ok": True,
+        "skipped": False,
+        "fecha_importacion": now,
+        "fecha_reporte": today,
+        "oracle_rows": len(rows),
+        "matched": matched[:100],
+        "matched_count": len(matched),
+        "ignored": ignored + max(len(stock_by_code) - len(matched), 0),
+        "zeroed": zeroed,
+    }
+
+
+def _stock_cd_scheduler_enabled() -> bool:
+    return os.getenv("PANOL_STOCK_CD_ORACLE_SYNC_ENABLED", "1").strip().lower() in {"1", "true", "yes", "si"}
+
+
+def _stock_cd_scheduler_time() -> time:
+    raw = os.getenv("PANOL_STOCK_CD_ORACLE_SYNC_TIME", "07:00").strip()
+    try:
+        hour, minute = raw.split(":", 1)
+        return time(int(hour), int(minute))
+    except Exception:
+        logger.warning("[panol-stock-cd] Hora invalida %r; se usa 07:00.", raw)
+        return time(7, 0)
+
+
+async def _stock_cd_scheduler_loop() -> None:
+    global _stock_cd_scheduler_last_attempt
+    assert _stock_cd_scheduler_stop is not None
+    logger.info("[panol-stock-cd] Scheduler iniciado. Hora diaria: %s.", _stock_cd_scheduler_time().strftime("%H:%M"))
+    while not _stock_cd_scheduler_stop.is_set():
+        try:
+            if _stock_cd_scheduler_enabled():
+                now = datetime.now()
+                today = now.strftime("%Y-%m-%d")
+                if now.time() >= _stock_cd_scheduler_time() and _stock_cd_scheduler_last_attempt != today:
+                    _stock_cd_scheduler_last_attempt = today
+                    result = await _sync_cd_stock_from_oracle("scheduler", force=False)
+                    if result.get("skipped"):
+                        logger.info("[panol-stock-cd] Stock CD ya sincronizado para %s.", today)
+                    else:
+                        logger.info(
+                            "[panol-stock-cd] Stock CD sincronizado: %s PLUs propios, %s sin stock, %s filas Oracle.",
+                            result.get("matched_count"),
+                            result.get("zeroed"),
+                            result.get("oracle_rows"),
+                        )
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            logger.warning("[panol-stock-cd] No se pudo sincronizar stock CD desde Oracle: %s", exc)
+        try:
+            await asyncio.wait_for(_stock_cd_scheduler_stop.wait(), timeout=300)
+        except asyncio.TimeoutError:
+            pass
+    logger.info("[panol-stock-cd] Scheduler detenido.")
+
+
+def start_panol_stock_cd_scheduler() -> None:
+    global _stock_cd_scheduler_task, _stock_cd_scheduler_stop
+    if _stock_cd_scheduler_task and not _stock_cd_scheduler_task.done():
+        return
+    _stock_cd_scheduler_stop = asyncio.Event()
+    _stock_cd_scheduler_task = asyncio.create_task(_stock_cd_scheduler_loop())
+
+
+async def stop_panol_stock_cd_scheduler() -> None:
+    global _stock_cd_scheduler_task, _stock_cd_scheduler_stop
+    if _stock_cd_scheduler_stop:
+        _stock_cd_scheduler_stop.set()
+    if _stock_cd_scheduler_task:
+        _stock_cd_scheduler_task.cancel()
+        try:
+            await _stock_cd_scheduler_task
+        except asyncio.CancelledError:
+            pass
+    _stock_cd_scheduler_task = None
+    _stock_cd_scheduler_stop = None
+
+
 @router.post("/importar-stock-cd")
 async def import_cd_stock(
     request: Request,
@@ -1734,6 +1900,17 @@ async def import_cd_stock(
     }
 
 
+@router.post("/stock-cd/oracle/sincronizar")
+async def sync_cd_stock_oracle(request: Request, force: bool = Query(False)):
+    auth = await _require_panol_operator(request, full=True)
+    try:
+        return await _sync_cd_stock_from_oracle(str(auth.get("username") or ""), force=force)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"No se pudo sincronizar stock CD desde Oracle: {exc}") from exc
+
+
 @router.get("/indicadores")
 async def indicators(
     request: Request,
@@ -1745,10 +1922,10 @@ async def indicators(
     where = ["c.consumo_calculado > 0"]
     args: list[Any] = []
     if fecha_desde:
-        where.append("c.fecha >= ?")
+        where.append("date(datetime(c.fecha_hora, '+2 hours')) >= ?")
         args.append(fecha_desde)
     if fecha_hasta:
-        where.append("c.fecha <= ?")
+        where.append("date(datetime(c.fecha_hora, '+2 hours')) <= ?")
         args.append(fecha_hasta)
     if articulo_id:
         where.append("c.articulo_id = ?")
@@ -1758,31 +1935,32 @@ async def indicators(
         daily = await _fetch_rows(
             db,
             f"""
-            SELECT c.articulo_id, a.codigo, a.descripcion, c.fecha,
+            SELECT c.articulo_id, a.codigo, a.descripcion,
+                   date(datetime(c.fecha_hora, '+2 hours')) AS dia_logistico,
                    SUM(c.consumo_calculado) AS consumo
             FROM consumos_calculados c
             JOIN articulos a ON a.id = c.articulo_id
             WHERE {clause}
-            GROUP BY c.articulo_id, c.fecha
-            ORDER BY c.fecha DESC, a.codigo
+            GROUP BY c.articulo_id, dia_logistico
+            ORDER BY dia_logistico DESC, a.codigo
             LIMIT 200
             """,
             tuple(args),
         )
-        by_turn = await _fetch_rows(
+        by_logistic_day = await _fetch_rows(
             db,
             f"""
-            SELECT c.articulo_id, a.codigo, a.descripcion, c.turno,
+            SELECT date(datetime(c.fecha_hora, '+2 hours')) AS dia_logistico,
                    SUM(c.consumo_calculado) AS consumo
             FROM consumos_calculados c
             JOIN articulos a ON a.id = c.articulo_id
             WHERE {clause}
-            GROUP BY c.articulo_id, c.turno
-            ORDER BY a.codigo, c.turno
+            GROUP BY dia_logistico
+            ORDER BY dia_logistico DESC
             """,
             tuple(args),
         )
-    return {"consumo_diario": daily, "consumo_por_turno": by_turn}
+    return {"consumo_diario": daily, "consumo_por_dia_logistico": by_logistic_day}
 
 
 @router.get("/exportar-stock")

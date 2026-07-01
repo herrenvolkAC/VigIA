@@ -5,16 +5,19 @@ Router API para motor comun de tickets y primer detalle especifico de racks.
 from __future__ import annotations
 
 import base64
+import asyncio
 import csv
 import io
 import json
 import os
 import re
 import secrets
-from datetime import datetime, timedelta
+import subprocess
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import aiosqlite
 from fastapi import APIRouter, Body, HTTPException, Query, Request
@@ -28,7 +31,13 @@ from routers.auth_local import current_auth
 
 router = APIRouter(prefix="/api/casos", tags=["casos"])
 
+try:
+    CASES_TZ = ZoneInfo(os.getenv("VIGIA_CASES_TIMEZONE", "America/Buenos_Aires"))
+except ZoneInfoNotFoundError:
+    CASES_TZ = timezone(timedelta(hours=-3))
 ATTACHMENTS_DIR = Path(os.getenv("VIGIA_CASOS_ATTACHMENTS_DIR", Path(__file__).parent.parent / "resources" / "casos_adjuntos"))
+JAVA_HELPER_SRC = Path(__file__).parent.parent / "scripts" / "OracleProductividadQuery.java"
+JAVA_BUILD_DIR = Path(__file__).parent.parent / ".codex_tmp" / "java_build"
 RACK_PARAM_TABLES = {"rack_zona", "rack_cara", "rack_nivel", "rack_sector", "rack_descripcion", "rack_tipo"}
 COMMON_PARAM_COLUMNS = {
     "ticket_tipo": {"codigo", "nombre", "descripcion", "activo"},
@@ -89,7 +98,7 @@ class UsuarioPerfilCasoRequest(BaseModel):
 
 
 def _now() -> str:
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(CASES_TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _normalize_username(value: str) -> str:
@@ -207,10 +216,10 @@ async def _historial(
     await db.execute(
         """
         INSERT INTO ticket_historial
-            (ticket_id, usuario_id, perfil, accion, estado_anterior_id, estado_nuevo_id, comentario)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            (ticket_id, fecha, usuario_id, perfil, accion, estado_anterior_id, estado_nuevo_id, comentario)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (ticket_id, auth["username"], perfil, accion, estado_anterior_id, estado_nuevo_id, comentario),
+        (ticket_id, _now(), auth["username"], perfil, accion, estado_anterior_id, estado_nuevo_id, comentario),
     )
 
 
@@ -307,7 +316,7 @@ async def _guardar_adjunto(
     original = Path(adjunto.get("nombre_original") or "adjunto.bin").name
     mime = adjunto.get("tipo_mime") or "application/octet-stream"
     suffix = Path(original).suffix.lower() or ".bin"
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    stamp = datetime.now(CASES_TZ).strftime("%Y%m%d_%H%M%S")
     filename = f"{codigo_visible}_{stamp}_{secrets.token_hex(3)}{suffix}"
     raw = adjunto.get("contenido_base64") or ""
     if "," in raw:
@@ -321,17 +330,17 @@ async def _guardar_adjunto(
     await db.execute(
         """
         INSERT INTO ticket_adjunto
-            (ticket_id, usuario_id, nombre_original, nombre_archivo, ruta_archivo, tipo_mime, activo)
-        VALUES (?, ?, ?, ?, ?, ?, 1)
+            (ticket_id, fecha, usuario_id, nombre_original, nombre_archivo, ruta_archivo, tipo_mime, activo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         """,
-        (ticket_id, auth["username"], original, filename, str(path), mime),
+        (ticket_id, _now(), auth["username"], original, filename, str(path), mime),
     )
     await _historial(db, ticket_id, auth, perfil, "AGREGA_ADJUNTO", original)
     return {"nombre_original": original, "nombre_archivo": filename, "tipo_mime": mime}
 
 
 def _validate_ubicaciones(value: str) -> str:
-    text = str(value or "").strip()
+    text = str(value or "").strip().upper()
     if not text:
         raise HTTPException(status_code=400, detail="Ubicacion obligatoria.")
     parts = [part for part in re.split(r"[\s,;\-/]+", text) if part]
@@ -344,10 +353,118 @@ def _validate_ubicaciones(value: str) -> str:
 
 
 def _validate_pasillo(value: str) -> str:
-    text = str(value or "").strip()
+    text = str(value or "").strip().upper()
     if not text or not text.isdigit():
         raise HTTPException(status_code=400, detail="Pasillo obligatorio y numerico.")
     return text
+
+
+def _productive_db_local_only_enabled() -> bool:
+    return os.getenv("PRODUCTIVE_DB_LOCAL_ONLY", "0").strip().lower() in {"1", "true", "yes", "si"}
+
+
+def _ensure_rack_java_helper_compiled() -> None:
+    javac_bin = os.getenv(
+        "PRODUCTIVE_DB_JAVAC_BIN",
+        r"C:\Program Files\Android\openjdk\jdk-21.0.8\bin\javac.exe",
+    ).strip()
+    if not Path(javac_bin).exists():
+        raise RuntimeError(f"No se encontro javac para el fallback JDBC: {javac_bin}")
+
+    JAVA_BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    class_file = JAVA_BUILD_DIR / "OracleProductividadQuery.class"
+    if class_file.exists() and class_file.stat().st_mtime >= JAVA_HELPER_SRC.stat().st_mtime:
+        return
+
+    result = subprocess.run(
+        [javac_bin, "-d", str(JAVA_BUILD_DIR), str(JAVA_HELPER_SRC)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"No se pudo compilar el helper JDBC de Oracle. STDERR: {result.stderr.strip() or result.stdout.strip()}")
+
+
+def _query_rack_oracle_stock_jdbc(zona: str, pasillo_cara: str, ubicaciones: list[str]) -> list[dict[str, Any]]:
+    if _productive_db_local_only_enabled():
+        raise RuntimeError("La BD productiva Oracle esta temporalmente bloqueada por configuracion.")
+
+    user = os.getenv("PRODUCTIVE_DB_USER", "").strip()
+    password = os.getenv("PRODUCTIVE_DB_PASSWORD", "").strip()
+    host = os.getenv("PRODUCTIVE_DB_HOST", "").strip()
+    port = os.getenv("PRODUCTIVE_DB_PORT", "1521").strip()
+    service_name = os.getenv("PRODUCTIVE_DB_SERVICE_NAME", "").strip()
+    java_bin = os.getenv(
+        "PRODUCTIVE_DB_JAVA_BIN",
+        r"C:\Users\207189\AppData\Local\DBeaver\jre\bin\java.exe",
+    ).strip()
+    ojdbc_jar = os.getenv(
+        "PRODUCTIVE_DB_OJDBC_JAR",
+        r"C:\Users\207189\AppData\Roaming\DBeaverData\drivers\maven\maven-central\com.oracle.database.jdbc\ojdbc11-23.2.0.0.jar",
+    ).strip()
+
+    if not all([user, password, host, service_name]):
+        raise RuntimeError("Faltan variables JDBC PRODUCTIVE_DB_USER, PRODUCTIVE_DB_PASSWORD, PRODUCTIVE_DB_HOST o PRODUCTIVE_DB_SERVICE_NAME.")
+    if not Path(java_bin).exists():
+        raise RuntimeError(f"No se encontro Java para fallback JDBC: {java_bin}")
+    if not Path(ojdbc_jar).exists():
+        raise RuntimeError(f"No se encontro el driver JDBC Oracle: {ojdbc_jar}")
+
+    _ensure_rack_java_helper_compiled()
+    jdbc_url = f"jdbc:oracle:thin:@//{host}:{port}/{service_name}"
+    classpath = os.pathsep.join([str(JAVA_BUILD_DIR), ojdbc_jar])
+    command = [
+        java_bin,
+        "-cp",
+        classpath,
+        "OracleProductividadQuery",
+        jdbc_url,
+        user,
+        password,
+        "2000-01-01 00:00:00",
+        "2000-01-01 00:00:00",
+        "rack_stock",
+        zona,
+        pasillo_cara,
+        ",".join(ubicaciones),
+    ]
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=int(os.getenv("PRODUCTIVE_DB_JDBC_TIMEOUT_SECONDS", "300")),
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"No se pudo consultar Oracle via JDBC. STDERR: {result.stderr.strip() or result.stdout.strip()}")
+    try:
+        rows = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"La respuesta JDBC no fue JSON valido. Salida: {result.stdout[:300]}") from exc
+
+    normalized = []
+    for row in rows:
+        normalized.append(
+            {
+                "czonalma": str(row.get("CZONALMA") or row.get("czonalma") or "").strip().upper(),
+                "cpasillo": str(row.get("CPASILLO") or row.get("cpasillo") or "").strip().upper(),
+                "chuecopa": str(row.get("CHUECOPA") or row.get("chuecopa") or "").strip().upper(),
+                "palet": str(row.get("PALET") or row.get("palet") or "").strip().upper(),
+                "articulo": str(row.get("ARTICULO") or row.get("articulo") or "").strip().upper(),
+            }
+        )
+    return normalized
+
+
+def _query_rack_oracle_stock(zona: str, pasillo_cara: str, ubicaciones: list[str]) -> list[dict[str, Any]]:
+    zona = str(zona or "").strip().upper()
+    pasillo_cara = str(pasillo_cara or "").strip().upper()
+    prefixes = [str(u or "").strip().upper() for u in ubicaciones if str(u or "").strip()]
+    prefixes = list(dict.fromkeys(prefixes))
+    if not zona or not pasillo_cara or not prefixes:
+        return []
+    return _query_rack_oracle_stock_jdbc(zona, pasillo_cara, prefixes)
 
 
 async def _ticket_row(db: aiosqlite.Connection, ticket_id: int) -> dict[str, Any]:
@@ -545,21 +662,23 @@ async def crear_rack(req: RackNuevoRequest, request: Request):
         ]:
             if not await _fetch_one(db, f"SELECT id FROM {table} WHERE id = ? AND activo = 1", (value,)):
                 raise HTTPException(status_code=400, detail=f"Parametro invalido: {table}.")
-        zona_text = " ".join(req.zona_text.split())
+        zona_text = " ".join(req.zona_text.split()).upper()
         if not zona_text:
             raise HTTPException(status_code=400, detail="Zona obligatoria.")
         placeholders = ",".join("?" for _ in req.niveles)
         niveles_rows = await _fetch_all(db, f"SELECT id, nombre FROM rack_nivel WHERE id IN ({placeholders}) AND activo = 1", tuple(req.niveles))
         if len(niveles_rows) != len(set(req.niveles)):
             raise HTTPException(status_code=400, detail="Niveles invalidos.")
-        sla_vencimiento = (datetime.now() + timedelta(hours=int(criticidad["sla_horas"]))).strftime("%Y-%m-%d %H:%M:%S")
+        fecha_actual = _now()
+        sla_vencimiento = (datetime.now(CASES_TZ) + timedelta(hours=int(criticidad["sla_horas"]))).strftime("%Y-%m-%d %H:%M:%S")
         titulo = f"Reparacion de rack Z{zona_text} P{pasillo} U{ubicaciones}"
         cur = await db.execute(
             """
             INSERT INTO ticket
                 (tipo_id, estado_id, criticidad_id, titulo, descripcion, usuario_creacion_id,
-                 sector_creacion_id, perfil_asignado, sector_asignado, sla_vencimiento)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 sector_creacion_id, perfil_asignado, sector_asignado, fecha_creacion,
+                 fecha_ultima_actualizacion, sla_vencimiento)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 tipo_id,
@@ -571,6 +690,8 @@ async def crear_rack(req: RackNuevoRequest, request: Request):
                 assignment.get("sector") or perfil,
                 estado.get("perfil_asignado") or "ADO",
                 estado.get("perfil_asignado") or "ADO",
+                fecha_actual,
+                fecha_actual,
                 sla_vencimiento,
             ),
         )
@@ -661,7 +782,8 @@ async def listar(
             where.append("t.usuario_creacion_id = ?")
             args.append(auth["username"])
         if vencidos_sla:
-            where.append("t.sla_vencimiento < CURRENT_TIMESTAMP AND e.es_final = 0")
+            where.append("t.sla_vencimiento < ? AND e.es_final = 0")
+            args.append(_now())
         if pendientes_mi_perfil:
             where.append("t.perfil_asignado = ?")
             args.append(perfil)
@@ -697,12 +819,13 @@ async def dashboard(request: Request):
               SUM(CASE WHEN e.es_final = 0 THEN 1 ELSE 0 END) abiertos,
               SUM(CASE WHEN e.es_final = 1 AND date(t.fecha_cierre) = date('now') THEN 1 ELSE 0 END) cerrados_hoy,
               SUM(CASE WHEN e.es_final = 0 AND c.codigo IN ('ALTA','CRITICA') THEN 1 ELSE 0 END) criticos_abiertos,
-              SUM(CASE WHEN e.es_final = 0 AND t.sla_vencimiento < CURRENT_TIMESTAMP THEN 1 ELSE 0 END) vencidos_sla
+              SUM(CASE WHEN e.es_final = 0 AND t.sla_vencimiento < ? THEN 1 ELSE 0 END) vencidos_sla
             FROM ticket t
             JOIN ticket_estado e ON e.id = t.estado_id
             JOIN ticket_criticidad c ON c.id = t.criticidad_id
             WHERE t.activo = 1
             """,
+            (_now(),),
         )
         pendientes = await _fetch_one(
             db,
@@ -746,6 +869,8 @@ async def dashboard(request: Request):
 @router.get("/ticket/{ticket_id}")
 async def detalle(ticket_id: int, request: Request):
     _, perfil = await _require_auth(request)
+    rack_stock: list[dict[str, Any]] = []
+    rack_stock_error = ""
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         ticket = await _ticket_row(db, ticket_id)
@@ -768,6 +893,16 @@ async def detalle(ticket_id: int, request: Request):
             )
             if rack:
                 rack["niveles"] = json.loads(rack.get("niveles") or "[]")
+                try:
+                    ubicaciones = [part for part in re.split(r"[\s,;\-/]+", str(rack.get("ubicaciones") or "").upper()) if part]
+                    rack_stock = await asyncio.to_thread(
+                        _query_rack_oracle_stock,
+                        str(rack.get("zona") or ""),
+                        f"{rack.get('pasillo') or ''}{rack.get('cara') or ''}",
+                        ubicaciones,
+                    )
+                except Exception as exc:
+                    rack_stock_error = str(exc)
         comentarios = await _fetch_all(db, "SELECT * FROM ticket_comentario WHERE ticket_id=? AND activo=1 ORDER BY fecha", (ticket_id,))
         adjuntos = await _fetch_all(db, "SELECT id, fecha, usuario_id, nombre_original, nombre_archivo, tipo_mime FROM ticket_adjunto WHERE ticket_id=? AND activo=1 ORDER BY fecha", (ticket_id,))
         historial = await _fetch_all(
@@ -794,7 +929,7 @@ async def detalle(ticket_id: int, request: Request):
             """,
             (ticket["tipo_id"], ticket["estado_id"], perfil),
         )
-    return {"ticket": ticket, "rack": rack, "comentarios": comentarios, "adjuntos": adjuntos, "historial": historial, "transiciones": transiciones, "perfil": perfil}
+    return {"ticket": ticket, "rack": rack, "rack_stock": rack_stock, "rack_stock_error": rack_stock_error, "comentarios": comentarios, "adjuntos": adjuntos, "historial": historial, "transiciones": transiciones, "perfil": perfil}
 
 
 @router.post("/ticket/{ticket_id}/comentarios")
@@ -809,8 +944,9 @@ async def comentar(ticket_id: int, req: ComentarioRequest, request: Request):
         permiso = await _permiso(db, int(ticket["tipo_id"]), perfil)
         if not permiso.get("puede_comentar"):
             raise HTTPException(status_code=403, detail="Tu perfil no puede comentar.")
-        await db.execute("INSERT INTO ticket_comentario (ticket_id, usuario_id, comentario) VALUES (?, ?, ?)", (ticket_id, auth["username"], comentario))
-        await db.execute("UPDATE ticket SET fecha_ultima_actualizacion = ? WHERE id = ?", (_now(), ticket_id))
+        fecha_actual = _now()
+        await db.execute("INSERT INTO ticket_comentario (ticket_id, fecha, usuario_id, comentario) VALUES (?, ?, ?, ?)", (ticket_id, fecha_actual, auth["username"], comentario))
+        await db.execute("UPDATE ticket SET fecha_ultima_actualizacion = ? WHERE id = ?", (fecha_actual, ticket_id))
         await _historial(db, ticket_id, auth, perfil, "AGREGA_COMENTARIO", comentario)
         await db.commit()
     return {"ok": True}

@@ -27,6 +27,7 @@ logger = logging.getLogger("vigia.analisis_premio_productividad")
 
 PREMIO_DB_PATH = resolve_db_path("PREMIO_PRODUCTIVIDAD_DB_PATH", "premio_productividad.db", ROOT_DIR)
 JORNADA_HORAS = 8
+DEFAULT_DIVISOR_HORARIO = 6.5
 DIVISORES_HORARIOS = {8.0, 6.5}
 JAVA_HELPER_SRC = ROOT_DIR / "scripts" / "OracleProductividadQuery.java"
 JAVA_BUILD_DIR = ROOT_DIR / "scripts" / "java_build"
@@ -827,7 +828,7 @@ class RangoCasoModeloRequest(BaseModel):
     force: bool = False
     operacion: str = DEFAULT_OPERACION
     almacen: str = DEFAULT_ALMACEN
-    divisor_horario: float = JORNADA_HORAS
+    divisor_horario: float = DEFAULT_DIVISOR_HORARIO
 
 
 class GifExportRequest(BaseModel):
@@ -2427,7 +2428,7 @@ async def rango_cache(
     fecha_hasta: str = Query(...),
     operacion: str = Query(DEFAULT_OPERACION),
     almacen: str = Query(DEFAULT_ALMACEN),
-    divisor_horario: float = Query(JORNADA_HORAS),
+    divisor_horario: float = Query(DEFAULT_DIVISOR_HORARIO),
 ):
     days = _date_range_inclusive(fecha_desde, fecha_hasta)
     operacion = _normalize_operacion(operacion)
@@ -2640,7 +2641,7 @@ async def detalle_legajo(
     force: bool = False,
     operacion: str = Query(DEFAULT_OPERACION),
     almacen: str = Query(DEFAULT_ALMACEN),
-    divisor_horario: float = Query(JORNADA_HORAS),
+    divisor_horario: float = Query(DEFAULT_DIVISOR_HORARIO),
 ):
     fecha_base = _to_date(fecha).isoformat()
     legajo = _clean(legajo)
@@ -2654,7 +2655,9 @@ async def detalle_legajo(
         db.row_factory = aiosqlite.Row
         loaded = await _load_detalle_to_cache(db, fecha_base, legajo, operacion, almacen, force=force)
         await db.commit()
-    rows = _apply_hourly_divisor_to_details(loaded["rows"], divisor_horario)
+        scale_source_rows = await _detail_rows_for_range_internal(db, fecha_base, fecha_base, operacion, almacen)
+    scale_catalog = _scale_catalog_from_detail(scale_source_rows)
+    rows = _apply_hourly_divisor_to_details(loaded["rows"], divisor_horario, scale_catalog)
     return {
         "meta": {
             "fecha": fecha_base,
@@ -2880,7 +2883,8 @@ async def detalle_cache(
     fecha_hasta: str = Query(...),
     operacion: str = Query(DEFAULT_OPERACION),
     almacen: str = Query(DEFAULT_ALMACEN),
-    divisor_horario: float = Query(JORNADA_HORAS),
+    divisor_horario: float = Query(DEFAULT_DIVISOR_HORARIO),
+    limit: int = Query(5000, ge=0, le=100000),
     legajo: str = "",
 ):
     days = _date_range_inclusive(fecha_desde, fecha_hasta)
@@ -2893,6 +2897,7 @@ async def detalle_cache(
     if legajo_filter:
         legajo_sql = "AND CAST(legajo AS TEXT) LIKE ?"
         params.append(f"%{legajo_filter}%")
+    limit_sql = "" if limit == 0 else f"LIMIT {int(limit)}"
     async with aiosqlite.connect(PREMIO_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         rows = await _fetch_rows(
@@ -2910,7 +2915,7 @@ async def detalle_cache(
               AND query_version = ?
               {legajo_sql}
             ORDER BY fecha_base DESC, legajo, hora
-            LIMIT 5000
+            {limit_sql}
             """,
             tuple(params),
         )
@@ -2924,7 +2929,7 @@ async def detalle_cache(
         "escenario_horario": _hourly_scenario_label(divisor_horario),
         "query_version": CASO_MODELO_DETALLE_QUERY_VERSION,
         "rows": rows,
-        "limit": 5000,
+        "limit": limit,
     }
 
 

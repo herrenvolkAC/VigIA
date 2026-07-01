@@ -42,7 +42,11 @@ from routers.rrhh_novedades import (
     start_rrhh_folder_monitor,
     stop_rrhh_folder_monitor,
 )
-from routers.panol_insumos import router as panol_insumos_router
+from routers.panol_insumos import (
+    router as panol_insumos_router,
+    start_panol_stock_cd_scheduler,
+    stop_panol_stock_cd_scheduler,
+)
 from routers.simulador_operativo import init_simulador_db, router as simulador_operativo_router
 from routers.analisis_premio_productividad import (
     init_premio_productividad_db,
@@ -76,6 +80,7 @@ async def lifespan(app: FastAPI):
     await ensure_bootstrap_admin()
     start_daily_auto_scheduler()
     start_historia_actividad_scheduler()
+    start_panol_stock_cd_scheduler()
     start_rrhh_folder_monitor()
     provider = os.getenv("AI_PROVIDER", "claude")
     logger.info(f"Proveedor IA configurado: {provider}")
@@ -89,6 +94,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         await stop_rrhh_folder_monitor()
+        await stop_panol_stock_cd_scheduler()
         await stop_daily_auto_scheduler()
         await stop_historia_actividad_scheduler()
         logger.info("VigIA detenido.")

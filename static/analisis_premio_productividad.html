@@ -23,16 +23,16 @@
     .paper-tabs{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule);overflow:auto}.tab-list{display:flex}.tab-btn{background:transparent;border:0;color:var(--ink-soft);padding:13px 14px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;min-width:118px;white-space:nowrap}.tab-btn.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}
     .filters{display:grid;grid-template-columns:150px 150px 140px 170px 130px 130px 1fr;gap:10px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.case-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px;min-width:0}.case-cell strong{display:block;margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input,.paper-select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}.primary-cta{height:34px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}.primary-cta:disabled,.secondary-cta:disabled{opacity:.55;cursor:default}
     .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
-    .paper-panel{display:none}.paper-panel.active{display:block}.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}.kpi-number{font-family:'IBM Plex Mono',monospace;font-size:28px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}.kpi-foot{font-size:11px;color:var(--ink-soft)}
+    .paper-panel{display:none}.paper-panel.active{display:block}.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}.kpi-number{font-family:'IBM Plex Mono',monospace;font-size:28px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}.kpi-foot{font-size:11px;color:var(--ink-soft)}.group-params{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0 10px}.group-param{border-left:3px solid var(--green);background:var(--panel);border-top:1px solid var(--rule);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:9px 12px;min-width:220px}.group-param strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.group-bonus-grid{display:grid;gap:12px;margin-top:10px}.group-kpi-row{display:grid;grid-template-columns:120px repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}.group-row-title{display:flex;align-items:center;background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--blue);padding:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
     .dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.chart-panel,.text-panel{background:var(--panel);border:1px solid var(--rule);min-height:280px;padding:12px;display:flex;flex-direction:column;min-width:0}.text-panel{min-height:0}.chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
     .bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(112px,1fr) minmax(120px,2fr) 82px;gap:8px;align-items:center;font-size:12px}.bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:14px;background:#EAEEEB;position:relative}.bar-fill{height:100%;background:var(--green);min-width:2px}.bar-fill.blue{background:var(--blue)}.bar-fill.amber{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-value{font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--ink-soft)}
     .evolution-panel{min-height:320px;margin-top:14px}.evolution-wrap{overflow:auto}.line-chart{width:100%;min-width:900px;height:250px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart polyline{fill:none;stroke-width:2.2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart polyline.red{stroke:var(--red)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart circle.red{fill:var(--red)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--green)}.legend-dot.blue{background:var(--blue)}.legend-dot.amber{background:var(--amber)}.legend-dot.red{background:var(--red)}
     .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);margin-top:12px}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 10px}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--blue);background:#EEF4F0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 10px;font-size:12px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}.table-wrap{overflow:auto;max-height:540px}.pill{display:inline-block;padding:3px 6px;border:1px solid #C8E2D0;background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px}.pill.warn{border-color:#E1BF76;background:var(--amber-soft);color:#6F4300}.pill.bad{border-color:#E8A0AA;background:var(--red-soft);color:var(--red)}
     .tool-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.summary-filters{display:grid;grid-template-columns:160px 160px auto 1fr;gap:10px;align-items:end;margin-top:12px;padding:10px 12px;background:var(--panel);border:1px solid var(--rule)}.summary-filter-info{justify-self:end;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.mini-filters{display:none!important}.hidden{display:none!important}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}.notes{display:grid;gap:8px;margin:0;padding:0;list-style:none}.notes li{border-left:3px solid var(--green);background:#F8FAF7;padding:10px 12px;font-size:13px;line-height:1.45}.warn-list li{border-left-color:var(--amber)}
-    .executive-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.executive-wide{grid-column:1/-1}.insight-chart{width:100%;min-height:260px}.insight-svg{display:block;width:100%;height:280px}.insight-svg .axis{stroke:var(--rule-strong);stroke-width:1}.insight-svg .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.insight-svg .bar-actual{fill:var(--green)}.insight-svg .bar-hours{fill:var(--red)}.insight-svg .bar-neutral{fill:var(--blue)}.insight-svg .bar-extra{fill:var(--amber)}.insight-svg .dot-hours{fill:var(--red);opacity:.72}.insight-svg .dot-actual{fill:var(--green);opacity:.72}.insight-svg .axis-label,.insight-svg .value-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.insight-svg .value-label{fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}.pie-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.pie-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px}.pie-cell.no{border-left-color:var(--red)}.pie-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.winner-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.winner-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px}.winner-cell.bad{border-left-color:var(--red)}.winner-cell.neutral{border-left-color:var(--blue)}.winner-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.case-card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}.case-card{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--red);padding:10px;min-width:0;cursor:pointer;text-align:left}.case-card:hover{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}.case-card.ok{border-left-color:var(--green)}.case-card.ok:hover{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}.case-card-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.case-card strong{font-family:'IBM Plex Mono',monospace;font-size:13px}.case-card .mini-bars{display:grid;gap:6px;margin-top:8px}.case-card .mini-row{display:grid;grid-template-columns:82px 1fr 76px;gap:6px;align-items:center;font-size:11px}.case-card .mini-track{height:10px;background:#EAEEEB}.case-card .mini-fill{height:100%;background:var(--green)}.case-card .mini-fill.bad{background:var(--red)}.case-action{margin-top:10px;width:100%;justify-content:center}.data-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.data-panel{background:var(--panel);border:1px solid var(--rule);padding:12px}.data-panel .table-wrap{max-height:460px}
+    .executive-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.premium-pie-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.operator-overlap{grid-column:1/-1}.operator-pie-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.premium-pie-row>.executive-wide{grid-column:1/-1}.executive-wide{grid-column:1/-1}.insight-chart{width:100%;min-height:260px}.insight-svg{display:block;width:100%;height:280px}.insight-svg .axis{stroke:var(--rule-strong);stroke-width:1}.insight-svg .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.insight-svg .bar-actual{fill:var(--green)}.insight-svg .bar-hours{fill:var(--red)}.insight-svg .bar-neutral{fill:var(--blue)}.insight-svg .bar-extra{fill:var(--amber)}.insight-svg .dot-hours{fill:var(--red);opacity:.72}.insight-svg .dot-actual{fill:var(--green);opacity:.72}.insight-svg .axis-label,.insight-svg .value-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.insight-svg .value-label{fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}.pie-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.pie-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px}.pie-cell.no{border-left-color:var(--red)}.pie-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.winner-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.winner-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px}.winner-cell.bad{border-left-color:var(--red)}.winner-cell.neutral{border-left-color:var(--blue)}.winner-cell.amber{border-left-color:var(--amber)}.winner-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.case-card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}.case-card{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--red);padding:10px;min-width:0;cursor:pointer;text-align:left}.case-card:hover{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}.case-card.ok{border-left-color:var(--green)}.case-card.ok:hover{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}.case-card-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.case-card strong{font-family:'IBM Plex Mono',monospace;font-size:13px}.case-card .mini-bars{display:grid;gap:6px;margin-top:8px}.case-card .mini-row{display:grid;grid-template-columns:82px 1fr 76px;gap:6px;align-items:center;font-size:11px}.case-card .mini-track{height:10px;background:#EAEEEB}.case-card .mini-fill{height:100%;background:var(--green)}.case-card .mini-fill.bad{background:var(--red)}.case-action{margin-top:10px;width:100%;justify-content:center}.data-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.data-panel{background:var(--panel);border:1px solid var(--rule);padding:12px}.data-panel .table-wrap{max-height:460px}
     .problem-layout{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}.problem-chart{width:100%;height:340px;border-left:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong);padding:8px 8px 2px;overflow:hidden}.problem-line-chart{display:block;width:100%;height:100%;overflow:visible}.problem-line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.problem-line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.problem-line-chart .standard-bg{fill:#DDEEE3;opacity:.82}.problem-line-chart .extra-bg{fill:#F4DDE0;opacity:.82}.problem-line-chart .turno-cut{stroke:var(--ink-soft);stroke-width:1.5;stroke-dasharray:5 4;opacity:.85}.problem-line-chart .hour-band{fill:var(--amber-soft);stroke:#E1BF76;stroke-width:1;opacity:.55}.problem-line-chart .hour-band-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:#6F4300;letter-spacing:0;text-transform:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}.problem-line-chart .line-main{fill:none;stroke:var(--blue);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.problem-line-chart .line-posterior{fill:none;stroke:var(--red);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.problem-line-chart .line-objetivo{stroke:var(--green);stroke-width:2.5;stroke-dasharray:8 5}.problem-line-chart .point{stroke:var(--panel);stroke-width:3}.problem-line-chart .point.pre{fill:var(--green)}.problem-line-chart .point.pico{fill:var(--blue)}.problem-line-chart .point.posterior{fill:var(--amber)}.problem-line-chart .point.caida,.problem-line-chart .point.extra{fill:var(--red)}.problem-line-chart .prod-bar{stroke:var(--panel);stroke-width:1.5;opacity:.72}.problem-line-chart .prod-bar.standard{fill:var(--blue)}.problem-line-chart .prod-bar.extra{fill:var(--red)}.problem-line-chart .transfer-segment{fill:var(--amber);stroke:#6F4300;stroke-width:.8;opacity:.9}.problem-line-chart .transfer-segment.from-standard{fill:#E8A23A;stroke:#6F4300;stroke-dasharray:3 2}.problem-line-chart .transfer-segment.animating{animation:move-extra .9s cubic-bezier(.2,.72,.24,1) both}.problem-line-chart .leftover-extra{fill:var(--red);opacity:.45;stroke:var(--red);stroke-width:1}.problem-line-chart .source-used{fill:#FFFFFF;stroke:#0B5FAE;stroke-width:1;stroke-dasharray:3 2;opacity:.52}.problem-line-chart .target-cap{stroke:var(--green);stroke-width:2;stroke-dasharray:3 3}.problem-line-chart .label{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--ink);letter-spacing:0;text-transform:none}.problem-line-chart .axis-label,.problem-line-chart .legend-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft);letter-spacing:0;text-transform:none}@keyframes move-extra{from{transform:translate(var(--from-x),var(--from-y));opacity:.35}70%{opacity:.95}to{transform:translate(0,0);opacity:.9}}.detalle-anim-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:2px 0 8px}.detalle-anim-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.detalle-anim-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.04em}.problem-selected{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.problem-note{font-size:13px;line-height:1.45;color:var(--ink-soft);margin:0}.problem-modebar,.problem-viewbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 0}.problem-viewbar{margin-top:8px}.problem-view-btn{min-height:30px;border:1px solid var(--rule);background:var(--panel);padding:5px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.problem-view-btn.active{border-color:var(--green);background:var(--green-soft);color:var(--green);font-weight:600}.problem-table tbody tr{cursor:pointer}.problem-table tbody tr.active{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-soft)}
     .modal-backdrop{position:fixed;inset:0;background:rgba(14,22,32,.38);display:none;align-items:center;justify-content:center;padding:22px;z-index:20}.modal-backdrop.active{display:flex}.modal-panel{width:min(1500px,96vw);max-height:90vh;background:var(--panel);border:1px solid var(--rule-strong);box-shadow:0 18px 60px rgba(14,22,32,.22);display:flex;flex-direction:column}.modal-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--rule);background:#F6F8F5}.modal-body{padding:12px;overflow:auto}.modal-summary{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px;margin-bottom:10px}.summary-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:8px 9px;min-width:0}.summary-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.detalle-chart{height:360px;margin:4px 0 12px}.detalle-chart .problem-line-chart{height:310px}.modal-body .table-wrap{max-height:42vh}.icon-btn{min-width:34px;height:34px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace}
-    @media(max-width:1200px){.filters{grid-template-columns:1fr 1fr 1fr}.dashboard-grid,.problem-layout,.executive-grid{grid-template-columns:1fr}.case-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-row{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}.summary-filters,.mini-filters{grid-template-columns:1fr 1fr}.summary-filter-info{justify-self:start}}
+    @media(max-width:1200px){.filters{grid-template-columns:1fr 1fr 1fr}.dashboard-grid,.problem-layout,.executive-grid,.premium-pie-row,.operator-pie-grid{grid-template-columns:1fr}.case-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-row{grid-template-columns:repeat(2,1fr)}.group-kpi-row{grid-template-columns:1fr}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}.summary-filters,.mini-filters{grid-template-columns:1fr 1fr}.summary-filter-info{justify-self:start}}
     @media(max-width:700px){.paper-app{padding:0 12px 18px}.filters,.kpi-row,.summary-filters,.mini-filters,.case-card-grid{grid-template-columns:1fr}.tab-btn{min-width:112px;padding-left:10px;padding-right:10px}.kpi-number{font-size:24px}}
   </style>
 </head>
@@ -59,6 +59,7 @@
   <div class="paper-tabs">
     <div class="tab-list">
       <button class="tab-btn active" data-tab="resumen">Resumen ejecutivo</button>
+      <button class="tab-btn" data-tab="grupal">Premio grupal</button>
       <button class="tab-btn" data-tab="detalle">Datos</button>
       <button class="tab-btn" data-tab="cache">Metodologia/cache</button>
     </div>
@@ -69,7 +70,7 @@
     <div class="field"><label class="label" for="rango-hasta">Fecha hasta</label><input class="paper-input" type="date" id="rango-hasta"></div>
     <div class="field"><label class="label" for="operacion-select">Operacion</label><select class="paper-select" id="operacion-select"><option value="PICKING">PICKING</option></select></div>
     <div class="field"><label class="label" for="almacen-select">Almacen</label><select class="paper-select" id="almacen-select"><option value="TODOS">TODOS</option><option value="SECOS + NOA">SECOS + NOA</option><option value="CAMARA 06">CAMARA 06</option><option value="OTRAS CAMARAS">OTRAS CAMARAS</option><option value="AREA SECOS Y NO ALIMENTOS">AREA SECOS Y NO ALIMENTOS</option></select></div>
-    <div class="field"><label class="label" for="divisor-select">Escenario hora</label><select class="paper-select" id="divisor-select"><option value="8">Escala /8</option><option value="6.5">Escala /6.5</option></select></div>
+    <div class="field"><label class="label" for="divisor-select">Escenario hora</label><select class="paper-select" id="divisor-select"><option value="6.5" selected>Escala /6.5</option><option value="8">Escala /8</option></select></div>
     <button class="primary-cta" id="consultar-rango">Consultar</button>
     <div class="case-cell"><div class="label">Ciclo diario</div><strong>Incluye ambos extremos - 06:00 a 06:00 - siempre desde cache</strong></div>
   </section>
@@ -77,19 +78,7 @@
 
   <section class="paper-panel active" id="panel-resumen">
     <section class="kpi-row" id="kpis-resumen"></section>
-    <section class="executive-grid">
-      <article class="chart-panel executive-wide">
-        <div class="chart-title"><strong>Premisa de ahorro vs resultado</strong><span>comparacion limpia sin extras</span></div>
-        <div class="insight-chart" id="chart-premisa"></div>
-      </article>
-      <article class="chart-panel">
-        <div class="chart-title"><strong>Impacto de quitar extras</strong><span>caida por metodo</span></div>
-        <div class="insight-chart" id="chart-impacto-extras"></div>
-      </article>
-      <article class="chart-panel">
-        <div class="chart-title"><strong>Quien paga mas</strong><span>casos legajo/dia sin extras</span></div>
-        <div class="insight-chart" id="chart-ganador"></div>
-      </article>
+    <section class="premium-pie-row">
       <article class="chart-panel">
         <div class="chart-title"><strong>Cobran premio actual</strong><span>jornadas x legajo con extras</span></div>
         <div class="insight-chart" id="chart-premio-actual-pie"></div>
@@ -98,6 +87,7 @@
         <div class="chart-title"><strong>Cobrarian por horas</strong><span>jornadas x legajo con extras</span></div>
         <div class="insight-chart" id="chart-premio-horas-pie"></div>
       </article>
+      <article class="text-panel operator-overlap" id="operarios-premio-resumen"></article>
       <article class="chart-panel executive-wide">
         <div class="chart-title"><strong>Casos testigo</strong><span>actual jornada vs horas con extras</span></div>
         <div id="case-cards-resumen"></div>
@@ -105,6 +95,15 @@
     </section>
     <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Lectura critica</strong><span>por reglas del rango</span></div><ul class="notes" id="interpretacion"></ul></article>
     <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Sugerencias</strong><span>controles para el metodo horario</span></div><ul class="notes warn-list" id="sugerencias"></ul></article>
+  </section>
+
+  <section class="paper-panel" id="panel-grupal">
+    <section class="group-params" id="grupal-parametros"></section>
+    <section class="group-bonus-grid" id="kpis-grupal"></section>
+    <article class="text-panel" style="margin-top:12px">
+      <div class="chart-title"><strong>Premio grupal</strong><span>simulacion inicial por bultos</span></div>
+      <ul class="notes" id="grupal-lectura"></ul>
+    </article>
   </section>
 
   <section class="paper-panel" id="panel-problematica">
@@ -173,7 +172,7 @@
 
 <script>
   const $ = id => document.getElementById(id);
-  const state = {activeTab:'resumen', loading:false, loadError:'', fechaDesde:'', fechaHasta:'', operacion:'PICKING', almacen:'TODOS', divisorHorario:'8', resumenRows:[], detalleResumenRows:[], detalleRows:[], problematicaRows:[], problematicaModes:{}, problematicaSets:{confirmados:[], analizados:[], pendientes:[]}, problematicaMode:'caida_inicio', problematicaView:'confirmados', problematicaSelected:0, sorts:{}, explicacion:null};
+  const state = {activeTab:'resumen', loading:false, loadError:'', fechaDesde:'', fechaHasta:'', operacion:'PICKING', almacen:'TODOS', divisorHorario:'6.5', resumenRows:[], detalleResumenRows:[], detalleRows:[], problematicaRows:[], problematicaModes:{}, problematicaSets:{confirmados:[], analizados:[], pendientes:[]}, problematicaMode:'caida_inicio', problematicaView:'confirmados', problematicaSelected:0, sorts:{}, explicacion:null};
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmt = value => new Intl.NumberFormat('es-AR', {maximumFractionDigits:2}).format(Number(value || 0));
   const money = value => '$ ' + fmt(value);
@@ -209,7 +208,7 @@
   function syncCombo(){
     state.operacion = $('operacion-select').value || 'PICKING';
     state.almacen = $('almacen-select').value || 'TODOS';
-    state.divisorHorario = $('divisor-select').value || '8';
+    state.divisorHorario = $('divisor-select').value || '6.5';
   }
   function comboParams(){
     syncCombo();
@@ -420,49 +419,6 @@
         }).join('')}
       </svg>`;
   }
-  function renderPremisaChart(k){
-    const escenario = state.divisorHorario === '6.5' ? '/6.5' : '/8';
-    const actual = Number(k.premio_actual || 0);
-    const horas = Number(k.premio_x_horas_sin_extras || 0);
-    const diff = actual - horas;
-    svgBars('chart-premisa', [
-      {label:'Actual sin extras', value:actual, money:true, cls:'bar-actual'},
-      {label:`Por horas ${escenario} sin extras`, value:horas, money:true, cls:'bar-hours'},
-      {label:'Diferencia actual - horas', value:Math.abs(diff), money:true, cls:diff < 0 ? 'bar-hours' : 'bar-actual'},
-    ], {height:230, left:230, label:'Premisa de ahorro'});
-    $('chart-premisa').insertAdjacentHTML('beforeend', `<ul class="notes" style="margin-top:8px"><li>${esc(diff < 0 ? `La premisa de ahorro no se cumple: sin extras, el metodo por horas paga ${money(Math.abs(diff))} mas que el actual recalculado.` : `Sin extras, el metodo por horas paga ${money(Math.abs(diff))} menos que el actual recalculado.`)}</li></ul>`);
-  }
-  function renderImpactoExtrasChart(k){
-    const escenario = state.divisorHorario === '6.5' ? '/6.5' : '/8';
-    const actual = Number(k.premio_anterior || 0) - Number(k.premio_actual || 0);
-    const horas = Number(k.premio_x_horas || 0) - Number(k.premio_x_horas_sin_extras || 0);
-    svgBars('chart-impacto-extras', [
-      {label:'Actual: caida al quitar extras', value:actual, money:true, cls:'bar-extra'},
-      {label:`Horas ${escenario}: caida al quitar extras`, value:horas, money:true, cls:'bar-extra'},
-    ], {height:190, left:250, label:'Impacto extras'});
-  }
-  function renderGanadorChart(rows){
-    const dataRows = rows || [];
-    const tol = .01;
-    const actual = dataRows.filter(r => Number(r.premio_actual || 0) > Number(r.premio_x_horas_sin_extras || 0) + tol).length;
-    const horas = dataRows.filter(r => Number(r.premio_x_horas_sin_extras || 0) > Number(r.premio_actual || 0) + tol).length;
-    const iguales = Math.max(0, dataRows.length - actual - horas);
-    const total = Math.max(1, dataRows.length);
-    const rowsChart = [
-      {label:'Actual paga mas', value:actual, cls:'bar-actual'},
-      {label:'Por horas paga mas', value:horas, cls:'bar-hours'},
-      {label:'Mismo pago', value:iguales, cls:'bar-neutral'},
-    ];
-    svgBars('chart-ganador', rowsChart, {height:170, left:210, label:'Quien paga mas'});
-    $('chart-ganador').insertAdjacentHTML('beforeend', `
-      <div class="winner-summary">
-        <div class="winner-cell"><div class="label">Actual mayor</div><strong>${esc(fmt(actual))}</strong><div class="kpi-foot">${esc(fmt(actual / total * 100))}% de legajo/dia</div></div>
-        <div class="winner-cell bad"><div class="label">Horas mayor</div><strong>${esc(fmt(horas))}</strong><div class="kpi-foot">${esc(fmt(horas / total * 100))}% de legajo/dia</div></div>
-        <div class="winner-cell neutral"><div class="label">Igual</div><strong>${esc(fmt(iguales))}</strong><div class="kpi-foot">${esc(fmt(iguales / total * 100))}% de legajo/dia</div></div>
-      </div>
-      <ul class="notes" style="margin-top:8px"><li>${esc('Cada caso es un legajo en un dia. Se compara Actual sin extras contra Por horas sin extras; no es cantidad de bultos ni ahorro total.')}</li></ul>
-    `);
-  }
   function pieSlicePath(cx, cy, r, startAngle, endAngle){
     const start = {
       x: cx + r * Math.cos(startAngle),
@@ -513,19 +469,76 @@
     renderPrizePie('chart-premio-actual-pie', rows, 'premio_anterior', 'Actual jornada con extras');
     renderPrizePie('chart-premio-horas-pie', rows, 'premio_x_horas', 'Metodo por horas con extras');
   }
+  function renderOperatorPrizeOverlap(rows){
+    const byLegajo = new Map();
+    (rows || []).forEach(row => {
+      const legajo = String(row.operario || '').trim();
+      if (!legajo) return;
+      const item = byLegajo.get(legajo) || {actual:false, horas:false};
+      item.actual = item.actual || Number(row.premio_anterior || 0) > .01;
+      item.horas = item.horas || Number(row.premio_x_horas || 0) > .01;
+      byLegajo.set(legajo, item);
+    });
+    const total = Math.max(1, byLegajo.size);
+    const values = [...byLegajo.values()];
+    const actual = values.filter(x => x.actual).length;
+    const horas = values.filter(x => x.horas).length;
+    function operatorPie(title, conPremio, label){
+      const sinPremio = Math.max(0, byLegajo.size - conPremio);
+      const pct = conPremio / total;
+      const cx = 150, cy = 118, r = 78;
+      const start = -Math.PI / 2;
+      const end = start + Math.PI * 2 * pct;
+      const premioPath = pct >= .9999
+        ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--green)"></circle>`
+        : pct <= .0001
+        ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--red)"></circle>`
+        : `<path d="${pieSlicePath(cx, cy, r, start, end)}" fill="var(--green)"></path><path d="${pieSlicePath(cx, cy, r, end, start + Math.PI * 2)}" fill="var(--red)"></path>`;
+      return `<article class="chart-panel">
+        <div class="chart-title"><strong>${esc(title)}</strong><span>operarios unicos</span></div>
+        <svg class="insight-svg" viewBox="0 0 520 250" role="img" aria-label="${esc(title)}">
+          ${premioPath}
+          <circle cx="${cx}" cy="${cy}" r="48" fill="var(--panel)"></circle>
+          <text class="value-label" x="${cx}" y="${cy-4}" text-anchor="middle" style="font-size:24px">${esc(fmt(pct * 100))}%</text>
+          <text class="axis-label" x="${cx}" y="${cy+18}" text-anchor="middle">cobra premio</text>
+          <rect x="300" y="72" width="16" height="16" fill="var(--green)"></rect>
+          <text class="axis-label" x="326" y="84">Cobran: ${esc(fmt(conPremio))}</text>
+          <rect x="300" y="110" width="16" height="16" fill="var(--red)"></rect>
+          <text class="axis-label" x="326" y="122">No cobran: ${esc(fmt(sinPremio))}</text>
+          <text class="axis-label" x="300" y="162">${esc(label)}</text>
+          <text class="axis-label" x="300" y="184">Base: ${esc(fmt(byLegajo.size))} operarios</text>
+        </svg>
+        <div class="pie-summary">
+          <div class="pie-cell"><div class="label">Operarios con premio</div><strong>${esc(fmt(conPremio))}</strong><div class="kpi-foot">${esc(fmt(pct * 100))}%</div></div>
+          <div class="pie-cell no"><div class="label">Operarios sin premio</div><strong>${esc(fmt(sinPremio))}</strong><div class="kpi-foot">${esc(fmt((1 - pct) * 100))}%</div></div>
+        </div>
+      </article>`;
+    }
+    $('operarios-premio-resumen').innerHTML = `
+      <div class="chart-title"><strong>Operarios con premio</strong><span>actual vs horas</span></div>
+      <div class="operator-pie-grid">
+        ${operatorPie('Metodo actual', actual, 'Actual jornada con extras')}
+        ${operatorPie('Metodo por horas', horas, `Horas ${state.divisorHorario === '6.5' ? '/6.5' : '/8'} con extras`)}
+      </div>`;
+  }
   function renderCaseCardsResumen(rows){
-    const cases = [...(rows || [])]
-      .map(r => ({...r, gap:Number(r.premio_x_horas || 0) - Number(r.premio_anterior || 0)}))
-      .sort((a,b) => b.gap - a.gap)
-      .slice(0,4);
-    if (!cases.length) { $('case-cards-resumen').innerHTML = svgEmpty(); return; }
-    $('case-cards-resumen').innerHTML = `<div class="case-card-grid">${cases.map(row => {
+    const withGap = [...(rows || [])].map(r => ({
+      ...r,
+      gapHoras:Number(r.premio_x_horas || 0) - Number(r.premio_anterior || 0),
+      gapActual:Number(r.premio_anterior || 0) - Number(r.premio_x_horas || 0),
+    }));
+    const actualGana = withGap.filter(r => r.gapActual > .01).sort((a,b) => b.gapActual - a.gapActual).slice(0,4);
+    const horasGana = withGap.filter(r => r.gapHoras > .01).sort((a,b) => b.gapHoras - a.gapHoras).slice(0,4);
+    if (!actualGana.length && !horasGana.length) { $('case-cards-resumen').innerHTML = svgEmpty(); return; }
+    function card(row, mode){
       const actual = Number(row.premio_anterior || 0);
       const horas = Number(row.premio_x_horas || 0);
       const max = Math.max(actual, horas, 1);
-      return `<article class="case-card ${row.gap <= 0 ? 'ok' : ''}" data-fecha="${esc(row.fecha)}" data-legajo="${esc(row.operario)}" title="Abrir detalle horario">
-        <div class="case-card-title"><strong>${esc(row.operario)}</strong><span class="pill ${row.gap > 0 ? 'bad' : ''}">${esc(row.fecha)}</span></div>
-        <div class="kpi-foot">Brecha horas con extras - actual jornada: <strong>${esc(money(row.gap))}</strong></div>
+      const gap = mode === 'actual' ? row.gapActual : row.gapHoras;
+      const title = mode === 'actual' ? 'Actual mucho mayor que horas' : 'Horas mucho mayor que actual';
+      return `<article class="case-card ${mode === 'actual' ? 'ok' : ''}" data-fecha="${esc(row.fecha)}" data-legajo="${esc(row.operario)}" title="Abrir detalle horario">
+        <div class="case-card-title"><strong>${esc(row.operario)}</strong><span class="pill ${mode === 'actual' ? '' : 'bad'}">${esc(row.fecha)}</span></div>
+        <div class="kpi-foot">${esc(title)}: <strong>${esc(money(gap))}</strong></div>
         <div class="mini-bars">
           <div class="mini-row"><span>Actual</span><div class="mini-track"><div class="mini-fill" style="width:${Math.max(2, actual/max*100)}%"></div></div><span>${esc(money(actual))}</span></div>
           <div class="mini-row"><span>Horas + ext.</span><div class="mini-track"><div class="mini-fill bad" style="width:${Math.max(2, horas/max*100)}%"></div></div><span>${esc(money(horas))}</span></div>
@@ -533,7 +546,13 @@
         <div class="kpi-foot" style="margin-top:8px">Bultos total ${esc(fmt(row.bultos))} - Bultos turno ${esc(fmt(row.bultosturno))} - Desc. ${esc(money(row.descuentos_total))}</div>
         <button class="secondary-cta case-action" data-action="case-detail" type="button">Ver detalle horario</button>
       </article>`;
-    }).join('')}</div>`;
+    }
+    $('case-cards-resumen').innerHTML = `
+      <div class="chart-title" style="margin-top:4px"><strong>Actual gana</strong><span>4 brechas mas grandes</span></div>
+      <div class="case-card-grid">${actualGana.map(row => card(row, 'actual')).join('') || '<div class="empty">Sin casos</div>'}</div>
+      <div class="chart-title" style="margin-top:14px"><strong>Horas gana</strong><span>4 brechas mas grandes</span></div>
+      <div class="case-card-grid">${horasGana.map(row => card(row, 'horas')).join('') || '<div class="empty">Sin casos</div>'}</div>
+    `;
     $('case-cards-resumen').querySelectorAll('.case-card').forEach(card => {
       card.onclick = () => cargarDetalleLegajo(card.dataset.fecha, card.dataset.legajo).catch(e => setStatus(e.message, true));
     });
@@ -547,11 +566,8 @@
   }
   function renderExecutiveCharts(data){
     const rows = data.rows || [];
-    const k = data.kpis || {};
-    renderPremisaChart(k);
-    renderImpactoExtrasChart(k);
-    renderGanadorChart(rows);
     renderPrizePies(rows);
+    renderOperatorPrizeOverlap(rows);
     renderCaseCardsResumen(rows);
   }
   function renderCriticalReading(data){
@@ -570,28 +586,15 @@
     const actualCeroHorasPaga = rows
       .filter(r => Number(r.premio_anterior || 0) <= .01 && Number(r.premio_x_horas || 0) > .01)
       .sort((a,b) => Number(b.premio_x_horas || 0) - Number(a.premio_x_horas || 0));
-    const topCero = actualCeroHorasPaga.slice(0,3).map(r => `${r.fecha} legajo ${r.operario} (${money(r.premio_x_horas)})`).join('; ');
-    const topBrecha = [...horasMayor]
-      .map(r => ({...r, gap:Number(r.premio_x_horas || 0) - Number(r.premio_anterior || 0)}))
-      .sort((a,b) => b.gap - a.gap)
-      .slice(0,3)
-      .map(r => `${r.fecha} legajo ${r.operario} (+${money(r.gap)})`).join('; ');
     const conclusion = brechaConExtras > 0
       ? `El pago por horas no aparece como una mejora economica natural: en el rango suma ${money(k.premio_x_horas)} contra ${money(k.premio_anterior)} del metodo actual, un sobrecosto neto de ${money(brechaConExtras)}.`
       : `El pago por horas muestra ahorro neto en el rango: suma ${money(k.premio_x_horas)} contra ${money(k.premio_anterior)} del metodo actual, una baja de ${money(Math.abs(brechaConExtras))}.`;
     $('interpretacion').innerHTML = [
       `<strong>Conclusion ejecutiva.</strong> ${conclusion}`,
-      `<strong>Escenario activo.</strong> El metodo horario mostrado usa escala ${escenario}: divide umbrales y premio de la escala diaria por ese factor.`,
-      `<strong>Lectura de fondo.</strong> El modelo actual compensa horas fuertes y flojas dentro de la jornada; el modelo horario paga picos buenos como premios independientes.`,
-      `<strong>Remate.</strong> Para que por horas no encarezca habria que sumar minimos, topes o elegibilidad; en la practica deja de ser un pago horario puro y pasa a ser un modelo hibrido.`,
-      `<strong>La premisa de ahorro no se sostiene.</strong> Con extras, el pago por horas queda ${signedMoney(brechaConExtras)} vs el pago actual.`,
-      `<strong>Comparativa de casos.</strong> Por horas paga menos en ${fmt(horasMenor.length)} casos (${fmt(horasMenor.length / casosBase * 100)}%), paga mas en ${fmt(horasMayor.length)} casos (${fmt(horasMayor.length / casosBase * 100)}%) e iguala en ${fmt(iguales)} casos (${fmt(iguales / casosBase * 100)}%).`,
-      `<strong>Comparativa de montos.</strong> Los casos con ahorro suman ${money(ahorroPotencial)} (${fmt(ahorroPotencial / montoBase * 100)}% del monto movido) y los casos con sobrecosto suman ${money(sobrecostoPotencial)} (${fmt(sobrecostoPotencial / montoBase * 100)}%).`,
-      `<strong>Sensibilidad /6.5.</strong> Con umbrales horarios mas altos y premio por hora tambien mas alto, el total con extras queda en ${money(k.sensibilidad_65_premio_x_horas || 0)} y los casos donde horas paga mas son ${fmt(k.sensibilidad_65_casos_horas_mayor || 0)}.`,
-      `<strong>No es solo un problema de extras.</strong> Sin extras, la brecha sigue en ${signedMoney(brechaSinExtras)} vs el actual recalculado.`,
-      `<strong>El horario premia picos buenos.</strong> Hay ${fmt(horasMayor.length)} casos legajo/dia donde por horas paga mas que la jornada.`,
-      `<strong>Jornada sin premio, horas con premio.</strong> Hay ${fmt(actualCeroHorasPaga.length)} casos con actual $0 y pago horario mayor a $0${topCero ? `: ${topCero}.` : '.'}`,
-      topBrecha ? `<strong>Casos de mayor impacto.</strong> ${topBrecha}.` : '<strong>Casos de mayor impacto.</strong> Sin brechas positivas en el rango.',
+      `<strong>Escenario activo.</strong> Escala ${escenario}: cambian umbrales y premio por hora; la base del metodo actual no cambia.`,
+      `<strong>Casos.</strong> Horas paga menos en ${fmt(horasMenor.length)} casos (${fmt(horasMenor.length / casosBase * 100)}%), mas en ${fmt(horasMayor.length)} (${fmt(horasMayor.length / casosBase * 100)}%) e iguala en ${fmt(iguales)}.`,
+      `<strong>Montos.</strong> Ahorros puntuales: ${money(ahorroPotencial)}. Sobrecostos puntuales: ${money(sobrecostoPotencial)}.`,
+      `<strong>Clave.</strong> Hay ${fmt(actualCeroHorasPaga.length)} casos con actual $0 y pago horario > $0; ahi falla la premisa de ahorro por promediar la jornada.`,
     ].map(x => `<li>${x}</li>`).join('');
   }
   function buildDetailStats(detailRows){
@@ -650,13 +653,136 @@
     const horasMayor = rows.filter(r => Number(r.premio_x_horas || 0) > Number(r.premio_anterior || 0) + .01).length;
     const eligibility = estimateEligibilitySavings(rows, detailRows);
     $('sugerencias').innerHTML = [
-      `Filtro >= 4 horas productivas: evitaria ${money(eligibility.horas.ahorro)} en ${fmt(eligibility.horas.casos)} casos.`,
-      `Filtro >= 50% bultos minimos diarios estimados: evitaria ${money(eligibility.bultos.ahorro)} en ${fmt(eligibility.bultos.casos)} casos.`,
-      `Regla especial: actual $0 y horas > $0 requiere elegibilidad previa (${fmt(actualCeroHorasPaga)} casos).`,
-      `Tope por baja cobertura: pago horario no supera referencia diaria.`,
-      `Control por turno/almacen antes de activar el cambio (${fmt(horasMayor)} casos con horas mayor).`,
-      `Piloto con umbrales y simulacion mensual antes de productivizar.`,
+      `Elegibilidad minima: >= 4 horas productivas evitaria ${money(eligibility.horas.ahorro)} en ${fmt(eligibility.horas.casos)} casos.`,
+      `Piso de volumen: >= 50% de bultos minimos diarios estimados evitaria ${money(eligibility.bultos.ahorro)} en ${fmt(eligibility.bultos.casos)} casos.`,
+      `Regla de control: actual $0 y horas > $0 requiere habilitacion previa (${fmt(actualCeroHorasPaga)} casos).`,
+      `Piloto mensual con topes por jornada antes de productivizar (${fmt(horasMayor)} casos donde horas paga mas).`,
     ].map(x => `<li>${esc(x)}</li>`).join('');
+  }
+  function groupBonusStats(detailRows=[]){
+    const divisor = Number(state.divisorHorario || 6.5);
+    const margin = .9;
+    const turnos = [
+      {key:'1', label:'Turno mañana'},
+      {key:'2', label:'Turno tarde'},
+      {key:'3', label:'Turno noche'},
+    ];
+    const turnoCode = value => {
+      const text = String(value || '').toUpperCase().trim();
+      if (text === '1' || text.includes('MA')) return '1';
+      if (text === '2' || text.includes('TARDE')) return '2';
+      if (text === '3' || text.includes('NOCHE')) return '3';
+      return text || 'SIN TURNO';
+    };
+    const paidScales = (detailRows || [])
+      .filter(row => Number(row.bultos_modulo || 0) > 0 && Number(row.premio_x_hora || 0) > 0 && Number(row.bultos_hora_min || 0) > 0)
+      .map(row => Number(row.bultos_hora_min || 0) * divisor);
+    const minDailyPaid = paidScales.length ? Math.min(...paidScales) : 0;
+    const byShift = new Map();
+    const uniquePeople = new Set();
+    (detailRows || []).forEach(row => {
+      const fecha = String(row.fecha_base || row.fecha || '').slice(0,10);
+      if (!fecha) return;
+      const turno = turnoCode(row.turno);
+      const key = `${fecha}|${turno}`;
+      const item = byShift.get(key) || {fecha, turno, bultos:0, personas:new Set()};
+      const bultos = Number(row.bultos_modulo || 0);
+      item.bultos += bultos;
+      const legajo = String(row.legajo || row.operario || '').trim();
+      if (bultos > 0 && legajo) {
+        item.personas.add(legajo);
+        uniquePeople.add(legajo);
+      }
+      byShift.set(key, item);
+    });
+    const shifts = [...byShift.values()].sort((a,b) => `${a.fecha}|${a.turno}`.localeCompare(`${b.fecha}|${b.turno}`)).map(item => {
+      const personas = item.personas.size;
+      const target = minDailyPaid * personas * margin;
+      return {...item, personas, target, cumple:item.bultos >= target && target > 0};
+    });
+    const targetByDay = new Map();
+    shifts.forEach(shift => {
+      const item = targetByDay.get(shift.fecha) || {target:0, bultos:0};
+      item.target += shift.target;
+      item.bultos += shift.bultos;
+      targetByDay.set(shift.fecha, item);
+    });
+    const targetMes = shifts.reduce((acc, shift) => acc + shift.target, 0);
+    const bultosMes = shifts.reduce((acc, shift) => acc + shift.bultos, 0);
+    const targetDiaProm = targetByDay.size ? [...targetByDay.values()].reduce((acc, day) => acc + day.target, 0) / targetByDay.size : 0;
+    const diasRango = dateList(state.fechaDesde, state.fechaHasta).length;
+    const diasConBase = new Set(shifts.map(shift => shift.fecha)).size;
+    const byTurno = {};
+    turnos.forEach(turno => {
+      const rows = shifts.filter(shift => shift.turno === turno.key);
+      const bultos = rows.reduce((acc, shift) => acc + shift.bultos, 0);
+      const dias = rows.length;
+      byTurno[turno.key] = {
+        ...turno,
+        legajos:dias ? rows.reduce((acc, shift) => acc + shift.personas, 0) / dias : 0,
+        bultos,
+        dias,
+        promBultosDia:dias ? bultos / dias : 0,
+        cumplen:rows.filter(shift => shift.cumple).length,
+      };
+    });
+    const legajosDiaProm = targetByDay.size ? shifts.reduce((acc, shift) => acc + shift.personas, 0) / targetByDay.size : 0;
+    return {divisor, margin, minDailyPaid, shifts, uniquePeople:uniquePeople.size, legajosDiaProm, targetMes, bultosMes, targetDiaProm, diasRango, diasConBase, byTurno, turnos};
+  }
+  function renderPremioGrupal(){
+    if (state.almacen === 'TODOS') {
+      $('grupal-parametros').innerHTML = '';
+      $('kpis-grupal').innerHTML = [
+        `<div class="group-kpi-row"><div class="group-row-title">Premio grupal</div>${[
+          kpi('Almacen requerido', 'Seleccionar', 'El premio grupal debe evaluarse por almacen/sector y turno, no con TODOS.', 'bad'),
+          kpi('Target bultos dia', '-', 'Pendiente de seleccion de almacen.'),
+          kpi('Target bultos mes', '-', 'Pendiente de seleccion de almacen.'),
+        ].join('')}</div>`,
+      ].join('');
+      $('grupal-lectura').innerHTML = [
+        'Selecciona un almacen/sector especifico para evaluar premio grupal.',
+        'No se calcula con TODOS porque mezcla objetivos, dotaciones y realidades operativas distintas.',
+        'La evaluacion debe hacerse por almacen/sector y turno para que el target y el reparto sean defendibles.',
+      ].map(x => `<li>${esc(x)}</li>`).join('');
+      return;
+    }
+    const stats = groupBonusStats(state.detalleRows || []);
+    $('grupal-parametros').innerHTML = [
+      `<div class="group-param"><div class="label">Bultos minimos a realizar</div><strong>${esc(fmt(stats.minDailyPaid))}</strong><div class="kpi-foot">Primer nivel con pago > 0, sin horas extra</div></div>`,
+      `<div class="group-param"><div class="label">% margen</div><strong>90%</strong><div class="kpi-foot">Factor aplicado al objetivo</div></div>`,
+    ].join('');
+    const totalRow = `<div class="group-kpi-row"><div class="group-row-title">Totales</div>${[
+      kpi('Cantidad legajos', fmt(stats.legajosDiaProm), 'Promedio diario de personas con bultos de turno > 0.'),
+      kpi('Bultos target dia', fmt(stats.targetDiaProm), 'Promedio diario de la suma de targets por turno.', 'warn'),
+      kpi('Bultos target mes', fmt(stats.targetMes), `Suma targets por turno. Bultos turno reales: ${fmt(stats.bultosMes)}.`, stats.bultosMes >= stats.targetMes ? 'ok' : 'bad'),
+    ].join('')}</div>`;
+    const turnoRows = stats.turnos.map(turno => {
+      const item = stats.byTurno[turno.key] || {legajos:0, promBultosDia:0, cumplen:0, dias:0};
+      return `<div class="group-kpi-row"><div class="group-row-title">${esc(turno.label)}</div>${[
+        kpi('Cantidad legajos', fmt(item.legajos), 'Promedio diario de personas con bultos de turno > 0.'),
+        kpi('Prom. bultos x dia', fmt(item.promBultosDia), 'Promedio de bultos de turno por dia/turno.'),
+        kpi('Dias sobre target', `${fmt(item.cumplen)} / ${fmt(item.dias)}`, 'Dias del turno que superaron su target.', item.cumplen >= item.dias && item.dias ? 'ok' : item.cumplen ? 'warn' : 'bad'),
+      ].join('')}</div>`;
+    }).join('');
+    $('kpis-grupal').innerHTML = totalRow + turnoRows;
+    $('grupal-lectura').innerHTML = [
+      `Objetivo por turno = minimo nivel pago (${fmt(stats.minDailyPaid)} bultos) x personas con bultos de turno > 0 x 90%.`,
+      `Para el bono grupal no se consideran legajos ni bultos de horas extra; solo bultos dentro del turno/modulo.`,
+      `Objetivo mensual = suma de objetivos por turno, no un numero fijo: ${fmt(stats.targetMes)} bultos para el rango actual.`,
+      `Base evaluada: ${fmt(stats.diasConBase)} de ${fmt(stats.diasRango)} dias del rango seleccionado.`,
+      `Esta vista todavia no reparte pesos; solo valida si existe base operativa para habilitar un bono grupal por bultos.`,
+    ].map(x => `<li>${esc(x)}</li>`).join('');
+  }
+  async function loadPremioGrupal(){
+    if (($('almacen-select').value || 'TODOS') === 'TODOS') {
+      $('almacen-select').value = 'SECOS + NOA';
+      syncCombo();
+      state.detalleRows = [];
+      await consultarRango(false);
+      return;
+    }
+    if (!state.detalleRows.length) state.detalleRows = await loadDetalleRowsForCurrentRange();
+    renderPremioGrupal();
   }
   async function ensureCache(){
     return consultarRango(false);
@@ -699,6 +825,7 @@
         state.loadError = '';
         state.detalleRows = await loadDetalleRowsForCurrentRange();
         renderResumen(data, state.detalleRows);
+        if (state.activeTab === 'grupal') renderPremioGrupal();
         setStatus(`Rango listo desde cache. Dias: ${cobertura.dias || 0}, desde Oracle: 0, ya cacheados: ${cobertura.dias_cache || 0}.`);
         return true;
       }
@@ -728,6 +855,7 @@
       state.loadError = '';
       state.detalleRows = await loadDetalleRowsForCurrentRange();
       renderResumen(data, state.detalleRows);
+      if (state.activeTab === 'grupal') renderPremioGrupal();
       const m = data.meta || {};
       setStatus(`Rango listo desde cache. Dias: ${m.dias || 0}, desde Oracle: ${m.dias_oracle || 0}, ya cacheados: ${m.dias_cache || 0}.`);
       return true;
@@ -742,7 +870,7 @@
     renderResumen(data, state.detalleRows);
   }
   async function loadDetalleRowsForCurrentRange(){
-    const params = qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...comboParams()});
+    const params = qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...comboParams(), limit:0});
     const detailData = await api('/api/analisis-premio-productividad/detalle-cache?' + params);
     return detailData.rows || [];
   }
@@ -761,12 +889,9 @@
       kpi('Actual jornada', money(k.premio_anterior), `Pago real neto del modulo. Base: ${footTotal}`),
       kpi('Actual sin extras', money(k.premio_actual), `Recalcula escala diaria solo con bultos del turno. Cae ${money(impactoExtraActual)} (${pctDiff(k.premio_anterior, impactoExtraActual)}).`, 'warn'),
       kpi('Extras en metodo actual', money(impactoExtraActual), `Actual jornada - Actual sin extras. Mide cuanto suma la produccion fuera del turno. ${footExtra}`, impactoExtraActual > 0 ? 'bad' : 'ok'),
-      kpi(`Actual vs horas ${escenario}`, signedMoney(brechaConExtras), `Actual jornada - Horas con extras ${escenario}. Negativo significa que el metodo por horas paga mas.`, brechaConExtras < 0 ? 'bad' : 'ok'),
       kpi(`Horas con extras ${escenario}`, money(k.premio_x_horas), `Suma premios por hora y aplica el mismo descuento monetario. Vs actual: ${signedMoney(-brechaConExtras)}.`, brechaConExtras < 0 ? 'bad' : 'ok'),
       kpi(`Horas sin extras ${escenario}`, money(k.premio_x_horas_sin_extras), `Solo horas dentro del turno. Vs actual sin extras: ${signedMoney(-brechaSinExtras)}.`, brechaSinExtras < 0 ? 'bad' : 'ok'),
       kpi(`Extras en metodo horario ${escenario}`, money(impactoExtraHoras), 'Horas con extras - Horas sin extras. Mide cuanto suman los tramos fuera del turno.', impactoExtraHoras > 0 ? 'warn' : 'ok'),
-      kpi(`Actual vs horas sin extras ${escenario}`, signedMoney(brechaSinExtras), `Actual sin extras - Horas sin extras. Negativo significa que el metodo por horas paga mas. ${footTurno}`, brechaSinExtras < 0 ? 'bad' : 'ok'),
-      kpi('Sensibilidad /6.5', money(k.sensibilidad_65_premio_x_horas || 0), `Contra actual jornada: ${signedMoney(-Number(k.sensibilidad_65_diferencia_x_horas || 0))}. Casos donde horas paga mas: ${fmt(k.sensibilidad_65_casos_horas_mayor || 0)}.`, Number(k.sensibilidad_65_diferencia_x_horas || 0) < 0 ? 'bad' : 'warn'),
     ].join('');
     state.resumenRows = data.rows || [];
     renderExecutiveCharts(data);
@@ -1575,7 +1700,7 @@
       .paper-header,.filters,.status,.chart-panel,.text-panel,.kpi-cell,.data-panel,.modal-head,.modal-panel{break-inside:avoid;box-shadow:none!important}
       .paper-tabs,.header-right,.tool-row,button,.paper-link,.logout-btn,.primary-cta,.secondary-cta,.icon-btn{display:none!important}
       .paper-panel{display:block!important}
-      .kpi-row{grid-template-columns:repeat(4,1fr)!important;gap:8px!important;margin:8px 0!important}
+      .kpi-row{grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin:8px 0!important}
       .executive-grid,.dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin-top:8px!important}
       .executive-wide{grid-column:1/-1!important}
       .chart-panel,.text-panel{min-height:0!important;padding:9px!important}
@@ -1639,6 +1764,7 @@
   async function loadTab(tab=state.activeTab){
     state.activeTab = tab; setStatus('Leyendo desde SQLite/cache...');
     if (tab === 'resumen') await loadResumen();
+    if (tab === 'grupal') await loadPremioGrupal();
     if (tab === 'problematica') await loadProblematica();
     if (tab === 'detalle') await loadDetalle();
     if (tab === 'cache') await loadCache();

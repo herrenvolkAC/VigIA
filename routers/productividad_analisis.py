@@ -1078,38 +1078,199 @@ def query_productive_db_online(fecha_desde: str, fecha_hasta: str) -> list[dict[
     )
 
 
-QUERY_DAILY_PICKING_REAL = """
-WITH TODOS AS (
+QUERY_DAILY_PRODUCTIVIDAD_RAW = """
+WITH LEGAJOS AS (
+  SELECT DISTINCT COPECREA AS LEGAJO
+  FROM f132hist A
+  WHERE A.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+    AND A.FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+    AND CDESCRIP IN (
+      'Picking',
+      'GUARADO PALETS ENTRADA',
+      'EXTRACCION DE REAPROS',
+      'EXTRACCION TRASPASOS',
+      'SURTIDO P.COMPLETOS',
+      'REVISION PALETS ENTRADA'
+    )
+),
+mdiv AS (
   SELECT
-    CASE
-      WHEN SUB1.CDIVISIO = 1 OR SUB1.CDIVISIO = 3 THEN 'SECOS'
-      WHEN SUB1.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
-      WHEN SUB1.CDIVISIO = 6 THEN 'NOA'
-      ELSE 'OTROS'
-    END AS ALMACEN,
-    h.QCANTIDA AS BULTOS,
-    l.LEGAJO
-  FROM f132hist h
-  LEFT JOIN PV_LEGAJO l
-    ON h.COPECREA = l.legajo
+    s.CREFEREN,
+    CASE d.CDIVISIO
+      WHEN 1 THEN 'SECOS'
+      WHEN 2 THEN 'REFRIGERADOS'
+      WHEN 6 THEN 'NOA'
+      WHEN 4 THEN 'REFRIGERADOS'
+    END AS ALMACEN
+  FROM f602asec s
+  JOIN F601SECT d
+    ON d.CNSECTOR = s.CNSECTOR
+   AND s.CALMACEN = d.CALMACEN
+  WHERE s.CALMACEN = '93'
+),
+PRE AS (
+  SELECT
+    b.*,
+    NVL(
+      CASE SUB1.CDIVISIO
+        WHEN 1 THEN 'SECOS'
+        WHEN 2 THEN 'REFRIGERADOS'
+        WHEN 6 THEN 'NOA'
+        WHEN 4 THEN 'REFRIGERADOS'
+      END,
+      c.ALMACEN
+    ) AS ALMACEN
+  FROM LEGAJOS A
+  JOIN f132hist B
+    ON A.LEGAJO = B.COPECREA
   LEFT JOIN (
-    SELECT DISTINCT CDIVISIO, CZONALMA
+    SELECT DISTINCT CZONALMA, CDIVISIO
     FROM VW_UBICACIONES_DIVISION
   ) SUB1
-    ON SUB1.CZONALMA = h.CZONAORI
-  WHERE h.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
-    AND h.FCREAREG <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
-    AND h.CDESCRIP IN ('Picking')
-    AND h.QCANTIDA > 0
+    ON SUB1.CZONALMA = B.CZONAORI
+  LEFT JOIN mdiv c
+    ON c.CREFEREN = B.CREFEREN
+  WHERE B.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+    AND B.FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+)
+SELECT A.*
+FROM PRE A
+ORDER BY FCREAREG
+"""
+
+
+def query_productive_db_daily_productividad_raw(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_PRODUCTIVIDAD_RAW,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+QUERY_DAILY_PICKING_REAL = """
+WITH prm AS (
+  SELECT
+    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
+    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to,
+    15 AS tol_min
+  FROM dual
+),
+leg AS (
+  SELECT DISTINCT h.COPECREA
+  FROM f132hist h
+  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
+    AND h.FCREAREG <  (SELECT p_to FROM prm)
+    AND h.CDESCRIP = 'Picking'
+),
+bas AS (
+  SELECT
+    h.COPECREA,
+    h.FCREAREG,
+    h.CDESCRIP,
+    h.QCANTIDA,
+    h.CZONAORI,
+    LAG(h.FCREAREG) OVER (
+      PARTITION BY h.COPECREA
+      ORDER BY h.FCREAREG, h.ROWID
+    ) AS f_prev,
+    pv.TURNO AS tur_pv
+  FROM f132hist h
+  JOIN leg l
+    ON l.COPECREA = h.COPECREA
+  LEFT JOIN PV_DIA_LABORAL pv
+    ON TO_CHAR(pv.LEGAJO) = TO_CHAR(h.COPECREA)
+   AND pv.FECHA = TO_NUMBER(TO_CHAR(h.FCREAREG,'YYYYMMDD'))
+  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
+    AND h.FCREAREG <  (SELECT p_to FROM prm) + INTERVAL '1' DAY
+),
+enr AS (
+  SELECT
+    b.COPECREA,
+    b.FCREAREG,
+    b.CDESCRIP,
+    b.QCANTIDA,
+    b.CZONAORI,
+    b.f_prev,
+    CASE
+      WHEN b.f_prev IS NULL THEN 0
+      ELSE (b.FCREAREG - b.f_prev) * 86400
+    END AS dur_s,
+    CASE
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('06:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '060000'
+       AND b.tur_pv = 1 THEN 'TM'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('14:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000'
+       AND b.tur_pv = 2 THEN 'TT'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('22:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000'
+       AND b.tur_pv = 3 THEN 'TN'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '060000'
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000' THEN 'TM'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '140000'
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000' THEN 'TT'
+      ELSE 'TN'
+    END AS turno,
+    CASE
+      WHEN b.tur_pv = 1 THEN 'TM'
+      WHEN b.tur_pv = 2 THEN 'TT'
+      WHEN b.tur_pv = 3 THEN 'TN'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '060000'
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000' THEN 'TM'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '140000'
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000' THEN 'TT'
+      ELSE 'TN'
+    END AS turno_base,
+    CASE
+      WHEN UPPER(TRIM(b.CZONAORI)) = 'T06' THEN 4
+      WHEN b.CZONAORI IS NOT NULL
+       AND INSTR(UPPER(TRIM(b.CZONAORI)), 'T') > 0 THEN 2
+      WHEN UPPER(TRIM(b.CZONAORI)) IN ('N01','N02','N04','N05','N07','N09','N10','N15') THEN 6
+      ELSE 1
+    END AS division
+  FROM bas b
+),
+ven AS (
+  SELECT e.*
+  FROM enr e
+  WHERE e.FCREAREG >= (SELECT p_from FROM prm)
+    AND e.FCREAREG <  (SELECT p_to FROM prm)
+),
+agt AS (
+  SELECT
+    m.COPECREA,
+    m.turno,
+    m.turno_base,
+    m.division,
+    SUM(m.QCANTIDA) AS bultos_picking,
+    SUM(m.dur_s) / 3600 AS hs_picking
+  FROM ven m
+  WHERE m.CDESCRIP = 'Picking'
+  GROUP BY
+    m.COPECREA,
+    m.turno,
+    m.turno_base,
+    m.division
 )
 SELECT
+  CASE
+    WHEN t.division = 1 THEN 'SECOS'
+    WHEN t.division = 2 THEN 'REFRIGERADOS'
+    WHEN t.division = 4 THEN 'REFRIGERADOS'
+    WHEN t.division = 6 THEN 'NOA'
+  END AS ALMACEN,
+  t.COPECREA,
+  t.turno,
+  t.turno_base,
+  t.bultos_picking,
+  t.hs_picking
+FROM agt t
+WHERE t.turno = t.turno_base
+  AND t.division IN (1, 2, 4, 6)
+ORDER BY
   ALMACEN,
-  SUM(BULTOS) AS BULTOS,
-  COUNT(DISTINCT LEGAJO) AS LEGAJOS,
-  ROUND(SUM(BULTOS) / COUNT(DISTINCT LEGAJO), 2) AS PRODUCCION
-FROM TODOS
-WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
-GROUP BY ALMACEN
+  t.COPECREA,
+  t.turno
 """
 
 
@@ -1185,9 +1346,9 @@ SELECT
     WHEN a.CDIVISIO = 6 THEN 'NOA'
     ELSE 'OTROS'
   END AS ALMACEN,
-  COUNT(DISTINCT a.CNUVIAJE) AS VIAJES,
+  COUNT(DISTINCT a.HOJARUTA) AS VIAJES,
   COUNT(DISTINCT a.CARGADOR) AS CARGADORES,
-  ROUND(COUNT(DISTINCT a.CNUVIAJE) / NULLIF(COUNT(DISTINCT a.CARGADOR), 0), 2) AS PRODUCCION
+  ROUND(COUNT(DISTINCT a.HOJARUTA) / NULLIF(COUNT(DISTINCT a.CARGADOR), 0), 2) AS PRODUCCION
 FROM f922traf a
 WHERE a.FECIERRE >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
   AND a.FECIERRE <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
@@ -1202,9 +1363,38 @@ END
 """
 
 
+QUERY_DAILY_DESPACHO_RAW = """
+SELECT
+  CASE
+    WHEN a.CDIVISIO = 1 OR a.CDIVISIO = 3 THEN 'SECOS'
+    WHEN a.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
+    WHEN a.CDIVISIO = 6 THEN 'NOA'
+    ELSE 'OTROS'
+  END AS ALMACEN,
+  a.HOJARUTA,
+  a.CARGADOR,
+  a.FECIERRE,
+  a.CDIVISIO,
+  a.CALMACEN
+FROM f922traf a
+WHERE a.FECIERRE >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+  AND a.FECIERRE <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+  AND a.CALMACEN = '93'
+ORDER BY ALMACEN, a.CARGADOR, a.FECIERRE, a.HOJARUTA
+"""
+
+
 def query_productive_db_daily_despacho_real(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_DAILY_DESPACHO_REAL,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
+def query_productive_db_daily_despacho_raw(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_DAILY_DESPACHO_RAW,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )
@@ -1561,49 +1751,156 @@ ORDER BY ALMACEN, h.COPECREA, h.FCREAREG, h.CNUPALET
 
 
 QUERY_DAILY_CLARK_REAL = """
-WITH mdiv AS (
+WITH prm AS (
+  SELECT
+    TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS') AS p_from,
+    TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS') AS p_to,
+    15 AS tol_min
+  FROM dual
+),
+mdiv AS (
   SELECT
     s.CREFEREN,
-    CASE d.CDIVISIO
-      WHEN 1 THEN 'SECOS'
-      WHEN 2 THEN 'REFRIGERADOS'
-      WHEN 4 THEN 'REFRIGERADOS'
-      WHEN 6 THEN 'NOA'
-      ELSE 'OTROS'
-    END AS ALMACEN
+    d.CDIVISIO
   FROM f602asec s
   JOIN F601SECT d
     ON d.CNSECTOR = s.CNSECTOR
 ),
-base AS (
-  SELECT
-    (
-      SELECT b.ALMACEN
-      FROM mdiv b
-      WHERE h.CREFEREN = b.CREFEREN
-        AND ROWNUM = 1
-    ) AS ALMACEN,
-    h.COPECREA AS LEGAJO,
-    h.CNUPALET AS PALLET
+leg AS (
+  SELECT DISTINCT h.COPECREA
   FROM f132hist h
-  WHERE h.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
-    AND h.FCREAREG <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
+    AND h.FCREAREG <  (SELECT p_to FROM prm)
     AND h.CDESCRIP IN (
       'GUARADO PALETS ENTRADA',
       'EXTRACCION DE REAPROS',
       'EXTRACCION TRASPASOS',
       'SURTIDO P.COMPLETOS'
     )
-    AND h.CNUPALET > 0
+),
+bas AS (
+  SELECT
+    h.COPECREA,
+    h.FCREAREG,
+    h.CDESCRIP,
+    h.CNUPALET,
+    h.CREFEREN,
+    pv.TURNO AS tur_pv
+  FROM f132hist h
+  JOIN leg l
+    ON l.COPECREA = h.COPECREA
+  LEFT JOIN PV_DIA_LABORAL pv
+    ON TO_CHAR(pv.LEGAJO) = TO_CHAR(h.COPECREA)
+   AND pv.FECHA = TO_NUMBER(TO_CHAR(h.FCREAREG,'YYYYMMDD'))
+  WHERE h.FCREAREG >= (SELECT p_from FROM prm)
+    AND h.FCREAREG <  (SELECT p_to FROM prm)
+),
+enr AS (
+  SELECT
+    b.COPECREA,
+    b.FCREAREG,
+    b.CDESCRIP,
+    b.CNUPALET,
+    b.CREFEREN,
+    CASE
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('06:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '060000'
+       AND b.tur_pv = 1 THEN 'TM'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('14:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000'
+       AND b.tur_pv = 2 THEN 'TT'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= TO_CHAR(TO_DATE('22:00:00','HH24:MI:SS') - NUMTODSINTERVAL((SELECT tol_min FROM prm),'MINUTE'),'HH24MISS')
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000'
+       AND b.tur_pv = 3 THEN 'TN'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '060000'
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '140000' THEN 'TM'
+      WHEN TO_CHAR(b.FCREAREG,'HH24MISS') >= '140000'
+       AND TO_CHAR(b.FCREAREG,'HH24MISS') <  '220000' THEN 'TT'
+      ELSE 'TN'
+    END AS turno,
+    m.CDIVISIO AS division
+  FROM bas b
+  LEFT JOIN mdiv m
+    ON m.CREFEREN = b.CREFEREN
+),
+ven AS (
+  SELECT
+    e.*,
+    CASE
+      WHEN e.turno = 'TM'
+       AND TO_CHAR(e.FCREAREG,'HH24MISS') < '060000'
+      THEN TRUNC(e.FCREAREG)
+      ELSE TRUNC(e.FCREAREG - INTERVAL '6' HOUR)
+    END AS dia_op
+  FROM enr e
+  WHERE e.FCREAREG >= (SELECT p_from FROM prm)
+    AND e.FCREAREG <  (SELECT p_to FROM prm)
+),
+seq AS (
+  SELECT
+    v.*,
+    LAG(v.FCREAREG) OVER (
+      PARTITION BY v.COPECREA,
+        CASE
+          WHEN v.turno = 'TM' AND TO_CHAR(v.FCREAREG,'HH24MISS') < '060000' THEN TRUNC(v.FCREAREG)
+          ELSE TRUNC(v.FCREAREG - INTERVAL '6' HOUR)
+        END,
+        v.turno
+      ORDER BY v.FCREAREG, v.CDESCRIP, v.CNUPALET, v.CREFEREN
+    ) AS f_prev_turno
+  FROM ven v
+),
+dur AS (
+  SELECT
+    s.*,
+    CASE
+      WHEN s.f_prev_turno IS NULL THEN 0
+      ELSE (s.FCREAREG - s.f_prev_turno) * 86400
+    END AS dur_s_turno
+  FROM seq s
+),
+clk AS (
+  SELECT *
+  FROM dur
+  WHERE CDESCRIP IN (
+    'GUARADO PALETS ENTRADA',
+    'EXTRACCION DE REAPROS',
+    'EXTRACCION TRASPASOS',
+    'SURTIDO P.COMPLETOS'
+  )
+),
+agt AS (
+  SELECT
+    m.COPECREA,
+    m.turno,
+    m.division,
+    COUNT(m.CNUPALET) AS pallets_totales,
+    SUM(m.dur_s_turno) / 3600 AS hs_clark_total,
+    COUNT(CASE WHEN m.CDESCRIP = 'SURTIDO P.COMPLETOS' THEN m.CNUPALET END) AS pallets_tot_surtido
+  FROM clk m
+  GROUP BY
+    m.COPECREA,
+    m.turno,
+    m.division
 )
 SELECT
+  CASE
+    WHEN t.division = 1 THEN 'SECOS'
+    WHEN t.division = 2 THEN 'REFRIGERADOS'
+    WHEN t.division = 4 THEN 'REFRIGERADOS'
+    WHEN t.division = 6 THEN 'NOA'
+  END AS ALMACEN,
+  t.COPECREA,
+  t.turno,
+  t.pallets_totales,
+  t.hs_clark_total,
+  t.pallets_tot_surtido
+FROM agt t
+WHERE t.division IN (1, 2, 4, 6)
+ORDER BY
   ALMACEN,
-  COUNT(DISTINCT LEGAJO) AS LEGAJOS,
-  COUNT(PALLET) AS PALLETS,
-  ROUND(COUNT(PALLET) / NULLIF(COUNT(DISTINCT LEGAJO), 0), 2) AS PRODUCCION
-FROM base
-WHERE ALMACEN IN ('SECOS', 'REFRIGERADOS', 'NOA')
-GROUP BY ALMACEN
+  t.COPECREA,
+  t.turno
 """
 
 
@@ -2200,13 +2497,25 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         query_key = "historia_actividad_operaciones"
     elif (
         "F132HIST" in normalized_query
+        and "VW_UBICACIONES_DIVISION" in normalized_query
+        and "LEGAJOS AS" in normalized_query
+        and "CDIVISIO" in normalized_query
+        and "SELECT A.* FROM PRE A" in normalized_query
+    ):
+        query_key = "daily_productividad_raw"
+    elif (
+        "F132HIST" in normalized_query
         and "CDESCRIP" in normalized_query
         and "PICKING" in normalized_query
         and (
             "SUM(QCANTIDA) AS BULTOS" in normalized_query
             or "SUM(BULTOS) AS BULTOS" in normalized_query
+            or "BULTOS_PICKING" in normalized_query
         )
-        and "VW_UBICACIONES_DIVISION" in normalized_query
+        and (
+            "VW_UBICACIONES_DIVISION" in normalized_query
+            or "HS_PICKING" in normalized_query
+        )
     ):
         query_key = "daily_picking_real"
     elif (
@@ -2218,8 +2527,17 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         query_key = "daily_recepcion_real"
     elif (
         "F922TRAF" in normalized_query
+        and "A.HOJARUTA" in normalized_query
+        and "A.CARGADOR" in normalized_query
+        and "A.FECIERRE" in normalized_query
+        and "COUNT(DISTINCT" not in normalized_query
+        and "CALMACEN = '93'" in normalized_query
+    ):
+        query_key = "daily_despacho_raw"
+    elif (
+        "F922TRAF" in normalized_query
         and "COUNT(DISTINCT" in normalized_query
-        and "CNUVIAJE" in normalized_query
+        and "HOJARUTA" in normalized_query
         and "CARGADOR" in normalized_query
         and "CALMACEN = '93'" in normalized_query
     ):
@@ -2253,7 +2571,11 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     elif (
         "F601SECT" in normalized_query
         and "GUARADO PALETS ENTRADA" in normalized_query
-        and "COUNT(PALLET) AS PALLETS" in normalized_query
+        and (
+            "COUNT(PALLET) AS PALLETS" in normalized_query
+            or "PALLETS_TOT_SURTIDO" in normalized_query
+            or "HS_CLARK_TOTAL" in normalized_query
+        )
     ):
         query_key = "daily_clark_real"
     elif (
@@ -2262,6 +2584,12 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         and "PALLETS_DISTINTOS" in normalized_query
     ):
         query_key = "daily_clark_real"
+    elif (
+        "P505STPA" in normalized_query
+        and "F209CONV" in normalized_query
+        and "SUM(P505.QSTKFISI * F209.QCOECONV) AS UNIDADES" in normalized_query
+    ):
+        query_key = "stock_cd"
     elif (
         "F132HIST_HIST" in normalized_query
         and "SOURCE_TABLE" in normalized_query

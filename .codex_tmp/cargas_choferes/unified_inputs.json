@@ -1,0 +1,6401 @@
+{
+  "latestBatchId": 20,
+  "mapPath": "C:\\Users\\207189\\Downloads\\MAPA DE PLANIFICACIONES ACTUALIZADO (1).xlsx",
+  "templatePath": "\\\\redcoto.com.ar\\patagonia\\CD_Automatizaciones\\Carga PHDT\\ExcelBase\\Ingenieria.xlsx",
+  "units": [
+    {
+      "filename": "DEPOSITO - SECOS - ARMADO DE SECOS - ARMADO SECOS ZONA 1 + ARMADO SECOS - ZONA 2.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "SECOS",
+        "ARMADO DE SECOS"
+      ],
+      "shapeId": 12,
+      "codes": [
+        "10930351",
+        "10930821"
+      ],
+      "rows": [
+        {
+          "legajo": "69338",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "157756",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "174227",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "175654",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "187401",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "190368",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "192187",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "195120",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "198106",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "198633",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "198872",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "198873",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "199093",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "199408",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "203640",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "203679",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "206099",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "206105",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "206770",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207010",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207033",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207036",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207041",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207399",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207657",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207658",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207662",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207686",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207710",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207731",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "207735",
+          "idGerencia": "10930001",
+          "idUo": "10930351"
+        },
+        {
+          "legajo": "124819",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "185590",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "192150",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "194041",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "198635",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "203612",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "203637",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206122",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206147",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206694",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206696",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206711",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206714",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206716",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206718",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206768",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "206788",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "207009",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "207056",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "207660",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "207680",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        },
+        {
+          "legajo": "207712",
+          "idGerencia": "10930001",
+          "idUo": "10930821"
+        }
+      ],
+      "legajos": 53
+    },
+    {
+      "filename": "DEPOSITO - NO ALIMENTOS - ARMADO DE NO ALIMENTOS - ARMADO NO ALIMENTOS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "NO ALIMENTOS",
+        "ARMADO DE NO ALIMENTOS"
+      ],
+      "shapeId": 93,
+      "codes": [
+        "10931321"
+      ],
+      "rows": [
+        {
+          "legajo": "190367",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "190888",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "190890",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "192151",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "195121",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "196375",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "197556",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "198016",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "198019",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "198673",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "199094",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "199095",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "203619",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "206101",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "206118",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "206120",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "206145",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "206693",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "206697",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "206776",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "206815",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "207397",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "207425",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        },
+        {
+          "legajo": "207481",
+          "idGerencia": "10930001",
+          "idUo": "10931321"
+        }
+      ],
+      "legajos": 24
+    },
+    {
+      "filename": "DEPOSITO - REFRIGERADOS - ARMADO Y GUARDADO DE REFRIGERADOS - OTRAS CÁMARAS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "REFRIGERADOS",
+        "ARMADO Y GUARDADO DE REFRIGERADOS"
+      ],
+      "shapeId": 151,
+      "codes": [
+        "10930533"
+      ],
+      "rows": [
+        {
+          "legajo": "11922",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "69557",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "69885",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "80197",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "116676",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "157105",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "166110",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "170347",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "171027",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "185589",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "187157",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "187263",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "189496",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "192735",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "195116",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "195117",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "195580",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "196370",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "198108",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "198671",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "198874",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "198876",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "203576",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "203690",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "206121",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "206130",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "206264",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "206265",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207015",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207038",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207402",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207420",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207453",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207479",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207656",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207659",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207681",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207683",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207684",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        },
+        {
+          "legajo": "207687",
+          "idGerencia": "10930001",
+          "idUo": "10930533"
+        }
+      ],
+      "legajos": 40
+    },
+    {
+      "filename": "STAFF - CONTROL DE PROCESOS - CONTROLADORES DE SECOS NOA - CONTROLADORES SECOS - NOA.xlsx",
+      "branch": [
+        "STAFF",
+        "CONTROL DE PROCESOS",
+        "CONTROLADORES DE SECOS/NOA"
+      ],
+      "shapeId": 224,
+      "codes": [
+        "10930643"
+      ],
+      "rows": [
+        {
+          "legajo": "5334",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "7029",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "8902",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "9702",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "35623",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "56964",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "66463",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "69332",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "99216",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "99898",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "109209",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "109210",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "114414",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "114841",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "116650",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "116668",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "118352",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "121559",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "121587",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "121602",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "124610",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "134952",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "134958",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "134995",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "135058",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "135089",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "153003",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "154285",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        },
+        {
+          "legajo": "173486",
+          "idGerencia": "10930004",
+          "idUo": "10930643"
+        }
+      ],
+      "legajos": 29
+    },
+    {
+      "filename": "DEPOSITO - GUARDADO DE SECOS - GUARDADO SECOS ZONA 1 + GUARDADO SECOS - ZONA 2.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "GUARDADO DE SECOS"
+      ],
+      "shapeId": 21,
+      "codes": [
+        "10930352",
+        "10930822"
+      ],
+      "rows": [
+        {
+          "legajo": "66016",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "90011",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "116654",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "116694",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "121618",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "123247",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "134963",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "134999",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "135026",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "138180",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "138354",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "150579",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "157375",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "158241",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "165137",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "167160",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "171021",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "174191",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "174228",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "177809",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "187265",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "187400",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "187980",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "189231",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "189685",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "190544",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "190887",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "192184",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "192695",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "193090",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "193092",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "194826",
+          "idGerencia": "10930001",
+          "idUo": "10930352"
+        },
+        {
+          "legajo": "85655",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "87014",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "99209",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "116678",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "123207",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "135006",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "139980",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "150793",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "161231",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "162159",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "170528",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "171279",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "173483",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "174180",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "175652",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "185588",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "186680",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "189686",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "192185",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "197260",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "198105",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "198634",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        },
+        {
+          "legajo": "199091",
+          "idGerencia": "10930001",
+          "idUo": "10930822"
+        }
+      ],
+      "legajos": 55
+    },
+    {
+      "filename": "DEPOSITO - GUARDADO DE NO ALIMENTOS - GUARDADO NO ALIMENTOS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "GUARDADO DE NO ALIMENTOS"
+      ],
+      "shapeId": 95,
+      "codes": [
+        "10931322"
+      ],
+      "rows": [
+        {
+          "legajo": "65914",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "68061",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "109225",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "118397",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "121565",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "121613",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "121615",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "121616",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "135087",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "135092",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "135095",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "135097",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "135104",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "135113",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "154401",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "161935",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "162303",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "170453",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "170556",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "173485",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "183034",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        },
+        {
+          "legajo": "183064",
+          "idGerencia": "10930001",
+          "idUo": "10931322"
+        }
+      ],
+      "legajos": 22
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - TRAFICO - ANALISTAS DE TRAFICO - TORRE DE CONTROL + TRAFICO + COORDINACION DE TRAFICO + 1 mas.xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "TRAFICO",
+        "ANALISTAS DE TRAFICO"
+      ],
+      "shapeId": 283,
+      "codes": [
+        "10930214",
+        "10930400",
+        "10930426",
+        "10930490"
+      ],
+      "rows": [
+        {
+          "legajo": "56592",
+          "idGerencia": "10930003",
+          "idUo": "10930214"
+        },
+        {
+          "legajo": "131975",
+          "idGerencia": "10930003",
+          "idUo": "10930214"
+        },
+        {
+          "legajo": "201760",
+          "idGerencia": "10930003",
+          "idUo": "10930214"
+        },
+        {
+          "legajo": "118354",
+          "idGerencia": "10930003",
+          "idUo": "10930400"
+        },
+        {
+          "legajo": "169000",
+          "idGerencia": "10930003",
+          "idUo": "10930400"
+        },
+        {
+          "legajo": "186044",
+          "idGerencia": "10930003",
+          "idUo": "10930400"
+        },
+        {
+          "legajo": "200990",
+          "idGerencia": "10930003",
+          "idUo": "10930400"
+        },
+        {
+          "legajo": "2502",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "14527",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "16268",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "122286",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "153441",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "185851",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "196321",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "197247",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "197443",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "199409",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "201482",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "203163",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "203497",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "203579",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "203861",
+          "idGerencia": "10930003",
+          "idUo": "10930426"
+        },
+        {
+          "legajo": "143272",
+          "idGerencia": "10930003",
+          "idUo": "10930490"
+        },
+        {
+          "legajo": "204835",
+          "idGerencia": "10930003",
+          "idUo": "10930490"
+        }
+      ],
+      "legajos": 24
+    },
+    {
+      "filename": "DEPOSITO - CAMARA DE CONGELADOS -20 ° - CAMARA CONGELADOS -20°C.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "CAMARA DE CONGELADOS -20 °"
+      ],
+      "shapeId": 152,
+      "codes": [
+        "10930532"
+      ],
+      "rows": [
+        {
+          "legajo": "86039",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "89963",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "89964",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "103999",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "109203",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "118364",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "121581",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "121583",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "170559",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "181826",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        },
+        {
+          "legajo": "194042",
+          "idGerencia": "10930001",
+          "idUo": "10930532"
+        }
+      ],
+      "legajos": 11
+    },
+    {
+      "filename": "DEPOSITO - RECEPCION DE SECOS - RECEPCION SECOS - ZONA 2.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "RECEPCION DE SECOS"
+      ],
+      "shapeId": 23,
+      "codes": [
+        "10930310"
+      ],
+      "rows": [
+        {
+          "legajo": "185743",
+          "idGerencia": "10930001",
+          "idUo": "10930310"
+        },
+        {
+          "legajo": "203357",
+          "idGerencia": "10930001",
+          "idUo": "10930310"
+        }
+      ],
+      "legajos": 2
+    },
+    {
+      "filename": "DEPOSITO - RECEPCION DE NO ALIMENTOS - RECEPCION NOA NACIONAL + ADMINISTRATIVO DE COMEX + RECEPCION NOA IMPORTADOS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "RECEPCION DE NO ALIMENTOS"
+      ],
+      "shapeId": 96,
+      "codes": [
+        "10931303",
+        "10931316",
+        "10931351"
+      ],
+      "rows": [
+        {
+          "legajo": "44760",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "60611",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "71319",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "73751",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "79308",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "79468",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "87017",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "90401",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "160077",
+          "idGerencia": "10930001",
+          "idUo": "10931303"
+        },
+        {
+          "legajo": "167278",
+          "idGerencia": "10930001",
+          "idUo": "10931316"
+        },
+        {
+          "legajo": "2894",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "7790",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "14514",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "56935",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "118389",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "121578",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "121580",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "135016",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "135111",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "170648",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        },
+        {
+          "legajo": "170650",
+          "idGerencia": "10930001",
+          "idUo": "10931351"
+        }
+      ],
+      "legajos": 21
+    },
+    {
+      "filename": "STAFF - SUPERVISION - SUPERVISION CDP SECOS - NOA + ADMINISTRATIVOS DE CDP - SECOS NOA + AUDITORIA DE CONTROL DE STOCK + 1 mas.xlsx",
+      "branch": [
+        "STAFF",
+        "SUPERVISION"
+      ],
+      "shapeId": 223,
+      "codes": [
+        "10930641",
+        "10930642",
+        "10930680",
+        "10930647"
+      ],
+      "rows": [
+        {
+          "legajo": "42814",
+          "idGerencia": "10930004",
+          "idUo": "10930641"
+        },
+        {
+          "legajo": "79155",
+          "idGerencia": "10930004",
+          "idUo": "10930641"
+        },
+        {
+          "legajo": "110385",
+          "idGerencia": "10930004",
+          "idUo": "10930641"
+        },
+        {
+          "legajo": "161831",
+          "idGerencia": "10930004",
+          "idUo": "10930641"
+        },
+        {
+          "legajo": "118942",
+          "idGerencia": "10930004",
+          "idUo": "10930642"
+        },
+        {
+          "legajo": "154590",
+          "idGerencia": "10930004",
+          "idUo": "10930642"
+        },
+        {
+          "legajo": "199349",
+          "idGerencia": "10930004",
+          "idUo": "10930642"
+        },
+        {
+          "legajo": "200700",
+          "idGerencia": "10930004",
+          "idUo": "10930642"
+        },
+        {
+          "legajo": "15008",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "81160",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "123105",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "123241",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "123249",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "135094",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "168489",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "190886",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "197555",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "200866",
+          "idGerencia": "10930004",
+          "idUo": "10930680"
+        },
+        {
+          "legajo": "100288",
+          "idGerencia": "10930004",
+          "idUo": "10930647"
+        }
+      ],
+      "legajos": 19
+    },
+    {
+      "filename": "DEPOSITO - FRACCIONAMIENTO DE FRUTAS Y VERDURAS - FRACCIONADO + FRACCIONADO DE FRUTAS Y VERDURAS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "FRACCIONAMIENTO DE FRUTAS Y VERDURAS"
+      ],
+      "shapeId": 154,
+      "codes": [
+        "10930562",
+        "10930503"
+      ],
+      "rows": [
+        {
+          "legajo": "15006",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "40920",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "44173",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "63197",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "69191",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "71681",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "72985",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "85050",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "99908",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "109226",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "116663",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "116688",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "116689",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "118367",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "118370",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "121584",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "121624",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "134990",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "135046",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "192736",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "194053",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "194825",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "195583",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "196367",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "197460",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "203572",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "206772",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "207013",
+          "idGerencia": "10930001",
+          "idUo": "10930562"
+        },
+        {
+          "legajo": "34230",
+          "idGerencia": "10930001",
+          "idUo": "10930503"
+        }
+      ],
+      "legajos": 29
+    },
+    {
+      "filename": "DEPOSITO - DESPACHO DE SECOS - DESPACHO SECOS - ZONA 1.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "DESPACHO DE SECOS"
+      ],
+      "shapeId": 25,
+      "codes": [
+        "10930321"
+      ],
+      "rows": [
+        {
+          "legajo": "3134",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "38808",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "49182",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "65552",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "65607",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "66355",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "67834",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "69630",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "69703",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "72971",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "80488",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "80492",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "82795",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "85653",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "88009",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "116660",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "116662",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "116693",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "118380",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "121553",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "123209",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "135105",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "153004",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "159692",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "161233",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "162304",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "170527",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "171813",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "173487",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "175154",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "175651",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "176036",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "187155",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "187979",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "194040",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "195118",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "195119",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "195122",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        },
+        {
+          "legajo": "197259",
+          "idGerencia": "10930001",
+          "idUo": "10930321"
+        }
+      ],
+      "legajos": 39
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - CHOFERES DE CORTA DISTANCIA - CHOFERES CORTA DISTANCIA.xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "CHOFERES DE CORTA DISTANCIA"
+      ],
+      "shapeId": 284,
+      "codes": [
+        "10930421"
+      ],
+      "rows": [
+        {
+          "legajo": "504",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "61648",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "65546",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "65557",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "65665",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "74802",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "76042",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "76044",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "79631",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "80257",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "80424",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "80466",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "83640",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "85191",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "87609",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "91225",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "91226",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "91462",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "91660",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "92521",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "93926",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "109572",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "111468",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "111480",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "121094",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "121551",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "123391",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "124105",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "124462",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "124761",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "165750",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "169576",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "171189",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "171553",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "173115",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "173340",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "173342",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "173818",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "174031",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "174282",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "174617",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "174794",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "174862",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "175238",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "175389",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "175689",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "175690",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "176119",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "176358",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "176605",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "176606",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "176721",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "176722",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "179238",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "179562",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "179563",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "179913",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "181762",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "181764",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "183232",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "188441",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "188453",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "188780",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "190677",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "195002",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "195467",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "195606",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "195927",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "200053",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "201966",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "202449",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "203061",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "203158",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "203230",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "203638",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        },
+        {
+          "legajo": "204791",
+          "idGerencia": "10930003",
+          "idUo": "10930421"
+        }
+      ],
+      "legajos": 76
+    },
+    {
+      "filename": "DEPOSITO - SUPERVISION - RECEPCION NOA NACIONAL E IMPORTADOS + ARMADO GUARDADO NOA (SUPERVISION).xlsx",
+      "branch": [
+        "DEPOSITO",
+        "SUPERVISION"
+      ],
+      "shapeId": 97,
+      "codes": [
+        "10931302",
+        "10931320"
+      ],
+      "rows": [
+        {
+          "legajo": "55693",
+          "idGerencia": "10930001",
+          "idUo": "10931302"
+        },
+        {
+          "legajo": "121579",
+          "idGerencia": "10930001",
+          "idUo": "10931302"
+        },
+        {
+          "legajo": "171814",
+          "idGerencia": "10930001",
+          "idUo": "10931302"
+        },
+        {
+          "legajo": "194912",
+          "idGerencia": "10930001",
+          "idUo": "10931302"
+        },
+        {
+          "legajo": "198536",
+          "idGerencia": "10930001",
+          "idUo": "10931302"
+        },
+        {
+          "legajo": "65573",
+          "idGerencia": "10930001",
+          "idUo": "10931320"
+        },
+        {
+          "legajo": "140207",
+          "idGerencia": "10930001",
+          "idUo": "10931320"
+        },
+        {
+          "legajo": "154962",
+          "idGerencia": "10930001",
+          "idUo": "10931320"
+        },
+        {
+          "legajo": "157106",
+          "idGerencia": "10930001",
+          "idUo": "10931320"
+        },
+        {
+          "legajo": "166107",
+          "idGerencia": "10930001",
+          "idUo": "10931320"
+        },
+        {
+          "legajo": "184756",
+          "idGerencia": "10930001",
+          "idUo": "10931320"
+        },
+        {
+          "legajo": "201749",
+          "idGerencia": "10930001",
+          "idUo": "10931320"
+        }
+      ],
+      "legajos": 12
+    },
+    {
+      "filename": "DEPOSITO - SUPERVISION - RECEPCION DE SECOS - ZONA 2 + DESPACHO SECOS - ZONA 1 + ADMINISTRACION DE CARGAS + 2 mas.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "SUPERVISION"
+      ],
+      "shapeId": 24,
+      "codes": [
+        "10930311",
+        "10930320",
+        "10930340",
+        "10930350",
+        "10930820"
+      ],
+      "rows": [
+        {
+          "legajo": "5515",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "16299",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "22864",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "35330",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "41755",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "51494",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "55851",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "57686",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "62126",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "68067",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "68180",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "69096",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "69100",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "71505",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "73000",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "79045",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "80191",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "87425",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "99639",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "118372",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "121550",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "134989",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "134996",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "135055",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "137481",
+          "idGerencia": "10930001",
+          "idUo": "10930311"
+        },
+        {
+          "legajo": "32770",
+          "idGerencia": "10930001",
+          "idUo": "10930320"
+        },
+        {
+          "legajo": "55939",
+          "idGerencia": "10930001",
+          "idUo": "10930320"
+        },
+        {
+          "legajo": "67835",
+          "idGerencia": "10930001",
+          "idUo": "10930320"
+        },
+        {
+          "legajo": "79312",
+          "idGerencia": "10930001",
+          "idUo": "10930320"
+        },
+        {
+          "legajo": "161933",
+          "idGerencia": "10930001",
+          "idUo": "10930320"
+        },
+        {
+          "legajo": "171281",
+          "idGerencia": "10930001",
+          "idUo": "10930320"
+        },
+        {
+          "legajo": "201402",
+          "idGerencia": "10930001",
+          "idUo": "10930320"
+        },
+        {
+          "legajo": "57436",
+          "idGerencia": "10930001",
+          "idUo": "10930340"
+        },
+        {
+          "legajo": "16173",
+          "idGerencia": "10930001",
+          "idUo": "10930350"
+        },
+        {
+          "legajo": "192734",
+          "idGerencia": "10930001",
+          "idUo": "10930350"
+        },
+        {
+          "legajo": "197340",
+          "idGerencia": "10930001",
+          "idUo": "10930350"
+        },
+        {
+          "legajo": "201267",
+          "idGerencia": "10930001",
+          "idUo": "10930350"
+        },
+        {
+          "legajo": "206239",
+          "idGerencia": "10930001",
+          "idUo": "10930350"
+        },
+        {
+          "legajo": "207563",
+          "idGerencia": "10930001",
+          "idUo": "10930350"
+        },
+        {
+          "legajo": "45104",
+          "idGerencia": "10930001",
+          "idUo": "10930820"
+        },
+        {
+          "legajo": "80483",
+          "idGerencia": "10930001",
+          "idUo": "10930820"
+        },
+        {
+          "legajo": "178275",
+          "idGerencia": "10930001",
+          "idUo": "10930820"
+        },
+        {
+          "legajo": "203383",
+          "idGerencia": "10930001",
+          "idUo": "10930820"
+        },
+        {
+          "legajo": "204880",
+          "idGerencia": "10930001",
+          "idUo": "10930820"
+        },
+        {
+          "legajo": "206676",
+          "idGerencia": "10930001",
+          "idUo": "10930820"
+        },
+        {
+          "legajo": "207532",
+          "idGerencia": "10930001",
+          "idUo": "10930820"
+        }
+      ],
+      "legajos": 46
+    },
+    {
+      "filename": "DEPOSITO - MADURADERO - MADURADERO + PESCADERIA.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "MADURADERO"
+      ],
+      "shapeId": 155,
+      "codes": [
+        "10930572",
+        "10930580"
+      ],
+      "rows": [
+        {
+          "legajo": "40345",
+          "idGerencia": "10930001",
+          "idUo": "10930572"
+        },
+        {
+          "legajo": "59765",
+          "idGerencia": "10930001",
+          "idUo": "10930572"
+        },
+        {
+          "legajo": "192155",
+          "idGerencia": "10930001",
+          "idUo": "10930572"
+        },
+        {
+          "legajo": "197461",
+          "idGerencia": "10930001",
+          "idUo": "10930572"
+        },
+        {
+          "legajo": "44365",
+          "idGerencia": "10930001",
+          "idUo": "10930580"
+        }
+      ],
+      "legajos": 5
+    },
+    {
+      "filename": "STAFF - JEFATURA - CONTROL DE PROCESOS.xlsx",
+      "branch": [
+        "STAFF",
+        "JEFATURA"
+      ],
+      "shapeId": 225,
+      "codes": [
+        "10930640"
+      ],
+      "rows": [
+        {
+          "legajo": "202877",
+          "idGerencia": "10930004",
+          "idUo": "10930640"
+        },
+        {
+          "legajo": "207549",
+          "idGerencia": "10930004",
+          "idUo": "10930640"
+        }
+      ],
+      "legajos": 2
+    },
+    {
+      "filename": "DEPOSITO - JEFES Y GERENTES - NO ALIMENTOS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "JEFES Y GERENTES"
+      ],
+      "shapeId": 98,
+      "codes": [
+        "10931300"
+      ],
+      "rows": [
+        {
+          "legajo": "56026",
+          "idGerencia": "10930001",
+          "idUo": "10931300"
+        },
+        {
+          "legajo": "184548",
+          "idGerencia": "10930001",
+          "idUo": "10931300"
+        },
+        {
+          "legajo": "201462",
+          "idGerencia": "10930001",
+          "idUo": "10931300"
+        }
+      ],
+      "legajos": 3
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - CHOFERES DE LARGA DISTANCIA - CHOFERES LARGA DISTANCIA.xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "CHOFERES DE LARGA DISTANCIA"
+      ],
+      "shapeId": 285,
+      "codes": [
+        "10930422"
+      ],
+      "rows": [
+        {
+          "legajo": "1433",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "72925",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "76024",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "76025",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "77077",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "80255",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "83649",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "91417",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "91440",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "92522",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "93635",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "94739",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "113976",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "117470",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "121426",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "122870",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "124163",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "126063",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "170899",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "173457",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "173819",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        },
+        {
+          "legajo": "175949",
+          "idGerencia": "10930003",
+          "idUo": "10930422"
+        }
+      ],
+      "legajos": 22
+    },
+    {
+      "filename": "DEPOSITO - JEFES Y GERENTES - SECOS 1 - ALMACEN-BEBIDAS-PANADERIA + SECOS 2 - LIMPIEZA-PERFUMERIA-MASCOTAS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "JEFES Y GERENTES"
+      ],
+      "shapeId": 29,
+      "codes": [
+        "10930300",
+        "10930800"
+      ],
+      "rows": [
+        {
+          "legajo": "67753",
+          "idGerencia": "10930001",
+          "idUo": "10930300"
+        },
+        {
+          "legajo": "165140",
+          "idGerencia": "10930001",
+          "idUo": "10930300"
+        },
+        {
+          "legajo": "165307",
+          "idGerencia": "10930001",
+          "idUo": "10930300"
+        },
+        {
+          "legajo": "200314",
+          "idGerencia": "10930001",
+          "idUo": "10930300"
+        },
+        {
+          "legajo": "206678",
+          "idGerencia": "10930001",
+          "idUo": "10930300"
+        },
+        {
+          "legajo": "111262",
+          "idGerencia": "10930001",
+          "idUo": "10930800"
+        },
+        {
+          "legajo": "200487",
+          "idGerencia": "10930001",
+          "idUo": "10930800"
+        },
+        {
+          "legajo": "203841",
+          "idGerencia": "10930001",
+          "idUo": "10930800"
+        },
+        {
+          "legajo": "205783",
+          "idGerencia": "10930001",
+          "idUo": "10930800"
+        },
+        {
+          "legajo": "205981",
+          "idGerencia": "10930001",
+          "idUo": "10930800"
+        }
+      ],
+      "legajos": 10
+    },
+    {
+      "filename": "DEPOSITO - CARGA DE REFRIGERADOS - CARGA DE REFRIGERADOS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "CARGA DE REFRIGERADOS"
+      ],
+      "shapeId": 160,
+      "codes": [
+        "10930535"
+      ],
+      "rows": [
+        {
+          "legajo": "5023",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "16170",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "16183",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "63694",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "78652",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "83830",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "100810",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "109200",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "109202",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "109211",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "109212",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "109219",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "109220",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "109224",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "118391",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "134967",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "135040",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "138355",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "157738",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "170079",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "184350",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "187264",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "189717",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "195581",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "195582",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        },
+        {
+          "legajo": "196374",
+          "idGerencia": "10930001",
+          "idUo": "10930535"
+        }
+      ],
+      "legajos": 26
+    },
+    {
+      "filename": "STAFF - ADMINISTRATIVO DE 126 - CONTROLADORES 126 + ADM DE CONTROL DE PROCESOS 126.xlsx",
+      "branch": [
+        "STAFF",
+        "ADMINISTRATIVO DE 126"
+      ],
+      "shapeId": 226,
+      "codes": [
+        "10930649",
+        "10930654"
+      ],
+      "rows": [
+        {
+          "legajo": "57035",
+          "idGerencia": "10930004",
+          "idUo": "10930649"
+        },
+        {
+          "legajo": "100809",
+          "idGerencia": "10930004",
+          "idUo": "10930649"
+        },
+        {
+          "legajo": "62099",
+          "idGerencia": "10930004",
+          "idUo": "10930654"
+        },
+        {
+          "legajo": "83501",
+          "idGerencia": "10930004",
+          "idUo": "10930654"
+        }
+      ],
+      "legajos": 4
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - CHOFERES TORITAJE - CHOFERES TORITAJE (CD).xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "CHOFERES TORITAJE"
+      ],
+      "shapeId": 286,
+      "codes": [
+        "10930423"
+      ],
+      "rows": [
+        {
+          "legajo": "41463",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "116684",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "121571",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "165692",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "205788",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "205940",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "206166",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "206749",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "207313",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        },
+        {
+          "legajo": "207958",
+          "idGerencia": "10930003",
+          "idUo": "10930423"
+        }
+      ],
+      "legajos": 10
+    },
+    {
+      "filename": "DEPOSITO - RECEPCION DE REFRIGERADOS - RECEPCION REFRIGERADOS + RECEPCION REFRIGERADOS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "RECEPCION DE REFRIGERADOS"
+      ],
+      "shapeId": 157,
+      "codes": [
+        "10930550",
+        "10930551"
+      ],
+      "rows": [
+        {
+          "legajo": "5140",
+          "idGerencia": "10930001",
+          "idUo": "10930550"
+        },
+        {
+          "legajo": "28127",
+          "idGerencia": "10930001",
+          "idUo": "10930550"
+        },
+        {
+          "legajo": "64942",
+          "idGerencia": "10930001",
+          "idUo": "10930550"
+        },
+        {
+          "legajo": "205424",
+          "idGerencia": "10930001",
+          "idUo": "10930550"
+        },
+        {
+          "legajo": "207884",
+          "idGerencia": "10930001",
+          "idUo": "10930550"
+        },
+        {
+          "legajo": "3065",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "14515",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "70988",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "72857",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "74418",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "78878",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "80374",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "88010",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "88421",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "103998",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "109201",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "114411",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "116670",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "116685",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "121563",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "121606",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "124817",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "135029",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "135042",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "135044",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "159318",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "161319",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "163165",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "166109",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "170612",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "196368",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "196369",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        },
+        {
+          "legajo": "207927",
+          "idGerencia": "10930001",
+          "idUo": "10930551"
+        }
+      ],
+      "legajos": 33
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - ANALISTAS DE PLANEAMIENTO - ANALISTAS DE PLANEAMIENTO + PLANIFICACION Y CONTROL DE PRODUCCION.xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "ANALISTAS DE PLANEAMIENTO"
+      ],
+      "shapeId": 287,
+      "codes": [
+        "10931524",
+        "10931526"
+      ],
+      "rows": [
+        {
+          "legajo": "166783",
+          "idGerencia": "10930003",
+          "idUo": "10931524"
+        },
+        {
+          "legajo": "192109",
+          "idGerencia": "10930003",
+          "idUo": "10931524"
+        },
+        {
+          "legajo": "200280",
+          "idGerencia": "10930003",
+          "idUo": "10931524"
+        },
+        {
+          "legajo": "206869",
+          "idGerencia": "10930003",
+          "idUo": "10931524"
+        },
+        {
+          "legajo": "207787",
+          "idGerencia": "10930003",
+          "idUo": "10931524"
+        },
+        {
+          "legajo": "206347",
+          "idGerencia": "10930003",
+          "idUo": "10931526"
+        },
+        {
+          "legajo": "207341",
+          "idGerencia": "10930003",
+          "idUo": "10931526"
+        }
+      ],
+      "legajos": 7
+    },
+    {
+      "filename": "STAFF - ADMISTRATIVOS DE CDP REFRIGERADOS - SUPERVISION CDP REFRIGERADOS + CONTROLADORES REFRIGERADOS + ADMINISTRATIVOS DE CDP - REFRIGERADOS.xlsx",
+      "branch": [
+        "STAFF",
+        "ADMISTRATIVOS DE CDP REFRIGERADOS"
+      ],
+      "shapeId": 227,
+      "codes": [
+        "10930644",
+        "10930646",
+        "10930653"
+      ],
+      "rows": [
+        {
+          "legajo": "206504",
+          "idGerencia": "10930004",
+          "idUo": "10930644"
+        },
+        {
+          "legajo": "16189",
+          "idGerencia": "10930004",
+          "idUo": "10930646"
+        },
+        {
+          "legajo": "80198",
+          "idGerencia": "10930004",
+          "idUo": "10930646"
+        },
+        {
+          "legajo": "109223",
+          "idGerencia": "10930004",
+          "idUo": "10930646"
+        },
+        {
+          "legajo": "124645",
+          "idGerencia": "10930004",
+          "idUo": "10930646"
+        },
+        {
+          "legajo": "135052",
+          "idGerencia": "10930004",
+          "idUo": "10930646"
+        },
+        {
+          "legajo": "46289",
+          "idGerencia": "10930004",
+          "idUo": "10930653"
+        },
+        {
+          "legajo": "66656",
+          "idGerencia": "10930004",
+          "idUo": "10930653"
+        },
+        {
+          "legajo": "206217",
+          "idGerencia": "10930004",
+          "idUo": "10930653"
+        },
+        {
+          "legajo": "206416",
+          "idGerencia": "10930004",
+          "idUo": "10930653"
+        }
+      ],
+      "legajos": 10
+    },
+    {
+      "filename": "DEPOSITO - HIELO SECO - HIELO SECO.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "HIELO SECO"
+      ],
+      "shapeId": 156,
+      "codes": [
+        "10930565"
+      ],
+      "rows": [
+        {
+          "legajo": "179245",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        },
+        {
+          "legajo": "179247",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        },
+        {
+          "legajo": "194827",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        },
+        {
+          "legajo": "194828",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        },
+        {
+          "legajo": "195584",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        },
+        {
+          "legajo": "195916",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        },
+        {
+          "legajo": "196372",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        },
+        {
+          "legajo": "196373",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        },
+        {
+          "legajo": "201943",
+          "idGerencia": "10930001",
+          "idUo": "10930565"
+        }
+      ],
+      "legajos": 9
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - ACTIVACION DE PLAN - ACTIVACION DE PLAN.xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "ACTIVACION DE PLAN"
+      ],
+      "shapeId": 288,
+      "codes": [
+        "10931527"
+      ],
+      "rows": [
+        {
+          "legajo": "69626",
+          "idGerencia": "10930003",
+          "idUo": "10931527"
+        },
+        {
+          "legajo": "206665",
+          "idGerencia": "10930003",
+          "idUo": "10931527"
+        },
+        {
+          "legajo": "207575",
+          "idGerencia": "10930003",
+          "idUo": "10931527"
+        },
+        {
+          "legajo": "207879",
+          "idGerencia": "10930003",
+          "idUo": "10931527"
+        }
+      ],
+      "legajos": 4
+    },
+    {
+      "filename": "DEPOSITO - SUPERVISION - CARGA Y DESPACHO REFRIGERADOS + ARMADO Y GUARDADO REFRIGERADOS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "SUPERVISION"
+      ],
+      "shapeId": 158,
+      "codes": [
+        "10930515",
+        "10930530"
+      ],
+      "rows": [
+        {
+          "legajo": "38781",
+          "idGerencia": "10930001",
+          "idUo": "10930515"
+        },
+        {
+          "legajo": "166542",
+          "idGerencia": "10930001",
+          "idUo": "10930515"
+        },
+        {
+          "legajo": "169563",
+          "idGerencia": "10930001",
+          "idUo": "10930515"
+        },
+        {
+          "legajo": "174179",
+          "idGerencia": "10930001",
+          "idUo": "10930515"
+        },
+        {
+          "legajo": "203678",
+          "idGerencia": "10930001",
+          "idUo": "10930515"
+        },
+        {
+          "legajo": "208032",
+          "idGerencia": "10930001",
+          "idUo": "10930515"
+        },
+        {
+          "legajo": "31244",
+          "idGerencia": "10930001",
+          "idUo": "10930530"
+        },
+        {
+          "legajo": "167001",
+          "idGerencia": "10930001",
+          "idUo": "10930530"
+        },
+        {
+          "legajo": "170080",
+          "idGerencia": "10930001",
+          "idUo": "10930530"
+        },
+        {
+          "legajo": "206673",
+          "idGerencia": "10930001",
+          "idUo": "10930530"
+        },
+        {
+          "legajo": "206681",
+          "idGerencia": "10930001",
+          "idUo": "10930530"
+        }
+      ],
+      "legajos": 11
+    },
+    {
+      "filename": "DEPOSITO - DEVOLUCIONES - 126 - ENVASES Y EMBALAJES - DEVOLUCIONES + ENVASES.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "DEVOLUCIONES - 126",
+        "ENVASES Y EMBALAJES"
+      ],
+      "shapeId": 87,
+      "codes": [
+        "10930711",
+        "10930721"
+      ],
+      "rows": [
+        {
+          "legajo": "18085",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "31601",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "100804",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "103996",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "116666",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "121560",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "121594",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "123213",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "134973",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "134983",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "135060",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "135065",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "135067",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "159057",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "176785",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "177526",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "184178",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "187403",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "189672",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "194052",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "198109",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "198676",
+          "idGerencia": "10930001",
+          "idUo": "10930711"
+        },
+        {
+          "legajo": "2924",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "14525",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "21010",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "27322",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "32158",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "37539",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "37553",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "42924",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "55555",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "68182",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "87117",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "99632",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "109217",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "116656",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "116674",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "116679",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "116695",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "118356",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "118393",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "121567",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "121597",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "121598",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "121599",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "121614",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "121623",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "134977",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "134980",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "134984",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "135008",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "135011",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "135015",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "135068",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "135075",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "135101",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "135110",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "182712",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "186679",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "187402",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "190503",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "193093",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "194078",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "195351",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "195361",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "197261",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        },
+        {
+          "legajo": "199412",
+          "idGerencia": "10930001",
+          "idUo": "10930721"
+        }
+      ],
+      "legajos": 67
+    },
+    {
+      "filename": "DEPOSITO - JEFES Y GERENTES - FRESCOS Y CONGELADOS + REFRIGERADOS.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "JEFES Y GERENTES"
+      ],
+      "shapeId": 159,
+      "codes": [
+        "10930500",
+        "10930501"
+      ],
+      "rows": [
+        {
+          "legajo": "195044",
+          "idGerencia": "10930001",
+          "idUo": "10930500"
+        },
+        {
+          "legajo": "72513",
+          "idGerencia": "10930001",
+          "idUo": "10930501"
+        },
+        {
+          "legajo": "200639",
+          "idGerencia": "10930001",
+          "idUo": "10930501"
+        },
+        {
+          "legajo": "202300",
+          "idGerencia": "10930001",
+          "idUo": "10930501"
+        },
+        {
+          "legajo": "206926",
+          "idGerencia": "10930001",
+          "idUo": "10930501"
+        }
+      ],
+      "legajos": 5
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - PLANEAMIENTO SECOS NOA - PLANEAMIENTO SECOS NOA.xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "PLANEAMIENTO SECOS/NOA"
+      ],
+      "shapeId": 298,
+      "codes": [
+        "10931529"
+      ],
+      "rows": [
+        {
+          "legajo": "73706",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "109208",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "134988",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "169455",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "170078",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "182701",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "195195",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "195579",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "196287",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "198617",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "198875",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "206313",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "207538",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        },
+        {
+          "legajo": "207838",
+          "idGerencia": "10930003",
+          "idUo": "10931529"
+        }
+      ],
+      "legajos": 14
+    },
+    {
+      "filename": "DEPOSITO - DEVOLUCIONES - 126 - ENVASES Y EMBALAJES - SUPERVISION Y JEFATURA GERENCIA - ENVASES Y RECICLE + DEVOLUCIONES + LOGISTICA INVERSA + 1 mas.xlsx",
+      "branch": [
+        "DEPOSITO",
+        "DEVOLUCIONES - 126",
+        "ENVASES Y EMBALAJES",
+        "SUPERVISION Y JEFATURA/GERENCIA"
+      ],
+      "shapeId": 199,
+      "codes": [
+        "10930701",
+        "10930710",
+        "10931000",
+        "10930502"
+      ],
+      "rows": [
+        {
+          "legajo": "5657",
+          "idGerencia": "10930001",
+          "idUo": "10930701"
+        },
+        {
+          "legajo": "11071",
+          "idGerencia": "10930001",
+          "idUo": "10930701"
+        },
+        {
+          "legajo": "194051",
+          "idGerencia": "10930001",
+          "idUo": "10930701"
+        },
+        {
+          "legajo": "200844",
+          "idGerencia": "10930001",
+          "idUo": "10930701"
+        },
+        {
+          "legajo": "205749",
+          "idGerencia": "10930001",
+          "idUo": "10930701"
+        },
+        {
+          "legajo": "206743",
+          "idGerencia": "10930001",
+          "idUo": "10930701"
+        },
+        {
+          "legajo": "82796",
+          "idGerencia": "10930001",
+          "idUo": "10930710"
+        },
+        {
+          "legajo": "100811",
+          "idGerencia": "10930001",
+          "idUo": "10930710"
+        },
+        {
+          "legajo": "157068",
+          "idGerencia": "10930001",
+          "idUo": "10930710"
+        },
+        {
+          "legajo": "202232",
+          "idGerencia": "10930001",
+          "idUo": "10931000"
+        },
+        {
+          "legajo": "207880",
+          "idGerencia": "10930001",
+          "idUo": "10930502"
+        }
+      ],
+      "legajos": 11
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - PROGRAMADORES - PROGRAMADORES.xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "PROGRAMADORES"
+      ],
+      "shapeId": 299,
+      "codes": [
+        "10931536"
+      ],
+      "rows": [
+        {
+          "legajo": "61596",
+          "idGerencia": "10930003",
+          "idUo": "10931536"
+        },
+        {
+          "legajo": "73767",
+          "idGerencia": "10930003",
+          "idUo": "10931536"
+        },
+        {
+          "legajo": "121570",
+          "idGerencia": "10930003",
+          "idUo": "10931536"
+        },
+        {
+          "legajo": "167347",
+          "idGerencia": "10930003",
+          "idUo": "10931536"
+        },
+        {
+          "legajo": "199496",
+          "idGerencia": "10930003",
+          "idUo": "10931536"
+        },
+        {
+          "legajo": "206372",
+          "idGerencia": "10930003",
+          "idUo": "10931536"
+        },
+        {
+          "legajo": "206595",
+          "idGerencia": "10930003",
+          "idUo": "10931536"
+        }
+      ],
+      "legajos": 7
+    },
+    {
+      "filename": "STAFF - ENVIOS A DOMICILIO - ENVIOS A DOMICILIOS + ENVIOS A DOMICILIO (EMPLEADOS).xlsx",
+      "branch": [
+        "STAFF",
+        "ENVIOS A DOMICILIO"
+      ],
+      "shapeId": 270,
+      "codes": [
+        "10930900",
+        "10930911"
+      ],
+      "rows": [
+        {
+          "legajo": "109600",
+          "idGerencia": "10930004",
+          "idUo": "10930900"
+        },
+        {
+          "legajo": "162411",
+          "idGerencia": "10930004",
+          "idUo": "10930900"
+        },
+        {
+          "legajo": "167072",
+          "idGerencia": "10930004",
+          "idUo": "10930900"
+        },
+        {
+          "legajo": "160082",
+          "idGerencia": "10930004",
+          "idUo": "10930911"
+        },
+        {
+          "legajo": "166256",
+          "idGerencia": "10930004",
+          "idUo": "10930911"
+        },
+        {
+          "legajo": "190885",
+          "idGerencia": "10930004",
+          "idUo": "10930911"
+        },
+        {
+          "legajo": "196371",
+          "idGerencia": "10930004",
+          "idUo": "10930911"
+        },
+        {
+          "legajo": "203596",
+          "idGerencia": "10930004",
+          "idUo": "10930911"
+        }
+      ],
+      "legajos": 8
+    },
+    {
+      "filename": "INGENIERIA - PLANEAMIENTO Y TRAFICO - ADMINISTRACION DE OPERACIONES - PLANEAMIENTO INBOUND + PLANEAMIENTO COMEX + ADMINISTRACION DE OPERACIONES.xlsx",
+      "branch": [
+        "INGENIERIA - PLANEAMIENTO Y TRAFICO",
+        "ADMINISTRACION DE OPERACIONES"
+      ],
+      "shapeId": 300,
+      "codes": [
+        "10931533",
+        "10931534",
+        "10931901"
+      ],
+      "rows": [
+        {
+          "legajo": "204023",
+          "idGerencia": "10930003",
+          "idUo": "10931533"
+        },
+        {
+          "legajo": "172223",
+          "idGerencia": "10930003",
+          "idUo": "10931534"
+        },
+        {
+          "legajo": "201743",
+          "idGerencia": "10930003",
+          "idUo": "10931534"
+        },
+        {
+          "legajo": "190366",
+          "idGerencia": "10930003",
+          "idUo": "10931901"
+        },
+        {
+          "legajo": "201405",
+          "idGerencia": "10930003",
+          "idUo": "10931901"
+        },
+        {
+          "legajo": "207188",
+          "idGerencia": "10930003",
+          "idUo": "10931901"
+        }
+      ],
+      "legajos": 6
+    },
+    {
+      "filename": "STAFF - PANEL 3C - PANEL 3C.xlsx",
+      "branch": [
+        "STAFF",
+        "PANEL 3C"
+      ],
+      "shapeId": 274,
+      "codes": [
+        "10931907"
+      ],
+      "rows": [
+        {
+          "legajo": "44099",
+          "idGerencia": "10930004",
+          "idUo": "10931907"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - LOGISU S.A.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930000"
+      ],
+      "rows": [
+        {
+          "legajo": "192970",
+          "idGerencia": "",
+          "idUo": "10930000"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - FORMACION Y DESARROLLO.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930100"
+      ],
+      "rows": [
+        {
+          "legajo": "194584",
+          "idGerencia": "",
+          "idUo": "10930100"
+        },
+        {
+          "legajo": "203590",
+          "idGerencia": "",
+          "idUo": "10930100"
+        },
+        {
+          "legajo": "204272",
+          "idGerencia": "",
+          "idUo": "10930100"
+        }
+      ],
+      "legajos": 3
+    },
+    {
+      "filename": "Sin Codigo - COMEDOR.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930113"
+      ],
+      "rows": [
+        {
+          "legajo": "32989",
+          "idGerencia": "",
+          "idUo": "10930113"
+        },
+        {
+          "legajo": "152922",
+          "idGerencia": "",
+          "idUo": "10930113"
+        },
+        {
+          "legajo": "156187",
+          "idGerencia": "",
+          "idUo": "10930113"
+        },
+        {
+          "legajo": "171582",
+          "idGerencia": "",
+          "idUo": "10930113"
+        },
+        {
+          "legajo": "172551",
+          "idGerencia": "",
+          "idUo": "10930113"
+        },
+        {
+          "legajo": "192574",
+          "idGerencia": "",
+          "idUo": "10930113"
+        },
+        {
+          "legajo": "199768",
+          "idGerencia": "",
+          "idUo": "10930113"
+        },
+        {
+          "legajo": "202391",
+          "idGerencia": "",
+          "idUo": "10930113"
+        }
+      ],
+      "legajos": 8
+    },
+    {
+      "filename": "Sin Codigo - SERVICIO MEDICO.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930114"
+      ],
+      "rows": [
+        {
+          "legajo": "149542",
+          "idGerencia": "",
+          "idUo": "10930114"
+        },
+        {
+          "legajo": "173969",
+          "idGerencia": "",
+          "idUo": "10930114"
+        },
+        {
+          "legajo": "184884",
+          "idGerencia": "",
+          "idUo": "10930114"
+        }
+      ],
+      "legajos": 3
+    },
+    {
+      "filename": "Sin Codigo - COMISION INTERNA.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930117"
+      ],
+      "rows": [
+        {
+          "legajo": "72968",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "80249",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "85031",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "85237",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "99214",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "114844",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "114855",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "114856",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "135013",
+          "idGerencia": "",
+          "idUo": "10930117"
+        },
+        {
+          "legajo": "135108",
+          "idGerencia": "",
+          "idUo": "10930117"
+        }
+      ],
+      "legajos": 10
+    },
+    {
+      "filename": "Sin Codigo - ADMINISTRACION DE PERSONAL.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930122"
+      ],
+      "rows": [
+        {
+          "legajo": "101972",
+          "idGerencia": "",
+          "idUo": "10930122"
+        },
+        {
+          "legajo": "162424",
+          "idGerencia": "",
+          "idUo": "10930122"
+        },
+        {
+          "legajo": "195063",
+          "idGerencia": "",
+          "idUo": "10930122"
+        },
+        {
+          "legajo": "196723",
+          "idGerencia": "",
+          "idUo": "10930122"
+        },
+        {
+          "legajo": "199538",
+          "idGerencia": "",
+          "idUo": "10930122"
+        },
+        {
+          "legajo": "202699",
+          "idGerencia": "",
+          "idUo": "10930122"
+        },
+        {
+          "legajo": "206273",
+          "idGerencia": "",
+          "idUo": "10930122"
+        },
+        {
+          "legajo": "207807",
+          "idGerencia": "",
+          "idUo": "10930122"
+        }
+      ],
+      "legajos": 8
+    },
+    {
+      "filename": "Sin Codigo - LABORALES.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930123"
+      ],
+      "rows": [
+        {
+          "legajo": "37790",
+          "idGerencia": "",
+          "idUo": "10930123"
+        },
+        {
+          "legajo": "204877",
+          "idGerencia": "",
+          "idUo": "10930123"
+        }
+      ],
+      "legajos": 2
+    },
+    {
+      "filename": "Sin Codigo - SEGURIDAD.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930200"
+      ],
+      "rows": [
+        {
+          "legajo": "87205",
+          "idGerencia": "",
+          "idUo": "10930200"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - PUESTO 33 (SUPERVISION).xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930210"
+      ],
+      "rows": [
+        {
+          "legajo": "113919",
+          "idGerencia": "",
+          "idUo": "10930210"
+        },
+        {
+          "legajo": "150133",
+          "idGerencia": "",
+          "idUo": "10930210"
+        },
+        {
+          "legajo": "160060",
+          "idGerencia": "",
+          "idUo": "10930210"
+        },
+        {
+          "legajo": "178369",
+          "idGerencia": "",
+          "idUo": "10930210"
+        },
+        {
+          "legajo": "197249",
+          "idGerencia": "",
+          "idUo": "10930210"
+        }
+      ],
+      "legajos": 5
+    },
+    {
+      "filename": "Sin Codigo - PUESTO 33 (VIGILADORES PROPIOS).xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930212"
+      ],
+      "rows": [
+        {
+          "legajo": "72083",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "86884",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "104309",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "131976",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "156759",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "171282",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "178370",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "178371",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "184347",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "188472",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "194824",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "195858",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "200347",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "204161",
+          "idGerencia": "",
+          "idUo": "10930212"
+        },
+        {
+          "legajo": "204486",
+          "idGerencia": "",
+          "idUo": "10930212"
+        }
+      ],
+      "legajos": 15
+    },
+    {
+      "filename": "Sin Codigo - INSTALADORES DE GPS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930213"
+      ],
+      "rows": [
+        {
+          "legajo": "146548",
+          "idGerencia": "",
+          "idUo": "10930213"
+        },
+        {
+          "legajo": "148764",
+          "idGerencia": "",
+          "idUo": "10930213"
+        }
+      ],
+      "legajos": 2
+    },
+    {
+      "filename": "Sin Codigo - CHOFERES TORITAJE (FRIGORIFICO).xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930473"
+      ],
+      "rows": [
+        {
+          "legajo": "18030",
+          "idGerencia": "",
+          "idUo": "10930473"
+        },
+        {
+          "legajo": "194554",
+          "idGerencia": "",
+          "idUo": "10930473"
+        },
+        {
+          "legajo": "202923",
+          "idGerencia": "",
+          "idUo": "10930473"
+        }
+      ],
+      "legajos": 3
+    },
+    {
+      "filename": "Sin Codigo - CHOFERES FRIGORIFICO.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930475"
+      ],
+      "rows": [
+        {
+          "legajo": "165748",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165749",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165751",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165752",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165753",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165755",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165756",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165757",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165760",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165761",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165763",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165764",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165767",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165768",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "165770",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "175097",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "175414",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "181763",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "189264",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "191350",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "193760",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "196038",
+          "idGerencia": "",
+          "idUo": "10930475"
+        },
+        {
+          "legajo": "204013",
+          "idGerencia": "",
+          "idUo": "10930475"
+        }
+      ],
+      "legajos": 23
+    },
+    {
+      "filename": "Sin Codigo - CHOFERES FRIGOPOLLO.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930476"
+      ],
+      "rows": [
+        {
+          "legajo": "165819",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "165822",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "175131",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "178220",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "180000",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "180646",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "189502",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "191502",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "203419",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "204028",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "206660",
+          "idGerencia": "",
+          "idUo": "10930476"
+        },
+        {
+          "legajo": "206675",
+          "idGerencia": "",
+          "idUo": "10930476"
+        }
+      ],
+      "legajos": 12
+    },
+    {
+      "filename": "Sin Codigo - HIELO SECO Y MADURADERO.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930560"
+      ],
+      "rows": [
+        {
+          "legajo": "208214",
+          "idGerencia": "",
+          "idUo": "10930560"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - ADMINISTRACION Y CONTROL.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930600"
+      ],
+      "rows": [
+        {
+          "legajo": "174547",
+          "idGerencia": "",
+          "idUo": "10930600"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - ADMINISTRACION Y TESORERIA.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930610"
+      ],
+      "rows": [
+        {
+          "legajo": "135106",
+          "idGerencia": "",
+          "idUo": "10930610"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - CONTROL DE GASTOS Y FACTURACION.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930611"
+      ],
+      "rows": [
+        {
+          "legajo": "135544",
+          "idGerencia": "",
+          "idUo": "10930611"
+        },
+        {
+          "legajo": "154412",
+          "idGerencia": "",
+          "idUo": "10930611"
+        }
+      ],
+      "legajos": 2
+    },
+    {
+      "filename": "Sin Codigo - TESORERIA Y ACTIVOS FIJOS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930613"
+      ],
+      "rows": [
+        {
+          "legajo": "44412",
+          "idGerencia": "",
+          "idUo": "10930613"
+        },
+        {
+          "legajo": "171275",
+          "idGerencia": "",
+          "idUo": "10930613"
+        },
+        {
+          "legajo": "188500",
+          "idGerencia": "",
+          "idUo": "10930613"
+        }
+      ],
+      "legajos": 3
+    },
+    {
+      "filename": "Sin Codigo - ADMINISTRACION DE TRANSPORTE.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930614"
+      ],
+      "rows": [
+        {
+          "legajo": "124782",
+          "idGerencia": "",
+          "idUo": "10930614"
+        },
+        {
+          "legajo": "129029",
+          "idGerencia": "",
+          "idUo": "10930614"
+        },
+        {
+          "legajo": "167970",
+          "idGerencia": "",
+          "idUo": "10930614"
+        },
+        {
+          "legajo": "190817",
+          "idGerencia": "",
+          "idUo": "10930614"
+        }
+      ],
+      "legajos": 4
+    },
+    {
+      "filename": "Sin Codigo - PAÑOL.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930630"
+      ],
+      "rows": [
+        {
+          "legajo": "116494",
+          "idGerencia": "",
+          "idUo": "10930630"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - PAÑOL (2).xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930631"
+      ],
+      "rows": [
+        {
+          "legajo": "167389",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "172552",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "179352",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "181467",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "191761",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "195841",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "200256",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "202748",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "205556",
+          "idGerencia": "",
+          "idUo": "10930631"
+        },
+        {
+          "legajo": "206682",
+          "idGerencia": "",
+          "idUo": "10930631"
+        }
+      ],
+      "legajos": 10
+    },
+    {
+      "filename": "Sin Codigo - PLAYA DE COMBUSTIBLE.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930632"
+      ],
+      "rows": [
+        {
+          "legajo": "121586",
+          "idGerencia": "",
+          "idUo": "10930632"
+        },
+        {
+          "legajo": "121588",
+          "idGerencia": "",
+          "idUo": "10930632"
+        },
+        {
+          "legajo": "121607",
+          "idGerencia": "",
+          "idUo": "10930632"
+        }
+      ],
+      "legajos": 3
+    },
+    {
+      "filename": "Sin Codigo - GESTION DOCUMENTAL.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10930651"
+      ],
+      "rows": [
+        {
+          "legajo": "179561",
+          "idGerencia": "",
+          "idUo": "10930651"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - TALLER.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931100"
+      ],
+      "rows": [
+        {
+          "legajo": "175687",
+          "idGerencia": "",
+          "idUo": "10931100"
+        },
+        {
+          "legajo": "175696",
+          "idGerencia": "",
+          "idUo": "10931100"
+        },
+        {
+          "legajo": "186917",
+          "idGerencia": "",
+          "idUo": "10931100"
+        }
+      ],
+      "legajos": 3
+    },
+    {
+      "filename": "Sin Codigo - ADMINISTRAC DE TALLER.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931102"
+      ],
+      "rows": [
+        {
+          "legajo": "135102",
+          "idGerencia": "",
+          "idUo": "10931102"
+        },
+        {
+          "legajo": "208020",
+          "idGerencia": "",
+          "idUo": "10931102"
+        }
+      ],
+      "legajos": 2
+    },
+    {
+      "filename": "Sin Codigo - MECANICA GENERAL.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931111"
+      ],
+      "rows": [
+        {
+          "legajo": "46957",
+          "idGerencia": "",
+          "idUo": "10931111"
+        },
+        {
+          "legajo": "66063",
+          "idGerencia": "",
+          "idUo": "10931111"
+        },
+        {
+          "legajo": "91742",
+          "idGerencia": "",
+          "idUo": "10931111"
+        },
+        {
+          "legajo": "135070",
+          "idGerencia": "",
+          "idUo": "10931111"
+        },
+        {
+          "legajo": "172212",
+          "idGerencia": "",
+          "idUo": "10931111"
+        },
+        {
+          "legajo": "172951",
+          "idGerencia": "",
+          "idUo": "10931111"
+        },
+        {
+          "legajo": "175462",
+          "idGerencia": "",
+          "idUo": "10931111"
+        },
+        {
+          "legajo": "202036",
+          "idGerencia": "",
+          "idUo": "10931111"
+        },
+        {
+          "legajo": "206419",
+          "idGerencia": "",
+          "idUo": "10931111"
+        }
+      ],
+      "legajos": 9
+    },
+    {
+      "filename": "Sin Codigo - CHAPA Y PINTURA.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931114"
+      ],
+      "rows": [
+        {
+          "legajo": "18411",
+          "idGerencia": "",
+          "idUo": "10931114"
+        },
+        {
+          "legajo": "48418",
+          "idGerencia": "",
+          "idUo": "10931114"
+        },
+        {
+          "legajo": "114842",
+          "idGerencia": "",
+          "idUo": "10931114"
+        },
+        {
+          "legajo": "118383",
+          "idGerencia": "",
+          "idUo": "10931114"
+        },
+        {
+          "legajo": "151406",
+          "idGerencia": "",
+          "idUo": "10931114"
+        },
+        {
+          "legajo": "165703",
+          "idGerencia": "",
+          "idUo": "10931114"
+        },
+        {
+          "legajo": "206213",
+          "idGerencia": "",
+          "idUo": "10931114"
+        }
+      ],
+      "legajos": 7
+    },
+    {
+      "filename": "Sin Codigo - LAVADERO DE CAMIONES.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931118"
+      ],
+      "rows": [
+        {
+          "legajo": "135088",
+          "idGerencia": "",
+          "idUo": "10931118"
+        },
+        {
+          "legajo": "175086",
+          "idGerencia": "",
+          "idUo": "10931118"
+        },
+        {
+          "legajo": "175164",
+          "idGerencia": "",
+          "idUo": "10931118"
+        },
+        {
+          "legajo": "195034",
+          "idGerencia": "",
+          "idUo": "10931118"
+        }
+      ],
+      "legajos": 4
+    },
+    {
+      "filename": "Sin Codigo - MANTENIMIENTO.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931200"
+      ],
+      "rows": [
+        {
+          "legajo": "170910",
+          "idGerencia": "",
+          "idUo": "10931200"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - MECANICA PARQUE RODANTE.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931211"
+      ],
+      "rows": [
+        {
+          "legajo": "16260",
+          "idGerencia": "",
+          "idUo": "10931211"
+        },
+        {
+          "legajo": "69640",
+          "idGerencia": "",
+          "idUo": "10931211"
+        },
+        {
+          "legajo": "93473",
+          "idGerencia": "",
+          "idUo": "10931211"
+        },
+        {
+          "legajo": "97117",
+          "idGerencia": "",
+          "idUo": "10931211"
+        },
+        {
+          "legajo": "99723",
+          "idGerencia": "",
+          "idUo": "10931211"
+        },
+        {
+          "legajo": "157716",
+          "idGerencia": "",
+          "idUo": "10931211"
+        },
+        {
+          "legajo": "160617",
+          "idGerencia": "",
+          "idUo": "10931211"
+        }
+      ],
+      "legajos": 7
+    },
+    {
+      "filename": "Sin Codigo - PARQUE DE BATERIAS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931212"
+      ],
+      "rows": [
+        {
+          "legajo": "168184",
+          "idGerencia": "",
+          "idUo": "10931212"
+        },
+        {
+          "legajo": "168926",
+          "idGerencia": "",
+          "idUo": "10931212"
+        },
+        {
+          "legajo": "202981",
+          "idGerencia": "",
+          "idUo": "10931212"
+        },
+        {
+          "legajo": "205411",
+          "idGerencia": "",
+          "idUo": "10931212"
+        }
+      ],
+      "legajos": 4
+    },
+    {
+      "filename": "Sin Codigo - EDILICIO.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931219"
+      ],
+      "rows": [
+        {
+          "legajo": "158165",
+          "idGerencia": "",
+          "idUo": "10931219"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - PARQUE RODANTE.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931220"
+      ],
+      "rows": [
+        {
+          "legajo": "69337",
+          "idGerencia": "",
+          "idUo": "10931220"
+        },
+        {
+          "legajo": "196198",
+          "idGerencia": "",
+          "idUo": "10931220"
+        }
+      ],
+      "legajos": 2
+    },
+    {
+      "filename": "Sin Codigo - SALA DE MAQUINAS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931221"
+      ],
+      "rows": [
+        {
+          "legajo": "11807",
+          "idGerencia": "",
+          "idUo": "10931221"
+        },
+        {
+          "legajo": "121609",
+          "idGerencia": "",
+          "idUo": "10931221"
+        },
+        {
+          "legajo": "139229",
+          "idGerencia": "",
+          "idUo": "10931221"
+        },
+        {
+          "legajo": "150699",
+          "idGerencia": "",
+          "idUo": "10931221"
+        },
+        {
+          "legajo": "169256",
+          "idGerencia": "",
+          "idUo": "10931221"
+        },
+        {
+          "legajo": "185416",
+          "idGerencia": "",
+          "idUo": "10931221"
+        },
+        {
+          "legajo": "201742",
+          "idGerencia": "",
+          "idUo": "10931221"
+        },
+        {
+          "legajo": "203723",
+          "idGerencia": "",
+          "idUo": "10931221"
+        }
+      ],
+      "legajos": 8
+    },
+    {
+      "filename": "Sin Codigo - ELECTRICIDAD.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931222"
+      ],
+      "rows": [
+        {
+          "legajo": "118361",
+          "idGerencia": "",
+          "idUo": "10931222"
+        },
+        {
+          "legajo": "121610",
+          "idGerencia": "",
+          "idUo": "10931222"
+        },
+        {
+          "legajo": "136423",
+          "idGerencia": "",
+          "idUo": "10931222"
+        },
+        {
+          "legajo": "160199",
+          "idGerencia": "",
+          "idUo": "10931222"
+        },
+        {
+          "legajo": "170840",
+          "idGerencia": "",
+          "idUo": "10931222"
+        },
+        {
+          "legajo": "191898",
+          "idGerencia": "",
+          "idUo": "10931222"
+        },
+        {
+          "legajo": "192363",
+          "idGerencia": "",
+          "idUo": "10931222"
+        }
+      ],
+      "legajos": 7
+    },
+    {
+      "filename": "Sin Codigo - ELECTRONICA Y GPS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931223"
+      ],
+      "rows": [
+        {
+          "legajo": "118362",
+          "idGerencia": "",
+          "idUo": "10931223"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - ELECTROMECANICA.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931224"
+      ],
+      "rows": [
+        {
+          "legajo": "195488",
+          "idGerencia": "",
+          "idUo": "10931224"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - EDILICIOS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931251"
+      ],
+      "rows": [
+        {
+          "legajo": "41328",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "49517",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "67499",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "99215",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "134979",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "135009",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "135072",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "149850",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "152604",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "153908",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "160059",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "160457",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "162623",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "178361",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "196330",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "197476",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "198110",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "198870",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "199370",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "202413",
+          "idGerencia": "",
+          "idUo": "10931251"
+        },
+        {
+          "legajo": "204237",
+          "idGerencia": "",
+          "idUo": "10931251"
+        }
+      ],
+      "legajos": 21
+    },
+    {
+      "filename": "Sin Codigo - ADMINISTRACION DE MANTENIMIENTO.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931270"
+      ],
+      "rows": [
+        {
+          "legajo": "22791",
+          "idGerencia": "",
+          "idUo": "10931270"
+        },
+        {
+          "legajo": "203611",
+          "idGerencia": "",
+          "idUo": "10931270"
+        }
+      ],
+      "legajos": 2
+    },
+    {
+      "filename": "Sin Codigo - INGENIERIA DE PROYECTOS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931500"
+      ],
+      "rows": [
+        {
+          "legajo": "170857",
+          "idGerencia": "",
+          "idUo": "10931500"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - MAPA DE ALMACEN.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931512"
+      ],
+      "rows": [
+        {
+          "legajo": "6082",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "11032",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "66371",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "161232",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "170456",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "181472",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "188031",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "195957",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "196714",
+          "idGerencia": "",
+          "idUo": "10931512"
+        },
+        {
+          "legajo": "204140",
+          "idGerencia": "",
+          "idUo": "10931512"
+        }
+      ],
+      "legajos": 10
+    },
+    {
+      "filename": "Sin Codigo - MEJORA DE PROCESOS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931513"
+      ],
+      "rows": [
+        {
+          "legajo": "176976",
+          "idGerencia": "",
+          "idUo": "10931513"
+        },
+        {
+          "legajo": "181471",
+          "idGerencia": "",
+          "idUo": "10931513"
+        },
+        {
+          "legajo": "204059",
+          "idGerencia": "",
+          "idUo": "10931513"
+        },
+        {
+          "legajo": "207189",
+          "idGerencia": "",
+          "idUo": "10931513"
+        },
+        {
+          "legajo": "208125",
+          "idGerencia": "",
+          "idUo": "10931513"
+        }
+      ],
+      "legajos": 5
+    },
+    {
+      "filename": "Sin Codigo - DESARROLLO DE PROYECTOS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931514"
+      ],
+      "rows": [
+        {
+          "legajo": "174638",
+          "idGerencia": "",
+          "idUo": "10931514"
+        },
+        {
+          "legajo": "188062",
+          "idGerencia": "",
+          "idUo": "10931514"
+        },
+        {
+          "legajo": "203364",
+          "idGerencia": "",
+          "idUo": "10931514"
+        },
+        {
+          "legajo": "204246",
+          "idGerencia": "",
+          "idUo": "10931514"
+        },
+        {
+          "legajo": "206947",
+          "idGerencia": "",
+          "idUo": "10931514"
+        },
+        {
+          "legajo": "208156",
+          "idGerencia": "",
+          "idUo": "10931514"
+        }
+      ],
+      "legajos": 6
+    },
+    {
+      "filename": "Sin Codigo - INGENIERIA DE PROCESOS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931516"
+      ],
+      "rows": [
+        {
+          "legajo": "205141",
+          "idGerencia": "",
+          "idUo": "10931516"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - COORDINACIÓN DE PROVEEDORES.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931523"
+      ],
+      "rows": [
+        {
+          "legajo": "18668",
+          "idGerencia": "",
+          "idUo": "10931523"
+        },
+        {
+          "legajo": "181469",
+          "idGerencia": "",
+          "idUo": "10931523"
+        },
+        {
+          "legajo": "187260",
+          "idGerencia": "",
+          "idUo": "10931523"
+        },
+        {
+          "legajo": "201927",
+          "idGerencia": "",
+          "idUo": "10931523"
+        },
+        {
+          "legajo": "203211",
+          "idGerencia": "",
+          "idUo": "10931523"
+        },
+        {
+          "legajo": "206909",
+          "idGerencia": "",
+          "idUo": "10931523"
+        }
+      ],
+      "legajos": 6
+    },
+    {
+      "filename": "Sin Codigo - CONTROL DE SERVICIOS.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931902"
+      ],
+      "rows": [
+        {
+          "legajo": "104310",
+          "idGerencia": "",
+          "idUo": "10931902"
+        },
+        {
+          "legajo": "160916",
+          "idGerencia": "",
+          "idUo": "10931902"
+        },
+        {
+          "legajo": "165354",
+          "idGerencia": "",
+          "idUo": "10931902"
+        },
+        {
+          "legajo": "167293",
+          "idGerencia": "",
+          "idUo": "10931902"
+        },
+        {
+          "legajo": "203655",
+          "idGerencia": "",
+          "idUo": "10931902"
+        }
+      ],
+      "legajos": 5
+    },
+    {
+      "filename": "Sin Codigo - CONTROL DE CALIDAD.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931904"
+      ],
+      "rows": [
+        {
+          "legajo": "9895",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "100802",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "109234",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "138258",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "178114",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "195860",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "197708",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "198886",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "199186",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "200640",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "200882",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "203326",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "205817",
+          "idGerencia": "",
+          "idUo": "10931904"
+        },
+        {
+          "legajo": "206878",
+          "idGerencia": "",
+          "idUo": "10931904"
+        }
+      ],
+      "legajos": 14
+    },
+    {
+      "filename": "Sin Codigo - SENASA.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931905"
+      ],
+      "rows": [
+        {
+          "legajo": "112823",
+          "idGerencia": "",
+          "idUo": "10931905"
+        }
+      ],
+      "legajos": 1
+    },
+    {
+      "filename": "Sin Codigo - SEGURIDAD E HIGIENE.xlsx",
+      "branch": [
+        "Sin Codigo"
+      ],
+      "shapeId": null,
+      "codes": [
+        "10931906"
+      ],
+      "rows": [
+        {
+          "legajo": "157543",
+          "idGerencia": "",
+          "idUo": "10931906"
+        },
+        {
+          "legajo": "183665",
+          "idGerencia": "",
+          "idUo": "10931906"
+        },
+        {
+          "legajo": "198948",
+          "idGerencia": "",
+          "idUo": "10931906"
+        },
+        {
+          "legajo": "203101",
+          "idGerencia": "",
+          "idUo": "10931906"
+        }
+      ],
+      "legajos": 4
+    }
+  ],
+  "summary": {
+    "files": 88,
+    "legajos": 1033,
+    "mapFiles": 38,
+    "sinCodigoFiles": 50,
+    "multiCodeFiles": 20
+  }
+}

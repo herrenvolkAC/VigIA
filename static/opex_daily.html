@@ -40,6 +40,11 @@
     .daily-hero-sub{font-size:12px;color:var(--ink-soft)}
     .daily-save-state{min-width:250px;border:1px solid var(--rule);padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:#F8FAF7}
     .daily-toolbar{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(150px,.8fr) minmax(130px,.7fr) minmax(180px,1fr) auto auto auto auto auto minmax(210px,1fr);gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px;margin-bottom:14px}
+    .daily-tabs{display:flex;gap:0;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:0 12px;overflow:auto}
+    .daily-tab-btn{min-height:36px;border:0;border-left:1px solid transparent;border-right:1px solid transparent;background:transparent;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 13px;white-space:nowrap}
+    .daily-tab-btn.active{background:var(--panel);border-left-color:var(--rule);border-right-color:var(--rule);border-top:2px solid var(--green);color:var(--green);margin-top:-1px}
+    .daily-tab-panel{display:none}
+    .daily-tab-panel.active{display:block}
     .field{display:flex;flex-direction:column;gap:6px}
     .field input,.field select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
     .primary-btn{height:34px;min-height:34px;border:1px solid var(--ink);border-radius:0;background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px;box-shadow:none;white-space:nowrap}
@@ -96,8 +101,39 @@
     .param-table input[type="text"]{height:30px;width:100%;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:0 8px}
     .param-table input[type="checkbox"]{width:18px;height:18px}
     .clark-detail-table{min-width:760px}
+    .auto-detail-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+    .auto-detail-card{border:1px solid var(--rule);background:#F8FAF7;padding:10px}
+    .auto-detail-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+    .auto-detail-value{margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:var(--ink)}
+    .auto-detail-note{grid-column:1/-1;border:1px solid var(--rule);background:#fff;padding:10px;font-size:12px;color:var(--ink-soft);line-height:1.35}
+    .raw-detail-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px}
+    .raw-detail-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft)}
+    .raw-detail-table{min-width:1280px}
+    .raw-detail-table th,.raw-detail-table td{padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
+    .raw-sql-box{margin:0 0 12px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#f8fafc;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.45;white-space:pre;overflow:auto;max-height:340px}
+    .comparison-wrap{background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
+    .comparison-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:12px;flex-wrap:wrap}
+    .comparison-title{font-size:16px;font-weight:700;margin:0}
+    .comparison-sub{font-size:12px;color:var(--ink-soft);margin-top:4px}
+    .comparison-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .comparison-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+    .comparison-panel{border:1px solid var(--rule);background:#fff;padding:12px;min-width:0}
+    .comparison-panel.wide{grid-column:1/-1}
+    .comparison-chart{display:flex;flex-direction:column;gap:7px}
+    .comparison-bar-row{display:grid;grid-template-columns:230px 1fr 86px;gap:8px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px}
+    .comparison-track{height:12px;background:#E7ECE9}
+    .comparison-fill{height:100%;background:var(--red);min-width:1px}
+    .comparison-heat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .comparison-heat-cell{border:1px solid var(--rule);padding:9px;background:#F8FAF7}
+    .comparison-heat-cell strong{display:block;font-family:'IBM Plex Mono',monospace;font-size:15px;margin-top:4px}
+    .comparison-table{min-width:1220px}
+    .comparison-table th,.comparison-table td{padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
+    .comparison-table th.sortable{cursor:pointer;user-select:none}
+    .comparison-table th.sortable:hover{color:var(--green);background:#EEF4F0}
+    .comparison-table th.sorted{color:var(--green)}
+    .comparison-state{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);margin-bottom:10px}
     .sql-preview{white-space:pre;overflow:auto;max-height:58vh;border:1px solid var(--rule);background:#F8FAF7;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.45;color:var(--ink)}
-    @media(max-width:1180px){.daily-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-fields,.daily-fields.productividad,.daily-pair-grid{grid-template-columns:1fr}.daily-hero{grid-template-columns:1fr}.daily-save-state{min-width:0}}
+    @media(max-width:1180px){.daily-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-fields,.daily-fields.productividad,.daily-pair-grid,.auto-detail-summary,.comparison-grid,.comparison-heat{grid-template-columns:1fr}.daily-hero{grid-template-columns:1fr}.daily-save-state{min-width:0}}
     @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header{grid-template-columns:1fr}.header-right{justify-self:start;flex-wrap:wrap}.daily-head{display:block;padding:10px 12px}.daily-toolbar{grid-template-columns:1fr}}
   </style>
 </head>
@@ -138,6 +174,12 @@
       <div class="daily-save-state" id="daily-save-state">Sin guardar.</div>
     </section>
 
+    <nav class="daily-tabs" aria-label="Secciones Daily">
+      <button class="daily-tab-btn active" id="daily-tab-btn-carga" type="button" onclick="switchDailyMainTab('carga')">Carga Daily</button>
+      <button class="daily-tab-btn" id="daily-tab-btn-comparacion" type="button" onclick="switchDailyMainTab('comparacion')">Comparacion manual/auto</button>
+    </nav>
+
+    <section class="daily-tab-panel active" id="daily-tab-carga">
     <section class="daily-toolbar">
       <div class="field">
         <label for="daily-tipo">Tipo Daily</label>
@@ -178,6 +220,37 @@
     <div class="daily-actions">
       <button class="primary-btn" id="btn-daily-save" type="button" onclick="guardarDaily()">Guardar Daily</button>
     </div>
+    </section>
+
+    <section class="daily-tab-panel" id="daily-tab-comparacion">
+      <div class="comparison-wrap">
+        <div class="comparison-head">
+          <div>
+            <h2 class="comparison-title">Comparacion automatica/manual</h2>
+            <div class="comparison-sub">Ultimas 15 fechas Daily del historico manual. Ranking por diferencia absoluta.</div>
+          </div>
+          <div class="comparison-actions">
+            <button class="primary-btn" type="button" onclick="loadDailyComparison()">Actualizar vista</button>
+            <button class="primary-btn exception-btn visible" type="button" onclick="importDailyManualComparison()">Importar y recalcular</button>
+          </div>
+        </div>
+        <div class="comparison-state" id="comparison-status">Sin datos cargados.</div>
+        <div class="comparison-grid">
+          <div class="comparison-panel">
+            <div class="daily-group-title">Mayores diferencias</div>
+            <div class="comparison-chart" id="comparison-ranking"></div>
+          </div>
+          <div class="comparison-panel">
+            <div class="daily-group-title">Mapa por almacen/operacion</div>
+            <div class="comparison-heat" id="comparison-heat"></div>
+          </div>
+          <div class="comparison-panel wide">
+            <div class="daily-group-title">Detalle comparativo</div>
+            <div class="table-wrap" id="comparison-table-wrap"><div class="empty">Sin comparacion calculada.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -213,6 +286,8 @@
       </div>
     </div>
     <div class="modal-actions">
+      <button class="ghost-btn" id="btn-show-raw-sql" type="button" onclick="mostrarConsultaCruda()" style="display:none">Ver SQL cruda</button>
+      <button class="ghost-btn" id="btn-copy-raw-detail" type="button" onclick="copiarDetalleCrudo()" style="display:none">Copiar Excel</button>
       <button class="ghost-btn" type="button" onclick="cerrarDetalleClark()">Cerrar</button>
     </div>
   </div>
@@ -227,6 +302,10 @@
   let dailyParamClave = '';
   let dailyAdminParametros = [];
   let clarkDetailCache = {};
+  let currentRawDetail = null;
+  let currentRawSql = null;
+  let dailyComparisonData = null;
+  let comparisonSort = { key: 'diferencia_abs', dir: 'desc' };
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, ch => ({
@@ -236,6 +315,22 @@
 
   function num(value) {
     return Number(value || 0).toLocaleString('es-AR');
+  }
+
+  function num2(value) {
+    return Number(value || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function isProductividadParamId(paramId) {
+    return String(paramId || '').includes('_PROD_');
+  }
+
+  function isSpcRealParamId(paramId) {
+    return String(paramId || '') === 'OP_CUMP_SPC_REAL_6A6';
+  }
+
+  function formatAutoValue(item) {
+    return isProductividadParamId(item?.id_parametro) ? num2(item?.valor) : num(item?.valor);
   }
 
   function cssEscape(value) {
@@ -299,15 +394,181 @@
     return fallback;
   }
 
-  function buildDailyAutoSummary(results) {
-    return Object.entries(results || {})
-      .map(([sector, items]) => {
-        const values = (Array.isArray(items) ? items : [items])
-          .map(item => `${item.proceso || 'Dato'} ${num(item.valor)}`)
-          .join(', ');
-        return `${sector}: ${values}`;
-      })
-      .join(' | ');
+  function switchDailyMainTab(tab) {
+    const active = tab === 'comparacion' ? 'comparacion' : 'carga';
+    document.getElementById('daily-tab-btn-carga')?.classList.toggle('active', active === 'carga');
+    document.getElementById('daily-tab-btn-comparacion')?.classList.toggle('active', active === 'comparacion');
+    document.getElementById('daily-tab-carga')?.classList.toggle('active', active === 'carga');
+    document.getElementById('daily-tab-comparacion')?.classList.toggle('active', active === 'comparacion');
+    if (active === 'comparacion' && !dailyComparisonData) loadDailyComparison();
+  }
+
+  function setComparisonStatus(text, tone = '') {
+    const el = document.getElementById('comparison-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `comparison-state ${tone}`;
+  }
+
+  async function loadDailyComparison() {
+    setComparisonStatus('Cargando comparacion manual/automatica.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/comparacion-manual-auto?days=15', { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(apiErrorMessage(data, 'No se pudo cargar la comparacion.'));
+      dailyComparisonData = data;
+      renderDailyComparison(data);
+    } catch (err) {
+      setComparisonStatus(err.message || 'No se pudo cargar la comparacion.', 'error');
+    }
+  }
+
+  async function importDailyManualComparison() {
+    setComparisonStatus('Importando Excel y recalculando dailys faltantes. Puede demorar.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/comparacion-manual-auto/importar', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days: 15, force_auto: false })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(apiErrorMessage(data, 'No se pudo importar la comparacion.'));
+      dailyComparisonData = data;
+      renderDailyComparison(data);
+    } catch (err) {
+      setComparisonStatus(err.message || 'No se pudo importar la comparacion.', 'error');
+    }
+  }
+
+  function renderDailyComparison(data) {
+    setComparisonStatus(`${num(data?.count)} comparaciones entre ${data?.fecha_desde || '-'} y ${data?.fecha_hasta || '-'}${data?.missing_auto ? `; ${num(data.missing_auto)} sin automatico` : ''}.`);
+    renderComparisonRanking(data?.ranking || []);
+    renderComparisonHeat(data?.heatmap || []);
+    renderComparisonTable(data?.rows || []);
+  }
+
+  function renderComparisonRanking(rows) {
+    const wrap = document.getElementById('comparison-ranking');
+    if (!wrap) return;
+    const top = rows.slice(0, 12);
+    if (!top.length) {
+      wrap.innerHTML = '<div class="empty">Sin diferencias calculadas.</div>';
+      return;
+    }
+    const max = Math.max(...top.map(row => Number(row.diferencia_abs_total || 0)), 1);
+    wrap.innerHTML = top.map(row => {
+      const label = `${row.sector} | ${row.operacion} | ${row.metrica} ${row.concepto}`;
+      const width = Math.max(1, (Number(row.diferencia_abs_total || 0) / max) * 100);
+      return `
+        <div class="comparison-bar-row">
+          <div title="${escapeHtml(label)}">${escapeHtml(label)}</div>
+          <div class="comparison-track"><div class="comparison-fill" style="width:${width}%"></div></div>
+          <div>${num2(row.diferencia_abs_total)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderComparisonHeat(rows) {
+    const wrap = document.getElementById('comparison-heat');
+    if (!wrap) return;
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="empty">Sin mapa calculado.</div>';
+      return;
+    }
+    const max = Math.max(...rows.map(row => Number(row.diferencia_abs_promedio || 0)), 1);
+    wrap.innerHTML = rows.map(row => {
+      const intensity = Math.min(1, Number(row.diferencia_abs_promedio || 0) / max);
+      const bg = `rgba(200, 16, 46, ${0.08 + intensity * 0.34})`;
+      return `
+        <div class="comparison-heat-cell" style="background:${bg}">
+          <div class="auto-detail-label">${escapeHtml(row.sector)} / ${escapeHtml(row.operacion)}</div>
+          <strong>${num2(row.diferencia_abs_promedio)}</strong>
+          <div class="daily-auto-note">${num(row.comparaciones)} comparaciones</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function comparisonSortValue(row, key) {
+    const value = row?.[key];
+    if (['valor_manual', 'valor_automatico', 'diferencia', 'diferencia_abs', 'diferencia_pct'].includes(key)) {
+      if (value === null || value === undefined || value === '') return Number.NEGATIVE_INFINITY;
+      return Number(value);
+    }
+    return String(value ?? '').toLocaleLowerCase('es-AR');
+  }
+
+  function sortedComparisonRows(rows) {
+    const key = comparisonSort.key;
+    const dir = comparisonSort.dir === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      const av = comparisonSortValue(a, key);
+      const bv = comparisonSortValue(b, key);
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+      return String(av).localeCompare(String(bv), 'es-AR', { numeric: true, sensitivity: 'base' }) * dir;
+    });
+  }
+
+  function setComparisonSort(key) {
+    comparisonSort = {
+      key,
+      dir: comparisonSort.key === key && comparisonSort.dir === 'desc' ? 'asc' : 'desc'
+    };
+    renderComparisonTable(dailyComparisonData?.rows || []);
+  }
+
+  function comparisonTh(label, key) {
+    const active = comparisonSort.key === key;
+    const mark = active ? (comparisonSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+    return `<th class="sortable ${active ? 'sorted' : ''}" onclick="setComparisonSort('${escapeHtml(key)}')">${escapeHtml(label)}${mark}</th>`;
+  }
+
+  function renderComparisonTable(rows) {
+    const wrap = document.getElementById('comparison-table-wrap');
+    if (!wrap) return;
+    const top = sortedComparisonRows(rows).slice(0, 300);
+    if (!top.length) {
+      wrap.innerHTML = '<div class="empty">Sin filas comparativas.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            ${comparisonTh('Fecha', 'fecha_daily')}
+            ${comparisonTh('Almacen', 'sector')}
+            ${comparisonTh('Operacion', 'operacion')}
+            ${comparisonTh('Metrica', 'metrica')}
+            ${comparisonTh('Concepto', 'concepto')}
+            ${comparisonTh('Manual', 'valor_manual')}
+            ${comparisonTh('Automatico', 'valor_automatico')}
+            ${comparisonTh('Dif.', 'diferencia')}
+            ${comparisonTh('Dif. abs.', 'diferencia_abs')}
+            ${comparisonTh('Dif. %', 'diferencia_pct')}
+            ${comparisonTh('Estado', 'estado')}
+          </tr>
+        </thead>
+        <tbody>
+          ${top.map(row => `
+            <tr>
+              <td>${escapeHtml(row.fecha_daily)}</td>
+              <td>${escapeHtml(row.sector)}</td>
+              <td>${escapeHtml(row.operacion)}</td>
+              <td>${escapeHtml(row.metrica)}</td>
+              <td>${escapeHtml(row.concepto)}</td>
+              <td>${num2(row.valor_manual)}</td>
+              <td>${row.valor_automatico === null || row.valor_automatico === undefined ? '-' : num2(row.valor_automatico)}</td>
+              <td>${row.diferencia === null || row.diferencia === undefined ? '-' : num2(row.diferencia)}</td>
+              <td>${row.diferencia_abs === null || row.diferencia_abs === undefined ? '-' : num2(row.diferencia_abs)}</td>
+              <td>${row.diferencia_pct === null || row.diferencia_pct === undefined ? '-' : `${num2(Number(row.diferencia_pct) * 100)}%`}</td>
+              <td>${escapeHtml(row.estado)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
   }
 
   function applyDailyAutoPayload(data) {
@@ -315,9 +576,8 @@
     clarkDetailCache = {};
     renderDailyParametros();
     const applied = applyDailyAutoResultForCurrentSector();
-    const summary = buildDailyAutoSummary(dailyAutoResults);
     setRetryVisible(false);
-    setDailyStatus(`Calculo automatico listo.${summary ? ` ${summary}.` : ''}${applied ? '' : ' Cambia al sector calculado para aplicar el valor.'}`);
+    setDailyStatus(`Calculo automatico listo.${applied ? '' : ' Cambia al sector calculado para aplicar el valor.'}`);
     setDailySaveState('Automatico calculado - pendiente de guardar');
   }
 
@@ -397,7 +657,7 @@
         <div class="daily-auto-values">
           <div class="daily-value-field">
             <div class="daily-value-label">Automatico</div>
-            <input id="${escapeHtml(id)}-auto" data-auto-value-for="${escapeHtml(param.id_parametro)}" type="text" value="${escapeHtml(autoItem?.valor ?? '')}" readonly tabindex="-1">
+            <input id="${escapeHtml(id)}-auto" data-auto-value-for="${escapeHtml(param.id_parametro)}" data-auto-raw-value="${escapeHtml(autoItem?.valor ?? '')}" type="text" value="${escapeHtml(autoItem ? formatAutoValue(autoItem) : '')}" readonly tabindex="-1">
           </div>
           <div class="daily-value-field">
             <label class="daily-value-label" for="${escapeHtml(id)}">Usuario</label>
@@ -468,11 +728,15 @@
   }
 
   function currentDailyAutoItems() {
-    const sector = document.getElementById('daily-sector')?.value || '';
+    const sector = currentDailySector();
     const results = Array.isArray(dailyAutoResults[sector])
       ? dailyAutoResults[sector]
       : (dailyAutoResults[sector] ? [dailyAutoResults[sector]] : []);
     return results;
+  }
+
+  function currentDailySector() {
+    return document.getElementById('daily-sector')?.value || '';
   }
 
   function dailyAutoItemForParam(paramId) {
@@ -487,10 +751,15 @@
         container.innerHTML = '';
         return;
       }
-      const isReal = ['OP_CUMP_PICKING_REAL_6A6', 'OP_CUMP_RECEPCION_REAL_6A6', 'OP_CUMP_DESPACHO_REAL_6A6'].includes(item.id_parametro);
+      const isAvance = String(item.id_parametro || '').startsWith('OP_AVANCE_');
+      const isAvancePlan = isAvance && String(item.id_parametro || '').includes('_PLAN_');
+      const isReal = ['OP_CUMP_PICKING_REAL_6A6', 'OP_CUMP_RECEPCION_REAL_6A6', 'OP_CUMP_DESPACHO_REAL_6A6', 'OP_CUMP_SPC_REAL_6A6'].includes(item.id_parametro);
       const isPlan = ['OP_CUMP_PICKING_PLAN_6A6', 'OP_CUMP_SPC_PLAN_6A6', 'OP_CUMP_DESPACHO_PLAN_6A6'].includes(item.id_parametro);
       const isDotacion = ['OP_DOT_PICKING_LEGAJOS_6A8', 'OP_DOT_SPC_LEGAJOS_6A8', 'OP_DOT_RECEPCION_LEGAJOS_6A8', 'OP_DOT_DESPACHO_LEGAJOS_6A8'].includes(item.id_parametro);
-      const quantityLabel = isDotacion
+      const isProductividad = isProductividadParamId(item.id_parametro);
+      const quantityLabel = isProductividad
+        ? `${formatAutoValue(item)} ${item.proceso === 'PICKING' ? 'bultos / turno x operario' : 'productividad'}`
+        : isDotacion
         ? `${num(item.valor)} legajos`
         : item.id_parametro === 'OP_CUMP_PICKING_PLAN_6A6'
         ? `${num(item.valor)} bultos planificados`
@@ -498,14 +767,22 @@
         ? `${num(item.valor)} pallets planificados`
         : item.id_parametro === 'OP_CUMP_DESPACHO_PLAN_6A6'
         ? `${num(item.valor)} viajes planificados`
+        : isAvance && item.proceso === 'PICKING'
+        ? `${num(item.valor)} bultos ${isAvancePlan ? 'planificados' : 'reales'} 6 a 7:30`
+        : isAvance && item.proceso === 'DESPACHO'
+        ? `${num(item.valor)} ${isAvancePlan ? 'viajes planificados' : 'hojas de ruta reales'} 6 a 7:30`
+        : isAvance
+        ? `${num(item.valor)} pallets ${isAvancePlan ? 'planificados' : 'reales'} 6 a 7:30`
+        : isSpcRealParamId(item.id_parametro)
+        ? `${num(item.cantidad || item.valor)} pallets reales`
         : item.proceso === 'PICKING'
         ? `${num(item.bultos || item.cantidad)} bultos${isReal ? ' reales' : ''}`
         : item.proceso === 'DESPACHO'
-        ? `${num(item.viajes || item.cantidad)} viajes${isReal ? ' reales' : ''}`
+        ? `${num(item.viajes || item.cantidad)} hojas de ruta${isReal ? ' reales' : ''}`
         : `${num(item.pallets || item.cantidad)} pallets`;
-      const operatorLabel = (isReal || isDotacion || isPlan) ? '' : ` / ${num(item.legajos)} operarios`;
+      const operatorLabel = (isReal || isDotacion || isPlan || isProductividad || isAvance) ? '' : ` / ${num(item.legajos)} operarios`;
       container.innerHTML = `
-        ${canRetryDailyAuto() ? `<button class="daily-auto-detail" type="button" onclick="abrirDetalleClark('${escapeHtml(paramId)}')">Ver</button>` : ''}
+        ${canRetryDailyAuto() && !isAvancePlan ? `<button class="daily-auto-detail" type="button" onclick="abrirDetalleClark('${escapeHtml(paramId)}')">Ver</button>` : ''}
         <span class="daily-auto-note">${quantityLabel}${operatorLabel}</span>
       `;
     });
@@ -517,7 +794,8 @@
     results.forEach(result => {
       const autoInput = document.querySelector(`#daily-form [data-auto-value-for="${cssEscape(result.id_parametro)}"]`);
       if (autoInput) {
-        autoInput.value = result.valor ?? '';
+        autoInput.value = formatAutoValue(result);
+        autoInput.dataset.autoRawValue = result.valor ?? '';
         applied += 1;
       }
     });
@@ -534,32 +812,219 @@
     const wrap = document.getElementById('clark-detail-wrap');
     if (!item || !wrap || !canRetryDailyAuto()) return;
     const process = item.proceso === 'PICKING' ? 'Picking' : (item.proceso === 'RECEPCION' ? 'Recepcion' : (item.proceso === 'DESPACHO' ? 'Despacho' : (item.proceso === 'PLANIFICACION' ? 'Planificacion' : 'Clark')));
-    const endpoint = item.proceso === 'PICKING'
-      ? '/api/gestion-operativa/daily/picking-sql'
-      : (item.proceso === 'RECEPCION'
-        ? '/api/gestion-operativa/daily/recepcion-sql'
-        : (item.proceso === 'DESPACHO'
-          ? '/api/gestion-operativa/daily/despacho-sql'
-          : (item.proceso === 'PLANIFICACION' ? '/api/gestion-operativa/daily/planificacion-sql' : '/api/gestion-operativa/daily/clark-sql')));
-    const cacheKey = `${item.proceso}_SQL`;
-    if (title) title.textContent = `SQL Productividad ${process} - ${item.sector || ''}`;
-    if (status) status.textContent = `Cargando SQL agregado de ${process}.`;
-    wrap.innerHTML = '<div class="empty">Cargando SQL.</div>';
+    const rawDetail = isRawDetailItem(item);
+    const endpoint = rawDetail
+      ? `/api/gestion-operativa/daily/raw-detail?${new URLSearchParams({ sector: item.sector || currentDailySector(), param_id: item.id_parametro, process: item.proceso || '' }).toString()}`
+      : (item.proceso === 'DESPACHO'
+        ? '/api/gestion-operativa/daily/despacho-sql'
+        : (item.proceso === 'PLANIFICACION' ? '/api/gestion-operativa/daily/planificacion-sql' : '/api/gestion-operativa/daily/clark-sql'));
+    const cacheKey = rawDetail
+      ? `${item.proceso}_${item.sector}_${item.id_parametro}_RAW`
+      : `${item.proceso}_SQL`;
+    if (title) title.textContent = `Detalle automatico ${process} - ${item.sector || ''}`;
+    if (status) status.textContent = `Cargando detalle de ${process}.`;
+    wrap.innerHTML = '<div class="empty">Cargando detalle.</div>';
+    currentRawDetail = null;
+    currentRawSql = null;
+    setRawCopyVisible(false);
+    setRawSqlVisible(false);
     modal?.classList.add('open');
     try {
       if (!clarkDetailCache[cacheKey]) {
         const resp = await fetch(endpoint, { credentials: 'same-origin' });
         const data = await resp.json();
-        if (!resp.ok) throw new Error(apiErrorMessage(data, `No se pudo cargar el SQL ${process}.`));
+        if (!resp.ok) throw new Error(apiErrorMessage(data, `No se pudo cargar el detalle ${process}.`));
         clarkDetailCache[cacheKey] = data;
       }
-      renderDetalleClark(clarkDetailCache[cacheKey], item);
+      if (rawDetail) renderDetalleCrudo(clarkDetailCache[cacheKey], item);
+      else renderDetalleClark(clarkDetailCache[cacheKey], item);
     } catch (err) {
       if (status) {
-        status.textContent = err.message || `No se pudo cargar el SQL ${process}.`;
+        status.textContent = err.message || `No se pudo cargar el detalle ${process}.`;
         status.className = 'status error';
       }
-      wrap.innerHTML = '<div class="empty">No se pudo cargar el SQL.</div>';
+      wrap.innerHTML = '<div class="empty">No se pudo cargar el detalle.</div>';
+    }
+  }
+
+  function isRawDetailItem(item) {
+    const paramId = String(item?.id_parametro || '');
+    if (paramId.startsWith('OP_AVANCE_') && paramId.includes('_PLAN_')) return false;
+    return ['PICKING', 'RECEPCION', 'CLARK', 'DESPACHO'].includes(String(item?.proceso || '').toUpperCase())
+      || paramId === 'OP_CUMP_SPC_REAL_6A6'
+      || paramId === 'OP_DOT_SPC_LEGAJOS_6A8';
+  }
+
+  function setRawCopyVisible(show) {
+    const btn = document.getElementById('btn-copy-raw-detail');
+    if (btn) btn.style.display = show ? 'inline-block' : 'none';
+  }
+
+  function setRawSqlVisible(show) {
+    const btn = document.getElementById('btn-show-raw-sql');
+    if (btn) btn.style.display = show ? 'inline-block' : 'none';
+  }
+
+  function renderDetalleAutoSummary(item) {
+    const isProductividad = isProductividadParamId(item?.id_parametro);
+    const isPickingProductividad = item?.proceso === 'PICKING' && isProductividad;
+    const isClarkProductividad = item?.proceso === 'CLARK' && isProductividad;
+    const isSpcReal = isSpcRealParamId(item?.id_parametro);
+    const mainLabel = isProductividad ? 'Productividad' : 'Valor automatico';
+    const mainValue = isProductividad ? formatAutoValue(item) : num(item?.valor);
+    const cantidadLabel = isSpcReal
+      ? 'Pallets SPC reales'
+      : item?.proceso === 'PICKING'
+      ? 'Bultos reales'
+      : item?.proceso === 'CLARK'
+      ? 'Pallets movidos'
+      : item?.proceso === 'DESPACHO'
+      ? 'Hojas ruta'
+      : item?.proceso === 'PLANIFICACION'
+      ? 'Planificado'
+      : 'Cantidad';
+    const note = isPickingProductividad
+      ? 'Picking se calcula por almacen: legajos = COUNT(DISTINCT COPECREA), cumplimiento real = SUM(bultos_picking), productividad = (SUM(bultos_picking) / SUM(hs_picking)) * 6,5 horas_turno.'
+      : isClarkProductividad
+      ? 'Clark se calcula por almacen desde la consulta unificada: pallets = COUNT(DISTINCT CNUPALET), legajos = COUNT(DISTINCT COPECREA), productividad = (pallets / SUM(hs_clark_total)) * 6,5 horas_turno.'
+      : isSpcReal
+      ? 'SPC real usa la misma consulta unificada, tomando solo SURTIDO P.COMPLETOS: pallets = COUNT(DISTINCT CNUPALET), dotacion = COUNT(DISTINCT COPECREA).'
+      : item?.proceso === 'DESPACHO'
+      ? 'Despacho se calcula desde cache cruda de f922traf: produccion real = COUNT(DISTINCT HOJARUTA), legajos = COUNT(DISTINCT CARGADOR), productividad = hojas de ruta / legajos.'
+      : 'El valor automatico se toma del cache precalculado para la ventana Daily vigente. Esta vista no ejecuta Oracle.';
+    return `
+      <div class="auto-detail-summary">
+        <div class="auto-detail-card">
+          <div class="auto-detail-label">${escapeHtml(mainLabel)}</div>
+          <div class="auto-detail-value">${escapeHtml(mainValue)}</div>
+        </div>
+        <div class="auto-detail-card">
+          <div class="auto-detail-label">${escapeHtml(cantidadLabel)}</div>
+          <div class="auto-detail-value">${escapeHtml(num(item?.cantidad))}</div>
+        </div>
+        <div class="auto-detail-card">
+          <div class="auto-detail-label">Legajos</div>
+          <div class="auto-detail-value">${escapeHtml(num(item?.legajos))}</div>
+        </div>
+        <div class="auto-detail-card">
+          <div class="auto-detail-label">Sector</div>
+          <div class="auto-detail-value">${escapeHtml(item?.sector || '-')}</div>
+        </div>
+        <div class="auto-detail-note">${escapeHtml(note)}</div>
+      </div>
+    `;
+  }
+
+  function rawCell(value) {
+    if (value === null || value === undefined) return '';
+    return String(value);
+  }
+
+  function rawDetailTsv(data) {
+    const columns = data?.columns || [];
+    const rows = data?.rows || [];
+    const clean = value => rawCell(value).replace(/\r?\n/g, ' ').replace(/\t/g, ' ');
+    return [
+      columns.map(col => clean(col.label || col.key)).join('\t'),
+      ...rows.map(row => columns.map(col => clean(row[col.key])).join('\t')),
+    ].join('\n');
+  }
+
+  function renderDetalleCrudo(data, item) {
+    const modal = document.getElementById('clark-detail-modal');
+    const status = document.getElementById('clark-detail-status');
+    const wrap = document.getElementById('clark-detail-wrap');
+    if (!wrap) return;
+    currentRawDetail = data;
+    currentRawSql = data?.sql_preview || data?.sql_template || null;
+    setRawCopyVisible(Boolean(data?.rows?.length));
+    setRawSqlVisible(Boolean(currentRawSql));
+    const rows = data?.rows || [];
+    const columns = data?.columns || [];
+    const displayLimit = 3000;
+    const visibleRows = rows.slice(0, displayLimit);
+    if (status) {
+      status.className = 'status';
+      status.textContent = `${data?.query_key || 'cache crudo'} | ${data?.fecha_desde || ''} a ${data?.fecha_hasta || ''}. ${num(rows.length)} filas filtradas. No ejecuta Oracle.`;
+    }
+    const table = rows.length
+      ? `
+        <div class="raw-detail-toolbar">
+          <div class="raw-detail-count">${escapeHtml(num(rows.length))} filas disponibles para copiar${rows.length > displayLimit ? `; mostrando ${escapeHtml(num(displayLimit))}` : ''}.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${currentRawSql ? '<button class="ghost-btn" type="button" onclick="mostrarConsultaCruda()">Ver SQL cruda</button>' : ''}
+            <button class="ghost-btn" type="button" onclick="copiarDetalleCrudo()">Copiar Excel</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="raw-detail-table">
+            <thead><tr>${columns.map(col => `<th>${escapeHtml(col.label || col.key)}</th>`).join('')}</tr></thead>
+            <tbody>
+              ${visibleRows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(rawCell(row[col.key]))}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      `
+      : '<div class="empty">No hay filas crudas para este filtro.</div>';
+    wrap.innerHTML = `
+      ${renderDetalleAutoSummary(item)}
+      ${table}
+    `;
+    modal?.classList.add('open');
+  }
+
+  function mostrarConsultaCruda() {
+    const wrap = document.getElementById('clark-detail-wrap');
+    if (!wrap || !currentRawSql || !currentRawDetail) return;
+    const rows = currentRawDetail?.rows || [];
+    const columns = currentRawDetail?.columns || [];
+    const displayLimit = 3000;
+    const visibleRows = rows.slice(0, displayLimit);
+    const table = rows.length
+      ? `
+        <div class="raw-detail-toolbar">
+          <div class="raw-detail-count">${escapeHtml(num(rows.length))} filas disponibles para copiar${rows.length > displayLimit ? `; mostrando ${escapeHtml(num(displayLimit))}` : ''}.</div>
+          <button class="ghost-btn" type="button" onclick="copiarDetalleCrudo()">Copiar Excel</button>
+        </div>
+        <div class="table-wrap">
+          <table class="raw-detail-table">
+            <thead><tr>${columns.map(col => `<th>${escapeHtml(col.label || col.key)}</th>`).join('')}</tr></thead>
+            <tbody>
+              ${visibleRows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(rawCell(row[col.key]))}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      `
+      : '<div class="empty">No hay filas crudas para este filtro.</div>';
+    wrap.innerHTML = `
+      <pre class="raw-sql-box">${escapeHtml(currentRawSql)}</pre>
+      ${table}
+    `;
+  }
+
+  async function copiarDetalleCrudo() {
+    if (!currentRawDetail?.rows?.length) return;
+    const text = rawDetailTsv(currentRawDetail);
+    const status = document.getElementById('clark-detail-status');
+    try {
+      await navigator.clipboard.writeText(text);
+      if (status) {
+        status.className = 'status';
+        status.textContent = `${num(currentRawDetail.rows.length)} filas copiadas en formato Excel.`;
+      }
+    } catch (err) {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.left = '-1000px';
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand('copy');
+      area.remove();
+      if (status) {
+        status.className = 'status';
+        status.textContent = `${num(currentRawDetail.rows.length)} filas copiadas en formato Excel.`;
+      }
     }
   }
 
@@ -568,15 +1033,26 @@
     const status = document.getElementById('clark-detail-status');
     const wrap = document.getElementById('clark-detail-wrap');
     if (!wrap) return;
+    currentRawDetail = null;
+    currentRawSql = null;
+    setRawCopyVisible(false);
+    setRawSqlVisible(false);
     if (status) {
       status.className = 'status';
       status.textContent = `${data?.query_key || 'daily_auto_real'} | ${data?.fecha_desde || ''} a ${data?.fecha_hasta || ''}. No ejecuta Oracle desde esta vista.`;
     }
-    wrap.innerHTML = `<pre class="sql-preview">${escapeHtml(data?.sql_preview || data?.sql_template || '')}</pre>`;
+    wrap.innerHTML = `
+      ${renderDetalleAutoSummary(item)}
+      <pre class="sql-preview">${escapeHtml(data?.sql_preview || data?.sql_template || '')}</pre>
+    `;
     modal?.classList.add('open');
   }
 
   function cerrarDetalleClark() {
+    currentRawDetail = null;
+    currentRawSql = null;
+    setRawCopyVisible(false);
+    setRawSqlVisible(false);
     document.getElementById('clark-detail-modal')?.classList.remove('open');
   }
 
@@ -703,7 +1179,7 @@
       const paramId = input.dataset.paramId;
       const autoInput = document.querySelector(`#daily-form [data-auto-value-for="${cssEscape(paramId)}"]`);
       respuestas[paramId] = autoInput
-        ? { automatico: autoInput.value || '', usuario: input.value || '' }
+        ? { automatico: autoInput.dataset.autoRawValue || autoInput.value || '', usuario: input.value || '' }
         : (input.value || '');
     });
     const payload = {
