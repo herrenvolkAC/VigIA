@@ -21,7 +21,7 @@
     h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}.amp{color:var(--red)}.header-right{display:flex;align-items:center;gap:12px}.user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}.user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .paper-link,.logout-btn,.secondary-cta{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}.paper-link:hover,.secondary-cta:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover{color:var(--red);border-color:var(--red)}.row-link{min-height:22px;padding:2px 6px;color:var(--blue);border-color:#B8D2E8}
     .paper-tabs{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule);overflow:auto}.tab-list{display:flex}.tab-btn{background:transparent;border:0;color:var(--ink-soft);padding:13px 14px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;min-width:118px;white-space:nowrap}.tab-btn.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}
-    .filters{display:grid;grid-template-columns:150px 150px 170px 130px 1fr;gap:10px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.case-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px;min-width:0}.case-cell strong{display:block;margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input,.paper-select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}.primary-cta{height:34px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}.primary-cta:disabled,.secondary-cta:disabled{opacity:.55;cursor:default}
+    .filters{display:grid;grid-template-columns:150px 150px 140px 170px 130px 130px 1fr;gap:10px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.case-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px;min-width:0}.case-cell strong{display:block;margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input,.paper-select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}.primary-cta{height:34px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}.primary-cta:disabled,.secondary-cta:disabled{opacity:.55;cursor:default}
     .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
     .paper-panel{display:none}.paper-panel.active{display:block}.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}.kpi-number{font-family:'IBM Plex Mono',monospace;font-size:28px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}.kpi-foot{font-size:11px;color:var(--ink-soft)}
     .dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.chart-panel,.text-panel{background:var(--panel);border:1px solid var(--rule);min-height:280px;padding:12px;display:flex;flex-direction:column;min-width:0}.text-panel{min-height:0}.chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
@@ -29,9 +29,11 @@
     .evolution-panel{min-height:320px;margin-top:14px}.evolution-wrap{overflow:auto}.line-chart{width:100%;min-width:900px;height:250px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart polyline{fill:none;stroke-width:2.2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart polyline.red{stroke:var(--red)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart circle.red{fill:var(--red)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--green)}.legend-dot.blue{background:var(--blue)}.legend-dot.amber{background:var(--amber)}.legend-dot.red{background:var(--red)}
     .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);margin-top:12px}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 10px}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--blue);background:#EEF4F0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 10px;font-size:12px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}.table-wrap{overflow:auto;max-height:540px}.pill{display:inline-block;padding:3px 6px;border:1px solid #C8E2D0;background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px}.pill.warn{border-color:#E1BF76;background:var(--amber-soft);color:#6F4300}.pill.bad{border-color:#E8A0AA;background:var(--red-soft);color:var(--red)}
     .tool-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.summary-filters{display:grid;grid-template-columns:160px 160px auto 1fr;gap:10px;align-items:end;margin-top:12px;padding:10px 12px;background:var(--panel);border:1px solid var(--rule)}.summary-filter-info{justify-self:end;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.mini-filters{display:none!important}.hidden{display:none!important}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}.notes{display:grid;gap:8px;margin:0;padding:0;list-style:none}.notes li{border-left:3px solid var(--green);background:#F8FAF7;padding:10px 12px;font-size:13px;line-height:1.45}.warn-list li{border-left-color:var(--amber)}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(14,22,32,.38);display:none;align-items:center;justify-content:center;padding:22px;z-index:20}.modal-backdrop.active{display:flex}.modal-panel{width:min(1500px,96vw);max-height:90vh;background:var(--panel);border:1px solid var(--rule-strong);box-shadow:0 18px 60px rgba(14,22,32,.22);display:flex;flex-direction:column}.modal-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--rule);background:#F6F8F5}.modal-body{padding:12px;overflow:auto}.modal-summary{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px;margin-bottom:10px}.summary-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:8px 9px;min-width:0}.summary-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.modal-body .table-wrap{max-height:58vh}.icon-btn{min-width:34px;height:34px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace}
-    @media(max-width:1200px){.filters{grid-template-columns:1fr 1fr 1fr}.dashboard-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}.summary-filters,.mini-filters{grid-template-columns:1fr 1fr}.summary-filter-info{justify-self:start}}
-    @media(max-width:700px){.paper-app{padding:0 12px 18px}.filters,.kpi-row,.summary-filters,.mini-filters{grid-template-columns:1fr}.tab-btn{min-width:112px;padding-left:10px;padding-right:10px}.kpi-number{font-size:24px}}
+    .executive-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.executive-wide{grid-column:1/-1}.insight-chart{width:100%;min-height:260px}.insight-svg{display:block;width:100%;height:280px}.insight-svg .axis{stroke:var(--rule-strong);stroke-width:1}.insight-svg .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.insight-svg .bar-actual{fill:var(--green)}.insight-svg .bar-hours{fill:var(--red)}.insight-svg .bar-neutral{fill:var(--blue)}.insight-svg .bar-extra{fill:var(--amber)}.insight-svg .dot-hours{fill:var(--red);opacity:.72}.insight-svg .dot-actual{fill:var(--green);opacity:.72}.insight-svg .axis-label,.insight-svg .value-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.insight-svg .value-label{fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}.pie-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.pie-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px}.pie-cell.no{border-left-color:var(--red)}.pie-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.winner-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.winner-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px}.winner-cell.bad{border-left-color:var(--red)}.winner-cell.neutral{border-left-color:var(--blue)}.winner-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.case-card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}.case-card{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--red);padding:10px;min-width:0;cursor:pointer;text-align:left}.case-card:hover{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}.case-card.ok{border-left-color:var(--green)}.case-card.ok:hover{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}.case-card-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.case-card strong{font-family:'IBM Plex Mono',monospace;font-size:13px}.case-card .mini-bars{display:grid;gap:6px;margin-top:8px}.case-card .mini-row{display:grid;grid-template-columns:82px 1fr 76px;gap:6px;align-items:center;font-size:11px}.case-card .mini-track{height:10px;background:#EAEEEB}.case-card .mini-fill{height:100%;background:var(--green)}.case-card .mini-fill.bad{background:var(--red)}.case-action{margin-top:10px;width:100%;justify-content:center}.data-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.data-panel{background:var(--panel);border:1px solid var(--rule);padding:12px}.data-panel .table-wrap{max-height:460px}
+    .problem-layout{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}.problem-chart{width:100%;height:340px;border-left:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong);padding:8px 8px 2px;overflow:hidden}.problem-line-chart{display:block;width:100%;height:100%;overflow:visible}.problem-line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.problem-line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.problem-line-chart .standard-bg{fill:#DDEEE3;opacity:.82}.problem-line-chart .extra-bg{fill:#F4DDE0;opacity:.82}.problem-line-chart .turno-cut{stroke:var(--ink-soft);stroke-width:1.5;stroke-dasharray:5 4;opacity:.85}.problem-line-chart .hour-band{fill:var(--amber-soft);stroke:#E1BF76;stroke-width:1;opacity:.55}.problem-line-chart .hour-band-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:#6F4300;letter-spacing:0;text-transform:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}.problem-line-chart .line-main{fill:none;stroke:var(--blue);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.problem-line-chart .line-posterior{fill:none;stroke:var(--red);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.problem-line-chart .line-objetivo{stroke:var(--green);stroke-width:2.5;stroke-dasharray:8 5}.problem-line-chart .point{stroke:var(--panel);stroke-width:3}.problem-line-chart .point.pre{fill:var(--green)}.problem-line-chart .point.pico{fill:var(--blue)}.problem-line-chart .point.posterior{fill:var(--amber)}.problem-line-chart .point.caida,.problem-line-chart .point.extra{fill:var(--red)}.problem-line-chart .prod-bar{stroke:var(--panel);stroke-width:1.5;opacity:.72}.problem-line-chart .prod-bar.standard{fill:var(--blue)}.problem-line-chart .prod-bar.extra{fill:var(--red)}.problem-line-chart .transfer-segment{fill:var(--amber);stroke:#6F4300;stroke-width:.8;opacity:.9}.problem-line-chart .transfer-segment.from-standard{fill:#E8A23A;stroke:#6F4300;stroke-dasharray:3 2}.problem-line-chart .transfer-segment.animating{animation:move-extra .9s cubic-bezier(.2,.72,.24,1) both}.problem-line-chart .leftover-extra{fill:var(--red);opacity:.45;stroke:var(--red);stroke-width:1}.problem-line-chart .source-used{fill:#FFFFFF;stroke:#0B5FAE;stroke-width:1;stroke-dasharray:3 2;opacity:.52}.problem-line-chart .target-cap{stroke:var(--green);stroke-width:2;stroke-dasharray:3 3}.problem-line-chart .label{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--ink);letter-spacing:0;text-transform:none}.problem-line-chart .axis-label,.problem-line-chart .legend-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft);letter-spacing:0;text-transform:none}@keyframes move-extra{from{transform:translate(var(--from-x),var(--from-y));opacity:.35}70%{opacity:.95}to{transform:translate(0,0);opacity:.9}}.detalle-anim-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:2px 0 8px}.detalle-anim-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.detalle-anim-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.04em}.problem-selected{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.problem-note{font-size:13px;line-height:1.45;color:var(--ink-soft);margin:0}.problem-modebar,.problem-viewbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 0}.problem-viewbar{margin-top:8px}.problem-view-btn{min-height:30px;border:1px solid var(--rule);background:var(--panel);padding:5px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.problem-view-btn.active{border-color:var(--green);background:var(--green-soft);color:var(--green);font-weight:600}.problem-table tbody tr{cursor:pointer}.problem-table tbody tr.active{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-soft)}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(14,22,32,.38);display:none;align-items:center;justify-content:center;padding:22px;z-index:20}.modal-backdrop.active{display:flex}.modal-panel{width:min(1500px,96vw);max-height:90vh;background:var(--panel);border:1px solid var(--rule-strong);box-shadow:0 18px 60px rgba(14,22,32,.22);display:flex;flex-direction:column}.modal-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--rule);background:#F6F8F5}.modal-body{padding:12px;overflow:auto}.modal-summary{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px;margin-bottom:10px}.summary-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:8px 9px;min-width:0}.summary-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.detalle-chart{height:360px;margin:4px 0 12px}.detalle-chart .problem-line-chart{height:310px}.modal-body .table-wrap{max-height:42vh}.icon-btn{min-width:34px;height:34px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace}
+    @media(max-width:1200px){.filters{grid-template-columns:1fr 1fr 1fr}.dashboard-grid,.problem-layout,.executive-grid{grid-template-columns:1fr}.case-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-row{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}.summary-filters,.mini-filters{grid-template-columns:1fr 1fr}.summary-filter-info{justify-self:start}}
+    @media(max-width:700px){.paper-app{padding:0 12px 18px}.filters,.kpi-row,.summary-filters,.mini-filters,.case-card-grid{grid-template-columns:1fr}.tab-btn{min-width:112px;padding-left:10px;padding-right:10px}.kpi-number{font-size:24px}}
   </style>
 </head>
 <body>
@@ -41,13 +43,14 @@
       <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
       <div class="brand-rule"></div>
       <div>
-        <div class="kicker">Auditoria y simulacion</div>
+        <div class="kicker">Auditoria desde cache</div>
         <h1>Analisis Premio <span class="amp">Productividad</span></h1>
       </div>
     </div>
     <div></div>
     <div class="header-right">
       <a class="paper-link" href="/selector.html">Selector</a>
+      <button class="paper-link" id="exportar-resumen-pdf" type="button">PDF Resumen</button>
       <div class="user-chip"><div><div class="label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
       <button class="logout-btn" id="logout-btn">Salir</button>
     </div>
@@ -55,21 +58,18 @@
 
   <div class="paper-tabs">
     <div class="tab-list">
-      <button class="tab-btn active" data-tab="resumen">Resumen</button>
-      <button class="tab-btn" data-tab="actual">Modelo actual</button>
-      <button class="tab-btn" data-tab="escala">Escala</button>
-      <button class="tab-btn" data-tab="hora">Simulacion hora</button>
-      <button class="tab-btn" data-tab="diaria">Comparacion diaria</button>
-      <button class="tab-btn" data-tab="detalle">Detalle hora</button>
-      <button class="tab-btn" data-tab="fuera">Fuera turno</button>
-      <button class="tab-btn" data-tab="cache">Datos/cache</button>
+      <button class="tab-btn active" data-tab="resumen">Resumen ejecutivo</button>
+      <button class="tab-btn" data-tab="detalle">Datos</button>
+      <button class="tab-btn" data-tab="cache">Metodologia/cache</button>
     </div>
   </div>
 
   <section class="filters">
     <div class="field"><label class="label" for="rango-desde">Fecha desde</label><input class="paper-input" type="date" id="rango-desde"></div>
     <div class="field"><label class="label" for="rango-hasta">Fecha hasta</label><input class="paper-input" type="date" id="rango-hasta"></div>
-    <div class="case-cell"><div class="label">Operacion fija</div><strong>PICKING</strong></div>
+    <div class="field"><label class="label" for="operacion-select">Operacion</label><select class="paper-select" id="operacion-select"><option value="PICKING">PICKING</option></select></div>
+    <div class="field"><label class="label" for="almacen-select">Almacen</label><select class="paper-select" id="almacen-select"><option value="TODOS">TODOS</option><option value="SECOS + NOA">SECOS + NOA</option><option value="CAMARA 06">CAMARA 06</option><option value="OTRAS CAMARAS">OTRAS CAMARAS</option><option value="AREA SECOS Y NO ALIMENTOS">AREA SECOS Y NO ALIMENTOS</option></select></div>
+    <div class="field"><label class="label" for="divisor-select">Escenario hora</label><select class="paper-select" id="divisor-select"><option value="8">Escala /8</option><option value="6.5">Escala /6.5</option></select></div>
     <button class="primary-cta" id="consultar-rango">Consultar</button>
     <div class="case-cell"><div class="label">Ciclo diario</div><strong>Incluye ambos extremos - 06:00 a 06:00 - siempre desde cache</strong></div>
   </section>
@@ -77,79 +77,77 @@
 
   <section class="paper-panel active" id="panel-resumen">
     <section class="kpi-row" id="kpis-resumen"></section>
-    <article class="chart-panel evolution-panel">
-      <div class="chart-title"><strong>Evolucion de pagos</strong><span>Pagado vs escenarios por dia</span></div>
-      <div id="chart-evolucion-pagos"></div>
-    </article>
-    <section class="dashboard-grid">
-      <article class="chart-panel"><div class="chart-title"><strong>Comparativo de pago</strong><span>Pagado vs escenarios</span></div><div id="chart-premio"></div></article>
-      <article class="chart-panel"><div class="chart-title"><strong>Diferencia estimada</strong><span>Por escenario</span></div><div id="chart-fuera"></div></article>
+    <section class="executive-grid">
+      <article class="chart-panel executive-wide">
+        <div class="chart-title"><strong>Premisa de ahorro vs resultado</strong><span>comparacion limpia sin extras</span></div>
+        <div class="insight-chart" id="chart-premisa"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Impacto de quitar extras</strong><span>caida por metodo</span></div>
+        <div class="insight-chart" id="chart-impacto-extras"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Quien paga mas</strong><span>casos legajo/dia sin extras</span></div>
+        <div class="insight-chart" id="chart-ganador"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Cobran premio actual</strong><span>jornadas x legajo con extras</span></div>
+        <div class="insight-chart" id="chart-premio-actual-pie"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Cobrarian por horas</strong><span>jornadas x legajo con extras</span></div>
+        <div class="insight-chart" id="chart-premio-horas-pie"></div>
+      </article>
+      <article class="chart-panel executive-wide">
+        <div class="chart-title"><strong>Casos testigo</strong><span>actual jornada vs horas con extras</span></div>
+        <div id="case-cards-resumen"></div>
+      </article>
     </section>
-    <section class="summary-filters">
-      <div class="field"><label class="label" for="resumen-f-fecha">Fecha detalle</label><input class="paper-input" type="date" id="resumen-f-fecha"></div>
-      <div class="field"><label class="label" for="resumen-f-legajo">Legajo detalle</label><input class="paper-input" id="resumen-f-legajo" inputmode="numeric" placeholder="Todos"></div>
-      <button class="secondary-cta" id="limpiar-resumen-filtros">Limpiar</button>
-      <div class="summary-filter-info" id="resumen-filter-info">Sin filtros</div>
-    </section>
-    <div class="table-wrap"><table class="paper-table" id="tabla-caso-final"></table></div>
-    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Lectura critica</strong><span>Caso modelo</span></div><ul class="notes" id="interpretacion"></ul></article>
-    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Validaciones</strong><span>Cache</span></div><ul class="notes warn-list" id="validaciones"></ul></article>
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Lectura critica</strong><span>por reglas del rango</span></div><ul class="notes" id="interpretacion"></ul></article>
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Sugerencias</strong><span>controles para el metodo horario</span></div><ul class="notes warn-list" id="sugerencias"></ul></article>
   </section>
 
-  <section class="paper-panel" id="panel-actual">
-    <section class="kpi-row" id="kpis-actual"></section>
-    <section class="dashboard-grid">
-      <article class="chart-panel"><div class="chart-title"><strong>Premio por operacion</strong><span>Modelo vigente</span></div><div id="actual-operacion"></div></article>
-      <article class="chart-panel"><div class="chart-title"><strong>Premio por almacen</strong><span>Modelo vigente</span></div><div id="actual-almacen"></div></article>
-      <article class="chart-panel"><div class="chart-title"><strong>Premio por turno</strong><span>Modelo vigente</span></div><div id="actual-turno"></div></article>
+  <section class="paper-panel" id="panel-problematica">
+    <section class="kpi-row" id="kpis-problematica"></section>
+    <section class="problem-layout">
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Caida posterior al pico</strong><span>Dentro del turno asignado</span></div>
+        <div class="problem-selected" id="problematica-selected"></div>
+        <div class="problem-chart" id="problematica-chart"></div>
+      </article>
+      <article class="text-panel">
+        <div class="chart-title"><strong>Lectura ejecutiva</strong><span>Modelo actual</span></div>
+        <ul class="notes" id="problematica-lectura"></ul>
+      </article>
     </section>
-    <div class="table-wrap"><table class="paper-table" id="tabla-actual"></table></div>
-  </section>
-
-  <section class="paper-panel" id="panel-escala">
-    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Escala diaria vs horaria</strong><span>Division uniforme por 8</span></div><div id="escala-regla" class="mono"></div></article>
-    <div class="table-wrap"><table class="paper-table" id="tabla-escala"></table></div>
-  </section>
-
-  <section class="paper-panel" id="panel-hora">
-    <section class="kpi-row" id="kpis-hora"></section>
-    <section class="dashboard-grid">
-      <article class="chart-panel"><div class="chart-title"><strong>Por operacion</strong><span>Diferencia</span></div><div id="hora-operacion"></div></article>
-      <article class="chart-panel"><div class="chart-title"><strong>Por almacen</strong><span>Diferencia</span></div><div id="hora-almacen"></div></article>
-      <article class="chart-panel"><div class="chart-title"><strong>Por turno</strong><span>Diferencia</span></div><div id="hora-turno"></div></article>
-    </section>
-    <div class="table-wrap"><table class="paper-table" id="tabla-hora-legajo"></table></div>
-  </section>
-
-  <section class="paper-panel" id="panel-diaria">
-    <section class="mini-filters">
-      <div class="field"><label class="label">Fecha</label><input class="paper-input" type="date" id="f-fecha"></div>
-      <div class="field"><label class="label">Legajo</label><input class="paper-input" id="f-legajo"></div>
-      <div class="field"><label class="label">Turno</label><select class="paper-select" id="f-turno"><option value="">Todos</option><option>Mañana</option><option>Tarde</option><option>Noche</option></select></div>
-      <div class="field"><label class="label">Operacion</label><input class="paper-input" id="f-operacion"></div>
-      <div class="field"><label class="label">Almacen</label><input class="paper-input" id="f-almacen"></div>
-      <label class="mono"><input type="checkbox" id="f-fuera"> Fuera turno</label>
-      <label class="mono"><input type="checkbox" id="f-pos"> Positivas</label>
-      <label class="mono"><input type="checkbox" id="f-neg"> Negativas</label>
-    </section>
-    <div class="table-wrap"><table class="paper-table" id="tabla-diaria"></table></div>
+    <div class="problem-modebar" id="problematica-modebar"></div>
+    <div class="problem-viewbar" id="problematica-viewbar"></div>
+    <div class="table-wrap"><table class="paper-table problem-table" id="tabla-problematica"></table></div>
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Candidatos sin detalle</strong><span>Oracle/cache</span></div><ul class="notes warn-list" id="problematica-sin-detalle"></ul></article>
   </section>
 
   <section class="paper-panel" id="panel-detalle">
-    <div class="table-wrap"><table class="paper-table" id="tabla-detalle"></table></div>
-  </section>
-
-  <section class="paper-panel" id="panel-fuera">
-    <section class="dashboard-grid">
-      <article class="chart-panel"><div class="chart-title"><strong>Premio fuera por legajo</strong><span>Ranking</span></div><div id="fuera-legajo"></div></article>
-      <article class="chart-panel"><div class="chart-title"><strong>Premio fuera por fecha</strong><span>Ranking</span></div><div id="fuera-fecha"></div></article>
-      <article class="chart-panel"><div class="chart-title"><strong>Premio fuera por operacion</strong><span>Ranking</span></div><div id="fuera-operacion"></div></article>
+    <section class="summary-filters">
+      <div class="field"><label class="label" for="detalle-f-fecha">Fecha</label><input class="paper-input" type="date" id="detalle-f-fecha"></div>
+      <div class="field"><label class="label" for="detalle-f-legajo">Legajo</label><input class="paper-input" id="detalle-f-legajo" inputmode="numeric" placeholder="Todos"></div>
+      <button class="secondary-cta" id="limpiar-detalle-filtros">Limpiar</button>
+      <div class="summary-filter-info" id="detalle-filter-info">Sin filtros</div>
     </section>
-    <div class="table-wrap"><table class="paper-table" id="tabla-fuera"></table></div>
+    <section class="data-grid">
+      <article class="data-panel">
+        <div class="chart-title"><strong>Resumen por legajo/dia</strong><span>cache diario</span></div>
+        <div class="table-wrap"><table class="paper-table" id="tabla-datos-resumen"></table></div>
+      </article>
+      <article class="data-panel">
+        <div class="chart-title"><strong>Detalle horario</strong><span>cache por hora</span></div>
+        <div class="table-wrap"><table class="paper-table" id="tabla-detalle-cache"></table></div>
+      </article>
+    </section>
   </section>
 
   <section class="paper-panel" id="panel-cache">
-    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Simulacion activa</strong><span>SQLite/cache</span></div><div id="cache-info"></div></article>
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Metodologia</strong><span>reglas de simulacion</span></div><ul class="notes warn-list" id="validaciones"></ul></article>
+    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Estado del cache</strong><span>SQLite/procesos</span></div><div id="cache-info"></div></article>
   </section>
 </div>
 
@@ -160,10 +158,14 @@
         <div class="label" id="detalle-status">Detalle por hora</div>
         <strong id="detalle-title">Detalle por legajo</strong>
       </div>
-      <button class="icon-btn" id="cerrar-detalle" title="Cerrar">X</button>
+      <div class="tool-row" style="margin-top:0">
+        <button class="secondary-cta" id="exportar-detalle-pdf" type="button">PDF Detalle</button>
+        <button class="icon-btn" id="cerrar-detalle" title="Cerrar">X</button>
+      </div>
     </header>
     <div class="modal-body">
       <div class="modal-summary" id="detalle-summary"></div>
+      <div class="problem-chart detalle-chart" id="detalle-legajo-chart"></div>
       <div class="table-wrap"><table class="paper-table" id="tabla-detalle-legajo"></table></div>
     </div>
   </section>
@@ -171,10 +173,16 @@
 
 <script>
   const $ = id => document.getElementById(id);
-  const state = {activeTab:'resumen', simId:null, loading:false, loadError:'', fechaDesde:'', fechaHasta:'', resumenRows:[], sorts:{}};
+  const state = {activeTab:'resumen', loading:false, loadError:'', fechaDesde:'', fechaHasta:'', operacion:'PICKING', almacen:'TODOS', divisorHorario:'8', resumenRows:[], detalleResumenRows:[], detalleRows:[], problematicaRows:[], problematicaModes:{}, problematicaSets:{confirmados:[], analizados:[], pendientes:[]}, problematicaMode:'caida_inicio', problematicaView:'confirmados', problematicaSelected:0, sorts:{}, explicacion:null};
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmt = value => new Intl.NumberFormat('es-AR', {maximumFractionDigits:2}).format(Number(value || 0));
   const money = value => '$ ' + fmt(value);
+  function pctDiff(base, value){
+    const b = Math.abs(Number(base || 0));
+    if (!b) return '0%';
+    return `${fmt((Number(value || 0) / b) * 100)}%`;
+  }
+  function signedMoney(value){ return `${Number(value || 0) > 0 ? '+' : ''}${money(value)}`; }
   function localDateInput(date){
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   }
@@ -183,13 +191,36 @@
     d.setDate(d.getDate() - 1);
     return localDateInput(d);
   }
+  function previousMonthRange(){
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const end = new Date(today.getFullYear(), today.getMonth(), 0);
+    return {desde:localDateInput(start), hasta:localDateInput(end)};
+  }
   function setupDateLimits(){
     const max = maxQueryDate();
-    ['rango-desde','rango-hasta','resumen-f-fecha'].forEach(id => { $(id).max = max; });
-    $('rango-desde').value = max;
-    $('rango-hasta').value = max;
-    state.fechaDesde = max;
-    state.fechaHasta = max;
+    const range = previousMonthRange();
+    ['rango-desde','rango-hasta','detalle-f-fecha'].forEach(id => { $(id).max = max; });
+    $('rango-desde').value = range.desde;
+    $('rango-hasta').value = range.hasta;
+    state.fechaDesde = range.desde;
+    state.fechaHasta = range.hasta;
+  }
+  function syncCombo(){
+    state.operacion = $('operacion-select').value || 'PICKING';
+    state.almacen = $('almacen-select').value || 'TODOS';
+    state.divisorHorario = $('divisor-select').value || '8';
+  }
+  function comboParams(){
+    syncCombo();
+    return {operacion:state.operacion, almacen:state.almacen, divisor_horario:state.divisorHorario};
+  }
+  async function setupDefaultCachedDate(){
+    const range = previousMonthRange();
+    $('rango-desde').value = range.desde;
+    $('rango-hasta').value = range.hasta;
+    state.fechaDesde = range.desde;
+    state.fechaHasta = range.hasta;
   }
 
   function setStatus(text, error=false){ $('status').textContent = text; $('status').classList.toggle('error', error); }
@@ -198,9 +229,12 @@
     $('consultar-rango').disabled = isBusy;
     $('rango-desde').disabled = isBusy;
     $('rango-hasta').disabled = isBusy;
-    $('resumen-f-fecha').disabled = isBusy;
-    $('resumen-f-legajo').disabled = isBusy;
-    $('limpiar-resumen-filtros').disabled = isBusy;
+    $('operacion-select').disabled = isBusy;
+    $('almacen-select').disabled = isBusy;
+    $('divisor-select').disabled = isBusy;
+    $('detalle-f-fecha').disabled = isBusy;
+    $('detalle-f-legajo').disabled = isBusy;
+    $('limpiar-detalle-filtros').disabled = isBusy;
     document.querySelectorAll('.tab-btn,.row-link,#cerrar-detalle').forEach(el => { el.disabled = isBusy; });
     $('consultar-rango').textContent = isBusy ? 'Consultando...' : 'Consultar';
   }
@@ -356,31 +390,282 @@
     }
     return out;
   }
-  function resumenFilteredRows(){
-    const fecha = $('resumen-f-fecha').value;
-    const legajo = $('resumen-f-legajo').value.trim();
-    return (state.resumenRows || []).filter(row => {
-      const okFecha = !fecha || String(row.fecha || '').slice(0,10) === fecha;
-      const okLegajo = !legajo || String(row.operario || '').includes(legajo);
-      return okFecha && okLegajo;
-    });
+  function svgEmpty(text='Sin datos'){
+    return `<div class="empty">${esc(text)}</div>`;
   }
   function renderResumenGrid(){
-    const rows = resumenFilteredRows();
-    table('tabla-caso-final', finalCols(), rows);
-    const total = state.resumenRows.length;
-    const fecha = $('resumen-f-fecha').value;
-    const legajo = $('resumen-f-legajo').value.trim();
-    const filtros = [fecha ? `fecha ${fecha}` : '', legajo ? `legajo ${legajo}` : ''].filter(Boolean).join(' · ');
-    $('resumen-filter-info').textContent = filtros ? `${fmt(rows.length)} de ${fmt(total)} registros · ${filtros}` : `${fmt(total)} registros`;
+    return;
   }
-  async function ensureSimulation(){
+  function svgBars(id, rows, options={}){
+    const data = (rows || []).filter(x => Number.isFinite(Number(x.value))).slice(0, options.limit || 8);
+    if (!data.length) { $(id).innerHTML = svgEmpty(); return; }
+    const w = options.width || 980, h = options.height || 280;
+    const left = options.left || 210, right = options.right || 34, top = 24, bottom = 30;
+    const max = Math.max(...data.map(x => Math.abs(Number(x.value || 0))), 1);
+    const rowH = (h - top - bottom) / data.length;
+    const plotW = w - left - right;
+    $(id).innerHTML = `
+      <svg class="insight-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(options.label || 'Grafico')}">
+        <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line>
+        ${data.map((r,i) => {
+          const value = Number(r.value || 0);
+          const barW = Math.max(2, Math.abs(value) / max * plotW);
+          const y = top + i * rowH + rowH * .22;
+          const cls = r.cls || (value < 0 ? 'bar-hours' : 'bar-actual');
+          return `
+            <text class="axis-label" x="6" y="${y + rowH * .35}">${esc(r.label)}</text>
+            <rect class="${cls}" x="${left}" y="${y}" width="${barW}" height="${Math.max(12,rowH*.38)}"></rect>
+            <text class="value-label" x="${Math.min(left + barW + 8, w - 170)}" y="${y + rowH * .32}">${esc(r.money ? money(value) : fmt(value))}</text>
+          `;
+        }).join('')}
+      </svg>`;
+  }
+  function renderPremisaChart(k){
+    const escenario = state.divisorHorario === '6.5' ? '/6.5' : '/8';
+    const actual = Number(k.premio_actual || 0);
+    const horas = Number(k.premio_x_horas_sin_extras || 0);
+    const diff = actual - horas;
+    svgBars('chart-premisa', [
+      {label:'Actual sin extras', value:actual, money:true, cls:'bar-actual'},
+      {label:`Por horas ${escenario} sin extras`, value:horas, money:true, cls:'bar-hours'},
+      {label:'Diferencia actual - horas', value:Math.abs(diff), money:true, cls:diff < 0 ? 'bar-hours' : 'bar-actual'},
+    ], {height:230, left:230, label:'Premisa de ahorro'});
+    $('chart-premisa').insertAdjacentHTML('beforeend', `<ul class="notes" style="margin-top:8px"><li>${esc(diff < 0 ? `La premisa de ahorro no se cumple: sin extras, el metodo por horas paga ${money(Math.abs(diff))} mas que el actual recalculado.` : `Sin extras, el metodo por horas paga ${money(Math.abs(diff))} menos que el actual recalculado.`)}</li></ul>`);
+  }
+  function renderImpactoExtrasChart(k){
+    const escenario = state.divisorHorario === '6.5' ? '/6.5' : '/8';
+    const actual = Number(k.premio_anterior || 0) - Number(k.premio_actual || 0);
+    const horas = Number(k.premio_x_horas || 0) - Number(k.premio_x_horas_sin_extras || 0);
+    svgBars('chart-impacto-extras', [
+      {label:'Actual: caida al quitar extras', value:actual, money:true, cls:'bar-extra'},
+      {label:`Horas ${escenario}: caida al quitar extras`, value:horas, money:true, cls:'bar-extra'},
+    ], {height:190, left:250, label:'Impacto extras'});
+  }
+  function renderGanadorChart(rows){
+    const dataRows = rows || [];
+    const tol = .01;
+    const actual = dataRows.filter(r => Number(r.premio_actual || 0) > Number(r.premio_x_horas_sin_extras || 0) + tol).length;
+    const horas = dataRows.filter(r => Number(r.premio_x_horas_sin_extras || 0) > Number(r.premio_actual || 0) + tol).length;
+    const iguales = Math.max(0, dataRows.length - actual - horas);
+    const total = Math.max(1, dataRows.length);
+    const rowsChart = [
+      {label:'Actual paga mas', value:actual, cls:'bar-actual'},
+      {label:'Por horas paga mas', value:horas, cls:'bar-hours'},
+      {label:'Mismo pago', value:iguales, cls:'bar-neutral'},
+    ];
+    svgBars('chart-ganador', rowsChart, {height:170, left:210, label:'Quien paga mas'});
+    $('chart-ganador').insertAdjacentHTML('beforeend', `
+      <div class="winner-summary">
+        <div class="winner-cell"><div class="label">Actual mayor</div><strong>${esc(fmt(actual))}</strong><div class="kpi-foot">${esc(fmt(actual / total * 100))}% de legajo/dia</div></div>
+        <div class="winner-cell bad"><div class="label">Horas mayor</div><strong>${esc(fmt(horas))}</strong><div class="kpi-foot">${esc(fmt(horas / total * 100))}% de legajo/dia</div></div>
+        <div class="winner-cell neutral"><div class="label">Igual</div><strong>${esc(fmt(iguales))}</strong><div class="kpi-foot">${esc(fmt(iguales / total * 100))}% de legajo/dia</div></div>
+      </div>
+      <ul class="notes" style="margin-top:8px"><li>${esc('Cada caso es un legajo en un dia. Se compara Actual sin extras contra Por horas sin extras; no es cantidad de bultos ni ahorro total.')}</li></ul>
+    `);
+  }
+  function pieSlicePath(cx, cy, r, startAngle, endAngle){
+    const start = {
+      x: cx + r * Math.cos(startAngle),
+      y: cy + r * Math.sin(startAngle),
+    };
+    const end = {
+      x: cx + r * Math.cos(endAngle),
+      y: cy + r * Math.sin(endAngle),
+    };
+    const large = endAngle - startAngle > Math.PI ? 1 : 0;
+    return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${large} 1 ${end.x} ${end.y} Z`;
+  }
+  function renderPrizePie(id, rows, valueKey, label){
+    const total = (rows || []).length;
+    if (!total) { $(id).innerHTML = svgEmpty(); return; }
+    const conPremio = (rows || []).filter(row => Number(row[valueKey] || 0) > .01).length;
+    const sinPremio = Math.max(0, total - conPremio);
+    const pct = conPremio / total;
+    const cx = 150, cy = 118, r = 78;
+    const start = -Math.PI / 2;
+    const end = start + Math.PI * 2 * pct;
+    const fullGreen = pct >= .9999;
+    const fullRed = pct <= .0001;
+    const premioPath = fullGreen
+      ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--green)"></circle>`
+      : fullRed
+      ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--red)"></circle>`
+      : `<path d="${pieSlicePath(cx, cy, r, start, end)}" fill="var(--green)"></path><path d="${pieSlicePath(cx, cy, r, end, start + Math.PI * 2)}" fill="var(--red)"></path>`;
+    $(id).innerHTML = `
+      <svg class="insight-svg" viewBox="0 0 520 250" role="img" aria-label="${esc(label)}">
+        ${premioPath}
+        <circle cx="${cx}" cy="${cy}" r="48" fill="var(--panel)"></circle>
+        <text class="value-label" x="${cx}" y="${cy-4}" text-anchor="middle" style="font-size:24px">${esc(fmt(pct * 100))}%</text>
+        <text class="axis-label" x="${cx}" y="${cy+18}" text-anchor="middle">cobra premio</text>
+        <rect x="300" y="72" width="16" height="16" fill="var(--green)"></rect>
+        <text class="axis-label" x="326" y="84">Jornadas con premio: ${esc(fmt(conPremio))}</text>
+        <rect x="300" y="110" width="16" height="16" fill="var(--red)"></rect>
+        <text class="axis-label" x="326" y="122">Jornadas sin premio: ${esc(fmt(sinPremio))}</text>
+        <text class="axis-label" x="300" y="162">${esc(label)}</text>
+        <text class="axis-label" x="300" y="184">Unidad: jornada x legajo</text>
+      </svg>
+      <div class="pie-summary">
+        <div class="pie-cell"><div class="label">Jornadas con premio</div><strong>${esc(fmt(conPremio))}</strong><div class="kpi-foot">${esc(fmt(pct * 100))}%</div></div>
+        <div class="pie-cell no"><div class="label">Jornadas sin premio</div><strong>${esc(fmt(sinPremio))}</strong><div class="kpi-foot">${esc(fmt((1 - pct) * 100))}%</div></div>
+      </div>`;
+  }
+  function renderPrizePies(rows){
+    renderPrizePie('chart-premio-actual-pie', rows, 'premio_anterior', 'Actual jornada con extras');
+    renderPrizePie('chart-premio-horas-pie', rows, 'premio_x_horas', 'Metodo por horas con extras');
+  }
+  function renderCaseCardsResumen(rows){
+    const cases = [...(rows || [])]
+      .map(r => ({...r, gap:Number(r.premio_x_horas || 0) - Number(r.premio_anterior || 0)}))
+      .sort((a,b) => b.gap - a.gap)
+      .slice(0,4);
+    if (!cases.length) { $('case-cards-resumen').innerHTML = svgEmpty(); return; }
+    $('case-cards-resumen').innerHTML = `<div class="case-card-grid">${cases.map(row => {
+      const actual = Number(row.premio_anterior || 0);
+      const horas = Number(row.premio_x_horas || 0);
+      const max = Math.max(actual, horas, 1);
+      return `<article class="case-card ${row.gap <= 0 ? 'ok' : ''}" data-fecha="${esc(row.fecha)}" data-legajo="${esc(row.operario)}" title="Abrir detalle horario">
+        <div class="case-card-title"><strong>${esc(row.operario)}</strong><span class="pill ${row.gap > 0 ? 'bad' : ''}">${esc(row.fecha)}</span></div>
+        <div class="kpi-foot">Brecha horas con extras - actual jornada: <strong>${esc(money(row.gap))}</strong></div>
+        <div class="mini-bars">
+          <div class="mini-row"><span>Actual</span><div class="mini-track"><div class="mini-fill" style="width:${Math.max(2, actual/max*100)}%"></div></div><span>${esc(money(actual))}</span></div>
+          <div class="mini-row"><span>Horas + ext.</span><div class="mini-track"><div class="mini-fill bad" style="width:${Math.max(2, horas/max*100)}%"></div></div><span>${esc(money(horas))}</span></div>
+        </div>
+        <div class="kpi-foot" style="margin-top:8px">Bultos total ${esc(fmt(row.bultos))} - Bultos turno ${esc(fmt(row.bultosturno))} - Desc. ${esc(money(row.descuentos_total))}</div>
+        <button class="secondary-cta case-action" data-action="case-detail" type="button">Ver detalle horario</button>
+      </article>`;
+    }).join('')}</div>`;
+    $('case-cards-resumen').querySelectorAll('.case-card').forEach(card => {
+      card.onclick = () => cargarDetalleLegajo(card.dataset.fecha, card.dataset.legajo).catch(e => setStatus(e.message, true));
+    });
+    $('case-cards-resumen').querySelectorAll('[data-action="case-detail"]').forEach(btn => {
+      btn.onclick = event => {
+        event.stopPropagation();
+        const card = btn.closest('.case-card');
+        cargarDetalleLegajo(card.dataset.fecha, card.dataset.legajo).catch(e => setStatus(e.message, true));
+      };
+    });
+  }
+  function renderExecutiveCharts(data){
+    const rows = data.rows || [];
+    const k = data.kpis || {};
+    renderPremisaChart(k);
+    renderImpactoExtrasChart(k);
+    renderGanadorChart(rows);
+    renderPrizePies(rows);
+    renderCaseCardsResumen(rows);
+  }
+  function renderCriticalReading(data){
+    const rows = data.rows || [];
+    const k = data.kpis || {};
+    const escenario = data.meta?.escenario_horario || (state.divisorHorario === '6.5' ? '/6.5' : '/8');
+    const brechaConExtras = Number(k.premio_x_horas || 0) - Number(k.premio_anterior || 0);
+    const brechaSinExtras = Number(k.premio_x_horas_sin_extras || 0) - Number(k.premio_actual || 0);
+    const horasMayor = rows.filter(r => Number(r.premio_x_horas || 0) > Number(r.premio_anterior || 0) + .01);
+    const horasMenor = rows.filter(r => Number(r.premio_x_horas || 0) < Number(r.premio_anterior || 0) - .01);
+    const iguales = Math.max(0, rows.length - horasMayor.length - horasMenor.length);
+    const ahorroPotencial = horasMenor.reduce((acc,r) => acc + (Number(r.premio_anterior || 0) - Number(r.premio_x_horas || 0)), 0);
+    const sobrecostoPotencial = horasMayor.reduce((acc,r) => acc + (Number(r.premio_x_horas || 0) - Number(r.premio_anterior || 0)), 0);
+    const casosBase = Math.max(1, rows.length);
+    const montoBase = Math.max(1, ahorroPotencial + sobrecostoPotencial);
+    const actualCeroHorasPaga = rows
+      .filter(r => Number(r.premio_anterior || 0) <= .01 && Number(r.premio_x_horas || 0) > .01)
+      .sort((a,b) => Number(b.premio_x_horas || 0) - Number(a.premio_x_horas || 0));
+    const topCero = actualCeroHorasPaga.slice(0,3).map(r => `${r.fecha} legajo ${r.operario} (${money(r.premio_x_horas)})`).join('; ');
+    const topBrecha = [...horasMayor]
+      .map(r => ({...r, gap:Number(r.premio_x_horas || 0) - Number(r.premio_anterior || 0)}))
+      .sort((a,b) => b.gap - a.gap)
+      .slice(0,3)
+      .map(r => `${r.fecha} legajo ${r.operario} (+${money(r.gap)})`).join('; ');
+    const conclusion = brechaConExtras > 0
+      ? `El pago por horas no aparece como una mejora economica natural: en el rango suma ${money(k.premio_x_horas)} contra ${money(k.premio_anterior)} del metodo actual, un sobrecosto neto de ${money(brechaConExtras)}.`
+      : `El pago por horas muestra ahorro neto en el rango: suma ${money(k.premio_x_horas)} contra ${money(k.premio_anterior)} del metodo actual, una baja de ${money(Math.abs(brechaConExtras))}.`;
+    $('interpretacion').innerHTML = [
+      `<strong>Conclusion ejecutiva.</strong> ${conclusion}`,
+      `<strong>Escenario activo.</strong> El metodo horario mostrado usa escala ${escenario}: divide umbrales y premio de la escala diaria por ese factor.`,
+      `<strong>Lectura de fondo.</strong> El modelo actual compensa horas fuertes y flojas dentro de la jornada; el modelo horario paga picos buenos como premios independientes.`,
+      `<strong>Remate.</strong> Para que por horas no encarezca habria que sumar minimos, topes o elegibilidad; en la practica deja de ser un pago horario puro y pasa a ser un modelo hibrido.`,
+      `<strong>La premisa de ahorro no se sostiene.</strong> Con extras, el pago por horas queda ${signedMoney(brechaConExtras)} vs el pago actual.`,
+      `<strong>Comparativa de casos.</strong> Por horas paga menos en ${fmt(horasMenor.length)} casos (${fmt(horasMenor.length / casosBase * 100)}%), paga mas en ${fmt(horasMayor.length)} casos (${fmt(horasMayor.length / casosBase * 100)}%) e iguala en ${fmt(iguales)} casos (${fmt(iguales / casosBase * 100)}%).`,
+      `<strong>Comparativa de montos.</strong> Los casos con ahorro suman ${money(ahorroPotencial)} (${fmt(ahorroPotencial / montoBase * 100)}% del monto movido) y los casos con sobrecosto suman ${money(sobrecostoPotencial)} (${fmt(sobrecostoPotencial / montoBase * 100)}%).`,
+      `<strong>Sensibilidad /6.5.</strong> Con umbrales horarios mas altos y premio por hora tambien mas alto, el total con extras queda en ${money(k.sensibilidad_65_premio_x_horas || 0)} y los casos donde horas paga mas son ${fmt(k.sensibilidad_65_casos_horas_mayor || 0)}.`,
+      `<strong>No es solo un problema de extras.</strong> Sin extras, la brecha sigue en ${signedMoney(brechaSinExtras)} vs el actual recalculado.`,
+      `<strong>El horario premia picos buenos.</strong> Hay ${fmt(horasMayor.length)} casos legajo/dia donde por horas paga mas que la jornada.`,
+      `<strong>Jornada sin premio, horas con premio.</strong> Hay ${fmt(actualCeroHorasPaga.length)} casos con actual $0 y pago horario mayor a $0${topCero ? `: ${topCero}.` : '.'}`,
+      topBrecha ? `<strong>Casos de mayor impacto.</strong> ${topBrecha}.` : '<strong>Casos de mayor impacto.</strong> Sin brechas positivas en el rango.',
+    ].map(x => `<li>${x}</li>`).join('');
+  }
+  function buildDetailStats(detailRows){
+    const map = new Map();
+    (detailRows || []).forEach(row => {
+      const fecha = String(row.fecha_base || row.fecha || '').slice(0,10);
+      const legajo = String(row.legajo || row.operario || '').trim();
+      const almacen = String(row.almacen || '');
+      if (!fecha || !legajo) return;
+      const key = `${fecha}|${legajo}|${almacen}`;
+      const item = map.get(key) || {horasProductivas:0, bultos:0, minDiarioEstimado:0};
+      const bultos = Number(row.bultos || 0);
+      if (bultos > 0) item.horasProductivas += 1;
+      item.bultos += bultos;
+      const minHora = Number(row.bultos_hora_min || 0);
+      if (Number(row.premio_x_hora || 0) > 0 && minHora > 0) {
+        const minDiario = minHora * 8;
+        item.minDiarioEstimado = item.minDiarioEstimado ? Math.min(item.minDiarioEstimado, minDiario) : minDiario;
+      }
+      map.set(key, item);
+    });
+    return map;
+  }
+  function estimateEligibilitySavings(rows, detailRows){
+    const stats = buildDetailStats(detailRows);
+    const out = {
+      horas:{casos:0, ahorro:0, evaluados:0},
+      bultos:{casos:0, ahorro:0, evaluados:0},
+    };
+    (rows || []).forEach(row => {
+      const actual = Number(row.premio_anterior || 0);
+      const horas = Number(row.premio_x_horas || 0);
+      const sobrecosto = horas - actual;
+      if (sobrecosto <= .01) return;
+      const key = `${String(row.fecha || '').slice(0,10)}|${String(row.operario || '').trim()}|${String(row.almacen || '')}`;
+      const item = stats.get(key);
+      if (!item) return;
+      out.horas.evaluados += 1;
+      out.bultos.evaluados += 1;
+      if (item.horasProductivas < 4) {
+        out.horas.casos += 1;
+        out.horas.ahorro += sobrecosto;
+      }
+      const minDiario = Number(item.minDiarioEstimado || 0);
+      const umbralBultos = minDiario ? minDiario * .5 : 0;
+      if (umbralBultos > 0 && Number(row.bultos || item.bultos || 0) < umbralBultos) {
+        out.bultos.casos += 1;
+        out.bultos.ahorro += sobrecosto;
+      }
+    });
+    return out;
+  }
+  function renderSuggestions(data, detailRows=[]){
+    const rows = data.rows || [];
+    const actualCeroHorasPaga = rows.filter(r => Number(r.premio_anterior || 0) <= .01 && Number(r.premio_x_horas || 0) > .01).length;
+    const horasMayor = rows.filter(r => Number(r.premio_x_horas || 0) > Number(r.premio_anterior || 0) + .01).length;
+    const eligibility = estimateEligibilitySavings(rows, detailRows);
+    $('sugerencias').innerHTML = [
+      `Filtro >= 4 horas productivas: evitaria ${money(eligibility.horas.ahorro)} en ${fmt(eligibility.horas.casos)} casos.`,
+      `Filtro >= 50% bultos minimos diarios estimados: evitaria ${money(eligibility.bultos.ahorro)} en ${fmt(eligibility.bultos.casos)} casos.`,
+      `Regla especial: actual $0 y horas > $0 requiere elegibilidad previa (${fmt(actualCeroHorasPaga)} casos).`,
+      `Tope por baja cobertura: pago horario no supera referencia diaria.`,
+      `Control por turno/almacen antes de activar el cambio (${fmt(horasMayor)} casos con horas mayor).`,
+      `Piloto con umbrales y simulacion mensual antes de productivizar.`,
+    ].map(x => `<li>${esc(x)}</li>`).join('');
+  }
+  async function ensureCache(){
     return consultarRango(false);
   }
   async function consultarRango(force=false){
     if (state.loading) return false;
     state.fechaDesde = $('rango-desde').value;
     state.fechaHasta = $('rango-hasta').value;
+    const combo = comboParams();
     if (!state.fechaDesde || !state.fechaHasta) {
       setStatus('Indica fecha desde y fecha hasta.', true);
       return false;
@@ -397,14 +682,14 @@
         setStatus('Fecha hasta no puede ser menor a fecha desde.', true);
         return false;
       }
-      const cobertura = await api('/api/analisis-premio-productividad/cache-cobertura?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
+      const cobertura = await api('/api/analisis-premio-productividad/cache-cobertura?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...combo}));
       const faltantes = cobertura.faltantes || [];
       setStatus(faltantes.length
         ? `Cache diaria: ${fmt(cobertura.dias_cache)}/${fmt(cobertura.dias)} dias. Faltantes que iran a Oracle: ${faltantes.slice(0,6).join(', ')}${faltantes.length > 6 ? '...' : ''}.`
         : `Cache diaria completa: ${fmt(cobertura.dias_cache)}/${fmt(cobertura.dias)} dias. No deberia consultar Oracle.`
       );
       if (!force && !faltantes.length) {
-        const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
+        const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...combo}));
         data.meta = {
           ...(data.meta || {}),
           dias_oracle: 0,
@@ -412,7 +697,8 @@
           detalle_dias: (cobertura.cache || []).map(x => ({fecha:x.fecha, estado:'cache', rows:x.rows})),
         };
         state.loadError = '';
-        renderResumen(data);
+        state.detalleRows = await loadDetalleRowsForCurrentRange();
+        renderResumen(data, state.detalleRows);
         setStatus(`Rango listo desde cache. Dias: ${cobertura.dias || 0}, desde Oracle: 0, ya cacheados: ${cobertura.dias_cache || 0}.`);
         return true;
       }
@@ -423,7 +709,7 @@
         setStatus(`Consultando faltante ${day} (${i + 1}/${diasAConsultar.length}). Se completa desde Oracle...`);
         const parcial = await api('/api/analisis-premio-productividad/consultar-rango', {
           method:'POST',
-          body:JSON.stringify({fecha_desde:day, fecha_hasta:day, force})
+          body:JSON.stringify({fecha_desde:day, fecha_hasta:day, force, ...combo})
         });
         const detalleDia = parcial.meta?.detalle_dias || [];
         estados.push(...detalleDia);
@@ -432,9 +718,7 @@
         setStatus(`${day} listo desde ${estadoDia === 'oracle' ? 'Oracle' : 'cache'} (${fmt(rowsDia)} registros).`);
       }
       setStatus('Leyendo rango completo desde cache SQLite...');
-      const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
-      const detailDate = $('resumen-f-fecha').value;
-      if (detailDate && (detailDate < state.fechaDesde || detailDate > state.fechaHasta)) $('resumen-f-fecha').value = '';
+      const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...combo}));
       data.meta = {
         ...(data.meta || {}),
         detalle_dias: estados,
@@ -442,7 +726,8 @@
         dias_cache: force ? estados.filter(x => x.estado === 'cache').length : cobertura.dias_cache,
       };
       state.loadError = '';
-      renderResumen(data);
+      state.detalleRows = await loadDetalleRowsForCurrentRange();
+      renderResumen(data, state.detalleRows);
       const m = data.meta || {};
       setStatus(`Rango listo desde cache. Dias: ${m.dias || 0}, desde Oracle: ${m.dias_oracle || 0}, ya cacheados: ${m.dias_cache || 0}.`);
       return true;
@@ -450,118 +735,418 @@
       setBusy(false);
     }
   }
-  function simQuery(extra={}){
-    return qs({simulacion_id:state.simId, ...extra});
-  }
   async function loadResumen(){
-    const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
-    renderResumen(data);
+    const params = qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...comboParams()});
+    const data = await api('/api/analisis-premio-productividad/rango-cache?' + params);
+    state.detalleRows = await loadDetalleRowsForCurrentRange();
+    renderResumen(data, state.detalleRows);
   }
-  function renderResumen(data){
+  async function loadDetalleRowsForCurrentRange(){
+    const params = qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...comboParams()});
+    const detailData = await api('/api/analisis-premio-productividad/detalle-cache?' + params);
+    return detailData.rows || [];
+  }
+  function renderResumen(data, detailRows=null){
     const k = data.kpis || {};
+    const escenario = data.meta?.escenario_horario || (state.divisorHorario === '6.5' ? '/6.5' : '/8');
     const dias = data.meta?.dias || new Set((data.rows || []).map(row => String(row.fecha || '').slice(0,10)).filter(Boolean)).size || 1;
     const footTotal = productividadFoot(k.bultos, k.operarios, dias);
     const footTurno = productividadFoot(k.bultosturno, k.operarios, dias);
     const footExtra = productividadFoot(k.bultos_extra, k.operarios_extra, dias);
+    const impactoExtraActual = Number(k.premio_anterior || 0) - Number(k.premio_actual || 0);
+    const impactoExtraHoras = Number(k.premio_x_horas || 0) - Number(k.premio_x_horas_sin_extras || 0);
+    const brechaConExtras = Number(k.premio_anterior || 0) - Number(k.premio_x_horas || 0);
+    const brechaSinExtras = Number(k.premio_actual || 0) - Number(k.premio_x_horas_sin_extras || 0);
     $('kpis-resumen').innerHTML = [
-      kpi('Pagado actual', money(k.premio_anterior), footTotal),
-      kpi('Sin extras', money(k.premio_actual), footTurno, 'warn'),
-      kpi('Por horas con extras', money(k.premio_x_horas), footExtra, 'warn'),
-      kpi('Por horas sin extras', money(k.premio_x_horas_sin_extras), footTurno, 'warn'),
-      kpi('Operarios', fmt(k.operarios), 'Casos modelo'),
-      kpi('Diferencia sin extras', money(k.diferencia_sin_extras), footTurno, 'ok'),
-      kpi('Diferencia por horas', money(k.diferencia_x_horas), footExtra, 'ok'),
-      kpi('Diferencia por horas sin extras', money(k.diferencia_x_horas_sin_extras), footTurno, 'ok'),
+      kpi('Actual jornada', money(k.premio_anterior), `Pago real neto del modulo. Base: ${footTotal}`),
+      kpi('Actual sin extras', money(k.premio_actual), `Recalcula escala diaria solo con bultos del turno. Cae ${money(impactoExtraActual)} (${pctDiff(k.premio_anterior, impactoExtraActual)}).`, 'warn'),
+      kpi('Extras en metodo actual', money(impactoExtraActual), `Actual jornada - Actual sin extras. Mide cuanto suma la produccion fuera del turno. ${footExtra}`, impactoExtraActual > 0 ? 'bad' : 'ok'),
+      kpi(`Actual vs horas ${escenario}`, signedMoney(brechaConExtras), `Actual jornada - Horas con extras ${escenario}. Negativo significa que el metodo por horas paga mas.`, brechaConExtras < 0 ? 'bad' : 'ok'),
+      kpi(`Horas con extras ${escenario}`, money(k.premio_x_horas), `Suma premios por hora y aplica el mismo descuento monetario. Vs actual: ${signedMoney(-brechaConExtras)}.`, brechaConExtras < 0 ? 'bad' : 'ok'),
+      kpi(`Horas sin extras ${escenario}`, money(k.premio_x_horas_sin_extras), `Solo horas dentro del turno. Vs actual sin extras: ${signedMoney(-brechaSinExtras)}.`, brechaSinExtras < 0 ? 'bad' : 'ok'),
+      kpi(`Extras en metodo horario ${escenario}`, money(impactoExtraHoras), 'Horas con extras - Horas sin extras. Mide cuanto suman los tramos fuera del turno.', impactoExtraHoras > 0 ? 'warn' : 'ok'),
+      kpi(`Actual vs horas sin extras ${escenario}`, signedMoney(brechaSinExtras), `Actual sin extras - Horas sin extras. Negativo significa que el metodo por horas paga mas. ${footTurno}`, brechaSinExtras < 0 ? 'bad' : 'ok'),
+      kpi('Sensibilidad /6.5', money(k.sensibilidad_65_premio_x_horas || 0), `Contra actual jornada: ${signedMoney(-Number(k.sensibilidad_65_diferencia_x_horas || 0))}. Casos donde horas paga mas: ${fmt(k.sensibilidad_65_casos_horas_mayor || 0)}.`, Number(k.sensibilidad_65_diferencia_x_horas || 0) < 0 ? 'bad' : 'warn'),
     ].join('');
-    bars('chart-premio', data.graficos?.comparativo || []);
-    bars('chart-fuera', data.graficos?.ahorros || []);
-    renderPaymentEvolution('chart-evolucion-pagos', data.rows || []);
     state.resumenRows = data.rows || [];
-    renderResumenGrid();
-    $('interpretacion').innerHTML = [
-      `El caso compara lo efectivamente pagado contra dos escenarios: premio fragmentado por hora y premio diario recalculado solo con bultos dentro del turno productivo.`,
-      `La diferencia por horas compara el pago actual contra el pago de productividad por tramos horarios.`,
-      `La diferencia sin extras compara el pago actual contra el premio diario recalculado solo con bultos dentro del turno del colaborador.`,
-      `La diferencia por horas sin extras compara el pago actual contra el pago horario excluyendo tramos fuera del turno.`
+    renderExecutiveCharts(data);
+    renderCriticalReading(data);
+    renderSuggestions(data, detailRows || state.detalleRows || []);
+    $('validaciones').innerHTML = [
+      'Resultado mostrado desde cache diaria pp_caso_modelo_dia. Oracle se consulta solo para dias faltantes.',
+      `Escenario horario activo: escala ${escenario}. Los umbrales y premios por hora se recalculan con ese divisor.`,
+      'TNC/error no se distribuye por hora: se estima el descuento monetario con el metodo actual y se aplica al escenario horario.',
+      'La version sin extras del metodo actual usa bultos del turno contra la escala diaria vigente; la version horaria simplemente excluye horas fuera del turno.'
     ].map(x => `<li>${esc(x)}</li>`).join('');
-    $('validaciones').innerHTML = '<li>Resultado mostrado desde cache diaria pp_caso_modelo_dia. Oracle se consulta solo para dias faltantes.</li>';
   }
-  async function loadActual(){
-    const data = await api('/api/analisis-premio-productividad/modelo-actual?' + simQuery());
-    const k = data.kpis || {};
-    $('kpis-actual').innerHTML = [kpi('Total pagado', money(k.total_pagado)), kpi('Premiados', fmt(k.cantidad_premiados)), kpi('Premio promedio', money(k.premio_promedio)), kpi('Casos fuera turno', fmt(k.casos_fuera_turno), '', k.casos_fuera_turno ? 'warn' : 'ok')].join('');
-    bars('actual-operacion', data.por_operacion || [], 'premio_actual'); bars('actual-almacen', data.por_almacen || [], 'premio_actual'); bars('actual-turno', data.por_turno || [], 'premio_actual');
-    table('tabla-actual', commonDailyCols(), data.detalle || []);
-  }
-  async function loadEscala(){
-    const data = await api('/api/analisis-premio-productividad/escala?' + simQuery());
-    $('escala-regla').textContent = data.regla || '';
-    table('tabla-escala', [
-      {key:'OPERACION',label:'Operacion'},
-      {key:'ULMEDIDA',label:'UL medida',mono:true},
-      {key:'GRUPOPRODUCTIVO',label:'Grupo productivo'},
-      {key:'NIVEL',label:'Nivel',num:true},
-      {key:'DESDE_ACTUAL',label:'Desde actual',num:true},
-      {key:'HASTA_ACTUAL',label:'Hasta actual',num:true},
-      {key:'PREMIO_ACTUAL',label:'Premio actual',money:true},
-      {key:'DESDE_X_HORA',label:'Desde x hora',num:true},
-      {key:'HASTA_X_HORA',label:'Hasta x hora',num:true},
-      {key:'PREMIO_X_HORA',label:'Premio x hora',money:true}
-    ], data.rows || []);
-  }
-  async function loadHora(){
-    const data = await api('/api/analisis-premio-productividad/simulacion-hora?' + simQuery());
-    const g = data.general || {};
-    $('kpis-hora').innerHTML = [
-      kpi('Actual', money(g.premio_actual)), kpi('Simulado total', money(g.premio_simulado_total)), kpi('Dentro turno', money(g.premio_simulado_dentro_turno)), kpi('Fuera turno', money(g.premio_simulado_fuera_turno), '', g.premio_simulado_fuera_turno ? 'warn' : 'ok'),
-      kpi('Dif. total', money(g.diferencia_simulado_vs_actual), '', g.diferencia_simulado_vs_actual >= 0 ? 'ok' : 'bad'), kpi('Dif. dentro', money(g.diferencia_dentro_turno_vs_actual), '', g.diferencia_dentro_turno_vs_actual >= 0 ? 'ok' : 'bad')
-    ].join('');
-    bars('hora-operacion', data.por_operacion || [], 'diferencia_simulado_vs_actual'); bars('hora-almacen', data.por_almacen || [], 'diferencia_simulado_vs_actual'); bars('hora-turno', data.por_turno || [], 'diferencia_simulado_vs_actual');
-    table('tabla-hora-legajo', groupCols(), data.por_legajo || []);
-  }
-  function commonDailyCols(){
+  function problematicaCols(){
+    if (state.problematicaMode === 'horas_extra') return [
+      {key:'fecha',label:'Fecha',mono:true,w:'92px'},
+      {key:'operario',label:'Legajo',mono:true,w:'90px'},
+      {key:'premio_actual',label:'Premio actual',money:true},
+      {key:'premio_x_horas_sin_extras',label:'Premio horario turno',money:true},
+      {key:'bultos_turno',label:'Bultos estandar',num:true},
+      {key:'bultos_fuera_turno',label:'Bultos extra',num:true},
+      {key:'pct_fuera_turno',label:'% extra',num:true},
+      {key:'promedio_dentro_turno',label:'Prom est.',num:true},
+      {key:'promedio_extra_activa',label:'Prom extra',num:true},
+      {key:'diferencia_x_horas_sin_extras',label:'Diferencia',money:true},
+      {key:'severidad',label:'Estado',w:'90px'},
+    ];
     return [
-      {key:'fecha',label:'Fecha',mono:true,w:'92px'},{key:'legajo',label:'Legajo',mono:true,w:'90px'},{key:'nombre',label:'Nombre',w:'150px'},{key:'turno',label:'Turno',w:'86px'},{key:'operacion',label:'Operacion'},{key:'almacen',label:'Almacen'},
-      {key:'produccion_total',label:'Prod total',num:true},{key:'produccion_dentro_turno',label:'Prod dentro',num:true},{key:'produccion_fuera_turno',label:'Prod fuera',num:true},{key:'premio_actual',label:'Actual',money:true},
-      {key:'premio_simulado_total',label:'Sim total',money:true},{key:'premio_simulado_dentro_turno',label:'Sim dentro',money:true},{key:'premio_simulado_fuera_turno',label:'Sim fuera',money:true},
-      {key:'diferencia_simulado_vs_actual',label:'Dif total',money:true},{key:'diferencia_dentro_turno_vs_actual',label:'Dif dentro',money:true},{key:'tiene_produccion_fuera_turno',label:'Fuera turno',bool:true,w:'100px'}
+      {key:'fecha',label:'Fecha',mono:true,w:'92px'},
+      {key:'operario',label:'Legajo',mono:true,w:'90px'},
+      {key:'premio_actual',label:'Premio actual',money:true},
+      {key:'premio_x_horas_sin_extras',label:'Premio horario',money:true},
+      {key:'hora_pico_label',label:'Pico',mono:true,w:'72px'},
+      {key:'bultos_pico',label:'Bultos pico',num:true},
+      {key:'promedio_posterior',label:'Prom posterior',num:true},
+      {key:'caida_posterior_pct',label:'Caida %',num:true},
+      {key:'concentracion_pico_pct',label:'Concentracion %',num:true},
+      {key:'severidad',label:'Estado',w:'90px'},
+      {key:'detalle_origen',label:'Origen',w:'80px'},
     ];
   }
-  function groupCols(){
-    return [{key:'grupo',label:'Grupo'},{key:'casos',label:'Casos',num:true},{key:'premio_actual',label:'Actual',money:true},{key:'premio_simulado_total',label:'Sim total',money:true},{key:'premio_simulado_dentro_turno',label:'Sim dentro',money:true},{key:'premio_simulado_fuera_turno',label:'Sim fuera',money:true},{key:'diferencia_simulado_vs_actual',label:'Dif total',money:true},{key:'diferencia_dentro_turno_vs_actual',label:'Dif dentro',money:true}];
+  function renderProblematicaChart(caso){
+    if (!caso) {
+      $('problematica-selected').innerHTML = '';
+      $('problematica-chart').innerHTML = '<div class="empty">Sin casos para graficar.</div>';
+      return;
+    }
+    const escala = caso.escala_premio_actual || caso.escala_objetivo || {};
+    const escalaLabel = escala.label || '';
+    const escalaMonto = Number(escala.premio_cobrado || escala.premio_diario || caso.premio_actual || 0);
+    $('problematica-selected').innerHTML = [
+      summaryCell('Caso', caso.titulo_caso || ''),
+      summaryCell('Fecha', caso.fecha || ''),
+      summaryCell('Legajo', caso.operario || ''),
+      summaryCell('Pico', caso.hora_pico_label || ''),
+      summaryCell('Bultos pico', caso.bultos_pico || 0, false, true),
+      summaryCell('Prom posterior', caso.promedio_posterior || 0, false, true),
+      summaryCell('Caida posterior', `${fmt(caso.caida_posterior_pct)}%`),
+      summaryCell('Premio actual', escalaLabel ? `${escalaLabel} - ${money(escalaMonto)}` : money(escalaMonto)),
+      summaryCell('Total cobrado', caso.premio_actual || 0, true),
+      summaryCell('Premio horario', caso.premio_x_horas_sin_extras || 0, true),
+      summaryCell('Diferencia', caso.diferencia_x_horas_sin_extras || 0, true),
+      summaryCell('Horas sobre obj.', caso.resumen_modelo?.horas_sobre_objetivo_cobrado || 0, false, true),
+      summaryCell('Horas sin premio h.', caso.resumen_modelo?.horas_sin_premio_horario || 0, false, true),
+      summaryCell('Bultos estandar', caso.resumen_modelo?.bultos_dentro_turno || caso.bultos_turno || 0, false, true),
+      summaryCell('Bultos extra', caso.resumen_modelo?.bultos_fuera_turno || 0, false, true),
+      summaryCell('% extra', `${fmt(caso.resumen_modelo?.pct_fuera_turno || caso.pct_fuera_turno || 0)}%`),
+    ].join('');
+    const horas = (caso.horas || []).filter(x => Number(x.bultos || 0) > 0);
+    if (!horas.length) {
+      $('problematica-chart').innerHTML = `<div class="empty">Detalle horario pendiente para graficar. ${esc(caso.motivo || '')}</div>`;
+      return;
+    }
+    const w = 1100, h = 320, left = 46, right = 18, top = 46, bottom = 54;
+    const objetivo = Number(caso.objetivo_cobrado_hora || 0);
+    const bandMax = Math.max(...horas.map(x => {
+      const max = Number(x.bultos_hora_max || 0);
+      return max > 10000 ? 0 : max;
+    }), 0);
+    const maxVal = Math.max(...horas.map(x => Number(x.bultos || 0)), objetivo, bandMax, 1);
+    const plotW = w - left - right;
+    const plotH = h - top - bottom;
+    const xFor = idx => left + (horas.length === 1 ? plotW / 2 : idx * plotW / (horas.length - 1));
+    const yFor = val => top + plotH - (Number(val || 0) / maxVal) * plotH;
+    const points = horas.map((item, idx) => ({...item, x:xFor(idx), y:yFor(item.bultos)}));
+    const allPolyline = points.map(p => `${p.x},${p.y}`).join(' ');
+    const posteriorPoints = points.filter(p => p.es_pico || p.es_posterior);
+    const posteriorPolyline = posteriorPoints.map(p => `${p.x},${p.y}`).join(' ');
+    const yMid = yFor(maxVal / 2);
+    const yObjetivo = yFor(objetivo);
+    const step = horas.length > 1 ? plotW / (horas.length - 1) : plotW;
+    const bandWidth = Math.max(18, step * .58);
+    const bgSegments = [];
+    points.forEach((p, idx) => {
+      const start = idx === 0 ? left : (points[idx - 1].x + p.x) / 2;
+      const end = idx === points.length - 1 ? w - right : (p.x + points[idx + 1].x) / 2;
+      const last = bgSegments[bgSegments.length - 1];
+      if (last && Boolean(last.es_extra) === Boolean(p.es_extra)) {
+        last.end = end;
+      } else {
+        bgSegments.push({start, end, es_extra:p.es_extra, label:p.es_extra ? 'Extra' : 'Estandar'});
+      }
+    });
+    const objetivoLabel = escalaMonto > 0
+      ? `Premio actual: ${escalaLabel || 'escala actual'} - ${money(escalaMonto)}`
+      : 'Premio actual';
+    $('problematica-chart').innerHTML = `
+      <svg class="problem-line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Caida posterior al pico por hora">
+        ${bgSegments.map(s => `<rect class="${s.es_extra ? 'extra-bg' : 'standard-bg'}" x="${s.start}" y="${top}" width="${s.end - s.start}" height="${plotH}"><title>${s.es_extra ? 'Horas extra / fuera del turno asignado' : 'Horas estandar / dentro del turno asignado'}</title></rect>`).join('')}
+        ${bgSegments.map(s => `<text class="legend-label" x="${s.start + (s.end - s.start) / 2}" y="${top - 10}" text-anchor="middle">${s.label}</text>`).join('')}
+        ${bgSegments.slice(1).map(s => `<line class="turno-cut" x1="${s.start}" y1="${top}" x2="${s.start}" y2="${top + plotH}"></line>`).join('')}
+        <line class="grid" x1="${left}" y1="${top}" x2="${w - right}" y2="${top}"></line>
+        <line class="grid" x1="${left}" y1="${yMid}" x2="${w - right}" y2="${yMid}"></line>
+        <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h - bottom}"></line>
+        <line class="axis" x1="${left}" y1="${h - bottom}" x2="${w - right}" y2="${h - bottom}"></line>
+        <text class="axis-label" x="${left - 8}" y="${top + 4}" text-anchor="end">${fmt(maxVal)}</text>
+        <text class="axis-label" x="${left - 8}" y="${yMid + 4}" text-anchor="end">${fmt(maxVal / 2)}</text>
+        ${points.map(p => {
+          const rawMax = Number(p.bultos_hora_max || 0);
+          const max = rawMax > 10000 ? maxVal : Math.max(0, rawMax);
+          if (!max) return '';
+          const yTop = yFor(max);
+          const yBottom = yFor(0);
+          const premioHora = Number(p.premio_x_hora || 0);
+          const montoLabel = money(premioHora);
+          const maxLabel = rawMax > 10000 ? 'sin tope' : fmt(max);
+          const labelY = Math.min(yBottom - 5, Math.max(top + 12, yTop + 14));
+          return `<g>
+            <rect class="hour-band" x="${p.x - bandWidth / 2}" y="${yTop}" width="${bandWidth}" height="${Math.max(2, yBottom - yTop)}"><title>Franja horaria de referencia 0-${maxLabel} b/h - ${montoLabel}</title></rect>
+            <text class="hour-band-label" x="${p.x}" y="${labelY}" text-anchor="middle">${esc(montoLabel)}</text>
+          </g>`;
+        }).join('')}
+        ${objetivo > 0 ? `<line class="line-objetivo" x1="${left}" y1="${yObjetivo}" x2="${w - right}" y2="${yObjetivo}"></line>
+        <text class="legend-label" x="${w - right}" y="${Math.max(12, yObjetivo - 7)}" text-anchor="end">${esc(objetivoLabel)}</text>` : ''}
+        <polyline class="line-main" points="${allPolyline}"></polyline>
+        ${posteriorPoints.length > 1 ? `<polyline class="line-posterior" points="${posteriorPolyline}"></polyline>` : ''}
+        ${points.map(p => {
+          const caidaFuerte = p.es_posterior && Number(p.caida_vs_pico_pct || 0) >= 50;
+          const cls = p.es_pico ? 'pico' : caidaFuerte ? 'caida' : p.es_extra ? 'extra' : p.es_posterior ? 'posterior' : 'pre';
+          const title = `${p.hora_label}: ${fmt(p.bultos)} bultos${p.es_pico ? ' - pico' : p.es_posterior ? ` - caida ${fmt(p.caida_vs_pico_pct)}% vs pico` : ''}`;
+          return `
+            <circle class="point ${cls}" cx="${p.x}" cy="${p.y}" r="${p.es_pico ? 6 : 5}"><title>${esc(title)}</title></circle>
+            <text class="label" x="${p.x}" y="${Math.max(12, p.y - 10)}" text-anchor="middle">${fmt(p.bultos)}</text>
+            <text class="axis-label" x="${p.x}" y="${h - 16}" text-anchor="middle">${esc(p.hora_label)}</text>
+          `;
+        }).join('')}
+        <text class="legend-label" x="${left}" y="14">Linea azul: produccion real por hora - Verde: estandar - Rojo: extra - Amarillo: escala horaria</text>
+      </svg>`;
+  }
+  function renderProblematicaTable(rows){
+    const cols = problematicaCols();
+    const selected = Math.min(state.problematicaSelected || 0, Math.max(rows.length - 1, 0));
+    state.problematicaSelected = selected;
+    const emptyText = state.problematicaView === 'confirmados'
+      ? 'Sin casos que superen la regla de caida posterior. Usa Candidatos analizados para ver la base revisada.'
+      : state.problematicaView === 'pendientes'
+        ? 'No hay candidatos pendientes de detalle.'
+        : 'Sin candidatos analizados para los parametros actuales.';
+    $('tabla-problematica').innerHTML = `<thead><tr>${cols.map(c => `<th style="${c.w ? `width:${c.w}` : ''}">${esc(c.label)}</th>`).join('')}</tr></thead><tbody>${rows.map((row,idx) => `<tr class="${idx === selected ? 'active' : ''}" data-index="${idx}">${cols.map(c => {
+      const raw = row[c.key];
+      const shown = c.money ? money(raw) : c.num ? fmt(raw) : esc(raw);
+      const pill = c.key === 'severidad' ? `<span class="pill ${raw === 'Critico' ? 'bad' : raw === 'Revisar' ? 'warn' : ''}">${shown}</span>` : shown;
+      return `<td class="${c.mono ? 'mono' : ''}" title="${esc(raw)}">${pill}</td>`;
+    }).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}">${esc(emptyText)}</td></tr>`}</tbody>`;
+    $('tabla-problematica').querySelectorAll('tbody tr[data-index]').forEach(tr => {
+      tr.onclick = () => {
+        state.problematicaSelected = Number(tr.dataset.index || 0);
+        renderProblematicaTable(state.problematicaRows || []);
+        renderProblematicaChart((state.problematicaRows || [])[state.problematicaSelected]);
+      };
+    });
+    renderProblematicaChart(rows[selected]);
+  }
+  function setProblematicaView(view){
+    state.problematicaView = view;
+    state.problematicaRows = state.problematicaSets[view] || [];
+    state.problematicaSelected = 0;
+    renderProblematicaViewbar();
+    renderProblematicaTable(state.problematicaRows);
+  }
+  function setProblematicaMode(mode){
+    state.problematicaMode = mode;
+    const modeData = state.problematicaModes[mode] || {};
+    state.problematicaSets = {
+      confirmados: modeData.casos || [],
+      analizados: modeData.analizados || [],
+      pendientes: state.problematicaModes.pendientes || [],
+    };
+    state.problematicaView = state.problematicaSets.confirmados.length ? 'confirmados' : state.problematicaSets.analizados.length ? 'analizados' : 'pendientes';
+    renderProblematicaModebar();
+    renderProblematicaKpis(modeData.kpis || {}, mode);
+    setProblematicaView(state.problematicaView);
+  }
+  function renderProblematicaModebar(){
+    const modes = state.problematicaModes || {};
+    const items = [
+      {key:'caida_inicio', label:'Caida inicio', count:(modes.caida_inicio?.casos || []).length},
+      {key:'horas_extra', label:'Horas extra', count:(modes.horas_extra?.casos || []).length},
+    ];
+    $('problematica-modebar').innerHTML = items.map(item => `
+      <button type="button" class="problem-view-btn ${state.problematicaMode === item.key ? 'active' : ''}" data-mode="${esc(item.key)}">
+        ${esc(item.label)} (${fmt(item.count)})
+      </button>
+    `).join('');
+    $('problematica-modebar').querySelectorAll('[data-mode]').forEach(btn => {
+      btn.onclick = () => setProblematicaMode(btn.dataset.mode || 'caida_inicio');
+    });
+  }
+  function renderProblematicaViewbar(){
+    const sets = state.problematicaSets || {};
+    const items = [
+      {key:'confirmados', label:'Caida confirmada', count:(sets.confirmados || []).length},
+      {key:'analizados', label:'Candidatos analizados', count:(sets.analizados || []).length},
+      {key:'pendientes', label:'Pendientes detalle', count:(sets.pendientes || []).length},
+    ];
+    $('problematica-viewbar').innerHTML = items.map(item => `
+      <button type="button" class="problem-view-btn ${state.problematicaView === item.key ? 'active' : ''}" data-view="${esc(item.key)}">
+        ${esc(item.label)} (${fmt(item.count)})
+      </button>
+    `).join('');
+    $('problematica-viewbar').querySelectorAll('[data-view]').forEach(btn => {
+      btn.onclick = () => setProblematicaView(btn.dataset.view || 'confirmados');
+    });
+  }
+  function renderProblematicaKpis(k, mode){
+    const isExtra = mode === 'horas_extra';
+    $('kpis-problematica').innerHTML = [
+      kpi(isExtra ? 'Casos horas extra' : 'Casos con caida', fmt(k.casos_detectados), `${fmt(k.casos_analizados)} analizados`),
+      kpi('Premio actual', money(k.premio_actual), 'Casos usados como ejemplo'),
+      kpi('Premio horario turno', money(k.premio_x_horas_sin_extras), 'Dentro del turno asignado', 'warn'),
+      kpi('Diferencia estimada', money(k.diferencia_estimada), 'Modelo actual vs horario', 'ok'),
+      isExtra
+        ? kpi('% extra prom.', `${fmt(k.pct_fuera_turno_promedio)}%`, 'Produccion fuera de turno', 'bad')
+        : kpi('Caida prom.', `${fmt(k.caida_posterior_promedio)}%`, 'Posterior al pico', 'bad'),
+      kpi('Candidatos', fmt(k.candidatos), 'Premio > $40.000, sin penalizaciones'),
+      kpi('Detalle Oracle', fmt(k.detalle_oracle || 0), 'Consultas enriquecidas'),
+      kpi('Detalle cache', fmt(k.detalle_cache || 0), 'Ya disponible'),
+    ].join('');
+  }
+  async function loadProblematica(){
+    setStatus('Buscando ejemplos de caida posterior al pico. Puede consultar Oracle para detalles faltantes...');
+    const data = await api('/api/analisis-premio-productividad/problematica-modelo-actual?' + qs({
+      fecha_desde:state.fechaDesde,
+      fecha_hasta:state.fechaHasta,
+      ...comboParams(),
+      umbral_premio:40000,
+      max_candidatos:40,
+      caida_min_pct:50,
+      concentracion_min_pct:0,
+      min_bultos_turno:400,
+    }));
+    state.problematicaModes = data.modos || {
+      caida_inicio: {casos:data.casos_confirmados || [], analizados:data.casos || [], kpis:data.kpis || {}},
+      horas_extra: {casos:data.casos_horas_extra || [], analizados:data.casos_horas_extra || [], kpis:data.kpis_por_modo?.horas_extra || {}},
+    };
+    state.problematicaModes.pendientes = data.candidatos_pendientes || [];
+    const defaultMode = (state.problematicaModes.caida_inicio?.casos || []).length ? 'caida_inicio' : 'horas_extra';
+    setProblematicaMode(defaultMode);
+    $('problematica-lectura').innerHTML = (data.lectura || []).map(x => `<li>${esc(x)}</li>`).join('');
+    const sinDetalle = data.candidatos_sin_detalle || [];
+    $('problematica-sin-detalle').innerHTML = sinDetalle.length
+      ? sinDetalle.slice(0,8).map(x => `<li>${esc(x.fecha)} - legajo ${esc(x.operario)} - ${esc(x.motivo)}</li>`).join('')
+      : '<li>Todos los candidatos priorizados tuvieron detalle horario disponible o fueron enriquecidos desde Oracle.</li>';
+    const totalCandidatos = Number(data.kpis?.candidatos || 0);
+    if (!totalCandidatos) {
+      setStatus(`Sin candidatos para problematica en ${state.fechaDesde} a ${state.fechaHasta} (${state.operacion} / ${state.almacen}). Probá otro rango con premios mayores al umbral.`, true);
+    }
   }
   function finalCols(){
+    const escenario = state.divisorHorario === '6.5' ? '/6.5' : '/8';
     return [
       {key:'fecha',label:'Fecha',mono:true,w:'92px'},
       {key:'operario',label:'Operario',mono:true,w:'100px',link:'detalle-legajo'},
       {key:'operacion',label:'Operacion'},
       {key:'bultos',label:'Bultos',num:true},
       {key:'almacen',label:'Almacen'},
-      {key:'premio_x_horas',label:'Premio x horas',money:true},
-      {key:'premio_x_horas_sin_extras',label:'Premio x horas sin extras',money:true},
+      {key:'descuentos_total',label:'Desc. TNC/error',money:true},
+      {key:'premio_x_horas_bruto',label:`Premio horas ${escenario} bruto`,money:true},
+      {key:'premio_x_horas',label:`Premio horas ${escenario} neto`,money:true},
+      {key:'premio_x_horas_sin_extras_bruto',label:`Premio horas ${escenario} sin extras bruto`,money:true},
+      {key:'premio_x_horas_sin_extras',label:`Premio horas ${escenario} sin extras neto`,money:true},
       {key:'productividad_anterior',label:'Prod anterior',num:true},
-      {key:'premio_anterior',label:'Premio anterior',money:true},
+      {key:'premio_anterior',label:'Premio anterior neto',money:true},
       {key:'bultosturno',label:'Bultos turno',num:true},
-      {key:'premio_actual',label:'Premio sin extras',money:true},
+      {key:'premio_actual_bruto',label:'Premio sin extras bruto',money:true},
+      {key:'premio_actual',label:'Premio sin extras neto',money:true},
       {key:'diferencia_x_horas',label:'Diferencia x horas',money:true},
       {key:'diferencia_sin_extras',label:'Diferencia sin extras',money:true},
       {key:'diferencia_x_horas_sin_extras',label:'Diferencia x horas sin extras',money:true},
     ];
   }
   function detalleLegajoCols(){
+    const escenario = state.divisorHorario === '6.5' ? '/6.5' : '/8';
     return [
       {key:'hora',label:'Hora',num:true,w:'70px'},
       {key:'turno',label:'Turno',w:'92px'},
       {key:'bultos',label:'Bultos',num:true},
       {key:'bultos_hora_min',label:'Min hora',num:true},
       {key:'bultos_hora_max',label:'Max hora',num:true},
-      {key:'premio_x_hora',label:'Premio hora',money:true},
+      {key:'premio_x_hora',label:`Premio hora ${escenario}`,money:true},
       {key:'bultos_modulo',label:'Bultos modulo',num:true},
+    ];
+  }
+  function detalleCacheCols(){
+    const escenario = state.divisorHorario === '6.5' ? '/6.5' : '/8';
+    return [
+      {key:'fecha_base',label:'Fecha cache',mono:true,w:'102px'},
+      {key:'legajo',label:'Legajo',mono:true,w:'90px'},
+      {key:'hora',label:'Hora',num:true,w:'70px'},
+      {key:'turno',label:'Turno',w:'92px'},
+      {key:'operacion',label:'Operacion'},
+      {key:'almacen',label:'Almacen'},
+      {key:'bultos',label:'Bultos',num:true},
+      {key:'bultos_modulo',label:'Bultos modulo',num:true},
+      {key:'premio_x_hora',label:`Premio hora ${escenario}`,money:true},
+      {key:'prod_modulo',label:'Prod modulo',num:true},
+      {key:'pago_modulo',label:'Pago modulo',money:true},
+      {key:'loaded_at',label:'Cacheado',mono:true,w:'150px'},
     ];
   }
   function summaryCell(label, value, moneyValue=false, numValue=false){
     const shown = moneyValue ? money(value) : numValue ? fmt(value) : value;
     return `<div class="summary-cell"><div class="label">${esc(label)}</div><strong title="${esc(shown)}">${esc(shown)}</strong></div>`;
+  }
+  function detalleTurnoStart(rows){
+    return detalleTurnoStartInfo(rows).start;
+  }
+  function detalleTurnoStartInfo(rows){
+    const turnos = new Set((rows || []).map(row => String(row.turno || '').toUpperCase().trim()).filter(Boolean));
+    if ([...turnos].some(turno => turno.includes('NOCHE') || turno === 'TN' || turno === '3' || turno.includes('TURNO 3'))) return {start:22, known:true};
+    if ([...turnos].some(turno => turno.includes('TARDE') || turno === '2' || turno.includes('TURNO 2'))) return {start:14, known:true};
+    if ([...turnos].some(turno => turno.includes('MA') || turno.includes('MANANA') || turno === '1' || turno.includes('TURNO 1'))) return {start:6, known:true};
+    return {start:0, known:false};
+  }
+  function detalleHoraOrden(row, startHour){
+    const hora = Number(row.hora || 0);
+    return ((hora - startHour) + 24) % 24;
+  }
+  function sortDetalleRows(rows){
+    const startHour = detalleTurnoStart(rows);
+    return [...(rows || [])].sort((a,b) => {
+      const seq = detalleHoraOrden(a, startHour) - detalleHoraOrden(b, startHour);
+      if (seq) return seq;
+      return Number(a.hora || 0) - Number(b.hora || 0);
+    });
+  }
+  function detalleStandardHours(rows){
+    const info = detalleTurnoStartInfo(rows);
+    if (info.known) return Array.from({length:8}, (_, idx) => (info.start + idx) % 24);
+    return [...new Set((rows || [])
+      .filter(row => Number(row.bultos_modulo || 0) > 0)
+      .map(row => Number(row.hora))
+      .filter(hora => Number.isFinite(hora)))]
+      .sort((a,b) => detalleHoraOrden({hora:a}, info.start) - detalleHoraOrden({hora:b}, info.start));
+  }
+  function completarDetalleHoras(rows){
+    const sorted = sortDetalleRows(rows).map(row => ({...row}));
+    const standardHours = detalleStandardHours(sorted);
+    if (!standardHours.length) return sorted;
+    const standardSet = new Set(standardHours);
+    sorted.forEach(row => {
+      const hora = Number(row.hora);
+      row.es_hora_estandar = standardSet.has(hora) || Number(row.bultos_modulo || 0) > 0;
+    });
+    const existingHours = new Set(sorted.map(row => Number(row.hora)).filter(hora => Number.isFinite(hora)));
+    const template = sorted.find(row => Number(row.bultos_modulo || 0) > 0) || sorted[0] || {};
+    standardHours.forEach(hora => {
+      if (existingHours.has(hora)) return;
+      sorted.push({
+        ...template,
+        hora,
+        bultos:0,
+        bultos_hora_min:0,
+        bultos_hora_max:125,
+        premio_x_hora:0,
+        bultos_modulo:0,
+        es_hora_estandar:true,
+        hora_relleno:true,
+      });
+    });
+    return sortDetalleRows(sorted);
   }
   function renderDetalleSummary(rows, kpis){
     const first = rows[0] || {};
@@ -582,6 +1167,311 @@
       summaryCell('Penalizacion error', kpis.penalizacion_error || first.penalizacion_error || ''),
     ].join('');
   }
+  function escalaActualFromRows(rows){
+    const first = rows[0] || {};
+    const productividad = Number(first.prod_modulo || 0);
+    const pagoModulo = Number(first.pago_modulo || 0);
+    let best = null;
+    (rows || []).forEach(row => {
+      const minHora = Number(row.bultos_hora_min || 0);
+      const maxHora = Number(row.bultos_hora_max || 0);
+      const premioHora = Number(row.premio_x_hora || 0);
+      if (!premioHora && !pagoModulo) return;
+      const minBultos = minHora * 8;
+      const maxBultos = maxHora * 8;
+      const maxCmp = maxHora >= 10000 ? Infinity : maxBultos;
+      const premioDia = Number(row.pago_modulo || 0) || premioHora * 8;
+      const matchesPremio = pagoModulo > 0 && Math.abs(premioDia - pagoModulo) < 1;
+      const matchesProd = productividad > minBultos && productividad <= maxCmp;
+      if ((matchesPremio || matchesProd) && (!best || (matchesPremio && matchesProd))) {
+        best = {minBultos, maxBultos, premio:pagoModulo || premioDia};
+      }
+    });
+    if (!best) return {label:'', premio:pagoModulo};
+    const maxLabel = best.maxBultos >= 80000 ? 'sin tope' : fmt(best.maxBultos);
+    return {label:`${fmt(best.minBultos)}-${maxLabel} bultos`, premio:best.premio};
+  }
+  function detalleExtraTransfers(points, objetivo){
+    const standard = points.filter(p => !p.es_extra && Number(p.bultos || 0) < objetivo);
+    const extras = points.filter(p => p.es_extra && Number(p.bultos || 0) > 0);
+    const standardSurplus = points.filter(p => !p.es_extra && Number(p.bultos || 0) > objetivo)
+      .sort((a,b) => Number(b.bultos || 0) - Number(a.bultos || 0));
+    const transfers = [];
+    const targetAdded = new Map();
+    const sourceUsed = new Map();
+    const standardSourceUsed = new Map();
+    function useSources(target, sources, sourceKind, need){
+      for (const source of sources) {
+        if (need <= 0) break;
+        if (source.idx === target.idx) continue;
+        const used = sourceUsed.get(source.idx) || 0;
+        const available = sourceKind === 'standard'
+          ? Math.max(0, Number(source.bultos || 0) - objetivo - used)
+          : Math.max(0, Number(source.bultos || 0) - used);
+        if (!available) continue;
+        const amount = Math.min(need, available);
+        const added = targetAdded.get(target.idx) || 0;
+        transfers.push({
+          source,
+          target,
+          amount,
+          sourceKind,
+          targetBase:target.bultos + added,
+          sourceBase:source.bultos - used,
+        });
+        targetAdded.set(target.idx, added + amount);
+        sourceUsed.set(source.idx, used + amount);
+        if (sourceKind === 'standard') standardSourceUsed.set(source.idx, (standardSourceUsed.get(source.idx) || 0) + amount);
+        need -= amount;
+      }
+      return need;
+    }
+    standard.forEach(target => {
+      const currentAdded = targetAdded.get(target.idx) || 0;
+      let need = Math.max(0, objetivo - Number(target.bultos || 0) - currentAdded);
+      need = useSources(target, extras, 'extra', need);
+      if (need > 0) useSources(target, standardSurplus, 'standard', need);
+    });
+    const leftover = extras.map(source => ({source, amount:Math.max(0, source.bultos - (sourceUsed.get(source.idx) || 0))})).filter(x => x.amount > 0);
+    return {transfers, leftover, targetAdded, standardSourceUsed};
+  }
+  function renderDetalleLegajoChart(rows, animate=false, exportProgress=null){
+    state.detalleChartRows = rows || [];
+    const horas = (rows || [])
+      .filter(row => row.hora !== undefined && row.hora !== null && row.hora !== '')
+      .map((row, idx) => ({
+        idx,
+        hora_label: `${String(Number(row.hora || 0)).padStart(2, '0')}:00`,
+        bultos: Number(row.bultos || 0),
+        bultos_hora_max: Number(row.bultos_hora_max || 0),
+        premio_x_hora: Number(row.premio_x_hora || 0),
+        es_extra: row.es_hora_estandar === true ? false : Number(row.bultos_modulo || 0) <= 0,
+      }));
+    if (!horas.length) {
+      $('detalle-legajo-chart').innerHTML = '<div class="empty">Sin produccion horaria para graficar.</div>';
+      return;
+    }
+    const w = 1100, h = 300, left = 46, right = 18, top = 44, bottom = 48;
+    const escala = escalaActualFromRows(rows || []);
+    const objetivo = Number((rows[0] || {}).prod_modulo || 0) / 8;
+    const prePoints = horas.map((item, idx) => ({...item, x:0, y:0, idx}));
+    const transferModel = detalleExtraTransfers(prePoints, objetivo);
+    const inflatedMax = Math.max(...prePoints.map(p => Number(p.bultos || 0) + (transferModel.targetAdded.get(p.idx) || 0)), 0);
+    const bandMax = Math.max(...horas.map(x => {
+      const max = Number(x.bultos_hora_max || 0);
+      return max > 10000 ? 0 : max;
+    }), 0);
+    const maxVal = Math.max(...horas.map(x => x.bultos), inflatedMax, objetivo, bandMax, 1);
+    const plotW = w - left - right;
+    const plotH = h - top - bottom;
+    const xFor = idx => left + (horas.length === 1 ? plotW / 2 : idx * plotW / (horas.length - 1));
+    const yFor = val => top + plotH - (Number(val || 0) / maxVal) * plotH;
+    const points = horas.map((item, idx) => ({...item, x:xFor(idx), y:yFor(item.bultos)}));
+    const allPolyline = points.map(p => `${p.x},${p.y}`).join(' ');
+    const yMid = yFor(maxVal / 2);
+    const yObjetivo = yFor(objetivo);
+    const step = horas.length > 1 ? plotW / (horas.length - 1) : plotW;
+    const bandWidth = Math.max(18, step * .58);
+    const prodBarWidth = Math.max(12, Math.min(34, step * .34));
+    const bgSegments = [];
+    points.forEach((p, idx) => {
+      const start = idx === 0 ? left : (points[idx - 1].x + p.x) / 2;
+      const end = idx === points.length - 1 ? w - right : (p.x + points[idx + 1].x) / 2;
+      const last = bgSegments[bgSegments.length - 1];
+      if (last && Boolean(last.es_extra) === Boolean(p.es_extra)) last.end = end;
+      else bgSegments.push({start, end, es_extra:p.es_extra, label:p.es_extra ? 'Extra' : 'Estandar'});
+    });
+    const objetivoLabel = escala.premio > 0
+      ? `Premio actual: ${escala.label || 'escala actual'} - ${money(escala.premio)}`
+      : 'Premio actual';
+    const transferModelFinal = detalleExtraTransfers(points, objetivo);
+    const totalExtra = transferModelFinal.transfers.reduce((acc, item) => acc + item.amount, 0) + transferModelFinal.leftover.reduce((acc, item) => acc + item.amount, 0);
+    const totalAsignadoExtra = transferModelFinal.transfers.filter(item => item.sourceKind === 'extra').reduce((acc, item) => acc + item.amount, 0);
+    const totalAsignadoStandard = transferModelFinal.transfers.filter(item => item.sourceKind === 'standard').reduce((acc, item) => acc + item.amount, 0);
+    const totalAsignado = totalAsignadoExtra + totalAsignadoStandard;
+    const transferNote = totalExtra > 0 || totalAsignadoStandard > 0
+      ? `Hasta objetivo: ${fmt(totalAsignadoExtra)} extra${totalAsignadoStandard ? ` + ${fmt(totalAsignadoStandard)} excedente estandar` : ''}`
+      : 'No hay horas extra para reasignar';
+    $('detalle-legajo-chart').innerHTML = `
+      <div class="detalle-anim-head">
+        <div class="detalle-anim-note">${esc(transferNote)}</div>
+        <div class="detalle-anim-actions">
+          <button type="button" class="secondary-cta" id="animar-detalle-extra" ${totalAsignado ? '' : 'disabled'}>Animar extras</button>
+          <button type="button" class="secondary-cta" id="exportar-detalle-gif" ${totalAsignado ? '' : 'disabled'}>Exportar GIF</button>
+          <button type="button" class="secondary-cta" id="reset-detalle-extra">Original</button>
+        </div>
+      </div>
+      <svg class="problem-line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Produccion por hora del legajo">
+        ${bgSegments.map(s => `<rect class="${s.es_extra ? 'extra-bg' : 'standard-bg'}" x="${s.start}" y="${top}" width="${s.end - s.start}" height="${plotH}"><title>${s.es_extra ? 'Horas extra / fuera del turno asignado' : 'Horas estandar / dentro del turno asignado'}</title></rect>`).join('')}
+        ${bgSegments.map(s => `<text class="legend-label" x="${s.start + (s.end - s.start) / 2}" y="${top - 10}" text-anchor="middle">${s.label}</text>`).join('')}
+        ${bgSegments.slice(1).map(s => `<line class="turno-cut" x1="${s.start}" y1="${top}" x2="${s.start}" y2="${top + plotH}"></line>`).join('')}
+        <line class="grid" x1="${left}" y1="${top}" x2="${w - right}" y2="${top}"></line>
+        <line class="grid" x1="${left}" y1="${yMid}" x2="${w - right}" y2="${yMid}"></line>
+        <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h - bottom}"></line>
+        <line class="axis" x1="${left}" y1="${h - bottom}" x2="${w - right}" y2="${h - bottom}"></line>
+        <text class="axis-label" x="${left - 8}" y="${top + 4}" text-anchor="end">${fmt(maxVal)}</text>
+        <text class="axis-label" x="${left - 8}" y="${yMid + 4}" text-anchor="end">${fmt(maxVal / 2)}</text>
+        ${points.map(p => {
+          const yTop = yFor(p.bultos);
+          return `<rect class="prod-bar ${p.es_extra ? 'extra' : 'standard'}" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yFor(0) - yTop)}"><title>${esc(`${p.hora_label}: ${fmt(p.bultos)} bultos ${p.es_extra ? 'extra' : 'estandar'}`)}</title></rect>`;
+        }).join('')}
+        ${objetivo > 0 ? points.filter(p => !p.es_extra).map(p => `<line class="target-cap" x1="${p.x - prodBarWidth / 2 - 3}" y1="${yObjetivo}" x2="${p.x + prodBarWidth / 2 + 3}" y2="${yObjetivo}"></line>`).join('') : ''}
+        ${transferModelFinal.leftover.map(item => {
+          const p = item.source;
+          const used = p.bultos - item.amount;
+          const yTop = yFor(p.bultos);
+          const yBottom = yFor(used);
+          return `<rect class="leftover-extra" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yBottom - yTop)}"><title>Extra sin reasignar: ${fmt(item.amount)} bultos</title></rect>`;
+        }).join('')}
+        ${points.filter(p => transferModelFinal.standardSourceUsed.get(p.idx)).map(p => {
+          const amount = transferModelFinal.standardSourceUsed.get(p.idx) || 0;
+          const yTop = yFor(p.bultos);
+          const yBottom = yFor(p.bultos - amount);
+          return `<rect class="source-used" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yBottom - yTop)}"><title>Excedente estandar usado visualmente: ${fmt(amount)} bultos</title></rect>`;
+        }).join('')}
+        ${points.map(p => {
+          const rawMax = Number(p.bultos_hora_max || 0);
+          const max = rawMax > 10000 ? maxVal : Math.max(0, rawMax);
+          if (!max) return '';
+          const yTop = yFor(max);
+          const yBottom = yFor(0);
+          const montoLabel = money(Number(p.premio_x_hora || 0));
+          const maxLabel = rawMax > 10000 ? 'sin tope' : fmt(max);
+          const labelY = Math.min(yBottom - 5, Math.max(top + 12, yTop + 14));
+          return `<g>
+            <rect class="hour-band" x="${p.x - bandWidth / 2}" y="${yTop}" width="${bandWidth}" height="${Math.max(2, yBottom - yTop)}"><title>Franja horaria de referencia 0-${maxLabel} b/h - ${montoLabel}</title></rect>
+            <text class="hour-band-label" x="${p.x}" y="${labelY}" text-anchor="middle">${esc(montoLabel)}</text>
+          </g>`;
+        }).join('')}
+        ${transferModelFinal.transfers.map((item, idx) => {
+          const finalTop = yFor(item.targetBase + item.amount);
+          const finalBottom = yFor(item.targetBase);
+          const sourceTop = yFor(item.sourceBase);
+          const fromX = item.source.x - item.target.x;
+          const fromY = sourceTop - finalTop;
+          const frameProgress = exportProgress === null ? null : Math.max(0, Math.min(1, (exportProgress - idx * 0.035) / 0.72));
+          const eased = frameProgress === null ? null : 1 - Math.pow(1 - frameProgress, 3);
+          const transform = eased === null ? '' : ` transform="translate(${fromX * (1 - eased)} ${fromY * (1 - eased)})"`;
+          const cls = `${animate && exportProgress === null ? 'transfer-segment animating' : 'transfer-segment'} ${item.sourceKind === 'standard' ? 'from-standard' : ''}`;
+          const sourceLabel = item.sourceKind === 'standard' ? 'excedente estandar' : 'extra';
+          return `<rect class="${cls}" style="--from-x:${fromX}px;--from-y:${fromY}px;animation-delay:${idx * 90}ms" x="${item.target.x - prodBarWidth / 2}" y="${finalTop}" width="${prodBarWidth}" height="${Math.max(2, finalBottom - finalTop)}"${transform}><title>${fmt(item.amount)} bultos ${sourceLabel} de ${esc(item.source.hora_label)} montados sobre ${esc(item.target.hora_label)}</title></rect>`;
+        }).join('')}
+        ${objetivo > 0 ? `<line class="line-objetivo" x1="${left}" y1="${yObjetivo}" x2="${w - right}" y2="${yObjetivo}"></line>
+        <text class="legend-label" x="${w - right}" y="${Math.max(12, yObjetivo - 7)}" text-anchor="end">${esc(objetivoLabel)}</text>` : ''}
+        <polyline class="line-main" points="${allPolyline}"></polyline>
+        ${points.map(p => `
+          <circle class="point ${p.es_extra ? 'extra' : 'pre'}" cx="${p.x}" cy="${p.y}" r="5"><title>${esc(`${p.hora_label}: ${fmt(p.bultos)} bultos`)}</title></circle>
+          <text class="label" x="${p.x}" y="${Math.max(12, p.y - 10)}" text-anchor="middle">${fmt(p.bultos)}</text>
+          <text class="axis-label" x="${p.x}" y="${h - 14}" text-anchor="middle">${esc(p.hora_label)}</text>
+        `).join('')}
+        <text class="legend-label" x="${left}" y="14">Azul: estandar - Rojo: extra - Naranja: reasignado - Naranja punteado: excedente estandar - Verde: objetivo horario</text>
+      </svg>`;
+    $('animar-detalle-extra').onclick = () => renderDetalleLegajoChart(state.detalleChartRows || [], true);
+    $('exportar-detalle-gif').onclick = () => exportarDetalleGif().catch(e => setStatus(e.message, true));
+    $('reset-detalle-extra').onclick = () => renderDetalleLegajoChart(state.detalleChartRows || [], false);
+  }
+  const detalleGifSvgStyle = `
+    .grid{stroke:#D4DBD8;stroke-width:1;opacity:.75}.axis{stroke:#A9B4AC;stroke-width:1}
+    .standard-bg{fill:#DDEEE3;opacity:.82}.extra-bg{fill:#F4DDE0;opacity:.82}
+    .turno-cut{stroke:#5C6773;stroke-width:1.5;stroke-dasharray:5 4;opacity:.85}
+    .hour-band{fill:#FBE7C8;stroke:#E1BF76;stroke-width:1;opacity:.55}
+    .hour-band-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:#6F4300;paint-order:stroke;stroke:#FFFFFF;stroke-width:3px;stroke-linejoin:round}
+    .line-main{fill:none;stroke:#0B5FAE;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+    .line-objetivo{stroke:#1F7A4D;stroke-width:2.5;stroke-dasharray:8 5}
+    .point{stroke:#FFFFFF;stroke-width:3}.point.pre{fill:#1F7A4D}.point.extra{fill:#C8102E}
+    .prod-bar{stroke:#FFFFFF;stroke-width:1.5;opacity:.72}.prod-bar.standard{fill:#0B5FAE}.prod-bar.extra{fill:#C8102E}
+    .transfer-segment{fill:#B25F00;stroke:#6F4300;stroke-width:.8;opacity:.9}.transfer-segment.from-standard{fill:#E8A23A;stroke:#6F4300;stroke-dasharray:3 2}
+    .leftover-extra{fill:#C8102E;opacity:.45;stroke:#C8102E;stroke-width:1}.source-used{fill:#FFFFFF;stroke:#0B5FAE;stroke-width:1;stroke-dasharray:3 2;opacity:.52}
+    .target-cap{stroke:#1F7A4D;stroke-width:2;stroke-dasharray:3 3}
+    .label{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:#0E1620;paint-order:stroke;stroke:#FFFFFF;stroke-width:3px;stroke-linejoin:round}
+    .axis-label,.legend-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:#5C6773}
+  `;
+  function currentDetalleSvgForExport(){
+    const svg = $('detalle-legajo-chart').querySelector('svg');
+    if (!svg) throw new Error('No hay grafico de detalle para exportar.');
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    clone.setAttribute('width', '1280');
+    clone.setAttribute('height', '349');
+    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bg.setAttribute('x', '0'); bg.setAttribute('y', '0'); bg.setAttribute('width', '1100'); bg.setAttribute('height', '300'); bg.setAttribute('fill', '#FFFFFF');
+    clone.insertBefore(bg, clone.firstChild);
+    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    style.textContent = detalleGifSvgStyle;
+    clone.insertBefore(style, clone.firstChild);
+    return new XMLSerializer().serializeToString(clone);
+  }
+  function svgMarkupToPngData(markup, width=1280, height=349){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const blob = new Blob([markup], {type:'image/svg+xml;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo rasterizar el SVG.')); };
+      img.src = url;
+    });
+  }
+  async function exportarDetalleGif(){
+    const rows = state.detalleChartRows || [];
+    if (!rows.length) throw new Error('Abrí un detalle de legajo antes de exportar.');
+    const btn = $('exportar-detalle-gif');
+    btn.disabled = true;
+    btn.textContent = 'Generando...';
+    setStatus('Generando frames del GIF...');
+    try {
+      const frames = [];
+      const frameCount = 32;
+      for (let i = 0; i < frameCount; i++) {
+        const progress = i / (frameCount - 1);
+        renderDetalleLegajoChart(rows, false, progress);
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        frames.push(await svgMarkupToPngData(currentDetalleSvgForExport()));
+      }
+      renderDetalleLegajoChart(rows, false);
+      setStatus('Armando GIF para PowerPoint...');
+      const first = rows[0] || {};
+      const filename = `detalle-legajo-${first.operario || 'legajo'}-impacto-extras.gif`;
+      const res = await fetch('/api/analisis-premio-productividad/exportar-gif', {
+        credentials:'same-origin',
+        headers:{'Content-Type':'application/json'},
+        method:'POST',
+        body:JSON.stringify({frames, duration_ms:85, filename})
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'No se pudo exportar el GIF.');
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus(`GIF exportado: ${filename}`);
+    } catch (e) {
+      renderDetalleLegajoChart(rows, false);
+      throw e;
+    } finally {
+      const fresh = $('exportar-detalle-gif');
+      if (fresh) {
+        fresh.disabled = false;
+        fresh.textContent = 'Exportar GIF';
+      }
+    }
+  }
   async function cargarDetalleLegajo(fecha, legajo){
     if (state.loading) return;
     setBusy(true);
@@ -589,11 +1479,13 @@
     $('detalle-title').textContent = `Detalle legajo ${legajo}`;
     $('detalle-status').textContent = 'Consultando cache...';
     try {
-      const data = await api('/api/analisis-premio-productividad/detalle-legajo?' + qs({fecha, legajo}));
-      renderDetalleSummary(data.rows || [], data.kpis || {});
-      table('tabla-detalle-legajo', detalleLegajoCols(), data.rows || []);
+      const data = await api('/api/analisis-premio-productividad/detalle-legajo?' + qs({fecha, legajo, ...comboParams()}));
+      const detalleRows = completarDetalleHoras(data.rows || []);
+      renderDetalleSummary(detalleRows, data.kpis || {});
+      renderDetalleLegajoChart(detalleRows);
+      table('tabla-detalle-legajo', detalleLegajoCols(), detalleRows);
       const m = data.meta || {}; const k = data.kpis || {};
-      $('detalle-status').textContent = `${esc(m.fecha)} · ${esc(m.origen)} · ${fmt(k.horas)} horas · ${fmt(k.bultos)} bultos`;
+      $('detalle-status').textContent = `${esc(m.fecha)} · ${esc(m.origen)} · hora ${esc(m.escenario_horario || ('/' + state.divisorHorario))} · ${fmt(k.horas)} horas · ${fmt(k.bultos)} bultos`;
       setStatus(`Detalle ${legajo} cargado desde ${m.origen === 'oracle' ? 'Oracle y cacheado' : 'cache'}.`);
     } finally {
       setBusy(false);
@@ -603,43 +1495,152 @@
     if (state.loading) return;
     $('detalle-modal').classList.remove('active');
   }
-  async function loadDiaria(){
-    const query = simQuery({fecha:$('f-fecha').value, legajo:$('f-legajo').value, turno:$('f-turno').value, operacion:$('f-operacion').value, almacen:$('f-almacen').value, solo_fuera_turno:$('f-fuera').checked, solo_positivas:$('f-pos').checked, solo_negativas:$('f-neg').checked});
-    const data = await api('/api/analisis-premio-productividad/comparacion-diaria?' + query);
-    table('tabla-diaria', commonDailyCols(), data.rows || []);
+  function filterDataRows(rows){
+    const fecha = $('detalle-f-fecha').value;
+    const legajo = $('detalle-f-legajo').value.trim();
+    return (rows || []).filter(row => {
+      const okFecha = !fecha || String(row.fecha_base || row.fecha || '').slice(0,10) === fecha;
+      const okLegajo = !legajo || String(row.legajo || row.operario || '').includes(legajo);
+      return okFecha && okLegajo;
+    });
+  }
+  function renderDetalleCacheGrid(){
+    const resumenRows = filterDataRows(state.detalleResumenRows);
+    const detailRows = filterDataRows(state.detalleRows);
+    table('tabla-datos-resumen', finalCols(), resumenRows);
+    table('tabla-detalle-cache', detalleCacheCols(), detailRows);
+    const totalResumen = state.detalleResumenRows.length;
+    const totalDetalle = state.detalleRows.length;
+    const fecha = $('detalle-f-fecha').value;
+    const legajo = $('detalle-f-legajo').value.trim();
+    const filtros = [fecha ? `fecha ${fecha}` : '', legajo ? `legajo ${legajo}` : ''].filter(Boolean).join(' · ');
+    $('detalle-filter-info').textContent = filtros
+      ? `${fmt(resumenRows.length)}/${fmt(totalResumen)} resumen y ${fmt(detailRows.length)}/${fmt(totalDetalle)} detalle - ${filtros}`
+      : `${fmt(totalResumen)} resumen y ${fmt(totalDetalle)} detalle`;
   }
   async function loadDetalle(){
-    const data = await api('/api/analisis-premio-productividad/detalle-hora?' + simQuery());
-    table('tabla-detalle', [
-      {key:'fecha',label:'Fecha',mono:true,w:'92px'},{key:'legajo',label:'Legajo',mono:true,w:'90px'},{key:'nombre',label:'Nombre',w:'150px'},{key:'turno',label:'Turno',w:'86px'},{key:'hora',label:'Hora',num:true,w:'70px'},{key:'hora_inicio',label:'Inicio',mono:true,w:'128px'},{key:'hora_fin',label:'Fin',mono:true,w:'128px'},
-      {key:'operacion',label:'Operacion'},{key:'almacen',label:'Almacen'},{key:'produccion',label:'Produccion',num:true},{key:'tipo_hora',label:'Tipo hora',w:'150px'},{key:'dentro_turno',label:'Dentro',bool:true,w:'80px'},{key:'nivel_simulado',label:'Nivel simulado'},{key:'premio_hora_simulado',label:'Premio hora',money:true}
-    ], data.rows || []);
-  }
-  async function loadFuera(){
-    const data = await api('/api/analisis-premio-productividad/impacto-fuera-turno?' + simQuery());
-    bars('fuera-legajo', data.por_legajo || [], 'premio_simulado_fuera_turno'); bars('fuera-fecha', data.por_fecha || [], 'premio_simulado_fuera_turno'); bars('fuera-operacion', data.por_operacion || [], 'premio_simulado_fuera_turno');
-    table('tabla-fuera', commonDailyCols(), data.ranking || []);
+    const params = qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...comboParams()});
+    const resumenData = await api('/api/analisis-premio-productividad/rango-cache?' + params);
+    const data = await api('/api/analisis-premio-productividad/detalle-cache?' + params);
+    const detailDate = $('detalle-f-fecha').value;
+    if (detailDate && (detailDate < state.fechaDesde || detailDate > state.fechaHasta)) $('detalle-f-fecha').value = '';
+    state.detalleResumenRows = resumenData.rows || [];
+    state.detalleRows = data.rows || [];
+    renderDetalleCacheGrid();
   }
   async function loadCache(){
-    const data = await api('/api/analisis-premio-productividad/datos-cache?' + simQuery());
-    const s = data.simulacion || {}; const c = data.counts || {};
+    const data = await api('/api/analisis-premio-productividad/datos-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...comboParams()}));
+    const c = data.counts || {};
+    const coverage = data.coverage || {};
+    const versions = data.query_versions || {};
+    const procesos = data.procesos || [];
     $('cache-info').innerHTML = `<table class="paper-table"><tbody>
-      <tr><th>Simulacion</th><td>${esc(s.nombre || '')}</td></tr><tr><th>Estado</th><td><span class="pill">${esc(s.estado || '')}</span></td></tr>
-      <tr><th>Parametros</th><td>${esc(s.fecha_desde)} a ${esc(s.fecha_hasta)} | legajos: ${esc(s.legajos || 'todos')} | ${esc(s.operacion || 'todas')} / ${esc(s.almacen || 'todos')} / ${esc(s.turno || 'todos')} | grupo func.: ${esc(s.grupo_funciones_id || '')} | nivel: ${esc(s.nivel || '')}</td></tr>
-      <tr><th>Creacion</th><td class="mono">${esc(s.fecha_creacion || '')}</td></tr><tr><th>Ultima consulta Oracle</th><td class="mono">${esc(s.ultima_consulta_oracle || 'sin consulta')}</td></tr>
-      <tr><th>Origen datos</th><td>${esc(s.origen_datos || '')}</td></tr><tr><th>Base SQLite</th><td class="mono">${esc(data.db_path || '')}</td></tr>
+      <tr><th>Rango</th><td>${esc(data.fecha_desde)} a ${esc(data.fecha_hasta)}</td></tr>
+      <tr><th>Combinacion</th><td>${esc(data.operacion || state.operacion)} / ${esc(data.almacen || state.almacen)}</td></tr>
+      <tr><th>Estado</th><td><span class="pill ${coverage.dias_faltantes ? 'warn' : ''}">${coverage.dias_faltantes ? 'INCOMPLETO' : 'OK'}</span></td></tr>
+      <tr><th>Cobertura diaria</th><td>${fmt(coverage.dias_cache || 0)} / ${fmt(coverage.dias || 0)} dias cacheados${coverage.faltantes?.length ? ` · faltantes: ${esc(coverage.faltantes.join(', '))}` : ''}</td></tr>
+      <tr><th>Versiones</th><td>Dia: <span class="mono">${esc(versions.dia)}</span> · Detalle: <span class="mono">${esc(versions.detalle)}</span></td></tr>
+      <tr><th>Base SQLite</th><td class="mono">${esc(data.db_path || '')}</td></tr>
       ${Object.entries(c).map(([k,v]) => `<tr><th>${esc(k)}</th><td class="mono">${esc(v)}</td></tr>`).join('')}
     </tbody></table>`;
+    $('cache-info').insertAdjacentHTML('beforeend', `<ul class="notes" style="margin-top:12px">${procesos.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`);
+  }
+  function syncFormValues(source, clone){
+    const sourceControls = source.querySelectorAll('input,select,textarea');
+    const cloneControls = clone.querySelectorAll('input,select,textarea');
+    sourceControls.forEach((control, idx) => {
+      const target = cloneControls[idx];
+      if (!target) return;
+      if (control.tagName === 'SELECT') {
+        target.value = control.value;
+        Array.from(target.options).forEach(opt => { opt.selected = opt.value === control.value; });
+      } else {
+        target.setAttribute('value', control.value || '');
+        target.value = control.value || '';
+      }
+    });
+  }
+  function removePrintControls(root){
+    root.querySelectorAll('button,a.paper-link,.logout-btn,.primary-cta,.secondary-cta,.icon-btn,.tab-btn,.tool-row,.header-right').forEach(el => el.remove());
+  }
+  function printHtmlDocument(title, contentHtml, mode='resumen'){
+    const win = window.open('', '_blank', 'width=1400,height=900');
+    if (!win) throw new Error('El navegador bloqueo la ventana de impresion.');
+    const baseStyle = document.querySelector('style')?.textContent || '';
+    const printStyle = `
+      @page{size:A4 landscape;margin:8mm}
+      html,body{background:#FFFFFF!important}
+      body{min-height:auto!important;background-image:none!important;color:#0E1620!important}
+      .paper-app{min-height:auto!important;padding:0!important;width:100%!important}
+      .paper-header,.filters,.status,.chart-panel,.text-panel,.kpi-cell,.data-panel,.modal-head,.modal-panel{break-inside:avoid;box-shadow:none!important}
+      .paper-tabs,.header-right,.tool-row,button,.paper-link,.logout-btn,.primary-cta,.secondary-cta,.icon-btn{display:none!important}
+      .paper-panel{display:block!important}
+      .kpi-row{grid-template-columns:repeat(4,1fr)!important;gap:8px!important;margin:8px 0!important}
+      .executive-grid,.dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin-top:8px!important}
+      .executive-wide{grid-column:1/-1!important}
+      .chart-panel,.text-panel{min-height:0!important;padding:9px!important}
+      .kpi-cell{min-height:82px!important;padding:8px 10px!important}
+      .kpi-number{font-size:20px!important}
+      .case-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+      .modal-backdrop{display:block!important;position:static!important;background:#FFFFFF!important;padding:0!important}
+      .modal-panel{width:100%!important;max-height:none!important;border:0!important;display:block!important}
+      .modal-body{overflow:visible!important;padding:8px 0 0!important}
+      .modal-summary{grid-template-columns:repeat(6,minmax(95px,1fr))!important}
+      .detalle-chart{height:auto!important;min-height:310px!important;overflow:visible!important}
+      .detalle-chart .problem-line-chart{height:auto!important}
+      .table-wrap,.modal-body .table-wrap{max-height:none!important;overflow:visible!important}
+      .paper-table{font-size:10px!important;page-break-inside:auto!important}
+      .paper-table tr{break-inside:avoid!important}
+      .paper-table th,.paper-table td{padding:5px 6px!important}
+      .print-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5C6773;margin:0 0 8px}
+      ${mode === 'detalle' ? '.paper-table{table-layout:auto!important}.problem-chart{border-left:0!important;border-bottom:0!important}' : ''}
+    `;
+    win.document.open();
+    win.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(title)}</title><style>${baseStyle}</style><style>${printStyle}</style></head><body>${contentHtml}</body></html>`);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 500);
+  }
+  function exportarResumenPdf(){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'paper-app';
+    const header = document.querySelector('.paper-header').cloneNode(true);
+    const filters = document.querySelector('.filters').cloneNode(true);
+    syncFormValues(document.querySelector('.filters'), filters);
+    const status = $('status').cloneNode(true);
+    const panel = $('panel-resumen').cloneNode(true);
+    panel.classList.add('active');
+    [header, filters, panel].forEach(removePrintControls);
+    const meta = document.createElement('div');
+    meta.className = 'print-meta';
+    meta.textContent = `Exportado ${new Date().toLocaleString('es-AR')} - Rango ${state.fechaDesde} a ${state.fechaHasta} - ${state.operacion} / ${state.almacen} - Escenario hora /${state.divisorHorario}`;
+    wrapper.append(header, filters, status, meta, panel);
+    printHtmlDocument('Analisis Premio Productividad - Resumen', wrapper.outerHTML, 'resumen');
+  }
+  function exportarDetallePdf(){
+    const modal = $('detalle-modal');
+    if (!modal.classList.contains('active') || !(state.detalleChartRows || []).length) {
+      setStatus('Abri un detalle horario antes de exportar el PDF.', true);
+      return;
+    }
+    const wrapper = document.createElement('div');
+    wrapper.className = 'modal-backdrop active';
+    const panel = modal.querySelector('.modal-panel').cloneNode(true);
+    removePrintControls(panel);
+    const meta = document.createElement('div');
+    meta.className = 'print-meta';
+    const first = (state.detalleChartRows || [])[0] || {};
+    meta.textContent = `Exportado ${new Date().toLocaleString('es-AR')} - Fecha ${first.fecha || ''} - Legajo ${first.operario || ''}`;
+    panel.querySelector('.modal-body')?.prepend(meta);
+    wrapper.append(panel);
+    const title = $('detalle-title').textContent || 'Detalle por legajo';
+    printHtmlDocument(`Analisis Premio Productividad - ${title}`, wrapper.outerHTML, 'detalle');
   }
   async function loadTab(tab=state.activeTab){
     state.activeTab = tab; setStatus('Leyendo desde SQLite/cache...');
     if (tab === 'resumen') await loadResumen();
-    if (tab === 'actual') await loadActual();
-    if (tab === 'escala') await loadEscala();
-    if (tab === 'hora') await loadHora();
-    if (tab === 'diaria') await loadDiaria();
+    if (tab === 'problematica') await loadProblematica();
     if (tab === 'detalle') await loadDetalle();
-    if (tab === 'fuera') await loadFuera();
     if (tab === 'cache') await loadCache();
     setStatus('Datos actualizados desde cache SQLite.');
   }
@@ -653,7 +1654,8 @@
   async function init(){
     setupDateLimits();
     const me = await api('/api/auth/me'); $('user-label').textContent = me.display_name || me.username;
-    const ok = await ensureSimulation();
+    await setupDefaultCachedDate();
+    const ok = await ensureCache();
     if (ok) {
       await loadTab('resumen');
     } else {
@@ -666,13 +1668,32 @@
     }
   }
   document.querySelectorAll('.tab-btn').forEach(btn => btn.onclick = () => activate(btn.dataset.tab));
+  async function onComboChange(){
+    syncCombo();
+    state.resumenRows = [];
+    state.detalleResumenRows = [];
+    state.detalleRows = [];
+    state.problematicaRows = [];
+    await setupDefaultCachedDate();
+    await consultarRango(false);
+    if (state.activeTab !== 'resumen') await loadTab(state.activeTab);
+  }
+  $('operacion-select').onchange = () => onComboChange().catch(e => setStatus(e.message, true));
+  $('almacen-select').onchange = () => onComboChange().catch(e => setStatus(e.message, true));
+  $('divisor-select').onchange = () => onComboChange().catch(e => setStatus(e.message, true));
   $('consultar-rango').onclick = () => consultarRango(false).catch(e => setStatus(e.message, true));
-  $('resumen-f-fecha').oninput = renderResumenGrid;
-  $('resumen-f-legajo').oninput = renderResumenGrid;
-  $('limpiar-resumen-filtros').onclick = () => {
-    $('resumen-f-fecha').value = '';
-    $('resumen-f-legajo').value = '';
-    renderResumenGrid();
+  $('detalle-f-fecha').oninput = renderDetalleCacheGrid;
+  $('detalle-f-legajo').oninput = renderDetalleCacheGrid;
+  $('limpiar-detalle-filtros').onclick = () => {
+    $('detalle-f-fecha').value = '';
+    $('detalle-f-legajo').value = '';
+    renderDetalleCacheGrid();
+  };
+  $('exportar-resumen-pdf').onclick = () => {
+    try { exportarResumenPdf(); } catch (e) { setStatus(e.message, true); }
+  };
+  $('exportar-detalle-pdf').onclick = () => {
+    try { exportarDetallePdf(); } catch (e) { setStatus(e.message, true); }
   };
   $('cerrar-detalle').onclick = cerrarDetalle;
   $('detalle-modal').onclick = event => { if (event.target.id === 'detalle-modal') cerrarDetalle(); };
