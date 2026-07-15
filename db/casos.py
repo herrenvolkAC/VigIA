@@ -168,7 +168,48 @@ CREATE TABLE IF NOT EXISTS ticket_rack_detalle (
     sector_rack_id INTEGER REFERENCES rack_sector(id),
     descripcion_rack_id INTEGER REFERENCES rack_descripcion(id),
     tipo_rack_id INTEGER REFERENCES rack_tipo(id),
-    comentario_operativo TEXT
+    comentario_operativo TEXT,
+    service_externo_id TEXT,
+    service_externo_usuario TEXT,
+    service_externo_fecha DATETIME,
+    traspasos_wms TEXT,
+    traspasos_usuario TEXT,
+    traspasos_fecha DATETIME,
+    vaciado_confirmado INTEGER NOT NULL DEFAULT 0,
+    vaciado_usuario TEXT,
+    vaciado_fecha DATETIME,
+    inutilizacion_wms_confirmada INTEGER NOT NULL DEFAULT 0,
+    inutilizacion_usuario TEXT,
+    inutilizacion_fecha DATETIME,
+    mantenimiento_finalizado INTEGER NOT NULL DEFAULT 0,
+    mantenimiento_usuario TEXT,
+    mantenimiento_fecha DATETIME,
+    relevamiento_mapa TEXT,
+    reetiquetado_requerido INTEGER NOT NULL DEFAULT 0,
+    rehabilitacion_wms_confirmada INTEGER NOT NULL DEFAULT 0,
+    rehabilitacion_usuario TEXT,
+    rehabilitacion_fecha DATETIME
+);
+"""
+
+CREATE_TICKET_FORMS_INGRESO = """
+CREATE TABLE IF NOT EXISTS ticket_forms_ingreso (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source TEXT NOT NULL DEFAULT 'microsoft_forms',
+    form TEXT NOT NULL DEFAULT 'service_racks',
+    response_id TEXT NOT NULL,
+    source_file TEXT,
+    received_at TEXT,
+    payload_json TEXT NOT NULL,
+    estado_importacion TEXT NOT NULL DEFAULT 'PENDIENTE',
+    motivo_error TEXT,
+    ticket_id INTEGER REFERENCES ticket(id),
+    reclamado_por TEXT,
+    fecha_reclamo DATETIME,
+    comentario_reclamo TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(source, form, response_id)
 );
 """
 
@@ -248,6 +289,8 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_ticket_comentario_ticket ON ticket_comentario(ticket_id, fecha)",
     "CREATE INDEX IF NOT EXISTS idx_ticket_adjunto_ticket ON ticket_adjunto(ticket_id, fecha)",
     "CREATE INDEX IF NOT EXISTS idx_ticket_usuario_perfil_user ON ticket_usuario_perfil(username, tipo_codigo, activo)",
+    "CREATE INDEX IF NOT EXISTS idx_ticket_forms_estado ON ticket_forms_ingreso(estado_importacion, created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_ticket_forms_ticket ON ticket_forms_ingreso(ticket_id)",
 ]
 
 RACK_STATES = [
@@ -255,7 +298,7 @@ RACK_STATES = [
     ("PENDIENTE_VALIDACION", "Pendiente Validacion", "ADO", 20, 0, 0),
     ("REQUIERE_CORRECCION", "Requiere Correccion", "OPERACION", 30, 0, 0),
     ("PENDIENTE_TRASPASOS", "Pendiente Traspasos", "MAPA_ALMACEN", 40, 0, 0),
-    ("TRASPASOS_ASIGNADOS", "Traspasos Asignados", "PLANEAMIENTO", 50, 0, 0),
+    ("TRASPASOS_ASIGNADOS", "Traspasos Asignados", "OPERACION", 50, 0, 0),
     ("EN_EJECUCION", "En Ejecucion", "OPERACION", 60, 0, 0),
     ("POSICION_BLOQUEADA", "Posicion Bloqueada", "MANTENIMIENTO", 70, 0, 0),
     ("EN_REPARACION", "En Reparacion", "MANTENIMIENTO", 80, 0, 0),
@@ -307,7 +350,7 @@ RACK_PARAMS = {
     ],
 }
 
-PERFILES = ["OPERACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "ADMIN"]
+PERFILES = ["OPERACION", "ACTIVACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "ADMIN"]
 
 
 async def init_cases_db() -> None:
@@ -327,6 +370,7 @@ async def init_cases_db() -> None:
             CREATE_TICKET_USUARIO_PERFIL,
             CREATE_TICKET_RACK_DETALLE,
             CREATE_TICKET_EVENTO_NOTIFICACION,
+            CREATE_TICKET_FORMS_INGRESO,
         ]:
             await db.execute(statement)
         for statement in CREATE_RACK_PARAM_TABLES.values():
@@ -347,8 +391,41 @@ async def init_cases_db() -> None:
             await db.execute("ALTER TABLE ticket_usuario_perfil ADD COLUMN correo TEXT")
         async with db.execute("PRAGMA table_info(ticket_rack_detalle)") as cur:
             rack_detail_cols = {row[1] for row in await cur.fetchall()}
-        if "zona_text" not in rack_detail_cols:
-            await db.execute("ALTER TABLE ticket_rack_detalle ADD COLUMN zona_text TEXT")
+        for column, ddl in {
+            "zona_text": "ALTER TABLE ticket_rack_detalle ADD COLUMN zona_text TEXT",
+            "service_externo_id": "ALTER TABLE ticket_rack_detalle ADD COLUMN service_externo_id TEXT",
+            "service_externo_usuario": "ALTER TABLE ticket_rack_detalle ADD COLUMN service_externo_usuario TEXT",
+            "service_externo_fecha": "ALTER TABLE ticket_rack_detalle ADD COLUMN service_externo_fecha DATETIME",
+            "traspasos_wms": "ALTER TABLE ticket_rack_detalle ADD COLUMN traspasos_wms TEXT",
+            "traspasos_usuario": "ALTER TABLE ticket_rack_detalle ADD COLUMN traspasos_usuario TEXT",
+            "traspasos_fecha": "ALTER TABLE ticket_rack_detalle ADD COLUMN traspasos_fecha DATETIME",
+            "vaciado_confirmado": "ALTER TABLE ticket_rack_detalle ADD COLUMN vaciado_confirmado INTEGER NOT NULL DEFAULT 0",
+            "vaciado_usuario": "ALTER TABLE ticket_rack_detalle ADD COLUMN vaciado_usuario TEXT",
+            "vaciado_fecha": "ALTER TABLE ticket_rack_detalle ADD COLUMN vaciado_fecha DATETIME",
+            "inutilizacion_wms_confirmada": "ALTER TABLE ticket_rack_detalle ADD COLUMN inutilizacion_wms_confirmada INTEGER NOT NULL DEFAULT 0",
+            "inutilizacion_usuario": "ALTER TABLE ticket_rack_detalle ADD COLUMN inutilizacion_usuario TEXT",
+            "inutilizacion_fecha": "ALTER TABLE ticket_rack_detalle ADD COLUMN inutilizacion_fecha DATETIME",
+            "mantenimiento_finalizado": "ALTER TABLE ticket_rack_detalle ADD COLUMN mantenimiento_finalizado INTEGER NOT NULL DEFAULT 0",
+            "mantenimiento_usuario": "ALTER TABLE ticket_rack_detalle ADD COLUMN mantenimiento_usuario TEXT",
+            "mantenimiento_fecha": "ALTER TABLE ticket_rack_detalle ADD COLUMN mantenimiento_fecha DATETIME",
+            "relevamiento_mapa": "ALTER TABLE ticket_rack_detalle ADD COLUMN relevamiento_mapa TEXT",
+            "reetiquetado_requerido": "ALTER TABLE ticket_rack_detalle ADD COLUMN reetiquetado_requerido INTEGER NOT NULL DEFAULT 0",
+            "rehabilitacion_wms_confirmada": "ALTER TABLE ticket_rack_detalle ADD COLUMN rehabilitacion_wms_confirmada INTEGER NOT NULL DEFAULT 0",
+            "rehabilitacion_usuario": "ALTER TABLE ticket_rack_detalle ADD COLUMN rehabilitacion_usuario TEXT",
+            "rehabilitacion_fecha": "ALTER TABLE ticket_rack_detalle ADD COLUMN rehabilitacion_fecha DATETIME",
+        }.items():
+            if column not in rack_detail_cols:
+                await db.execute(ddl)
+        async with db.execute("PRAGMA table_info(ticket_forms_ingreso)") as cur:
+            forms_cols = {row[1] for row in await cur.fetchall()}
+        for column, ddl in {
+            "source_file": "ALTER TABLE ticket_forms_ingreso ADD COLUMN source_file TEXT",
+            "reclamado_por": "ALTER TABLE ticket_forms_ingreso ADD COLUMN reclamado_por TEXT",
+            "fecha_reclamo": "ALTER TABLE ticket_forms_ingreso ADD COLUMN fecha_reclamo DATETIME",
+            "comentario_reclamo": "ALTER TABLE ticket_forms_ingreso ADD COLUMN comentario_reclamo TEXT",
+        }.items():
+            if column not in forms_cols:
+                await db.execute(ddl)
         for statement in INDEXES:
             await db.execute(statement)
         await seed_cases_db(db)
@@ -446,20 +523,25 @@ async def seed_cases_db(db: aiosqlite.Connection) -> None:
         ("PENDIENTE_VALIDACION", "REQUIERE_CORRECCION", "ADO", 1),
         ("PENDIENTE_VALIDACION", "PENDIENTE_TRASPASOS", "ADO", 0),
         ("REQUIERE_CORRECCION", "REGISTRADO", "OPERACION", 1),
-        ("PENDIENTE_TRASPASOS", "TRASPASOS_ASIGNADOS", "PLANEAMIENTO", 0),
+        ("PENDIENTE_TRASPASOS", "TRASPASOS_ASIGNADOS", "MAPA_ALMACEN", 0),
         ("TRASPASOS_ASIGNADOS", "EN_EJECUCION", "OPERACION", 0),
+        ("TRASPASOS_ASIGNADOS", "EN_EJECUCION", "ACTIVACION", 0),
         ("EN_EJECUCION", "POSICION_BLOQUEADA", "MAPA_ALMACEN", 0),
         ("POSICION_BLOQUEADA", "EN_REPARACION", "MANTENIMIENTO", 0),
         ("EN_REPARACION", "REPARADO", "MANTENIMIENTO", 1),
-        ("REPARADO", "PENDIENTE_HABILITACION", "ADO", 0),
-        ("PENDIENTE_HABILITACION", "CERRADO", "ADO", 1),
+        ("REPARADO", "PENDIENTE_HABILITACION", "MAPA_ALMACEN", 0),
+        ("PENDIENTE_HABILITACION", "CERRADO", "MAPA_ALMACEN", 1),
     ]
     admin_transitions = [(a, b, "ADMIN", c) for a, b, _, c in transitions]
+    await db.execute("UPDATE ticket_estado_transicion SET activo = 0 WHERE tipo_id = ?", (tipo_id,))
     await db.executemany(
         """
-        INSERT OR IGNORE INTO ticket_estado_transicion
+        INSERT INTO ticket_estado_transicion
             (tipo_id, estado_origen_id, estado_destino_id, perfil_autorizado, requiere_comentario, activo)
         VALUES (?, ?, ?, ?, ?, 1)
+        ON CONFLICT(tipo_id, estado_origen_id, estado_destino_id, perfil_autorizado) DO UPDATE SET
+            requiere_comentario=excluded.requiere_comentario,
+            activo=1
         """,
         [
             (tipo_id, state_ids[src], state_ids[dst], perfil, requiere)

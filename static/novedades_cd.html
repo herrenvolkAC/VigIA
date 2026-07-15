@@ -1184,7 +1184,7 @@
     const data = await api(`/api/rrhh/sanciones?${params()}&limit=250`);
     renderTable('sanciones-table', [
       {key:'creacion',label:'Creacion',mono:true},{key:'legajo',label:'Legajo',mono:true},{key:'nombre',label:'Nombre'},{key:'sector',label:'Sector'},{key:'cod',label:'Cod.',mono:true},
-      {key:'descripcion',label:'Descripcion'},{key:'causa_sancion',label:'Causa'},{key:'descripcion_causa',label:'Detalle causa'}
+      {key:'descripcion',label:'Descripcion'},{key:'detalle',label:'Detalle'},{key:'causa_sancion',label:'Causa'},{key:'descripcion_causa',label:'Detalle causa'}
     ], data.rows);
   }
   async function loadFrancos(){

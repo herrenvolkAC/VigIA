@@ -7,12 +7,18 @@ from __future__ import annotations
 import base64
 import asyncio
 import csv
+import difflib
 import io
 import json
+import logging
+import mimetypes
 import os
 import re
 import secrets
 import subprocess
+import unicodedata
+import urllib.parse
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -30,6 +36,7 @@ from db.schema import DB_PATH
 from routers.auth_local import current_auth
 
 router = APIRouter(prefix="/api/casos", tags=["casos"])
+logger = logging.getLogger("vigia.casos")
 
 try:
     CASES_TZ = ZoneInfo(os.getenv("VIGIA_CASES_TIMEZONE", "America/Buenos_Aires"))
@@ -39,6 +46,7 @@ ATTACHMENTS_DIR = Path(os.getenv("VIGIA_CASOS_ATTACHMENTS_DIR", Path(__file__).p
 JAVA_HELPER_SRC = Path(__file__).parent.parent / "scripts" / "OracleProductividadQuery.java"
 JAVA_BUILD_DIR = Path(__file__).parent.parent / ".codex_tmp" / "java_build"
 RACK_PARAM_TABLES = {"rack_zona", "rack_cara", "rack_nivel", "rack_sector", "rack_descripcion", "rack_tipo"}
+_FORMS_IMPORT_TASK: asyncio.Task | None = None
 COMMON_PARAM_COLUMNS = {
     "ticket_tipo": {"codigo", "nombre", "descripcion", "activo"},
     "ticket_estado": {"tipo_id", "codigo", "nombre", "perfil_asignado", "orden", "es_inicial", "es_final", "activo"},
@@ -72,6 +80,14 @@ class ComentarioRequest(BaseModel):
 class CambioEstadoRequest(BaseModel):
     estado_destino_id: int
     comentario: str = ""
+    service_externo_id: str = ""
+    traspasos_wms: str = ""
+    vaciado_confirmado: bool = False
+    inutilizacion_wms_confirmada: bool = False
+    mantenimiento_finalizado: bool = False
+    relevamiento_mapa: str = ""
+    reetiquetado_requerido: bool = False
+    rehabilitacion_wms_confirmada: bool = False
 
 
 class AdjuntoRequest(BaseModel):
@@ -95,6 +111,10 @@ class UsuarioPerfilCasoRequest(BaseModel):
     sector: str = ""
     correo: str = ""
     activo: int = 1
+
+
+class FormsReclamoRequest(BaseModel):
+    comentario: str = ""
 
 
 def _now() -> str:
@@ -339,6 +359,36 @@ async def _guardar_adjunto(
     return {"nombre_original": original, "nombre_archivo": filename, "tipo_mime": mime}
 
 
+async def _guardar_adjunto_bytes(
+    db: aiosqlite.Connection,
+    ticket_id: int,
+    codigo_visible: str,
+    auth: dict[str, Any],
+    perfil: str,
+    nombre_original: str,
+    tipo_mime: str,
+    content: bytes,
+) -> dict[str, Any]:
+    ATTACHMENTS_DIR.mkdir(parents=True, exist_ok=True)
+    original = Path(nombre_original or "adjunto.bin").name
+    mime = tipo_mime or mimetypes.guess_type(original)[0] or "application/octet-stream"
+    suffix = Path(original).suffix.lower() or ".bin"
+    stamp = datetime.now(CASES_TZ).strftime("%Y%m%d_%H%M%S")
+    filename = f"{codigo_visible}_{stamp}_{secrets.token_hex(3)}{suffix}"
+    path = ATTACHMENTS_DIR / filename
+    path.write_bytes(content)
+    await db.execute(
+        """
+        INSERT INTO ticket_adjunto
+            (ticket_id, fecha, usuario_id, nombre_original, nombre_archivo, ruta_archivo, tipo_mime, activo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+        """,
+        (ticket_id, _now(), auth["username"], original, filename, str(path), mime),
+    )
+    await _historial(db, ticket_id, auth, perfil, "AGREGA_ADJUNTO_FORMS", original)
+    return {"nombre_original": original, "nombre_archivo": filename, "tipo_mime": mime}
+
+
 def _validate_ubicaciones(value: str) -> str:
     text = str(value or "").strip().upper()
     if not text:
@@ -467,6 +517,279 @@ def _query_rack_oracle_stock(zona: str, pasillo_cara: str, ubicaciones: list[str
     return _query_rack_oracle_stock_jdbc(zona, pasillo_cara, prefixes)
 
 
+def _query_rack_oracle_inutilizadas_jdbc() -> list[dict[str, Any]]:
+    if _productive_db_local_only_enabled():
+        raise RuntimeError("La BD productiva Oracle esta temporalmente bloqueada por configuracion.")
+
+    user = os.getenv("PRODUCTIVE_DB_USER", "").strip()
+    password = os.getenv("PRODUCTIVE_DB_PASSWORD", "").strip()
+    host = os.getenv("PRODUCTIVE_DB_HOST", "").strip()
+    port = os.getenv("PRODUCTIVE_DB_PORT", "1521").strip()
+    service_name = os.getenv("PRODUCTIVE_DB_SERVICE_NAME", "").strip()
+    java_bin = os.getenv(
+        "PRODUCTIVE_DB_JAVA_BIN",
+        r"C:\Users\207189\AppData\Local\DBeaver\jre\bin\java.exe",
+    ).strip()
+    ojdbc_jar = os.getenv(
+        "PRODUCTIVE_DB_OJDBC_JAR",
+        r"C:\Users\207189\AppData\Roaming\DBeaverData\drivers\maven\maven-central\com.oracle.database.jdbc\ojdbc11-23.2.0.0.jar",
+    ).strip()
+
+    if not all([user, password, host, service_name]):
+        raise RuntimeError("Faltan variables JDBC PRODUCTIVE_DB_USER, PRODUCTIVE_DB_PASSWORD, PRODUCTIVE_DB_HOST o PRODUCTIVE_DB_SERVICE_NAME.")
+    if not Path(java_bin).exists():
+        raise RuntimeError(f"No se encontro Java para fallback JDBC: {java_bin}")
+    if not Path(ojdbc_jar).exists():
+        raise RuntimeError(f"No se encontro el driver JDBC Oracle: {ojdbc_jar}")
+
+    _ensure_rack_java_helper_compiled()
+    jdbc_url = f"jdbc:oracle:thin:@//{host}:{port}/{service_name}"
+    classpath = os.pathsep.join([str(JAVA_BUILD_DIR), ojdbc_jar])
+    command = [
+        java_bin,
+        "-cp",
+        classpath,
+        "OracleProductividadQuery",
+        jdbc_url,
+        user,
+        password,
+        "2000-01-01 00:00:00",
+        "2000-01-01 00:00:00",
+        "rack_inutilizadas",
+    ]
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=int(os.getenv("PRODUCTIVE_DB_JDBC_TIMEOUT_SECONDS", "300")),
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"No se pudo consultar Oracle via JDBC. STDERR: {result.stderr.strip() or result.stdout.strip()}")
+    try:
+        rows = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"La respuesta JDBC no fue JSON valido. Salida: {result.stdout[:300]}") from exc
+
+    normalized = []
+    for row in rows:
+        normalized.append(
+            {
+                "czonalma": str(row.get("CZONALMA") or row.get("czonalma") or "").strip().upper(),
+                "cpasillo": str(row.get("CPASILLO") or row.get("cpasillo") or "").strip().upper(),
+                "chuecopa": str(row.get("CHUECOPA") or row.get("chuecopa") or "").strip().upper(),
+                "qpalaltu": row.get("QPALALTU") or row.get("qpalaltu"),
+                "fcreareg": str(row.get("FCREAREG") or row.get("fcreareg") or "").strip(),
+                "usuacrea": str(row.get("USUACREA") or row.get("usuacrea") or "").strip(),
+                "movimien": str(row.get("MOVIMIEN") or row.get("movimien") or "").strip(),
+                "observac": str(row.get("OBSERVAC") or row.get("observac") or "").strip(),
+            }
+        )
+    return normalized
+
+
+def _position_key(zona: str, pasillo_cara: str, chuecopa: str) -> str:
+    return "|".join([
+        str(zona or "").strip().upper(),
+        str(pasillo_cara or "").strip().upper(),
+        str(chuecopa or "").strip().upper(),
+    ])
+
+
+def _position_label(zona: str, pasillo_cara: str, chuecopa: str) -> str:
+    return f"{str(zona or '').strip().upper()}{str(pasillo_cara or '').strip().upper()}{str(chuecopa or '').strip().upper()}"
+
+
+def _split_position_parts(value: Any) -> list[str]:
+    return [part for part in re.split(r"[^A-Z0-9]+", str(value or "").strip().upper()) if part]
+
+
+async def _active_service_locations(db: aiosqlite.Connection) -> list[dict[str, Any]]:
+    rows = await _fetch_all(
+        db,
+        """
+        SELECT
+            t.id ticket_id,
+            t.codigo_visible,
+            t.titulo,
+            t.fecha_creacion,
+            t.fecha_ultima_actualizacion,
+            e.codigo estado_codigo,
+            e.nombre estado,
+            d.zona_text,
+            d.pasillo,
+            d.ubicaciones,
+            d.niveles,
+            rc.nombre cara
+        FROM ticket t
+        JOIN ticket_estado e ON e.id=t.estado_id
+        JOIN ticket_rack_detalle d ON d.ticket_id=t.id
+        LEFT JOIN rack_cara rc ON rc.id=d.cara_id
+        WHERE t.activo=1 AND e.es_final=0
+        ORDER BY t.fecha_ultima_actualizacion DESC, t.id DESC
+        """,
+    )
+    nivel_rows = await _fetch_all(db, "SELECT id, codigo, nombre FROM rack_nivel WHERE activo=1")
+    nivel_map = {int(row["id"]): str(row.get("nombre") or row.get("codigo") or "").strip().upper() for row in nivel_rows}
+    locations = []
+    for row in rows:
+        zona = str(row.get("zona_text") or "").strip().upper()
+        pasillo = str(row.get("pasillo") or "").strip().upper()
+        cara = str(row.get("cara") or "").strip().upper()
+        pasillo_cara = f"{pasillo}{cara}"
+        ubicaciones = _split_position_parts(row.get("ubicaciones"))
+        try:
+            nivel_ids = json.loads(row.get("niveles") or "[]")
+        except Exception:
+            nivel_ids = []
+        niveles = []
+        for nivel_id in nivel_ids:
+            text_id = str(nivel_id).strip()
+            if not text_id:
+                continue
+            try:
+                niveles.append(nivel_map.get(int(text_id), text_id.upper()))
+            except ValueError:
+                niveles.append(text_id.upper())
+        for ubicacion in ubicaciones:
+            for nivel in niveles:
+                chuecopa = f"{ubicacion}{nivel}"
+                locations.append(
+                    {
+                        "key": _position_key(zona, pasillo_cara, chuecopa),
+                        "posicion": _position_label(zona, pasillo_cara, chuecopa),
+                        "czonalma": zona,
+                        "cpasillo": pasillo_cara,
+                        "chuecopa": chuecopa,
+                        "ticket_id": row["ticket_id"],
+                        "codigo_visible": row["codigo_visible"],
+                        "estado": row["estado"],
+                        "estado_codigo": row["estado_codigo"],
+                        "titulo": row["titulo"],
+                        "fecha_creacion": row["fecha_creacion"],
+                        "fecha_ultima_actualizacion": row["fecha_ultima_actualizacion"],
+                    }
+                )
+    return locations
+
+
+async def _append_system_comment(db: aiosqlite.Connection, ticket_id: int, username: str, comentario: str) -> None:
+    await db.execute(
+        "INSERT INTO ticket_comentario (ticket_id, fecha, usuario_id, comentario) VALUES (?, ?, ?, ?)",
+        (ticket_id, _now(), username, comentario),
+    )
+
+
+async def _apply_rack_transition_payload(
+    db: aiosqlite.Connection,
+    ticket: dict[str, Any],
+    req: CambioEstadoRequest,
+    auth: dict[str, Any],
+    destino_codigo: str,
+) -> list[str]:
+    if ticket.get("tipo_codigo") != "REPARACION_RACK":
+        return []
+    rack = await _fetch_one(db, "SELECT * FROM ticket_rack_detalle WHERE ticket_id=?", (ticket["id"],))
+    if not rack:
+        return []
+    now = _now()
+    notes: list[str] = []
+    current = str(ticket.get("estado_codigo") or "").upper()
+    destino = str(destino_codigo or "").upper()
+
+    if current == "PENDIENTE_VALIDACION" and destino == "PENDIENTE_TRASPASOS":
+        service = req.service_externo_id.strip()
+        existing_service = str(rack.get("service_externo_id") or "").strip()
+        if not service:
+            service = existing_service
+        if not service:
+            raise HTTPException(status_code=400, detail="Para pasar de ADO a Mapa, primero se debe cargar el service externo.")
+        if service != existing_service:
+            await db.execute(
+                """
+                UPDATE ticket_rack_detalle
+                SET service_externo_id=?, service_externo_usuario=?, service_externo_fecha=?
+                WHERE ticket_id=?
+                """,
+                (service, auth["username"], now, ticket["id"]),
+            )
+        notes.append(f"Service externo: {service}")
+
+    if current == "PENDIENTE_TRASPASOS" and destino == "TRASPASOS_ASIGNADOS":
+        traspasos = req.traspasos_wms.strip()
+        if not traspasos:
+            raise HTTPException(status_code=400, detail="Mapa debe cargar los traspasos WMS generados.")
+        await db.execute(
+            """
+            UPDATE ticket_rack_detalle
+            SET traspasos_wms=?, traspasos_usuario=?, traspasos_fecha=?
+            WHERE ticket_id=?
+            """,
+            (traspasos, auth["username"], now, ticket["id"]),
+        )
+        notes.append(f"Traspasos WMS: {traspasos}")
+
+    if current == "EN_EJECUCION" and destino == "POSICION_BLOQUEADA":
+        if not req.vaciado_confirmado:
+            raise HTTPException(status_code=400, detail="Debe confirmarse que las ubicaciones fueron vaciadas.")
+        if not req.inutilizacion_wms_confirmada:
+            raise HTTPException(status_code=400, detail="Mapa debe confirmar la inutilizacion 1 en WMS.")
+        await db.execute(
+            """
+            UPDATE ticket_rack_detalle
+            SET vaciado_confirmado=1, vaciado_usuario=?, vaciado_fecha=?,
+                inutilizacion_wms_confirmada=1, inutilizacion_usuario=?, inutilizacion_fecha=?
+            WHERE ticket_id=?
+            """,
+            (auth["username"], now, auth["username"], now, ticket["id"]),
+        )
+        notes.append("Ubicaciones vacias e inutilizacion 1 WMS confirmadas")
+
+    if current == "EN_REPARACION" and destino == "REPARADO":
+        await db.execute(
+            """
+            UPDATE ticket_rack_detalle
+            SET mantenimiento_finalizado=1, mantenimiento_usuario=?, mantenimiento_fecha=?
+            WHERE ticket_id=?
+            """,
+            (auth["username"], now, ticket["id"]),
+        )
+        notes.append("Mantenimiento finalizado")
+
+    if current == "REPARADO" and destino == "PENDIENTE_HABILITACION":
+        relevamiento = req.relevamiento_mapa.strip() or req.comentario.strip()
+        if not relevamiento:
+            raise HTTPException(status_code=400, detail="Mapa debe registrar el relevamiento fisico.")
+        await db.execute(
+            """
+            UPDATE ticket_rack_detalle
+            SET relevamiento_mapa=?, reetiquetado_requerido=?
+            WHERE ticket_id=?
+            """,
+            (relevamiento, 1 if req.reetiquetado_requerido else 0, ticket["id"]),
+        )
+        notes.append(f"Relevamiento Mapa: {relevamiento}")
+        if req.reetiquetado_requerido:
+            notes.append("Reetiquetado requerido")
+
+    if current == "PENDIENTE_HABILITACION" and destino == "CERRADO":
+        if not req.rehabilitacion_wms_confirmada:
+            raise HTTPException(status_code=400, detail="Mapa debe confirmar que quito la inutilizacion 1 en WMS.")
+        await db.execute(
+            """
+            UPDATE ticket_rack_detalle
+            SET rehabilitacion_wms_confirmada=1, rehabilitacion_usuario=?, rehabilitacion_fecha=?
+            WHERE ticket_id=?
+            """,
+            (auth["username"], now, ticket["id"]),
+        )
+        notes.append("Rehabilitacion WMS confirmada")
+
+    if notes:
+        await _append_system_comment(db, int(ticket["id"]), auth["username"], "\n".join(notes))
+    return notes
+
+
 async def _ticket_row(db: aiosqlite.Connection, ticket_id: int) -> dict[str, Any]:
     await attach_auth_db(db)
     row = await _fetch_one(
@@ -530,6 +853,7 @@ async def admin_init_db(request: Request):
             "ticket_usuario_perfil",
             "ticket_rack_detalle",
             "ticket_evento_notificacion",
+            "ticket_forms_ingreso",
             "rack_zona",
             "rack_cara",
             "rack_nivel",
@@ -620,6 +944,756 @@ async def guardar_usuario_perfil(req: UsuarioPerfilCasoRequest, request: Request
                 updated_at=excluded.updated_at
             """,
             (username, tipo_codigo, perfil, sector or None, correo or None, activo, _now()),
+        )
+        await db.commit()
+    return {"ok": True}
+
+
+def _forms_import_dir() -> Path:
+    configured = os.getenv("VIGIA_FORMS_RACKS_IN_DIR")
+    if configured:
+        return Path(configured)
+    for candidate in [
+        Path(r"C:\VigIA\ServiceRack\In"),
+        Path(r"C:\VigIA\ServiceRacks\In"),
+        Path(r"C:\VigIA\imports\ServiceRacks\In"),
+    ]:
+        if candidate.exists():
+            return candidate
+    return Path(r"C:\VigIA\ServiceRack\In")
+
+
+def _forms_import_source() -> str:
+    return os.getenv("VIGIA_FORMS_RACKS_SOURCE", "local").strip().lower()
+
+
+def _norm_text(value: Any) -> str:
+    text = str(value or "").strip()
+    try:
+        fixed = text.encode("latin1").decode("utf-8")
+        if "Ã" in text and fixed:
+            text = fixed
+    except UnicodeError:
+        pass
+    return " ".join(text.upper().split())
+
+
+def _match_key(value: Any) -> str:
+    text = _norm_text(value).replace(chr(0xD1), "N")
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    return re.sub(r"[^A-Z0-9]+", "", text)
+
+
+def _as_list(value: Any) -> list[Any]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, tuple):
+        return list(value)
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, list):
+                return parsed
+        except Exception:
+            pass
+        return [part for part in re.split(r"[\s,;\-/]+", text) if part]
+    return [value]
+
+
+def _forms_attachment_lines(adjuntos: Any) -> list[str]:
+    lines = []
+    for item in _as_list(adjuntos):
+        if isinstance(item, dict):
+            name = str(item.get("name") or item.get("nombre") or "Adjunto").strip()
+            link = str(item.get("link") or item.get("url") or "").strip()
+            lines.append(f"{name}: {link}" if link else name)
+        elif str(item or "").strip():
+            lines.append(str(item).strip())
+    return lines
+
+
+def _forms_attachment_items(adjuntos: Any) -> list[dict[str, Any]]:
+    items = []
+    for item in _as_list(adjuntos):
+        if isinstance(item, dict):
+            name = str(item.get("name") or item.get("nombre") or "Adjunto").strip()
+            if name:
+                items.append(item)
+    return items
+
+
+def _forms_attachment_roots(source_file: str = "") -> list[Path]:
+    roots: list[Path] = []
+    configured = os.getenv("VIGIA_FORMS_RACKS_ATTACHMENTS_DIRS", "")
+    for raw in re.split(r"[;|]", configured):
+        raw = raw.strip()
+        if raw:
+            roots.append(Path(raw))
+    if source_file and not source_file.startswith("graph://"):
+        path = Path(source_file)
+        roots.extend([path.parent, path.parent.parent])
+    roots.append(_forms_import_dir())
+    unique = []
+    seen = set()
+    for root in roots:
+        key = str(root).lower()
+        if key not in seen and root.exists():
+            seen.add(key)
+            unique.append(root)
+    return unique
+
+
+def _find_forms_attachment_file(item: dict[str, Any], source_file: str = "") -> Path | None:
+    name = Path(str(item.get("name") or item.get("nombre") or "")).name
+    if not name:
+        return None
+    for root in _forms_attachment_roots(source_file):
+        direct = root / name
+        if direct.exists() and direct.is_file():
+            return direct
+        try:
+            found = next(root.rglob(name), None)
+        except OSError:
+            found = None
+        if found and found.is_file():
+            return found
+    return None
+
+
+def _forms_attachment_roots_diagnostic(source_file: str = "") -> str:
+    configured = os.getenv("VIGIA_FORMS_RACKS_ATTACHMENTS_DIRS", "")
+    candidates = [Path(raw.strip()) for raw in re.split(r"[;|]", configured) if raw.strip()]
+    if source_file and not source_file.startswith("graph://"):
+        source_path = Path(source_file)
+        candidates.extend([source_path.parent, source_path.parent.parent])
+    candidates.append(_forms_import_dir())
+    unique: list[str] = []
+    seen: set[str] = set()
+    for path in candidates:
+        key = str(path).lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            status = "disponible" if path.exists() and path.is_dir() else "no existe o sin acceso"
+        except OSError:
+            status = "sin acceso"
+        unique.append(f"{path} [{status}]")
+    return "; ".join(unique) or "sin rutas locales configuradas"
+
+
+async def _param_id_by_text(db: aiosqlite.Connection, table: str, value: Any) -> int | None:
+    text = _norm_text(value)
+    if not text:
+        return None
+    rows = await _fetch_all(
+        db,
+        f"SELECT id, codigo, nombre FROM {table} WHERE activo = 1 ORDER BY orden, id",
+    )
+    target = _match_key(text)
+    for row in rows:
+        candidates = {_match_key(row.get("codigo")), _match_key(row.get("nombre"))}
+        if target in candidates:
+            return int(row["id"])
+        if len(target) >= 8 and any(difflib.SequenceMatcher(None, target, candidate).ratio() >= 0.9 for candidate in candidates):
+            return int(row["id"])
+    return None
+
+
+async def _criticidad_id_by_forms(db: aiosqlite.Connection, tipo_id: int, value: Any) -> int | None:
+    text = _norm_text(value)
+    aliases = {
+        "URGENTE": ["CRITICA", "ALTA"],
+        "CRITICO": ["CRITICA", "ALTA"],
+        "CRITICA": ["CRITICA"],
+        "ALTA": ["ALTA"],
+        "MEDIA": ["MEDIA"],
+        "NORMAL": ["MEDIA", "BAJA"],
+        "BAJA": ["BAJA"],
+    }
+    candidates = aliases.get(text, [text])
+    placeholders = ",".join("?" for _ in candidates)
+    row = await _fetch_one(
+        db,
+        f"""
+        SELECT id
+        FROM ticket_criticidad
+        WHERE tipo_id = ? AND activo = 1
+          AND (UPPER(codigo) IN ({placeholders}) OR UPPER(nombre) IN ({placeholders}))
+        ORDER BY sla_horas, id
+        LIMIT 1
+        """,
+        (tipo_id, *candidates, *candidates),
+    )
+    if row:
+        return int(row["id"])
+    row = await _fetch_one(
+        db,
+        "SELECT id FROM ticket_criticidad WHERE tipo_id = ? AND activo = 1 ORDER BY sla_horas DESC, id LIMIT 1",
+        (tipo_id,),
+    )
+    return int(row["id"]) if row else None
+
+
+async def _forms_payload_to_case(db: aiosqlite.Connection, payload: dict[str, Any]) -> tuple[dict[str, Any] | None, list[str]]:
+    raw = payload.get("raw_response") or {}
+    errors: list[str] = []
+    tipo_id = await _tipo_id(db)
+    zona = _norm_text(raw.get("zona"))
+    pasillo = _norm_text(raw.get("pasillo"))
+    ubicaciones = _norm_text(raw.get("ubicaciones"))
+    comentario = str(raw.get("comentario") or "").strip()
+    if not zona:
+        errors.append("Falta zona.")
+    try:
+        pasillo = _validate_pasillo(pasillo)
+    except HTTPException as exc:
+        errors.append(str(exc.detail))
+    try:
+        ubicaciones = _validate_ubicaciones(ubicaciones)
+    except HTTPException as exc:
+        errors.append(str(exc.detail))
+
+    cara_id = await _param_id_by_text(db, "rack_cara", raw.get("cara"))
+    sector_id = await _param_id_by_text(db, "rack_sector", raw.get("sector"))
+    tipo_rack_id = await _param_id_by_text(db, "rack_tipo", raw.get("tipo_rack"))
+    descripcion_id = await _param_id_by_text(db, "rack_descripcion", raw.get("descripcion_rotura"))
+    criticidad_id = await _criticidad_id_by_forms(db, tipo_id, raw.get("criticidad"))
+    for label, value in [
+        ("cara", cara_id),
+        ("sector", sector_id),
+        ("tipo de rack", tipo_rack_id),
+        ("descripcion de rotura", descripcion_id),
+        ("criticidad", criticidad_id),
+    ]:
+        if not value:
+            errors.append(f"No se pudo mapear {label}.")
+
+    niveles: list[int] = []
+    for nivel in _as_list(raw.get("niveles")):
+        nivel_id = await _param_id_by_text(db, "rack_nivel", nivel)
+        if nivel_id:
+            niveles.append(nivel_id)
+        else:
+            errors.append(f"Nivel invalido: {nivel}.")
+    niveles = list(dict.fromkeys(niveles))
+    if not niveles:
+        errors.append("Falta nivel.")
+
+    adjuntos = _forms_attachment_lines(raw.get("adjuntos"))
+    if adjuntos:
+        comentario = "\n".join([line for line in [comentario, "Adjuntos Forms:", *adjuntos] if line])
+    else:
+        errors.append("Faltan adjuntos/fotos.")
+
+    if errors:
+        return None, errors
+    return {
+        "tipo_id": tipo_id,
+        "zona_text": zona,
+        "pasillo": pasillo,
+        "cara_id": cara_id,
+        "ubicaciones": ubicaciones,
+        "niveles": niveles,
+        "sector_rack_id": sector_id,
+        "descripcion_rack_id": descripcion_id,
+        "criticidad_id": criticidad_id,
+        "tipo_rack_id": tipo_rack_id,
+        "comentario_operativo": comentario,
+    }, []
+
+
+async def _create_rack_case_from_forms(
+    db: aiosqlite.Connection,
+    case_data: dict[str, Any],
+    payload: dict[str, Any],
+    source_file: str = "",
+) -> tuple[int, str]:
+    tipo_id = int(case_data["tipo_id"])
+    criticidad = await _fetch_one(db, "SELECT * FROM ticket_criticidad WHERE id = ? AND tipo_id = ? AND activo = 1", (case_data["criticidad_id"], tipo_id))
+    estado = await _fetch_one(db, "SELECT * FROM ticket_estado WHERE tipo_id = ? AND es_inicial = 1 AND activo = 1", (tipo_id,))
+    if not criticidad or not estado:
+        raise RuntimeError("Faltan parametros base para crear el caso.")
+    fecha_actual = _now()
+    sla_vencimiento = (datetime.now(CASES_TZ) + timedelta(hours=int(criticidad["sla_horas"]))).strftime("%Y-%m-%d %H:%M:%S")
+    titulo = f"Reparacion de rack Z{case_data['zona_text']} P{case_data['pasillo']} U{case_data['ubicaciones']}"
+    creador = os.getenv("VIGIA_FORMS_RACKS_USER", "forms_import").strip() or "forms_import"
+    cur = await db.execute(
+        """
+        INSERT INTO ticket
+            (tipo_id, estado_id, criticidad_id, titulo, descripcion, usuario_creacion_id,
+             sector_creacion_id, perfil_asignado, sector_asignado, fecha_creacion,
+             fecha_ultima_actualizacion, sla_vencimiento)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            tipo_id,
+            estado["id"],
+            case_data["criticidad_id"],
+            titulo,
+            case_data["comentario_operativo"],
+            creador,
+            "FORMS",
+            estado.get("perfil_asignado") or "ADO",
+            estado.get("perfil_asignado") or "ADO",
+            fecha_actual,
+            fecha_actual,
+            sla_vencimiento,
+        ),
+    )
+    ticket_id = int(cur.lastrowid)
+    codigo_visible = f"RCK-{ticket_id:06d}"
+    await db.execute("UPDATE ticket SET codigo_visible = ? WHERE id = ?", (codigo_visible, ticket_id))
+    await db.execute(
+        """
+        INSERT INTO ticket_rack_detalle
+            (ticket_id, zona_text, pasillo, cara_id, ubicaciones, niveles, sector_rack_id,
+             descripcion_rack_id, tipo_rack_id, comentario_operativo)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            ticket_id,
+            case_data["zona_text"],
+            case_data["pasillo"],
+            case_data["cara_id"],
+            case_data["ubicaciones"],
+            json.dumps(case_data["niveles"]),
+            case_data["sector_rack_id"],
+            case_data["descripcion_rack_id"],
+            case_data["tipo_rack_id"],
+            case_data["comentario_operativo"],
+        ),
+    )
+    auth = {"username": creador}
+    await _historial(db, ticket_id, auth, "FORMS", "CREACION_FORMS", f"Importado desde Forms response_id={payload.get('response_id')}")
+    await _attach_forms_files(db, ticket_id, codigo_visible, auth, payload, source_file)
+    await _evento(db, ticket_id, "ticket_creado_forms", {"response_id": payload.get("response_id")})
+    return ticket_id, codigo_visible
+
+
+async def _upsert_forms_payload(db: aiosqlite.Connection, payload: dict[str, Any], source_file: str) -> tuple[int, bool]:
+    source = str(payload.get("source") or "microsoft_forms")
+    form = str(payload.get("form") or "service_racks")
+    response_id = str(payload.get("response_id") or "").strip()
+    if not response_id:
+        response_id = secrets.token_hex(8)
+    existing = await _fetch_one(db, "SELECT id FROM ticket_forms_ingreso WHERE source=? AND form=? AND response_id=?", (source, form, response_id))
+    if existing:
+        return int(existing["id"]), False
+    cur = await db.execute(
+        """
+        INSERT INTO ticket_forms_ingreso
+            (source, form, response_id, source_file, received_at, payload_json, estado_importacion, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 'PENDIENTE', ?)
+        """,
+        (source, form, response_id, source_file, str(payload.get("received_at") or ""), json.dumps(payload, ensure_ascii=False), _now()),
+    )
+    return int(cur.lastrowid), True
+
+
+async def _process_forms_ingreso(db: aiosqlite.Connection, ingreso_id: int) -> dict[str, Any]:
+    row = await _fetch_one(db, "SELECT * FROM ticket_forms_ingreso WHERE id=?", (ingreso_id,))
+    if not row:
+        raise RuntimeError("Ingreso Forms no encontrado.")
+    if row.get("ticket_id"):
+        payload = json.loads(row["payload_json"] or "{}")
+        ticket = await _fetch_one(db, "SELECT codigo_visible, usuario_creacion_id FROM ticket WHERE id=?", (row["ticket_id"],))
+        if ticket:
+            auth = {"username": ticket.get("usuario_creacion_id") or os.getenv("VIGIA_FORMS_RACKS_USER", "forms_import")}
+            failures = await _attach_forms_files(
+                db,
+                int(row["ticket_id"]),
+                str(ticket.get("codigo_visible") or f"RCK-{int(row['ticket_id']):06d}"),
+                auth,
+                payload,
+                str(row.get("source_file") or ""),
+            )
+            return {"id": ingreso_id, "estado": row["estado_importacion"], "ticket_id": row["ticket_id"], "adjuntos_error": failures, "skipped": True}
+        return {"id": ingreso_id, "estado": row["estado_importacion"], "ticket_id": row["ticket_id"], "skipped": True}
+    payload = json.loads(row["payload_json"] or "{}")
+    case_data, errors = await _forms_payload_to_case(db, payload)
+    if errors or not case_data:
+        await db.execute(
+            "UPDATE ticket_forms_ingreso SET estado_importacion='ERROR_VALIDACION', motivo_error=?, updated_at=? WHERE id=?",
+            (" ".join(errors), _now(), ingreso_id),
+        )
+        return {"id": ingreso_id, "estado": "ERROR_VALIDACION", "errors": errors}
+    try:
+        ticket_id, codigo_visible = await _create_rack_case_from_forms(db, case_data, payload, str(row.get("source_file") or ""))
+        await db.execute(
+            "UPDATE ticket_forms_ingreso SET estado_importacion='IMPORTADO', motivo_error=NULL, ticket_id=?, updated_at=? WHERE id=?",
+            (ticket_id, _now(), ingreso_id),
+        )
+        return {"id": ingreso_id, "estado": "IMPORTADO", "ticket_id": ticket_id, "codigo_visible": codigo_visible}
+    except Exception as exc:
+        await db.execute(
+            "UPDATE ticket_forms_ingreso SET estado_importacion='ERROR_TECNICO', motivo_error=?, updated_at=? WHERE id=?",
+            (str(exc), _now(), ingreso_id),
+        )
+        return {"id": ingreso_id, "estado": "ERROR_TECNICO", "error": str(exc)}
+
+
+def _read_forms_json_file(path: Path) -> dict[str, Any]:
+    text = path.read_text(encoding="utf-8-sig")
+    payload = json.loads(text)
+    if not isinstance(payload, dict):
+        raise ValueError("El JSON raiz debe ser un objeto.")
+    return payload
+
+
+async def _reload_forms_ingreso_from_source(db: aiosqlite.Connection, ingreso_id: int) -> None:
+    row = await _fetch_one(db, "SELECT * FROM ticket_forms_ingreso WHERE id=?", (ingreso_id,))
+    if not row or row.get("ticket_id"):
+        return
+    source_file = str(row.get("source_file") or "")
+    if not source_file or source_file.startswith("graph://"):
+        return
+    path = Path(source_file)
+    if not path.exists():
+        return
+    payload = await asyncio.to_thread(_read_forms_json_file, path)
+    await db.execute(
+        """
+        UPDATE ticket_forms_ingreso
+        SET payload_json=?, received_at=?, estado_importacion='PENDIENTE', motivo_error=NULL, updated_at=?
+        WHERE id=?
+        """,
+        (json.dumps(payload, ensure_ascii=False), str(payload.get("received_at") or ""), _now(), ingreso_id),
+    )
+
+
+def _graph_required_env(require_drive: bool = True) -> dict[str, str]:
+    values = {
+        "tenant_id": os.getenv("VIGIA_MS_TENANT_ID", "").strip(),
+        "client_id": os.getenv("VIGIA_MS_CLIENT_ID", "").strip(),
+        "client_secret": os.getenv("VIGIA_MS_CLIENT_SECRET", "").strip(),
+        "drive_id": os.getenv("VIGIA_FORMS_RACKS_GRAPH_DRIVE_ID", "").strip(),
+        "folder_path": os.getenv("VIGIA_FORMS_RACKS_GRAPH_FOLDER_PATH", "VigIA/ServiceRack/In").strip().strip("/"),
+    }
+    optional = {"folder_path"}
+    if not require_drive:
+        optional.add("drive_id")
+    missing = [key for key, value in values.items() if key not in optional and not value]
+    if missing:
+        raise RuntimeError(f"Falta configurar Microsoft Graph para Forms: {', '.join(missing)}")
+    return values
+
+
+def _graph_request(url: str, token: str | None = None, data: dict[str, str] | None = None) -> Any:
+    body = urllib.parse.urlencode(data).encode("utf-8") if data else None
+    headers = {"Accept": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    if body:
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+    req = urllib.request.Request(url, data=body, headers=headers)
+    with urllib.request.urlopen(req, timeout=60) as res:
+        raw = res.read()
+        content_type = res.headers.get("Content-Type", "")
+    if "application/json" in content_type:
+        return json.loads(raw.decode("utf-8"))
+    return raw.decode("utf-8-sig")
+
+
+def _graph_request_bytes(url: str, token: str) -> bytes:
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    with urllib.request.urlopen(req, timeout=120) as res:
+        return res.read()
+
+
+def _graph_token(values: dict[str, str]) -> str:
+    url = f"https://login.microsoftonline.com/{values['tenant_id']}/oauth2/v2.0/token"
+    data = {
+        "client_id": values["client_id"],
+        "client_secret": values["client_secret"],
+        "scope": "https://graph.microsoft.com/.default",
+        "grant_type": "client_credentials",
+    }
+    payload = _graph_request(url, data=data)
+    token = str(payload.get("access_token") or "")
+    if not token:
+        raise RuntimeError("Microsoft Graph no devolvio access_token.")
+    return token
+
+
+def _graph_list_forms_files(values: dict[str, str], token: str) -> list[dict[str, Any]]:
+    folder = urllib.parse.quote(values["folder_path"], safe="/")
+    url = f"https://graph.microsoft.com/v1.0/drives/{values['drive_id']}/root:/{folder}:/children?$select=id,name,file,lastModifiedDateTime,size"
+    items: list[dict[str, Any]] = []
+    while url:
+        payload = _graph_request(url, token=token)
+        items.extend(
+            item for item in payload.get("value", [])
+            if item.get("file") and str(item.get("name") or "").lower().endswith(".json")
+        )
+        url = payload.get("@odata.nextLink")
+    return sorted(items, key=lambda item: str(item.get("lastModifiedDateTime") or ""))
+
+
+def _graph_download_text(values: dict[str, str], token: str, item_id: str) -> str:
+    url = f"https://graph.microsoft.com/v1.0/drives/{values['drive_id']}/items/{item_id}/content"
+    return str(_graph_request(url, token=token))
+
+
+def _graph_download_attachment_bytes(item: dict[str, Any]) -> bytes:
+    values = _graph_required_env(require_drive=False)
+    drive_id = str(item.get("driveId") or values["drive_id"]).strip()
+    item_id = str(item.get("id") or "").strip()
+    if not drive_id or not item_id:
+        raise RuntimeError("Adjunto Forms sin driveId/id.")
+    token = _graph_token(values)
+    url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/items/{item_id}/content"
+    return _graph_request_bytes(url, token)
+
+
+async def _resolve_forms_attachment_bytes(item: dict[str, Any], source_file: str = "") -> tuple[bytes, str, str]:
+    name = Path(str(item.get("name") or item.get("nombre") or "adjunto.bin")).name
+    mime = str(item.get("type") or "") or mimetypes.guess_type(name)[0] or "application/octet-stream"
+    local_path = await asyncio.to_thread(_find_forms_attachment_file, item, source_file)
+    if local_path:
+        return await asyncio.to_thread(local_path.read_bytes), name, mime
+    if item.get("id") and item.get("driveId") and os.getenv("VIGIA_MS_CLIENT_ID") and os.getenv("VIGIA_MS_CLIENT_SECRET"):
+        return await asyncio.to_thread(_graph_download_attachment_bytes, item), name, mime
+    roots = await asyncio.to_thread(_forms_attachment_roots_diagnostic, source_file)
+    raise RuntimeError(
+        f"No se encontro adjunto local ni Graph configurado: {name}. "
+        f"Rutas revisadas: {roots}"
+    )
+
+
+async def _attach_forms_files(
+    db: aiosqlite.Connection,
+    ticket_id: int,
+    codigo_visible: str,
+    auth: dict[str, Any],
+    payload: dict[str, Any],
+    source_file: str = "",
+) -> list[str]:
+    failures = []
+    raw = payload.get("raw_response") or {}
+    for item in _forms_attachment_items(raw.get("adjuntos")):
+        name = str(item.get("name") or item.get("nombre") or "Adjunto").strip()
+        try:
+            existing = await _fetch_one(
+                db,
+                "SELECT id FROM ticket_adjunto WHERE ticket_id=? AND nombre_original=? AND activo=1",
+                (ticket_id, Path(name).name),
+            )
+            if existing:
+                continue
+            content, original, mime = await _resolve_forms_attachment_bytes(item, source_file)
+            await _guardar_adjunto_bytes(db, ticket_id, codigo_visible, auth, "FORMS", original, mime, content)
+        except Exception as exc:
+            failures.append(f"{name}: {exc}")
+    if failures:
+        failure_comment = "No se pudieron adjuntar fotos Forms:\n" + "\n".join(failures)
+        previous = await _fetch_one(
+            db,
+            """
+            SELECT comentario FROM ticket_comentario
+            WHERE ticket_id=? AND activo=1 AND comentario LIKE 'No se pudieron adjuntar fotos Forms:%'
+            ORDER BY id DESC LIMIT 1
+            """,
+            (ticket_id,),
+        )
+        if previous and previous.get("comentario") == failure_comment:
+            return failures
+        await db.execute(
+            """
+            INSERT INTO ticket_comentario (ticket_id, fecha, usuario_id, comentario, activo)
+            VALUES (?, ?, ?, ?, 1)
+            """,
+            (ticket_id, _now(), auth["username"], failure_comment),
+        )
+    return failures
+
+
+async def _import_forms_graph() -> dict[str, Any]:
+    values = _graph_required_env()
+    token = await asyncio.to_thread(_graph_token, values)
+    files = await asyncio.to_thread(_graph_list_forms_files, values, token)
+    results = []
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        db.row_factory = aiosqlite.Row
+        for item in files:
+            source_file = f"graph://{values['drive_id']}/{values['folder_path']}/{item.get('name')}"
+            try:
+                text = await asyncio.to_thread(_graph_download_text, values, token, str(item["id"]))
+                payload = json.loads(text)
+            except Exception as exc:
+                payload = {
+                    "source": "microsoft_forms",
+                    "form": "service_racks",
+                    "response_id": str(item.get("id") or item.get("name") or secrets.token_hex(8)),
+                    "raw_response": {},
+                }
+                ingreso_id, inserted = await _upsert_forms_payload(db, payload, source_file)
+                await db.execute(
+                    "UPDATE ticket_forms_ingreso SET estado_importacion='ERROR_TECNICO', motivo_error=?, updated_at=? WHERE id=?",
+                    (f"JSON OneDrive invalido: {exc}", _now(), ingreso_id),
+                )
+                results.append({"file": source_file, "inserted": inserted, "estado": "ERROR_TECNICO", "error": str(exc)})
+                continue
+            ingreso_id, inserted = await _upsert_forms_payload(db, payload, source_file)
+            result = await _process_forms_ingreso(db, ingreso_id)
+            result.update({"file": source_file, "inserted": inserted})
+            results.append(result)
+        await db.commit()
+    return {"ok": True, "source": "graph", "folder": values["folder_path"], "count": len(results), "results": results}
+
+
+async def _import_forms_files(raise_missing: bool = True) -> dict[str, Any]:
+    if _forms_import_source() == "graph":
+        return await _import_forms_graph()
+    folder = _forms_import_dir()
+    if not folder.exists():
+        if raise_missing:
+            raise HTTPException(status_code=400, detail=f"No existe carpeta de importacion Forms: {folder}")
+        return {"ok": True, "folder": str(folder), "count": 0, "results": [], "missing": True}
+    files = sorted(folder.glob("*.json"), key=lambda p: p.stat().st_mtime)
+    results = []
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        db.row_factory = aiosqlite.Row
+        for path in files:
+            try:
+                payload = await asyncio.to_thread(_read_forms_json_file, path)
+            except OSError as exc:
+                results.append({"file": str(path), "inserted": False, "estado": "NO_DISPONIBLE", "error": str(exc)})
+                continue
+            except Exception as exc:
+                payload = {
+                    "source": "microsoft_forms",
+                    "form": "service_racks",
+                    "response_id": path.stem,
+                    "raw_response": {},
+                }
+                ingreso_id, inserted = await _upsert_forms_payload(db, payload, str(path))
+                await db.execute(
+                    "UPDATE ticket_forms_ingreso SET estado_importacion='ERROR_TECNICO', motivo_error=?, updated_at=? WHERE id=?",
+                    (f"JSON invalido: {exc}", _now(), ingreso_id),
+                )
+                results.append({"file": str(path), "inserted": inserted, "estado": "ERROR_TECNICO", "error": str(exc)})
+                continue
+            ingreso_id, inserted = await _upsert_forms_payload(db, payload, str(path))
+            result = await _process_forms_ingreso(db, ingreso_id)
+            result.update({"file": str(path), "inserted": inserted})
+            results.append(result)
+        await db.commit()
+    return {"ok": True, "folder": str(folder), "count": len(results), "results": results}
+
+
+async def _forms_import_loop() -> None:
+    interval = max(10, int(os.getenv("VIGIA_FORMS_RACKS_POLL_SECONDS", "60") or "60"))
+    while True:
+        try:
+            result = await _import_forms_files(raise_missing=False)
+            inserted = [row for row in result.get("results", []) if row.get("inserted")]
+            if inserted:
+                logger.info("Importacion Forms Service Racks: %s archivos nuevos procesados.", len(inserted))
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            logger.warning("No se pudo importar Forms Service Racks: %s", exc)
+        await asyncio.sleep(interval)
+
+
+def start_forms_import_monitor() -> None:
+    global _FORMS_IMPORT_TASK
+    enabled = os.getenv("VIGIA_FORMS_RACKS_MONITOR", "1").strip().lower() not in {"0", "false", "no"}
+    if not enabled:
+        logger.info("Monitor Forms Service Racks deshabilitado.")
+        return
+    if _FORMS_IMPORT_TASK and not _FORMS_IMPORT_TASK.done():
+        return
+    _FORMS_IMPORT_TASK = asyncio.create_task(_forms_import_loop())
+    source = _forms_import_source()
+    target = os.getenv("VIGIA_FORMS_RACKS_GRAPH_FOLDER_PATH", "VigIA/ServiceRack/In") if source == "graph" else str(_forms_import_dir())
+    logger.info("Monitor Forms Service Racks iniciado. Origen: %s. Carpeta: %s", source, target)
+
+
+async def stop_forms_import_monitor() -> None:
+    global _FORMS_IMPORT_TASK
+    if not _FORMS_IMPORT_TASK:
+        return
+    _FORMS_IMPORT_TASK.cancel()
+    try:
+        await _FORMS_IMPORT_TASK
+    except asyncio.CancelledError:
+        pass
+    _FORMS_IMPORT_TASK = None
+
+
+@router.post("/forms/import")
+async def importar_forms(request: Request):
+    await _require_auth(request)
+    return await _import_forms_files()
+
+
+@router.get("/forms/ingresos")
+async def listar_forms_ingresos(request: Request, estado: str = "", limit: int = Query(200, ge=1, le=1000)):
+    await _require_auth(request)
+    where = []
+    args: list[Any] = []
+    if estado:
+        where.append("estado_importacion = ?")
+        args.append(estado.strip().upper())
+    sql_where = f"WHERE {' AND '.join(where)}" if where else ""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_all(
+            db,
+            f"""
+            SELECT f.*, t.codigo_visible
+            FROM ticket_forms_ingreso f
+            LEFT JOIN ticket t ON t.id=f.ticket_id
+            {sql_where}
+            ORDER BY f.created_at DESC, f.id DESC
+            LIMIT ?
+            """,
+            (*args, limit),
+        )
+    return {"items": rows, "count": len(rows)}
+
+
+@router.post("/forms/ingresos/{ingreso_id}/reintentar")
+async def reintentar_forms_ingreso(ingreso_id: int, request: Request):
+    await _require_auth(request)
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("PRAGMA busy_timeout = 10000")
+        db.row_factory = aiosqlite.Row
+        try:
+            await _reload_forms_ingreso_from_source(db, ingreso_id)
+        except Exception as exc:
+            await db.execute(
+                "UPDATE ticket_forms_ingreso SET estado_importacion='ERROR_TECNICO', motivo_error=?, updated_at=? WHERE id=?",
+                (f"No se pudo releer archivo origen: {exc}", _now(), ingreso_id),
+            )
+            await db.commit()
+            return {"id": ingreso_id, "estado": "ERROR_TECNICO", "error": str(exc)}
+        result = await _process_forms_ingreso(db, ingreso_id)
+        await db.commit()
+    return result
+
+
+@router.post("/forms/ingresos/{ingreso_id}/reclamar")
+async def reclamar_forms_ingreso(ingreso_id: int, req: FormsReclamoRequest, request: Request):
+    auth, _ = await _require_auth(request)
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            """
+            UPDATE ticket_forms_ingreso
+            SET estado_importacion='RECLAMADO', reclamado_por=?, fecha_reclamo=?, comentario_reclamo=?, updated_at=?
+            WHERE id=? AND ticket_id IS NULL
+            """,
+            (auth["username"], _now(), req.comentario.strip(), _now(), ingreso_id),
         )
         await db.commit()
     return {"ok": True}
@@ -790,7 +1864,7 @@ async def listar(
         rows = await _fetch_all(
             db,
             f"""
-            SELECT t.id, t.codigo_visible, tt.nombre tipo, t.fecha_creacion, e.nombre estado, e.es_final,
+            SELECT t.id, t.codigo_visible, tt.nombre tipo, t.fecha_creacion, e.codigo estado_codigo, e.nombre estado, e.es_final,
                    c.nombre criticidad, c.codigo criticidad_codigo, c.color criticidad_color,
                    t.titulo, t.sector_creacion_id sector, t.perfil_asignado, t.sector_asignado, t.usuario_creacion_id creado_por,
                    t.fecha_ultima_actualizacion, t.sla_vencimiento
@@ -805,6 +1879,74 @@ async def listar(
             tuple(args),
         )
     return {"items": rows, "count": len(rows), "perfil": perfil}
+
+
+@router.get("/control-ubicaciones")
+async def control_ubicaciones(request: Request, limit: int = Query(500, ge=50, le=5000)):
+    await _require_auth(request)
+    oracle_error = ""
+    try:
+        wms_rows = await asyncio.to_thread(_query_rack_oracle_inutilizadas_jdbc)
+    except Exception as exc:
+        wms_rows = []
+        oracle_error = str(exc)
+
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        service_rows = await _active_service_locations(db)
+
+    wms_by_key: dict[str, dict[str, Any]] = {}
+    for row in wms_rows:
+        key = _position_key(row.get("czonalma", ""), row.get("cpasillo", ""), row.get("chuecopa", ""))
+        if not key.strip("|"):
+            continue
+        item = dict(row)
+        item["key"] = key
+        item["posicion"] = _position_label(item["czonalma"], item["cpasillo"], item["chuecopa"])
+        wms_by_key[key] = item
+
+    services_by_key: dict[str, list[dict[str, Any]]] = {}
+    for row in service_rows:
+        services_by_key.setdefault(row["key"], []).append(row)
+
+    wms_keys = set(wms_by_key)
+    service_keys = set(services_by_key)
+    matched_keys = sorted(wms_keys & service_keys)
+    wms_without_service_keys = sorted(wms_keys - service_keys)
+    services_without_wms_keys = sorted(service_keys - wms_keys)
+
+    matched = []
+    for key in matched_keys[:limit]:
+        for service in services_by_key.get(key, []):
+            matched.append({"wms": wms_by_key[key], "service": service})
+            if len(matched) >= limit:
+                break
+        if len(matched) >= limit:
+            break
+
+    services_without_wms = []
+    for key in services_without_wms_keys[:limit]:
+        services_without_wms.extend(services_by_key.get(key, []))
+        if len(services_without_wms) >= limit:
+            services_without_wms = services_without_wms[:limit]
+            break
+
+    wms_without_service = [wms_by_key[key] for key in wms_without_service_keys[:limit]]
+    return {
+        "refreshed_at": _now(),
+        "oracle_error": oracle_error,
+        "summary": {
+            "wms_inutilizadas": len(wms_by_key),
+            "servicios_activos_ubicaciones": len(service_rows),
+            "coincidencias": len(matched_keys),
+            "wms_sin_service": len(wms_without_service_keys),
+            "services_sin_wms": len(services_without_wms_keys),
+        },
+        "wms_without_service": wms_without_service,
+        "services_without_wms": services_without_wms,
+        "matched": matched,
+        "limit": limit,
+    }
 
 
 @router.get("/dashboard")
@@ -920,7 +2062,7 @@ async def detalle(ticket_id: int, request: Request):
         transiciones = await _fetch_all(
             db,
             """
-        SELECT tr.id, tr.estado_destino_id, tr.requiere_comentario, e.nombre estado_destino,
+        SELECT tr.id, tr.estado_destino_id, tr.requiere_comentario, e.codigo estado_destino_codigo, e.nombre estado_destino,
                e.perfil_asignado perfil_destino
             FROM ticket_estado_transicion tr
             JOIN ticket_estado e ON e.id=tr.estado_destino_id
@@ -987,7 +2129,7 @@ async def cambiar_estado(ticket_id: int, req: CambioEstadoRequest, request: Requ
         transicion = await _fetch_one(
             db,
             """
-            SELECT tr.*, e.es_final, e.perfil_asignado perfil_destino
+            SELECT tr.*, e.codigo estado_destino_codigo, e.es_final, e.perfil_asignado perfil_destino
             FROM ticket_estado_transicion tr
             JOIN ticket_estado e ON e.id=tr.estado_destino_id
             WHERE tr.tipo_id=? AND tr.estado_origen_id=? AND tr.estado_destino_id=?
@@ -1000,6 +2142,13 @@ async def cambiar_estado(ticket_id: int, req: CambioEstadoRequest, request: Requ
         comentario = req.comentario.strip()
         if transicion.get("requiere_comentario") and not comentario:
             raise HTTPException(status_code=400, detail="Esta transicion requiere comentario.")
+        transition_notes = await _apply_rack_transition_payload(
+            db,
+            ticket,
+            req,
+            auth,
+            str(transicion.get("estado_destino_codigo") or ""),
+        )
         fecha_cierre = _now() if transicion.get("es_final") else None
         nuevo_perfil = transicion.get("perfil_destino") or ticket.get("perfil_asignado")
         await db.execute(
@@ -1011,7 +2160,8 @@ async def cambiar_estado(ticket_id: int, req: CambioEstadoRequest, request: Requ
             (req.estado_destino_id, nuevo_perfil, nuevo_perfil, _now(), fecha_cierre, ticket_id),
         )
         asignacion_msg = f"Asignado a {nuevo_perfil}" if nuevo_perfil else ""
-        hist_comment = " | ".join(part for part in [comentario, asignacion_msg] if part)
+        hitos_msg = " | ".join(transition_notes)
+        hist_comment = " | ".join(part for part in [comentario, hitos_msg, asignacion_msg] if part)
         await _historial(db, ticket_id, auth, perfil, "CAMBIO_ESTADO", hist_comment, int(ticket["estado_id"]), req.estado_destino_id)
         await _evento(db, ticket_id, "cambio_estado", {"estado_destino_id": req.estado_destino_id, "perfil_asignado": nuevo_perfil})
         if fecha_cierre:

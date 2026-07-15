@@ -34,11 +34,13 @@
     .table-wrap{overflow:auto;max-height:560px;border:1px solid var(--rule);border-top:0;background:var(--panel)}table{width:100%;border-collapse:collapse;table-layout:fixed}th{position:sticky;top:0;background:#f6f8f5;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule);padding:9px;user-select:none;cursor:pointer}th:hover{color:var(--ink);background:#edf2ee}th.sorted{color:var(--ink)}th.sorted::after{content:attr(data-sort-mark);float:right;color:var(--green);letter-spacing:0}td{border-bottom:1px solid var(--rule);padding:8px 9px;font-size:13px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}tbody tr:nth-child(odd){background:#f8faf7}
     .state{display:inline-block;border:1px solid var(--green);background:var(--green-bg);color:var(--green);padding:3px 7px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px}.state.bad{border-color:var(--red);background:var(--red-bg);color:var(--red)}.muted{color:var(--soft);font-size:12px}.right{text-align:right}.actions{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none!important}
     .badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;margin-left:8px;border-radius:9px;background:var(--red);color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:0}.request-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:12px;margin-top:12px}.request-grid.pending-workbench{grid-template-columns:minmax(280px,360px) minmax(0,1fr)}.request-card{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--green);min-width:0}.request-card.pending{border-top-color:var(--amber)}.request-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--rule);background:#f8faf7}.request-head strong{font-size:15px}.request-body{padding:12px}.request-table input,.request-table select{min-height:30px;padding:5px 7px}.request-table th:nth-child(1){width:92px}.request-table th:nth-child(3),.request-table th:nth-child(4),.request-table th:nth-child(5),.request-table th:nth-child(6){width:120px}.request-list{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto}.request-item{width:100%;text-align:left;border:1px solid var(--rule);background:var(--panel);padding:10px}.request-item.active{border-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}.request-item strong{display:block;font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px}.request-item span{display:block;color:var(--soft);font-size:12px;margin-top:3px}.request-detail{background:var(--panel);border:1px solid var(--rule);min-height:220px;min-width:0}.detail-empty{padding:24px;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;text-transform:uppercase;font-size:11px}.status-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.state.warn{border-color:var(--amber);background:var(--amber-bg);color:var(--amber)}
+    .request-top-grid{display:grid;grid-template-columns:minmax(360px,1.02fr) minmax(420px,1.35fr);gap:12px;margin-top:12px}.request-top-grid .form-grid{grid-template-columns:1fr;margin-top:0;border-top:1px solid var(--rule);align-content:start}.request-chart-card{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);min-width:0}.request-chart-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:end;padding:12px;border-bottom:1px solid var(--rule)}.request-chart-body{padding:12px;min-height:260px}.line-chart{width:100%;height:220px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;fill:var(--soft)}.line-chart polyline{fill:none;stroke-width:2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.bad{stroke:var(--red)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.bad{fill:var(--red)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend.inline{display:flex;flex-direction:row;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 8px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--blue)}.legend-dot.amber{background:var(--amber)}
+    .request-history-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,.95fr);gap:12px;margin-top:12px}.request-new-grid{display:grid;grid-template-columns:minmax(360px,.78fr) minmax(0,1.6fr);gap:12px;margin-top:12px;align-items:start}.request-new-form{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--green);min-width:0}.request-new-form .form-grid{grid-template-columns:minmax(180px,.75fr) minmax(220px,1fr) auto;margin-top:0;border:0;align-items:end}.request-new-form textarea{min-height:34px;height:34px;resize:vertical}.request-new-form .btn{height:34px;white-space:nowrap}.request-new-grid .table-wrap{max-height:520px}
     .dashboard-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.chart-panel{background:var(--panel);border:1px solid var(--rule);padding:12px;min-height:318px;min-width:0}.chart-panel.short{min-height:286px}.chart-panel.wide{grid-column:span 2}.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.chart-head strong{font-size:15px}.chart-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}.bar-list{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(78px,1fr) minmax(110px,2fr) 54px;gap:8px;align-items:center;font-size:12px}.stock-location-chart .bar-row{grid-template-columns:minmax(0,52ch) minmax(110px,1fr) 54px}.stock-location-chart .bar-label{font-size:11px;line-height:1.2;white-space:nowrap}.bar-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-track{height:14px;background:#EAEEEB;display:flex;overflow:hidden}.bar-fill{height:100%;min-width:2px;background:var(--green)}.bar-fill.cd{background:var(--blue)}.bar-fill.jaula{background:var(--green)}.bar-fill.oficina{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-fill.soft{background:var(--rule-strong)}.stock-segment{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;font-weight:700;line-height:1;text-shadow:0 1px 1px rgba(0,0,0,.35)}.stock-segment.is-empty{display:none}.bar-value{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;color:var(--soft)}.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);text-transform:uppercase}.legend i{display:inline-block;width:12px;height:8px;margin-right:5px}.activity-list{display:flex;flex-direction:column;gap:8px}.activity-item{border-bottom:1px solid var(--rule);padding-bottom:8px;font-size:12px}.activity-item strong{display:block;font-family:"IBM Plex Mono",Consolas,monospace}.activity-item span{color:var(--soft)}.empty-chart{border:1px dashed var(--rule-strong);padding:18px;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;text-transform:uppercase}
     .subtabs{display:flex;gap:8px;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:10px 12px}.subtab{border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:8px 12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.subtab.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}.prod-view,.stock-view{display:none}.prod-view.active,.stock-view.active{display:block}.pie-wrap{display:grid;grid-template-columns:160px minmax(0,1fr);gap:14px;align-items:center}.pie{width:150px;height:150px;border-radius:50%;border:1px solid var(--rule);background:#e9eeeb}.chart-legend{display:flex;flex-direction:column;gap:7px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;color:var(--soft)}.chart-legend span{display:flex;align-items:center;gap:7px}.chart-legend i{width:12px;height:12px;display:inline-block}.vertical-chart{display:flex;align-items:flex-end;gap:10px;min-height:230px;overflow:auto;padding:8px 2px 0}.vbar-item{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:48px;max-width:72px}.vbar-track{height:170px;width:34px;background:#e9eeeb;display:flex;flex-direction:column-reverse;overflow:hidden;border:1px solid var(--rule)}.vbar-fill{width:100%;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;text-shadow:0 1px 1px rgba(0,0,0,.35)}.vbar-label{width:100%;text-align:center;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vbar-value{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px}.stack-seg{width:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:9px;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-    @media(max-width:1100px){.page-head{grid-template-columns:1fr}.filters,.form-grid,.kpis,.dashboard-charts,.indicator-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.indicator-board{grid-template-columns:1fr}.production-pair,.request-grid{grid-template-columns:1fr}.chart-panel.wide{grid-column:span 2}.import-line{grid-template-columns:1fr 1fr}}
+    @media(max-width:1100px){.page-head{grid-template-columns:1fr}.filters,.form-grid,.kpis,.dashboard-charts,.indicator-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.indicator-board{grid-template-columns:1fr}.production-pair,.request-grid,.request-top-grid,.request-history-grid,.request-new-grid{grid-template-columns:1fr}.chart-panel.wide{grid-column:span 2}.import-line{grid-template-columns:1fr 1fr}.request-chart-filters,.request-new-form .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:850px){.dashboard-charts{grid-template-columns:1fr}.chart-panel.wide{grid-column:auto}.mini-kpis{grid-template-columns:1fr}.stock-location-chart .bar-row{grid-template-columns:minmax(0,42ch) minmax(90px,1fr) 48px}}
-    @media(max-width:700px){.app{padding:0 10px 20px}.filters,.form-grid,.kpis,.import-line,.indicator-filters{grid-template-columns:1fr}.tab{min-width:112px}.head-actions{align-items:flex-start}}
+    @media(max-width:700px){.app{padding:0 10px 20px}.filters,.form-grid,.kpis,.import-line,.indicator-filters,.request-chart-filters,.request-new-form .form-grid{grid-template-columns:1fr}.tab{min-width:112px}.head-actions{align-items:flex-start}}
   </style>
 </head>
 <body>
@@ -152,19 +154,38 @@
   </section>
 
   <section class="panel" id="panel-pedido-insumos">
-    <form class="form-grid" id="supply-order-form">
-      <label class="field"><span class="label">Sector solicitante</span><select id="pedido-sector" required></select></label>
-      <div class="field span"><label class="label">Observacion solicitud</label><textarea id="pedido-obs"></textarea></div>
-      <button class="btn primary">Enviar solicitud</button>
-    </form>
-    <div class="request-grid">
+    <div class="request-history-grid">
+      <section class="request-chart-card">
+        <div class="request-head"><div><strong>Recibido por dia</strong><div class="muted">Historial del sector seleccionado</div></div><span class="state" id="received-chart-total">0</span></div>
+        <div class="request-chart-filters">
+          <div class="field"><label class="label">Fecha inicio</label><input class="input" id="received-date-from" type="date"></div>
+          <div class="field"><label class="label">Fecha fin</label><input class="input" id="received-date-to" type="date"></div>
+          <label class="field"><span class="label">PLU</span><select id="received-plu"></select></label>
+          <label class="field"><span class="label">Tipo</span><select id="received-type"><option value="insumo">Insumo</option><option value="produccion">Produccion</option></select></label>
+          <button class="btn primary" id="refresh-received-chart" type="button">Aplicar</button>
+        </div>
+        <div class="request-chart-body">
+          <div class="chart-legend inline"><span><i class="legend-dot"></i>Cantidad recibida</span><span><i class="legend-dot amber"></i>Pedidos procesados</span></div>
+          <div id="chart-sector-received"></div>
+        </div>
+      </section>
+      <section class="request-card pending">
+        <div class="request-head"><div><strong>Historial de pedidos</strong><div class="muted" id="pedido-history-scope">Sector seleccionado</div></div><span class="state warn" id="my-pedidos-count">0</span></div>
+        <div class="request-body"><div class="request-list" id="my-pedidos-list"></div></div>
+      </section>
+    </div>
+    <div class="request-new-grid">
+      <section class="request-new-form">
+        <div class="request-head"><div><strong>Nuevo pedido</strong><div class="muted">Sector, observacion y envio</div></div></div>
+        <form class="form-grid" id="supply-order-form">
+          <label class="field"><span class="label">Sector solicitante</span><select id="pedido-sector" required></select></label>
+          <div class="field"><label class="label">Observacion solicitud</label><textarea id="pedido-obs"></textarea></div>
+          <button class="btn primary">Enviar solicitud</button>
+        </form>
+      </section>
       <section class="request-card">
         <div class="request-head"><div><strong>PLUs con stock disponible</strong><div class="muted">Carga cantidad insumo y/o produccion</div></div><span class="state" id="pedido-catalog-count">0</span></div>
         <div class="table-wrap"><table class="request-table"><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">Stock insumo</th><th class="right">Stock produccion</th><th class="right">Pedir insumo</th><th class="right">Pedir prod.</th></tr></thead><tbody id="pedido-catalog-body"></tbody></table></div>
-      </section>
-      <section class="request-card pending">
-        <div class="request-head"><div><strong>Mis pedidos</strong><div class="muted">Historial del solicitante</div></div><span class="state warn" id="my-pedidos-count">0</span></div>
-        <div class="request-body"><div class="request-list" id="my-pedidos-list"></div></div>
       </section>
     </div>
   </section>
@@ -291,7 +312,7 @@
 </div>
 
 <script>
-let ctx=null, articles=[], stockRows=[], movementRows=[], indicatorData={}, productionStockRows=[], productionMovementRows=[], productionIndicatorData={}, pedidoIndicatorData={}, requestCatalogRows=[], myPedidoRows=[], pendingPedidoRows=[], selectedPendingPedido=null;
+let ctx=null, articles=[], stockRows=[], movementRows=[], indicatorData={}, productionStockRows=[], productionMovementRows=[], productionIndicatorData={}, pedidoIndicatorData={}, requestCatalogRows=[], myPedidoRows=[], pendingPedidoRows=[], pedidoReceivedRows=[], selectedPendingPedido=null;
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function num(v){const n=Number(v||0);return Number.isFinite(n)?n:0}
@@ -308,6 +329,48 @@ function renderSimpleBars(elId, rows, opts={}){
     const pct=Math.max(2,Math.min(100,Math.abs(num(r.value))/max*100));
     return `<div class="bar-row"><div class="bar-label" title="${esc(r.label)}">${esc(r.label)}</div><div class="bar-track"><div class="bar-fill ${r.cls||''}" style="width:${pct}%"></div></div><div class="bar-value">${r.display??fmt(r.value)}</div></div>`;
   }).join('');
+}
+function renderReceivedLine(rows){
+  const data=rows||[];
+  if(!data.length)return emptyChart('Sin recepciones para el filtro');
+  const w=520,h=230,left=42,right=16,top=16,bottom=42;
+  const values=data.map(r=>num(r.cantidad));
+  const orderValues=data.map(r=>num(r.pedidos));
+  const max=Math.max(...values,1);
+  const maxOrders=Math.max(...orderValues,1);
+  const plotW=w-left-right, plotH=h-top-bottom;
+  const xFor=i=>left+(data.length===1?plotW/2:i*plotW/(data.length-1));
+  const yFor=v=>top+plotH-(v/max)*plotH;
+  const yForOrders=v=>top+plotH-(v/maxOrders)*plotH;
+  const points=data.map((r,i)=>({x:xFor(i),y:yFor(num(r.cantidad)),fecha:r.fecha,value:num(r.cantidad),pedidos:num(r.pedidos)}));
+  const orderPoints=data.map((r,i)=>({x:xFor(i),y:yForOrders(num(r.pedidos))}));
+  const tickCount=Math.min(6,data.length);
+  const tickIndexes=[...new Set(Array.from({length:tickCount},(_,i)=>Math.round(i*(data.length-1)/Math.max(tickCount-1,1))))];
+  const mid=max/2;
+  return `
+    <svg class="line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Cantidad recibida por dia">
+      <line class="grid" x1="${left}" y1="${yFor(max)}" x2="${w-right}" y2="${yFor(max)}"></line>
+      <line class="grid" x1="${left}" y1="${yFor(mid)}" x2="${w-right}" y2="${yFor(mid)}"></line>
+      <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line>
+      <line class="axis" x1="${left}" y1="${h-bottom}" x2="${w-right}" y2="${h-bottom}"></line>
+      <text class="axis-label" x="4" y="${yFor(max)+4}">${fmt(max)}</text>
+      <text class="axis-label" x="4" y="${yFor(mid)+4}">${fmt(mid)}</text>
+      <text class="axis-label" x="4" y="${h-bottom+4}">0</text>
+      ${tickIndexes.map(i=>{
+        const x=xFor(i);
+        const label=String(data[i]?.fecha||'').slice(5);
+        return `<line class="grid" x1="${x}" y1="${h-bottom}" x2="${x}" y2="${h-bottom+4}"></line><text class="axis-label" x="${Math.max(2,Math.min(x-16,w-right-34))}" y="${h-8}">${esc(label)}</text>`;
+      }).join('')}
+      <polyline class="blue" points="${points.map(p=>`${p.x},${p.y}`).join(' ')}"></polyline>
+      <polyline class="amber" points="${orderPoints.map(p=>`${p.x},${p.y}`).join(' ')}"></polyline>
+      ${points.map(p=>`
+        <g class="point">
+          <circle class="blue" cx="${p.x}" cy="${p.y}" r="3"></circle>
+          <circle class="point-hit" cx="${p.x}" cy="${p.y}" r="12"></circle>
+          <text class="point-label" x="${Math.min(p.x+8,w-right-150)}" y="${Math.max(p.y-8,top+10)}">${esc(p.fecha)} - ${fmt(p.value)} recibidos - ${fmt(p.pedidos)} ped.</text>
+        </g>
+      `).join('')}
+    </svg>`;
 }
 function renderStackedStock(){
   const el=$('chart-stock-location');
@@ -488,6 +551,7 @@ function productionDeliveryOptions(empty=''){const rows=productionStockRows.filt
 function locationOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${(ctx?.ubicaciones||[]).map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}`}
 function sortedLocations(){return [...(ctx?.ubicaciones||[])].sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||''),'es-AR',{numeric:true,sensitivity:'base'}))}
 function destinationOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${sortedLocations().map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}`}
+function requestSectorOptions(){const rows=sortedLocations().filter(x=>!['JAULA','OFICINA_ADO'].includes(String(x.codigo||'').toUpperCase()));const source=rows.length?rows:sortedLocations();return source.map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}
 function setDefaultLocation(selectId, code){const el=$(selectId);const item=(ctx?.ubicaciones||[]).find(x=>String(x.codigo).toUpperCase()===code);if(el&&item)el.value=String(item.id)}
 function turnOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${(ctx?.turnos||[]).map(x=>`<option value="${esc(x.codigo)}">${esc(x.descripcion||x.codigo)}</option>`).join('')}`}
 function usageOptions(value){return String(value||'').replace(/\r/g,'\n').replace(/[;,]/g,'\n').split('\n').map(x=>x.trim()).filter(Boolean)}
@@ -503,6 +567,12 @@ function setDefaultIndicatorDates(){
   const first=new Date(today.getFullYear(),today.getMonth(),1);
   if(!$('indicator-date-from').value)$('indicator-date-from').value=localDateInputValue(first);
   if(!$('indicator-date-to').value)$('indicator-date-to').value=localDateInputValue(today);
+}
+function setDefaultReceivedDates(){
+  const today=new Date();
+  const first=new Date(today.getFullYear(),today.getMonth(),1);
+  if(!$('received-date-from')?.value)$('received-date-from').value=localDateInputValue(first);
+  if(!$('received-date-to')?.value)$('received-date-to').value=localDateInputValue(today);
 }
 function indicatorQuery({dates=true,plu=true}={}){
   const p=new URLSearchParams();
@@ -536,7 +606,7 @@ function applyPanolPermissions(){
   });
   if(!operate)activateTab('pedido-insumos');
 }
-async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} - ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=destinationOptions('Seleccionar sector');applyPanolPermissions();if(!canOperate())return;setDefaultIndicatorDates();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-ubicacion').innerHTML=locationOptions('Todas');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
+async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} - ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=requestSectorOptions();setDefaultReceivedDates();applyPanolPermissions();if(!canOperate())return;setDefaultIndicatorDates();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-ubicacion').innerHTML=locationOptions('Todas');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
 async function loadArticles(){const d=await api('/panol-insumos/api/articulos?include_inactive=1');articles=d.items||[];const active=articles.filter(a=>a.activo);$('mov-articulo').innerHTML=optionList(active);$('prod-articulo').innerHTML=optionList(active);$('deliv-articulo').innerHTML='<option value="">Sin PLU con stock producido</option>';$('hist-articulo').innerHTML=optionList(articles,'Todos');$('indicator-plu').innerHTML=optionList(active,'Todos');renderArticles();renderInventoryRows();}
 function renderArticles(){$('articles-body').innerHTML=articles.map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.categoria||'')}</td><td>${esc(a.unidad||'UN')}</td><td>${esc(a.uso||'')}</td><td class="right">${fmt(a.stock_minimo)}</td><td>${a.activo?'Si':'No'}</td><td><button class="btn" data-edit-article="${a.id}">Editar</button></td></tr>`).join('')||'<tr><td colspan="8">Sin articulos.</td></tr>'}
 function renderInventoryRows(){$('inventory-body').innerHTML=articles.filter(a=>a.activo).map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.unidad||'UN')}</td><td><input class="input right" type="number" step="0.001" min="0" data-inv-art="${a.id}" value="0"></td></tr>`).join('')||'<tr><td colspan="4">Crea articulos para cargar inventario.</td></tr>'}
@@ -548,6 +618,8 @@ function renderPedidoCatalog(){
 }
 function renderMyPedidos(){
   $('my-pedidos-count').textContent=myPedidoRows.length;
+  const selected=$('pedido-sector')?.selectedOptions?.[0]?.textContent||'Sector seleccionado';
+  $('pedido-history-scope').textContent=`Historial de ${selected}`;
   $('my-pedidos-list').innerHTML=myPedidoRows.map(p=>`<div class="request-item"><div class="status-line"><strong>#${p.id} - ${esc(statusLabel(p.estado))}</strong><span class="state ${p.estado==='PENDIENTE'?'warn':''}">${esc(p.sector_codigo)}</span></div><span>${shortDate(p.fecha_solicitud)} - ${esc(p.observacion_solicitud||'Sin observacion')}</span><span>${(p.items||[]).map(i=>`${esc(i.codigo)} I:${fmt(i.cantidad_insumo_solicitada)} P:${fmt(i.cantidad_produccion_solicitada)}`).join(' | ')}</span></div>`).join('')||'<div class="detail-empty">Sin pedidos anteriores.</div>';
 }
 function renderPendingPedidos(){
@@ -571,8 +643,9 @@ function renderPendingDetail(p){
   $('confirm-pedido').onclick=()=>confirmPedido(p.id).catch(e=>setStatus(e.message,true));
   $('cancel-pedido').onclick=()=>cancelPedido(p.id).catch(e=>setStatus(e.message,true));
 }
-async function loadPedidoCatalog(){const d=await api('/panol-insumos/api/pedidos/catalogo')||{};requestCatalogRows=d.items||[];renderPedidoCatalog();}
-async function loadMyPedidos(){const d=await api('/panol-insumos/api/pedidos/mios')||{};myPedidoRows=d.items||[];renderMyPedidos();}
+async function loadPedidoCatalog(){const d=await api('/panol-insumos/api/pedidos/catalogo')||{};requestCatalogRows=d.items||[];$('received-plu').innerHTML=optionList(requestCatalogRows,'Todos');renderPedidoCatalog();}
+async function loadMyPedidos(){const sector=$('pedido-sector')?.value;if(!sector){myPedidoRows=[];renderMyPedidos();return;}const d=await api(`/panol-insumos/api/pedidos/mios?sector_id=${encodeURIComponent(sector)}`)||{};myPedidoRows=d.items||[];renderMyPedidos();}
+async function loadPedidoReceivedChart(){const sector=$('pedido-sector')?.value;if(!sector){pedidoReceivedRows=[];$('chart-sector-received').innerHTML=emptyChart('Selecciona un sector');$('received-chart-total').textContent='0';return;}const p=new URLSearchParams({sector_id:sector,tipo:$('received-type').value||'insumo'});if($('received-date-from').value)p.set('fecha_desde',$('received-date-from').value);if($('received-date-to').value)p.set('fecha_hasta',$('received-date-to').value);if($('received-plu').value)p.set('articulo_id',$('received-plu').value);const d=await api(`/panol-insumos/api/pedidos/recibido-dia?${p}`)||{};pedidoReceivedRows=d.items||[];$('received-chart-total').textContent=fmt(pedidoReceivedRows.reduce((sum,r)=>sum+num(r.cantidad),0));$('chart-sector-received').innerHTML=renderReceivedLine(pedidoReceivedRows);}
 async function loadPendingPedidos(){if(!canOperate())return;const d=await api('/panol-insumos/api/pedidos/pendientes')||{};pendingPedidoRows=d.items||[];if(selectedPendingPedido&&!pendingPedidoRows.some(p=>p.id===selectedPendingPedido.id))selectedPendingPedido=null;renderPendingPedidos();renderPendingDetail(selectedPendingPedido);}
 async function loadPedidoIndicators(){if(!canOperate())return;const q=indicatorQuery().toString();pedidoIndicatorData=await api(`/panol-insumos/api/pedidos/indicadores${q?`?${q}`:''}`)||{};renderPedidoIndicators();}
 async function savePedido(ev){
@@ -584,16 +657,16 @@ async function savePedido(ev){
   for(const item of items){const row=byId[String(item.articulo_id)];if(item.cantidad_insumo>num(row.stock_insumo)||item.cantidad_produccion>num(row.stock_produccion))throw new Error('Hay cantidades que superan el stock disponible.');}
   await api('/panol-insumos/api/pedidos',{method:'POST',body:JSON.stringify({sector_id:Number($('pedido-sector').value),observacion:$('pedido-obs').value,items})});
   $('pedido-obs').value='';document.querySelectorAll('[data-pedido-insumo],[data-pedido-produccion]').forEach(i=>i.value='');
-  await loadPedidoCatalog();await loadMyPedidos();await loadPendingPedidos();setStatus('Solicitud enviada.');
+  await loadPedidoCatalog();await loadMyPedidos();await loadPedidoReceivedChart();await loadPendingPedidos();setStatus('Solicitud enviada.');
 }
 async function confirmPedido(id){
   const origin=Number($('confirm-origin').value);
   const itemIds=[...document.querySelectorAll('[data-confirm-insumo]')].map(i=>i.dataset.confirmInsumo);
   const items=itemIds.map(itemId=>({item_id:Number(itemId),ubicacion_origen_insumo_id:origin,cantidad_insumo_confirmada:Number(document.querySelector(`[data-confirm-insumo="${itemId}"]`)?.value||0),cantidad_produccion_confirmada:Number(document.querySelector(`[data-confirm-produccion="${itemId}"]`)?.value||0),uso_entrega:document.querySelector(`[data-confirm-uso="${itemId}"]`)?.value||''}));
   await api(`/panol-insumos/api/pedidos/${id}/confirmar`,{method:'POST',body:JSON.stringify({observacion:$('confirm-obs').value,items})});
-  selectedPendingPedido=null;await loadPendingPedidos();await loadPedidoCatalog();await loadMyPedidos();if(canOperate()){await loadStock();await loadProduction();await loadPedidoIndicators();renderDashboardCharts();}setStatus('Pedido confirmado.');
+  selectedPendingPedido=null;await loadPendingPedidos();await loadPedidoCatalog();await loadMyPedidos();await loadPedidoReceivedChart();if(canOperate()){await loadStock();await loadProduction();await loadPedidoIndicators();renderDashboardCharts();}setStatus('Pedido confirmado.');
 }
-async function cancelPedido(id){await api(`/panol-insumos/api/pedidos/${id}/cancelar`,{method:'POST',body:JSON.stringify({observacion:$('confirm-obs')?.value||'',items:[]})});selectedPendingPedido=null;await loadPendingPedidos();await loadPedidoIndicators();setStatus('Pedido cancelado.');}
+async function cancelPedido(id){await api(`/panol-insumos/api/pedidos/${id}/cancelar`,{method:'POST',body:JSON.stringify({observacion:$('confirm-obs')?.value||'',items:[]})});selectedPendingPedido=null;await loadPendingPedidos();await loadMyPedidos();await loadPedidoReceivedChart();await loadPedidoIndicators();setStatus('Pedido cancelado.');}
 async function loadIndicators(){const q=indicatorQuery().toString();indicatorData=await api(`/panol-insumos/api/indicadores${q?`?${q}`:''}`)||{}}
 async function loadMovements(){const q=indicatorQuery().toString();const d=await api(`/panol-insumos/api/movimientos${q?`?${q}`:''}`);movementRows=d.items||[];$('movements-body').innerHTML=movementRows.map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.codigo)}</td><td>${esc(r.tipo)}</td><td>${esc(r.origen_codigo||'-')}</td><td>${esc(r.destino_codigo||'-')}</td><td class="right">${fmt(r.cantidad)}</td><td>${esc(r.usuario||'')}</td><td>${esc(r.observacion||'')}</td></tr>`).join('')||'<tr><td colspan="8">Sin movimientos.</td></tr>'}
 function productionIndicatorQuery(){return indicatorQuery().toString()}
@@ -635,7 +708,7 @@ async function syncCdOracle(force=false){
   renderDashboardCharts();
   setStatus(d.skipped?`Oracle diario: ya sincronizado ${shortDate(d.fecha_importacion)}.`:`Oracle diario: ${d.matched_count||0} PLUs propios actualizados, ${d.zeroed||0} sin stock CD, ${d.ignored||0} ignorados.`);
 }
-async function resetOperationalData(){const clave=prompt('Clave para depurar datos operativos');if(!clave)return;if(!confirm('Se borraran stock CD, movimientos, inventarios, consumos, produccion y pedidos. Los PLUs se conservan.'))return;const d=await api('/panol-insumos/api/admin/reset-operativo',{method:'POST',body:JSON.stringify({clave})});$('cd-preview-body').innerHTML=Object.entries(d.deleted||{}).map(([tabla,cantidad])=>`<tr><td>${esc(tabla)}</td><td class="right">${fmt(cantidad)}</td></tr>`).join('')||'<tr><td colspan="2">Depuracion ejecutada.</td></tr>';await loadStock();await loadIndicators();await loadMovements();await loadProduction();await loadInventoryHistory();await loadPedidoCatalog();await loadMyPedidos();await loadPendingPedidos();await loadPedidoIndicators();renderDashboardCharts();setStatus('Datos operativos depurados. PLUs conservados.')}
+async function resetOperationalData(){const clave=prompt('Clave para depurar datos operativos');if(!clave)return;if(!confirm('Se borraran stock CD, movimientos, inventarios, consumos, produccion y pedidos. Los PLUs se conservan.'))return;const d=await api('/panol-insumos/api/admin/reset-operativo',{method:'POST',body:JSON.stringify({clave})});$('cd-preview-body').innerHTML=Object.entries(d.deleted||{}).map(([tabla,cantidad])=>`<tr><td>${esc(tabla)}</td><td class="right">${fmt(cantidad)}</td></tr>`).join('')||'<tr><td colspan="2">Depuracion ejecutada.</td></tr>';await loadStock();await loadIndicators();await loadMovements();await loadProduction();await loadInventoryHistory();await loadPedidoCatalog();await loadMyPedidos();await loadPedidoReceivedChart();await loadPendingPedidos();await loadPedidoIndicators();renderDashboardCharts();setStatus('Datos operativos depurados. PLUs conservados.')}
 function activateStockView(view){
   document.querySelectorAll('[data-stock-view]').forEach(x=>x.classList.toggle('active',x.dataset.stockView===view));
   document.querySelectorAll('.stock-view').forEach(x=>x.classList.remove('active'));
@@ -673,9 +746,11 @@ $('import-cd').onclick=()=>sendCd(false).catch(e=>setStatus(e.message,true));
 $('sync-cd-oracle').onclick=()=>syncCdOracle(false).catch(e=>setStatus(e.message,true));
 $('reset-operational').onclick=()=>resetOperationalData().catch(e=>setStatus(e.message,true));
 $('supply-order-form').onsubmit=e=>savePedido(e).catch(err=>setStatus(err.message,true));
+$('pedido-sector').onchange=()=>Promise.all([loadMyPedidos(),loadPedidoReceivedChart()]).catch(e=>setStatus(e.message,true));
+$('refresh-received-chart').onclick=()=>loadPedidoReceivedChart().catch(e=>setStatus(e.message,true));
 $('refresh-pending').onclick=()=>loadPendingPedidos().catch(e=>setStatus(e.message,true));
 $('pending-pedidos-list').onclick=ev=>{const b=ev.target.closest('[data-open-pedido]');if(!b)return;selectedPendingPedido=pendingPedidoRows.find(p=>String(p.id)===String(b.dataset.openPedido));renderPendingPedidos();renderPendingDetail(selectedPendingPedido)};
-(async()=>{try{initSortableTables();setStatus('Validando sesion y permisos...');await loadContext();setStatus('Cargando pedidos...');await loadPedidoCatalog();await loadMyPedidos();await loadPendingPedidos();if(canOperate()){setStatus('Cargando articulos...');await loadArticles();setStatus('Calculando stock...');await loadStock();setStatus('Cargando indicadores...');await loadIndicators();setStatus('Cargando movimientos...');await loadMovements();setStatus('Cargando produccion...');await loadProduction();setStatus('Cargando pedidos...');await loadPedidoIndicators();setStatus('Cargando inventarios...');await loadInventoryHistory();renderDashboardCharts();}initSortableTables();setStatus('Listo.')}catch(e){setStatus(e.message,true)}})();
+(async()=>{try{initSortableTables();setStatus('Validando sesion y permisos...');await loadContext();setStatus('Cargando pedidos...');await loadPedidoCatalog();await loadMyPedidos();await loadPedidoReceivedChart();await loadPendingPedidos();if(canOperate()){setStatus('Cargando articulos...');await loadArticles();setStatus('Calculando stock...');await loadStock();setStatus('Cargando indicadores...');await loadIndicators();setStatus('Cargando movimientos...');await loadMovements();setStatus('Cargando produccion...');await loadProduction();setStatus('Cargando pedidos...');await loadPedidoIndicators();setStatus('Cargando inventarios...');await loadInventoryHistory();renderDashboardCharts();}initSortableTables();setStatus('Listo.')}catch(e){setStatus(e.message,true)}})();
 </script>
 </body>
 </html>

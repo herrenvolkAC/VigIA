@@ -19,6 +19,7 @@ import csv
 import logging
 import os
 import time as time_module
+import traceback
 from contextlib import suppress
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
@@ -531,20 +532,20 @@ def _detect_file_kind(path: Path) -> str | None:
         return None
     if not rows:
         return None
-    header_idx = 1 if len(rows) > 1 and _norm_key(rows[0][0] if rows[0] else "") != "ubicacion" else 0
-    headers = set(_unique_headers(rows[header_idx]))
-    if {"legajo", "fecha"}.issubset(headers) and ("empleado" in headers or "sector" in headers):
-        return "actividad"
-    if {"legajo", "nombre_del_empleado_o_candidato"}.issubset(headers) or {"legajo", "desc_funcion", "desc_posicion"}.issubset(headers):
-        return "legajero"
-    if {"legajo_apellido_y_nombre", "fecha_fichada"}.issubset(headers):
-        return "fichadas"
-    if {"legajo", "apellido_y_nombre"}.issubset(headers) and ("causa_sancion" in headers or "descripcion_causa" in headers):
-        return "sanciones"
-    legajo_headers = {"legajo", "numero_de_personal", "nro_personal", "numero_personal"}
-    saldo_headers = {"saldo", "saldo_francos", "francos", "dias", "dias_franco", "cuenta_corriente", "resto_global"}
-    if headers.intersection(legajo_headers) and headers.intersection(saldo_headers):
-        return "francos"
+    for row in rows[:5]:
+        headers = set(_unique_headers(row))
+        if {"legajo", "fecha"}.issubset(headers) and ("empleado" in headers or "sector" in headers):
+            return "actividad"
+        if {"legajo", "nombre_del_empleado_o_candidato"}.issubset(headers) or {"legajo", "desc_funcion", "desc_posicion"}.issubset(headers):
+            return "legajero"
+        if {"legajo_apellido_y_nombre", "fecha_fichada"}.issubset(headers):
+            return "fichadas"
+        if {"legajo", "apellido_y_nombre"}.issubset(headers) and ("causa_sancion" in headers or "descripcion_causa" in headers):
+            return "sanciones"
+        legajo_headers = {"legajo", "numero_de_personal", "nro_personal", "numero_personal"}
+        saldo_headers = {"saldo", "saldo_francos", "francos", "dias", "dias_franco", "cuenta_corriente", "resto_global"}
+        if headers.intersection(legajo_headers) and headers.intersection(saldo_headers):
+            return "francos"
     return None
 
 
@@ -1661,17 +1662,50 @@ def _unique_destination(dest_dir: Path, name: str) -> Path:
 
 
 def _move_files(paths: list[Path], dest_root: Path, batch_key: str) -> list[str]:
-    dest_dir = dest_root / datetime.now().strftime("%Y_%m_%d") / batch_key
-    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_root.mkdir(parents=True, exist_ok=True)
     moved: list[str] = []
     for path in paths:
         if not path.exists() or not path.is_file():
             continue
-        dest = _unique_destination(dest_dir, path.name)
+        dest = _unique_destination(dest_root, path.name)
         shutil.move(str(path), str(dest))
         moved.append(str(dest))
         _rrhh_monitor_seen.pop(str(path.resolve()), None)
     return moved
+
+
+def _write_import_error_report(
+    dest_root: Path,
+    batch_key: str,
+    exc: BaseException,
+    source_files: list[Path],
+    moved_files: list[str],
+) -> str | None:
+    try:
+        dest_root.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        report_path = _unique_destination(dest_root, f"ERROR_TECNICO_{timestamp}_{batch_key}.log")
+        lines = [
+            "VigIA RRHH - error tecnico de importacion automatica",
+            f"timestamp={datetime.now().isoformat(timespec='seconds')}",
+            f"batch_key={batch_key}",
+            f"db_path={DB_PATH}",
+            f"error={type(exc).__name__}: {exc}",
+            "",
+            "archivos_origen:",
+            *[f"- {path}" for path in source_files],
+            "",
+            "archivos_movidos:",
+            *[f"- {path}" for path in moved_files],
+            "",
+            "traceback:",
+            "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)),
+        ]
+        report_path.write_text("\n".join(lines), encoding="utf-8")
+        return str(report_path)
+    except Exception as report_exc:
+        logger.warning("No se pudo escribir reporte tecnico RRHH para %s: %s", batch_key, report_exc)
+        return None
 
 
 async def _rrhh_monitor_loop() -> None:
@@ -1688,7 +1722,13 @@ async def _rrhh_monitor_loop() -> None:
                 if stable_files:
                     batch_key = _make_auto_batch_key(stable_files)
                     try:
-                        result = await _import_folder_locked(inbox, batch_key, "rrhh_monitor", False)
+                        try:
+                            result = await _import_folder_locked(inbox, batch_key, "rrhh_monitor", False)
+                        except RuntimeError as exc:
+                            if "ya existe" not in str(exc):
+                                raise
+                            logger.warning("Monitor RRHH reimporta %s con force=true porque el lote ya existe.", batch_key)
+                            result = await _import_folder_locked(inbox, batch_key, "rrhh_monitor", True)
                         moved = await asyncio.to_thread(
                             _move_files,
                             _flatten_imported_paths(result.get("files") or {}),
@@ -1698,12 +1738,12 @@ async def _rrhh_monitor_loop() -> None:
                         logger.info("Monitor RRHH importo %s y movio %s archivo(s).", batch_key, len(moved))
                     except Exception as exc:
                         logger.exception("Monitor RRHH fallo al importar %s: %s", batch_key, exc)
-                        if "ya existe" in str(exc):
-                            moved = await asyncio.to_thread(_move_files, stable_files, _watch_imported_dir(inbox), batch_key)
-                            logger.warning("Monitor RRHH movio %s archivo(s) ya importado(s) a IMPORTADOS.", len(moved))
-                        else:
-                            moved = await asyncio.to_thread(_move_files, stable_files, _watch_error_dir(inbox), batch_key)
-                            logger.warning("Monitor RRHH movio %s archivo(s) a ERROR para %s.", len(moved), batch_key)
+                        error_dir = _watch_error_dir(inbox)
+                        moved = await asyncio.to_thread(_move_files, stable_files, error_dir, batch_key)
+                        report = await asyncio.to_thread(_write_import_error_report, error_dir, batch_key, exc, stable_files, moved)
+                        logger.warning("Monitor RRHH movio %s archivo(s) a ERROR para %s.", len(moved), batch_key)
+                        if report:
+                            logger.warning("Monitor RRHH dejo reporte tecnico en %s.", report)
             await asyncio.wait_for(_rrhh_monitor_stop.wait(), timeout=interval)
         except asyncio.TimeoutError:
             continue
@@ -3426,6 +3466,7 @@ async def get_sanciones(
     cargo: str = "ALL",
     motivo: str = "ALL",
     persona: str = "",
+    solo_reales: bool = False,
     limit: int = Query(200, ge=1, le=1000),
 ):
     auth = await _require_auth(request)
@@ -3440,8 +3481,9 @@ async def get_sanciones(
     if fecha_hasta:
         where.append("COALESCE(s.creacion, s.inicio) <= ?")
         params.append(fecha_hasta)
-    where.append(f"TRIM(s.descripcion) IN ({', '.join('?' for _ in REAL_SANCIONES)})")
-    params.extend(REAL_SANCIONES)
+    if solo_reales:
+        where.append(f"TRIM(s.descripcion) IN ({', '.join('?' for _ in REAL_SANCIONES)})")
+        params.extend(REAL_SANCIONES)
     _append_multi_filter(where, params, "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')", sectores_sel)
     _append_multi_filter(where, params, "COALESCE(l.desc_funcion, '')", cargos_sel)
     if motivos_sel:
@@ -3456,7 +3498,7 @@ async def get_sanciones(
         {_with_consolidated()}
         SELECT s.legajo, s.nombre, COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '') sector,
                COALESCE(l.desc_funcion, '') cargo, s.inicio, s.creacion, s.cod, s.descripcion,
-               s.causa_sancion, s.descripcion_causa
+               s.detalle, s.causa_sancion, s.descripcion_causa
         FROM sanciones_consolidadas s
         LEFT JOIN latest_legajero l ON l.legajo = s.legajo
         WHERE {' AND '.join(where)}

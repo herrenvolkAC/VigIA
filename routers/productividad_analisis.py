@@ -1111,6 +1111,7 @@ mdiv AS (
 PRE AS (
   SELECT
     b.*,
+    l.DESC_FUNCION,
     NVL(
       CASE SUB1.CDIVISIO
         WHEN 1 THEN 'SECOS'
@@ -1123,6 +1124,8 @@ PRE AS (
   FROM LEGAJOS A
   JOIN f132hist B
     ON A.LEGAJO = B.COPECREA
+  LEFT JOIN PV_LEGAJO l
+    ON l.LEGAJO = B.COPECREA
   LEFT JOIN (
     SELECT DISTINCT CZONALMA, CDIVISIO
     FROM VW_UBICACIONES_DIVISION
@@ -1347,9 +1350,33 @@ SELECT
     ELSE 'OTROS'
   END AS ALMACEN,
   COUNT(DISTINCT a.HOJARUTA) AS VIAJES,
-  COUNT(DISTINCT a.CARGADOR) AS CARGADORES,
-  ROUND(COUNT(DISTINCT a.HOJARUTA) / NULLIF(COUNT(DISTINCT a.CARGADOR), 0), 2) AS PRODUCCION
+  COUNT(DISTINCT CASE
+    WHEN UPPER(TRIM(l.DESC_FUNCION)) IN (
+      'ARMADOR REFRI',
+      'ARMADOR DE REFRIGERADOS',
+      'CARGADOR (REFRIG)',
+      'ARMADOR DE SECOS',
+      'ARMADOR T06',
+      'ARMADOR DE NO ALIMENTOS',
+      'ARMADOR',
+      'CARGADOR DE SECOS'
+    ) THEN a.CARGADOR
+  END) AS CARGADORES,
+  ROUND(COUNT(DISTINCT a.HOJARUTA) / NULLIF(COUNT(DISTINCT CASE
+    WHEN UPPER(TRIM(l.DESC_FUNCION)) IN (
+      'ARMADOR REFRI',
+      'ARMADOR DE REFRIGERADOS',
+      'CARGADOR (REFRIG)',
+      'ARMADOR DE SECOS',
+      'ARMADOR T06',
+      'ARMADOR DE NO ALIMENTOS',
+      'ARMADOR',
+      'CARGADOR DE SECOS'
+    ) THEN a.CARGADOR
+  END), 0), 2) AS PRODUCCION
 FROM f922traf a
+LEFT JOIN PV_LEGAJO l
+  ON l.LEGAJO = a.CARGADOR
 WHERE a.FECIERRE >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
   AND a.FECIERRE <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
   AND a.CALMACEN = '93'
@@ -1364,7 +1391,7 @@ END
 
 
 QUERY_DAILY_DESPACHO_RAW = """
-SELECT
+SELECT DISTINCT
   CASE
     WHEN a.CDIVISIO = 1 OR a.CDIVISIO = 3 THEN 'SECOS'
     WHEN a.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
@@ -1373,10 +1400,13 @@ SELECT
   END AS ALMACEN,
   a.HOJARUTA,
   a.CARGADOR,
+  l.DESC_FUNCION,
   a.FECIERRE,
   a.CDIVISIO,
   a.CALMACEN
 FROM f922traf a
+LEFT JOIN PV_LEGAJO l
+  ON l.LEGAJO = a.CARGADOR
 WHERE a.FECIERRE >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
   AND a.FECIERRE <  TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
   AND a.CALMACEN = '93'
@@ -2544,6 +2574,13 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         query_key = "daily_despacho_real"
     elif (
         "TR_DETALLE_DE_PALLET_NEW" in normalized_query
+        and "CODIGODESECTOR AS SECTOR" in normalized_query
+        and "BULTOS_PALLET" in normalized_query
+        and "CODIGODEDIVISION" in normalized_query
+    ):
+        query_key = "plantel_optimo_demanda"
+    elif (
+        "TR_DETALLE_DE_PALLET_NEW" in normalized_query
         and "BULTOS_PICKING_PLANIFICADOS" in normalized_query
         and "PALLETS_SPC_PLANIFICADOS" in normalized_query
         and "VIAJES_PLANIFICADOS" in normalized_query
@@ -2604,6 +2641,13 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         and "ORDER BY A.COPECREA, A.FCREAREG" in normalized_query
     ):
         query_key = "tiempos_muertos"
+    elif (
+        "F602ASEC" in normalized_query
+        and "TRANSPORTE DE PALETS" in normalized_query
+        and "B.CNSECTOR" in normalized_query
+        and "ORACLE_NOW" in normalized_query
+    ):
+        query_key = "rendimiento_online"
     elif (
         "PV_LEGAJO" in normalized_query
         and "VW_UBICACIONES_DIVISION" in normalized_query

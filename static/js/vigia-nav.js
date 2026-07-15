@@ -8,6 +8,7 @@ const PROCESOS_NAV = [
   { id: 'casos', label: 'Gestión de Casos', url: '/casos.html', activo: true },
   { id: 'panol', label: 'Pañol Insumos', url: '/panol-insumos.html', activo: true },
   { id: 'historia', label: 'Historia Legajo', url: '/historia-legajo.html', activo: true },
+  { id: 'plantel_optimo', label: 'Plantel Optimo', url: '/plantel-optimo.html', activo: true },
   { id: 'recepcion', label: 'Recepción', url: '/recepcion.html', activo: false },
   { id: 'opex', label: 'OpEX', url: '/opex.html', activo: true },
   { id: 'planificacion', label: 'Planificación', url: '/planificacion.html', activo: false },

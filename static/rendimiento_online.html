@@ -1,0 +1,924 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>VigIA - Rendimiento Online</title>
+  <style>
+    :root{--bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;--blue:#0B5FAE;--blue-soft:#E4F0FB}
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:24px 24px}
+    button,input,select{font:inherit;color:inherit}button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:100%;min-height:100vh;padding:0 16px 22px}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}.brand-logo{width:86px;height:44px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}
+    .kicker,.label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}.amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}.paper-link,.logout-btn{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}.paper-link:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}.user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .env-banner{display:none;margin:10px 0 0;border:1px solid var(--amber);background:var(--amber-soft);color:#6F4300;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.env-banner.visible{display:block}
+    .page-head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:18px;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule)}
+    .page-title{font-size:20px;line-height:1.05;font-weight:600;color:var(--ink);margin:0 0 11px}
+    .hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:16px 18px}
+    .hero-title{font-size:24px;line-height:1.1;font-weight:700;color:var(--ink);margin:4px 0 7px}.hero-sub{font-size:12px;color:var(--ink-soft)}
+    .toolbar{display:grid;grid-template-columns:180px auto auto auto 1fr;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px;margin-bottom:14px}
+    .field{display:flex;flex-direction:column;gap:6px}.field select,.field input{height:34px;width:100%;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
+    .primary-btn,.ghost-btn{height:34px;min-height:34px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px;white-space:nowrap}.ghost-btn{background:var(--panel);color:var(--ink-soft);border-color:var(--rule)}.ghost-btn:hover{color:var(--blue);border-color:var(--blue)}.primary-btn:disabled{opacity:.55;cursor:wait}
+    .status{min-height:34px;padding:8px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);line-height:1.35}.status.error{color:var(--red);font-weight:500}
+    .insight-strip{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin:0 0 12px}.timeline-card,.legend-card{border:1px solid var(--rule);background:var(--panel);padding:10px 12px}.timeline-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}.timeline-track{position:relative;height:18px;border:1px solid var(--rule);background:#F8FAF7}.timeline-fill{position:absolute;inset:0 auto 0 0;background:var(--blue-soft)}.timeline-now{position:absolute;top:-5px;width:2px;height:28px;background:var(--ink)}.timeline-mark{position:absolute;top:3px;width:8px;height:10px;border:1px solid var(--panel);transform:translateX(-50%)}.timeline-mark.bad{background:var(--red)}.timeline-mark.warn{background:var(--amber)}.timeline-mark.ok{background:var(--green)}.legend-card{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}.legend-summary,.legend-ref{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.legend-ref{padding-top:8px;border-top:1px solid var(--rule);width:100%}.legend-ref-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}.cause-badges{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.cause-badge{display:inline-flex;align-items:center;border:1px solid var(--rule);background:#F8FAF7;color:var(--ink-soft);padding:2px 5px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;white-space:nowrap}.cause-badge.bad{color:var(--red);background:var(--red-soft);border-color:#E5A6AE}.cause-badge.warn{color:var(--amber);background:var(--amber-soft);border-color:#E1BF76}.cause-badge.none{color:var(--ink-soft)}.sparkline{width:86px;height:24px;display:block}.heat-strip{display:flex;gap:3px;align-items:center;min-width:72px}.heat-dot{width:9px;height:14px;border:1px solid var(--rule);background:#E7EBE8}.heat-dot.ok{background:var(--green)}.heat-dot.warn{background:var(--amber)}.heat-dot.bad{background:var(--red)}.heat-dot.none{background:#D5DAD6}.critical-row{box-shadow:inset 3px 0 0 var(--red);background:#FFF4F5!important}
+    .crumb{display:flex;align-items:center;gap:8px;margin:0 0 12px;padding:9px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.crumb strong{color:var(--green)}
+    .tabs{display:flex;gap:0;margin:0 0 12px;border:1px solid var(--rule);background:var(--panel);width:max-content;max-width:100%;overflow:auto}.tab-btn{min-height:34px;border:0;border-right:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 14px;white-space:nowrap}.tab-btn:last-child{border-right:0}.tab-btn.active{background:var(--ink);color:var(--bg)}
+    .card-grid{display:grid;grid-template-columns:repeat(4,minmax(280px,1fr));gap:12px;margin-bottom:14px;overflow-x:auto}.section-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+    .metric-card{position:relative;text-align:left;background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--blue);padding:12px;min-height:148px;width:100%}.metric-card:hover{border-color:var(--blue);background:#F8FAF7}.metric-card.active{outline:2px solid var(--blue);outline-offset:-2px}.metric-card.ok{border-top-color:var(--green)}.metric-card.warn{border-top-color:var(--amber)}.metric-card.bad{border-top-color:var(--red)}.metric-card.none{border-top-color:var(--rule-strong)}.metric-card.out-master{border-style:dashed;background:#FFFCF4}
+    .card-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px}.card-title{font-size:18px;font-weight:700;color:var(--ink);line-height:1.12}.card-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 6px}.card-metric{border:1px solid var(--rule);background:#F8FAF7;padding:8px;min-width:0}.card-metric-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.card-metric-value{font-family:'IBM Plex Mono',monospace;font-size:25px;line-height:1.05;font-weight:600;margin-top:5px;white-space:nowrap}.ok .card-metric-value{color:var(--green)}.warn .card-metric-value{color:var(--amber)}.bad .card-metric-value{color:var(--red)}.none .card-metric-value{color:var(--ink-soft)}
+    .card-sub{font-size:12px;color:var(--ink-soft);line-height:1.35}.card-foot{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft)}.card-foot strong{color:var(--ink)}
+    .state-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:#F8FAF7;padding:3px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase}.state-pill.ok{color:var(--green);background:var(--green-soft);border-color:#C8E2D0}.state-pill.warn{color:var(--amber);background:var(--amber-soft);border-color:#E1BF76}.state-pill.bad{color:var(--red);background:var(--red-soft);border-color:#E5A6AE}.state-pill.none{color:var(--ink-soft)}.state-pill.out-master{color:#6F4300;background:var(--amber-soft);border-color:#E1BF76}
+    .state-pill.ritmo-alto{color:var(--green);background:var(--green-soft);border-color:#C8E2D0}.state-pill.ritmo-ok{color:var(--blue);background:var(--blue-soft);border-color:#B8D4ED}.state-pill.ritmo-bajo{color:var(--red);background:var(--red-soft);border-color:#E5A6AE}.state-pill.ritmo-muestra{color:var(--amber);background:var(--amber-soft);border-color:#E1BF76}
+    .panel{background:var(--panel);border:1px solid var(--rule);margin-bottom:14px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#F6F8F5;border-bottom:1px solid var(--rule);padding:9px 12px}.panel-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}.panel-body{padding:12px}.panel.collapsed .panel-body{display:none}.panel-toggle{min-height:26px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 8px}.panel-toggle:hover{color:var(--blue);border-color:var(--blue)}.panel-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .table-wrap{overflow:auto;max-height:560px}table{width:100%;border-collapse:collapse;min-width:1160px}th{position:sticky;top:0;background:#F6F8F5;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule);white-space:nowrap}td{padding:9px 10px;border-bottom:1px solid var(--rule);font-size:12px;vertical-align:middle}tbody tr:nth-child(odd){background:#F8FAF7}.records-table{min-width:1240px}.records-table .date-cell{width:142px;max-width:142px;white-space:nowrap}.mono{font-family:'IBM Plex Mono',monospace}.num{text-align:right}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+    .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(14,22,32,.42);z-index:30;align-items:center;justify-content:center;padding:24px}.modal-backdrop.open{display:flex}.modal-panel{width:min(980px,100%);max-height:88vh;background:var(--panel);border:1px solid var(--rule-strong);display:flex;flex-direction:column}.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--rule);background:#F6F8F5}.modal-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);font-weight:600}.modal-body{padding:12px;overflow:auto}.modal-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border-top:1px solid var(--rule);background:var(--panel)}
+    .standard-table{min-width:760px}.standard-table input{height:30px;width:100%;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:0 8px}.standard-table input[type="checkbox"]{width:16px;height:16px;min-height:16px}
+    @media(max-width:1180px){.toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.section-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero,.insight-strip{grid-template-columns:1fr}.card-metric-value{font-size:21px}}
+    @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header,.page-head,.toolbar,.section-grid{grid-template-columns:1fr}.card-grid{grid-template-columns:repeat(4,minmax(240px,1fr));overflow:auto}.header-right{justify-self:start;flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div>
+        <div class="kicker">Picking online</div>
+        <h1>Rendimiento <span class="amp">Online</span></h1>
+      </div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/selector">Inicio</a>
+      <a class="paper-link" href="/productividad.html">Productividad</a>
+      <div class="user-chip"><div><div class="label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn" type="button">Salir</button>
+    </div>
+  </header>
+  <div class="env-banner" id="env-banner"></div>
+
+  <main>
+    <header class="page-head">
+      <div>
+        <div class="kicker">Analisis On Line de Rendimientos</div>
+        <h2 class="page-title">Almacen, sector y legajo</h2>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="kicker">Dia logistico actual</div>
+        <div class="hero-title" id="hero-title">Esperando consulta</div>
+        <div class="hero-sub" id="hero-sub">Selecciona turno y consulta el estado operativo actual.</div>
+      </div>
+      <div class="status" id="summary-status">Sin datos cargados.</div>
+    </section>
+
+    <section class="toolbar">
+      <div class="field">
+        <label class="label" for="turno">Turno</label>
+        <select id="turno">
+          <option value="manana">Manana (06-14)</option>
+          <option value="tarde">Tarde (14-22)</option>
+          <option value="noche">Noche (22-06)</option>
+          <option value="noche_anterior">Noche anterior (22-06)</option>
+        </select>
+      </div>
+      <button class="primary-btn" id="load-btn" type="button" onclick="loadDashboard()">Consultar</button>
+      <button class="ghost-btn" type="button" onclick="openStandardsModal()">Editar estandares</button>
+      <button class="ghost-btn" type="button" onclick="exportLegajos()">Exportar legajos</button>
+      <div class="status" id="status">Listo para consultar.</div>
+    </section>
+
+    <section class="insight-strip" id="insight-strip">
+      <div class="timeline-card">
+        <div class="timeline-head"><span>Linea del turno</span><span id="timeline-caption">Sin consulta</span></div>
+        <div class="timeline-track" id="timeline-track"><div class="timeline-fill" style="width:0"></div></div>
+      </div>
+      <div class="legend-card" id="insight-legend">
+        <span class="cause-badge none">Sin datos</span>
+      </div>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="Perspectiva de analisis">
+      <button class="tab-btn active" id="tab-sector" type="button" onclick="setPerspective('sector')">Por sector</button>
+      <button class="tab-btn" id="tab-legajo" type="button" onclick="setPerspective('legajo')">Por legajo</button>
+    </div>
+
+    <div class="crumb" id="crumb">Vista: <strong>Almacenes</strong></div>
+    <section class="panel" id="panel-nivel-1">
+      <div class="panel-head">
+        <div class="panel-title" id="level1-title">Nivel 1 - Almacenes</div>
+        <div class="panel-actions">
+          <span class="state-pill none" id="division-count">0 almacenes</span>
+          <button class="panel-toggle" type="button" onclick="togglePanel('panel-nivel-1')">Contraer</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <section class="card-grid" id="division-cards"></section>
+      </div>
+    </section>
+
+    <section class="panel collapsed" id="panel-nivel-2">
+      <div class="panel-head">
+        <div class="panel-title" id="level2-title">Nivel 2 - Sectores</div>
+        <div class="panel-actions">
+          <span class="state-pill none" id="level2-count">0 sectores</span>
+          <button class="panel-toggle" type="button" onclick="togglePanel('panel-nivel-2')">Expandir</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <section class="section-grid" id="level2-cards"></section>
+      </div>
+    </section>
+
+    <section class="panel collapsed" id="panel-nivel-3">
+      <div class="panel-head">
+        <div class="panel-title" id="ranking-title">Ranking de legajos</div>
+        <div class="panel-actions">
+          <span class="state-pill none" id="ranking-count">0 legajos</span>
+          <button class="panel-toggle" type="button" onclick="togglePanel('panel-nivel-3')">Expandir</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap" id="ranking-wrap"><div class="empty">Selecciona un sector para ver el ranking de legajos.</div></div>
+      </div>
+    </section>
+
+    <section class="panel collapsed" id="panel-nivel-4">
+      <div class="panel-head">
+        <div class="panel-title" id="records-title">Nivel 4 - Registros del legajo</div>
+        <div class="panel-actions">
+          <span class="state-pill none" id="records-count">0 registros</span>
+          <button class="panel-toggle" type="button" onclick="togglePanel('panel-nivel-4')">Expandir</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap" id="records-wrap"><div class="empty">Selecciona un legajo del ranking para ver sus registros.</div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="standards-modal" role="dialog" aria-modal="true" aria-label="Editar estandares">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div class="modal-title">Productividad estandar por sector</div>
+      <button class="ghost-btn" type="button" onclick="closeStandardsModal()">Cerrar</button>
+    </div>
+    <div class="modal-body">
+      <div class="status" id="standards-status">Edita los valores y guarda el JSON local de estandares.</div>
+      <div class="table-wrap" style="margin-top:10px">
+        <table class="standard-table">
+          <thead><tr><th>Division</th><th>Sector</th><th class="num">Productividad x hora</th><th>Activo</th><th></th></tr></thead>
+          <tbody id="standards-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost-btn" type="button" onclick="addStandardRow()">Agregar sector</button>
+      <div>
+        <button class="ghost-btn" type="button" onclick="closeStandardsModal()">Cancelar</button>
+        <button class="primary-btn" type="button" onclick="saveStandards()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const num = value => Number(value || 0).toLocaleString('es-AR', {maximumFractionDigits: 1});
+  const pct = value => value == null ? '-' : `${num(value)}%`;
+  let dashboard = null;
+  let perspective = 'sector';
+  let selectedDivision = '';
+  let selectedSector = '';
+  let selectedLegajo = '';
+  let tableSorts = {
+    sectorRanking: {key:'productividad_actual', dir:'desc'},
+    legajoMain: {key:'cumplimiento_pct', dir:'asc'},
+    legajoDetail: {key:'cumplimiento_pct', dir:'asc'},
+  };
+  let standards = [];
+
+  function stateLabel(state) {
+    return {ok:'OK', warn:'Atencion', bad:'Bajo', none:'Sin est.'}[state] || '-';
+  }
+
+  function calcState(actual, expected) {
+    if (!expected || expected <= 0) return {estado:'none', cumplimiento_pct:null};
+    const cumplimiento = actual / expected * 100;
+    return {estado: cumplimiento >= 95 ? 'ok' : cumplimiento >= 85 ? 'warn' : 'bad', cumplimiento_pct: cumplimiento};
+  }
+
+  function parseDate(value) {
+    if (!value) return null;
+    const date = new Date(String(value).replace(' ', 'T'));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function statusClass(row) {
+    return ['ok','warn','bad','none'].includes(row?.estado) ? row.estado : 'none';
+  }
+
+  function rhythmInfo(row) {
+    const minutes = Number(row?.segundos || 0) / 60;
+    const pctValue = row?.cumplimiento_pct == null ? null : Number(row.cumplimiento_pct);
+    if (pctValue == null || !Number.isFinite(pctValue)) return {label:'Sin est.', cls:'none'};
+    if (minutes > 0 && minutes < 10) return {label:'Poca muestra', cls:'ritmo-muestra'};
+    if (pctValue >= 100) return {label:'Alto', cls:'ritmo-alto'};
+    if (pctValue >= 85) return {label:'OK', cls:'ritmo-ok'};
+    return {label:'Bajo', cls:'ritmo-bajo'};
+  }
+
+  function rhythmPill(row) {
+    const info = rhythmInfo(row);
+    return `<span class="state-pill ${info.cls}" title="Ritmo segun productividad actual contra esperada durante el tiempo trabajado.">${info.label}</span>`;
+  }
+
+  function causeBadges(row, opts={}) {
+    const badges = [];
+    const minutes = Number(row?.segundos || 0) / 60;
+    if (row?.estado === 'bad' && minutes >= 15) badges.push(['bad', 'Critico']);
+    if (row?.estado === 'warn') badges.push(['warn', 'Atencion']);
+    if (row?.estado === 'none' || row?.requiere_maestro) badges.push(['none', 'Sin est.']);
+    if (minutes > 0 && minutes < 10) badges.push(['warn', 'Poca muestra']);
+    if (Number(row?.operaciones_abiertas || 0) > 0) badges.push(['warn', 'Abierto']);
+    if (opts.multiAlmacen || Number(row?.almacenes_activos || 0) > 1) badges.push(['warn', 'Multi alm.']);
+    return `<div class="cause-badges">${badges.slice(0,3).map(([cls, text]) => `<span class="cause-badge ${cls}">${text}</span>`).join('') || '<span class="cause-badge none">OK</span>'}</div>`;
+  }
+
+  function heatStrip(rows) {
+    const items = [...(rows || [])].filter(Boolean).sort((a,b) => String(a.ultimo_movimiento || '').localeCompare(String(b.ultimo_movimiento || ''), 'es')).slice(-10);
+    return `<div class="heat-strip">${items.map(row => `<span class="heat-dot ${statusClass(row)}" title="${esc(row.division || '')} ${esc(row.sector || '')} ${pct(row.cumplimiento_pct)}"></span>`).join('') || '<span class="heat-dot none"></span>'}</div>`;
+  }
+
+  function sparklineForLegajo(legajo) {
+    const rows = rowsForLegajo(legajo)
+      .filter(row => Number(row.segundos || 0) > 0)
+      .sort((a,b) => String(a.ultimo_movimiento || '').localeCompare(String(b.ultimo_movimiento || ''), 'es'));
+    if (!rows.length) return '<span class="mono">-</span>';
+    const values = rows.map(row => {
+      if (row.cumplimiento_pct != null) return Math.min(140, Math.max(0, Number(row.cumplimiento_pct)));
+      return Math.min(140, Math.max(0, Number(row.productividad_actual || 0)));
+    });
+    if (values.length === 1) values.push(values[0]);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = Math.max(max - min, 1);
+    const points = values.map((v, i) => {
+      const x = 4 + (i * 76 / Math.max(values.length - 1, 1));
+      const y = 21 - ((v - min) / span) * 17;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const color = values[values.length - 1] < values[0] ? '#C8102E' : '#0B5FAE';
+    return `<svg class="sparkline" viewBox="0 0 84 24" aria-hidden="true"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="2"/><line x1="0" y1="22" x2="84" y2="22" stroke="#D4DBD8"/></svg>`;
+  }
+
+  function rowsForLegajo(legajo) {
+    return (dashboard?.legajos || []).filter(row => row.legajo === legajo);
+  }
+
+  function avgPickingMinutes(legajo, division, sector) {
+    const minutes = (dashboard?.registros || [])
+      .filter(row =>
+        row.legajo === legajo &&
+        row.division === division &&
+        row.sector === sector &&
+        String(row.operacion || '').toUpperCase() === 'PICKING' &&
+        row.minutos != null
+      )
+      .map(row => Number(row.minutos))
+      .filter(value => Number.isFinite(value));
+    if (!minutes.length) return null;
+    return minutes.reduce((acc, value) => acc + value, 0) / minutes.length;
+  }
+
+  function renderInsights() {
+    if (!dashboard) return;
+    const start = parseDate(dashboard.rango?.fecha_desde);
+    const end = parseDate(dashboard.rango?.fecha_fin_turno || dashboard.rango?.fecha_hasta);
+    const now = parseDate(dashboard.rango?.oracle_now || dashboard.rango?.server_now || dashboard.rango?.fecha_hasta);
+    const total = start && end ? Math.max(end - start, 1) : 1;
+    const pctNow = start && now ? Math.max(0, Math.min(100, ((now - start) / total) * 100)) : 0;
+    const marks = (dashboard.legajos || []).filter(row => ['bad','warn'].includes(row.estado)).slice(0,80).map(row => {
+      const dt = parseDate(row.ultimo_movimiento);
+      const left = start && dt ? Math.max(0, Math.min(100, ((dt - start) / total) * 100)) : 0;
+      return `<span class="timeline-mark ${statusClass(row)}" style="left:${left}%" title="${esc(row.legajo)} ${esc(row.sector)} ${pct(row.cumplimiento_pct)}"></span>`;
+    }).join('');
+    $('timeline-track').innerHTML = `<div class="timeline-fill" style="width:${pctNow}%"></div>${marks}<span class="timeline-now" style="left:${pctNow}%"></span>`;
+    const activos = new Set((dashboard.registros || []).filter(row => row.fecha).map(row => row.legajo)).size;
+    const criticos = (dashboard.legajos || []).filter(row => row.estado === 'bad').length;
+    const sinEst = (dashboard.legajos || []).filter(row => row.estado === 'none' || row.requiere_maestro).length;
+    $('timeline-caption').textContent = `${num(pctNow)}% turno - ${activos} legajos`;
+    $('insight-legend').innerHTML = `
+      <div class="legend-summary">
+        <span class="cause-badge bad">${num(criticos)} criticos</span>
+        <span class="cause-badge none">${num(sinEst)} sin est.</span>
+        <span class="cause-badge warn">${num((dashboard.divisiones || []).reduce((acc,row) => acc + Number(row.sectores_fuera_maestro || 0), 0))} sectores fuera maestro</span>
+      </div>
+      <div class="legend-ref">
+        <span class="legend-ref-title">Referencias</span>
+        <span class="cause-badge bad" title="Cumplimiento menor a 85% con tiempo suficiente para accionar.">Critico</span>
+        <span class="cause-badge warn" title="Cumplimiento entre 85% y 95%. Requiere seguimiento.">Atencion</span>
+        <span class="cause-badge none" title="No hay productividad estandar cargada para ese almacen/sector.">Sin est.</span>
+        <span class="cause-badge warn" title="La medicion tiene menos de 10 minutos; puede ser poco representativa.">Poca muestra</span>
+        <span class="cause-badge warn" title="Hay una operacion en curso calculada hasta el momento actual.">Abierto</span>
+        <span class="cause-badge warn" title="El legajo trabajo en mas de un almacen durante el turno.">Multi alm.</span>
+        <span class="state-pill ritmo-alto" title="Productividad actual igual o superior a la esperada durante el tiempo trabajado.">Ritmo alto</span>
+        <span class="state-pill ritmo-bajo" title="Productividad actual menor al 85% de la esperada durante el tiempo trabajado.">Ritmo bajo</span>
+      </div>`;
+  }
+
+  function aggregateLegajos(division='') {
+    const map = new Map();
+    (dashboard?.legajos || []).filter(row => !division || row.division === division).forEach(row => {
+      const key = row.legajo;
+      const item = map.get(key) || {
+        division,
+        legajo: row.legajo,
+        nombre: row.nombre || '',
+        bultos: 0,
+        segundos: 0,
+        operaciones: 0,
+        operaciones_abiertas: 0,
+        bultos_esperados: 0,
+        almacenes: new Set(),
+        sectores: new Set(),
+        sectores_rojo: 0,
+        sectores_amarillo: 0,
+        sector_critico: '',
+        peor_cumplimiento: Infinity,
+        primer_movimiento: row.primer_movimiento,
+        ultimo_movimiento: row.ultimo_movimiento,
+      };
+      item.nombre = item.nombre || row.nombre || '';
+      item.bultos += Number(row.bultos || 0);
+      item.segundos += Number(row.segundos || 0);
+      item.operaciones += Number(row.operaciones || 0);
+      item.operaciones_abiertas += Number(row.operaciones_abiertas || 0);
+      item.bultos_esperados += Number(row.bultos_esperados || 0);
+      item.almacenes.add(row.division);
+      item.sectores.add(row.sector);
+      if (row.estado === 'bad') item.sectores_rojo += 1;
+      if (row.estado === 'warn') item.sectores_amarillo += 1;
+      if (row.cumplimiento_pct != null && Number(row.cumplimiento_pct) < item.peor_cumplimiento) {
+        item.peor_cumplimiento = Number(row.cumplimiento_pct);
+        item.sector_critico = row.sector;
+      }
+      if (row.primer_movimiento && (!item.primer_movimiento || row.primer_movimiento < item.primer_movimiento)) item.primer_movimiento = row.primer_movimiento;
+      if (row.ultimo_movimiento && (!item.ultimo_movimiento || row.ultimo_movimiento > item.ultimo_movimiento)) item.ultimo_movimiento = row.ultimo_movimiento;
+      map.set(key, item);
+    });
+    return [...map.values()].map(item => {
+      const horas = item.segundos / 3600;
+      const actual = horas > 0 ? item.bultos / horas : 0;
+      const expected = horas > 0 ? item.bultos_esperados / horas : 0;
+      const state = calcState(actual, expected);
+      return {
+        ...item,
+        almacenes_activos: item.almacenes.size,
+        almacenes_lista: [...item.almacenes].sort().join(', '),
+        sectores_activos: item.sectores.size,
+        sectores_lista: [...item.sectores].sort().join(', '),
+        horas,
+        minutos: item.segundos / 60,
+        productividad_actual: actual,
+        productividad_esperada: expected,
+        productividad_esperada_turno: expected * 6.5,
+        cumplimiento_pct: state.cumplimiento_pct,
+        estado: state.estado,
+      };
+    }).sort((a,b) => {
+      const stateOrder = {bad:0, warn:1, none:2, ok:3};
+      return (stateOrder[a.estado] ?? 9) - (stateOrder[b.estado] ?? 9)
+        || Number(a.cumplimiento_pct ?? 9999) - Number(b.cumplimiento_pct ?? 9999)
+        || String(a.legajo).localeCompare(String(b.legajo), 'es');
+    });
+  }
+
+  function setStatus(text, error=false) {
+    const el = $('status');
+    el.textContent = text;
+    el.classList.toggle('error', error);
+  }
+
+  function setPanelCollapsed(id, collapsed) {
+    const panel = $(id);
+    if (!panel) return;
+    panel.classList.toggle('collapsed', collapsed);
+    const btn = panel.querySelector('.panel-toggle');
+    if (btn) btn.textContent = collapsed ? 'Expandir' : 'Contraer';
+  }
+
+  function togglePanel(id) {
+    const panel = $(id);
+    if (!panel) return;
+    setPanelCollapsed(id, !panel.classList.contains('collapsed'));
+  }
+
+  function setPerspective(next) {
+    perspective = next === 'legajo' ? 'legajo' : 'sector';
+    $('tab-sector').classList.toggle('active', perspective === 'sector');
+    $('tab-legajo').classList.toggle('active', perspective === 'legajo');
+    selectedDivision = perspective === 'sector' ? (dashboard?.divisiones?.[0]?.division || '') : '';
+    selectedSector = '';
+    selectedLegajo = '';
+    setPanelCollapsed('panel-nivel-2', !dashboard);
+    setPanelCollapsed('panel-nivel-3', true);
+    setPanelCollapsed('panel-nivel-4', true);
+    renderDashboard();
+  }
+
+  async function initAuth() {
+    const res = await fetch('/api/auth/me', {credentials:'same-origin'}).catch(() => null);
+    if (!res || !res.ok) {
+      window.location.replace('/login?next=/rendimiento-online.html');
+      return;
+    }
+    const user = await res.json();
+    $('user-label').textContent = user.display_name || user.username;
+    const appInfo = await fetch('/api/app-info', {credentials:'same-origin'}).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (appInfo?.show_banner && appInfo.banner) {
+      $('env-banner').textContent = appInfo.banner;
+      $('env-banner').classList.add('visible');
+    }
+  }
+
+  $('logout-btn').onclick = async () => {
+    sessionStorage.removeItem('vigia_session');
+    await fetch('/api/auth/logout', {method:'POST',credentials:'same-origin'}).catch(() => {});
+    window.location.replace('/login');
+  };
+
+  function defaultTurno() {
+    const h = new Date().getHours();
+    if (h >= 14 && h < 22) return 'tarde';
+    if (h >= 22 || h < 6) return 'noche';
+    return 'manana';
+  }
+
+  async function loadDashboard() {
+    const btn = $('load-btn');
+    btn.disabled = true;
+    setStatus('Consultando y calculando operaciones por sector.');
+    try {
+      const turno = $('turno').value;
+      const res = await fetch(`/api/rendimiento-online/tablero?turno=${encodeURIComponent(turno)}`, {credentials:'same-origin'});
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'No se pudo consultar rendimiento online.');
+      dashboard = data;
+      selectedDivision = perspective === 'sector' ? (data.divisiones[0]?.division || '') : '';
+      selectedSector = '';
+      selectedLegajo = '';
+      setPanelCollapsed('panel-nivel-1', false);
+      setPanelCollapsed('panel-nivel-2', true);
+      setPanelCollapsed('panel-nivel-3', true);
+      setPanelCollapsed('panel-nivel-4', true);
+      renderDashboard();
+      const fuera = data.diagnostico_estandares?.sectores_fuera_maestro_activos || [];
+      const diag = fuera.length
+        ? ` Fuera maestro: ${fuera.slice(0, 8).map(row => `${row.division}/${row.sector}`).join(', ')}${fuera.length > 8 ? '...' : ''}.`
+        : '';
+      setStatus(`Consulta lista: ${num(data.summary.movimientos)} movimientos, ${num(data.summary.operaciones)} operaciones.${diag}`);
+    } catch (err) {
+      setStatus(err.message || 'Error de consulta.', true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function renderDashboard() {
+    if (!dashboard) return;
+    const rango = dashboard.rango;
+    $('hero-title').textContent = `${rango.turno_label} - ${rango.dia_logistico}`;
+    $('hero-sub').textContent = `${rango.fecha_desde} a ${rango.fecha_hasta} - ${rango.en_curso ? 'turno en curso' : rango.futuro ? 'turno futuro' : 'turno vencido'}`;
+    $('summary-status').textContent = `${num(dashboard.divisiones.length)} almacenes - ${num(dashboard.sectores.length)} sectores - ${num(dashboard.legajos.length)} legajos`;
+    $('division-count').textContent = `${dashboard.divisiones.length} almacenes`;
+    renderDivisionCards();
+    renderLevel2();
+    renderRanking();
+    renderRecords();
+    renderInsights();
+    renderCrumb();
+  }
+
+  function cardHtml(item, type) {
+    const value = type === 'division' ? item.division : type === 'legajo' ? item.legajo : item.sector;
+    const title = type === 'legajo' ? `${item.legajo} - ${item.nombre || '-'}` : value;
+    const sub = type === 'division'
+      ? `${num(item.sectores_total ?? item.sectores_activos)} sectores (${num(item.sectores_activos)} con mov.) - ${num(item.legajos_activos)} legajos`
+      : type === 'legajo'
+        ? `${esc(item.nombre || '-')} - ${num(item.sectores_activos)} sectores`
+        : `${num(item.legajos_activos)} legajos - ${num(item.operaciones_abiertas)} abiertas`;
+    const outMaster = type === 'sector' && item.en_maestro === false;
+    const label = type === 'division' ? 'Almacen' : type === 'legajo' ? 'Legajo' : (outMaster ? 'Sector - fuera maestro' : 'Sector');
+    const masterBadge = outMaster ? '<span class="state-pill out-master">Agregar maestro</span>' : '';
+    return `
+      <button class="metric-card ${esc(item.estado)} ${outMaster ? 'out-master' : ''} ${type === 'division' && selectedDivision === item.division ? 'active' : ''} ${type === 'sector' && selectedSector === item.sector ? 'active' : ''} ${type === 'legajo' && selectedLegajo === item.legajo ? 'active' : ''}" type="button" data-${type}="${esc(value)}">
+        <div class="card-label">${label}</div>
+        <div class="card-title">${esc(title)}</div>
+        <div class="card-metrics">
+          <div class="card-metric">
+            <div class="card-metric-label">Actual b/h</div>
+            <div class="card-metric-value">${num(item.productividad_actual)}</div>
+          </div>
+          <div class="card-metric">
+            <div class="card-metric-label">Cumpl.</div>
+            <div class="card-metric-value">${pct(item.cumplimiento_pct)}</div>
+          </div>
+        </div>
+        <div class="card-sub">${sub}<br>Esperado ${num(item.productividad_esperada)} b/h - Esperado turno ${num(item.productividad_esperada_turno)}</div>
+        <div class="card-foot">
+          <span>Bultos <strong>${num(item.bultos)}</strong></span>
+          <span>Estado <strong>${stateLabel(item.estado)}</strong></span>
+          <span>${type === 'division' ? 'Fuera maestro' : type === 'legajo' ? 'Sector crit.' : 'Rojo'} <strong>${type === 'legajo' ? esc(item.sector_critico || '-') : num(type === 'division' ? item.sectores_fuera_maestro : item.legajos_rojo)}</strong></span>
+          <span>Ult. <strong>${esc((item.ultimo_movimiento || '-').slice(11,16))}</strong></span>
+        </div>
+        ${masterBadge}
+      </button>`;
+  }
+
+  function renderDivisionCards() {
+    if (perspective === 'legajo') {
+      const rows = sortedLegajos(aggregateLegajos(), 'legajoMain');
+      $('level1-title').textContent = 'Nivel 1 - Legajos';
+      $('division-count').textContent = `${rows.length} legajos`;
+      $('division-cards').className = 'table-wrap';
+      $('division-cards').innerHTML = rows.length ? `
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>${th('Estado','estado','','legajoMain')}${th('Legajo','legajo','','legajoMain')}${th('Nombre','nombre','','legajoMain')}
+              ${th('Bultos','bultos','num','legajoMain')}${th('Tiempo min','minutos','num','legajoMain')}${th('Actual b/h','productividad_actual','num','legajoMain')}
+              ${th('Esperado b/h','productividad_esperada','num','legajoMain')}${th('Cumpl.','cumplimiento_pct','num','legajoMain')}<th>Ritmo</th>
+              <th>Tend.</th><th>Heat</th>${th('Almacenes','almacenes_activos','num','legajoMain')}${th('Sectores','sectores_activos','num','legajoMain')}${th('Sector crit.','sector_critico','','legajoMain')}<th>Causas</th>${th('Ultimo mov.','ultimo_movimiento','','legajoMain')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((row, idx) => `
+              <tr onclick="selectLegajoPrincipal('${esc(row.legajo)}')" style="cursor:pointer">
+                <td class="mono">${idx + 1}</td>
+                <td><span class="state-pill ${esc(row.estado)}">${stateLabel(row.estado)}</span></td>
+                <td class="mono">${esc(row.legajo)}</td>
+                <td>${esc(row.nombre || '-')}</td>
+                <td class="num mono">${num(row.bultos)}</td>
+                <td class="num mono">${num(row.minutos)}</td>
+                <td class="num mono">${num(row.productividad_actual)}</td>
+                <td class="num mono">${num(row.productividad_esperada)}</td>
+                <td class="num mono">${pct(row.cumplimiento_pct)}</td>
+                <td>${rhythmPill(row)}</td>
+                <td>${sparklineForLegajo(row.legajo)}</td>
+                <td>${heatStrip(rowsForLegajo(row.legajo))}</td>
+                <td class="num mono" title="${esc(row.almacenes_lista || '-')}">${num(row.almacenes_activos)}</td>
+                <td class="num mono" title="${esc(row.sectores_lista || '-')}">${num(row.sectores_activos)}</td>
+                <td class="mono">${esc(row.sector_critico || '-')}</td>
+                <td>${causeBadges(row, {multiAlmacen: row.almacenes_activos > 1})}</td>
+                <td class="mono">${esc(row.ultimo_movimiento || '-')}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>` : '<div class="empty">Consulta para cargar legajos del turno.</div>';
+      return;
+    }
+    $('level1-title').textContent = 'Nivel 1 - Almacenes';
+    $('division-cards').className = 'card-grid';
+    $('division-cards').innerHTML = (dashboard.divisiones || []).map(item => cardHtml(item, 'division')).join('') || '<div class="empty">Sin almacenes con actividad.</div>';
+    document.querySelectorAll('[data-division]').forEach(btn => {
+      btn.onclick = () => {
+        selectedDivision = btn.dataset.division;
+        selectedSector = '';
+        selectedLegajo = '';
+        setPanelCollapsed('panel-nivel-2', false);
+        setPanelCollapsed('panel-nivel-3', true);
+        setPanelCollapsed('panel-nivel-4', true);
+        renderDashboard();
+      };
+    });
+  }
+
+  function renderLevel2() {
+    if (perspective === 'legajo') {
+      const rows = sortedLegajos((dashboard.legajos || [])
+        .filter(row => row.legajo === selectedLegajo)
+        .map(row => ({
+          ...row,
+          minutos: Number(row.segundos || 0) / 60,
+          promedio_min_picking: avgPickingMinutes(row.legajo, row.division, row.sector),
+        })), 'legajoDetail');
+      $('level2-title').textContent = selectedLegajo ? `Nivel 2 - Almacenes y sectores del legajo ${selectedLegajo}` : 'Nivel 2 - Detalle del legajo';
+      $('level2-count').textContent = `${rows.length} filas`;
+      $('level2-cards').className = 'table-wrap';
+      if (!selectedLegajo) {
+        $('level2-cards').innerHTML = '<div class="empty">Selecciona un legajo de la grilla superior para ver su detalle.</div>';
+        return;
+      }
+      const selectedSummary = aggregateLegajos().find(item => item.legajo === selectedLegajo);
+      $('level2-cards').innerHTML = rows.length ? `
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>${th('Estado','estado','','legajoDetail')}${th('Almacen','division','','legajoDetail')}${th('Sector','sector','','legajoDetail')}
+              ${th('Bultos','bultos','num','legajoDetail')}${th('Tiempo min','minutos','num','legajoDetail')}${th('Prom. min picking','promedio_min_picking','num','legajoDetail')}${th('Actual b/h','productividad_actual','num','legajoDetail')}
+              ${th('Esperado b/h','productividad_esperada','num','legajoDetail')}${th('Cumpl.','cumplimiento_pct','num','legajoDetail')}<th>Ritmo</th><th>Heat</th><th>Causas</th>${th('Abiertas','operaciones_abiertas','num','legajoDetail')}${th('Ultimo mov.','ultimo_movimiento','','legajoDetail')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((row, idx) => `
+              <tr class="${selectedSummary?.sector_critico === row.sector ? 'critical-row' : ''}" onclick="selectSectorForLegajo('${esc(row.division)}','${esc(row.sector)}')" style="cursor:pointer">
+                <td class="mono">${idx + 1}</td>
+                <td><span class="state-pill ${esc(row.estado)}">${stateLabel(row.estado)}</span></td>
+                <td class="mono">${esc(row.division)}</td>
+                <td class="mono">${esc(row.sector)}</td>
+                <td class="num mono">${num(row.bultos)}</td>
+                <td class="num mono">${num(row.minutos)}</td>
+                <td class="num mono">${row.promedio_min_picking == null ? '-' : num(row.promedio_min_picking)}</td>
+                <td class="num mono">${num(row.productividad_actual)}</td>
+                <td class="num mono">${num(row.productividad_esperada)}</td>
+                <td class="num mono">${pct(row.cumplimiento_pct)}</td>
+                <td>${rhythmPill(row)}</td>
+                <td>${heatStrip([row])}</td>
+                <td>${causeBadges(row)}</td>
+                <td class="num mono">${num(row.operaciones_abiertas)}</td>
+                <td class="mono">${esc(row.ultimo_movimiento || '-')}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>` : '<div class="empty">Sin actividad para el legajo seleccionado.</div>';
+      return;
+    }
+    $('level2-cards').className = 'section-grid';
+    const rows = (dashboard.sectores || []).filter(row => row.division === selectedDivision);
+    const outMaster = rows.filter(row => row.en_maestro === false).length;
+    $('level2-title').textContent = 'Nivel 2 - Sectores';
+    $('level2-count').textContent = `${rows.length} sectores${outMaster ? ` - ${outMaster} fuera maestro` : ''}`;
+    $('level2-cards').innerHTML = rows.map(item => cardHtml(item, 'sector')).join('') || '<div class="empty">Selecciona un almacen con sectores activos.</div>';
+    document.querySelectorAll('[data-sector]').forEach(btn => {
+      btn.onclick = () => {
+        selectedSector = btn.dataset.sector;
+        selectedLegajo = '';
+        setPanelCollapsed('panel-nivel-3', false);
+        setPanelCollapsed('panel-nivel-4', true);
+        renderDashboard();
+      };
+    });
+  }
+
+  function sortLegajos(key, scope='sectorRanking') {
+    const sort = tableSorts[scope] || tableSorts.sectorRanking;
+    if (sort.key === key) {
+      sort.dir = sort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      tableSorts[scope] = {key, dir: ['legajo','nombre','sector','division','estado','ultimo_movimiento'].includes(key) ? 'asc' : 'desc'};
+    }
+    renderDashboard();
+  }
+
+  function sortedLegajos(rows, scope='sectorRanking') {
+    const sort = tableSorts[scope] || tableSorts.sectorRanking;
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    const key = sort.key;
+    return [...rows].sort((a,b) => {
+      const av = a[key] ?? '';
+      const bv = b[key] ?? '';
+      if (typeof av === 'number' || typeof bv === 'number') return (Number(av || 0) - Number(bv || 0)) * dir;
+      return String(av).localeCompare(String(bv), 'es') * dir;
+    });
+  }
+
+  function th(label, key, cls='', scope='sectorRanking') {
+    const sort = tableSorts[scope] || tableSorts.sectorRanking;
+    const mark = sort.key === key ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+    return `<th class="${cls}" onclick="sortLegajos('${key}','${scope}')" style="cursor:pointer">${label}${mark}</th>`;
+  }
+
+  function renderRanking() {
+    if (perspective === 'legajo') {
+      $('ranking-title').textContent = 'Nivel 3 - Sin uso en vista por legajo';
+      $('ranking-count').textContent = '0 filas';
+      $('ranking-wrap').innerHTML = '<div class="empty">En vista por legajo, selecciona una fila del nivel 2 para abrir registros.</div>';
+      return;
+    }
+    const rows = sortedLegajos((dashboard.legajos || []).filter(row => row.division === selectedDivision && (!selectedSector || row.sector === selectedSector)), 'sectorRanking');
+    $('ranking-title').textContent = selectedSector ? `Ranking de legajos - ${selectedDivision} / ${selectedSector}` : `Legajos de ${selectedDivision}`;
+    $('ranking-count').textContent = `${rows.length} legajos`;
+    if (!rows.length) {
+      $('ranking-wrap').innerHTML = '<div class="empty">Sin legajos para el filtro seleccionado.</div>';
+      return;
+    }
+    $('ranking-wrap').innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>${th('Estado','estado')}${th('Sector','sector')}${th('Legajo','legajo')}${th('Nombre','nombre')}
+            ${th('Bultos','bultos','num')}${th('Tiempo h','horas','num')}${th('Actual b/h','productividad_actual','num')}
+            ${th('Esperado b/h','productividad_esperada','num')}${th('Cumpl.','cumplimiento_pct','num')}<th>Causas</th>${th('Abiertas','operaciones_abiertas','num')}${th('Ultimo mov.','ultimo_movimiento')}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row, idx) => `
+            <tr onclick="selectLegajo('${esc(row.legajo)}')" style="cursor:pointer">
+              <td class="mono">${idx + 1}</td>
+              <td><span class="state-pill ${esc(row.estado)}">${stateLabel(row.estado)}</span></td>
+              <td class="mono">${esc(row.sector)}</td>
+              <td class="mono">${esc(row.legajo)}</td>
+              <td>${esc(row.nombre || '-')}</td>
+              <td class="num mono">${num(row.bultos)}</td>
+              <td class="num mono">${num(row.horas)}</td>
+              <td class="num mono">${num(row.productividad_actual)}</td>
+              <td class="num mono">${num(row.productividad_esperada)}</td>
+              <td class="num mono">${pct(row.cumplimiento_pct)}</td>
+              <td>${causeBadges(row)}</td>
+              <td class="num mono">${num(row.operaciones_abiertas)}</td>
+              <td class="mono">${esc(row.ultimo_movimiento || '-')}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function selectLegajo(legajo) {
+    selectedLegajo = legajo;
+    setPanelCollapsed('panel-nivel-4', false);
+    renderRanking();
+    renderRecords();
+  }
+
+  function selectLegajoPrincipal(legajo) {
+    selectedLegajo = legajo;
+    selectedDivision = '';
+    selectedSector = '';
+    setPanelCollapsed('panel-nivel-2', false);
+    setPanelCollapsed('panel-nivel-3', true);
+    setPanelCollapsed('panel-nivel-4', true);
+    renderDashboard();
+  }
+
+  function selectSectorForLegajo(division, sector) {
+    selectedDivision = division;
+    selectedSector = sector;
+    setPanelCollapsed('panel-nivel-4', false);
+    renderRanking();
+    renderRecords();
+  }
+
+  function renderRecords() {
+    const canShowRecords = selectedLegajo && (perspective !== 'legajo' || (selectedDivision && selectedSector));
+    const rows = canShowRecords ? (dashboard?.registros || []).filter(row =>
+      row.division === selectedDivision &&
+      (!selectedSector || row.sector === selectedSector) &&
+      (!selectedLegajo || row.legajo === selectedLegajo)
+    ) : [];
+    $('records-title').textContent = selectedLegajo
+      ? `Nivel 4 - Registros del legajo ${selectedLegajo}${perspective === 'legajo' && selectedDivision ? ` / ${selectedDivision}` : ''}${selectedSector ? ` / ${selectedSector}` : ''}`
+      : 'Nivel 4 - Registros del legajo';
+    $('records-count').textContent = `${rows.length} registros`;
+    if (!selectedLegajo) {
+      $('records-wrap').innerHTML = `<div class="empty">${perspective === 'legajo' ? 'Selecciona un legajo y luego un sector para ver sus registros.' : 'Selecciona un legajo del ranking para ver sus registros.'}</div>`;
+      return;
+    }
+    if (perspective === 'legajo' && (!selectedDivision || !selectedSector)) {
+      $('records-wrap').innerHTML = '<div class="empty">Selecciona una fila de almacen/sector del legajo para ver sus registros.</div>';
+      return;
+    }
+    if (!rows.length) {
+      $('records-wrap').innerHTML = '<div class="empty">Sin registros para el legajo seleccionado.</div>';
+      return;
+    }
+    $('records-wrap').innerHTML = `
+      <table class="records-table">
+        <thead><tr><th class="date-cell">Fecha</th><th class="num">Min.</th><th>Operacion</th><th>Sector</th><th>Pallet</th><th class="num">Cantidad</th><th>Referencia</th><th>Descripcion articulo</th><th>Pedido</th><th>Destino</th></tr></thead>
+        <tbody>${rows.map(row => `
+          <tr>
+            <td class="mono date-cell">${esc(row.fecha || '-')}</td>
+            <td class="num mono">${row.minutos == null ? '-' : num(row.minutos)}</td>
+            <td>${esc(row.operacion || '-')}</td>
+            <td class="mono">${esc(row.sector || '-')}</td>
+            <td class="mono">${esc(row.pallet || '-')}</td>
+            <td class="num mono">${row.operacion === 'TRANSPORTE DE PALETS' ? '-' : num(row.cantidad)}</td>
+            <td class="mono">${row.operacion === 'TRANSPORTE DE PALETS' ? '-' : esc(row.referencia || '-')}</td>
+            <td>${row.operacion === 'TRANSPORTE DE PALETS' ? `Cierre de picking${Number(row.movimientos_agrupados || 0) > 1 ? ` (${num(row.movimientos_agrupados)} mov.)` : ''}` : esc(row.articulo_descripcion || '-')}</td>
+            <td class="mono">${esc(row.pedido || '-')}</td>
+            <td class="mono">${esc(row.destino || '-')}</td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+  }
+
+  function renderCrumb() {
+    const label = perspective === 'legajo' ? 'Por legajo' : 'Por sector';
+    const tail = perspective === 'legajo'
+      ? `${selectedLegajo ? ` / <strong>${esc(selectedLegajo)}</strong>` : ''}${selectedDivision ? ` / <strong>${esc(selectedDivision)}</strong>` : ''}${selectedSector ? ` / <strong>${esc(selectedSector)}</strong>` : ''}`
+      : `${selectedDivision ? ` / <strong>${esc(selectedDivision)}</strong>` : ''}${selectedSector ? ` / <strong>${esc(selectedSector)}</strong>` : ''}${selectedLegajo ? ` / <strong>${esc(selectedLegajo)}</strong>` : ''}`;
+    $('crumb').innerHTML = `Vista ${label}: <strong>Almacenes</strong>${tail}`;
+  }
+
+  function exportLegajos() {
+    const params = new URLSearchParams({turno: $('turno').value});
+    if (selectedDivision) params.set('division', selectedDivision);
+    if (selectedSector) params.set('sector', selectedSector);
+    window.location.href = `/api/rendimiento-online/export/legajos.xlsx?${params.toString()}`;
+  }
+
+  async function openStandardsModal() {
+    $('standards-modal').classList.add('open');
+    $('standards-status').textContent = 'Cargando estandares.';
+    const res = await fetch('/api/rendimiento-online/estandares', {credentials:'same-origin'});
+    const data = await res.json();
+    standards = data.estandares || [];
+    renderStandards();
+    $('standards-status').textContent = `${standards.length} estandares cargados.`;
+  }
+
+  function closeStandardsModal() {
+    $('standards-modal').classList.remove('open');
+  }
+
+  function renderStandards() {
+    $('standards-body').innerHTML = standards.map((row, idx) => `
+      <tr data-std-row="${idx}">
+        <td><input value="${esc(row.division)}" data-field="division"></td>
+        <td><input value="${esc(row.sector)}" data-field="sector"></td>
+        <td><input type="number" min="0" step="0.01" value="${esc(row.productividad_x_hora)}" data-field="productividad_x_hora"></td>
+        <td><input type="checkbox" ${row.activo ? 'checked' : ''} data-field="activo"></td>
+        <td><button class="ghost-btn" type="button" onclick="removeStandardRow(${idx})">Quitar</button></td>
+      </tr>`).join('');
+  }
+
+  function collectStandards() {
+    return Array.from(document.querySelectorAll('[data-std-row]')).map(tr => {
+      const get = field => tr.querySelector(`[data-field="${field}"]`);
+      return {
+        division: get('division').value.trim(),
+        sector: get('sector').value.trim(),
+        productividad_x_hora: Number(get('productividad_x_hora').value || 0),
+        activo: get('activo').checked,
+      };
+    }).filter(row => row.division && row.sector);
+  }
+
+  function addStandardRow() {
+    standards = collectStandards();
+    standards.push({division:'SECOS', sector:'', productividad_x_hora:0, activo:true});
+    renderStandards();
+  }
+
+  function removeStandardRow(idx) {
+    standards = collectStandards();
+    standards.splice(idx, 1);
+    renderStandards();
+  }
+
+  async function saveStandards() {
+    const rows = collectStandards();
+    $('standards-status').textContent = 'Guardando estandares.';
+    const res = await fetch('/api/rendimiento-online/estandares', {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      credentials: 'same-origin',
+      body: JSON.stringify({estandares: rows}),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      $('standards-status').textContent = data.detail || 'No se pudieron guardar los estandares.';
+      $('standards-status').classList.add('error');
+      return;
+    }
+    standards = data.estandares || [];
+    $('standards-status').classList.remove('error');
+    $('standards-status').textContent = 'Estandares guardados. Reconsulta el tablero para aplicar cambios.';
+    renderStandards();
+  }
+
+  $('standards-modal').addEventListener('click', event => {
+    if (event.target === $('standards-modal')) closeStandardsModal();
+  });
+
+  (async function init() {
+    $('turno').value = defaultTurno();
+    await initAuth();
+    setPanelCollapsed('panel-nivel-1', false);
+    setPanelCollapsed('panel-nivel-2', true);
+    setPanelCollapsed('panel-nivel-3', true);
+    setPanelCollapsed('panel-nivel-4', true);
+    $('division-count').textContent = '0 almacenes';
+    $('level2-count').textContent = '0 sectores';
+    $('ranking-count').textContent = '0 legajos';
+    $('records-count').textContent = '0 registros';
+    $('division-cards').innerHTML = '<div class="empty">Consulta para cargar los datos del turno seleccionado.</div>';
+    $('level2-cards').innerHTML = '';
+    $('ranking-wrap').innerHTML = '<div class="empty">La grilla se carga a demanda luego de consultar Oracle.</div>';
+  })();
+</script>
+</body>
+</html>
+

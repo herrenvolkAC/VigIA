@@ -27,3 +27,18 @@ def resolve_db_path(env_name: str, filename: str, legacy_dir: Path) -> Path:
         return _expanded_path(common_dir) / filename
 
     return legacy_dir / filename
+
+
+def resolve_file_path(env_name: str, filename: str, fallback_path: Path, *, common_dir_env: str | None = None) -> Path:
+    """Resuelve un archivo por override individual, carpeta comun o ubicacion fallback."""
+    configured = os.getenv(env_name, "").strip()
+    if configured:
+        path = _expanded_path(configured)
+        return path if path.suffix else path / filename
+
+    if common_dir_env:
+        common_dir = os.getenv(common_dir_env, "").strip()
+        if common_dir:
+            return _expanded_path(common_dir) / filename
+
+    return fallback_path

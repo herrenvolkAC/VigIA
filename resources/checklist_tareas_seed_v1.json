@@ -1,0 +1,3782 @@
+{
+  "seed_version": "checklist_tareas_v1",
+  "generated_from": "Tareas recurrentes 01-07-26 (1).xlsx",
+  "module": "checklist_tareas",
+  "sector": {
+    "code": "MAPA_ALMACEN",
+    "name": "Mapa de Almacén",
+    "active": true
+  },
+  "operators": [
+    "acantero",
+    "aponce",
+    "bcondori",
+    "ccastano",
+    "egoncalves",
+    "gdiazmarquez",
+    "golier",
+    "hgardonio",
+    "lalvarez",
+    "nmeza",
+    "pbenitez",
+    "rsalas"
+  ],
+  "operator_shifts": {
+    "acantero": null,
+    "aponce": "Tarde",
+    "bcondori": "Tarde",
+    "ccastano": "Mañana",
+    "egoncalves": null,
+    "gdiazmarquez": null,
+    "golier": null,
+    "hgardonio": "Mañana",
+    "lalvarez": null,
+    "nmeza": null,
+    "pbenitez": "Mañana",
+    "rsalas": "Noche"
+  },
+  "tasks": [
+    {
+      "code": "MAPA-0001",
+      "title": "Mapa - Guardar y enviar Stock CD Diario",
+      "duration_minutes": 10,
+      "active": true,
+      "source_legacy_ids": [
+        31
+      ]
+    },
+    {
+      "code": "MAPA-0002",
+      "title": "Mapa - Guardar archivo de HPs asignados total CD",
+      "duration_minutes": 5,
+      "active": true,
+      "source_legacy_ids": [
+        32
+      ]
+    },
+    {
+      "code": "MAPA-0003",
+      "title": "Mapa - Completar indicador de disponiblidad y ocupacion de reservas CD",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        35
+      ]
+    },
+    {
+      "code": "MAPA-0004",
+      "title": "Mapa - Completar e informar indicador de disponibilidad y ocupacion de HPs CD",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        36
+      ]
+    },
+    {
+      "code": "MAPA-0005",
+      "title": "Mapa - Completar e informar disponiblidad de posiciones de reserva en cámara de congelados.",
+      "duration_minutes": 10,
+      "active": true,
+      "source_legacy_ids": [
+        37
+      ]
+    },
+    {
+      "code": "MAPA-0006",
+      "title": "Mapa - Completar e informar indicador de guardado y surtido zona Clamp.",
+      "duration_minutes": 25,
+      "active": true,
+      "source_legacy_ids": [
+        38
+      ]
+    },
+    {
+      "code": "MAPA-0007",
+      "title": "Mapa - Verificar asignacion de HPs en secuencias de surtido por sector. PLU x sector.",
+      "duration_minutes": 25,
+      "active": true,
+      "source_legacy_ids": [
+        39
+      ]
+    },
+    {
+      "code": "MAPA-0008",
+      "title": "Mapa - Confeccionar y asignar listado para revision fisica en N01 de capacidad máxima de HP en huecos que reaprovisionan por bulto.",
+      "duration_minutes": 55,
+      "active": true,
+      "source_legacy_ids": [
+        40
+      ]
+    },
+    {
+      "code": "MAPA-0009",
+      "title": "Mapa - Confeccionar y asignar listado para revision fisica en N01 de capacidades maximas de HP Hand Stack.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        41
+      ]
+    },
+    {
+      "code": "MAPA-0010",
+      "title": "Mapa - Confeccionar listado de huecos selectivos N01 para actualizar capacidades maximas, ptos. de reposicion y reapro por bulto.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        42
+      ]
+    },
+    {
+      "code": "MAPA-0011",
+      "title": "Mapa - Confeccionar y asignar listado para revision de N01, stock según tipo de HP y capacidad",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        43
+      ]
+    },
+    {
+      "code": "MAPA-0012",
+      "title": "Mapa - Controlar pallets en reserva de inflamables. Ver que se encuentren dentro de la zona E00 por pasillo asignado. Separar fosforos de alcoholes.",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        44
+      ]
+    },
+    {
+      "code": "MAPA-0013",
+      "title": "Mapa - Confeccionar listado, verificarlo, e informar a Suc 133 las reservas que requieren verificacion.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        46
+      ]
+    },
+    {
+      "code": "MAPA-0014",
+      "title": "Mapa - Confeccionar y enviar al personal de Mapa el archivo de revision de etiquetas de HP por área. Coordinar con operario.",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        47
+      ]
+    },
+    {
+      "code": "MAPA-0015",
+      "title": "Mapa - Listar reporte Gescom \"set con diferencia en VL\". Igualar medidas, sectores, a PLUs que sustituyen.",
+      "duration_minutes": 50,
+      "active": true,
+      "source_legacy_ids": [
+        48
+      ]
+    },
+    {
+      "code": "MAPA-0016",
+      "title": "Mapa - Listar HP de todos los PLUs de TV/Monitor y asignarle posicion de articulo (Vertical-horizontal) según posiciona en pallet. Reporte 401",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        49
+      ]
+    },
+    {
+      "code": "MAPA-0017",
+      "title": "Mapa - Cargar en Excel presentismo diaro y enviar a Personal T.tarde",
+      "duration_minutes": 5,
+      "active": true,
+      "source_legacy_ids": [
+        50,
+        56
+      ]
+    },
+    {
+      "code": "MAPA-0018",
+      "title": "Mapa - Verificar huecos con marca de Recuentos y Marca de traspasos. Ver tambien los alertas que llegan al correo.  Informar",
+      "duration_minutes": 10,
+      "active": true,
+      "source_legacy_ids": [
+        51
+      ]
+    },
+    {
+      "code": "MAPA-0019",
+      "title": "Mapa - Verificar PLUs en alerta VL GDM versus WF. (VariableLogistica@redcoto.com.ar). Informar a Compras. Comunicarse con Calidad para que autorice cambios de PLUs con caducidad, y con los Compradores para resolver.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        52
+      ]
+    },
+    {
+      "code": "MAPA-0020",
+      "title": "Mapa - Cargar informacion diaria en KPI de Access",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        53
+      ]
+    },
+    {
+      "code": "MAPA-0021",
+      "title": "Mapa - Distribuir analisis de PLUs con mas de 1 HP",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        54
+      ]
+    },
+    {
+      "code": "MAPA-0022",
+      "title": "Mapa - Verificar y asignar para corregir VLs de pallet mas altas que HP",
+      "duration_minutes": 10,
+      "active": true,
+      "source_legacy_ids": [
+        55
+      ]
+    },
+    {
+      "code": "MAPA-0023",
+      "title": "Mapa - Listar y asignar fotos CDMAP al personal Administrativo.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        57
+      ]
+    },
+    {
+      "code": "MAPA-0024",
+      "title": "Mapa - Informar archivo/indicador de ubicaciones inutilizadas por reparación y goteras",
+      "duration_minutes": 45,
+      "active": true,
+      "source_legacy_ids": [
+        59
+      ]
+    },
+    {
+      "code": "MAPA-0025",
+      "title": "Mapa - Confeccionar listado de VLs de pallet para corregir ancho y largo",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        60
+      ]
+    },
+    {
+      "code": "MAPA-0026",
+      "title": "Mapa - Confeccionar listado para controlar puntos de reposicion y capacidades maximas a los HPs de los PLUs de Secos y Noa. Se realizan modificaciones de corresponder.",
+      "duration_minutes": 60,
+      "active": true,
+      "source_legacy_ids": [
+        61,
+        839
+      ]
+    },
+    {
+      "code": "MAPA-0027",
+      "title": "Mapa - Confeccionar listado de PLUs importados en tránsito que no tienen asignado sector referencia.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        62
+      ]
+    },
+    {
+      "code": "MAPA-0028",
+      "title": "Mapa - Informar a Compras PLUs con menos de 10 bultos en stock. Se desactiva 12-09-23, reemplazada por archivo que se informa a comerciales",
+      "duration_minutes": 50,
+      "active": true,
+      "source_legacy_ids": [
+        63
+      ]
+    },
+    {
+      "code": "MAPA-0029",
+      "title": "Mapa - Controlar correcta asignacion de HP según tipo de surtido (bulto - SPC), capacidad maxima versus punto de reposicion. Secos, Noa, Refrig. Control de HPs inutilizados.",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        64
+      ]
+    },
+    {
+      "code": "MAPA-0030",
+      "title": "Mapa - Confeccionar archivo y enviar unidades distribuidas por PLU zona Clamp (Suc-Envios) semana vencida",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        66
+      ]
+    },
+    {
+      "code": "MAPA-0031",
+      "title": "Mapa-Verificar PLUs versus zonas de blister, correcta asignacion de HPs. Enviar por Administrativo asignado al sector.",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        67
+      ]
+    },
+    {
+      "code": "MAPA-0032",
+      "title": "Mapa-Carga de Horario Semanal. Informar a Jefatura para confirmar",
+      "duration_minutes": 13,
+      "active": true,
+      "source_legacy_ids": [
+        68
+      ]
+    },
+    {
+      "code": "MAPA-0033",
+      "title": "Mapa-Listar para actualizar capacidad máxima y punto de reposición sector A3, en canastos o select flow. Asignar tarea",
+      "duration_minutes": 50,
+      "active": true,
+      "source_legacy_ids": [
+        74,
+        102
+      ]
+    },
+    {
+      "code": "MAPA-0034",
+      "title": "Mapa- Revision de PLUs Desactivados en GDM  con stock en el CD. Informar al Comprador si se detectan PLUs desactivados para distribucion para que expida o reactive.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        76
+      ]
+    },
+    {
+      "code": "MAPA-0035",
+      "title": "Mapa-Confeccionar listado de PLUs desactivados en GDM sin stock, pendiente de guardado, pendiente de ingreso y con HPs, luego dar de baja los HPs y retirar LUPs según corresponda.",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        77
+      ]
+    },
+    {
+      "code": "MAPA-0036",
+      "title": "Mapa-Completar Parte semanal del Sector en Sevidor de Ingenieria y confirmar por mail.",
+      "duration_minutes": 46,
+      "active": true,
+      "source_legacy_ids": [
+        78
+      ]
+    },
+    {
+      "code": "MAPA-0037",
+      "title": "Mapa-Verificar e informar PLUs en cuarentena a planeamiento para que anexe pedidos al plan de distribucion. Sugerir aceleracion. Alertar Watsapp diariamente a grupo de Planeamiento.",
+      "duration_minutes": 10,
+      "active": true,
+      "source_legacy_ids": [
+        79
+      ]
+    },
+    {
+      "code": "MAPA-0038",
+      "title": "Mapa-Gestionar y coordinar con Planeamiento carga de TH futuros sin traspaso pendiente ni cuarentena.",
+      "duration_minutes": 10,
+      "active": true,
+      "source_legacy_ids": [
+        80
+      ]
+    },
+    {
+      "code": "MAPA-0039",
+      "title": "Mapa-Control de sector criticos, EC-EP-JC-N2-PI Ver desviaciones, Se trata de identificar asociaciones de Sectores erroneos. Sugerir cambios",
+      "duration_minutes": 50,
+      "active": true,
+      "source_legacy_ids": [
+        82
+      ]
+    },
+    {
+      "code": "MAPA-0040",
+      "title": "Mapa-Control de asignacion de HP PE / P1 / VT/ VA para identificar productos que deban cambiar de sector. Sugerir cambios",
+      "duration_minutes": 50,
+      "active": true,
+      "source_legacy_ids": [
+        84
+      ]
+    },
+    {
+      "code": "MAPA-0041",
+      "title": "Mapa-Verificar Sector PI en área que surten cajas cerradas con unidades dentro y área de unidades con LUP. Listado versus físico.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        85
+      ]
+    },
+    {
+      "code": "MAPA-0042",
+      "title": "Mapa-Controlar todos los carteles LUP registrados en Base de datos y cambiar de ser necesarios. Revisión listado versus físico.  Listar y asignar tarea.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        86
+      ]
+    },
+    {
+      "code": "MAPA-0043",
+      "title": "Mapa- Generar listado de Medidas que No hayan sido realizadas por los usuarios de Mapa, para validar las mismas.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        89
+      ]
+    },
+    {
+      "code": "MAPA-0044",
+      "title": "Mapa-Distribuir listado por administrativo de los PLUs que ingresarán al CD en dias siguientes para asignar HP. TURNADOS",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        91
+      ]
+    },
+    {
+      "code": "MAPA-0045",
+      "title": "Mapa - Verificar faltantes a sucursales Div 2 y 4 (Reporte 106) fecha actual, y sin stock en planificacion fecha anterior. Enviar informe por mail.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        92,
+        668,
+        669
+      ]
+    },
+    {
+      "code": "MAPA-0046",
+      "title": "Mapa-Verificar ingresos de Productos  nacionales e importados para guardarse en Zona de  Clamp. Evaluar disponibilidad de Dicha Zona y direccionar",
+      "duration_minutes": 45,
+      "active": true,
+      "source_legacy_ids": [
+        93
+      ]
+    },
+    {
+      "code": "MAPA-0047",
+      "title": "Mapa-Verificar posiciones de reserva con volumen bajo. Corregir volúmen e inutilizar.Mantenimiento de archivo de services de rack de Mapa",
+      "duration_minutes": 45,
+      "active": true,
+      "source_legacy_ids": [
+        94
+      ]
+    },
+    {
+      "code": "MAPA-0048",
+      "title": "Mapa-Ubicaciones no encontradas en el sistema de productividad. Se verifica que las mismas se encuentren de alta  en el CDMAP.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        95
+      ]
+    },
+    {
+      "code": "MAPA-0049",
+      "title": "Mapa- Realizar la confirmacion via Web de los horarios semanales del Sector.",
+      "duration_minutes": 5,
+      "active": true,
+      "source_legacy_ids": [
+        96
+      ]
+    },
+    {
+      "code": "MAPA-0050",
+      "title": "Mapa-Verificación de reservas del sector CA. Controlar que no comparta ubicaciones con sectores IN-NP-VA-PI-MU. Se desactiva 12-01-21. En secos no hay de esos sectores.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        97
+      ]
+    },
+    {
+      "code": "MAPA-0051",
+      "title": "Mapa-Analisis de PLUs con más de una VL de pallet activa en WF. Identificar e Inutilizar la VL que no correponda estar disponible. Actualizar punto de reposicion y capacidad maxima del HP",
+      "duration_minutes": 60,
+      "active": true,
+      "source_legacy_ids": [
+        98
+      ]
+    },
+    {
+      "code": "MAPA-0052",
+      "title": "Mapa-Completar la Planilla en base de datos con Solicitudes de VL, Creadas y Rechazadas. Mantener actualizada por registro de KPI.",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        100
+      ]
+    },
+    {
+      "code": "MAPA-0053",
+      "title": "Mapa-Verificar que todos los PLUs. Tengan HPs.asignados a las 06:00 hs. Reemplazada por alerta mail cada hora.",
+      "duration_minutes": 5,
+      "active": true,
+      "source_legacy_ids": [
+        101
+      ]
+    },
+    {
+      "code": "MAPA-0054",
+      "title": "Mapa - Revision diaria de sector referencia de PLUs de Linea Blanca (Clamp o Rack)",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        133
+      ]
+    },
+    {
+      "code": "MAPA-0055",
+      "title": "Mapa- Confeccion de listado y enviar a personal Administrativo para revision de ubicaciones de reserva inutilizadas para pallets dobles",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        163
+      ]
+    },
+    {
+      "code": "MAPA-0056",
+      "title": "Mapa- Listar y realizar control de ubicación a las ubicaciones ocupadas o parciales sin pallet en stock",
+      "duration_minutes": 35,
+      "active": true,
+      "source_legacy_ids": [
+        164
+      ]
+    },
+    {
+      "code": "MAPA-0057",
+      "title": "Mapa-Verificar PLUs con y sin control de mermas, Divisiones 1 y 6 todos sin control. Div 2 y 4 con control solo PLUs que corresponde.",
+      "duration_minutes": 10,
+      "active": true,
+      "source_legacy_ids": [
+        165
+      ]
+    },
+    {
+      "code": "MAPA-0058",
+      "title": "Mapa-Verificar pedidos trabados en interfaz de GDM / WF",
+      "duration_minutes": 5,
+      "active": true,
+      "source_legacy_ids": [
+        166
+      ]
+    },
+    {
+      "code": "MAPA-0059",
+      "title": "Mapa-Actualizacion base de datos y fotos zona Clamp.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        243
+      ]
+    },
+    {
+      "code": "MAPA-0060",
+      "title": "Mapa - Realizar revision e informar por correo huecos de picking flow y push back (Secos, Noa, Refrigerados) que necesitan reparacion",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        344
+      ]
+    },
+    {
+      "code": "MAPA-0061",
+      "title": "Mapa - Verificar Modulo de Alta de PLU. Realizar validaciones y comentarios si se registran nuevas altas.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        346
+      ]
+    },
+    {
+      "code": "MAPA-0062",
+      "title": "Mapa- Realizar analisis e informe de ubicaciones con peso maximo por pallet 800 y 900 kg.",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        366
+      ]
+    },
+    {
+      "code": "MAPA-0063",
+      "title": "Mapa - Verificar el estado de las tareas recurrentes en access e informar por whatsapp a las 05:30.",
+      "duration_minutes": 2,
+      "active": true,
+      "source_legacy_ids": [
+        439
+      ]
+    },
+    {
+      "code": "MAPA-0064",
+      "title": "Mapa - Revision de dispersion por Departamentos/Sectores. Informar revision y correcciones",
+      "duration_minutes": 60,
+      "active": true,
+      "source_legacy_ids": [
+        633
+      ]
+    },
+    {
+      "code": "MAPA-0065",
+      "title": "Mapa - Informar 06:00 hs. a Suc 133 el listado de reservas versus stock CD unidades.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        635
+      ]
+    },
+    {
+      "code": "MAPA-0066",
+      "title": "Mapa - Revision de medidas de VLs de bulto y pallet a sectores Hand Stack",
+      "duration_minutes": 45,
+      "active": true,
+      "source_legacy_ids": [
+        670
+      ]
+    },
+    {
+      "code": "MAPA-0067",
+      "title": "Mapa - Revision de VLs de pallet superior al estándar de altura para Zona N01",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        671
+      ]
+    },
+    {
+      "code": "MAPA-0068",
+      "title": "Mapa-Informar via mail a Mapa de almacen los ingresos de linea blanca nacional dia siguiente. Ingresos de linea blanca importados fecha actual y siguiente. Brindar todos los detalles de guardado y sector.",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        677
+      ]
+    },
+    {
+      "code": "MAPA-0069",
+      "title": "Mapa-Confeccionar informe por duplicado de ingresos de linea blanca dia siguiente para que se notifique recepcion de Noa.",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        678
+      ]
+    },
+    {
+      "code": "MAPA-0070",
+      "title": "Mapa- Registrar informacion diaria en la planilla que luego se utiliza para la carga de datos en KPI",
+      "duration_minutes": 35,
+      "active": true,
+      "source_legacy_ids": [
+        711
+      ]
+    },
+    {
+      "code": "MAPA-0071",
+      "title": "Mapa - Verificar HPs select flow de zona N11 para reparar. Solicitar services, y enviar informe por mail",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        712,
+        837
+      ]
+    },
+    {
+      "code": "MAPA-0072",
+      "title": "Mapa-Verificar codigos de rotacion de PLUs de Linea Blanca, Dto 63, Heladeras, Lavarropas, Lavavajillas, Secarropas, Cocinas, Freezers, PLUs con paletizacion hasta 2 unidades, deben tener rotacion D. Enviar informe general a Jefatura y Supervision.",
+      "duration_minutes": 45,
+      "active": true,
+      "source_legacy_ids": [
+        728
+      ]
+    },
+    {
+      "code": "MAPA-0073",
+      "title": "Ejecturar reporte 076 y exportar por reserva de division 6 y el excel guardar en mapa de almacen-parte semanal con fecha de realizacion",
+      "duration_minutes": 5,
+      "active": true,
+      "source_legacy_ids": [
+        775
+      ]
+    },
+    {
+      "code": "MAPA-0074",
+      "title": "Mapa-Verificar que los PLUs 132632-70699-70700-70701-70702-179550-179551 tengan limitados con 0 pallets en Wareflow los pasillos/cara de zona C00 donde no deben guardar.",
+      "duration_minutes": 25,
+      "active": true,
+      "source_legacy_ids": [
+        776
+      ]
+    },
+    {
+      "code": "MAPA-0075",
+      "title": "Mapa-Verificar medidas y pesos que generan dudas, utilizando listado de reporte wareflow 613. Informar los PLUs que se deben verificar.",
+      "duration_minutes": 90,
+      "active": true,
+      "source_legacy_ids": [
+        781
+      ]
+    },
+    {
+      "code": "MAPA-0076",
+      "title": "Mapa-Verificar etiquetado de huecos en zona Clamp",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        785
+      ]
+    },
+    {
+      "code": "MAPA-0077",
+      "title": "Mapa - Confeccionar y asignar listado para revision fisica de canastos en Zona E00 que reaprovisionan  por bulto. Se registra en base de datos.",
+      "duration_minutes": 45,
+      "active": true,
+      "source_legacy_ids": [
+        806
+      ]
+    },
+    {
+      "code": "MAPA-0078",
+      "title": "Mapa-Controlar la rotacion y stock de los PLUs asignados en select flow de zona N11. Realizar cambios de sector de corresponder por alto surtido o stock. Utilizar reporte 038",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        814
+      ]
+    },
+    {
+      "code": "MAPA-0079",
+      "title": "Verificar plus de dep. 064 que tengan HP,  stock y VL 9 como principal en GDM. Realizar correciones en caso de encontrar novedades",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        823
+      ]
+    },
+    {
+      "code": "MAPA-0080",
+      "title": "Mapa-Verificar medidas y VLs principales GDM a PLUs que se encastran uno dentro de otro. Identificar nuevos PLUs con esas caracteristicas.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        825
+      ]
+    },
+    {
+      "code": "MAPA-0081",
+      "title": "Mapa- Revision de PLUs que se cargan en chasis o utilitarios. Asignar medida en GDM e informar",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        826
+      ]
+    },
+    {
+      "code": "MAPA-0082",
+      "title": "Mapa- Guardar en indicadores reporte 408 de zona Clamp + zona CL2",
+      "duration_minutes": 5,
+      "active": true,
+      "source_legacy_ids": [
+        829
+      ]
+    },
+    {
+      "code": "MAPA-0083",
+      "title": "Mapa- Completar y enviar indicador de mercaderia comestible fuera de zona",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        830
+      ]
+    },
+    {
+      "code": "MAPA-0084",
+      "title": "Mapa - Verificar que todos los pallets de sector TV estén guardados exclusivamente en niveles P-A-B. Realizar correcciones urgentes a los pallets, limites, y recomendadas de corresponder",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        833
+      ]
+    },
+    {
+      "code": "MAPA-0085",
+      "title": "Mapa - Revision total de sector a PLUs sustitutos. Vincular reportes 91-378-088. Asignar modificaciones",
+      "duration_minutes": 45,
+      "active": true,
+      "source_legacy_ids": [
+        838
+      ]
+    },
+    {
+      "code": "MAPA-0086",
+      "title": "Mapa-Importante. Verificar apilamiento/clampeable proximos ingresos de importados de linea blanca. Solicitar informacion a Compras y Comex CD. Alertar desviaciones.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        840
+      ]
+    },
+    {
+      "code": "MAPA-0087",
+      "title": "Mapa - Realizar solicitud de insumos para el sector. Ver toner, resmas, folios, boligrafos, tablas, reglas, marcadores, cuter, etc. Finalizar con seguimiento y entrega en el sector.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        841
+      ]
+    },
+    {
+      "code": "MAPA-0088",
+      "title": "Mapa - Actualizar Mapa Excel de Refrigerados completo y verificar que los PLUs que reaprovisionan por pallet en zona T05 NO tengan marca de reapro x bulto. Tambien que tengan reapro x bulto los Plus con estructura que surten en select flow o plano inclina",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        842
+      ]
+    },
+    {
+      "code": "MAPA-0089",
+      "title": "Mapa - Verificar diariamente que los PLUs de chocolates, bombones, bañados en chocolate,  huevos y conejos de pascuas (pendientes y stock) se guarden en niveles A-B-P  mientras surtan en Secos, zonas C00 - SCH. Corregir con traspasos, ver recomendadas.",
+      "duration_minutes": 45,
+      "active": true,
+      "source_legacy_ids": [
+        843
+      ]
+    },
+    {
+      "code": "MAPA-0090",
+      "title": "Mapa - Alta en base de datos, de VLs Logisticas intervenidas o dadas de alta en el turno por solicitud de Recepcion",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        859,
+        860,
+        861,
+        862,
+        863,
+        864,
+        877,
+        901,
+        933,
+        1128
+      ]
+    },
+    {
+      "code": "MAPA-0091",
+      "title": "Mapa - Revision de carteles en racks que indican \"Area de blister\" en sectores que administra. Reemplazar rotos, faltantes, igualar areas de blister en Mapa Excel e identificarlas.",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        865,
+        866,
+        867,
+        868,
+        869,
+        878,
+        934,
+        1127
+      ]
+    },
+    {
+      "code": "MAPA-0092",
+      "title": "Mapa - Planeamiento - Comercial, analizar codigos de redondeo",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        870
+      ]
+    },
+    {
+      "code": "MAPA-0093",
+      "title": "Mapa - Verificar HPs zona T05. Controlar maximas plano incl select flow-mas alto que HP-sin estructura en hps por bulto-vls altas en nivel 2-peso de bulto nivel 2. Realizar correcciones e informar por mail",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        876
+      ]
+    },
+    {
+      "code": "MAPA-0094",
+      "title": "Mapa - Verificar que los PLUs de Juguetería tengan asignado HP finalizando la secuencia, para evitar aplastamiento de unidades. Sectores SF-NT.",
+      "duration_minutes": 20,
+      "active": true,
+      "source_legacy_ids": [
+        879,
+        880
+      ]
+    },
+    {
+      "code": "MAPA-0095",
+      "title": "Mapa - Revision de sector NT. Verificar que los PLUs de embalaje fragil se encuentren asignados donde no sufran  aplastamiento. Realizar correcciones.",
+      "duration_minutes": 60,
+      "active": true,
+      "source_legacy_ids": [
+        881
+      ]
+    },
+    {
+      "code": "MAPA-0096",
+      "title": "Indicador de Ocupacion por Area Comercial",
+      "duration_minutes": null,
+      "active": true,
+      "source_legacy_ids": [
+        882
+      ]
+    },
+    {
+      "code": "MAPA-0097",
+      "title": "Mapa - Reporte de dispersión vinculado con ABC de reaprovisionamiento NOA y SECOS.",
+      "duration_minutes": null,
+      "active": true,
+      "source_legacy_ids": [
+        883
+      ]
+    },
+    {
+      "code": "MAPA-0098",
+      "title": "Mapa – verificar Archivo de services de racks. Ver nuevos services, bajar volumen, traspasar. Verificar ubicaciones con services cerrados, verificar etiquetado y liberar, registrar modificaciones y usuario en archivo.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        885,
+        886,
+        887,
+        888,
+        889,
+        900,
+        932,
+        1129
+      ]
+    },
+    {
+      "code": "MAPA-0099",
+      "title": "Mapa - Verificar que los PLUs con HP de sectores EP-N2-PT-CU tengan asociado el material 72408 a la VL 9. Realizar altas si se detectan desvios.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        892
+      ]
+    },
+    {
+      "code": "MAPA-0100",
+      "title": "Mapa - Controlar stock acopio, contenedores y carpas, versus zona de surtido. Informar diariamente a grupos Watsapp. Acccionar gestion de traspasos o surtidos según corresponda, para pasar a disponible. Reemplaza 898",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        898,
+        915
+      ]
+    },
+    {
+      "code": "MAPA-0101",
+      "title": "MPR3",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        899
+      ]
+    },
+    {
+      "code": "MAPA-0102",
+      "title": "Mapa - Verificar que los PLUs tipo telefono celular se encuentren asignados a HPs en Zona N01 - pasillo 07D-ubicaciones 01 a 10. Realizar  correcciones e informar al sector si se detectan desvíos.",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        902
+      ]
+    },
+    {
+      "code": "MAPA-0103",
+      "title": "Mapa - Verificar que las VLs intervenidas y de alta en semana anterior, estén incluidas en base de datos. Informar faltantes por Administrativo via mail.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        904
+      ]
+    },
+    {
+      "code": "MAPA-0104",
+      "title": "Mapa - Enviar via mail a Mapa de almacén, el archivo de prorrateo de la fecha, divisiones 2 y 4. Excel de reporte 106 original y sin modificar.",
+      "duration_minutes": 10,
+      "active": true,
+      "source_legacy_ids": [
+        909
+      ]
+    },
+    {
+      "code": "MAPA-0105",
+      "title": "Mapa - Dar de alta en Access KPI, % de ocupacion Ids 509-510-511-512-513",
+      "duration_minutes": 15,
+      "active": true,
+      "source_legacy_ids": [
+        911
+      ]
+    },
+    {
+      "code": "MAPA-0106",
+      "title": "Mapa - Controlar stock de zonas de acopio versus zona de HP. Informar diariamente Watsapp, realizar traspasos para acercar a zona de HP proximos que solicitará el sistema, o hacia zona de acopio si se requiere. T01/C00 - RA4/Secos -C00/E00-CL2/Secos, Noa-",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        912
+      ]
+    },
+    {
+      "code": "MAPA-0107",
+      "title": "Mapa-Analizar “reporte de reapros por turno”, diario y al iniciar. Realizar correcciones. \"Antes de finalizar el turno”, informar al sector via Wapp lo realizado y pendientes para continuar en turno siguiente. Si no ejecutó, dar aviso al sector.",
+      "duration_minutes": 40,
+      "active": true,
+      "source_legacy_ids": [
+        919,
+        920,
+        921,
+        922,
+        923,
+        930,
+        1125
+      ]
+    },
+    {
+      "code": "MAPA-0108",
+      "title": "Mapa T/Tarde. Ejecutar Gurú 17 hs Lun a Vie. (Secos, Noa, Refrig). Sáb T/Mañana 14 hs, con fecha de domin. Analizar, realizar correccion. “Antes de finalizar turno”, informar al sector via Wapp lo realizado y pendiente. para continuar en turno siguiente.",
+      "duration_minutes": 50,
+      "active": true,
+      "source_legacy_ids": [
+        924,
+        925,
+        926,
+        927,
+        928,
+        931,
+        1126
+      ]
+    },
+    {
+      "code": "MAPA-0109",
+      "title": "Indicador de HPs diario. Verificar y corregir cantidad de huecos de picking que se adjudican a cada sector, por zona. Mantenimiento constante y semanal por sectores que se contraen, expanden, comparten, des comparten.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        935
+      ]
+    },
+    {
+      "code": "MAPA-0110",
+      "title": "Indicador de Dispersión",
+      "duration_minutes": 180,
+      "active": true,
+      "source_legacy_ids": [
+        936
+      ]
+    },
+    {
+      "code": "MAPA-0111",
+      "title": "Mapa-Controlar que los PLUs clasificados liquidos manchables se encuentren guardados en zona L12. \"Incluye controlar los que ingresarán\". Corregir y ver recomendadas si hay altas o desvios.",
+      "duration_minutes": 50,
+      "active": true,
+      "source_legacy_ids": [
+        937
+      ]
+    },
+    {
+      "code": "MAPA-0112",
+      "title": "Mapa - Control diario de archivo de reparaciones de rack con services. En área de Mapa, completar ubicaciones, niveles, zonas en vertical faltantes. Revisar y actualizar en proceso, o falta vaciar. Inutilizar, adecuar volumen.",
+      "duration_minutes": 30,
+      "active": true,
+      "source_legacy_ids": [
+        1130
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "seed_key": "legacy:31",
+      "legacy_id": 31,
+      "source_row": 2,
+      "task_code": "MAPA-0001",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:32",
+      "legacy_id": 32,
+      "source_row": 3,
+      "task_code": "MAPA-0002",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:35",
+      "legacy_id": 35,
+      "source_row": 4,
+      "task_code": "MAPA-0003",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:36",
+      "legacy_id": 36,
+      "source_row": 5,
+      "task_code": "MAPA-0004",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:37",
+      "legacy_id": 37,
+      "source_row": 6,
+      "task_code": "MAPA-0005",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:38",
+      "legacy_id": 38,
+      "source_row": 7,
+      "task_code": "MAPA-0006",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:39",
+      "legacy_id": 39,
+      "source_row": 8,
+      "task_code": "MAPA-0007",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:40",
+      "legacy_id": 40,
+      "source_row": 9,
+      "task_code": "MAPA-0008",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:41",
+      "legacy_id": 41,
+      "source_row": 10,
+      "task_code": "MAPA-0009",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:42",
+      "legacy_id": 42,
+      "source_row": 11,
+      "task_code": "MAPA-0010",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:43",
+      "legacy_id": 43,
+      "source_row": 12,
+      "task_code": "MAPA-0011",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:44",
+      "legacy_id": 44,
+      "source_row": 13,
+      "task_code": "MAPA-0012",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:46",
+      "legacy_id": 46,
+      "source_row": 14,
+      "task_code": "MAPA-0013",
+      "username": "acantero",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:47",
+      "legacy_id": 47,
+      "source_row": 15,
+      "task_code": "MAPA-0014",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:48",
+      "legacy_id": 48,
+      "source_row": 16,
+      "task_code": "MAPA-0015",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:49",
+      "legacy_id": 49,
+      "source_row": 17,
+      "task_code": "MAPA-0016",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:50",
+      "legacy_id": 50,
+      "source_row": 18,
+      "task_code": "MAPA-0017",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:51",
+      "legacy_id": 51,
+      "source_row": 19,
+      "task_code": "MAPA-0018",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:52",
+      "legacy_id": 52,
+      "source_row": 20,
+      "task_code": "MAPA-0019",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:53",
+      "legacy_id": 53,
+      "source_row": 21,
+      "task_code": "MAPA-0020",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:54",
+      "legacy_id": 54,
+      "source_row": 22,
+      "task_code": "MAPA-0021",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:55",
+      "legacy_id": 55,
+      "source_row": 23,
+      "task_code": "MAPA-0022",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:56",
+      "legacy_id": 56,
+      "source_row": 24,
+      "task_code": "MAPA-0017",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": "Mapa - Presentismo noche y mañana",
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:57",
+      "legacy_id": 57,
+      "source_row": 25,
+      "task_code": "MAPA-0023",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:59",
+      "legacy_id": 59,
+      "source_row": 26,
+      "task_code": "MAPA-0024",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:60",
+      "legacy_id": 60,
+      "source_row": 27,
+      "task_code": "MAPA-0025",
+      "username": "hgardonio",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:61",
+      "legacy_id": 61,
+      "source_row": 28,
+      "task_code": "MAPA-0026",
+      "username": "hgardonio",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:62",
+      "legacy_id": 62,
+      "source_row": 29,
+      "task_code": "MAPA-0027",
+      "username": "hgardonio",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:63",
+      "legacy_id": 63,
+      "source_row": 30,
+      "task_code": "MAPA-0028",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:64",
+      "legacy_id": 64,
+      "source_row": 31,
+      "task_code": "MAPA-0029",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:66",
+      "legacy_id": 66,
+      "source_row": 32,
+      "task_code": "MAPA-0030",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:67",
+      "legacy_id": 67,
+      "source_row": 33,
+      "task_code": "MAPA-0031",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:68",
+      "legacy_id": 68,
+      "source_row": 34,
+      "task_code": "MAPA-0032",
+      "username": "hgardonio",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:74",
+      "legacy_id": 74,
+      "source_row": 35,
+      "task_code": "MAPA-0033",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:76",
+      "legacy_id": 76,
+      "source_row": 36,
+      "task_code": "MAPA-0034",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:77",
+      "legacy_id": 77,
+      "source_row": 37,
+      "task_code": "MAPA-0035",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:78",
+      "legacy_id": 78,
+      "source_row": 38,
+      "task_code": "MAPA-0036",
+      "username": "golier",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:79",
+      "legacy_id": 79,
+      "source_row": 39,
+      "task_code": "MAPA-0037",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:80",
+      "legacy_id": 80,
+      "source_row": 40,
+      "task_code": "MAPA-0038",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:82",
+      "legacy_id": 82,
+      "source_row": 41,
+      "task_code": "MAPA-0039",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:84",
+      "legacy_id": 84,
+      "source_row": 42,
+      "task_code": "MAPA-0040",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:85",
+      "legacy_id": 85,
+      "source_row": 43,
+      "task_code": "MAPA-0041",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:86",
+      "legacy_id": 86,
+      "source_row": 44,
+      "task_code": "MAPA-0042",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:89",
+      "legacy_id": 89,
+      "source_row": 45,
+      "task_code": "MAPA-0043",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:91",
+      "legacy_id": 91,
+      "source_row": 46,
+      "task_code": "MAPA-0044",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:92",
+      "legacy_id": 92,
+      "source_row": 47,
+      "task_code": "MAPA-0045",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:93",
+      "legacy_id": 93,
+      "source_row": 48,
+      "task_code": "MAPA-0046",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:94",
+      "legacy_id": 94,
+      "source_row": 49,
+      "task_code": "MAPA-0047",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:95",
+      "legacy_id": 95,
+      "source_row": 50,
+      "task_code": "MAPA-0048",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:96",
+      "legacy_id": 96,
+      "source_row": 51,
+      "task_code": "MAPA-0049",
+      "username": "hgardonio",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:97",
+      "legacy_id": 97,
+      "source_row": 52,
+      "task_code": "MAPA-0050",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:98",
+      "legacy_id": 98,
+      "source_row": 53,
+      "task_code": "MAPA-0051",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:100",
+      "legacy_id": 100,
+      "source_row": 54,
+      "task_code": "MAPA-0052",
+      "username": "nmeza",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:101",
+      "legacy_id": 101,
+      "source_row": 55,
+      "task_code": "MAPA-0053",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:102",
+      "legacy_id": 102,
+      "source_row": 56,
+      "task_code": "MAPA-0033",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": "Mapa-Listar para actualizar capacidad maxima y punto de reposicion a los PLUs del sector SF. Canastos y select flow. Asignar tarea",
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:133",
+      "legacy_id": 133,
+      "source_row": 57,
+      "task_code": "MAPA-0054",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:163",
+      "legacy_id": 163,
+      "source_row": 58,
+      "task_code": "MAPA-0055",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:164",
+      "legacy_id": 164,
+      "source_row": 59,
+      "task_code": "MAPA-0056",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:165",
+      "legacy_id": 165,
+      "source_row": 60,
+      "task_code": "MAPA-0057",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:166",
+      "legacy_id": 166,
+      "source_row": 61,
+      "task_code": "MAPA-0058",
+      "username": "rsalas",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:243",
+      "legacy_id": 243,
+      "source_row": 62,
+      "task_code": "MAPA-0059",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:344",
+      "legacy_id": 344,
+      "source_row": 63,
+      "task_code": "MAPA-0060",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:346",
+      "legacy_id": 346,
+      "source_row": 64,
+      "task_code": "MAPA-0061",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:366",
+      "legacy_id": 366,
+      "source_row": 65,
+      "task_code": "MAPA-0062",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:439",
+      "legacy_id": 439,
+      "source_row": 66,
+      "task_code": "MAPA-0063",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:633",
+      "legacy_id": 633,
+      "source_row": 67,
+      "task_code": "MAPA-0064",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:635",
+      "legacy_id": 635,
+      "source_row": 68,
+      "task_code": "MAPA-0065",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:668",
+      "legacy_id": 668,
+      "source_row": 69,
+      "task_code": "MAPA-0045",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": "Mapa - Verificar faltantes a sucursales Div 1 (Reporte 106) fecha actual, y sin stock en planificacion fecha anterior. Enviar informe por mail.",
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:669",
+      "legacy_id": 669,
+      "source_row": 70,
+      "task_code": "MAPA-0045",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": "Mapa - Verificar faltantes a sucursales Div 6 (Reporte 106) fecha actual, y sin stock en planificacion fecha anterior. Enviar informe por mail.",
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:670",
+      "legacy_id": 670,
+      "source_row": 71,
+      "task_code": "MAPA-0066",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:671",
+      "legacy_id": 671,
+      "source_row": 72,
+      "task_code": "MAPA-0067",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:677",
+      "legacy_id": 677,
+      "source_row": 73,
+      "task_code": "MAPA-0068",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:678",
+      "legacy_id": 678,
+      "source_row": 74,
+      "task_code": "MAPA-0069",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:711",
+      "legacy_id": 711,
+      "source_row": 75,
+      "task_code": "MAPA-0070",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:712",
+      "legacy_id": 712,
+      "source_row": 76,
+      "task_code": "MAPA-0071",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:728",
+      "legacy_id": 728,
+      "source_row": 77,
+      "task_code": "MAPA-0072",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:775",
+      "legacy_id": 775,
+      "source_row": 78,
+      "task_code": "MAPA-0073",
+      "username": "aponce",
+      "allow_delay": true,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:776",
+      "legacy_id": 776,
+      "source_row": 79,
+      "task_code": "MAPA-0074",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:781",
+      "legacy_id": 781,
+      "source_row": 80,
+      "task_code": "MAPA-0075",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:785",
+      "legacy_id": 785,
+      "source_row": 81,
+      "task_code": "MAPA-0076",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:806",
+      "legacy_id": 806,
+      "source_row": 82,
+      "task_code": "MAPA-0077",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:814",
+      "legacy_id": 814,
+      "source_row": 83,
+      "task_code": "MAPA-0078",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:823",
+      "legacy_id": 823,
+      "source_row": 84,
+      "task_code": "MAPA-0079",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:825",
+      "legacy_id": 825,
+      "source_row": 85,
+      "task_code": "MAPA-0080",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:826",
+      "legacy_id": 826,
+      "source_row": 86,
+      "task_code": "MAPA-0081",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:829",
+      "legacy_id": 829,
+      "source_row": 87,
+      "task_code": "MAPA-0082",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:830",
+      "legacy_id": 830,
+      "source_row": 88,
+      "task_code": "MAPA-0083",
+      "username": "gdiazmarquez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:833",
+      "legacy_id": 833,
+      "source_row": 89,
+      "task_code": "MAPA-0084",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:837",
+      "legacy_id": 837,
+      "source_row": 90,
+      "task_code": "MAPA-0071",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": "Mapa - Verificar HPs select flow y planos inclinados de zonas T05 y T04. Corregir  etiquetado, asegurar que los bultos se desplacen, ver ubicaciones para reparar. Informar via mail. Solicitar alta de services por reparacion",
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:838",
+      "legacy_id": 838,
+      "source_row": 91,
+      "task_code": "MAPA-0085",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:839",
+      "legacy_id": 839,
+      "source_row": 92,
+      "task_code": "MAPA-0026",
+      "username": "hgardonio",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": "Mapa - Confeccionar listado para controlar puntos de reposicion y capacidades maximas a los HPs de los PLUs de Refrigerados. Se realizan modificaciones de corresponder.",
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          3
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:840",
+      "legacy_id": 840,
+      "source_row": 93,
+      "task_code": "MAPA-0086",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:841",
+      "legacy_id": 841,
+      "source_row": 94,
+      "task_code": "MAPA-0087",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:842",
+      "legacy_id": 842,
+      "source_row": 95,
+      "task_code": "MAPA-0088",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:843",
+      "legacy_id": 843,
+      "source_row": 96,
+      "task_code": "MAPA-0089",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:859",
+      "legacy_id": 859,
+      "source_row": 97,
+      "task_code": "MAPA-0090",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:860",
+      "legacy_id": 860,
+      "source_row": 98,
+      "task_code": "MAPA-0090",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:861",
+      "legacy_id": 861,
+      "source_row": 99,
+      "task_code": "MAPA-0090",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:862",
+      "legacy_id": 862,
+      "source_row": 100,
+      "task_code": "MAPA-0090",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:863",
+      "legacy_id": 863,
+      "source_row": 101,
+      "task_code": "MAPA-0090",
+      "username": "nmeza",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:864",
+      "legacy_id": 864,
+      "source_row": 102,
+      "task_code": "MAPA-0090",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:865",
+      "legacy_id": 865,
+      "source_row": 103,
+      "task_code": "MAPA-0091",
+      "username": "lalvarez",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:866",
+      "legacy_id": 866,
+      "source_row": 104,
+      "task_code": "MAPA-0091",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": "Mapa - Revision de carteles en racks que indican \"Area de blister\" en sectores que administra. Reemplazar rotos, faltantes, igualar areas de blister en Mapa Excel e identificarlas. VA-N1-VT-NS",
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:867",
+      "legacy_id": 867,
+      "source_row": 105,
+      "task_code": "MAPA-0091",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:868",
+      "legacy_id": 868,
+      "source_row": 106,
+      "task_code": "MAPA-0091",
+      "username": "golier",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": "Mapa - Revision de carteles en rakcs que indican \"Area de blister\" en sectores que administra. Reemplazar rotos, faltantes, igualar areas de blister en Mapa Excel e identificarlas.",
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:869",
+      "legacy_id": 869,
+      "source_row": 107,
+      "task_code": "MAPA-0091",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:870",
+      "legacy_id": 870,
+      "source_row": 108,
+      "task_code": "MAPA-0092",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:876",
+      "legacy_id": 876,
+      "source_row": 109,
+      "task_code": "MAPA-0093",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:877",
+      "legacy_id": 877,
+      "source_row": 110,
+      "task_code": "MAPA-0090",
+      "username": "golier",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:878",
+      "legacy_id": 878,
+      "source_row": 111,
+      "task_code": "MAPA-0091",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:879",
+      "legacy_id": 879,
+      "source_row": 112,
+      "task_code": "MAPA-0094",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:880",
+      "legacy_id": 880,
+      "source_row": 113,
+      "task_code": "MAPA-0094",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": "Mapa - Verificar que los PLUs de Juguetería tengan asignado HP finalizando la secuencia, para evitar aplastamiento de unidades. Sectores JC y EC.",
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:881",
+      "legacy_id": 881,
+      "source_row": 114,
+      "task_code": "MAPA-0095",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:882",
+      "legacy_id": 882,
+      "source_row": 115,
+      "task_code": "MAPA-0096",
+      "username": "egoncalves",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:883",
+      "legacy_id": 883,
+      "source_row": 116,
+      "task_code": "MAPA-0097",
+      "username": "egoncalves",
+      "allow_delay": true,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:885",
+      "legacy_id": 885,
+      "source_row": 117,
+      "task_code": "MAPA-0098",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:886",
+      "legacy_id": 886,
+      "source_row": 118,
+      "task_code": "MAPA-0098",
+      "username": "nmeza",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:887",
+      "legacy_id": 887,
+      "source_row": 119,
+      "task_code": "MAPA-0098",
+      "username": "golier",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:888",
+      "legacy_id": 888,
+      "source_row": 120,
+      "task_code": "MAPA-0098",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:889",
+      "legacy_id": 889,
+      "source_row": 121,
+      "task_code": "MAPA-0098",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:892",
+      "legacy_id": 892,
+      "source_row": 122,
+      "task_code": "MAPA-0099",
+      "username": "hgardonio",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:898",
+      "legacy_id": 898,
+      "source_row": 123,
+      "task_code": "MAPA-0100",
+      "username": "golier",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": "Mapa - Controlar stock zonas de acopio,  versus zona de surtido (CL2-RA4-C01-AS1-CP1-CP2-CP3-CP4-E00-N14-RN1 -Mercaderia en contenedores. Informar diariamente a grupoS Watsapp. Accionar gestion de traspasos o surtidos para abastecer zonas de picking.",
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:899",
+      "legacy_id": 899,
+      "source_row": 124,
+      "task_code": "MAPA-0101",
+      "username": "egoncalves",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:900",
+      "legacy_id": 900,
+      "source_row": 125,
+      "task_code": "MAPA-0098",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:901",
+      "legacy_id": 901,
+      "source_row": 126,
+      "task_code": "MAPA-0090",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:902",
+      "legacy_id": 902,
+      "source_row": 127,
+      "task_code": "MAPA-0102",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:904",
+      "legacy_id": 904,
+      "source_row": 128,
+      "task_code": "MAPA-0103",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:909",
+      "legacy_id": 909,
+      "source_row": 129,
+      "task_code": "MAPA-0104",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:911",
+      "legacy_id": 911,
+      "source_row": 130,
+      "task_code": "MAPA-0105",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:912",
+      "legacy_id": 912,
+      "source_row": 131,
+      "task_code": "MAPA-0106",
+      "username": "golier",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:915",
+      "legacy_id": 915,
+      "source_row": 132,
+      "task_code": "MAPA-0100",
+      "username": "golier",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:919",
+      "legacy_id": 919,
+      "source_row": 133,
+      "task_code": "MAPA-0107",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:920",
+      "legacy_id": 920,
+      "source_row": 134,
+      "task_code": "MAPA-0107",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:921",
+      "legacy_id": 921,
+      "source_row": 135,
+      "task_code": "MAPA-0107",
+      "username": "golier",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:922",
+      "legacy_id": 922,
+      "source_row": 136,
+      "task_code": "MAPA-0107",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:923",
+      "legacy_id": 923,
+      "source_row": 137,
+      "task_code": "MAPA-0107",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:924",
+      "legacy_id": 924,
+      "source_row": 138,
+      "task_code": "MAPA-0108",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:925",
+      "legacy_id": 925,
+      "source_row": 139,
+      "task_code": "MAPA-0108",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:926",
+      "legacy_id": 926,
+      "source_row": 140,
+      "task_code": "MAPA-0108",
+      "username": "golier",
+      "allow_delay": false,
+      "active": false,
+      "instructions_override": null,
+      "schedule": null
+    },
+    {
+      "seed_key": "legacy:927",
+      "legacy_id": 927,
+      "source_row": 141,
+      "task_code": "MAPA-0108",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:928",
+      "legacy_id": 928,
+      "source_row": 142,
+      "task_code": "MAPA-0108",
+      "username": "rsalas",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:930",
+      "legacy_id": 930,
+      "source_row": 143,
+      "task_code": "MAPA-0107",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:931",
+      "legacy_id": 931,
+      "source_row": 144,
+      "task_code": "MAPA-0108",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:932",
+      "legacy_id": 932,
+      "source_row": 145,
+      "task_code": "MAPA-0098",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:933",
+      "legacy_id": 933,
+      "source_row": 146,
+      "task_code": "MAPA-0090",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:934",
+      "legacy_id": 934,
+      "source_row": 147,
+      "task_code": "MAPA-0091",
+      "username": "acantero",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:935",
+      "legacy_id": 935,
+      "source_row": 148,
+      "task_code": "MAPA-0109",
+      "username": "aponce",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:936",
+      "legacy_id": 936,
+      "source_row": 149,
+      "task_code": "MAPA-0110",
+      "username": "egoncalves",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:937",
+      "legacy_id": 937,
+      "source_row": 150,
+      "task_code": "MAPA-0111",
+      "username": "ccastano",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:1125",
+      "legacy_id": 1125,
+      "source_row": 151,
+      "task_code": "MAPA-0107",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:1126",
+      "legacy_id": 1126,
+      "source_row": 152,
+      "task_code": "MAPA-0108",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:1127",
+      "legacy_id": 1127,
+      "source_row": 153,
+      "task_code": "MAPA-0091",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          1,
+          4
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:1128",
+      "legacy_id": 1128,
+      "source_row": 154,
+      "task_code": "MAPA-0090",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:1129",
+      "legacy_id": 1129,
+      "source_row": 155,
+      "task_code": "MAPA-0098",
+      "username": "bcondori",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    {
+      "seed_key": "legacy:1130",
+      "legacy_id": 1130,
+      "source_row": 156,
+      "task_code": "MAPA-0112",
+      "username": "pbenitez",
+      "allow_delay": false,
+      "active": true,
+      "instructions_override": null,
+      "schedule": {
+        "type": "weekly",
+        "weekdays": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    }
+  ]
+}

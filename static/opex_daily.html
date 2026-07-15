@@ -116,6 +116,15 @@
     .comparison-title{font-size:16px;font-weight:700;margin:0}
     .comparison-sub{font-size:12px;color:var(--ink-soft);margin-top:4px}
     .comparison-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .comparison-source{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+    .comparison-source button{border:1px solid var(--rule);background:#fff;color:var(--ink-soft);padding:7px 9px;font-size:11px;cursor:pointer}
+    .comparison-source button.active{background:var(--green);color:#fff;border-color:var(--green)}
+    .comparison-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}
+    .comparison-filter{display:flex;flex-direction:column;gap:4px}
+    .comparison-filter label{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+    .comparison-filter select,.comparison-filter input{width:100%;border:1px solid var(--rule);background:#fff;color:var(--ink);padding:7px 8px;font-size:12px}
+    .comparison-filter select{min-height:78px}
+    .comparison-filter-actions{display:flex;align-items:end;gap:8px;flex-wrap:wrap}
     .comparison-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
     .comparison-panel{border:1px solid var(--rule);background:#fff;padding:12px;min-width:0}
     .comparison-panel.wide{grid-column:1/-1}
@@ -126,6 +135,24 @@
     .comparison-heat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
     .comparison-heat-cell{border:1px solid var(--rule);padding:9px;background:#F8FAF7}
     .comparison-heat-cell strong{display:block;font-family:'IBM Plex Mono',monospace;font-size:15px;margin-top:4px}
+    .comparison-lines{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .comparison-line-card{border:1px solid var(--rule);background:#fff;min-width:0;padding:10px}
+    .comparison-line-head{display:flex;justify-content:space-between;gap:8px;align-items:start;margin-bottom:8px}
+    .comparison-line-title{font-size:12px;font-weight:700;line-height:1.25;color:var(--ink);min-width:0}
+    .comparison-line-meta{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-soft);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .comparison-legend{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-soft)}
+    .comparison-legend span{display:inline-flex;gap:4px;align-items:center}
+    .comparison-swatch{width:16px;height:3px;display:inline-block}
+    .comparison-swatch.manual{background:var(--red)}
+    .comparison-swatch.auto{background:var(--blue)}
+    .comparison-line-svg{width:100%;height:190px;display:block;background:#F8FAF7;border:1px solid var(--rule)}
+    .comparison-line-axis{stroke:#CBD4D0;stroke-width:1}
+    .comparison-line-grid{stroke:#E3E8E6;stroke-width:1}
+    .comparison-line-manual{fill:none;stroke:var(--red);stroke-width:2}
+    .comparison-line-auto{fill:none;stroke:var(--blue);stroke-width:2}
+    .comparison-line-point.manual{fill:var(--red)}
+    .comparison-line-point.auto{fill:var(--blue)}
+    .comparison-line-label{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--ink-soft)}
     .comparison-table{min-width:1220px}
     .comparison-table th,.comparison-table td{padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
     .comparison-table th.sortable{cursor:pointer;user-select:none}
@@ -133,7 +160,7 @@
     .comparison-table th.sorted{color:var(--green)}
     .comparison-state{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);margin-bottom:10px}
     .sql-preview{white-space:pre;overflow:auto;max-height:58vh;border:1px solid var(--rule);background:#F8FAF7;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.45;color:var(--ink)}
-    @media(max-width:1180px){.daily-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-fields,.daily-fields.productividad,.daily-pair-grid,.auto-detail-summary,.comparison-grid,.comparison-heat{grid-template-columns:1fr}.daily-hero{grid-template-columns:1fr}.daily-save-state{min-width:0}}
+    @media(max-width:1180px){.daily-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-fields,.daily-fields.productividad,.daily-pair-grid,.auto-detail-summary,.comparison-grid,.comparison-heat,.comparison-filters,.comparison-lines{grid-template-columns:1fr}.daily-hero{grid-template-columns:1fr}.daily-save-state{min-width:0}}
     @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header{grid-template-columns:1fr}.header-right{justify-self:start;flex-wrap:wrap}.daily-head{display:block;padding:10px 12px}.daily-toolbar{grid-template-columns:1fr}}
   </style>
 </head>
@@ -227,14 +254,20 @@
         <div class="comparison-head">
           <div>
             <h2 class="comparison-title">Comparacion automatica/manual</h2>
-            <div class="comparison-sub">Ultimas 15 fechas Daily del historico manual. Ranking por diferencia absoluta.</div>
+            <div class="comparison-sub" id="comparison-subtitle">Ultimas 15 fechas Daily cargadas. Ranking por diferencia absoluta.</div>
           </div>
           <div class="comparison-actions">
+            <div class="comparison-source">
+              <button class="active" id="comparison-source-cargas" type="button" onclick="setComparisonSource('cargas')">Cargas Daily</button>
+              <button id="comparison-source-excel" type="button" onclick="setComparisonSource('excel')">Excel historico</button>
+            </div>
             <button class="primary-btn" type="button" onclick="loadDailyComparison()">Actualizar vista</button>
-            <button class="primary-btn exception-btn visible" type="button" onclick="importDailyManualComparison()">Importar y recalcular</button>
+            <button class="primary-btn exception-btn visible" id="comparison-import-btn" type="button" onclick="importDailyManualComparison()" style="display:none">Importar y recalcular</button>
+            <button class="primary-btn" type="button" onclick="exportComparisonFilteredExcel()">Exportar Excel</button>
           </div>
         </div>
         <div class="comparison-state" id="comparison-status">Sin datos cargados.</div>
+        <div class="comparison-filters" id="comparison-filters"></div>
         <div class="comparison-grid">
           <div class="comparison-panel">
             <div class="daily-group-title">Mayores diferencias</div>
@@ -243,6 +276,10 @@
           <div class="comparison-panel">
             <div class="daily-group-title">Mapa por almacen/operacion</div>
             <div class="comparison-heat" id="comparison-heat"></div>
+          </div>
+          <div class="comparison-panel wide">
+            <div class="daily-group-title">Evolucion por indicador</div>
+            <div class="comparison-lines" id="comparison-lines"></div>
           </div>
           <div class="comparison-panel wide">
             <div class="daily-group-title">Detalle comparativo</div>
@@ -305,7 +342,21 @@
   let currentRawDetail = null;
   let currentRawSql = null;
   let dailyComparisonData = null;
+  let comparisonSource = 'cargas';
   let comparisonSort = { key: 'diferencia_abs', dir: 'desc' };
+  const comparisonFilterFields = [
+    { key: 'fecha_daily', label: 'Fecha', id: 'comparison-filter-fecha' },
+    { key: 'sector', label: 'Almacen', id: 'comparison-filter-sector' },
+    { key: 'operacion', label: 'Operacion', id: 'comparison-filter-operacion' },
+    { key: 'metrica', label: 'Metrica', id: 'comparison-filter-metrica' },
+    { key: 'concepto', label: 'Concepto', id: 'comparison-filter-concepto' },
+    { key: 'estado', label: 'Estado', id: 'comparison-filter-estado' },
+    { key: 'up', label: 'UP', id: 'comparison-filter-up' },
+    { key: 'tipo_daily', label: 'Tipo', id: 'comparison-filter-tipo' },
+    { key: 'usuario_carga', label: 'Usuario', id: 'comparison-filter-usuario' },
+    { key: 'id_parametro', label: 'Parametro', id: 'comparison-filter-parametro' },
+  ];
+  let comparisonFilters = {};
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, ch => ({
@@ -410,10 +461,30 @@
     el.className = `comparison-state ${tone}`;
   }
 
+  function setComparisonSource(source) {
+    comparisonSource = source === 'excel' ? 'excel' : 'cargas';
+    dailyComparisonData = null;
+    comparisonFilters = {};
+    document.getElementById('comparison-source-cargas')?.classList.toggle('active', comparisonSource === 'cargas');
+    document.getElementById('comparison-source-excel')?.classList.toggle('active', comparisonSource === 'excel');
+    const importBtn = document.getElementById('comparison-import-btn');
+    if (importBtn) importBtn.style.display = comparisonSource === 'excel' ? 'inline-block' : 'none';
+    const subtitle = document.getElementById('comparison-subtitle');
+    if (subtitle) {
+      subtitle.textContent = comparisonSource === 'excel'
+        ? 'Ultimas 15 fechas Daily del historico manual importado desde Excel. Ranking por diferencia absoluta.'
+        : 'Ultimas 15 fechas Daily cargadas en pantalla. Usuario/manual versus automatico guardado.';
+    }
+    loadDailyComparison();
+  }
+
   async function loadDailyComparison() {
-    setComparisonStatus('Cargando comparacion manual/automatica.');
+    setComparisonStatus(comparisonSource === 'excel' ? 'Cargando comparacion Excel/automatica.' : 'Cargando comparacion de cargas Daily.');
     try {
-      const resp = await fetch('/api/gestion-operativa/daily/comparacion-manual-auto?days=15', { credentials: 'same-origin' });
+      const endpoint = comparisonSource === 'excel'
+        ? '/api/gestion-operativa/daily/comparacion-manual-auto?days=15'
+        : '/api/gestion-operativa/daily/comparacion-cargas-auto?days=15';
+      const resp = await fetch(endpoint, { credentials: 'same-origin' });
       const data = await resp.json();
       if (!resp.ok) throw new Error(apiErrorMessage(data, 'No se pudo cargar la comparacion.'));
       dailyComparisonData = data;
@@ -424,6 +495,7 @@
   }
 
   async function importDailyManualComparison() {
+    if (comparisonSource !== 'excel') return;
     setComparisonStatus('Importando Excel y recalculando dailys faltantes. Puede demorar.');
     try {
       const resp = await fetch('/api/gestion-operativa/daily/comparacion-manual-auto/importar', {
@@ -442,10 +514,146 @@
   }
 
   function renderDailyComparison(data) {
-    setComparisonStatus(`${num(data?.count)} comparaciones entre ${data?.fecha_desde || '-'} y ${data?.fecha_hasta || '-'}${data?.missing_auto ? `; ${num(data.missing_auto)} sin automatico` : ''}.`);
-    renderComparisonRanking(data?.ranking || []);
-    renderComparisonHeat(data?.heatmap || []);
-    renderComparisonTable(data?.rows || []);
+    renderComparisonFilters(data?.rows || []);
+    renderComparisonFilteredView();
+  }
+
+  function comparisonRawRows() {
+    return dailyComparisonData?.rows || [];
+  }
+
+  function comparisonSelectedValues(id) {
+    const el = document.getElementById(id);
+    if (!el) return [];
+    return [...el.selectedOptions].map(option => option.value).filter(Boolean);
+  }
+
+  function comparisonDistinctValues(rows, key) {
+    return [...new Set(rows.map(row => String(row?.[key] ?? '').trim()).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'es-AR', { numeric: true, sensitivity: 'base' }));
+  }
+
+  function renderComparisonFilters(rows) {
+    const wrap = document.getElementById('comparison-filters');
+    if (!wrap) return;
+    wrap.innerHTML = `
+      ${comparisonFilterFields.map(field => {
+        const selected = comparisonFilters[field.key] || [];
+        const options = comparisonDistinctValues(rows, field.key);
+        return `
+          <div class="comparison-filter">
+            <label for="${escapeHtml(field.id)}">${escapeHtml(field.label)}</label>
+            <select id="${escapeHtml(field.id)}" multiple onchange="onComparisonFilterChange()">
+              ${options.map(value => `<option value="${escapeHtml(value)}" ${selected.includes(value) ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}
+            </select>
+          </div>
+        `;
+      }).join('')}
+      <div class="comparison-filter">
+        <label for="comparison-filter-text">Texto</label>
+        <input id="comparison-filter-text" type="search" value="${escapeHtml(comparisonFilters.text || '')}" oninput="onComparisonFilterChange()" autocomplete="off">
+      </div>
+      <div class="comparison-filter-actions">
+        <button class="ghost-btn" type="button" onclick="clearComparisonFilters()">Limpiar filtros</button>
+      </div>
+    `;
+  }
+
+  function onComparisonFilterChange() {
+    comparisonFilterFields.forEach(field => {
+      comparisonFilters[field.key] = comparisonSelectedValues(field.id);
+    });
+    comparisonFilters.text = document.getElementById('comparison-filter-text')?.value || '';
+    renderComparisonFilteredView();
+  }
+
+  function clearComparisonFilters() {
+    comparisonFilters = {};
+    renderComparisonFilters(comparisonRawRows());
+    renderComparisonFilteredView();
+  }
+
+  function filterComparisonRows(rows) {
+    const text = String(comparisonFilters.text || '').trim().toLocaleLowerCase('es-AR');
+    return rows.filter(row => {
+      for (const field of comparisonFilterFields) {
+        const selected = comparisonFilters[field.key] || [];
+        if (selected.length && !selected.includes(String(row?.[field.key] ?? '').trim())) return false;
+      }
+      if (!text) return true;
+      return comparisonFilterFields.concat([
+        { key: 'valor_manual' },
+        { key: 'valor_automatico' },
+        { key: 'diferencia' },
+        { key: 'diferencia_abs' },
+        { key: 'diferencia_pct' },
+      ]).some(field => String(row?.[field.key] ?? '').toLocaleLowerCase('es-AR').includes(text));
+    });
+  }
+
+  function summarizeComparisonRanking(rows) {
+    const grouped = new Map();
+    rows.forEach(row => {
+      const key = [row.sector, row.operacion, row.metrica, row.concepto].map(value => String(value || '')).join('|');
+      const item = grouped.get(key) || {
+        sector: row.sector || '',
+        operacion: row.operacion || '',
+        metrica: row.metrica || '',
+        concepto: row.concepto || '',
+        diferencia_abs_total: 0,
+        diferencia_pct_total: 0,
+        diferencia_pct_count: 0,
+        comparaciones: 0,
+        sin_automatico: 0,
+      };
+      const diffAbs = Number(row.diferencia_abs);
+      if (Number.isFinite(diffAbs)) item.diferencia_abs_total += diffAbs;
+      const diffPct = Number(row.diferencia_pct);
+      if (Number.isFinite(diffPct)) {
+        item.diferencia_pct_total += diffPct;
+        item.diferencia_pct_count += 1;
+      }
+      item.comparaciones += 1;
+      if (row.estado === 'sin_automatico') item.sin_automatico += 1;
+      grouped.set(key, item);
+    });
+    return [...grouped.values()].map(item => ({
+      ...item,
+      diferencia_abs_promedio: item.comparaciones ? item.diferencia_abs_total / item.comparaciones : 0,
+      diferencia_pct_promedio: item.diferencia_pct_count ? item.diferencia_pct_total / item.diferencia_pct_count : null,
+    })).sort((a, b) => Number(b.diferencia_abs_total || 0) - Number(a.diferencia_abs_total || 0));
+  }
+
+  function summarizeComparisonHeat(rows) {
+    const grouped = new Map();
+    rows.forEach(row => {
+      const key = [row.sector, row.operacion].map(value => String(value || '')).join('|');
+      const item = grouped.get(key) || {
+        sector: row.sector || '',
+        operacion: row.operacion || '',
+        diferencia_abs_total: 0,
+        comparaciones: 0,
+      };
+      const diffAbs = Number(row.diferencia_abs);
+      if (Number.isFinite(diffAbs)) item.diferencia_abs_total += diffAbs;
+      item.comparaciones += 1;
+      grouped.set(key, item);
+    });
+    return [...grouped.values()].map(item => ({
+      ...item,
+      diferencia_abs_promedio: item.comparaciones ? item.diferencia_abs_total / item.comparaciones : 0,
+    })).sort((a, b) => Number(b.diferencia_abs_promedio || 0) - Number(a.diferencia_abs_promedio || 0));
+  }
+
+  function renderComparisonFilteredView() {
+    const allRows = comparisonRawRows();
+    const rows = filterComparisonRows(allRows);
+    const missing = rows.filter(row => row.estado === 'sin_automatico').length;
+    setComparisonStatus(`${num(rows.length)} de ${num(allRows.length)} comparaciones entre ${dailyComparisonData?.fecha_desde || '-'} y ${dailyComparisonData?.fecha_hasta || '-'}${missing ? `; ${num(missing)} sin automatico` : ''}.`);
+    renderComparisonRanking(summarizeComparisonRanking(rows));
+    renderComparisonHeat(summarizeComparisonHeat(rows));
+    renderComparisonLines(rows);
+    renderComparisonTable(rows);
   }
 
   function renderComparisonRanking(rows) {
@@ -491,6 +699,174 @@
     }).join('');
   }
 
+  function comparisonIndicatorLabel(row) {
+    return [row.sector, row.operacion, row.metrica, row.concepto]
+      .map(value => String(value || '').trim())
+      .filter(Boolean)
+      .join(' | ');
+  }
+
+  function buildComparisonLineSeries(rows) {
+    const grouped = new Map();
+    rows.forEach(row => {
+      const date = String(row.fecha_daily || '').trim();
+      const label = comparisonIndicatorLabel(row);
+      if (!date || !label) return;
+      const key = [
+        row.sector || '',
+        row.operacion || '',
+        row.metrica || '',
+        row.concepto || '',
+        row.id_parametro || '',
+      ].join('|');
+      const item = grouped.get(key) || {
+        key,
+        label,
+        meta: row.id_parametro || '',
+        byDate: new Map(),
+        diferencia_abs_total: 0,
+      };
+      const bucket = item.byDate.get(date) || {
+        fecha: date,
+        manualTotal: 0,
+        manualCount: 0,
+        autoTotal: 0,
+        autoCount: 0,
+      };
+      const manual = Number(row.valor_manual);
+      if (Number.isFinite(manual)) {
+        bucket.manualTotal += manual;
+        bucket.manualCount += 1;
+      }
+      const automatico = Number(row.valor_automatico);
+      if (Number.isFinite(automatico)) {
+        bucket.autoTotal += automatico;
+        bucket.autoCount += 1;
+      }
+      const diffAbs = Number(row.diferencia_abs);
+      if (Number.isFinite(diffAbs)) item.diferencia_abs_total += diffAbs;
+      item.byDate.set(date, bucket);
+      grouped.set(key, item);
+    });
+    return [...grouped.values()].map(item => {
+      const points = [...item.byDate.values()]
+        .map(bucket => ({
+          fecha: bucket.fecha,
+          manual: bucket.manualCount ? bucket.manualTotal / bucket.manualCount : null,
+          automatico: bucket.autoCount ? bucket.autoTotal / bucket.autoCount : null,
+        }))
+        .sort((a, b) => String(a.fecha).localeCompare(String(b.fecha), 'es-AR', { numeric: true }));
+      return { ...item, points };
+    }).filter(item => item.points.length)
+      .sort((a, b) => Number(b.diferencia_abs_total || 0) - Number(a.diferencia_abs_total || 0));
+  }
+
+  function svgPointPath(points, dates, minValue, maxValue, width, height, pad) {
+    const span = Math.max(maxValue - minValue, 1);
+    return points.map(point => {
+      const dateIndex = dates.indexOf(point.fecha);
+      const x = dates.length <= 1
+        ? width / 2
+        : pad.left + (dateIndex / (dates.length - 1)) * (width - pad.left - pad.right);
+      const y = pad.top + (1 - ((point.value - minValue) / span)) * (height - pad.top - pad.bottom);
+      return { ...point, x, y };
+    });
+  }
+
+  function renderComparisonLineChart(item) {
+    const width = 640;
+    const height = 190;
+    const pad = { top: 18, right: 18, bottom: 34, left: 52 };
+    const dates = item.points.map(point => point.fecha);
+    const values = item.points
+      .flatMap(point => [point.manual, point.automatico])
+      .filter(value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)))
+      .map(value => Number(value));
+    if (!values.length) {
+      return '<div class="empty">Sin valores numericos para graficar.</div>';
+    }
+    const rawMin = Math.min(...values);
+    const rawMax = Math.max(...values);
+    const minValue = rawMin > 0 ? 0 : rawMin;
+    const maxValue = rawMax === minValue ? rawMax + 1 : rawMax;
+    const manualPoints = svgPointPath(
+      item.points.filter(point => point.manual !== null && point.manual !== undefined && Number.isFinite(Number(point.manual))).map(point => ({ fecha: point.fecha, value: Number(point.manual) })),
+      dates,
+      minValue,
+      maxValue,
+      width,
+      height,
+      pad
+    );
+    const autoPoints = svgPointPath(
+      item.points.filter(point => point.automatico !== null && point.automatico !== undefined && Number.isFinite(Number(point.automatico))).map(point => ({ fecha: point.fecha, value: Number(point.automatico) })),
+      dates,
+      minValue,
+      maxValue,
+      width,
+      height,
+      pad
+    );
+    const poly = points => points.map(point => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+    const ticks = [0, 0.5, 1].map(ratio => {
+      const y = pad.top + ratio * (height - pad.top - pad.bottom);
+      const value = maxValue - ratio * (maxValue - minValue);
+      return `
+        <line class="comparison-line-grid" x1="${pad.left}" y1="${y.toFixed(1)}" x2="${width - pad.right}" y2="${y.toFixed(1)}"></line>
+        <text class="comparison-line-label" x="8" y="${(y + 3).toFixed(1)}">${escapeHtml(num2(value))}</text>
+      `;
+    }).join('');
+    const dateLabels = dates.map((date, index) => {
+      if (dates.length > 6 && index % Math.ceil(dates.length / 6) !== 0 && index !== dates.length - 1) return '';
+      const x = dates.length <= 1
+        ? width / 2
+        : pad.left + (index / (dates.length - 1)) * (width - pad.left - pad.right);
+      return `<text class="comparison-line-label" text-anchor="middle" x="${x.toFixed(1)}" y="${height - 10}">${escapeHtml(String(date).slice(5))}</text>`;
+    }).join('');
+    const circles = (points, cls) => points.map(point => `
+      <circle class="comparison-line-point ${cls}" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3">
+        <title>${escapeHtml(point.fecha)}: ${escapeHtml(num2(point.value))}</title>
+      </circle>
+    `).join('');
+    return `
+      <svg class="comparison-line-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(item.label)}">
+        ${ticks}
+        <line class="comparison-line-axis" x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}"></line>
+        <line class="comparison-line-axis" x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${height - pad.bottom}"></line>
+        ${manualPoints.length > 1 ? `<polyline class="comparison-line-manual" points="${poly(manualPoints)}"></polyline>` : ''}
+        ${autoPoints.length > 1 ? `<polyline class="comparison-line-auto" points="${poly(autoPoints)}"></polyline>` : ''}
+        ${circles(manualPoints, 'manual')}
+        ${circles(autoPoints, 'auto')}
+        ${dateLabels}
+      </svg>
+    `;
+  }
+
+  function renderComparisonLines(rows) {
+    const wrap = document.getElementById('comparison-lines');
+    if (!wrap) return;
+    const series = buildComparisonLineSeries(rows);
+    if (!series.length) {
+      wrap.innerHTML = '<div class="empty">Sin indicadores para graficar.</div>';
+      return;
+    }
+    wrap.innerHTML = series.map(item => `
+      <div class="comparison-line-card">
+        <div class="comparison-line-head">
+          <div>
+            <div class="comparison-line-title">${escapeHtml(item.label)}</div>
+            <div class="comparison-line-meta">${escapeHtml(item.meta || `${num(item.points.length)} fechas`)}</div>
+          </div>
+          <div class="comparison-legend">
+            <span><i class="comparison-swatch manual"></i>Manual</span>
+            <span><i class="comparison-swatch auto"></i>Automatico</span>
+          </div>
+        </div>
+        ${renderComparisonLineChart(item)}
+      </div>
+    `).join('');
+  }
+
   function comparisonSortValue(row, key) {
     const value = row?.[key];
     if (['valor_manual', 'valor_automatico', 'diferencia', 'diferencia_abs', 'diferencia_pct'].includes(key)) {
@@ -516,7 +892,7 @@
       key,
       dir: comparisonSort.key === key && comparisonSort.dir === 'desc' ? 'asc' : 'desc'
     };
-    renderComparisonTable(dailyComparisonData?.rows || []);
+    renderComparisonTable(filterComparisonRows(comparisonRawRows()));
   }
 
   function comparisonTh(label, key) {
@@ -534,14 +910,19 @@
       return;
     }
     wrap.innerHTML = `
+      <div class="raw-detail-count" style="margin:0 0 8px">${escapeHtml(num(rows.length))} filas filtradas${rows.length > top.length ? `; mostrando ${escapeHtml(num(top.length))}` : ''}.</div>
       <table class="comparison-table">
         <thead>
           <tr>
             ${comparisonTh('Fecha', 'fecha_daily')}
             ${comparisonTh('Almacen', 'sector')}
+            ${comparisonTh('Tipo', 'tipo_daily')}
+            ${comparisonTh('Usuario', 'usuario_carga')}
+            ${comparisonTh('Carga', 'carga_id')}
             ${comparisonTh('Operacion', 'operacion')}
             ${comparisonTh('Metrica', 'metrica')}
             ${comparisonTh('Concepto', 'concepto')}
+            ${comparisonTh('Parametro', 'id_parametro')}
             ${comparisonTh('Manual', 'valor_manual')}
             ${comparisonTh('Automatico', 'valor_automatico')}
             ${comparisonTh('Dif.', 'diferencia')}
@@ -555,9 +936,13 @@
             <tr>
               <td>${escapeHtml(row.fecha_daily)}</td>
               <td>${escapeHtml(row.sector)}</td>
+              <td>${escapeHtml(row.tipo_daily || '')}</td>
+              <td>${escapeHtml(row.usuario_carga || '')}</td>
+              <td>${escapeHtml(row.carga_id || '')}</td>
               <td>${escapeHtml(row.operacion)}</td>
               <td>${escapeHtml(row.metrica)}</td>
               <td>${escapeHtml(row.concepto)}</td>
+              <td>${escapeHtml(row.id_parametro || '')}</td>
               <td>${num2(row.valor_manual)}</td>
               <td>${row.valor_automatico === null || row.valor_automatico === undefined ? '-' : num2(row.valor_automatico)}</td>
               <td>${row.diferencia === null || row.diferencia === undefined ? '-' : num2(row.diferencia)}</td>
@@ -569,6 +954,74 @@
         </tbody>
       </table>
     `;
+  }
+
+  function comparisonExportColumns() {
+    return [
+      { key: 'fecha_daily', label: 'Fecha' },
+      { key: 'sector', label: 'Almacen' },
+      { key: 'tipo_daily', label: 'Tipo' },
+      { key: 'usuario_carga', label: 'Usuario' },
+      { key: 'carga_id', label: 'Carga' },
+      { key: 'timestamp_carga', label: 'Timestamp carga' },
+      { key: 'up', label: 'UP' },
+      { key: 'operacion', label: 'Operacion' },
+      { key: 'metrica', label: 'Metrica' },
+      { key: 'concepto', label: 'Concepto' },
+      { key: 'id_parametro', label: 'Parametro' },
+      { key: 'valor_manual', label: 'Manual' },
+      { key: 'valor_automatico', label: 'Automatico' },
+      { key: 'diferencia', label: 'Dif.' },
+      { key: 'diferencia_abs', label: 'Dif. abs.' },
+      { key: 'diferencia_pct', label: 'Dif. %' },
+      { key: 'estado', label: 'Estado' },
+      { key: 'source_file', label: 'Archivo origen' },
+      { key: 'source_row', label: 'Fila origen' },
+    ];
+  }
+
+  function comparisonExportValue(row, key) {
+    const value = row?.[key];
+    if (value === null || value === undefined) return '';
+    if (key === 'diferencia_pct') {
+      const n = Number(value);
+      return Number.isFinite(n) ? n * 100 : '';
+    }
+    return value;
+  }
+
+  function exportComparisonFilteredExcel() {
+    const rows = sortedComparisonRows(filterComparisonRows(comparisonRawRows()));
+    if (!rows.length) {
+      setComparisonStatus('No hay filas filtradas para exportar.', 'error');
+      return;
+    }
+    const columns = comparisonExportColumns();
+    const html = `
+      <html>
+        <head><meta charset="utf-8"></head>
+        <body>
+          <table border="1">
+            <thead><tr>${columns.map(col => `<th>${escapeHtml(col.label)}</th>`).join('')}</tr></thead>
+            <tbody>
+              ${rows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(comparisonExportValue(row, col.key))}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const desde = dailyComparisonData?.fecha_desde || 'desde';
+    const hasta = dailyComparisonData?.fecha_hasta || 'hasta';
+    a.href = url;
+    a.download = `comparacion_daily_${desde}_${hasta}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setComparisonStatus(`${num(rows.length)} filas exportadas a Excel.`);
   }
 
   function applyDailyAutoPayload(data) {
@@ -890,7 +1343,7 @@
       : isSpcReal
       ? 'SPC real usa la misma consulta unificada, tomando solo SURTIDO P.COMPLETOS: pallets = COUNT(DISTINCT CNUPALET), dotacion = COUNT(DISTINCT COPECREA).'
       : item?.proceso === 'DESPACHO'
-      ? 'Despacho se calcula desde cache cruda de f922traf: produccion real = COUNT(DISTINCT HOJARUTA), legajos = COUNT(DISTINCT CARGADOR), productividad = hojas de ruta / legajos.'
+      ? 'Despacho se calcula desde cache cruda de f922traf: produccion real = COUNT(DISTINCT HOJARUTA), legajos = COUNT(DISTINCT CARGADOR) solo con funciones operativas validas de PV_LEGAJO, productividad = hojas de ruta / legajos.'
       : 'El valor automatico se toma del cache precalculado para la ventana Daily vigente. Esta vista no ejecuta Oracle.';
     return `
       <div class="auto-detail-summary">
@@ -1218,8 +1671,6 @@
   }
 
   async function exportarCsvDaily() {
-    const clave = window.prompt('Clave de parametros');
-    if (clave === null) return;
     const btn = document.getElementById('btn-daily-export');
     btn.disabled = true;
     btn.textContent = 'Exportando...';
@@ -1228,8 +1679,6 @@
       const resp = await fetch('/api/gestion-operativa/daily/exportar-csv', {
         method: 'POST',
         credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clave }),
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.detail || 'No se pudo exportar el CSV.');

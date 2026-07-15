@@ -16,12 +16,22 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import aiosqlite
 
-from db.paths import resolve_db_path
+from db.paths import resolve_db_path, resolve_file_path
 
 
 DAILY_DB_PATH = resolve_db_path("DAILY_OPERATIVA_DB_PATH", "daily_operativa.db", Path(__file__).resolve().parent)
-DAILY_POWERBI_CSV_PATH = DAILY_DB_PATH.with_name("daily_powerbi.csv")
-DAILY_CONSOLIDADO_CSV_PATH = DAILY_DB_PATH.with_name("daily_consolidado_powerbi.csv")
+DAILY_POWERBI_CSV_PATH = resolve_file_path(
+    "DAILY_POWERBI_CSV_PATH",
+    "daily_powerbi.csv",
+    DAILY_DB_PATH.with_name("daily_powerbi.csv"),
+    common_dir_env="DAILY_CSV_DIR",
+)
+DAILY_CONSOLIDADO_CSV_PATH = resolve_file_path(
+    "DAILY_CONSOLIDADO_CSV_PATH",
+    "daily_consolidado_powerbi.csv",
+    DAILY_DB_PATH.with_name("daily_consolidado_powerbi.csv"),
+    common_dir_env="DAILY_CSV_DIR",
+)
 try:
     LOCAL_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 except ZoneInfoNotFoundError:
@@ -682,8 +692,8 @@ async def export_powerbi_csv() -> Path:
     evitar que Power BI lea un archivo a medio escribir.
     """
     await init_daily_db()
-    DAILY_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     target = DAILY_POWERBI_CSV_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
     temp = target.with_suffix(target.suffix + ".tmp")
     async with aiosqlite.connect(DAILY_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
@@ -702,8 +712,8 @@ async def export_powerbi_csv() -> Path:
 
 async def export_consolidado_powerbi_csv() -> Path:
     await init_daily_db()
-    DAILY_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     target = DAILY_CONSOLIDADO_CSV_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
     temp = target.with_suffix(target.suffix + ".tmp")
     async with aiosqlite.connect(DAILY_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
@@ -995,6 +1005,91 @@ async def get_existing_cargas(daily_key: str, tipo_daily: str, sector: str) -> l
             (daily_key, normalize_tipo_daily(tipo_daily), normalize_sector(sector)),
         ) as cur:
             return [dict(row) for row in await cur.fetchall()]
+
+
+def _comparison_state(manual: float | None, automatico: float | None) -> tuple[float | None, float | None, float | None, str]:
+    if manual is None and automatico is None:
+        return None, None, None, "sin_datos"
+    if manual is None:
+        return None, None, None, "sin_manual"
+    if automatico is None:
+        return None, None, None, "sin_automatico"
+    diferencia = automatico - manual
+    diferencia_abs = abs(diferencia)
+    diferencia_pct = (diferencia / manual) if manual else None
+    if diferencia_abs <= 0.01:
+        estado = "coincide"
+    elif diferencia_pct is not None and abs(diferencia_pct) >= 0.2:
+        estado = "critica"
+    elif diferencia_pct is not None and abs(diferencia_pct) >= 0.05:
+        estado = "relevante"
+    else:
+        estado = "menor"
+    return diferencia, diferencia_abs, diferencia_pct, estado
+
+
+async def get_daily_carga_auto_manual_comparacion(days: int = 15) -> tuple[list[dict[str, Any]], str, str]:
+    await init_daily_db()
+    async with aiosqlite.connect(DAILY_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT DISTINCT fecha_carga
+            FROM daily_cargas
+            WHERE reemplazado = 0
+            ORDER BY fecha_carga DESC
+            LIMIT ?
+            """,
+            (max(int(days or 15), 1),),
+        ) as cur:
+            dates = [str(row["fecha_carga"]) for row in await cur.fetchall()]
+        if not dates:
+            return [], "", ""
+        fecha_desde = min(dates)
+        fecha_hasta = max(dates)
+        async with db.execute(
+            """
+            SELECT *
+            FROM vw_daily_powerbi
+            WHERE fecha_carga >= ?
+              AND fecha_carga <= ?
+              AND tipo_campo = 'numerico'
+            ORDER BY fecha_carga DESC, tipo_daily, sector, grupo, orden
+            """,
+            (fecha_desde, fecha_hasta),
+        ) as cur:
+            source_rows = [dict(row) for row in await cur.fetchall()]
+
+    rows: list[dict[str, Any]] = []
+    for row in source_rows:
+        manual = row.get("valor_usuario_numero")
+        automatico = row.get("valor_auto_numero")
+        diferencia, diferencia_abs, diferencia_pct, estado = _comparison_state(manual, automatico)
+        rows.append(
+            {
+                "daily_key": row.get("daily_key"),
+                "fecha_daily": row.get("fecha_carga"),
+                "sector": row.get("sector") or "",
+                "tipo_daily": row.get("tipo_daily") or "",
+                "usuario_carga": row.get("usuario_carga") or "",
+                "carga_id": row.get("carga_id"),
+                "timestamp_carga": row.get("timestamp_carga") or "",
+                "up": row.get("proceso") or row.get("grupo") or "",
+                "operacion": row.get("proceso") or "",
+                "metrica": row.get("grupo") or "",
+                "concepto": row.get("nombre_parametro") or row.get("id_parametro") or "",
+                "id_parametro": row.get("id_parametro") or "",
+                "valor_manual": manual,
+                "valor_automatico": automatico,
+                "diferencia": diferencia,
+                "diferencia_abs": diferencia_abs,
+                "diferencia_pct": diferencia_pct,
+                "estado": estado,
+                "source_file": "daily_cargas",
+                "source_row": row.get("carga_id"),
+            }
+        )
+    return rows, fecha_desde, fecha_hasta
 
 
 async def save_daily_carga(

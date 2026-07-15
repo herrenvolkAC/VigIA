@@ -1100,8 +1100,8 @@ def _query_oracle_via_jdbc(sql: str, binds: dict[str, Any]) -> list[dict[str, An
         jdbc_url,
         user,
         password,
-        str(binds.get("fecha_ini") or binds.get("fecha_yyyymmdd") or ""),
-        str(binds.get("fecha_fin") or binds.get("fecha_yyyymmdd") or ""),
+        str(binds.get("fecha_ini") or binds.get("fecha_yyyymmdd") or binds.get("fecha_base") or ""),
+        str(binds.get("fecha_fin") or binds.get("fecha_yyyymmdd") or binds.get("fecha_base") or ""),
         query_key,
         legajos,
         str(binds.get("operacion") or "PICKING"),
@@ -1310,6 +1310,10 @@ async def _fetch_premio_base(fecha_base: str, operacion: str) -> tuple[list[dict
     binds = {"fecha_base": _to_date(fecha_base).strftime("%Y/%m/%d"), "operacion": operacion}
     if os.getenv("PRODUCTIVE_DB_USE_JDBC", "1").strip().lower() in {"1", "true", "yes", "si"}:
         await asyncio.to_thread(_ensure_java_helper_compiled)
+        raw_scales = await asyncio.to_thread(_query_oracle, CONSULTA_PP_ESCALAS, {"operacion": operacion})
+        raw_hours = await asyncio.to_thread(_query_oracle, CONSULTA_PP_ETAPAS_HORA, binds)
+        raw_days = await asyncio.to_thread(_query_oracle, CONSULTA_PP_LIQUIDACION_DIA, binds)
+        return raw_hours, raw_days, _build_scale_index(raw_scales)
     raw_scales, raw_hours, raw_days = await asyncio.gather(
         asyncio.to_thread(_query_oracle, CONSULTA_PP_ESCALAS, {"operacion": operacion}),
         asyncio.to_thread(_query_oracle, CONSULTA_PP_ETAPAS_HORA, binds),

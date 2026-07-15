@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>VigIA - OpEX Cambio Turno</title>
+  <style>
+    :root{--bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--red:#C8102E;--blue:#0B5FAE}
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:24px 24px}
+    button,input,select{font:inherit;color:inherit}
+    button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:100%;min-height:100vh;padding:0 12px 14px}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:10px 14px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}.brand-logo{width:78px;height:38px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}
+    .paper-kicker,.user-label,.field label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+    .paper-title{font-size:20px;line-height:1.05;font-weight:600;margin:0;color:var(--ink)}.amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}.paper-link,.logout-btn{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}
+    .paper-link:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}.user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .shift-page{padding:0;max-width:none;margin:0}.shift-head{display:none}
+    .shift-hero{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:10px 14px;margin-bottom:0}
+    .shift-hero-kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}.shift-hero-title{font-size:21px;line-height:1.1;font-weight:700;color:var(--ink);margin:2px 0 4px}.shift-hero-sub{font-size:12px;color:var(--ink-soft)}
+    .shift-state{min-width:220px;border:1px solid var(--rule);padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:#F8FAF7}
+    .shift-toolbar{display:grid;grid-template-columns:minmax(170px,.7fr) minmax(150px,.6fr) auto minmax(260px,1fr);gap:10px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:10px;margin-bottom:10px}
+    .field{display:flex;flex-direction:column;gap:6px}.field select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
+    .primary-btn{height:34px;min-height:34px;border:1px solid var(--ink);border-radius:0;background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px;box-shadow:none;white-space:nowrap}.primary-btn:disabled{opacity:.55;cursor:wait}
+    .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);line-height:1.35;align-self:stretch}.status.error{color:var(--red);font-weight:500}
+    .dashboard-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:10px}.panel{background:var(--panel);border:1px solid var(--rule);padding:10px;min-width:0}.panel.wide{grid-column:1/-1}
+    .panel-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-bottom:8px}
+    .gauge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.gauge-card{border:1px solid var(--rule);background:#fff;padding:10px;display:grid;grid-template-rows:auto 96px auto;min-height:174px}.gauge-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;text-align:center;min-height:24px}
+    .gauge{position:relative;width:190px;height:96px;margin:0 auto}.gauge svg{display:block;width:190px;height:108px;overflow:visible}.gauge-bg{fill:none;stroke:#E7ECE9;stroke-width:15;stroke-linecap:round}.gauge-fg{fill:none;stroke:var(--gauge-color);stroke-width:15;stroke-linecap:round;transition:stroke-dasharray .25s ease}.gauge-center{position:absolute;left:0;right:0;bottom:7px;text-align:center}.gauge-pct{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);line-height:1}.gauge-pct span{font-size:12px;color:var(--ink-soft);font-weight:600}.gauge-caption{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
+    .gauge-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}.gauge-stat{border:1px solid var(--rule);background:#F8FAF7;padding:6px 5px;text-align:center;min-width:0}.gauge-stat strong{display:block;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gauge-stat span{display:block;margin-top:2px;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
+    .metric-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid var(--rule);background:#F8FAF7;padding:10px 8px;text-align:center}.metric strong{display:block;font-size:22px;font-weight:600}.metric span{font-size:11px;color:var(--ink-soft)}
+    .ranking-table{min-width:620px;width:100%;border-collapse:collapse}.ranking-table th{position:sticky;top:0;background:#F6F8F5;color:var(--ink-soft);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-align:left;padding:8px;border-bottom:1px solid var(--rule);white-space:nowrap}.ranking-table td{padding:6px 8px;border-bottom:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:11px}.bar-track{height:12px;background:#E7ECE9}.bar-fill{height:100%;background:#6574C4;min-width:1px}.table-wrap{overflow:auto;max-height:360px}.empty{padding:18px 12px;color:var(--ink-soft);font-size:12px;background:var(--panel);border:1px solid var(--rule)}
+    @media(max-width:1100px){.dashboard-grid,.metric-row{grid-template-columns:1fr}.shift-toolbar{grid-template-columns:1fr}.shift-hero{grid-template-columns:1fr}.shift-state{min-width:0}}
+    @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header{grid-template-columns:1fr}.header-right{justify-self:start;flex-wrap:wrap}.shift-head{display:block;padding:10px 12px}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div><div class="paper-kicker">OpEX</div><h1 class="paper-title">Cambio <span class="amp">Turno</span></h1></div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/opex.html">OpEX</a>
+      <a class="paper-link" href="/selector">Inicio</a>
+      <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn" type="button" onclick="logout()">Salir</button>
+    </div>
+  </header>
+
+  <main class="shift-page">
+    <header class="shift-head">
+      <div><div class="shift-kicker">OpEX Shift</div><h1 class="shift-title">Evaluacion de cambio de turno</h1></div>
+    </header>
+
+    <section class="shift-hero">
+      <div>
+        <div class="shift-hero-kicker">Turno operativo</div>
+        <div class="shift-hero-title" id="hero-title">Selecciona division y turno</div>
+        <div class="shift-hero-sub" id="hero-sub">Indicadores reales versus planificados para la ventana estandar +/- 5 minutos.</div>
+      </div>
+      <div class="shift-state" id="shift-state">Sin calcular.</div>
+    </section>
+
+    <section class="shift-toolbar">
+      <div class="field">
+        <label for="division">Division</label>
+        <select id="division" onchange="renderSelectedDivision()">
+          <option value="Secos">Secos</option>
+          <option value="Refrigerados">Refrigerados</option>
+          <option value="Noa">Noa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="turno">Turno</label>
+        <select id="turno">
+          <option value="TM">TM - 05:55 a 14:05</option>
+          <option value="TT">TT - 13:55 a 22:05</option>
+          <option value="TN">TN - 21:55 a 06:05</option>
+        </select>
+      </div>
+      <button class="primary-btn" id="btn-load" type="button" onclick="loadShift()">Actualizar</button>
+      <div class="status" id="status">Listo para consultar.</div>
+    </section>
+
+    <section class="dashboard-grid">
+      <div class="panel wide">
+        <div class="panel-title">Indicadores generales real versus plan</div>
+        <div class="gauge-grid" id="gauges"><div class="empty">Sin datos cargados.</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Caracteristicas del turno vencido</div>
+        <div class="metric-row" id="metrics"><div class="empty">Sin metricas calculadas.</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Ranking de productividad por legajo</div>
+        <div class="table-wrap" id="ranking"><div class="empty">Sin ranking calculado.</div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const num = value => Number(value || 0).toLocaleString('es-AR');
+  const num2 = value => Number(value || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  let shiftData = null;
+
+  async function initAuth() {
+    const res = await fetch('/api/auth/me', { credentials: 'same-origin' }).catch(() => null);
+    if (!res || !res.ok) {
+      window.location.replace('/login?next=/opex-shift.html');
+      return false;
+    }
+    const user = await res.json();
+    $('user-label').textContent = user.display_name || user.username;
+    return true;
+  }
+
+  async function logout() {
+    sessionStorage.removeItem('vigia_session');
+    await fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' }).catch(() => {});
+    window.location.replace('/login');
+  }
+
+  function setStatus(text, tone='') {
+    $('status').textContent = text;
+    $('status').className = `status ${tone}`;
+  }
+
+  function renderGauges(items) {
+    if (!items?.length) {
+      $('gauges').innerHTML = '<div class="empty">Sin indicadores.</div>';
+      return;
+    }
+    $('gauges').innerHTML = items.map(item => {
+      const pct = item.plan ? Math.max(0, Math.min(100, Number(item.real || 0) / Number(item.plan || 1) * 100)) : 0;
+      const color = pct >= 95 ? 'var(--green)' : (pct >= 75 ? 'var(--amber)' : 'var(--red)');
+      return `
+        <article class="gauge-card" style="--gauge-color:${color}">
+          <div class="gauge-title">${esc(item.label)}</div>
+          <div class="gauge" aria-label="${esc(item.label)} ${num2(pct)}%">
+            <svg viewBox="0 0 200 112" role="img" aria-hidden="true">
+              <path class="gauge-bg" pathLength="100" d="M 22 96 A 78 78 0 0 1 178 96"></path>
+              <path class="gauge-fg" pathLength="100" d="M 22 96 A 78 78 0 0 1 178 96" stroke-dasharray="${pct} 100"></path>
+            </svg>
+            <div class="gauge-center">
+              <div class="gauge-pct">${num2(pct)}<span>%</span></div>
+              <div class="gauge-caption">avance</div>
+            </div>
+          </div>
+          <div class="gauge-values">
+            <div class="gauge-stat"><strong>${num(item.real)}</strong><span>Real</span></div>
+            <div class="gauge-stat"><strong>${num(item.plan)}</strong><span>Plan</span></div>
+            <div class="gauge-stat"><strong>${num(item.pendiente)}</strong><span>Pend.</span></div>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  function renderMetrics(kpis) {
+    const items = [
+      ['Legajos picking', kpis?.legajos_picking || 0],
+      ['b / p', kpis?.bultos_por_persona || 0],
+      ['b / h', kpis?.bultos_por_hora || 0],
+      ['Hs picking', kpis?.horas_picking || 0],
+    ];
+    $('metrics').innerHTML = items.map(([label, value]) => `<div class="metric"><strong>${num2(value)}</strong><span>${esc(label)}</span></div>`).join('');
+  }
+
+  function renderRanking(rows) {
+    if (!rows?.length) {
+      $('ranking').innerHTML = '<div class="empty">Sin movimientos de picking para el filtro.</div>';
+      return;
+    }
+    const max = Math.max(...rows.map(row => Number(row.productividad || 0)), 1);
+    $('ranking').innerHTML = `
+      <table class="ranking-table">
+        <thead><tr><th>Legajo</th><th>Productividad</th><th>Bultos</th><th>Horas</th><th></th></tr></thead>
+        <tbody>
+          ${rows.map(row => {
+            const width = Math.max(1, Number(row.productividad || 0) / max * 100);
+            return `<tr><td>${esc(row.legajo)}</td><td>${num2(row.productividad)}</td><td>${num(row.bultos)}</td><td>${num2(row.horas)}</td><td><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div></td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderSelectedDivision() {
+    if (!shiftData?.divisiones) return;
+    const selected = $('division').value;
+    const data = shiftData.divisiones[selected] || shiftData.divisiones.Secos;
+    if (!data) return;
+    $('hero-title').textContent = `${data.division} | ${shiftData.window?.label || ''}`;
+    $('hero-sub').textContent = `${shiftData.fecha_desde || ''} a ${shiftData.fecha_hasta || ''}`;
+    $('shift-state').textContent = `Fuente: ${shiftData.source || 'Oracle'} | datos en memoria`;
+    renderGauges(data.indicadores || []);
+    renderMetrics(data.kpis || {});
+    renderRanking(data.ranking || []);
+    setStatus(`Division ${data.division} filtrada desde datos ya cargados.`);
+  }
+
+  async function loadShift() {
+    const btn = $('btn-load');
+    btn.disabled = true;
+    setStatus('Consultando Oracle para todas las divisiones del turno.');
+    try {
+      const params = new URLSearchParams({ turno: $('turno').value });
+      const resp = await fetch(`/api/gestion-operativa/cambio-turno/resumen?${params.toString()}`, { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'No se pudo calcular el cambio de turno.');
+      shiftData = data;
+      renderSelectedDivision();
+      setStatus('Cambio de turno calculado para todas las divisiones.');
+    } catch (err) {
+      setStatus(err.message || 'No se pudo calcular el cambio de turno.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  initAuth().then(ok => { if (ok) loadShift(); });
+</script>
+</body>
+</html>

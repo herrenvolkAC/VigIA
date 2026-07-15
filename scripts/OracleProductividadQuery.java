@@ -470,6 +470,7 @@ public class OracleProductividadQuery {
                 PRE AS (
                   SELECT
                     b.*,
+                    l.DESC_FUNCION,
                     NVL(
                       CASE SUB1.CDIVISIO
                         WHEN 1 THEN 'SECOS'
@@ -482,6 +483,8 @@ public class OracleProductividadQuery {
                   FROM LEGAJOS A
                   JOIN f132hist B
                     ON A.LEGAJO = B.COPECREA
+                  LEFT JOIN PV_LEGAJO l
+                    ON l.LEGAJO = B.COPECREA
                   LEFT JOIN (
                     SELECT DISTINCT CZONALMA, CDIVISIO
                     FROM VW_UBICACIONES_DIVISION
@@ -679,9 +682,33 @@ public class OracleProductividadQuery {
                     ELSE 'OTROS'
                   END AS ALMACEN,
                   COUNT(DISTINCT a.HOJARUTA) AS VIAJES,
-                  COUNT(DISTINCT a.CARGADOR) AS CARGADORES,
-                  ROUND(COUNT(DISTINCT a.HOJARUTA) / NULLIF(COUNT(DISTINCT a.CARGADOR), 0), 2) AS PRODUCCION
+                  COUNT(DISTINCT CASE
+                    WHEN UPPER(TRIM(l.DESC_FUNCION)) IN (
+                      'ARMADOR REFRI',
+                      'ARMADOR DE REFRIGERADOS',
+                      'CARGADOR (REFRIG)',
+                      'ARMADOR DE SECOS',
+                      'ARMADOR T06',
+                      'ARMADOR DE NO ALIMENTOS',
+                      'ARMADOR',
+                      'CARGADOR DE SECOS'
+                    ) THEN a.CARGADOR
+                  END) AS CARGADORES,
+                  ROUND(COUNT(DISTINCT a.HOJARUTA) / NULLIF(COUNT(DISTINCT CASE
+                    WHEN UPPER(TRIM(l.DESC_FUNCION)) IN (
+                      'ARMADOR REFRI',
+                      'ARMADOR DE REFRIGERADOS',
+                      'CARGADOR (REFRIG)',
+                      'ARMADOR DE SECOS',
+                      'ARMADOR T06',
+                      'ARMADOR DE NO ALIMENTOS',
+                      'ARMADOR',
+                      'CARGADOR DE SECOS'
+                    ) THEN a.CARGADOR
+                  END), 0), 2) AS PRODUCCION
                 FROM f922traf a
+                LEFT JOIN PV_LEGAJO l
+                  ON l.LEGAJO = a.CARGADOR
                 WHERE a.FECIERRE >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
                   AND a.FECIERRE <  TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
                   AND a.CALMACEN = '93'
@@ -695,7 +722,7 @@ public class OracleProductividadQuery {
                 """;
         } else if ("daily_despacho_raw".equalsIgnoreCase(queryKey)) {
             sql = """
-                SELECT
+                SELECT DISTINCT
                   CASE
                     WHEN a.CDIVISIO = 1 OR a.CDIVISIO = 3 THEN 'SECOS'
                     WHEN a.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
@@ -704,15 +731,52 @@ public class OracleProductividadQuery {
                   END AS ALMACEN,
                   a.HOJARUTA,
                   a.CARGADOR,
+                  l.DESC_FUNCION,
                   a.FECIERRE,
                   a.CDIVISIO,
                   a.CALMACEN
                 FROM f922traf a
+                LEFT JOIN PV_LEGAJO l
+                  ON l.LEGAJO = a.CARGADOR
                 WHERE a.FECIERRE >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
                   AND a.FECIERRE <  TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS')
                   AND a.CALMACEN = '93'
                 ORDER BY ALMACEN, a.CARGADOR, a.FECIERRE, a.HOJARUTA
                 """;
+        } else if ("plantel_optimo_demanda".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    CASE p.codigodedivision " +
+                "        WHEN 1 THEN 'SECOS' " +
+                "        WHEN 2 THEN 'REFRIGERADOS' " +
+                "        WHEN 4 THEN 'REFRIGERADOS' " +
+                "        WHEN 6 THEN 'NOA' " +
+                "        ELSE 'OTROS' " +
+                "    END AS almacen, " +
+                "    CODIGODESECTOR AS sector, " +
+                "    CASE WHEN p.TIPO LIKE '%PICKING%' THEN 'PICKING' END AS tipo, " +
+                "    COUNT(DISTINCT P.NUMERO) AS cantidad_pallet, " +
+                "    SUM(d.cantidad) AS bultos_pallet, " +
+                "    TO_NUMBER(TO_CHAR(v.FECHAYHORADEINICIO, 'HH24')) AS hora " +
+                "FROM TR_VIAJE v " +
+                "JOIN TR_CARGAS c ON v.CODIGO = c.CODIGODEVIAJE " +
+                "JOIN TR_PALLET p ON c.NUMERODEPALLET = p.NUMERO " +
+                "JOIN TR_DETALLE_DE_PALLET_NEW d ON d.pallet_id = p.NUMERO " +
+                "WHERE v.FECHAYHORADEINICIO >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND v.FECHAYHORADEINICIO <  TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND p.TIPO LIKE '%PICKIN%' " +
+                "GROUP BY " +
+                "    CODIGODESECTOR, " +
+                "    TO_NUMBER(TO_CHAR(v.FECHAYHORADEINICIO, 'HH24')), " +
+                "    CASE p.codigodedivision " +
+                "        WHEN 1 THEN 'SECOS' " +
+                "        WHEN 2 THEN 'REFRIGERADOS' " +
+                "        WHEN 4 THEN 'REFRIGERADOS' " +
+                "        WHEN 6 THEN 'NOA' " +
+                "        ELSE 'OTROS' " +
+                "    END, " +
+                "    CASE WHEN p.TIPO LIKE '%PICKING%' THEN 'PICKING' END " +
+                "ORDER BY almacen, sector, hora";
         } else if ("daily_planificacion".equalsIgnoreCase(queryKey)) {
             sql = """
                 WITH mdiv AS (
@@ -1196,6 +1260,31 @@ public class OracleProductividadQuery {
                 "      AND COPECREA IS NOT NULL " +
                 ") " +
                 "ORDER BY FECHA, LEGAJO, OPERACION";
+        } else if ("rendimiento_online".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    B.CNSECTOR, " +
+                "    A.FCREAREG, " +
+                "    A.CDESCRIP, " +
+                "    A.CNUPALET, " +
+                "    A.QCANTIDA, " +
+                "    A.CREFEREN, " +
+                "    A.CNPEDIDO, " +
+                "    A.COPECREA AS LEGAJO, " +
+                "    C.NOMBRE, " +
+                "    D.DARTICUL AS DARTICUL, " +
+                "    A.CZONADES AS DESTINO, " +
+                "    SUB1.DESCDIVI AS DIVISION, " +
+                "    SYSDATE AS ORACLE_NOW " +
+                "FROM F132HIST A " +
+                "JOIN F602ASEC B ON A.CREFEREN = B.CREFEREN AND A.CALMACEN = B.CALMACEN " +
+                "JOIN PV_LEGAJO C ON A.COPECREA = C.LEGAJO " +
+                "LEFT JOIN F002ARTI D ON A.CREFEREN = D.CREFEREN " +
+                "LEFT JOIN (SELECT DISTINCT CZONALMA, DESCDIVI FROM VW_UBICACIONES_DIVISION) SUB1 ON SUB1.CZONALMA = A.CZONAORI " +
+                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
+                "  AND A.CDESCRIP IN ('Picking', 'TRANSPORTE DE PALETS') " +
+                "ORDER BY A.COPECREA, A.FCREAREG";
         } else if ("online".equalsIgnoreCase(queryKey)) {
             sql =
                 "SELECT " +
@@ -1408,6 +1497,32 @@ public class OracleProductividadQuery {
                 "FROM POSICIONES B LEFT JOIN P505STPA A ON B.CZONALMA = A.CZONALMA AND B.CPASILLO = A.CPASILLO AND A.CHUECOPA = B.CHUECOPA " +
                 "LEFT JOIN F002ARTI C ON A.CREFEREN = C.CREFEREN " +
                 "ORDER BY B.CZONALMA, B.CPASILLO, B.CHUECOPA, A.CNUPALET";
+        } else if ("rack_inutilizadas".equalsIgnoreCase(queryKey)) {
+            sql =
+                "WITH base AS ( " +
+                "SELECT CZONALMA, CPASILLO, CHUECOPA, QPALALTU, QPALPROF, XSITUBIC, CODINUTI " +
+                "FROM F005UBIA " +
+                "WHERE XSITUBIC = 'I' AND CODINUTI = '1' " +
+                "), hist_rank AS ( " +
+                "SELECT ROW_NUMBER() OVER ( " +
+                "PARTITION BY h.CZONALMA, h.CPASILLO, h.CHUECOPA, h.CODINUTI " +
+                "ORDER BY h.FCREAREG DESC, h.ROWID DESC " +
+                ") AS rn, h.* " +
+                "FROM F671HMIH h INNER JOIN base b " +
+                "ON h.CZONALMA = b.CZONALMA " +
+                "AND h.CPASILLO = b.CPASILLO " +
+                "AND h.CHUECOPA = b.CHUECOPA " +
+                "AND h.CODINUTI = b.CODINUTI " +
+                ") " +
+                "SELECT b.CZONALMA, b.CPASILLO, b.CHUECOPA, b.QPALALTU, " +
+                "h.FCREAREG, h.USUACREA, h.MOVIMIEN, h.OBSERVAC " +
+                "FROM base b LEFT JOIN hist_rank h " +
+                "ON h.CZONALMA = b.CZONALMA " +
+                "AND h.CPASILLO = b.CPASILLO " +
+                "AND h.CHUECOPA = b.CHUECOPA " +
+                "AND h.CODINUTI = b.CODINUTI " +
+                "AND h.rn = 1 " +
+                "ORDER BY h.FCREAREG";
         } else if ("stock_cd".equalsIgnoreCase(queryKey)) {
             sql =
                 "SELECT " +
@@ -1510,7 +1625,7 @@ public class OracleProductividadQuery {
                 for (int i = 0; i < ubicaciones.length; i++) {
                     ps.setString(3 + i, ubicaciones[i] + "%");
                 }
-            } else if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey)) {
+            } else if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey) && !"rack_inutilizadas".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
                 ps.setString(2, fechaHasta);
                 if ("gestion_productividad_picking".equalsIgnoreCase(queryKey)) {
@@ -1543,7 +1658,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
+                    if ("premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

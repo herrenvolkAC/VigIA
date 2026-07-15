@@ -707,10 +707,85 @@ async def create_supply_order(req: SupplyOrderRequest, request: Request):
 
 
 @router.get("/pedidos/mios")
-async def my_supply_orders(request: Request):
+async def my_supply_orders(request: Request, sector_id: int | None = Query(None)):
     auth = await _require_panol_access(request)
     async with panol_db() as db:
+        if sector_id:
+            sector = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (sector_id,))
+            if not sector:
+                raise HTTPException(status_code=400, detail="Sector invalido.")
+            return {"items": await _pedido_rows(db, "WHERE p.sector_id = ?", (sector_id,), 150)}
         return {"items": await _pedido_rows(db, "WHERE p.usuario_solicita = ?", (auth.get("username"),), 150)}
+
+
+@router.get("/pedidos/recibido-dia")
+async def supply_order_received_by_day(
+    request: Request,
+    sector_id: int,
+    tipo: str = Query("insumo"),
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    articulo_id: int | None = Query(None),
+):
+    await _require_panol_access(request)
+    received_type = _norm_key(tipo)
+    if received_type not in {"insumo", "produccion"}:
+        raise HTTPException(status_code=400, detail="Tipo invalido.")
+    amount_column = "i.cantidad_insumo_confirmada" if received_type == "insumo" else "i.cantidad_produccion_confirmada"
+    where = ["p.sector_id = ?", "p.estado IN ('CONFIRMADO', 'CONFIRMADO_PARCIAL')"]
+    args: list[Any] = [sector_id]
+    if fecha_desde:
+        where.append("p.fecha_confirmacion >= ?")
+        args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        where.append("p.fecha_confirmacion <= ?")
+        args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        where.append("i.articulo_id = ?")
+        args.append(articulo_id)
+    clause = "WHERE " + " AND ".join(where)
+    async with panol_db() as db:
+        sector = await _fetch_one(db, "SELECT id, codigo FROM ubicaciones WHERE id = ? AND activo = 1", (sector_id,))
+        if not sector:
+            raise HTTPException(status_code=400, detail="Sector invalido.")
+        rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT date(p.fecha_confirmacion) AS fecha,
+                   COALESCE(SUM({amount_column}), 0) AS cantidad,
+                   COUNT(DISTINCT p.id) AS pedidos
+            FROM pedidos_insumos p
+            JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+            {clause}
+            GROUP BY date(p.fecha_confirmacion)
+            ORDER BY fecha
+            """,
+            tuple(args),
+        )
+    if fecha_desde and fecha_hasta:
+        try:
+            start = datetime.strptime(fecha_desde, "%Y-%m-%d").date()
+            end = datetime.strptime(fecha_hasta, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Formato de fecha invalido.")
+        if end < start:
+            raise HTTPException(status_code=400, detail="Fecha fin menor a fecha inicio.")
+        if (end - start).days <= 370:
+            by_day = {str(row["fecha"]): row for row in rows}
+            rows = [
+                {
+                    "fecha": (start + timedelta(days=offset)).isoformat(),
+                    "cantidad": float((by_day.get((start + timedelta(days=offset)).isoformat()) or {}).get("cantidad") or 0),
+                    "pedidos": int((by_day.get((start + timedelta(days=offset)).isoformat()) or {}).get("pedidos") or 0),
+                }
+                for offset in range((end - start).days + 1)
+            ]
+    return {
+        "sector_id": sector_id,
+        "sector": sector.get("codigo"),
+        "tipo": received_type,
+        "items": rows,
+    }
 
 
 @router.get("/pedidos/pendientes")

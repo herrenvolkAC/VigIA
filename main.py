@@ -19,10 +19,13 @@ load_dotenv(override=True)
 
 from db.schema import DB_PATH, init_db
 from db.auth import init_auth_db
+from db.checklist_tareas import init_checklist_tareas_db
 from db.casos import init_cases_db
 from db.daily_operativa import init_daily_db
 from db.panol_insumos import init_panol_db
+from db.plantel_optimo import init_plantel_optimo_db
 from routers.auth_local import current_auth, ensure_bootstrap_admin, router as auth_router, user_has_module_access
+from routers.checklist_tareas import router as checklist_tareas_router
 from routers.ai import router as ai_router
 from routers.data import router as data_router
 from routers.turnos import router as turnos_router
@@ -31,7 +34,7 @@ from routers.productividad_analisis import router as productividad_analisis_rout
 from routers.plantel_operativo import router as plantel_operativo_router
 from routers.gestion_operativa import router as gestion_operativa_router
 from routers.gestion_operativa import start_daily_auto_scheduler, stop_daily_auto_scheduler
-from routers.casos import router as casos_router
+from routers.casos import router as casos_router, start_forms_import_monitor, stop_forms_import_monitor
 from routers.historia_legajo import (
     router as historia_legajo_router,
     start_historia_actividad_scheduler,
@@ -47,18 +50,30 @@ from routers.panol_insumos import (
     start_panol_stock_cd_scheduler,
     stop_panol_stock_cd_scheduler,
 )
+from routers.plantel_optimo import router as plantel_optimo_router
 from routers.simulador_operativo import init_simulador_db, router as simulador_operativo_router
 from routers.analisis_premio_productividad import (
     init_premio_productividad_db,
     router as analisis_premio_productividad_router,
 )
+from routers.rendimiento_online import router as rendimiento_online_router
 from routers.websocket import router as websocket_router
+from utils.usage_log import cleanup_old_usage_logs, request_action, write_usage_log
 
 # ── Configuración ─────────────────────────────────────────────────────────────
+LOG_DIR = Path(__file__).parent / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+TECH_LOG_PATH = Path(os.getenv("VIGIA_TECH_LOG_PATH", str(LOG_DIR / "vigia.txt")))
+TECH_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
     datefmt="%H:%M:%S",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(TECH_LOG_PATH, encoding="utf-8"),
+    ],
 )
 logger = logging.getLogger("vigia")
 
@@ -72,16 +87,20 @@ async def lifespan(app: FastAPI):
     logger.info("Inicializando VigIA v2.0...")
     await init_db()
     await init_auth_db()
+    await init_checklist_tareas_db()
     await init_cases_db()
     await init_daily_db()
     await init_panol_db()
+    await init_plantel_optimo_db()
     await init_simulador_db()
     await init_premio_productividad_db()
     await ensure_bootstrap_admin()
+    cleanup_old_usage_logs()
     start_daily_auto_scheduler()
     start_historia_actividad_scheduler()
     start_panol_stock_cd_scheduler()
     start_rrhh_folder_monitor()
+    start_forms_import_monitor()
     provider = os.getenv("AI_PROVIDER", "claude")
     logger.info(f"Proveedor IA configurado: {provider}")
     # Si está en modo Ollama, log de la URL
@@ -95,6 +114,7 @@ async def lifespan(app: FastAPI):
     finally:
         await stop_rrhh_folder_monitor()
         await stop_panol_stock_cd_scheduler()
+        await stop_forms_import_monitor()
         await stop_daily_auto_scheduler()
         await stop_historia_actividad_scheduler()
         logger.info("VigIA detenido.")
@@ -119,10 +139,13 @@ app.include_router(casos_router)
 app.include_router(historia_legajo_router)
 app.include_router(rrhh_novedades_router)
 app.include_router(panol_insumos_router)
+app.include_router(plantel_optimo_router)
 app.include_router(simulador_operativo_router)
 app.include_router(analisis_premio_productividad_router)
+app.include_router(rendimiento_online_router)
 app.include_router(websocket_router)
 app.include_router(auth_router)
+app.include_router(checklist_tareas_router)
 
 
 PROTECTED_PAGE_PATHS = {
@@ -134,6 +157,8 @@ PROTECTED_PAGE_PATHS = {
     "/opex.html",
     "/opex-daily",
     "/opex-daily.html",
+    "/opex-shift",
+    "/opex-shift.html",
     "/novedades-cd",
     "/novedades-cd.html",
     "/historia-legajo",
@@ -146,6 +171,12 @@ PROTECTED_PAGE_PATHS = {
     "/simulador-operativo.html",
     "/analisis-premio-productividad",
     "/analisis-premio-productividad.html",
+    "/plantel-optimo",
+    "/plantel-optimo.html",
+    "/rendimiento-online",
+    "/rendimiento-online.html",
+    "/checklist-tareas",
+    "/checklist-tareas.html",
 }
 PROTECTED_API_PREFIXES = (
     "/api/productividad/tnc",
@@ -157,6 +188,9 @@ PROTECTED_API_PREFIXES = (
     "/panol-insumos/api",
     "/api/simulador-operativo",
     "/api/analisis-premio-productividad",
+    "/api/plantel-optimo",
+    "/api/rendimiento-online",
+    "/api/checklist-tareas",
 )
 ADMIN_PAGE_PATHS = {
     "/admin/dispositivos",
@@ -179,6 +213,8 @@ PAGE_MODULES = {
     "/opex.html": "opex",
     "/opex-daily": "opex",
     "/opex-daily.html": "opex",
+    "/opex-shift": "opex",
+    "/opex-shift.html": "opex",
     "/novedades-cd": "novedades_cd",
     "/novedades-cd.html": "novedades_cd",
     "/historia-legajo": "historia_legajo",
@@ -191,6 +227,12 @@ PAGE_MODULES = {
     "/simulador-operativo.html": "simulador_operativo",
     "/analisis-premio-productividad": "analisis_premio_productividad",
     "/analisis-premio-productividad.html": "analisis_premio_productividad",
+    "/plantel-optimo": "plantel_optimo",
+    "/plantel-optimo.html": "plantel_optimo",
+    "/rendimiento-online": "rendimiento_online",
+    "/rendimiento-online.html": "rendimiento_online",
+    "/checklist-tareas": "checklist_tareas",
+    "/checklist-tareas.html": "checklist_tareas",
     "/reposicion": "reposicion",
     "/reposicion.html": "reposicion",
     "/recepcion": "recepcion",
@@ -198,6 +240,7 @@ PAGE_MODULES = {
 }
 API_MODULE_PREFIXES = (
     ("/api/gestion-operativa/daily", "opex"),
+    ("/api/gestion-operativa/cambio-turno", "opex"),
     ("/api/gestion-operativa", "gestion_operativa"),
     ("/api/historia-legajo", "historia_legajo"),
     ("/api/rrhh", "novedades_cd"),
@@ -205,6 +248,9 @@ API_MODULE_PREFIXES = (
     ("/panol-insumos/api", "panol"),
     ("/api/simulador-operativo", "simulador_operativo"),
     ("/api/analisis-premio-productividad", "analisis_premio_productividad"),
+    ("/api/plantel-optimo", "plantel_optimo"),
+    ("/api/rendimiento-online", "rendimiento_online"),
+    ("/api/checklist-tareas", "checklist_tareas"),
 )
 
 
@@ -226,27 +272,42 @@ async def auth_gate(request: Request, call_next):
 
     auth = await current_auth(request)
     if not auth:
+        module = PAGE_MODULES.get(path)
+        if not module:
+            module = next((module_id for prefix, module_id in API_MODULE_PREFIXES if path.startswith(prefix)), None)
+        write_usage_log(request, None, module or "acceso", "unauthenticated")
         if is_protected_api:
             return JSONResponse({"detail": "No autenticado."}, status_code=401)
         return _login_redirect(path)
 
     if auth.get("device_status") != "approved":
+        write_usage_log(request, auth.get("username"), "acceso", "pending_device")
         if is_protected_api:
             return JSONResponse({"detail": "Dispositivo pendiente de aprobacion."}, status_code=403)
         return RedirectResponse("/api/auth/pending", status_code=303)
 
     if is_admin_page and auth.get("role") != "admin":
+        write_usage_log(request, auth.get("username"), "admin", "access_denied")
         return JSONResponse({"detail": "Requiere administrador."}, status_code=403)
 
     module = PAGE_MODULES.get(path)
     if not module:
         module = next((module_id for prefix, module_id in API_MODULE_PREFIXES if path.startswith(prefix)), None)
     if module and not await user_has_module_access(auth, module):
+        write_usage_log(request, auth.get("username"), module, "access_denied")
         if is_protected_api or path.startswith("/api/") or path.startswith("/panol-insumos/api"):
             return JSONResponse({"detail": "No tenes acceso habilitado a este modulo."}, status_code=403)
         return RedirectResponse(f"/selector?denied={quote(module)}", status_code=303)
 
-    return await call_next(request)
+    response = await call_next(request)
+    if response.status_code < 400:
+        write_usage_log(
+            request,
+            auth.get("username"),
+            module or ("admin" if is_admin_page else "sistema"),
+            request_action(request.method, is_module_page or is_admin_page),
+        )
+    return response
 
 # Archivos estáticos — css, js y resources
 app.mount("/css",       StaticFiles(directory=STATIC_DIR / "css"),  name="css")
@@ -279,6 +340,7 @@ _PAGES = [
     "/reposicion",   "reposicion.html",
     "/opex",         "opex.html",
     "/opex-daily",   "opex_daily.html",
+    "/opex-shift",   "opex_shift.html",
     "/planificacion","planificacion.html",
     "/fase1",        "fase1_dashboard.html",
 ]
@@ -320,6 +382,10 @@ async def page_opex(): return FileResponse(STATIC_DIR / "opex.html")
 @app.get("/opex-daily",      include_in_schema=False)
 async def page_opex_daily(): return FileResponse(STATIC_DIR / "opex_daily.html")
 
+@app.get("/opex-shift.html", include_in_schema=False)
+@app.get("/opex-shift",      include_in_schema=False)
+async def page_opex_shift(): return FileResponse(STATIC_DIR / "opex_shift.html")
+
 @app.get("/novedades-cd.html", include_in_schema=False)
 @app.get("/novedades-cd",      include_in_schema=False)
 async def page_novedades_cd(): return FileResponse(STATIC_DIR / "novedades_cd.html")
@@ -334,7 +400,11 @@ async def page_casos(): return FileResponse(STATIC_DIR / "casos.html")
 
 @app.get("/panol-insumos.html", include_in_schema=False)
 @app.get("/panol-insumos",      include_in_schema=False)
-async def page_panol_insumos(): return FileResponse(STATIC_DIR / "panol_insumos.html")
+async def page_panol_insumos():
+    return FileResponse(
+        STATIC_DIR / "panol_insumos.html",
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
 
 @app.get("/simulador-operativo.html", include_in_schema=False)
 @app.get("/simulador-operativo",      include_in_schema=False)
@@ -345,6 +415,24 @@ async def page_simulador_operativo(): return FileResponse(STATIC_DIR / "simulado
 async def page_analisis_premio_productividad():
     return FileResponse(
         STATIC_DIR / "analisis_premio_productividad.html",
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
+
+@app.get("/plantel-optimo.html", include_in_schema=False)
+@app.get("/plantel-optimo",      include_in_schema=False)
+async def page_plantel_optimo():
+    return FileResponse(STATIC_DIR / "plantel_optimo.html")
+
+@app.get("/rendimiento-online.html", include_in_schema=False)
+@app.get("/rendimiento-online",      include_in_schema=False)
+async def page_rendimiento_online():
+    return FileResponse(STATIC_DIR / "rendimiento_online.html")
+
+@app.get("/checklist-tareas.html", include_in_schema=False)
+@app.get("/checklist-tareas",      include_in_schema=False)
+async def page_checklist_tareas():
+    return FileResponse(
+        STATIC_DIR / "checklist_tareas.html",
         headers={"Cache-Control": "no-store, max-age=0"},
     )
 

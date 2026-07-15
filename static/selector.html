@@ -90,8 +90,8 @@
     .module-icon{
       position:relative;z-index:1;grid-row:1 / span 2;width:56px;height:56px;display:grid;place-items:center;
       border:1px solid color-mix(in srgb,var(--module-color) 45%,var(--rule));background:var(--module-soft);color:var(--module-color);
-      font-size:30px;font-family:'IBM Plex Sans',system-ui,sans-serif;font-weight:600;line-height:1;
     }
+    .module-icon svg{width:30px;height:30px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
     .module-title{position:relative;z-index:1;font-size:14px;font-weight:600;line-height:1.15;min-width:0}
     .module-description{
       position:relative;z-index:1;grid-column:2;font-size:11px;line-height:1.35;color:var(--ink-soft);margin-top:5px;
@@ -117,7 +117,10 @@
     .opex{--module-color:#2E8B57;--module-soft:#E1F2E8}
     .simulador_operativo{--module-color:#007C91;--module-soft:#DFF2F4}
     .premio{--module-color:#A83B7A;--module-soft:#F4E2ED}
+    .plantel_optimo{--module-color:#3765A3;--module-soft:#E4ECF7}
     .recepcion{--module-color:#D07800;--module-soft:#FCEACD}
+    .rendimiento{--module-color:#0B5FAE;--module-soft:#E4F0FB}
+    .checklist{--module-color:#1F7A4D;--module-soft:#E5F3E9}
     .mapa{--module-color:#3765A3;--module-soft:#E4ECF7}
     .control{--module-color:#A83B7A;--module-soft:#F4E2ED}
     .trafico{--module-color:#8B5E34;--module-soft:#EFE6DC}
@@ -141,7 +144,7 @@
       <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
       <div class="brand-rule"></div>
       <div>
-        <div class="kicker">Módulo operativo</div>
+        <div class="kicker">Modulo operativo</div>
         <h1>Selector <span class="amp">VigIA</span></h1>
       </div>
     </div>
@@ -157,11 +160,11 @@
 
   <section class="selector-heading">
     <div>
-      <div class="label">Centro de distribución</div>
+      <div class="label">Centro de distribucion</div>
       <h2>Aplicaciones operativas</h2>
-      <div class="selector-note">Seleccioná el módulo de trabajo para continuar.</div>
+      <div class="selector-note">Selecciona el modulo de trabajo para continuar.</div>
     </div>
-    <div class="module-count" id="module-count">Cargando módulos...</div>
+    <div class="module-count" id="module-count">Cargando modulos...</div>
   </section>
 
   <main class="module-grid" id="module-grid"></main>
@@ -169,43 +172,69 @@
 
 <script>
   const MODULES = [
-    {id:'productividad',icon:'👷',label:'Productividad',url:'/productividad.html',active:true,description:'Productividad online, ranking por operario y lectura del turno.'},
-    {id:'novedades_cd',style:'rrhh',icon:'👥',label:'Tablero RRHH',url:'/novedades-cd',active:true,description:'Novedades CD, ausentismo, horas extra, francos e indicadores.'},
-    {id:'gestion_operativa',style:'gestion',icon:'⚙️',label:'Gestión Operativa',url:'/gestion-operativa.html',active:true,description:'Herramientas de coordinación y seguimiento operativo de piso.'},
-    {id:'casos',icon:'🎫',label:'Gestión de Casos',url:'/casos.html',active:true,description:'Tickets operativos, SLA, adjuntos, comentarios e historial.'},
-    {id:'panol',icon:'📦',label:'Pañol Insumos',url:'/panol-insumos.html',active:true,description:'Stock, inventarios, movimientos e importación de stock CD.'},
-    {id:'historia_legajo',style:'historia',icon:'🧾',label:'Historia de Legajo',url:'/historia-legajo.html',active:true,description:'Ficha operativa integral por legajo y actividad histórica.'},
-    {id:'opex',icon:'O',label:'OpEX',url:'/opex.html',active:true,description:'Seguimiento diario de metas, desvios y acciones operativas para alinear los equipos.'},
-    {id:'simulador_operativo',icon:'Σ',label:'Simulador Operativo',url:'/simulador-operativo.html',active:true,description:'Importacion CSV, indicadores, articulos criticos y escenarios de mejora.'},
-    {id:'analisis_premio_productividad',style:'premio',icon:'$',label:'Análisis Premio Productividad',url:'/analisis-premio-productividad.html',active:true,description:'Auditoría y simulación de modelos de pago.'},
-    {id:'mapa',icon:'🗺️',label:'Mapa',active:false,state:'En desarrollo',description:'Slotting, layout y distribución de posiciones del almacén.'},
-    {id:'control_procesos',style:'control',icon:'🎛️',label:'Control de Procesos',active:false,state:'En desarrollo',description:'Monitoreo integral de KPIs, alertas y tendencias.'},
-    {id:'trafico',icon:'🚛',label:'Tráfico',active:false,state:'En desarrollo',description:'Programación de muelles, flota, entradas y salidas.'},
-    {id:'generales',icon:'🏭',label:'Generales',active:false,state:'En desarrollo',description:'Recursos, mantenimiento y soporte operativo transversal.'},
+    {id:'productividad',icon:'bar-chart',label:'Productividad',url:'/productividad.html',active:true,description:'Productividad online, ranking por operario y lectura del turno.'},
+    {id:'novedades_cd',style:'rrhh',icon:'calendar-alert',label:'Tablero RRHH',url:'/novedades-cd',active:true,description:'Novedades CD, ausentismo, horas extra, francos e indicadores.'},
+    {id:'gestion_operativa',style:'gestion',icon:'clipboard-list',label:'Gestion Operativa',url:'/gestion-operativa.html',active:true,description:'Herramientas de coordinacion y seguimiento operativo de piso.'},
+    {id:'casos',icon:'ticket',label:'Gestion de Casos',url:'/casos.html',active:true,description:'Tickets operativos, SLA, adjuntos, comentarios e historial.'},
+    {id:'panol',icon:'package',label:'Panol Insumos',url:'/panol-insumos.html',active:true,description:'Stock, inventarios, movimientos e importacion de stock CD.'},
+    {id:'historia_legajo',style:'historia',icon:'id-card',label:'Historia de Legajo',url:'/historia-legajo.html',active:true,description:'Ficha operativa integral por legajo y actividad historica.'},
+    {id:'opex',icon:'target',label:'OpEX',url:'/opex.html',active:true,description:'Seguimiento diario de metas, desvios y acciones operativas para alinear los equipos.'},
+    {id:'simulador_operativo',icon:'sliders',label:'Simulador Operativo',url:'/simulador-operativo.html',active:true,description:'Importacion CSV, indicadores, articulos criticos y escenarios de mejora.'},
+    {id:'analisis_premio_productividad',style:'premio',icon:'award',label:'Analisis Premio Productividad',url:'/analisis-premio-productividad.html',active:true,hideWhenDenied:true,description:'Auditoria y simulacion de modelos de pago.'},
+    {id:'plantel_optimo',icon:'users',label:'Plantel Optimo',url:'/plantel-optimo.html',active:true,description:'Demanda futura por sector, ventanas de 2 horas y dotacion sugerida por almacen.'},
+    {id:'rendimiento_online',style:'rendimiento',icon:'gauge',label:'Rendimiento Online',url:'/rendimiento-online.html',active:true,description:'Productividad online por almacen, sector y legajo contra estandar.'},
+    {id:'checklist_tareas',style:'checklist',icon:'check-square',label:'CheckList Tareas',url:'/checklist-tareas',active:true,description:'Tareas operativas recurrentes, responsables, pendientes y trazabilidad por sector.'},
+    {id:'control_procesos',style:'control',icon:'activity',label:'Control de Procesos',active:false,state:'En desarrollo',description:'Monitoreo integral de KPIs, alertas y tendencias.'},
+    {id:'trafico',icon:'truck',label:'Trafico',active:false,state:'En desarrollo',description:'Programacion de muelles, flota, entradas y salidas.'},
+    {id:'generales',icon:'settings',label:'Generales',active:false,state:'En desarrollo',description:'Recursos, mantenimiento y soporte operativo transversal.'},
   ];
+
+  const ICONS = {
+    'activity':'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>',
+    'award':'<circle cx="12" cy="8" r="5"></circle><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5"></path>',
+    'bar-chart':'<path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path><path d="M3 20h18"></path>',
+    'calendar-alert':'<rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M12 14v3"></path><path d="M12 19h.01"></path>',
+    'check-square':'<rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="m7 12 3 3 7-7"></path>',
+    'clipboard-list':'<rect x="8" y="3" width="8" height="4" rx="1"></rect><path d="M9 5H6a2 2 0 0 0-2 2v13h16V7a2 2 0 0 0-2-2h-3"></path><path d="M8 12h8"></path><path d="M8 16h6"></path>',
+    'gauge':'<path d="M4 16a8 8 0 1 1 16 0"></path><path d="M12 16l4-5"></path><path d="M6 20h12"></path>',
+    'id-card':'<rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M6 16c.7-1.3 1.7-2 3-2s2.3.7 3 2"></path><path d="M14 10h4"></path><path d="M14 14h3"></path>',
+    'package':'<path d="M21 8.5 12 3 3 8.5 12 14l9-5.5Z"></path><path d="M3 8.5V16l9 5 9-5V8.5"></path><path d="M12 14v7"></path>',
+    'settings':'<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a8 8 0 0 0 .1-2l2-1.2-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15.2 6h-4l-.3 2.4a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.2a8 8 0 0 0 .1 2l-2.1 1.2 2 3.4 2.4-1a7 7 0 0 0 1.6.9l.3 2.5h4l.3-2.5a7 7 0 0 0 1.6-.9l2.4 1 2-3.4-2.1-1.2Z"></path>',
+    'sliders':'<path d="M4 6h8"></path><path d="M16 6h4"></path><circle cx="14" cy="6" r="2"></circle><path d="M4 18h4"></path><path d="M12 18h8"></path><circle cx="10" cy="18" r="2"></circle><path d="M4 12h2"></path><path d="M10 12h10"></path><circle cx="8" cy="12" r="2"></circle>',
+    'target':'<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle>',
+    'ticket':'<path d="M4 7h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4V7Z"></path><path d="M9 9v6"></path><path d="M15 9v6"></path>',
+    'truck':'<path d="M3 7h11v9H3z"></path><path d="M14 10h4l3 3v3h-7"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle>',
+    'users':'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
+  };
+
+  function moduleIcon(name) {
+    const body = ICONS[name] || ICONS.settings;
+    return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${body}</svg>`;
+  }
 
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
   function renderModules(access) {
-    $('module-grid').innerHTML = MODULES.map(module => {
+    const visibleModules = MODULES.filter(module => !(module.hideWhenDenied && module.active && !access[module.id]));
+    $('module-grid').innerHTML = visibleModules.map(module => {
       const allowed = Boolean(access[module.id]);
       const available = module.active && allowed;
       const state = !module.active ? module.state : allowed ? 'Disponible' : 'Sin acceso';
       const content = `
-        <div class="module-icon" aria-hidden="true">${esc(module.icon)}</div>
+        <div class="module-icon" aria-hidden="true">${moduleIcon(module.icon)}</div>
         <div class="module-title">${esc(module.label)}</div>
         <div class="module-description">${esc(module.description)}</div>
         <div class="module-footer">
           <span class="module-state">${esc(state)}</span>
-          <span class="module-arrow">→</span>
+          <span class="module-arrow">></span>
         </div>`;
       const style = esc(module.style || module.id);
       return available
         ? `<a class="module-card active ${style}" href="${esc(module.url)}">${content}</a>`
         : `<article class="module-card ${module.active ? 'denied' : 'inactive'} ${style}" title="${module.active ? 'Tu usuario no tiene acceso habilitado.' : esc(module.state)}">${content}</article>`;
     }).join('');
-    $('module-count').textContent = `${MODULES.filter(module => module.active && access[module.id]).length} módulos habilitados`;
+    $('module-count').textContent = `${MODULES.filter(module => module.active && access[module.id]).length} modulos habilitados`;
   }
 
   async function loadAppInfo() {

@@ -15,6 +15,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from db.auth import auth_db
+from utils.usage_log import write_usage_log
 
 router = APIRouter(prefix="/api/auth", tags=["auth-local"])
 
@@ -62,7 +63,20 @@ class UserAccessRequest(BaseModel):
     scope: str | None = None
     sector: str | None = None
     email: str | None = None
+    shift: str | None = None
     sectors: list[str] = Field(default_factory=list)
+
+
+class BulkUserItem(BaseModel):
+    username: str
+    display_name: str | None = None
+
+
+class BulkUsersRequest(BaseModel):
+    users: list[BulkUserItem] = Field(default_factory=list)
+    role: str = "user"
+    module: str = "none"
+    profile: str = "OPERACION"
 
 
 def _now() -> str:
@@ -81,6 +95,11 @@ def _hash_password(password: str, *, salt: str | None = None) -> str:
     salt = salt or secrets.token_hex(16)
     raw = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 150_000)
     return f"pbkdf2_sha256${salt}${base64.b64encode(raw).decode('ascii')}"
+
+
+def _generate_initial_password(length: int = 10) -> str:
+    alphabet = "abcdefghjkmnpqrstuvwxyz23456789"
+    return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
 def _verify_password(password: str, stored: str) -> bool:
@@ -137,6 +156,9 @@ APP_MODULES = [
     {"id": "opex", "label": "OpEX", "path": "/opex.html"},
     {"id": "simulador_operativo", "label": "Simulador Operativo", "path": "/simulador-operativo.html"},
     {"id": "analisis_premio_productividad", "label": "Analisis Premio Productividad", "path": "/analisis-premio-productividad.html"},
+    {"id": "plantel_optimo", "label": "Plantel Optimo", "path": "/plantel-optimo.html"},
+    {"id": "rendimiento_online", "label": "Rendimiento Online", "path": "/rendimiento-online.html"},
+    {"id": "checklist_tareas", "label": "CheckList Tareas", "path": "/checklist-tareas"},
     {"id": "recepcion", "label": "Recepcion", "path": "/recepcion.html", "available": False},
     {"id": "mapa", "label": "Mapa", "path": "", "available": False},
     {"id": "control_procesos", "label": "Control de Procesos", "path": "", "available": False},
@@ -144,7 +166,7 @@ APP_MODULES = [
     {"id": "generales", "label": "Generales", "path": "", "available": False},
 ]
 APP_MODULE_IDS = {module["id"] for module in APP_MODULES}
-DEFAULT_ENABLED_MODULES = {"productividad", "gestion_operativa", "historia_legajo"}
+DEFAULT_ENABLED_MODULES: set[str] = set()
 
 CASOS_FALLBACK_PROFILES = ["OPERACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "ADMIN"]
 
@@ -322,6 +344,7 @@ async def login(req: LoginRequest, request: Request):
         ) as cur:
             user = await cur.fetchone()
         if not user or not user["active"] or not _verify_password(req.password, user["password_hash"]):
+            write_usage_log(request, username, "acceso", "login_failed")
             raise HTTPException(status_code=401, detail="Usuario o contraseña inválidos.")
 
         async with db.execute("SELECT status, username FROM auth_devices WHERE device_id = ?", (device_id,)) as cur:
@@ -400,18 +423,21 @@ async def login(req: LoginRequest, request: Request):
     )
     _set_cookie(response, SESSION_COOKIE, session_token, SESSION_DAYS)
     _set_cookie(response, DEVICE_COOKIE, device_id, DEVICE_DAYS)
+    write_usage_log(request, username, "acceso", "login_ok")
     return response
 
 
 @router.post("/logout")
 async def logout(request: Request):
     token = request.cookies.get(SESSION_COOKIE, "")
+    auth = await current_auth(request) if token else None
     if token:
         async with auth_db() as db:
             await db.execute("DELETE FROM auth_sessions WHERE session_token_hash = ?", (_token_hash(token),))
             await db.commit()
     response = JSONResponse({"ok": True})
     response.delete_cookie(SESSION_COOKIE)
+    write_usage_log(request, auth.get("username") if auth else None, "acceso", "logout")
     return response
 
 
@@ -676,6 +702,7 @@ async def access_context(request: Request):
         accesses[user["username"]]["novedades_cd"].update({"scope": "sin_acceso", "sectors": []})
         accesses[user["username"]]["casos"].update({"profile": "", "sector": "", "email": ""})
         accesses[user["username"]]["panol"].update({"profile": "", "scope": "", "sector": "", "email": ""})
+        accesses[user["username"]]["checklist_tareas"].update({"profile": "", "scope": "sector", "sector": "", "shift": ""})
 
     for row in access_rows:
         username = row["username"]
@@ -695,6 +722,7 @@ async def access_context(request: Request):
                 "sector": row["sector"] or "",
                 "email": row["email"] or "",
                 "sectors": metadata.get("sectors") or [],
+                "shift": metadata.get("shift") or "",
             }
         )
 
@@ -797,6 +825,27 @@ async def set_user_access(req: UserAccessRequest, request: Request):
                 sector=sector,
                 email=email,
             )
+        elif module == "checklist_tareas":
+            sector = _clean_text(req.sector) or "Mapa de Almacén"
+            profile = (req.profile or "OPERADOR").strip().upper()
+            if profile not in {"OPERADOR", "ADMIN_SECTOR"}:
+                raise HTTPException(status_code=400, detail="Perfil de CheckList Tareas invalido.")
+            shift = _clean_text(req.shift)
+            if shift not in {"", "Mañana", "Tarde", "Noche"}:
+                raise HTTPException(status_code=400, detail="Turno de CheckList Tareas invalido.")
+            await _upsert_app_access(
+                db,
+                username=username,
+                module=module,
+                enabled=req.enabled,
+                profile=profile,
+                scope="sector",
+                sector=sector,
+                metadata={
+                    "sectors": _clean_sectors(req.sectors) or ["MAPA_ALMACEN"],
+                    "shift": shift or None,
+                },
+            )
         else:
             profile = (req.profile or "").strip().upper()
             scope = _clean_text(req.scope)
@@ -885,6 +934,102 @@ async def create_user(req: UserCreateRequest, request: Request):
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409, detail="El usuario ya existe.")
     return {"ok": True}
+
+
+@router.post("/admin/users/bulk")
+async def create_users_bulk(req: BulkUsersRequest, request: Request):
+    await _require_admin(request)
+    await ensure_auth_access_schema()
+    role = req.role if req.role in {"user", "admin", "rrhh"} else "user"
+    module = (req.module or "none").strip().lower()
+    if module in {"", "sin_modulo", "sin-modulo"}:
+        module = "none"
+    if module not in {"none", "panol"}:
+        raise HTTPException(status_code=400, detail="Modulo inicial no soportado para alta masiva.")
+    profile = (req.profile or "OPERACION").strip().upper()
+    if module == "panol" and profile not in {"SOLICITANTE", "OPERACION", "ADMIN"}:
+        raise HTTPException(status_code=400, detail="Perfil de Panol invalido.")
+
+    cleaned: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for item in req.users:
+        username = _normalize_username(item.username)
+        display_name = _clean_text(item.display_name) or username
+        if not username:
+            continue
+        if username in seen:
+            continue
+        seen.add(username)
+        cleaned.append({"username": username, "display_name": display_name})
+    if not cleaned:
+        raise HTTPException(status_code=400, detail="No hay usuarios validos para crear.")
+    if len(cleaned) > 200:
+        raise HTTPException(status_code=400, detail="El alta masiva permite hasta 200 usuarios por vez.")
+
+    results: list[dict[str, Any]] = []
+    async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        for item in cleaned:
+            username = item["username"]
+            display_name = item["display_name"]
+            async with db.execute("SELECT username, active FROM auth_users WHERE username = ?", (username,)) as cur:
+                existing = await cur.fetchone()
+            if existing:
+                await db.execute(
+                    "UPDATE auth_users SET active = 1, updated_at = ? WHERE username = ?",
+                    (_now(), username),
+                )
+                if module == "panol":
+                    await _upsert_app_access(
+                        db,
+                        username=username,
+                        module=module,
+                        enabled=True,
+                        profile=profile,
+                        scope="perfil",
+                    )
+                    message = "Ya existia. Acceso a Panol actualizado."
+                else:
+                    message = "Ya existia. Sin cambios de modulos."
+                results.append(
+                    {
+                        "username": username,
+                        "display_name": display_name,
+                        "status": "exists",
+                        "message": message,
+                    }
+                )
+                continue
+
+            password = _generate_initial_password()
+            await db.execute(
+                """
+                INSERT INTO auth_users (username, password_hash, display_name, role, active)
+                VALUES (?, ?, ?, ?, 1)
+                """,
+                (username, _hash_password(password), display_name, role),
+            )
+            if module == "panol":
+                await _upsert_app_access(
+                    db,
+                    username=username,
+                    module=module,
+                    enabled=True,
+                    profile=profile,
+                    scope="perfil",
+                )
+            results.append(
+                {
+                    "username": username,
+                    "display_name": display_name,
+                    "status": "created",
+                    "message": "Usuario creado.",
+                    "password": password,
+                }
+            )
+        await db.commit()
+
+    return {"ok": True, "module": module, "profile": profile if module == "panol" else "", "results": results}
 
 
 async def _set_user_active(req: UserActionRequest, request: Request, active: int) -> dict[str, bool]:

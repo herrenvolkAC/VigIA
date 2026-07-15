@@ -26,6 +26,7 @@ from db.daily_operativa import (
     export_consolidado_powerbi_csv,
     export_powerbi_csv,
     get_all_parametros,
+    get_daily_carga_auto_manual_comparacion,
     get_existing_cargas,
     get_parametros,
     normalize_sector,
@@ -84,13 +85,29 @@ DAILY_AUTO_SCHEDULE_GRACE_MINUTES = 10
 DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_distinct_pallets_v1"
 DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_prev_movement_v2"
 DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_raw_cache_v1"
-DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION = "despacho_raw_f922traf_hojaruta_v3"
-DAILY_AUTO_DESPACHO_QUERY_VERSION = "despacho_raw_cache_hojaruta_v2"
+DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION = "despacho_raw_f922traf_hojaruta_funcion_distinct_v5"
+DAILY_AUTO_DESPACHO_QUERY_VERSION = "despacho_raw_cache_funcion_distinct_v4"
 DAILY_AUTO_PLANIFICACION_QUERY_VERSION = "planificacion_unificada_v1"
-DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION = "productividad_raw_f132hist_v3"
+DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION = "productividad_raw_f132hist_funcion_v4"
 DAILY_AUTO_AVANCE_QUERY_VERSION = "avance_6a730_cache_v1"
 _daily_auto_scheduler_task: asyncio.Task | None = None
 _daily_auto_scheduler_stop: asyncio.Event | None = None
+
+DESPACHO_CARGADOR_FUNCIONES_VALIDAS = {
+    "ARMADOR REFRI",
+    "ARMADOR DE REFRIGERADOS",
+    "CARGADOR (REFRIG)",
+    "ARMADOR DE SECOS",
+    "ARMADOR T06",
+    "ARMADOR DE NO ALIMENTOS",
+    "ARMADOR",
+    "CARGADOR DE SECOS",
+}
+
+
+def _despacho_cargador_elegible(row: dict[str, Any]) -> bool:
+    funcion = str(row.get("DESC_FUNCION") or row.get("desc_funcion") or "").strip().upper()
+    return funcion in DESPACHO_CARGADOR_FUNCIONES_VALIDAS
 
 
 def _daily_auto_schedule_label() -> str:
@@ -132,10 +149,6 @@ class DailyCargaRequest(BaseModel):
 class DailyParametrosUpdateRequest(BaseModel):
     clave: str
     parametros: list[dict[str, Any]]
-
-
-class DailyExportRequest(BaseModel):
-    clave: str
 
 
 class DailyAutoRetryRequest(BaseModel):
@@ -1897,7 +1910,7 @@ def _build_despacho_rows_from_raw(daily: dict[str, Any], raw_rows: list[dict[str
         cargador = _norm_legajo(row.get("CARGADOR"))
         if hoja_ruta:
             bucket["hojas_ruta"].add(hoja_ruta)
-        if cargador:
+        if cargador and _despacho_cargador_elegible(row):
             bucket["cargadores"].add(cargador)
     return [
         {
@@ -1984,7 +1997,7 @@ def _build_avance_real_rows_from_raw(
         cargador = _norm_legajo(row.get("CARGADOR"))
         if hoja_ruta:
             bucket["hojas_ruta"].add(hoja_ruta)
-        if cargador:
+        if cargador and _despacho_cargador_elegible(row):
             bucket["legajos"].add(cargador)
 
     rows: list[dict[str, Any]] = []
@@ -2027,6 +2040,191 @@ def _build_avance_plan_rows(plan_rows: list[dict[str, Any]]) -> list[dict[str, A
             ]
         )
     return rows
+
+
+SHIFT_TURN_WINDOWS = {
+    "TM": ((5, 55), (14, 5), 0),
+    "TT": ((13, 55), (22, 5), 0),
+    "TN": ((21, 55), (6, 5), 1),
+}
+
+
+def _shift_turn_window(turno: str, now: datetime | None = None) -> dict[str, Any]:
+    current = (now or datetime.now(LOCAL_TZ)).astimezone(LOCAL_TZ)
+    turn_key = str(turno or "TM").strip().upper()
+    if turn_key not in SHIFT_TURN_WINDOWS:
+        turn_key = "TM"
+    (start_h, start_m), (end_h, end_m), end_offset = SHIFT_TURN_WINDOWS[turn_key]
+    base_date = current.date()
+    if turn_key == "TN" and current.time() <= dt_time(end_h, end_m):
+        base_date = base_date - timedelta(days=1)
+    start = datetime.combine(base_date, dt_time(start_h, start_m), tzinfo=LOCAL_TZ)
+    end = datetime.combine(base_date + timedelta(days=end_offset), dt_time(end_h, end_m), tzinfo=LOCAL_TZ)
+    return {
+        "turno": turn_key,
+        "fecha": current.date().isoformat(),
+        "fecha_inicio": start.isoformat(timespec="seconds"),
+        "fecha_fin": end.isoformat(timespec="seconds"),
+        "label": f"{turn_key} {start.strftime('%H:%M')} - {end.strftime('%H:%M')}",
+    }
+
+
+def _shift_metric(real: float, plan: float) -> dict[str, Any]:
+    pendiente = max(plan - real, 0.0)
+    avance = (real / plan * 100) if plan else None
+    return {"real": round(real, 2), "plan": round(plan, 2), "pendiente": round(pendiente, 2), "avance_pct": round(avance, 2) if avance is not None else None}
+
+
+def _shift_build_summary(
+    *,
+    division: str,
+    start: datetime,
+    end: datetime,
+    productividad_rows: list[dict[str, Any]],
+    despacho_rows: list[dict[str, Any]],
+    plan_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    almacen_target = DAILY_RAW_SECTOR_TO_ALMACEN.get(normalize_sector(division), "SECOS")
+    real = {
+        "picking_bultos": 0.0,
+        "spc_pallets": set(),
+        "hdr": set(),
+        "picking_legajos": set(),
+        "spc_legajos": set(),
+        "despacho_legajos": set(),
+    }
+    scoped_rows: list[dict[str, Any]] = []
+    for row in productividad_rows:
+        ts = _parse_dt(row.get("FCREAREG") or row.get("fecha"))
+        legajo = _norm_legajo(row.get("COPECREA") or row.get("LEGAJO") or row.get("legajo"))
+        if not ts or not legajo or ts < start or ts >= end:
+            continue
+        scoped_rows.append({**row, "_ts": ts, "_legajo": legajo})
+        operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
+        cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
+        if operacion == "PICKING":
+            almacen = _daily_picking_raw_almacen(row)
+            if almacen == almacen_target:
+                real["picking_bultos"] += cantidad
+                real["picking_legajos"].add(legajo)
+        elif operacion == "SURTIDO P.COMPLETOS":
+            almacen = str(row.get("ALMACEN") or "").strip().upper()
+            if almacen == almacen_target:
+                pallet = str(row.get("CNUPALET") or "").strip()
+                if pallet and pallet != "0":
+                    real["spc_pallets"].add(pallet)
+                real["spc_legajos"].add(legajo)
+
+    for row in despacho_rows:
+        ts = _parse_dt(row.get("FECIERRE") or row.get("FECHA_CIERRE"))
+        almacen = str(row.get("ALMACEN") or "").strip().upper()
+        if not ts or ts < start or ts >= end or almacen != almacen_target:
+            continue
+        hoja_ruta = str(row.get("HOJARUTA") or row.get("CNUVIAJE") or row.get("VIAJE") or "").strip()
+        cargador = _norm_legajo(row.get("CARGADOR"))
+        if hoja_ruta:
+            real["hdr"].add(hoja_ruta)
+        if cargador and _despacho_cargador_elegible(row):
+            real["despacho_legajos"].add(cargador)
+
+    plan = {"picking_bultos": 0.0, "spc_pallets": 0.0, "hdr": 0.0}
+    for row in plan_rows:
+        almacen = str(row.get("ALMACEN") or "").strip().upper()
+        if almacen != almacen_target:
+            continue
+        plan["picking_bultos"] += _to_float(row.get("BULTOS_PICKING_PLANIFICADOS"))
+        plan["spc_pallets"] += _to_float(row.get("PALLETS_SPC_PLANIFICADOS"))
+        plan["hdr"] += _to_float(row.get("VIAJES_PLANIFICADOS"))
+
+    scoped_rows.sort(key=lambda item: (item["_legajo"], item["_ts"], int(item.get("_row_index") or 0)))
+    previous_by_legajo: dict[str, datetime] = {}
+    ranking: dict[str, dict[str, Any]] = {}
+    for row in scoped_rows:
+        legajo = row["_legajo"]
+        ts = row["_ts"]
+        prev = previous_by_legajo.get(legajo, start)
+        previous_by_legajo[legajo] = ts
+        operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
+        if operacion != "PICKING" or _daily_picking_raw_almacen(row) != almacen_target:
+            continue
+        seconds = max((ts - prev).total_seconds(), 0.0)
+        bucket = ranking.setdefault(legajo, {"legajo": legajo, "bultos": 0.0, "horas": 0.0, "productividad": 0.0})
+        bucket["bultos"] += _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
+        bucket["horas"] += seconds / 3600
+    ranking_rows = []
+    for item in ranking.values():
+        item["productividad"] = round(item["bultos"] / item["horas"], 2) if item["horas"] else 0.0
+        item["bultos"] = round(item["bultos"], 2)
+        item["horas"] = round(item["horas"], 4)
+        ranking_rows.append(item)
+    ranking_rows.sort(key=lambda item: item["productividad"], reverse=True)
+
+    picking_horas = sum(item["horas"] for item in ranking_rows)
+    picking_legajos = len(real["picking_legajos"])
+    return {
+        "division": normalize_sector(division),
+        "almacen": almacen_target,
+        "indicadores": [
+            {"key": "picking", "label": "Bultos reales vs planificados", **_shift_metric(real["picking_bultos"], plan["picking_bultos"]), "unidad": "bultos"},
+            {"key": "spc", "label": "SPC reales vs planificados", **_shift_metric(float(len(real["spc_pallets"])), plan["spc_pallets"]), "unidad": "pallets"},
+            {"key": "hdr", "label": "HDR reales vs planificados", **_shift_metric(float(len(real["hdr"])), plan["hdr"]), "unidad": "hojas"},
+        ],
+        "kpis": {
+            "legajos_picking": picking_legajos,
+            "bultos_por_persona": round(real["picking_bultos"] / picking_legajos, 2) if picking_legajos else 0.0,
+            "bultos_por_hora": round(real["picking_bultos"] / picking_horas, 2) if picking_horas else 0.0,
+            "horas_picking": round(picking_horas, 2),
+            "spc_legajos": len(real["spc_legajos"]),
+            "despacho_legajos": len(real["despacho_legajos"]),
+        },
+        "ranking": ranking_rows[:25],
+    }
+
+
+@router.get("/cambio-turno/resumen")
+async def cambio_turno_resumen(
+    request: Request,
+    division: str = Query("Secos"),
+    turno: str = Query("TM", pattern="^(TM|TT|TN|tm|tt|tn)$"),
+):
+    await _require_request_auth(request)
+    window = _shift_turn_window(turno)
+    start = _parse_dt(window["fecha_inicio"])
+    end = _parse_dt(window["fecha_fin"])
+    if not start or not end:
+        raise HTTPException(status_code=400, detail="Ventana de turno invalida.")
+    fecha_desde = _fmt_daily_oracle_dt(start)
+    fecha_hasta = _fmt_daily_oracle_dt(end)
+    try:
+        productividad_rows, despacho_rows, plan_rows = await asyncio.gather(
+            asyncio.to_thread(query_productive_db_daily_productividad_raw, fecha_desde, fecha_hasta),
+            asyncio.to_thread(query_productive_db_daily_despacho_raw, fecha_desde, fecha_hasta),
+            asyncio.to_thread(query_productive_db_daily_planificacion, fecha_desde, fecha_hasta),
+        )
+    except Exception as exc:
+        logger.exception("[cambio-turno] No se pudo calcular resumen")
+        raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle para Cambio Turno: {exc}") from exc
+    division_names = ["Secos", "Refrigerados", "Noa"]
+    summaries = {
+        item: _shift_build_summary(
+            division=item,
+            start=start,
+            end=end,
+            productividad_rows=productividad_rows,
+            despacho_rows=despacho_rows,
+            plan_rows=plan_rows,
+        )
+        for item in division_names
+    }
+    selected = summaries.get(normalize_sector(division), summaries["Secos"])
+    return {
+        "window": window,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "source": "oracle_reuse_daily_queries",
+        "divisiones": summaries,
+        **selected,
+    }
 
 
 async def run_daily_auto_avance_precache(
@@ -2694,10 +2892,8 @@ async def daily_parametros_admin_update(req: DailyParametrosUpdateRequest, reque
 
 
 @router.post("/daily/exportar-csv")
-async def daily_exportar_csv(req: DailyExportRequest, request: Request):
+async def daily_exportar_csv(request: Request):
     await _require_request_auth(request)
-    if req.clave != "ingenieria":
-        raise HTTPException(status_code=403, detail="Clave incorrecta.")
     csv_path = await export_powerbi_csv()
     consolidado_csv_path = await export_consolidado_powerbi_csv()
     return {
@@ -2810,6 +3006,18 @@ async def daily_comparacion_manual_auto(
         fecha_hasta = today.isoformat()
     rows = await get_daily_auto_manual_comparacion(fecha_desde, fecha_hasta)
     return _daily_comparison_summary(rows, fecha_desde, fecha_hasta)
+
+
+@router.get("/daily/comparacion-cargas-auto")
+async def daily_comparacion_cargas_auto(
+    request: Request,
+    days: int = Query(15, ge=1, le=60),
+):
+    await _require_request_auth(request)
+    rows, fecha_desde, fecha_hasta = await get_daily_carga_auto_manual_comparacion(days)
+    summary = _daily_comparison_summary(rows, fecha_desde or "-", fecha_hasta or "-")
+    summary["source"] = "daily_cargas"
+    return summary
 
 
 @router.post("/daily/comparacion-manual-auto/importar")
@@ -3012,6 +3220,7 @@ def _daily_raw_detail_row(
     return {
         "fecha": ts.strftime("%Y-%m-%d %H:%M:%S"),
         "legajo": legajo,
+        "desc_funcion": str(row.get("DESC_FUNCION") or row.get("desc_funcion") or "").strip(),
         "operacion": str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip(),
         "almacen": str(row.get("ALMACEN") or "").strip(),
         "almacen_calculo": almacen_calc,
@@ -3069,6 +3278,8 @@ async def _build_daily_raw_detail_payload(
                     "almacen": almacen,
                     "hoja_ruta": str(row.get("HOJARUTA") or row.get("CNUVIAJE") or row.get("VIAJE") or "").strip(),
                     "cargador": _norm_legajo(row.get("CARGADOR")),
+                    "desc_funcion": str(row.get("DESC_FUNCION") or "").strip(),
+                    "cuenta_legajo": "SI" if _despacho_cargador_elegible(row) else "NO",
                     "division": str(row.get("CDIVISIO") or "").strip(),
                     "calmacen": str(row.get("CALMACEN") or "").strip(),
                     "row_index": row.get("_row_index"),
@@ -3079,6 +3290,8 @@ async def _build_daily_raw_detail_payload(
             {"key": "almacen", "label": "Almacen"},
             {"key": "hoja_ruta", "label": "Hoja ruta"},
             {"key": "cargador", "label": "Cargador"},
+            {"key": "desc_funcion", "label": "Funcion"},
+            {"key": "cuenta_legajo", "label": "Cuenta legajo"},
             {"key": "division", "label": "Division"},
             {"key": "calmacen", "label": "Calmacen"},
             {"key": "row_index", "label": "Fila cache"},
@@ -3139,6 +3352,7 @@ async def _build_daily_raw_detail_payload(
     columns = [
         {"key": "fecha", "label": "Fecha"},
         {"key": "legajo", "label": "Legajo"},
+        *([{"key": "desc_funcion", "label": "Funcion"}] if mode["process"] == "PICKING" else []),
         {"key": "operacion", "label": "Operacion"},
         {"key": "almacen", "label": "Almacen crudo"},
         {"key": "almacen_calculo", "label": "Almacen calculo"},
