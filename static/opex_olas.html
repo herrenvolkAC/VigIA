@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>VigIA - Gestion de Olas</title>
+  <style>
+    :root{--bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--red:#C8102E;--blue:#0B5FAE;--purple:#6574C4}
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:24px 24px}
+    button,input,select{font:inherit;color:inherit}button{min-height:32px;cursor:pointer;border-radius:0}
+    button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+    .paper-app{width:100%;min-height:100vh;padding:0 12px 14px}
+    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:10px 14px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}.brand-logo{width:78px;height:38px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}
+    .paper-kicker,.user-label,.field label,.panel-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+    .paper-title{font-size:20px;line-height:1.05;font-weight:600;margin:0;color:var(--ink)}.amp{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:12px}.paper-link,.logout-btn{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}
+    .paper-link:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}.user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hero{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:10px 14px}.hero-title{font-size:22px;line-height:1.1;font-weight:700;margin:2px 0 4px}.hero-sub{font-size:12px;color:var(--ink-soft)}.state{min-width:260px;border:1px solid var(--rule);padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:#F8FAF7}
+    .toolbar{display:grid;grid-template-columns:minmax(150px,.35fr) minmax(150px,.35fr) minmax(170px,.45fr) auto 1fr;gap:10px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:10px;margin-bottom:10px}.field{display:flex;flex-direction:column;gap:6px}.field select,.field input{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
+    .primary-btn{height:34px;min-height:34px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px;white-space:nowrap}.primary-btn:disabled{opacity:.55;cursor:wait}
+    .status{min-height:34px;padding:8px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);line-height:1.35}.status.error{color:var(--red);font-weight:600}
+    .grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:10px}.panel{background:var(--panel);border:1px solid var(--rule);padding:10px;min-width:0}.panel.wide{grid-column:1/-1}.panel-title{margin-bottom:8px}
+    .summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.metric{border:1px solid var(--rule);background:#F8FAF7;padding:10px 8px;text-align:center;min-width:0}.metric strong{display:block;font-size:24px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric span{font-size:11px;color:var(--ink-soft)}
+    .indicator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.indicator{border:1px solid var(--rule);padding:8px;background:#fff}.indicator-head{display:flex;justify-content:space-between;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);text-transform:uppercase}.track{height:10px;background:#E7ECE9;margin:8px 0}.fill{height:100%;background:var(--green);min-width:1px}.indicator-values{display:flex;justify-content:space-between;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
+    .scatter{height:308px;border:1px solid var(--rule);background:linear-gradient(#fff,#fff);position:relative;overflow:hidden}.scatter svg{width:100%;height:100%;display:block}.dot{fill:var(--purple);stroke:#fff;stroke-width:1}.avg-line{stroke:#9AA6DD;stroke-dasharray:4 4}.axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.selected-card{border:1px solid var(--rule);background:#F8FAF7;padding:8px 10px;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
+    .table-wrap{overflow:auto;max-height:320px;border:1px solid var(--rule)}table{width:100%;border-collapse:collapse;min-width:760px;background:#fff}th{position:sticky;top:0;background:#F6F8F5;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;text-align:left;padding:8px;border-bottom:1px solid var(--rule);white-space:nowrap}td{padding:7px 8px;border-bottom:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}.empty{padding:18px 12px;color:var(--ink-soft);font-size:12px;background:var(--panel);border:1px solid var(--rule)}
+    @media(max-width:1100px){.grid,.toolbar,.hero,.summary,.indicator-grid{grid-template-columns:1fr}.state{min-width:0}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header{grid-template-columns:1fr}.header-right{justify-self:start;flex-wrap:wrap}.summary{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div><div class="paper-kicker">OpEX</div><h1 class="paper-title">Gestion <span class="amp">Olas</span></h1></div>
+    </div>
+    <div></div>
+    <div class="header-right">
+      <a class="paper-link" href="/opex.html">OpEX</a>
+      <a class="paper-link" href="/selector">Inicio</a>
+      <div class="user-chip"><div><div class="user-label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
+      <button class="logout-btn" id="logout-btn" type="button" onclick="logout()">Salir</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="paper-kicker">Online</div>
+      <div class="hero-title">Soporte adicional a la reporteria WF conformada por operacion</div>
+      <div class="hero-sub" id="hero-sub">Datos desde cache local de productividad.</div>
+    </div>
+    <div class="state" id="state">Sin datos cargados.</div>
+  </section>
+
+  <section class="toolbar">
+    <div class="field">
+      <label for="operation">Operacion</label>
+      <select id="operation" onchange="loadOlas()">
+        <option value="PICKING">Picking</option>
+        <option value="CLARK">Clark</option>
+        <option value="RECEPCION">Recepcion</option>
+        <option value="DESPACHO">Despacho</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="division">Division</label>
+      <select id="division" onchange="renderDivision()">
+        <option value="Secos">Secos</option>
+        <option value="Noa">Noa</option>
+        <option value="Refrigerados">Refrigerados</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="fecha">Fecha daily</label>
+      <input id="fecha" type="date">
+    </div>
+    <button class="primary-btn" id="btn-load" type="button" onclick="loadOlas()">Actualizar</button>
+    <div class="status" id="status">Listo para consultar.</div>
+  </section>
+
+  <main class="grid">
+    <section class="panel wide">
+      <div class="panel-title" id="summary-title">Indicadores generales</div>
+      <div class="summary" id="summary"><div class="empty">Sin datos cargados.</div></div>
+      <div class="indicator-grid" id="indicators"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-title" id="turnos-title">Calculo por turno</div>
+      <div class="table-wrap" id="turnos"><div class="empty">Sin datos.</div></div>
+    </section>
+    <section class="panel">
+      <div class="panel-title">Tablero de productividad por legajo</div>
+      <div class="scatter" id="scatter"></div>
+      <div class="selected-card" id="selected">Selecciona un punto o una fila para ver el legajo.</div>
+    </section>
+    <section class="panel wide">
+      <div class="panel-title" id="ranking-title">Detalle por legajo, sector y funcion</div>
+      <div class="table-wrap" id="ranking"><div class="empty">Sin datos.</div></div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const num = value => Number(value || 0).toLocaleString('es-AR');
+  const num2 = value => Number(value || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  let olasData = null;
+
+  async function initAuth() {
+    const res = await fetch('/api/auth/me', { credentials: 'same-origin' }).catch(() => null);
+    if (!res || !res.ok) {
+      window.location.replace('/login?next=/opex-olas.html');
+      return false;
+    }
+    const user = await res.json();
+    $('user-label').textContent = user.display_name || user.username;
+    return true;
+  }
+
+  async function logout() {
+    sessionStorage.removeItem('vigia_session');
+    await fetch('/api/auth/logout', { method:'POST', credentials:'same-origin' }).catch(() => {});
+    window.location.replace('/login');
+  }
+
+  function setStatus(text, tone='') {
+    $('status').textContent = text;
+    $('status').className = `status ${tone}`;
+  }
+
+  function renderIndicators(items) {
+    if (!items?.length) {
+      $('indicators').innerHTML = '';
+      return;
+    }
+    $('indicators').innerHTML = items.map(item => {
+      const pct = item.avance_pct == null ? 0 : Math.max(0, Math.min(140, Number(item.avance_pct || 0)));
+      const width = Math.min(100, pct);
+      const color = pct >= 95 ? 'var(--green)' : (pct >= 75 ? 'var(--amber)' : 'var(--red)');
+      return `<article class="indicator">
+        <div class="indicator-head"><span>${esc(item.label)}</span><strong>${num2(item.avance_pct || 0)}%</strong></div>
+        <div class="track"><div class="fill" style="width:${width}%;background:${color}"></div></div>
+        <div class="indicator-values"><span>Real ${num(item.real)}</span><span>Plan ${num(item.plan)}</span><span>Pend. ${num(item.pendiente)}</span></div>
+      </article>`;
+    }).join('');
+  }
+
+  function renderSummary(kpis) {
+    const data = currentDivisionData();
+    const quantityLabel = data?.quantity_label || 'Cantidad';
+    const items = [
+      [`${quantityLabel} acumulados`, kpis?.cantidad || 0],
+      ['Pallets acumulados', kpis?.pallets || 0],
+      ['Ocupacion jornada', `${num2(kpis?.ocupacion_pct || 0)} %`],
+      ['prod / h', kpis?.productividad_hora || 0],
+      ['cant / pallet', kpis?.cantidad_por_pallet || 0],
+      ['Legajos', kpis?.legajos || 0],
+    ];
+    $('summary').innerHTML = items.map(([label, value]) => `<div class="metric"><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`).join('');
+  }
+
+  function renderTurnos(rows) {
+    if (!rows?.length) {
+      $('turnos').innerHTML = '<div class="empty">Sin turnos con datos.</div>';
+      return;
+    }
+    const data = currentDivisionData();
+    const quantityLabel = data?.quantity_label || 'Cantidad';
+    $('turnos').innerHTML = `<table><thead><tr><th>Turno</th><th>${esc(quantityLabel)}</th><th>Pallets</th><th>Legajos</th><th>Hs</th><th>Prod hora</th><th>Prod dia</th></tr></thead><tbody>
+      ${rows.map(row => `<tr><td>${esc(row.turno)}</td><td>${num(row.cantidad)}</td><td>${num(row.pallets)}</td><td>${num(row.legajos)}</td><td>${num2(row.horas)}</td><td>${num2(row.productividad_hora)}</td><td>${num2(row.productividad_dia)}</td></tr>`).join('')}
+    </tbody></table>`;
+  }
+
+  function selectLegajo(row) {
+    const data = currentDivisionData();
+    const unit = data?.unit || 'unid.';
+    $('selected').innerHTML = `<strong>${esc(row.legajo)}</strong> | ${esc(row.funcion || 'Sin funcion')} | ${num2(row.productividad)} ${esc(unit)}/h | ${num(row.cantidad)} ${esc(unit)} | ${num(row.pallets)} pallets`;
+  }
+
+  function renderScatter(rows) {
+    if (!rows?.length) {
+      $('scatter').innerHTML = '<div class="empty">Sin ranking.</div>';
+      return;
+    }
+    const top = rows.slice(0, 35);
+    const max = Math.max(...top.map(row => Number(row.productividad || 0)), 1);
+    const avg = top.reduce((acc, row) => acc + Number(row.productividad || 0), 0) / top.length;
+    const w = 760, h = 300, pad = 34;
+    const y = value => h - pad - (Number(value || 0) / max) * (h - pad * 2);
+    const step = (w - pad * 2) / Math.max(top.length - 1, 1);
+    const dots = top.map((row, index) => {
+      const x = pad + index * step;
+      const cy = y(row.productividad);
+      return `<circle class="dot" cx="${x}" cy="${cy}" r="4" data-index="${index}"><title>${esc(row.legajo)} ${num2(row.productividad)}</title></circle>`;
+    }).join('');
+    $('scatter').innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="#D4DBD8"></line>
+      <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h-pad}" stroke="#D4DBD8"></line>
+      <line class="avg-line" x1="${pad}" y1="${y(avg)}" x2="${w-pad}" y2="${y(avg)}"></line>
+      <text class="axis-label" x="${pad+4}" y="${y(avg)-5}">prom ${num2(avg)}</text>
+      ${dots}
+    </svg>`;
+    $('scatter').querySelectorAll('.dot').forEach(dot => {
+      dot.addEventListener('click', () => selectLegajo(top[Number(dot.dataset.index || 0)]));
+    });
+  }
+
+  function renderRanking(rows) {
+    if (!rows?.length) {
+      $('ranking').innerHTML = '<div class="empty">Sin legajos para la division.</div>';
+      return;
+    }
+    const data = currentDivisionData();
+    const quantityLabel = data?.quantity_label || 'Cantidad';
+    $('ranking').innerHTML = `<table><thead><tr><th>Legajo</th><th>Funcion</th><th>Primer mov.</th><th>Ultimo mov.</th><th>${esc(quantityLabel)}</th><th>Pallets</th><th>Lineas</th><th>Hs</th><th>Prod</th><th>Dia x 6.5</th></tr></thead><tbody>
+      ${rows.map((row, index) => `<tr onclick="selectLegajo(currentDivisionData().ranking[${index}])"><td>${esc(row.legajo)}</td><td>${esc(row.funcion || '')}</td><td>${esc(row.primer_mov)}</td><td>${esc(row.ultimo_mov)}</td><td>${num(row.cantidad)}</td><td>${num(row.pallets)}</td><td>${num(row.lineas)}</td><td>${num2(row.horas)}</td><td>${num2(row.productividad)}</td><td>${num2(row.productividad_dia)}</td></tr>`).join('')}
+    </tbody></table>`;
+  }
+
+  function currentDivisionData() {
+    return olasData?.divisiones?.[$('division').value] || null;
+  }
+
+  function renderDivision() {
+    if (!olasData?.divisiones) return;
+    const division = $('division').value;
+    const data = olasData.divisiones[division];
+    if (!data) {
+      setStatus('No hay datos para la division seleccionada.', 'error');
+      return;
+    }
+    $('state').textContent = `${olasData.daily?.daily_label || ''} | ${data.operation_label || olasData.operation_label || ''} | ${data.almacen} | cache`;
+    $('hero-sub').textContent = `${olasData.fecha_desde || ''} a ${olasData.fecha_hasta || ''}`;
+    $('summary-title').textContent = `Indicadores generales de ${data.operation_label || 'operacion'}`;
+    $('turnos-title').textContent = `Calculo de productividades reales por turno - ${data.operation_label || ''}`;
+    $('ranking-title').textContent = `Detalle por legajo, sector y funcion - ${data.operation_label || ''}`;
+    $('selected').textContent = 'Selecciona un punto o una fila para ver el legajo.';
+    renderSummary(data.kpis || {});
+    renderIndicators(data.indicadores || []);
+    renderTurnos(data.turnos || []);
+    renderScatter(data.ranking || []);
+    renderRanking(data.ranking || []);
+    setStatus(`Division ${division} filtrada desde memoria.`);
+  }
+
+  async function loadOlas() {
+    const btn = $('btn-load');
+    btn.disabled = true;
+    setStatus('Cargando datos desde cache local.');
+    try {
+      const params = new URLSearchParams();
+      if ($('fecha').value) params.set('fecha', $('fecha').value);
+      params.set('operation', $('operation').value);
+      const url = `/api/gestion-operativa/olas/resumen${params.toString() ? `?${params}` : ''}`;
+      const resp = await fetch(url, { credentials: 'same-origin' });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.detail || 'No se pudo cargar Gestion de Olas.');
+      olasData = data;
+      if (data.status !== 'success') {
+        $('state').textContent = data.message || 'Cache no disponible.';
+        $('summary').innerHTML = '<div class="empty">No hay cache vigente para mostrar.</div>';
+        $('indicators').innerHTML = '';
+        $('turnos').innerHTML = '<div class="empty">Sin datos.</div>';
+        $('scatter').innerHTML = '';
+        $('ranking').innerHTML = '<div class="empty">Sin datos.</div>';
+        setStatus(data.message || 'Cache no disponible.', 'error');
+        return;
+      }
+      renderDivision();
+    } catch (err) {
+      setStatus(err.message || 'No se pudo cargar.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function init() {
+    if (await initAuth()) loadOlas();
+  }
+  init();
+</script>
+</body>
+</html>

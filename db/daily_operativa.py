@@ -16,10 +16,11 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import aiosqlite
 
-from db.paths import resolve_db_path, resolve_file_path
+from db.paths import ROOT_DIR, resolve_db_path, resolve_file_path
 
 
 DAILY_DB_PATH = resolve_db_path("DAILY_OPERATIVA_DB_PATH", "daily_operativa.db", Path(__file__).resolve().parent)
+DAILY_AUTO_COMPARE_DB_PATH = resolve_db_path("DAILY_AUTO_DB_PATH", "daily_auto.db", ROOT_DIR)
 DAILY_POWERBI_CSV_PATH = resolve_file_path(
     "DAILY_POWERBI_CSV_PATH",
     "daily_powerbi.csv",
@@ -1032,11 +1033,19 @@ async def get_daily_carga_auto_manual_comparacion(days: int = 15) -> tuple[list[
     await init_daily_db()
     async with aiosqlite.connect(DAILY_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
+        await db.execute("ATTACH DATABASE ? AS daily_auto", (str(DAILY_AUTO_COMPARE_DB_PATH),))
         async with db.execute(
             """
-            SELECT DISTINCT fecha_carga
-            FROM daily_cargas
-            WHERE reemplazado = 0
+            SELECT fecha_carga
+            FROM (
+                SELECT DISTINCT fecha_carga
+                FROM daily_cargas
+                WHERE reemplazado = 0
+                UNION
+                SELECT DISTINCT fecha_carga
+                FROM daily_auto.daily_auto_runs
+                WHERE status = 'success'
+            )
             ORDER BY fecha_carga DESC
             LIMIT ?
             """,
@@ -1049,21 +1058,75 @@ async def get_daily_carga_auto_manual_comparacion(days: int = 15) -> tuple[list[
         fecha_hasta = max(dates)
         async with db.execute(
             """
-            SELECT *
-            FROM vw_daily_powerbi
-            WHERE fecha_carga >= ?
-              AND fecha_carga <= ?
-              AND tipo_campo = 'numerico'
-            ORDER BY fecha_carga DESC, tipo_daily, sector, grupo, orden
+            SELECT
+                p.*,
+                a.valor AS valor_auto_cache
+            FROM vw_daily_powerbi p
+            LEFT JOIN daily_auto.daily_auto_resultados a
+              ON a.daily_key = p.daily_key
+             AND a.sector = p.sector
+             AND a.id_parametro = p.id_parametro
+            WHERE p.fecha_carga >= ?
+              AND p.fecha_carga <= ?
+              AND p.tipo_campo = 'numerico'
+            ORDER BY p.fecha_carga DESC, p.tipo_daily, p.sector, p.grupo, p.orden
             """,
             (fecha_desde, fecha_hasta),
         ) as cur:
             source_rows = [dict(row) for row in await cur.fetchall()]
+        async with db.execute(
+            """
+            SELECT
+                a.daily_key,
+                run.daily_label,
+                run.fecha_inicio,
+                run.fecha_fin,
+                run.fecha_carga,
+                COALESCE(run.finished_at, run.started_at) AS timestamp_carga,
+                '' AS usuario_carga,
+                COALESCE(p.tipo_daily, 'Operacion') AS tipo_daily,
+                a.sector,
+                NULL AS carga_id,
+                a.id_parametro,
+                COALESCE(p.grupo, a.process) AS grupo,
+                COALESCE(p.proceso, a.process) AS proceso,
+                COALESCE(p.nombre, a.id_parametro) AS nombre_parametro,
+                COALESCE(p.tipo_campo, 'numerico') AS tipo_campo,
+                a.valor AS valor_auto_cache,
+                NULL AS valor_usuario_numero,
+                NULL AS valor_auto_numero,
+                COALESCE(p.orden, 0) AS orden,
+                'daily_auto_resultados' AS source_file,
+                a.id AS source_row
+            FROM daily_auto.daily_auto_resultados a
+            JOIN daily_auto.daily_auto_runs run
+              ON run.id = a.run_id
+             AND run.status = 'success'
+            LEFT JOIN daily_parametros_cumplimiento p
+              ON p.id_parametro = a.id_parametro
+            WHERE run.fecha_carga >= ?
+              AND run.fecha_carga <= ?
+              AND COALESCE(p.tipo_campo, 'numerico') = 'numerico'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM vw_daily_powerbi manual
+                  WHERE manual.daily_key = a.daily_key
+                    AND COALESCE(manual.sector, '') = COALESCE(a.sector, '')
+                    AND manual.id_parametro = a.id_parametro
+                    AND manual.tipo_campo = 'numerico'
+              )
+            ORDER BY run.fecha_carga DESC, tipo_daily, a.sector, grupo, orden
+            """,
+            (fecha_desde, fecha_hasta),
+        ) as cur:
+            source_rows.extend(dict(row) for row in await cur.fetchall())
 
     rows: list[dict[str, Any]] = []
     for row in source_rows:
         manual = row.get("valor_usuario_numero")
         automatico = row.get("valor_auto_numero")
+        if automatico is None:
+            automatico = row.get("valor_auto_cache")
         diferencia, diferencia_abs, diferencia_pct, estado = _comparison_state(manual, automatico)
         rows.append(
             {
@@ -1085,8 +1148,8 @@ async def get_daily_carga_auto_manual_comparacion(days: int = 15) -> tuple[list[
                 "diferencia_abs": diferencia_abs,
                 "diferencia_pct": diferencia_pct,
                 "estado": estado,
-                "source_file": "daily_cargas",
-                "source_row": row.get("carga_id"),
+                "source_file": row.get("source_file") or "daily_cargas",
+                "source_row": row.get("source_row") if row.get("source_row") is not None else row.get("carga_id"),
             }
         )
     return rows, fecha_desde, fecha_hasta

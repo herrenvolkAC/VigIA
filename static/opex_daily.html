@@ -119,13 +119,13 @@
     .comparison-source{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
     .comparison-source button{border:1px solid var(--rule);background:#fff;color:var(--ink-soft);padding:7px 9px;font-size:11px;cursor:pointer}
     .comparison-source button.active{background:var(--green);color:#fff;border-color:var(--green)}
-    .comparison-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}
+    .comparison-filters{display:grid;grid-template-columns:minmax(220px,.35fr) minmax(220px,.35fr) auto;gap:10px;margin:0 0 12px;align-items:end}
     .comparison-filter{display:flex;flex-direction:column;gap:4px}
     .comparison-filter label{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
     .comparison-filter select,.comparison-filter input{width:100%;border:1px solid var(--rule);background:#fff;color:var(--ink);padding:7px 8px;font-size:12px}
-    .comparison-filter select{min-height:78px}
+    .comparison-filter select{min-height:88px}
     .comparison-filter-actions{display:flex;align-items:end;gap:8px;flex-wrap:wrap}
-    .comparison-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+    .comparison-grid{display:block}
     .comparison-panel{border:1px solid var(--rule);background:#fff;padding:12px;min-width:0}
     .comparison-panel.wide{grid-column:1/-1}
     .comparison-chart{display:flex;flex-direction:column;gap:7px}
@@ -155,12 +155,20 @@
     .comparison-line-label{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--ink-soft)}
     .comparison-table{min-width:1220px}
     .comparison-table th,.comparison-table td{padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
+    .comparison-table tbody tr.state-coincide{background:#F6FBF7}
+    .comparison-table tbody tr.state-menor{background:#FFF8E8}
+    .comparison-table tbody tr.state-relevante{background:#FCECE2}
+    .comparison-table tbody tr.state-critica{background:#FBE4EA}
+    .comparison-table tbody tr.state-sin-automatico{background:#EEF1F5}
+    .comparison-table tbody tr.state-sin-manual{background:#EEF4FA}
+    .comparison-table tbody tr.state-sin-datos{background:#F1F1F1}
+    .comparison-table tbody tr:hover{outline:1px solid var(--green);outline-offset:-1px}
     .comparison-table th.sortable{cursor:pointer;user-select:none}
     .comparison-table th.sortable:hover{color:var(--green);background:#EEF4F0}
     .comparison-table th.sorted{color:var(--green)}
     .comparison-state{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);margin-bottom:10px}
     .sql-preview{white-space:pre;overflow:auto;max-height:58vh;border:1px solid var(--rule);background:#F8FAF7;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.45;color:var(--ink)}
-    @media(max-width:1180px){.daily-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-fields,.daily-fields.productividad,.daily-pair-grid,.auto-detail-summary,.comparison-grid,.comparison-heat,.comparison-filters,.comparison-lines{grid-template-columns:1fr}.daily-hero{grid-template-columns:1fr}.daily-save-state{min-width:0}}
+    @media(max-width:1180px){.daily-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-fields,.daily-fields.productividad,.daily-pair-grid,.auto-detail-summary,.comparison-heat,.comparison-filters,.comparison-lines{grid-template-columns:1fr}.daily-hero{grid-template-columns:1fr}.daily-save-state{min-width:0}}
     @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header{grid-template-columns:1fr}.header-right{justify-self:start;flex-wrap:wrap}.daily-head{display:block;padding:10px 12px}.daily-toolbar{grid-template-columns:1fr}}
   </style>
 </head>
@@ -254,33 +262,16 @@
         <div class="comparison-head">
           <div>
             <h2 class="comparison-title">Comparacion automatica/manual</h2>
-            <div class="comparison-sub" id="comparison-subtitle">Ultimas 15 fechas Daily cargadas. Ranking por diferencia absoluta.</div>
+            <div class="comparison-sub" id="comparison-subtitle">Detalle comparativo entre lo cargado manualmente y el calculo automatico.</div>
           </div>
           <div class="comparison-actions">
-            <div class="comparison-source">
-              <button class="active" id="comparison-source-cargas" type="button" onclick="setComparisonSource('cargas')">Cargas Daily</button>
-              <button id="comparison-source-excel" type="button" onclick="setComparisonSource('excel')">Excel historico</button>
-            </div>
             <button class="primary-btn" type="button" onclick="loadDailyComparison()">Actualizar vista</button>
-            <button class="primary-btn exception-btn visible" id="comparison-import-btn" type="button" onclick="importDailyManualComparison()" style="display:none">Importar y recalcular</button>
             <button class="primary-btn" type="button" onclick="exportComparisonFilteredExcel()">Exportar Excel</button>
           </div>
         </div>
         <div class="comparison-state" id="comparison-status">Sin datos cargados.</div>
         <div class="comparison-filters" id="comparison-filters"></div>
         <div class="comparison-grid">
-          <div class="comparison-panel">
-            <div class="daily-group-title">Mayores diferencias</div>
-            <div class="comparison-chart" id="comparison-ranking"></div>
-          </div>
-          <div class="comparison-panel">
-            <div class="daily-group-title">Mapa por almacen/operacion</div>
-            <div class="comparison-heat" id="comparison-heat"></div>
-          </div>
-          <div class="comparison-panel wide">
-            <div class="daily-group-title">Evolucion por indicador</div>
-            <div class="comparison-lines" id="comparison-lines"></div>
-          </div>
           <div class="comparison-panel wide">
             <div class="daily-group-title">Detalle comparativo</div>
             <div class="table-wrap" id="comparison-table-wrap"><div class="empty">Sin comparacion calculada.</div></div>
@@ -347,14 +338,6 @@
   const comparisonFilterFields = [
     { key: 'fecha_daily', label: 'Fecha', id: 'comparison-filter-fecha' },
     { key: 'sector', label: 'Almacen', id: 'comparison-filter-sector' },
-    { key: 'operacion', label: 'Operacion', id: 'comparison-filter-operacion' },
-    { key: 'metrica', label: 'Metrica', id: 'comparison-filter-metrica' },
-    { key: 'concepto', label: 'Concepto', id: 'comparison-filter-concepto' },
-    { key: 'estado', label: 'Estado', id: 'comparison-filter-estado' },
-    { key: 'up', label: 'UP', id: 'comparison-filter-up' },
-    { key: 'tipo_daily', label: 'Tipo', id: 'comparison-filter-tipo' },
-    { key: 'usuario_carga', label: 'Usuario', id: 'comparison-filter-usuario' },
-    { key: 'id_parametro', label: 'Parametro', id: 'comparison-filter-parametro' },
   ];
   let comparisonFilters = {};
 
@@ -549,10 +532,6 @@
           </div>
         `;
       }).join('')}
-      <div class="comparison-filter">
-        <label for="comparison-filter-text">Texto</label>
-        <input id="comparison-filter-text" type="search" value="${escapeHtml(comparisonFilters.text || '')}" oninput="onComparisonFilterChange()" autocomplete="off">
-      </div>
       <div class="comparison-filter-actions">
         <button class="ghost-btn" type="button" onclick="clearComparisonFilters()">Limpiar filtros</button>
       </div>
@@ -563,7 +542,6 @@
     comparisonFilterFields.forEach(field => {
       comparisonFilters[field.key] = comparisonSelectedValues(field.id);
     });
-    comparisonFilters.text = document.getElementById('comparison-filter-text')?.value || '';
     renderComparisonFilteredView();
   }
 
@@ -574,20 +552,12 @@
   }
 
   function filterComparisonRows(rows) {
-    const text = String(comparisonFilters.text || '').trim().toLocaleLowerCase('es-AR');
     return rows.filter(row => {
       for (const field of comparisonFilterFields) {
         const selected = comparisonFilters[field.key] || [];
         if (selected.length && !selected.includes(String(row?.[field.key] ?? '').trim())) return false;
       }
-      if (!text) return true;
-      return comparisonFilterFields.concat([
-        { key: 'valor_manual' },
-        { key: 'valor_automatico' },
-        { key: 'diferencia' },
-        { key: 'diferencia_abs' },
-        { key: 'diferencia_pct' },
-      ]).some(field => String(row?.[field.key] ?? '').toLocaleLowerCase('es-AR').includes(text));
+      return true;
     });
   }
 
@@ -650,9 +620,6 @@
     const rows = filterComparisonRows(allRows);
     const missing = rows.filter(row => row.estado === 'sin_automatico').length;
     setComparisonStatus(`${num(rows.length)} de ${num(allRows.length)} comparaciones entre ${dailyComparisonData?.fecha_desde || '-'} y ${dailyComparisonData?.fecha_hasta || '-'}${missing ? `; ${num(missing)} sin automatico` : ''}.`);
-    renderComparisonRanking(summarizeComparisonRanking(rows));
-    renderComparisonHeat(summarizeComparisonHeat(rows));
-    renderComparisonLines(rows);
     renderComparisonTable(rows);
   }
 
@@ -901,6 +868,11 @@
     return `<th class="sortable ${active ? 'sorted' : ''}" onclick="setComparisonSort('${escapeHtml(key)}')">${escapeHtml(label)}${mark}</th>`;
   }
 
+  function comparisonStateClass(row) {
+    const state = String(row?.estado || 'sin-datos').trim().toLowerCase().replaceAll('_', '-').replace(/[^a-z0-9-]/g, '');
+    return `state-${state || 'sin-datos'}`;
+  }
+
   function renderComparisonTable(rows) {
     const wrap = document.getElementById('comparison-table-wrap');
     if (!wrap) return;
@@ -910,7 +882,10 @@
       return;
     }
     wrap.innerHTML = `
-      <div class="raw-detail-count" style="margin:0 0 8px">${escapeHtml(num(rows.length))} filas filtradas${rows.length > top.length ? `; mostrando ${escapeHtml(num(top.length))}` : ''}.</div>
+      <div class="raw-detail-toolbar">
+        <div class="raw-detail-count">${escapeHtml(num(rows.length))} filas filtradas${rows.length > top.length ? `; mostrando ${escapeHtml(num(top.length))}` : ''}.</div>
+        <button class="ghost-btn" type="button" onclick="copyComparisonFilteredExcel()">Copiar Excel</button>
+      </div>
       <table class="comparison-table">
         <thead>
           <tr>
@@ -933,7 +908,7 @@
         </thead>
         <tbody>
           ${top.map(row => `
-            <tr>
+            <tr class="${comparisonStateClass(row)}">
               <td>${escapeHtml(row.fecha_daily)}</td>
               <td>${escapeHtml(row.sector)}</td>
               <td>${escapeHtml(row.tipo_daily || '')}</td>
@@ -980,6 +955,15 @@
     ];
   }
 
+  function comparisonRowsTsv(rows) {
+    const columns = comparisonExportColumns();
+    const clean = value => String(value ?? '').replace(/\r?\n/g, ' ').replace(/\t/g, ' ');
+    return [
+      columns.map(col => clean(col.label)).join('\t'),
+      ...rows.map(row => columns.map(col => clean(comparisonExportValue(row, col.key))).join('\t')),
+    ].join('\n');
+  }
+
   function comparisonExportValue(row, key) {
     const value = row?.[key];
     if (value === null || value === undefined) return '';
@@ -988,6 +972,20 @@
       return Number.isFinite(n) ? n * 100 : '';
     }
     return value;
+  }
+
+  async function copyComparisonFilteredExcel() {
+    const rows = sortedComparisonRows(filterComparisonRows(comparisonRawRows()));
+    if (!rows.length) {
+      setComparisonStatus('No hay filas filtradas para copiar.', 'error');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(comparisonRowsTsv(rows));
+      setComparisonStatus(`${num(rows.length)} filas copiadas para pegar en Excel.`);
+    } catch (err) {
+      setComparisonStatus('No se pudo copiar al portapapeles.', 'error');
+    }
   }
 
   function exportComparisonFilteredExcel() {
@@ -1200,7 +1198,8 @@
     document.querySelectorAll('[data-auto-actions-for]').forEach(container => {
       const paramId = container.dataset.autoActionsFor;
       const item = dailyAutoItemForParam(paramId);
-      if (!item || !['CLARK', 'PICKING', 'RECEPCION', 'DESPACHO', 'PLANIFICACION'].includes(item.proceso)) {
+      const processKey = String(item?.proceso || '').trim().toUpperCase();
+      if (!item || !['CLARK', 'PICKING', 'RECEPCION', 'DESPACHO', 'SPC', 'PLANIFICACION'].includes(processKey)) {
         container.innerHTML = '';
         return;
       }
@@ -1211,7 +1210,7 @@
       const isDotacion = ['OP_DOT_PICKING_LEGAJOS_6A8', 'OP_DOT_SPC_LEGAJOS_6A8', 'OP_DOT_RECEPCION_LEGAJOS_6A8', 'OP_DOT_DESPACHO_LEGAJOS_6A8'].includes(item.id_parametro);
       const isProductividad = isProductividadParamId(item.id_parametro);
       const quantityLabel = isProductividad
-        ? `${formatAutoValue(item)} ${item.proceso === 'PICKING' ? 'bultos / turno x operario' : 'productividad'}`
+        ? `${formatAutoValue(item)} ${processKey === 'PICKING' ? 'bultos / turno x operario' : 'productividad'}`
         : isDotacion
         ? `${num(item.valor)} legajos`
         : item.id_parametro === 'OP_CUMP_PICKING_PLAN_6A6'
@@ -1220,22 +1219,23 @@
         ? `${num(item.valor)} pallets planificados`
         : item.id_parametro === 'OP_CUMP_DESPACHO_PLAN_6A6'
         ? `${num(item.valor)} viajes planificados`
-        : isAvance && item.proceso === 'PICKING'
+        : isAvance && processKey === 'PICKING'
         ? `${num(item.valor)} bultos ${isAvancePlan ? 'planificados' : 'reales'} 6 a 7:30`
-        : isAvance && item.proceso === 'DESPACHO'
+        : isAvance && processKey === 'DESPACHO'
         ? `${num(item.valor)} ${isAvancePlan ? 'viajes planificados' : 'hojas de ruta reales'} 6 a 7:30`
         : isAvance
         ? `${num(item.valor)} pallets ${isAvancePlan ? 'planificados' : 'reales'} 6 a 7:30`
         : isSpcRealParamId(item.id_parametro)
         ? `${num(item.cantidad || item.valor)} pallets reales`
-        : item.proceso === 'PICKING'
+        : processKey === 'PICKING'
         ? `${num(item.bultos || item.cantidad)} bultos${isReal ? ' reales' : ''}`
-        : item.proceso === 'DESPACHO'
+        : processKey === 'DESPACHO'
         ? `${num(item.viajes || item.cantidad)} hojas de ruta${isReal ? ' reales' : ''}`
         : `${num(item.pallets || item.cantidad)} pallets`;
       const operatorLabel = (isReal || isDotacion || isPlan || isProductividad || isAvance) ? '' : ` / ${num(item.legajos)} operarios`;
+      const canOpenDetail = !isAvancePlan && (isRawDetailItem(item) || canRetryDailyAuto());
       container.innerHTML = `
-        ${canRetryDailyAuto() && !isAvancePlan ? `<button class="daily-auto-detail" type="button" onclick="abrirDetalleClark('${escapeHtml(paramId)}')">Ver</button>` : ''}
+        ${canOpenDetail ? `<button class="daily-auto-detail" type="button" onclick="abrirDetalleClark('${escapeHtml(paramId)}')">Ver</button>` : ''}
         <span class="daily-auto-note">${quantityLabel}${operatorLabel}</span>
       `;
     });
@@ -1263,17 +1263,19 @@
     const title = document.getElementById('clark-detail-title');
     const status = document.getElementById('clark-detail-status');
     const wrap = document.getElementById('clark-detail-wrap');
-    if (!item || !wrap || !canRetryDailyAuto()) return;
-    const process = item.proceso === 'PICKING' ? 'Picking' : (item.proceso === 'RECEPCION' ? 'Recepcion' : (item.proceso === 'DESPACHO' ? 'Despacho' : (item.proceso === 'PLANIFICACION' ? 'Planificacion' : 'Clark')));
+    if (!item || !wrap) return;
+    const processKey = String(item.proceso || '').trim().toUpperCase();
+    const process = processKey === 'PICKING' ? 'Picking' : (processKey === 'RECEPCION' ? 'Recepcion' : (processKey === 'DESPACHO' ? 'Despacho' : (processKey === 'PLANIFICACION' ? 'Planificacion' : (processKey === 'SPC' ? 'SPC' : 'Clark'))));
     const rawDetail = isRawDetailItem(item);
+    if (!rawDetail && !canRetryDailyAuto()) return;
     const endpoint = rawDetail
       ? `/api/gestion-operativa/daily/raw-detail?${new URLSearchParams({ sector: item.sector || currentDailySector(), param_id: item.id_parametro, process: item.proceso || '' }).toString()}`
-      : (item.proceso === 'DESPACHO'
+      : (processKey === 'DESPACHO'
         ? '/api/gestion-operativa/daily/despacho-sql'
-        : (item.proceso === 'PLANIFICACION' ? '/api/gestion-operativa/daily/planificacion-sql' : '/api/gestion-operativa/daily/clark-sql'));
+        : (processKey === 'PLANIFICACION' ? '/api/gestion-operativa/daily/planificacion-sql' : '/api/gestion-operativa/daily/clark-sql'));
     const cacheKey = rawDetail
-      ? `${item.proceso}_${item.sector}_${item.id_parametro}_RAW`
-      : `${item.proceso}_SQL`;
+      ? `${processKey}_${item.sector}_${item.id_parametro}_RAW`
+      : `${processKey}_SQL`;
     if (title) title.textContent = `Detalle automatico ${process} - ${item.sector || ''}`;
     if (status) status.textContent = `Cargando detalle de ${process}.`;
     wrap.innerHTML = '<div class="empty">Cargando detalle.</div>';
@@ -1303,7 +1305,7 @@
   function isRawDetailItem(item) {
     const paramId = String(item?.id_parametro || '');
     if (paramId.startsWith('OP_AVANCE_') && paramId.includes('_PLAN_')) return false;
-    return ['PICKING', 'RECEPCION', 'CLARK', 'DESPACHO'].includes(String(item?.proceso || '').toUpperCase())
+    return ['PICKING', 'RECEPCION', 'CLARK', 'DESPACHO'].includes(String(item?.proceso || '').trim().toUpperCase())
       || paramId === 'OP_CUMP_SPC_REAL_6A6'
       || paramId === 'OP_DOT_SPC_LEGAJOS_6A8';
   }

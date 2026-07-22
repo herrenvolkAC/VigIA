@@ -58,6 +58,7 @@ from routers.analisis_premio_productividad import (
 )
 from routers.rendimiento_online import router as rendimiento_online_router
 from routers.websocket import router as websocket_router
+from utils.db_backup import start_db_backup_scheduler, stop_db_backup_scheduler
 from utils.usage_log import cleanup_old_usage_logs, request_action, write_usage_log
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -101,6 +102,7 @@ async def lifespan(app: FastAPI):
     start_panol_stock_cd_scheduler()
     start_rrhh_folder_monitor()
     start_forms_import_monitor()
+    start_db_backup_scheduler()
     provider = os.getenv("AI_PROVIDER", "claude")
     logger.info(f"Proveedor IA configurado: {provider}")
     # Si está en modo Ollama, log de la URL
@@ -115,6 +117,7 @@ async def lifespan(app: FastAPI):
         await stop_rrhh_folder_monitor()
         await stop_panol_stock_cd_scheduler()
         await stop_forms_import_monitor()
+        await stop_db_backup_scheduler()
         await stop_daily_auto_scheduler()
         await stop_historia_actividad_scheduler()
         logger.info("VigIA detenido.")
@@ -159,6 +162,8 @@ PROTECTED_PAGE_PATHS = {
     "/opex-daily.html",
     "/opex-shift",
     "/opex-shift.html",
+    "/opex-olas",
+    "/opex-olas.html",
     "/novedades-cd",
     "/novedades-cd.html",
     "/historia-legajo",
@@ -215,6 +220,8 @@ PAGE_MODULES = {
     "/opex-daily.html": "opex",
     "/opex-shift": "opex",
     "/opex-shift.html": "opex",
+    "/opex-olas": "opex",
+    "/opex-olas.html": "opex",
     "/novedades-cd": "novedades_cd",
     "/novedades-cd.html": "novedades_cd",
     "/historia-legajo": "historia_legajo",
@@ -241,6 +248,7 @@ PAGE_MODULES = {
 API_MODULE_PREFIXES = (
     ("/api/gestion-operativa/daily", "opex"),
     ("/api/gestion-operativa/cambio-turno", "opex"),
+    ("/api/gestion-operativa/olas", "opex"),
     ("/api/gestion-operativa", "gestion_operativa"),
     ("/api/historia-legajo", "historia_legajo"),
     ("/api/rrhh", "novedades_cd"),
@@ -341,6 +349,7 @@ _PAGES = [
     "/opex",         "opex.html",
     "/opex-daily",   "opex_daily.html",
     "/opex-shift",   "opex_shift.html",
+    "/opex-olas",    "opex_olas.html",
     "/planificacion","planificacion.html",
     "/fase1",        "fase1_dashboard.html",
 ]
@@ -385,6 +394,10 @@ async def page_opex_daily(): return FileResponse(STATIC_DIR / "opex_daily.html")
 @app.get("/opex-shift.html", include_in_schema=False)
 @app.get("/opex-shift",      include_in_schema=False)
 async def page_opex_shift(): return FileResponse(STATIC_DIR / "opex_shift.html")
+
+@app.get("/opex-olas.html", include_in_schema=False)
+@app.get("/opex-olas",      include_in_schema=False)
+async def page_opex_olas(): return FileResponse(STATIC_DIR / "opex_olas.html")
 
 @app.get("/novedades-cd.html", include_in_schema=False)
 @app.get("/novedades-cd",      include_in_schema=False)

@@ -32,14 +32,14 @@
     .field{display:flex;flex-direction:column;gap:6px}.field select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
     .primary-btn{height:34px;min-height:34px;border:1px solid var(--ink);border-radius:0;background:var(--ink);color:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 12px;box-shadow:none;white-space:nowrap}.primary-btn:disabled{opacity:.55;cursor:wait}
     .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);line-height:1.35;align-self:stretch}.status.error{color:var(--red);font-weight:500}
-    .dashboard-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:10px}.panel{background:var(--panel);border:1px solid var(--rule);padding:10px;min-width:0}.panel.wide{grid-column:1/-1}
+    .dashboard-grid{display:grid;grid-template-columns:minmax(360px,.78fr) minmax(560px,1.22fr);gap:10px;align-items:start}.left-stack{display:grid;gap:10px;min-width:0}.panel{background:var(--panel);border:1px solid var(--rule);padding:10px;min-width:0}.ranking-panel{min-height:620px}
     .panel-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-bottom:8px}
-    .gauge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.gauge-card{border:1px solid var(--rule);background:#fff;padding:10px;display:grid;grid-template-rows:auto 96px auto;min-height:174px}.gauge-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;text-align:center;min-height:24px}
+    .gauge-grid{display:grid;grid-template-columns:1fr;gap:10px}.gauge-card{border:1px solid var(--rule);background:#fff;padding:10px;display:grid;grid-template-columns:1fr 190px;grid-template-rows:auto auto;column-gap:12px;align-items:center;min-height:146px}.gauge-title{grid-column:1/-1;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;text-align:left;min-height:18px}
     .gauge{position:relative;width:190px;height:96px;margin:0 auto}.gauge svg{display:block;width:190px;height:108px;overflow:visible}.gauge-bg{fill:none;stroke:#E7ECE9;stroke-width:15;stroke-linecap:round}.gauge-fg{fill:none;stroke:var(--gauge-color);stroke-width:15;stroke-linecap:round;transition:stroke-dasharray .25s ease}.gauge-center{position:absolute;left:0;right:0;bottom:7px;text-align:center}.gauge-pct{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);line-height:1}.gauge-pct span{font-size:12px;color:var(--ink-soft);font-weight:600}.gauge-caption{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
-    .gauge-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}.gauge-stat{border:1px solid var(--rule);background:#F8FAF7;padding:6px 5px;text-align:center;min-width:0}.gauge-stat strong{display:block;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gauge-stat span{display:block;margin-top:2px;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
-    .metric-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{border:1px solid var(--rule);background:#F8FAF7;padding:10px 8px;text-align:center}.metric strong{display:block;font-size:22px;font-weight:600}.metric span{font-size:11px;color:var(--ink-soft)}
-    .ranking-table{min-width:620px;width:100%;border-collapse:collapse}.ranking-table th{position:sticky;top:0;background:#F6F8F5;color:var(--ink-soft);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-align:left;padding:8px;border-bottom:1px solid var(--rule);white-space:nowrap}.ranking-table td{padding:6px 8px;border-bottom:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:11px}.bar-track{height:12px;background:#E7ECE9}.bar-fill{height:100%;background:#6574C4;min-width:1px}.table-wrap{overflow:auto;max-height:360px}.empty{padding:18px 12px;color:var(--ink-soft);font-size:12px;background:var(--panel);border:1px solid var(--rule)}
-    @media(max-width:1100px){.dashboard-grid,.metric-row{grid-template-columns:1fr}.shift-toolbar{grid-template-columns:1fr}.shift-hero{grid-template-columns:1fr}.shift-state{min-width:0}}
+    .gauge-values{display:grid;grid-template-columns:1fr;gap:6px;margin-top:0}.gauge-stat{border:1px solid var(--rule);background:#F8FAF7;padding:8px 7px;text-align:left;min-width:0}.gauge-stat strong{display:block;font-family:'IBM Plex Mono',monospace;font-size:18px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gauge-stat span{display:block;margin-top:2px;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
+    .metric-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.metric{border:1px solid var(--rule);background:#F8FAF7;padding:14px 8px;text-align:center}.metric strong{display:block;font-size:28px;font-weight:600}.metric span{font-size:11px;color:var(--ink-soft)}
+    .ranking-table{min-width:520px;width:100%;border-collapse:collapse}.ranking-table th{position:sticky;top:0;background:#F6F8F5;color:var(--ink-soft);font-size:10px;letter-spacing:1px;text-transform:uppercase;text-align:left;padding:9px 8px;border-bottom:1px solid var(--rule);white-space:nowrap}.ranking-table th:first-child,.ranking-table td:first-child{width:92px}.ranking-table td{padding:8px;border-bottom:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:12px}.ranking-bar{display:grid;grid-template-columns:1fr 54px;gap:8px;align-items:center}.ranking-value{font-size:13px;font-weight:700;color:#3547A8;text-align:right}.bar-track{height:18px;background:#E7ECE9}.bar-fill{height:100%;background:#6574C4;min-width:1px}.table-wrap{overflow:auto;max-height:570px}.ranking-panel .table-wrap{max-height:560px}.empty{padding:18px 12px;color:var(--ink-soft);font-size:12px;background:var(--panel);border:1px solid var(--rule)}
+    @media(max-width:1100px){.dashboard-grid,.metric-row,.gauge-card{grid-template-columns:1fr}.ranking-panel{min-height:0}.shift-toolbar{grid-template-columns:1fr}.shift-hero{grid-template-columns:1fr}.shift-state{min-width:0}.gauge-title{text-align:center}.gauge-values{grid-template-columns:repeat(3,minmax(0,1fr))}}
     @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header{grid-template-columns:1fr}.header-right{justify-self:start;flex-wrap:wrap}.shift-head{display:block;padding:10px 12px}}
   </style>
 </head>
@@ -96,15 +96,17 @@
     </section>
 
     <section class="dashboard-grid">
-      <div class="panel wide">
-        <div class="panel-title">Indicadores generales real versus plan</div>
-        <div class="gauge-grid" id="gauges"><div class="empty">Sin datos cargados.</div></div>
+      <div class="left-stack">
+        <div class="panel">
+          <div class="panel-title">Indicadores generales real versus plan</div>
+          <div class="gauge-grid" id="gauges"><div class="empty">Sin datos cargados.</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Caracteristicas del turno vencido</div>
+          <div class="metric-row" id="metrics"><div class="empty">Sin metricas calculadas.</div></div>
+        </div>
       </div>
-      <div class="panel">
-        <div class="panel-title">Caracteristicas del turno vencido</div>
-        <div class="metric-row" id="metrics"><div class="empty">Sin metricas calculadas.</div></div>
-      </div>
-      <div class="panel">
+      <div class="panel ranking-panel">
         <div class="panel-title">Ranking de productividad por legajo</div>
         <div class="table-wrap" id="ranking"><div class="empty">Sin ranking calculado.</div></div>
       </div>
@@ -190,11 +192,11 @@
     const max = Math.max(...rows.map(row => Number(row.productividad || 0)), 1);
     $('ranking').innerHTML = `
       <table class="ranking-table">
-        <thead><tr><th>Legajo</th><th>Productividad</th><th>Bultos</th><th>Horas</th><th></th></tr></thead>
+        <thead><tr><th>Legajo</th><th>Productividad</th></tr></thead>
         <tbody>
           ${rows.map(row => {
             const width = Math.max(1, Number(row.productividad || 0) / max * 100);
-            return `<tr><td>${esc(row.legajo)}</td><td>${num2(row.productividad)}</td><td>${num(row.bultos)}</td><td>${num2(row.horas)}</td><td><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div></td></tr>`;
+            return `<tr><td>${esc(row.legajo)}</td><td><div class="ranking-bar"><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><div class="ranking-value">${num2(row.productividad)}</div></div></td></tr>`;
           }).join('')}
         </tbody>
       </table>

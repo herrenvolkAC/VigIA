@@ -109,6 +109,20 @@ def write_usage_log(
     module: str | None,
     action: str,
 ) -> None:
+    write_usage_event(
+        username=username,
+        ip=_client_ip(request),
+        module=module,
+        action_text=action_label(action, module),
+    )
+
+
+def write_usage_event(
+    username: str | None,
+    ip: str | None,
+    module: str | None,
+    action_text: str,
+) -> None:
     now = datetime.now()
     _cleanup_once_per_day(now)
     LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -117,12 +131,11 @@ def write_usage_log(
         path.write_text(HEADER, encoding="utf-8")
 
     module_text = module_label(module)
-    action_text = action_label(action, module)
     line = (
         f"{now:%Y-%m-%d}\t"
         f"{now:%H:%M:%S}\t"
         f"{_clean(username) or 'sin_usuario':<24}\t"
-        f"{_clean(_client_ip(request)) or 'sin_ip':<15}\t"
+        f"{_clean(ip) or 'sin_ip':<15}\t"
         f"{module_text:<32}\t"
         f"{_clean(action_text)}\n"
     )

@@ -29,6 +29,21 @@ CREATE TABLE IF NOT EXISTS articulos (
 );
 """
 
+CREATE_ARTICULOS_COSTOS = """
+CREATE TABLE IF NOT EXISTS articulos_costos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    articulo_id INTEGER NOT NULL,
+    costo_unitario REAL NOT NULL,
+    moneda TEXT DEFAULT 'ARS',
+    fecha_desde TEXT NOT NULL,
+    fecha_hasta TEXT,
+    fuente TEXT,
+    usuario TEXT,
+    fecha_hora TEXT,
+    FOREIGN KEY (articulo_id) REFERENCES articulos(id)
+);
+"""
+
 CREATE_UBICACIONES = """
 CREATE TABLE IF NOT EXISTS ubicaciones (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -160,8 +175,41 @@ CREATE TABLE IF NOT EXISTS pedidos_insumos_items (
 );
 """
 
+CREATE_MERMAS_INSUMOS = """
+CREATE TABLE IF NOT EXISTS mermas_insumos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sector_id INTEGER NOT NULL,
+    pedido_id INTEGER,
+    articulo_id INTEGER NOT NULL,
+    tipo TEXT NOT NULL,
+    cantidad REAL NOT NULL,
+    motivo TEXT NOT NULL,
+    observacion TEXT NOT NULL,
+    usuario TEXT,
+    fecha_hora TEXT,
+    FOREIGN KEY (sector_id) REFERENCES ubicaciones(id),
+    FOREIGN KEY (pedido_id) REFERENCES pedidos_insumos(id),
+    FOREIGN KEY (articulo_id) REFERENCES articulos(id)
+);
+"""
+
+CREATE_USUARIOS_SECTORES = """
+CREATE TABLE IF NOT EXISTS usuarios_sectores_panol (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    sector_id INTEGER NOT NULL,
+    activo INTEGER NOT NULL DEFAULT 1,
+    creado_por TEXT,
+    fecha_hora TEXT,
+    actualizado_por TEXT,
+    actualizado_en TEXT,
+    FOREIGN KEY (sector_id) REFERENCES ubicaciones(id)
+);
+"""
+
 INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_articulos_codigo ON articulos(codigo)",
+    "CREATE INDEX IF NOT EXISTS idx_articulos_costos_articulo_fecha ON articulos_costos(articulo_id, fecha_desde, fecha_hasta)",
     "CREATE INDEX IF NOT EXISTS idx_movimientos_articulo_fecha ON movimientos(articulo_id, fecha_hora)",
     "CREATE INDEX IF NOT EXISTS idx_movimientos_origen ON movimientos(ubicacion_origen_id, fecha_hora)",
     "CREATE INDEX IF NOT EXISTS idx_movimientos_destino ON movimientos(ubicacion_destino_id, fecha_hora)",
@@ -175,6 +223,11 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_pedidos_usuario_fecha ON pedidos_insumos(usuario_solicita, fecha_solicitud)",
     "CREATE INDEX IF NOT EXISTS idx_pedidos_items_pedido ON pedidos_insumos_items(pedido_id)",
     "CREATE INDEX IF NOT EXISTS idx_pedidos_items_articulo ON pedidos_insumos_items(articulo_id)",
+    "CREATE INDEX IF NOT EXISTS idx_mermas_sector_fecha ON mermas_insumos(sector_id, fecha_hora)",
+    "CREATE INDEX IF NOT EXISTS idx_mermas_articulo_fecha ON mermas_insumos(articulo_id, fecha_hora)",
+    "CREATE INDEX IF NOT EXISTS idx_mermas_pedido ON mermas_insumos(pedido_id)",
+    "CREATE INDEX IF NOT EXISTS idx_usuarios_sectores_panol_user ON usuarios_sectores_panol(username, activo)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS ux_usuarios_sectores_panol_user_activo ON usuarios_sectores_panol(username) WHERE activo = 1",
 ]
 
 
@@ -185,6 +238,7 @@ async def init_panol_db() -> None:
         await db.execute("PRAGMA foreign_keys = ON")
         for stmt in (
             CREATE_ARTICULOS,
+            CREATE_ARTICULOS_COSTOS,
             CREATE_UBICACIONES,
             CREATE_TURNOS,
             CREATE_MOVIMIENTOS,
@@ -194,6 +248,8 @@ async def init_panol_db() -> None:
             CREATE_PRODUCCION_MOVIMIENTOS,
             CREATE_PEDIDOS_INSUMOS,
             CREATE_PEDIDOS_INSUMOS_ITEMS,
+            CREATE_MERMAS_INSUMOS,
+            CREATE_USUARIOS_SECTORES,
         ):
             await db.execute(stmt)
         for stmt in INDEXES:

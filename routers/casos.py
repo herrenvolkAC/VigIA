@@ -19,6 +19,7 @@ import subprocess
 import unicodedata
 import urllib.parse
 import urllib.request
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -43,6 +44,7 @@ try:
 except ZoneInfoNotFoundError:
     CASES_TZ = timezone(timedelta(hours=-3))
 ATTACHMENTS_DIR = Path(os.getenv("VIGIA_CASOS_ATTACHMENTS_DIR", Path(__file__).parent.parent / "resources" / "casos_adjuntos"))
+FORMS_ATTACHMENT_ERROR_PREFIX = "No se pudieron adjuntar fotos Forms:"
 JAVA_HELPER_SRC = Path(__file__).parent.parent / "scripts" / "OracleProductividadQuery.java"
 JAVA_BUILD_DIR = Path(__file__).parent.parent / ".codex_tmp" / "java_build"
 RACK_PARAM_TABLES = {"rack_zona", "rack_cara", "rack_nivel", "rack_sector", "rack_descripcion", "rack_tipo"}
@@ -716,9 +718,7 @@ async def _apply_rack_transition_payload(
         notes.append(f"Service externo: {service}")
 
     if current == "PENDIENTE_TRASPASOS" and destino == "TRASPASOS_ASIGNADOS":
-        traspasos = req.traspasos_wms.strip()
-        if not traspasos:
-            raise HTTPException(status_code=400, detail="Mapa debe cargar los traspasos WMS generados.")
+        traspasos = req.traspasos_wms.strip() or req.comentario.strip()
         await db.execute(
             """
             UPDATE ticket_rack_detalle
@@ -727,7 +727,7 @@ async def _apply_rack_transition_payload(
             """,
             (traspasos, auth["username"], now, ticket["id"]),
         )
-        notes.append(f"Traspasos WMS: {traspasos}")
+        notes.append(f"Observacion traspasos WMS: {traspasos}" if traspasos else "Traspasos WMS informados")
 
     if current == "EN_EJECUCION" and destino == "POSICION_BLOQUEADA":
         if not req.vaciado_confirmado:
@@ -1026,6 +1026,35 @@ def _forms_attachment_items(adjuntos: Any) -> list[dict[str, Any]]:
             if name:
                 items.append(item)
     return items
+
+
+async def _clear_resolved_forms_attachment_errors(
+    db: aiosqlite.Connection,
+    ticket_id: int,
+    payload: dict[str, Any],
+    adjuntos: list[dict[str, Any]] | None = None,
+) -> bool:
+    expected = {
+        Path(str(item.get("name") or item.get("nombre") or "")).name.casefold()
+        for item in _forms_attachment_items((payload.get("raw_response") or {}).get("adjuntos"))
+    }
+    expected.discard("")
+    if not expected:
+        return False
+    if adjuntos is None:
+        adjuntos = await _fetch_all(
+            db,
+            "SELECT nombre_original FROM ticket_adjunto WHERE ticket_id=? AND activo=1",
+            (ticket_id,),
+        )
+    actual = {Path(str(row.get("nombre_original") or "")).name.casefold() for row in adjuntos}
+    if not expected.issubset(actual):
+        return False
+    await db.execute(
+        "UPDATE ticket_comentario SET activo=0 WHERE ticket_id=? AND activo=1 AND comentario LIKE ?",
+        (ticket_id, f"{FORMS_ATTACHMENT_ERROR_PREFIX}%"),
+    )
+    return True
 
 
 def _forms_attachment_roots(source_file: str = "") -> list[Path]:
@@ -1491,19 +1520,20 @@ async def _attach_forms_files(
             await _guardar_adjunto_bytes(db, ticket_id, codigo_visible, auth, "FORMS", original, mime, content)
         except Exception as exc:
             failures.append(f"{name}: {exc}")
+    current_attachments = await _fetch_all(
+        db,
+        "SELECT nombre_original FROM ticket_adjunto WHERE ticket_id=? AND activo=1",
+        (ticket_id,),
+    )
+    if not failures:
+        await _clear_resolved_forms_attachment_errors(db, ticket_id, payload, current_attachments)
+        return failures
     if failures:
-        failure_comment = "No se pudieron adjuntar fotos Forms:\n" + "\n".join(failures)
-        previous = await _fetch_one(
-            db,
-            """
-            SELECT comentario FROM ticket_comentario
-            WHERE ticket_id=? AND activo=1 AND comentario LIKE 'No se pudieron adjuntar fotos Forms:%'
-            ORDER BY id DESC LIMIT 1
-            """,
-            (ticket_id,),
+        failure_comment = f"{FORMS_ATTACHMENT_ERROR_PREFIX}\n" + "\n".join(failures)
+        await db.execute(
+            "UPDATE ticket_comentario SET activo=0 WHERE ticket_id=? AND activo=1 AND comentario LIKE ?",
+            (ticket_id, f"{FORMS_ATTACHMENT_ERROR_PREFIX}%"),
         )
-        if previous and previous.get("comentario") == failure_comment:
-            return failures
         await db.execute(
             """
             INSERT INTO ticket_comentario (ticket_id, fecha, usuario_id, comentario, activo)
@@ -1985,6 +2015,7 @@ async def dashboard(request: Request):
             "por_estado": "SELECT e.nombre label, COUNT(*) value FROM ticket t JOIN ticket_estado e ON e.id=t.estado_id WHERE t.activo=1 GROUP BY e.nombre ORDER BY e.orden",
             "por_criticidad": "SELECT c.nombre label, COUNT(*) value FROM ticket t JOIN ticket_criticidad c ON c.id=t.criticidad_id WHERE t.activo=1 GROUP BY c.nombre",
             "por_sector": "SELECT COALESCE(t.sector_creacion_id,'Sin sector') label, COUNT(*) value FROM ticket t WHERE t.activo=1 GROUP BY label",
+            "tickets_por_sector_asignado": "SELECT COALESCE(NULLIF(t.perfil_asignado,''),'Sin sector') label, COUNT(*) value FROM ticket t JOIN ticket_estado e ON e.id=t.estado_id WHERE t.activo=1 AND e.es_final=0 GROUP BY label ORDER BY value DESC, label",
             "tendencia_creacion": "SELECT date(fecha_creacion) label, COUNT(*) value FROM ticket WHERE activo=1 GROUP BY date(fecha_creacion) ORDER BY label DESC LIMIT 14",
             "tendencia_cierre": "SELECT date(fecha_cierre) label, COUNT(*) value FROM ticket WHERE activo=1 AND fecha_cierre IS NOT NULL GROUP BY date(fecha_cierre) ORDER BY label DESC LIMIT 14",
             "racks_por_zona": "SELECT COALESCE(NULLIF(d.zona_text,''), rz.nombre, 'Sin zona') label, COUNT(*) value FROM ticket_rack_detalle d LEFT JOIN rack_zona rz ON rz.id=d.zona_id GROUP BY label",
@@ -1992,6 +2023,13 @@ async def dashboard(request: Request):
             "racks_por_descripcion": "SELECT rd.nombre label, COUNT(*) value FROM ticket_rack_detalle d JOIN rack_descripcion rd ON rd.id=d.descripcion_rack_id GROUP BY rd.nombre",
         }.items():
             groups[key] = await _fetch_all(db, sql)
+        service_rows = await _active_service_locations(db)
+        service_keys = {row["key"] for row in service_rows}
+        service_zone_counts = Counter(str(row.get("czonalma") or "Sin zona").strip().upper() or "Sin zona" for row in service_rows)
+        groups["services_activos_por_zona"] = [
+            {"label": label, "value": value}
+            for label, value in sorted(service_zone_counts.items(), key=lambda item: (-item[1], item[0]))
+        ]
         racks = await _fetch_one(
             db,
             """
@@ -2005,7 +2043,44 @@ async def dashboard(request: Request):
             WHERE tt.codigo='REPARACION_RACK' AND t.activo=1
             """,
         )
-    return {"kpis": {**(base or {}), **(pendientes or {})}, "groups": groups, "racks": racks or {}, "user": auth["username"]}
+    oracle_error = ""
+    wms_keys: set[str] = set()
+    try:
+        wms_rows = await asyncio.to_thread(_query_rack_oracle_inutilizadas_jdbc)
+        wms_keys = {
+            _position_key(row.get("czonalma", ""), row.get("cpasillo", ""), row.get("chuecopa", ""))
+            for row in wms_rows
+        }
+        wms_keys = {key for key in wms_keys if key.strip("|")}
+    except Exception as exc:
+        oracle_error = str(exc)
+    control_summary = {"servicios_activos_ubicaciones": len(service_rows)}
+    if oracle_error:
+        control_summary.update(
+            {
+                "wms_inutilizadas": None,
+                "coincidencias": None,
+                "wms_sin_service": None,
+                "services_sin_wms": None,
+            }
+        )
+    else:
+        control_summary.update(
+            {
+                "wms_inutilizadas": len(wms_keys),
+                "coincidencias": len(wms_keys & service_keys),
+                "wms_sin_service": len(wms_keys - service_keys),
+                "services_sin_wms": len(service_keys - wms_keys),
+            }
+        )
+    return {
+        "kpis": {**(base or {}), **(pendientes or {})},
+        "groups": groups,
+        "racks": racks or {},
+        "ubicaciones_control": control_summary,
+        "oracle_error": oracle_error,
+        "user": auth["username"],
+    }
 
 
 @router.get("/ticket/{ticket_id}")
@@ -2045,8 +2120,16 @@ async def detalle(ticket_id: int, request: Request):
                     )
                 except Exception as exc:
                     rack_stock_error = str(exc)
-        comentarios = await _fetch_all(db, "SELECT * FROM ticket_comentario WHERE ticket_id=? AND activo=1 ORDER BY fecha", (ticket_id,))
         adjuntos = await _fetch_all(db, "SELECT id, fecha, usuario_id, nombre_original, nombre_archivo, tipo_mime FROM ticket_adjunto WHERE ticket_id=? AND activo=1 ORDER BY fecha", (ticket_id,))
+        forms_row = await _fetch_one(db, "SELECT payload_json FROM ticket_forms_ingreso WHERE ticket_id=? ORDER BY id DESC LIMIT 1", (ticket_id,))
+        if forms_row:
+            try:
+                forms_payload = json.loads(forms_row.get("payload_json") or "{}")
+                if await _clear_resolved_forms_attachment_errors(db, ticket_id, forms_payload, adjuntos):
+                    await db.commit()
+            except (TypeError, ValueError, json.JSONDecodeError):
+                pass
+        comentarios = await _fetch_all(db, "SELECT * FROM ticket_comentario WHERE ticket_id=? AND activo=1 ORDER BY fecha", (ticket_id,))
         historial = await _fetch_all(
             db,
             """

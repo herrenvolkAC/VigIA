@@ -73,7 +73,7 @@
     <header class="page-head">
       <div>
         <div class="kicker">Analisis On Line de Rendimientos</div>
-        <h2 class="page-title">Almacen, sector y legajo</h2>
+        <h2 class="page-title">Division, sector y legajo</h2>
       </div>
     </header>
 
@@ -117,12 +117,12 @@
       <button class="tab-btn" id="tab-legajo" type="button" onclick="setPerspective('legajo')">Por legajo</button>
     </div>
 
-    <div class="crumb" id="crumb">Vista: <strong>Almacenes</strong></div>
+    <div class="crumb" id="crumb">Vista: <strong>Divisiones</strong></div>
     <section class="panel" id="panel-nivel-1">
       <div class="panel-head">
-        <div class="panel-title" id="level1-title">Nivel 1 - Almacenes</div>
+        <div class="panel-title" id="level1-title">Nivel 1 - Divisiones</div>
         <div class="panel-actions">
-          <span class="state-pill none" id="division-count">0 almacenes</span>
+          <span class="state-pill none" id="division-count">0 divisiones</span>
           <button class="panel-toggle" type="button" onclick="togglePanel('panel-nivel-1')">Contraer</button>
         </div>
       </div>
@@ -257,7 +257,7 @@
     if (row?.estado === 'none' || row?.requiere_maestro) badges.push(['none', 'Sin est.']);
     if (minutes > 0 && minutes < 10) badges.push(['warn', 'Poca muestra']);
     if (Number(row?.operaciones_abiertas || 0) > 0) badges.push(['warn', 'Abierto']);
-    if (opts.multiAlmacen || Number(row?.almacenes_activos || 0) > 1) badges.push(['warn', 'Multi alm.']);
+    if (opts.multiAlmacen || Number(row?.almacenes_activos || 0) > 1) badges.push(['warn', 'Multi div.']);
     return `<div class="cause-badges">${badges.slice(0,3).map(([cls, text]) => `<span class="cause-badge ${cls}">${text}</span>`).join('') || '<span class="cause-badge none">OK</span>'}</div>`;
   }
 
@@ -334,10 +334,10 @@
         <span class="legend-ref-title">Referencias</span>
         <span class="cause-badge bad" title="Cumplimiento menor a 85% con tiempo suficiente para accionar.">Critico</span>
         <span class="cause-badge warn" title="Cumplimiento entre 85% y 95%. Requiere seguimiento.">Atencion</span>
-        <span class="cause-badge none" title="No hay productividad estandar cargada para ese almacen/sector.">Sin est.</span>
+        <span class="cause-badge none" title="No hay productividad estandar cargada para esa division/sector.">Sin est.</span>
         <span class="cause-badge warn" title="La medicion tiene menos de 10 minutos; puede ser poco representativa.">Poca muestra</span>
         <span class="cause-badge warn" title="Hay una operacion en curso calculada hasta el momento actual.">Abierto</span>
-        <span class="cause-badge warn" title="El legajo trabajo en mas de un almacen durante el turno.">Multi alm.</span>
+        <span class="cause-badge warn" title="El legajo trabajo en mas de una division durante el turno.">Multi div.</span>
         <span class="state-pill ritmo-alto" title="Productividad actual igual o superior a la esperada durante el tiempo trabajado.">Ritmo alto</span>
         <span class="state-pill ritmo-bajo" title="Productividad actual menor al 85% de la esperada durante el tiempo trabajado.">Ritmo bajo</span>
       </div>`;
@@ -506,8 +506,8 @@
     const rango = dashboard.rango;
     $('hero-title').textContent = `${rango.turno_label} - ${rango.dia_logistico}`;
     $('hero-sub').textContent = `${rango.fecha_desde} a ${rango.fecha_hasta} - ${rango.en_curso ? 'turno en curso' : rango.futuro ? 'turno futuro' : 'turno vencido'}`;
-    $('summary-status').textContent = `${num(dashboard.divisiones.length)} almacenes - ${num(dashboard.sectores.length)} sectores - ${num(dashboard.legajos.length)} legajos`;
-    $('division-count').textContent = `${dashboard.divisiones.length} almacenes`;
+    $('summary-status').textContent = `${num(dashboard.divisiones.length)} divisiones - ${num(dashboard.sectores.length)} sectores - ${num(dashboard.legajos.length)} legajos`;
+    $('division-count').textContent = `${dashboard.divisiones.length} divisiones`;
     renderDivisionCards();
     renderLevel2();
     renderRanking();
@@ -525,7 +525,7 @@
         ? `${esc(item.nombre || '-')} - ${num(item.sectores_activos)} sectores`
         : `${num(item.legajos_activos)} legajos - ${num(item.operaciones_abiertas)} abiertas`;
     const outMaster = type === 'sector' && item.en_maestro === false;
-    const label = type === 'division' ? 'Almacen' : type === 'legajo' ? 'Legajo' : (outMaster ? 'Sector - fuera maestro' : 'Sector');
+    const label = type === 'division' ? 'Division' : type === 'legajo' ? 'Legajo' : (outMaster ? 'Sector - fuera maestro' : 'Sector');
     const masterBadge = outMaster ? '<span class="state-pill out-master">Agregar maestro</span>' : '';
     return `
       <button class="metric-card ${esc(item.estado)} ${outMaster ? 'out-master' : ''} ${type === 'division' && selectedDivision === item.division ? 'active' : ''} ${type === 'sector' && selectedSector === item.sector ? 'active' : ''} ${type === 'legajo' && selectedLegajo === item.legajo ? 'active' : ''}" type="button" data-${type}="${esc(value)}">
@@ -565,7 +565,7 @@
               <th>#</th>${th('Estado','estado','','legajoMain')}${th('Legajo','legajo','','legajoMain')}${th('Nombre','nombre','','legajoMain')}
               ${th('Bultos','bultos','num','legajoMain')}${th('Tiempo min','minutos','num','legajoMain')}${th('Actual b/h','productividad_actual','num','legajoMain')}
               ${th('Esperado b/h','productividad_esperada','num','legajoMain')}${th('Cumpl.','cumplimiento_pct','num','legajoMain')}<th>Ritmo</th>
-              <th>Tend.</th><th>Heat</th>${th('Almacenes','almacenes_activos','num','legajoMain')}${th('Sectores','sectores_activos','num','legajoMain')}${th('Sector crit.','sector_critico','','legajoMain')}<th>Causas</th>${th('Ultimo mov.','ultimo_movimiento','','legajoMain')}
+              <th>Tend.</th><th>Heat</th>${th('Divisiones','almacenes_activos','num','legajoMain')}${th('Sectores','sectores_activos','num','legajoMain')}${th('Sector crit.','sector_critico','','legajoMain')}<th>Causas</th>${th('Ultimo mov.','ultimo_movimiento','','legajoMain')}
             </tr>
           </thead>
           <tbody>
@@ -593,9 +593,9 @@
         </table>` : '<div class="empty">Consulta para cargar legajos del turno.</div>';
       return;
     }
-    $('level1-title').textContent = 'Nivel 1 - Almacenes';
+    $('level1-title').textContent = 'Nivel 1 - Divisiones';
     $('division-cards').className = 'card-grid';
-    $('division-cards').innerHTML = (dashboard.divisiones || []).map(item => cardHtml(item, 'division')).join('') || '<div class="empty">Sin almacenes con actividad.</div>';
+    $('division-cards').innerHTML = (dashboard.divisiones || []).map(item => cardHtml(item, 'division')).join('') || '<div class="empty">Sin divisiones con actividad.</div>';
     document.querySelectorAll('[data-division]').forEach(btn => {
       btn.onclick = () => {
         selectedDivision = btn.dataset.division;
@@ -618,7 +618,7 @@
           minutos: Number(row.segundos || 0) / 60,
           promedio_min_picking: avgPickingMinutes(row.legajo, row.division, row.sector),
         })), 'legajoDetail');
-      $('level2-title').textContent = selectedLegajo ? `Nivel 2 - Almacenes y sectores del legajo ${selectedLegajo}` : 'Nivel 2 - Detalle del legajo';
+      $('level2-title').textContent = selectedLegajo ? `Nivel 2 - Divisiones y sectores del legajo ${selectedLegajo}` : 'Nivel 2 - Detalle del legajo';
       $('level2-count').textContent = `${rows.length} filas`;
       $('level2-cards').className = 'table-wrap';
       if (!selectedLegajo) {
@@ -630,7 +630,7 @@
         <table>
           <thead>
             <tr>
-              <th>#</th>${th('Estado','estado','','legajoDetail')}${th('Almacen','division','','legajoDetail')}${th('Sector','sector','','legajoDetail')}
+              <th>#</th>${th('Estado','estado','','legajoDetail')}${th('Division','division','','legajoDetail')}${th('Sector','sector','','legajoDetail')}
               ${th('Bultos','bultos','num','legajoDetail')}${th('Tiempo min','minutos','num','legajoDetail')}${th('Prom. min picking','promedio_min_picking','num','legajoDetail')}${th('Actual b/h','productividad_actual','num','legajoDetail')}
               ${th('Esperado b/h','productividad_esperada','num','legajoDetail')}${th('Cumpl.','cumplimiento_pct','num','legajoDetail')}<th>Ritmo</th><th>Heat</th><th>Causas</th>${th('Abiertas','operaciones_abiertas','num','legajoDetail')}${th('Ultimo mov.','ultimo_movimiento','','legajoDetail')}
             </tr>
@@ -663,7 +663,7 @@
     const outMaster = rows.filter(row => row.en_maestro === false).length;
     $('level2-title').textContent = 'Nivel 2 - Sectores';
     $('level2-count').textContent = `${rows.length} sectores${outMaster ? ` - ${outMaster} fuera maestro` : ''}`;
-    $('level2-cards').innerHTML = rows.map(item => cardHtml(item, 'sector')).join('') || '<div class="empty">Selecciona un almacen con sectores activos.</div>';
+    $('level2-cards').innerHTML = rows.map(item => cardHtml(item, 'sector')).join('') || '<div class="empty">Selecciona una division con sectores activos.</div>';
     document.querySelectorAll('[data-sector]').forEach(btn => {
       btn.onclick = () => {
         selectedSector = btn.dataset.sector;
@@ -788,7 +788,7 @@
       return;
     }
     if (perspective === 'legajo' && (!selectedDivision || !selectedSector)) {
-      $('records-wrap').innerHTML = '<div class="empty">Selecciona una fila de almacen/sector del legajo para ver sus registros.</div>';
+      $('records-wrap').innerHTML = '<div class="empty">Selecciona una fila de division/sector del legajo para ver sus registros.</div>';
       return;
     }
     if (!rows.length) {
@@ -819,7 +819,7 @@
     const tail = perspective === 'legajo'
       ? `${selectedLegajo ? ` / <strong>${esc(selectedLegajo)}</strong>` : ''}${selectedDivision ? ` / <strong>${esc(selectedDivision)}</strong>` : ''}${selectedSector ? ` / <strong>${esc(selectedSector)}</strong>` : ''}`
       : `${selectedDivision ? ` / <strong>${esc(selectedDivision)}</strong>` : ''}${selectedSector ? ` / <strong>${esc(selectedSector)}</strong>` : ''}${selectedLegajo ? ` / <strong>${esc(selectedLegajo)}</strong>` : ''}`;
-    $('crumb').innerHTML = `Vista ${label}: <strong>Almacenes</strong>${tail}`;
+    $('crumb').innerHTML = `Vista ${label}: <strong>Divisiones</strong>${tail}`;
   }
 
   function exportLegajos() {
@@ -910,7 +910,7 @@
     setPanelCollapsed('panel-nivel-2', true);
     setPanelCollapsed('panel-nivel-3', true);
     setPanelCollapsed('panel-nivel-4', true);
-    $('division-count').textContent = '0 almacenes';
+    $('division-count').textContent = '0 divisiones';
     $('level2-count').textContent = '0 sectores';
     $('ranking-count').textContent = '0 legajos';
     $('records-count').textContent = '0 registros';

@@ -72,10 +72,17 @@ CREATE TABLE IF NOT EXISTS auth_user_app_access (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(username, module)
 );
+CREATE TABLE IF NOT EXISTS auth_user_legajos (
+    username TEXT NOT NULL UNIQUE,
+    legajo TEXT NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 CREATE INDEX IF NOT EXISTS idx_auth_devices_username ON auth_devices(username, status);
 CREATE INDEX IF NOT EXISTS idx_auth_sessions_username ON auth_sessions(username, expires_at);
 CREATE INDEX IF NOT EXISTS idx_auth_scopes_username_module ON auth_user_module_scopes(username, module, active);
 CREATE INDEX IF NOT EXISTS idx_auth_app_access_user_module ON auth_user_app_access(username, module, enabled);
+CREATE INDEX IF NOT EXISTS idx_auth_user_legajos_legajo ON auth_user_legajos(legajo);
 """
 
 AUTH_TABLES = [
@@ -84,6 +91,7 @@ AUTH_TABLES = [
     "auth_sessions",
     "auth_user_module_scopes",
     "auth_user_app_access",
+    "auth_user_legajos",
 ]
 
 

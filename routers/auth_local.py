@@ -6,6 +6,7 @@ import os
 import secrets
 import sqlite3
 import socket
+import unicodedata
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -48,6 +49,11 @@ class UserActionRequest(BaseModel):
     username: str
 
 
+class UserLegajoRequest(BaseModel):
+    username: str
+    legajo: str = ""
+
+
 class UserScopeRequest(BaseModel):
     username: str
     module: str = "novedades_cd"
@@ -68,15 +74,23 @@ class UserAccessRequest(BaseModel):
 
 
 class BulkUserItem(BaseModel):
-    username: str
+    username: str = ""
     display_name: str | None = None
+    legajo: str | None = None
+    mail_to: str | None = None
 
 
 class BulkUsersRequest(BaseModel):
     users: list[BulkUserItem] = Field(default_factory=list)
+    legajos: list[str] = Field(default_factory=list)
+    input_mode: str = "users"
     role: str = "user"
     module: str = "none"
     profile: str = "OPERACION"
+
+
+class BulkUsersPreviewRequest(BaseModel):
+    legajos: list[str] = Field(default_factory=list)
 
 
 def _now() -> str:
@@ -185,12 +199,20 @@ CREATE TABLE IF NOT EXISTS auth_user_app_access (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(username, module)
 );
+CREATE TABLE IF NOT EXISTS auth_user_legajos (
+    username TEXT NOT NULL UNIQUE,
+    legajo TEXT NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 """
 
-AUTH_ACCESS_INDEX_SQL = (
-    "CREATE INDEX IF NOT EXISTS idx_auth_app_access_user_module "
-    "ON auth_user_app_access(username, module, enabled)"
-)
+AUTH_ACCESS_INDEX_SQL = """
+CREATE INDEX IF NOT EXISTS idx_auth_app_access_user_module
+ON auth_user_app_access(username, module, enabled);
+CREATE INDEX IF NOT EXISTS idx_auth_user_legajos_legajo
+ON auth_user_legajos(legajo);
+"""
 
 
 def _clean_text(value: str | None) -> str:
@@ -206,11 +228,223 @@ def _clean_sectors(values: list[str] | None) -> list[str]:
     return sectors
 
 
+def _clean_legajo(value: str | None) -> str:
+    return "".join(ch for ch in str(value or "").strip() if ch.isdigit())
+
+
+def _username_part(value: str | None) -> str:
+    normalized = unicodedata.normalize("NFKD", str(value or ""))
+    ascii_value = normalized.encode("ascii", "ignore").decode("ascii")
+    return "".join(ch for ch in ascii_value.lower() if ch.isalnum())
+
+
+def _split_legajero_name(value: str | None) -> tuple[str, str, str]:
+    tokens = [token for token in _clean_text(value).replace(",", " ").split() if token]
+    if not tokens:
+        return "", "", ""
+    surname_len = 1
+    first = tokens[0].upper()
+    second = tokens[1].upper() if len(tokens) > 1 else ""
+    if first == "DE" and second == "LA" and len(tokens) >= 4:
+        surname_len = 3
+    elif first in {"DE", "DEL", "DI", "DA", "DAS", "DOS", "VAN", "VON"} and len(tokens) >= 3:
+        surname_len = 2
+    surname_tokens = tokens[:surname_len]
+    given_tokens = tokens[surname_len:] or tokens[:1]
+    surname = " ".join(surname_tokens).title()
+    given = " ".join(given_tokens).title()
+    display_name = f"{given} {surname}".strip()
+    return display_name, given_tokens[0].title() if given_tokens else "", " ".join(surname_tokens).title()
+
+
+def _candidate_username(first_name: str, surname: str, reserved: set[str]) -> str:
+    first = _username_part(first_name)
+    last = _username_part(surname)
+    if not last:
+        last = _username_part(first_name) or "usuario"
+        first = "u"
+    if not first:
+        first = "u"
+    for length in range(1, len(first) + 1):
+        candidate = f"{first[:length]}{last}"
+        if candidate not in reserved:
+            reserved.add(candidate)
+            return candidate
+    base = f"{first}{last}"
+    index = 2
+    while f"{base}{index}" in reserved:
+        index += 1
+    candidate = f"{base}{index}"
+    reserved.add(candidate)
+    return candidate
+
+
+async def _existing_usernames(db: aiosqlite.Connection) -> set[str]:
+    rows = await _fetch_rows(db, "SELECT username FROM auth_users")
+    return {str(row["username"] or "").lower() for row in rows if row.get("username")}
+
+
+def _name_key(value: str | None) -> str:
+    return _username_part(value)
+
+
+async def _legajo_links(db: aiosqlite.Connection, legajos: list[str]) -> dict[str, dict[str, str]]:
+    cleaned = [_clean_legajo(legajo) for legajo in legajos]
+    cleaned = [legajo for legajo in cleaned if legajo]
+    if not cleaned:
+        return {}
+    placeholders = ",".join("?" for _ in cleaned)
+    rows = await _fetch_rows(
+        db,
+        f"""
+        SELECT l.legajo, l.username, COALESCE(u.display_name, l.username) display_name, u.active
+        FROM auth_user_legajos l
+        JOIN auth_users u ON u.username = l.username
+        WHERE l.legajo IN ({placeholders})
+        """,
+        tuple(cleaned),
+    )
+    return {str(row["legajo"]): dict(row) for row in rows}
+
+
+async def _users_by_display_name(db: aiosqlite.Connection) -> dict[str, dict[str, str]]:
+    rows = await _fetch_rows(
+        db,
+        """
+        SELECT username, display_name, active
+        FROM auth_users
+        WHERE TRIM(COALESCE(display_name, '')) <> ''
+        """,
+    )
+    users: dict[str, dict[str, str]] = {}
+    for row in rows:
+        key = _name_key(row["display_name"])
+        if key and key not in users:
+            users[key] = dict(row)
+    return users
+
+
+async def _legajero_names(db: aiosqlite.Connection, legajos: list[str]) -> dict[str, str]:
+    cleaned = []
+    seen = set()
+    for legajo in legajos:
+        value = _clean_legajo(legajo)
+        if value and value not in seen:
+            seen.add(value)
+            cleaned.append(value)
+    if not cleaned:
+        return {}
+    placeholders = ",".join("?" for _ in cleaned)
+    try:
+        rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT legajo, nombre
+            FROM operational.rrhh_personas
+            WHERE legajo IN ({placeholders})
+              AND TRIM(COALESCE(nombre, '')) <> ''
+            """,
+            tuple(cleaned),
+        )
+    except sqlite3.OperationalError:
+        rows = []
+    found = {str(row["legajo"]): str(row["nombre"] or "") for row in rows}
+    missing = [legajo for legajo in cleaned if legajo not in found]
+    if missing:
+        placeholders = ",".join("?" for _ in missing)
+        try:
+            fallback = await _fetch_rows(
+                db,
+                f"""
+                SELECT l.legajo, l.nombre
+                FROM operational.rrhh_legajero l
+                JOIN (
+                    SELECT legajo, MAX(batch_id) batch_id
+                    FROM operational.rrhh_legajero
+                    WHERE legajo IN ({placeholders})
+                    GROUP BY legajo
+                ) ult ON ult.legajo = l.legajo AND ult.batch_id = l.batch_id
+                WHERE TRIM(COALESCE(l.nombre, '')) <> ''
+                """,
+                tuple(missing),
+            )
+            found.update({str(row["legajo"]): str(row["nombre"] or "") for row in fallback})
+        except sqlite3.OperationalError:
+            pass
+    return found
+
+
+async def _preview_legajo_users(legajos: list[str]) -> list[dict[str, Any]]:
+    cleaned = []
+    seen = set()
+    for item in legajos:
+        legajo = _clean_legajo(item)
+        if legajo and legajo not in seen:
+            seen.add(legajo)
+            cleaned.append(legajo)
+    async with auth_db(attach_operational=True) as db:
+        db.row_factory = aiosqlite.Row
+        reserved = await _existing_usernames(db)
+        links = await _legajo_links(db, cleaned)
+        users_by_name = await _users_by_display_name(db)
+        names = await _legajero_names(db, cleaned)
+    results: list[dict[str, Any]] = []
+    for legajo in cleaned:
+        linked = links.get(legajo)
+        if linked:
+            results.append({
+                "legajo": legajo,
+                "username": linked.get("username") or "",
+                "display_name": linked.get("display_name") or linked.get("username") or "",
+                "mail_to": legajo,
+                "status": "exists",
+                "message": "Legajo ya vinculado. No se crea otro usuario.",
+            })
+            continue
+        raw_name = names.get(legajo, "")
+        if not raw_name:
+            results.append({
+                "legajo": legajo,
+                "username": "",
+                "display_name": "",
+                "mail_to": legajo,
+                "status": "not_found",
+                "message": "No encontrado en legajero.",
+            })
+            continue
+        display_name, first_name, surname = _split_legajero_name(raw_name)
+        primary_username = f"{_username_part(first_name)[:1] or 'u'}{_username_part(surname) or _username_part(first_name) or 'usuario'}"
+        name_match = users_by_name.get(_name_key(display_name))
+        if primary_username in reserved or name_match:
+            username = primary_username if primary_username in reserved else str(name_match.get("username") or "")
+            results.append({
+                "legajo": legajo,
+                "username": username,
+                "display_name": display_name or raw_name.title(),
+                "source_name": raw_name,
+                "mail_to": legajo,
+                "status": "potential_existing",
+                "message": "Posible usuario existente. Revise Usuarios, vincule el legajo y vuelva a intentar.",
+            })
+            continue
+        username = _candidate_username(first_name, surname, reserved)
+        results.append({
+            "legajo": legajo,
+            "username": username,
+            "display_name": display_name or raw_name.title(),
+            "source_name": raw_name,
+            "mail_to": legajo,
+            "status": "ready",
+            "message": "Listo para crear.",
+        })
+    return results
+
+
 async def ensure_auth_access_schema() -> None:
     async with auth_db() as db:
         await db.execute("PRAGMA busy_timeout = 10000")
-        await db.execute(AUTH_ACCESS_SCHEMA_SQL)
-        await db.execute(AUTH_ACCESS_INDEX_SQL)
+        await db.executescript(AUTH_ACCESS_SCHEMA_SQL)
+        await db.executescript(AUTH_ACCESS_INDEX_SQL)
         await db.commit()
 
 
@@ -503,16 +737,19 @@ async def list_devices(request: Request):
 @router.get("/admin/users")
 async def list_users(request: Request):
     await _require_admin(request)
+    await ensure_auth_access_schema()
     async with auth_db() as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
             """
             SELECT u.username, u.display_name, u.role, u.active, u.created_at, u.updated_at,
+                   l.legajo,
                    COALESCE(MAX(CASE WHEN s.module = 'novedades_cd' AND s.active = 1 THEN s.scope END), 'operativo') rrhh_scope,
                    GROUP_CONCAT(CASE WHEN s.module = 'novedades_cd' AND s.active = 1 AND s.sector IS NOT NULL THEN s.sector END, '|') rrhh_sectors
             FROM auth_users u
             LEFT JOIN auth_user_module_scopes s ON s.username = u.username
-            GROUP BY u.username, u.display_name, u.role, u.active, u.created_at, u.updated_at
+            LEFT JOIN auth_user_legajos l ON l.username = u.username
+            GROUP BY u.username, u.display_name, u.role, u.active, u.created_at, u.updated_at, l.legajo
             ORDER BY u.username
             """
         ) as cur:
@@ -520,6 +757,43 @@ async def list_users(request: Request):
     for row in rows:
         row["rrhh_sectors"] = [item for item in (row.get("rrhh_sectors") or "").split("|") if item]
     return {"users": rows}
+
+
+@router.post("/admin/users/legajo")
+async def set_user_legajo(req: UserLegajoRequest, request: Request):
+    await _require_admin(request)
+    await ensure_auth_access_schema()
+    username = _normalize_username(req.username)
+    legajo = _clean_legajo(req.legajo)
+    if not username:
+        raise HTTPException(status_code=400, detail="Usuario requerido.")
+    async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT 1 FROM auth_users WHERE username = ?", (username,)) as cur:
+            if await cur.fetchone() is None:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+        if not legajo:
+            await db.execute("DELETE FROM auth_user_legajos WHERE username = ?", (username,))
+            await db.commit()
+            return {"ok": True, "legajo": ""}
+        async with db.execute(
+            "SELECT username FROM auth_user_legajos WHERE legajo = ? AND username <> ?",
+            (legajo, username),
+        ) as cur:
+            existing = await cur.fetchone()
+        if existing:
+            raise HTTPException(status_code=409, detail=f"El legajo ya esta vinculado a {existing['username']}.")
+        now = _now()
+        await db.execute(
+            """
+            INSERT INTO auth_user_legajos (username, legajo, created_at, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(username) DO UPDATE SET legajo = excluded.legajo, updated_at = excluded.updated_at
+            """,
+            (username, legajo, now, now),
+        )
+        await db.commit()
+    return {"ok": True, "legajo": legajo}
 
 
 @router.get("/admin/rrhh-sectors")
@@ -936,6 +1210,45 @@ async def create_user(req: UserCreateRequest, request: Request):
     return {"ok": True}
 
 
+@router.post("/admin/users/reset-password")
+async def reset_user_password(req: UserActionRequest, request: Request):
+    await _require_admin(request)
+    username = _normalize_username(req.username)
+    if not username:
+        raise HTTPException(status_code=400, detail="Usuario requerido.")
+    password = _generate_initial_password()
+    async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT username, display_name FROM auth_users WHERE username = ?",
+            (username,),
+        ) as cur:
+            user = await cur.fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+        now = _now()
+        await db.execute(
+            "UPDATE auth_users SET password_hash = ?, active = 1, updated_at = ? WHERE username = ?",
+            (_hash_password(password), now, username),
+        )
+        await db.execute("DELETE FROM auth_sessions WHERE username = ?", (username,))
+        await db.commit()
+    return {
+        "ok": True,
+        "username": username,
+        "display_name": user["display_name"] or username,
+        "password": password,
+    }
+
+
+@router.post("/admin/users/bulk-preview")
+async def preview_users_bulk(req: BulkUsersPreviewRequest, request: Request):
+    await _require_admin(request)
+    await ensure_auth_access_schema()
+    results = await _preview_legajo_users(req.legajos)
+    return {"ok": True, "results": results}
+
+
 @router.post("/admin/users/bulk")
 async def create_users_bulk(req: BulkUsersRequest, request: Request):
     await _require_admin(request)
@@ -950,28 +1263,72 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
     if module == "panol" and profile not in {"SOLICITANTE", "OPERACION", "ADMIN"}:
         raise HTTPException(status_code=400, detail="Perfil de Panol invalido.")
 
+    input_mode = (req.input_mode or "users").strip().lower()
+    if input_mode == "legajos" or req.legajos:
+        preview_rows = await _preview_legajo_users(req.legajos or [item.legajo or item.username for item in req.users])
+        not_found = [row for row in preview_rows if row.get("status") == "not_found"]
+        review_rows = [row for row in preview_rows if row.get("status") == "potential_existing"]
+        source_rows = [row for row in preview_rows if row.get("status") in {"ready", "exists"}]
+    else:
+        not_found = []
+        review_rows = []
+        source_rows = [
+            {
+                "username": item.username,
+                "display_name": item.display_name,
+                "legajo": item.legajo,
+                "mail_to": item.mail_to,
+            }
+            for item in req.users
+        ]
+
     cleaned: list[dict[str, str]] = []
     seen: set[str] = set()
-    for item in req.users:
-        username = _normalize_username(item.username)
-        display_name = _clean_text(item.display_name) or username
+    for item in source_rows:
+        username = _normalize_username(str(item.get("username") or ""))
+        display_name = _clean_text(str(item.get("display_name") or "")) or username
+        legajo = _clean_legajo(str(item.get("legajo") or ""))
+        mail_to = _clean_text(str(item.get("mail_to") or "")) or legajo
         if not username:
             continue
         if username in seen:
             continue
         seen.add(username)
-        cleaned.append({"username": username, "display_name": display_name})
-    if not cleaned:
+        cleaned.append({"username": username, "display_name": display_name, "legajo": legajo, "mail_to": mail_to})
+    if not cleaned and not not_found and not review_rows:
         raise HTTPException(status_code=400, detail="No hay usuarios validos para crear.")
     if len(cleaned) > 200:
         raise HTTPException(status_code=400, detail="El alta masiva permite hasta 200 usuarios por vez.")
 
-    results: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = [
+        {
+            "legajo": row.get("legajo", ""),
+            "username": "",
+            "display_name": "",
+            "mail_to": row.get("mail_to") or row.get("legajo") or "",
+            "status": "not_found",
+            "message": row.get("message") or "No encontrado en legajero.",
+        }
+        for row in not_found
+    ]
+    results.extend(
+        {
+            "legajo": row.get("legajo", ""),
+            "username": row.get("username", ""),
+            "display_name": row.get("display_name", ""),
+            "mail_to": row.get("mail_to") or row.get("legajo") or "",
+            "status": "potential_existing",
+            "message": row.get("message") or "Posible usuario existente. Revise Usuarios, vincule el legajo y vuelva a intentar.",
+        }
+        for row in review_rows
+    )
     async with auth_db() as db:
         db.row_factory = aiosqlite.Row
         for item in cleaned:
             username = item["username"]
             display_name = item["display_name"]
+            legajo = item.get("legajo") or ""
+            mail_to = item.get("mail_to") or legajo
             async with db.execute("SELECT username, active FROM auth_users WHERE username = ?", (username,)) as cur:
                 existing = await cur.fetchone()
             if existing:
@@ -991,10 +1348,21 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
                     message = "Ya existia. Acceso a Panol actualizado."
                 else:
                     message = "Ya existia. Sin cambios de modulos."
+                if legajo:
+                    await db.execute(
+                        """
+                        INSERT INTO auth_user_legajos (username, legajo, created_at, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(username) DO UPDATE SET legajo = excluded.legajo, updated_at = excluded.updated_at
+                        """,
+                        (username, legajo, _now(), _now()),
+                    )
                 results.append(
                     {
                         "username": username,
                         "display_name": display_name,
+                        "legajo": legajo,
+                        "mail_to": mail_to,
                         "status": "exists",
                         "message": message,
                     }
@@ -1018,10 +1386,21 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
                     profile=profile,
                     scope="perfil",
                 )
+            if legajo:
+                await db.execute(
+                    """
+                    INSERT INTO auth_user_legajos (username, legajo, created_at, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(username) DO UPDATE SET legajo = excluded.legajo, updated_at = excluded.updated_at
+                    """,
+                    (username, legajo, _now(), _now()),
+                )
             results.append(
                 {
                     "username": username,
                     "display_name": display_name,
+                    "legajo": legajo,
+                    "mail_to": mail_to,
                     "status": "created",
                     "message": "Usuario creado.",
                     "password": password,

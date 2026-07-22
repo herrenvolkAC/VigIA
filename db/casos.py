@@ -294,8 +294,8 @@ INDEXES = [
 ]
 
 RACK_STATES = [
-    ("REGISTRADO", "Registrado", "ADO", 10, 1, 0),
-    ("PENDIENTE_VALIDACION", "Pendiente Validacion", "ADO", 20, 0, 0),
+    ("REGISTRADO", "Registrado", "ADO", 10, 0, 0),
+    ("PENDIENTE_VALIDACION", "Pendiente Validacion", "ADO", 20, 1, 0),
     ("REQUIERE_CORRECCION", "Requiere Correccion", "OPERACION", 30, 0, 0),
     ("PENDIENTE_TRASPASOS", "Pendiente Traspasos", "MAPA_ALMACEN", 40, 0, 0),
     ("TRASPASOS_ASIGNADOS", "Traspasos Asignados", "OPERACION", 50, 0, 0),
@@ -518,11 +518,10 @@ async def seed_cases_db(db: aiosqlite.Connection) -> None:
     async with db.execute("SELECT id, codigo FROM ticket_estado WHERE tipo_id = ?", (tipo_id,)) as cur:
         state_ids = {row[1]: row[0] for row in await cur.fetchall()}
     transitions = [
-        ("REGISTRADO", "PENDIENTE_VALIDACION", "ADO", 0),
         ("REGISTRADO", "CANCELADO", "OPERACION", 1),
         ("PENDIENTE_VALIDACION", "REQUIERE_CORRECCION", "ADO", 1),
         ("PENDIENTE_VALIDACION", "PENDIENTE_TRASPASOS", "ADO", 0),
-        ("REQUIERE_CORRECCION", "REGISTRADO", "OPERACION", 1),
+        ("REQUIERE_CORRECCION", "PENDIENTE_VALIDACION", "OPERACION", 1),
         ("PENDIENTE_TRASPASOS", "TRASPASOS_ASIGNADOS", "MAPA_ALMACEN", 0),
         ("TRASPASOS_ASIGNADOS", "EN_EJECUCION", "OPERACION", 0),
         ("TRASPASOS_ASIGNADOS", "EN_EJECUCION", "ACTIVACION", 0),
@@ -549,6 +548,19 @@ async def seed_cases_db(db: aiosqlite.Connection) -> None:
             if src in state_ids and dst in state_ids
         ],
     )
+    if "REGISTRADO" in state_ids and "PENDIENTE_VALIDACION" in state_ids:
+        await db.execute(
+            """
+            UPDATE ticket
+            SET estado_id = ?,
+                perfil_asignado = 'ADO',
+                sector_asignado = 'ADO'
+            WHERE tipo_id = ?
+              AND estado_id = ?
+              AND activo = 1
+            """,
+            (state_ids["PENDIENTE_VALIDACION"], tipo_id, state_ids["REGISTRADO"]),
+        )
     await db.execute(
         """
         UPDATE ticket

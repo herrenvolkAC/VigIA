@@ -33,6 +33,15 @@ MOVEMENT_TYPES = {"ALTA", "BAJA", "AJUSTE_POSITIVO", "AJUSTE_NEGATIVO", "TRANSFE
 INCOMING_TYPES = {"ALTA", "AJUSTE_POSITIVO"}
 OUTGOING_TYPES = {"BAJA", "AJUSTE_NEGATIVO"}
 ORACLE_STOCK_CD_SOURCE = "ORACLE_STOCK_CD"
+MERMA_TYPES = {"INSUMO", "PRODUCCION"}
+MERMA_REASONS = {
+    "IMPRESION_DUPLICADA": "Impresion duplicada",
+    "ERROR_IMPRESION": "Error de impresion",
+    "MATERIAL_DANADO": "Material danado",
+    "VENCIDO": "Vencido",
+    "NO_UTILIZABLE": "No utilizable",
+    "OTRO": "Otro",
+}
 _stock_cd_scheduler_task: asyncio.Task | None = None
 _stock_cd_scheduler_stop: asyncio.Event | None = None
 _stock_cd_scheduler_last_attempt: str | None = None
@@ -63,6 +72,9 @@ class ArticleRequest(BaseModel):
     uso: str = ""
     stock_minimo: float = 0
     activo: bool = True
+    costo_unitario: float | None = None
+    moneda: str = "ARS"
+    fecha_costo: str = ""
 
 
 class MovementRequest(BaseModel):
@@ -113,6 +125,16 @@ class SupplyOrderConfirmRequest(BaseModel):
     items: list[SupplyOrderConfirmItemRequest]
 
 
+class WasteRequest(BaseModel):
+    sector_id: int
+    pedido_id: int | None = None
+    articulo_id: int
+    tipo: str = "INSUMO"
+    cantidad: float
+    motivo: str
+    observacion: str
+
+
 class InventoryLine(BaseModel):
     articulo_id: int
     stock_fisico: float
@@ -129,6 +151,11 @@ class InventoryRequest(BaseModel):
 
 class OperationalResetRequest(BaseModel):
     clave: str
+
+
+class UserSectorAssignRequest(BaseModel):
+    usernames: list[str]
+    sector_id: int
 
 
 def _now() -> str:
@@ -195,6 +222,99 @@ async def _fetch_rows(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] 
 async def _fetch_one(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] = ()) -> dict[str, Any] | None:
     async with db.execute(sql, args) as cur:
         return _row_dict(await cur.fetchone())
+
+
+def _current_cost_join(alias: str = "a") -> str:
+    return f"""
+    LEFT JOIN articulos_costos ac ON ac.id = (
+        SELECT ac2.id
+        FROM articulos_costos ac2
+        WHERE ac2.articulo_id = {alias}.id
+          AND ac2.fecha_desde <= date('now')
+          AND (ac2.fecha_hasta IS NULL OR ac2.fecha_hasta > date('now'))
+        ORDER BY ac2.fecha_desde DESC, ac2.id DESC
+        LIMIT 1
+    )
+    """
+
+
+def _cost_at_sql(articulo_expr: str, fecha_expr: str) -> str:
+    return f"""
+    COALESCE((
+        SELECT ac.costo_unitario
+        FROM articulos_costos ac
+        WHERE ac.articulo_id = {articulo_expr}
+          AND ac.fecha_desde <= date({fecha_expr})
+          AND (ac.fecha_hasta IS NULL OR ac.fecha_hasta > date({fecha_expr}))
+        ORDER BY ac.fecha_desde DESC, ac.id DESC
+        LIMIT 1
+    ), 0)
+    """
+
+
+async def _set_article_cost(
+    db: aiosqlite.Connection,
+    articulo_id: int,
+    costo_unitario: float | None,
+    moneda: str,
+    fecha_desde: str,
+    usuario: str,
+) -> None:
+    if costo_unitario is None:
+        return
+    costo = float(costo_unitario)
+    if costo < 0:
+        raise HTTPException(status_code=400, detail="El costo no puede ser negativo.")
+    fecha = _clean(fecha_desde) or _today()
+    try:
+        datetime.strptime(fecha, "%Y-%m-%d")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="La fecha de vigencia de costo debe tener formato AAAA-MM-DD.") from exc
+    money = _norm_code(moneda or "ARS") or "ARS"
+    next_row = await _fetch_one(
+        db,
+        """
+        SELECT MIN(fecha_desde) AS fecha_hasta
+        FROM articulos_costos
+        WHERE articulo_id = ? AND fecha_desde > ?
+        """,
+        (articulo_id, fecha),
+    )
+    fecha_hasta = (next_row or {}).get("fecha_hasta")
+    await db.execute(
+        """
+        UPDATE articulos_costos
+        SET fecha_hasta = ?
+        WHERE articulo_id = ?
+          AND fecha_desde < ?
+          AND (fecha_hasta IS NULL OR fecha_hasta > ?)
+        """,
+        (fecha, articulo_id, fecha, fecha),
+    )
+    existing = await _fetch_one(
+        db,
+        "SELECT id FROM articulos_costos WHERE articulo_id = ? AND fecha_desde = ?",
+        (articulo_id, fecha),
+    )
+    if existing:
+        await db.execute(
+            """
+            UPDATE articulos_costos
+            SET costo_unitario = ?, moneda = ?, fecha_hasta = ?, fuente = 'MAESTRO_PLUS',
+                usuario = ?, fecha_hora = ?
+            WHERE id = ?
+            """,
+            (costo, money, fecha_hasta, usuario, _now(), int(existing["id"])),
+        )
+    else:
+        await db.execute(
+            """
+            INSERT INTO articulos_costos
+                (articulo_id, costo_unitario, moneda, fecha_desde, fecha_hasta, fuente, usuario, fecha_hora)
+            VALUES (?, ?, ?, ?, ?, 'MAESTRO_PLUS', ?, ?)
+            """,
+            (articulo_id, costo, money, fecha, fecha_hasta, usuario, _now()),
+        )
 
 
 async def _require_panol_access(request: Request, *, full: bool = False) -> dict[str, Any]:
@@ -372,11 +492,61 @@ async def _stock_producido(db: aiosqlite.Connection, articulo_id: int) -> float:
     return float((row or {}).get("stock") or 0)
 
 
+async def _request_sectors(db: aiosqlite.Connection) -> list[dict[str, Any]]:
+    rows = await _fetch_rows(db, "SELECT * FROM ubicaciones WHERE activo = 1 ORDER BY codigo")
+    filtered = [row for row in rows if _norm_code(row.get("codigo")) not in {"JAULA", "OFICINA_ADO"}]
+    return filtered or rows
+
+
+async def _active_user_sector(db: aiosqlite.Connection, username: str | None) -> dict[str, Any] | None:
+    clean_user = _clean(username)
+    if not clean_user:
+        return None
+    return await _fetch_one(
+        db,
+        """
+        SELECT us.username, us.sector_id, u.codigo AS sector_codigo, u.descripcion AS sector_descripcion
+        FROM usuarios_sectores_panol us
+        JOIN ubicaciones u ON u.id = us.sector_id AND u.activo = 1
+        WHERE us.username = ? AND us.activo = 1
+        ORDER BY us.id DESC
+        LIMIT 1
+        """,
+        (clean_user,),
+    )
+
+
+async def _validate_request_sector(
+    db: aiosqlite.Connection,
+    auth: dict[str, Any],
+    sector_id: int | None,
+) -> int | None:
+    if not auth.get("panol_request_only"):
+        if sector_id is None:
+            return None
+        sectors = await _request_sectors(db)
+        if not any(int(row["id"]) == int(sector_id) for row in sectors):
+            raise HTTPException(status_code=400, detail="Sector solicitante invalido.")
+        return int(sector_id)
+    assigned = await _active_user_sector(db, str(auth.get("username") or ""))
+    if not assigned:
+        raise HTTPException(
+            status_code=403,
+            detail="Tu usuario no tiene sector asignado en Panol. Solicita la configuracion a un administrador.",
+        )
+    assigned_id = int(assigned["sector_id"])
+    if sector_id is not None and int(sector_id) != assigned_id:
+        raise HTTPException(status_code=403, detail="Tu usuario solo puede operar con su sector asignado en Panol.")
+    return assigned_id
+
+
 @router.get("/context")
 async def context(request: Request):
     auth = await _require_panol_access(request)
     async with panol_db() as db:
         ubicaciones = await _fetch_rows(db, "SELECT * FROM ubicaciones WHERE activo = 1 ORDER BY id")
+        sectores_solicitantes = await _request_sectors(db)
+        sector_asignado = await _active_user_sector(db, str(auth.get("username") or ""))
         turnos = await _fetch_rows(db, "SELECT * FROM turnos WHERE activo = 1 ORDER BY id")
     return {
         "user": {
@@ -387,25 +557,135 @@ async def context(request: Request):
             "can_full": bool(auth.get("panol_full")),
             "can_request": True,
             "can_operate": not bool(auth.get("panol_request_only")),
+            "sector_asignado": sector_asignado,
         },
         "ubicaciones": ubicaciones,
+        "sectores_solicitantes": sectores_solicitantes,
         "turnos": turnos,
+        "merma_motivos": [{"codigo": code, "descripcion": label} for code, label in MERMA_REASONS.items()],
     }
+
+
+@router.get("/usuarios-solicitantes")
+async def list_request_users(request: Request):
+    await _require_panol_operator(request, full=True)
+    async with auth_db(attach_operational=False) as adb:
+        users = await _fetch_rows(
+            adb,
+            """
+            SELECT u.username, u.display_name, u.active, a.profile
+            FROM auth_users u
+            JOIN auth_user_app_access a ON a.username = u.username
+            WHERE a.module = 'panol'
+              AND a.enabled = 1
+              AND UPPER(COALESCE(a.profile, '')) IN ('SOLICITANTE', 'PEDIDOS')
+            ORDER BY u.username
+            """,
+        )
+    async with panol_db() as db:
+        sectors = await _request_sectors(db)
+        assignments = {
+            str(row["username"]): row
+            for row in await _fetch_rows(
+                db,
+                """
+                SELECT us.username, us.sector_id, u.codigo AS sector_codigo, u.descripcion AS sector_descripcion,
+                       us.actualizado_en, us.fecha_hora
+                FROM usuarios_sectores_panol us
+                JOIN ubicaciones u ON u.id = us.sector_id
+                WHERE us.activo = 1
+                """,
+            )
+        }
+    return {
+        "items": [
+            {
+                **user,
+                "sector_id": assignments.get(str(user["username"]), {}).get("sector_id"),
+                "sector_codigo": assignments.get(str(user["username"]), {}).get("sector_codigo"),
+                "sector_descripcion": assignments.get(str(user["username"]), {}).get("sector_descripcion"),
+                "sector_actualizado": assignments.get(str(user["username"]), {}).get("actualizado_en")
+                or assignments.get(str(user["username"]), {}).get("fecha_hora"),
+            }
+            for user in users
+        ],
+        "sectores": sectors,
+    }
+
+
+@router.post("/usuarios-solicitantes/asignar-sector")
+async def assign_request_user_sector(req: UserSectorAssignRequest, request: Request):
+    auth = await _require_panol_operator(request, full=True)
+    usernames = sorted({_clean(username) for username in req.usernames if _clean(username)})
+    if not usernames:
+        raise HTTPException(status_code=400, detail="Selecciona al menos un usuario.")
+    if len(usernames) > 500:
+        raise HTTPException(status_code=400, detail="Demasiados usuarios seleccionados.")
+    async with auth_db(attach_operational=False) as adb:
+        placeholders = ",".join("?" for _ in usernames)
+        valid_rows = await _fetch_rows(
+            adb,
+            f"""
+            SELECT u.username
+            FROM auth_users u
+            JOIN auth_user_app_access a ON a.username = u.username
+            WHERE u.username IN ({placeholders})
+              AND u.active = 1
+              AND a.module = 'panol'
+              AND a.enabled = 1
+              AND UPPER(COALESCE(a.profile, '')) IN ('SOLICITANTE', 'PEDIDOS')
+            """,
+            tuple(usernames),
+        )
+    valid = {str(row["username"]) for row in valid_rows}
+    missing = [username for username in usernames if username not in valid]
+    if missing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Hay usuarios sin perfil solicitante activo en Panol: {', '.join(missing[:8])}.",
+        )
+    now = _now()
+    async with panol_db() as db:
+        sectors = await _request_sectors(db)
+        if not any(int(row["id"]) == int(req.sector_id) for row in sectors):
+            raise HTTPException(status_code=400, detail="Sector solicitante invalido.")
+        await db.executemany(
+            """
+            UPDATE usuarios_sectores_panol
+            SET activo = 0, actualizado_por = ?, actualizado_en = ?
+            WHERE username = ? AND activo = 1
+            """,
+            [(auth.get("username"), now, username) for username in usernames],
+        )
+        await db.executemany(
+            """
+            INSERT INTO usuarios_sectores_panol
+                (username, sector_id, activo, creado_por, fecha_hora, actualizado_por, actualizado_en)
+            VALUES (?, ?, 1, ?, ?, ?, ?)
+            """,
+            [(username, int(req.sector_id), auth.get("username"), now, auth.get("username"), now) for username in usernames],
+        )
+        await db.commit()
+    return {"ok": True, "updated": len(usernames), "sector_id": int(req.sector_id)}
 
 
 @router.get("/articulos")
 async def list_articles(request: Request, include_inactive: bool = Query(False)):
     await _require_panol_operator(request)
-    where = "" if include_inactive else "WHERE activo = 1"
+    where = "" if include_inactive else "WHERE a.activo = 1"
     async with panol_db() as db:
         return {
             "items": await _fetch_rows(
                 db,
                 f"""
-                SELECT *
-                FROM articulos
+                SELECT a.*,
+                       ac.costo_unitario,
+                       ac.moneda AS costo_moneda,
+                       ac.fecha_desde AS costo_fecha_desde
+                FROM articulos a
+                {_current_cost_join("a")}
                 {where}
-                ORDER BY activo DESC, codigo
+                ORDER BY a.activo DESC, a.codigo
                 """,
             )
         }
@@ -413,7 +693,7 @@ async def list_articles(request: Request, include_inactive: bool = Query(False))
 
 @router.post("/articulos")
 async def create_article(req: ArticleRequest, request: Request):
-    await _require_panol_operator(request, full=True)
+    auth = await _require_panol_operator(request, full=True)
     codigo = _norm_code(req.codigo)
     descripcion = _clean(req.descripcion)
     if not codigo or not descripcion:
@@ -421,7 +701,7 @@ async def create_article(req: ArticleRequest, request: Request):
     now = _now()
     try:
         async with panol_db() as db:
-            await db.execute(
+            cur = await db.execute(
                 """
                 INSERT INTO articulos
                     (codigo, descripcion, categoria, unidad, uso, stock_minimo, activo, creado_en, actualizado_en)
@@ -439,6 +719,14 @@ async def create_article(req: ArticleRequest, request: Request):
                     now,
                 ),
             )
+            await _set_article_cost(
+                db,
+                int(cur.lastrowid),
+                req.costo_unitario,
+                req.moneda,
+                req.fecha_costo,
+                str(auth.get("username") or ""),
+            )
             await db.commit()
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409, detail="Ya existe un articulo con ese codigo.")
@@ -447,7 +735,7 @@ async def create_article(req: ArticleRequest, request: Request):
 
 @router.put("/articulos/{articulo_id}")
 async def update_article(articulo_id: int, req: ArticleRequest, request: Request):
-    await _require_panol_operator(request)
+    auth = await _require_panol_operator(request)
     codigo = _norm_code(req.codigo)
     descripcion = _clean(req.descripcion)
     if not codigo or not descripcion:
@@ -475,6 +763,14 @@ async def update_article(articulo_id: int, req: ArticleRequest, request: Request
             )
             if cur.rowcount == 0:
                 raise HTTPException(status_code=404, detail="Articulo no encontrado.")
+            await _set_article_cost(
+                db,
+                articulo_id,
+                req.costo_unitario,
+                req.moneda,
+                req.fecha_costo,
+                str(auth.get("username") or ""),
+            )
             await db.commit()
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=409, detail="Ya existe otro articulo con ese codigo.")
@@ -618,6 +914,62 @@ async def _pedido_rows(db: aiosqlite.Connection, where: str, args: tuple[Any, ..
     return headers
 
 
+async def _received_for_waste(
+    db: aiosqlite.Connection,
+    *,
+    sector_id: int,
+    articulo_id: int,
+    tipo: str,
+    pedido_id: int | None = None,
+) -> float:
+    amount_column = "i.cantidad_insumo_confirmada" if tipo == "INSUMO" else "i.cantidad_produccion_confirmada"
+    where = [
+        "p.sector_id = ?",
+        "i.articulo_id = ?",
+        "p.estado IN ('CONFIRMADO', 'CONFIRMADO_PARCIAL')",
+    ]
+    args: list[Any] = [sector_id, articulo_id]
+    if pedido_id:
+        where.append("p.id = ?")
+        args.append(pedido_id)
+    row = await _fetch_one(
+        db,
+        f"""
+        SELECT COALESCE(SUM({amount_column}), 0) AS cantidad
+        FROM pedidos_insumos p
+        JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+        WHERE {" AND ".join(where)}
+        """,
+        tuple(args),
+    )
+    return float((row or {}).get("cantidad") or 0)
+
+
+async def _waste_registered(
+    db: aiosqlite.Connection,
+    *,
+    sector_id: int,
+    articulo_id: int,
+    tipo: str,
+    pedido_id: int | None = None,
+) -> float:
+    where = ["sector_id = ?", "articulo_id = ?", "tipo = ?"]
+    args: list[Any] = [sector_id, articulo_id, tipo]
+    if pedido_id:
+        where.append("pedido_id = ?")
+        args.append(pedido_id)
+    row = await _fetch_one(
+        db,
+        f"""
+        SELECT COALESCE(SUM(cantidad), 0) AS cantidad
+        FROM mermas_insumos
+        WHERE {" AND ".join(where)}
+        """,
+        tuple(args),
+    )
+    return float((row or {}).get("cantidad") or 0)
+
+
 @router.get("/pedidos/catalogo")
 async def supply_order_catalog(request: Request):
     await _require_panol_access(request)
@@ -657,7 +1009,8 @@ async def create_supply_order(req: SupplyOrderRequest, request: Request):
     now = _now()
     clean_obs = _clean(req.observacion)
     async with panol_db() as db:
-        sector = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (req.sector_id,))
+        sector_id = await _validate_request_sector(db, auth, int(req.sector_id))
+        sector = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (sector_id,))
         if not sector:
             raise HTTPException(status_code=400, detail="Sector invalido.")
         lines: list[tuple[int, float, float]] = []
@@ -691,7 +1044,7 @@ async def create_supply_order(req: SupplyOrderRequest, request: Request):
                 (sector_id, estado, usuario_solicita, fecha_solicitud, observacion_solicitud)
             VALUES (?, 'PENDIENTE', ?, ?, ?)
             """,
-            (req.sector_id, auth.get("username"), now, clean_obs),
+            (sector_id, auth.get("username"), now, clean_obs),
         )
         pedido_id = cur.lastrowid
         await db.executemany(
@@ -710,11 +1063,12 @@ async def create_supply_order(req: SupplyOrderRequest, request: Request):
 async def my_supply_orders(request: Request, sector_id: int | None = Query(None)):
     auth = await _require_panol_access(request)
     async with panol_db() as db:
-        if sector_id:
-            sector = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (sector_id,))
+        checked_sector_id = await _validate_request_sector(db, auth, sector_id)
+        if checked_sector_id:
+            sector = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (checked_sector_id,))
             if not sector:
                 raise HTTPException(status_code=400, detail="Sector invalido.")
-            return {"items": await _pedido_rows(db, "WHERE p.sector_id = ?", (sector_id,), 150)}
+            return {"items": await _pedido_rows(db, "WHERE p.sector_id = ?", (checked_sector_id,), 150)}
         return {"items": await _pedido_rows(db, "WHERE p.usuario_solicita = ?", (auth.get("username"),), 150)}
 
 
@@ -727,7 +1081,7 @@ async def supply_order_received_by_day(
     fecha_hasta: str = Query(""),
     articulo_id: int | None = Query(None),
 ):
-    await _require_panol_access(request)
+    auth = await _require_panol_access(request)
     received_type = _norm_key(tipo)
     if received_type not in {"insumo", "produccion"}:
         raise HTTPException(status_code=400, detail="Tipo invalido.")
@@ -745,7 +1099,9 @@ async def supply_order_received_by_day(
         args.append(articulo_id)
     clause = "WHERE " + " AND ".join(where)
     async with panol_db() as db:
-        sector = await _fetch_one(db, "SELECT id, codigo FROM ubicaciones WHERE id = ? AND activo = 1", (sector_id,))
+        checked_sector_id = await _validate_request_sector(db, auth, int(sector_id))
+        args[0] = checked_sector_id
+        sector = await _fetch_one(db, "SELECT id, codigo FROM ubicaciones WHERE id = ? AND activo = 1", (checked_sector_id,))
         if not sector:
             raise HTTPException(status_code=400, detail="Sector invalido.")
         rows = await _fetch_rows(
@@ -781,11 +1137,183 @@ async def supply_order_received_by_day(
                 for offset in range((end - start).days + 1)
             ]
     return {
-        "sector_id": sector_id,
+        "sector_id": checked_sector_id,
         "sector": sector.get("codigo"),
         "tipo": received_type,
         "items": rows,
     }
+
+
+@router.get("/pedidos/mermas")
+async def list_wastes(
+    request: Request,
+    sector_id: int | None = Query(None),
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    articulo_id: int | None = Query(None),
+    tipo: str = Query(""),
+    pedido_id: int | None = Query(None),
+):
+    auth = await _require_panol_access(request)
+    where = []
+    args: list[Any] = []
+    async with panol_db() as db:
+        checked_sector_id = await _validate_request_sector(db, auth, sector_id)
+    if checked_sector_id:
+        where.append("m.sector_id = ?")
+        args.append(checked_sector_id)
+    if fecha_desde:
+        where.append("m.fecha_hora >= ?")
+        args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        where.append("m.fecha_hora <= ?")
+        args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        where.append("m.articulo_id = ?")
+        args.append(articulo_id)
+    clean_tipo = _norm_code(tipo)
+    if clean_tipo:
+        if clean_tipo not in MERMA_TYPES:
+            raise HTTPException(status_code=400, detail="Tipo de merma invalido.")
+        where.append("m.tipo = ?")
+        args.append(clean_tipo)
+    if pedido_id:
+        where.append("m.pedido_id = ?")
+        args.append(pedido_id)
+    clause = "WHERE " + " AND ".join(where) if where else ""
+    async with panol_db() as db:
+        rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT m.*, s.codigo AS sector_codigo, a.codigo, a.descripcion, p.estado AS pedido_estado
+            FROM mermas_insumos m
+            JOIN ubicaciones s ON s.id = m.sector_id
+            JOIN articulos a ON a.id = m.articulo_id
+            LEFT JOIN pedidos_insumos p ON p.id = m.pedido_id
+            {clause}
+            ORDER BY m.fecha_hora DESC, m.id DESC
+            LIMIT 200
+            """,
+            tuple(args),
+        )
+    return {
+        "items": [
+            {**row, "motivo_label": MERMA_REASONS.get(str(row.get("motivo") or ""), str(row.get("motivo") or ""))}
+            for row in rows
+        ],
+        "motivos": [{"codigo": code, "descripcion": label} for code, label in MERMA_REASONS.items()],
+    }
+
+
+@router.post("/pedidos/mermas")
+async def create_waste(req: WasteRequest, request: Request):
+    auth = await _require_panol_access(request)
+    sector_id = int(req.sector_id)
+    articulo_id = int(req.articulo_id)
+    tipo = _norm_code(req.tipo)
+    motivo = _norm_code(req.motivo)
+    cantidad = float(req.cantidad or 0)
+    observacion = _clean(req.observacion)
+    pedido_id = int(req.pedido_id) if req.pedido_id else None
+
+    if tipo not in MERMA_TYPES:
+        raise HTTPException(status_code=400, detail="Tipo de merma invalido.")
+    if motivo not in MERMA_REASONS:
+        raise HTTPException(status_code=400, detail="Motivo de merma invalido.")
+    if cantidad <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad de merma debe ser mayor a cero.")
+    if not observacion:
+        raise HTTPException(status_code=400, detail="La observacion de merma es obligatoria.")
+
+    async with panol_db() as db:
+        sector_id = int(await _validate_request_sector(db, auth, sector_id) or sector_id)
+        sector = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (sector_id,))
+        if not sector:
+            raise HTTPException(status_code=400, detail="Sector invalido.")
+        article = await _fetch_one(db, "SELECT id FROM articulos WHERE id = ? AND activo = 1", (articulo_id,))
+        if not article:
+            raise HTTPException(status_code=404, detail="Articulo no encontrado o inactivo.")
+        if pedido_id:
+            pedido = await _fetch_one(
+                db,
+                """
+                SELECT id, sector_id, estado
+                FROM pedidos_insumos
+                WHERE id = ?
+                """,
+                (pedido_id,),
+            )
+            if not pedido:
+                raise HTTPException(status_code=404, detail="Pedido asociado no encontrado.")
+            if int(pedido["sector_id"]) != sector_id:
+                raise HTTPException(status_code=400, detail="El pedido asociado no corresponde al sector.")
+            if pedido["estado"] not in {"CONFIRMADO", "CONFIRMADO_PARCIAL"}:
+                raise HTTPException(status_code=400, detail="Solo se pueden asociar pedidos confirmados o parciales.")
+
+        recibido = await _received_for_waste(
+            db,
+            sector_id=sector_id,
+            articulo_id=articulo_id,
+            tipo=tipo,
+            pedido_id=pedido_id,
+        )
+        ya_mermado = await _waste_registered(
+            db,
+            sector_id=sector_id,
+            articulo_id=articulo_id,
+            tipo=tipo,
+            pedido_id=pedido_id,
+        )
+        disponible_merma = max(recibido - ya_mermado, 0)
+        if cantidad > disponible_merma + 0.000001:
+            scope = "pedido asociado" if pedido_id else "sector y PLU seleccionados"
+            raise HTTPException(
+                status_code=400,
+                detail=f"La merma supera lo recibido disponible para el {scope}. Disponible: {disponible_merma:.3f}.",
+            )
+        if pedido_id:
+            recibido_total = await _received_for_waste(
+                db,
+                sector_id=sector_id,
+                articulo_id=articulo_id,
+                tipo=tipo,
+                pedido_id=None,
+            )
+            mermado_total = await _waste_registered(
+                db,
+                sector_id=sector_id,
+                articulo_id=articulo_id,
+                tipo=tipo,
+                pedido_id=None,
+            )
+            disponible_total = max(recibido_total - mermado_total, 0)
+            if cantidad > disponible_total + 0.000001:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"La merma supera lo recibido disponible para el sector y PLU seleccionados. Disponible: {disponible_total:.3f}.",
+                )
+
+        now = _now()
+        cur = await db.execute(
+            """
+            INSERT INTO mermas_insumos
+                (sector_id, pedido_id, articulo_id, tipo, cantidad, motivo, observacion, usuario, fecha_hora)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                sector_id,
+                pedido_id,
+                articulo_id,
+                tipo,
+                cantidad,
+                motivo,
+                observacion,
+                auth.get("username"),
+                now,
+            ),
+        )
+        await db.commit()
+    return {"ok": True, "merma_id": cur.lastrowid, "fecha_hora": now}
 
 
 @router.get("/pedidos/pendientes")
@@ -816,6 +1344,20 @@ async def supply_order_indicators(
         where.append("i.articulo_id = ?")
         args.append(articulo_id)
     clause = "WHERE " + " AND ".join(where) if where else ""
+    waste_where = []
+    waste_args: list[Any] = []
+    if fecha_desde:
+        waste_where.append("m.fecha_hora >= ?")
+        waste_args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        waste_where.append("m.fecha_hora <= ?")
+        waste_args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        waste_where.append("m.articulo_id = ?")
+        waste_args.append(articulo_id)
+    waste_clause = "WHERE " + " AND ".join(waste_where) if waste_where else ""
+    order_cost = _cost_at_sql("i.articulo_id", "COALESCE(p.fecha_confirmacion, p.fecha_solicitud)")
+    waste_cost = _cost_at_sql("m.articulo_id", "m.fecha_hora")
     async with panol_db() as db:
         metrics = await _fetch_one(
             db,
@@ -826,19 +1368,33 @@ async def supply_order_indicators(
                 COUNT(DISTINCT CASE WHEN p.estado = 'CONFIRMADO' THEN p.id END) AS confirmados,
                 COUNT(DISTINCT CASE WHEN p.estado = 'CONFIRMADO_PARCIAL' THEN p.id END) AS parciales,
                 COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS solicitado,
-                COALESCE(SUM(i.cantidad_insumo_confirmada + i.cantidad_produccion_confirmada), 0) AS confirmado
+                COALESCE(SUM(i.cantidad_insumo_confirmada + i.cantidad_produccion_confirmada), 0) AS confirmado,
+                COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor_solicitado,
+                COALESCE(SUM((i.cantidad_insumo_confirmada + i.cantidad_produccion_confirmada) * {order_cost}), 0) AS valor_confirmado
             FROM pedidos_insumos p
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
             {clause}
             """,
             tuple(args),
         )
+        waste_metrics = await _fetch_one(
+            db,
+            f"""
+            SELECT COUNT(*) AS registros,
+                   COALESCE(SUM(cantidad), 0) AS cantidad,
+                   COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor
+            FROM mermas_insumos m
+            {waste_clause}
+            """,
+            tuple(waste_args),
+        )
         by_sector = await _fetch_rows(
             db,
             f"""
             SELECT u.codigo AS sector,
                    COUNT(DISTINCT p.id) AS pedidos,
-                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad
+                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad,
+                   COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor
             FROM pedidos_insumos p
             JOIN ubicaciones u ON u.id = p.sector_id
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
@@ -849,11 +1405,28 @@ async def supply_order_indicators(
             """,
             tuple(args),
         )
+        waste_by_sector = await _fetch_rows(
+            db,
+            f"""
+            SELECT u.codigo AS sector,
+                   COUNT(*) AS registros,
+                   COALESCE(SUM(m.cantidad), 0) AS cantidad,
+                   COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor
+            FROM mermas_insumos m
+            JOIN ubicaciones u ON u.id = m.sector_id
+            {waste_clause}
+            GROUP BY u.codigo
+            ORDER BY cantidad DESC, registros DESC, u.codigo
+            LIMIT 12
+            """,
+            tuple(waste_args),
+        )
         by_plu = await _fetch_rows(
             db,
             f"""
             SELECT a.codigo, a.descripcion,
-                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad
+                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad,
+                   COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor
             FROM pedidos_insumos p
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
             JOIN articulos a ON a.id = i.articulo_id
@@ -864,12 +1437,44 @@ async def supply_order_indicators(
             """,
             tuple(args),
         )
+        waste_by_plu = await _fetch_rows(
+            db,
+            f"""
+            SELECT a.codigo, a.descripcion,
+                   COALESCE(SUM(m.cantidad), 0) AS cantidad,
+                   COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor,
+                   COUNT(*) AS registros
+            FROM mermas_insumos m
+            JOIN articulos a ON a.id = m.articulo_id
+            {waste_clause}
+            GROUP BY a.codigo, a.descripcion
+            ORDER BY cantidad DESC, a.codigo
+            LIMIT 12
+            """,
+            tuple(waste_args),
+        )
+        waste_by_reason = await _fetch_rows(
+            db,
+            f"""
+            SELECT m.motivo,
+                   COALESCE(SUM(m.cantidad), 0) AS cantidad,
+                   COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor,
+                   COUNT(*) AS registros
+            FROM mermas_insumos m
+            {waste_clause}
+            GROUP BY m.motivo
+            ORDER BY cantidad DESC, m.motivo
+            LIMIT 12
+            """,
+            tuple(waste_args),
+        )
         recent = await _fetch_rows(
             db,
             f"""
             SELECT p.id, p.estado, p.fecha_solicitud, p.usuario_solicita, u.codigo AS sector,
                    COUNT(i.id) AS lineas,
-                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad
+                   COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad,
+                   COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor
             FROM pedidos_insumos p
             JOIN ubicaciones u ON u.id = p.sector_id
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
@@ -881,9 +1486,20 @@ async def supply_order_indicators(
             tuple(args),
         )
     return {
-        "metrics": metrics or {},
+        "metrics": {
+            **(metrics or {}),
+            "mermas_registros": int((waste_metrics or {}).get("registros") or 0),
+            "mermas_cantidad": float((waste_metrics or {}).get("cantidad") or 0),
+            "mermas_valor": float((waste_metrics or {}).get("valor") or 0),
+        },
         "pedidos_por_sector": by_sector,
         "pedidos_por_plu": by_plu,
+        "mermas_por_sector": waste_by_sector,
+        "mermas_por_plu": waste_by_plu,
+        "mermas_por_motivo": [
+            {**row, "motivo_label": MERMA_REASONS.get(str(row.get("motivo") or ""), str(row.get("motivo") or ""))}
+            for row in waste_by_reason
+        ],
         "recientes": recent,
     }
 
@@ -1052,6 +1668,7 @@ async def reset_operational_data(req: OperationalResetRequest, request: Request)
     if req.clave != "Ingenieria12345":
         raise HTTPException(status_code=403, detail="Clave de depuracion invalida.")
     tables = [
+        "mermas_insumos",
         "pedidos_insumos_items",
         "pedidos_insumos",
         "movimientos",
@@ -1152,17 +1769,20 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
     async with panol_db() as db:
         rows = await _fetch_rows(
             db,
-            """
+            f"""
             SELECT a.id AS articulo_id, a.codigo, a.descripcion, a.categoria, a.unidad,
+                   ac.costo_unitario, ac.moneda AS costo_moneda, ac.fecha_desde AS costo_fecha_desde,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0) AS producido,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS entregado,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0)
                  - COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS stock_producido
             FROM articulos a
+            {_current_cost_join("a")}
             LEFT JOIN produccion_movimientos pm ON pm.articulo_id = a.id
             WHERE a.activo = 1
               AND (? IS NULL OR a.id = ?)
-            GROUP BY a.id, a.codigo, a.descripcion, a.categoria, a.unidad
+            GROUP BY a.id, a.codigo, a.descripcion, a.categoria, a.unidad,
+                     ac.costo_unitario, ac.moneda, ac.fecha_desde
             ORDER BY a.codigo
             """,
             (articulo_id, articulo_id),
@@ -1183,13 +1803,21 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
     for row in rows:
         if q and q.lower() not in f"{row['codigo']} {row['descripcion']}".lower():
             continue
-        items.append(row)
+        cost = float(row["costo_unitario"]) if row.get("costo_unitario") is not None else None
+        items.append(
+            {
+                **row,
+                "valor_stock_producido": None if cost is None else float(row.get("stock_producido") or 0) * cost,
+            }
+        )
     return {
         "items": items,
         "metrics": {
             "producido_hoy": float((today or {}).get("producido") or 0),
             "entregado_hoy": float((today or {}).get("entregado") or 0),
             "stock_total_producido": sum(float(row.get("stock_producido") or 0) for row in rows),
+            "valor_stock_producido": sum(float(row.get("valor_stock_producido") or 0) for row in items),
+            "articulos_sin_costo": sum(1 for row in items if row.get("costo_unitario") is None),
         },
     }
 
@@ -1453,11 +2081,15 @@ async def stock(
         jaula_id = await _ubicacion_id(db, "JAULA")
         articles = await _fetch_rows(
             db,
-            """
-            SELECT *
-            FROM articulos
-            WHERE activo = 1
-            ORDER BY codigo
+            f"""
+            SELECT a.*,
+                   ac.costo_unitario,
+                   ac.moneda AS costo_moneda,
+                   ac.fecha_desde AS costo_fecha_desde
+            FROM articulos a
+            {_current_cost_join("a")}
+            WHERE a.activo = 1
+            ORDER BY a.codigo
             """,
         )
         items = []
@@ -1477,6 +2109,7 @@ async def stock(
             if bajo_minimo and not is_low:
                 continue
             avg = await _average_daily_consumption(db, int(art["id"]), 30)
+            cost = float(art["costo_unitario"]) if art.get("costo_unitario") is not None else None
             items.append(
                 {
                     **art,
@@ -1484,6 +2117,10 @@ async def stock(
                     "stock_jaula": stock_jaula,
                     "stock_oficina": stock_oficina,
                     "stock_total": total,
+                    "valor_stock_cd": None if cost is None else stock_cd * cost,
+                    "valor_stock_jaula": None if cost is None else stock_jaula * cost,
+                    "valor_stock_oficina": None if cost is None else stock_oficina * cost,
+                    "valor_stock_total": None if cost is None else total * cost,
                     "estado": "BAJO_MINIMO" if is_low else "OK",
                     "consumo_promedio_diario": avg,
                     "cobertura_dias": None if avg <= 0 else total / avg,
@@ -1513,6 +2150,11 @@ async def stock(
             "total_articulos": len(items),
             "bajo_minimo": sum(1 for item in items if item["estado"] == "BAJO_MINIMO"),
             "movimientos_hoy": int((today_moves or {}).get("qty") or 0),
+            "articulos_sin_costo": sum(1 for item in items if item.get("costo_unitario") is None),
+            "valor_stock_total": sum(float(item.get("valor_stock_total") or 0) for item in items),
+            "valor_stock_bajo_minimo": sum(
+                float(item.get("valor_stock_total") or 0) for item in items if item["estado"] == "BAJO_MINIMO"
+            ),
             "ultima_importacion_cd": latest_cd,
             "ultimo_inventario_oficina": latest_inv,
         },
@@ -2006,13 +2648,15 @@ async def indicators(
         where.append("c.articulo_id = ?")
         args.append(articulo_id)
     clause = " AND ".join(where)
+    consumption_cost = _cost_at_sql("c.articulo_id", "c.fecha_hora")
     async with panol_db() as db:
         daily = await _fetch_rows(
             db,
             f"""
             SELECT c.articulo_id, a.codigo, a.descripcion,
                    date(datetime(c.fecha_hora, '+2 hours')) AS dia_logistico,
-                   SUM(c.consumo_calculado) AS consumo
+                   SUM(c.consumo_calculado) AS consumo,
+                   SUM(c.consumo_calculado * {consumption_cost}) AS valor_consumo
             FROM consumos_calculados c
             JOIN articulos a ON a.id = c.articulo_id
             WHERE {clause}
@@ -2026,7 +2670,8 @@ async def indicators(
             db,
             f"""
             SELECT date(datetime(c.fecha_hora, '+2 hours')) AS dia_logistico,
-                   SUM(c.consumo_calculado) AS consumo
+                   SUM(c.consumo_calculado) AS consumo,
+                   SUM(c.consumo_calculado * {consumption_cost}) AS valor_consumo
             FROM consumos_calculados c
             JOIN articulos a ON a.id = c.articulo_id
             WHERE {clause}
@@ -2044,7 +2689,21 @@ async def export_stock(request: Request):
     data = await stock(request)
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["codigo", "descripcion", "categoria", "unidad", "stock_cd", "stock_jaula", "stock_oficina", "stock_total", "stock_minimo", "estado", "cobertura_dias"])
+    writer.writerow([
+        "codigo",
+        "descripcion",
+        "categoria",
+        "unidad",
+        "stock_cd",
+        "stock_jaula",
+        "stock_oficina",
+        "stock_total",
+        "costo_unitario",
+        "valor_stock_total",
+        "stock_minimo",
+        "estado",
+        "cobertura_dias",
+    ])
     for row in data["items"]:
         writer.writerow(
             [
@@ -2056,6 +2715,8 @@ async def export_stock(request: Request):
                 row.get("stock_jaula"),
                 row.get("stock_oficina"),
                 row.get("stock_total"),
+                row.get("costo_unitario"),
+                row.get("valor_stock_total"),
                 row.get("stock_minimo"),
                 row.get("estado"),
                 row.get("cobertura_dias"),

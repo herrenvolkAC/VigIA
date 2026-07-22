@@ -473,10 +473,6 @@ def _summarize(operations: list[dict[str, Any]], standards: dict[tuple[str, str]
     by_division: dict[str, dict[str, Any]] = defaultdict(_new_bucket)
     standard_keys = set(standards.keys())
 
-    for division, sector in standard_keys:
-        by_sector[(division, sector)]["en_maestro"] = True
-        by_division[division]["sectores"].add(sector)
-
     for op in operations:
         division = op["division"]
         sector = op["sector"]
@@ -595,7 +591,7 @@ def _summarize(operations: list[dict[str, Any]], standards: dict[tuple[str, str]
 
     return {
         "divisiones": sorted(divisiones, key=lambda r: r["division"]),
-        "sectores": sorted(sectores, key=lambda r: (r["division"], not r["en_maestro"], r["estado"], r["sector"])),
+        "sectores": sorted(sectores, key=lambda r: (r["division"], r["en_maestro"], r["estado"], r["sector"])),
         "legajos": sorted(legajos, key=lambda r: (r["division"], r["sector"], r["estado"], -r["productividad_actual"])),
     }
 

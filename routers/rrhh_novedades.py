@@ -49,6 +49,7 @@ router = APIRouter(prefix="/api/rrhh", tags=["rrhh-novedades"])
 logger = logging.getLogger("vigia.rrhh_novedades")
 
 SOURCE_ROOT = Path(__file__).parent.parent / "Docs" / "Panel_Choferes" / "PROCESADOS"
+DEFAULT_RRHH_IMPORT_LOG_DIR = Path(__file__).parent.parent / "logs" / "rrhh_importaciones"
 FULL_ACCESS_ROLES = {"admin", "rrhh"}
 IMPORT_ROLES = {"admin", "rrhh"}
 RRHH_SCOPE_MODULE = "novedades_cd"
@@ -56,6 +57,51 @@ _rrhh_import_lock: asyncio.Lock | None = None
 _rrhh_monitor_task: asyncio.Task | None = None
 _rrhh_monitor_stop: asyncio.Event | None = None
 _rrhh_monitor_seen: dict[str, tuple[int, int, float]] = {}
+RRHH_IMPORT_LOG_HEADERS = (
+    "fecha_hora",
+    "batch_key",
+    "importado_por",
+    "modo_importacion",
+    "tipo_archivo",
+    "archivo",
+    "filas_excel",
+    "filas_insertadas",
+    "estado",
+    "detalle",
+)
+ACTIVIDAD_STANDARD_HEADERS = [
+    "division",
+    "subdivision",
+    "sector",
+    "legajo",
+    "empleado",
+    "grupo_profesional",
+    "area_de_personal",
+    "fecha",
+    "dia",
+    "horario",
+    "pausa",
+    "aus_pres",
+    "motivo",
+    "comida",
+    "entrada",
+    "p1_ini",
+    "p1_fin",
+    "mas",
+    "salida",
+    "hs_trab",
+    "hs_50",
+    "hs_extras_autoriz",
+    "hs_100",
+    "recargo_50",
+    "hs_fer",
+    "rec_noct",
+    "adic_frio",
+    "tarde",
+    "viajes_equiv",
+    "rec_noct_2",
+    "hs_garant",
+]
 REAL_SANCIONES = (
     "Amonestación",
     "Anotaciones Especiales",
@@ -525,6 +571,38 @@ def _excel_files(folder: Path) -> list[Path]:
     )
 
 
+def _split_tabbed_activity_row(row: list[Any]) -> list[str] | None:
+    if not row or len(row) != 1 or not isinstance(row[0], str) or "\t" not in row[0]:
+        return None
+    return str(row[0]).split("\t")
+
+
+def _looks_like_tabbed_activity_row(row: list[Any]) -> bool:
+    parts = _split_tabbed_activity_row(row)
+    if not parts or len(parts) < 10:
+        return False
+    return bool(_norm_legajo(parts[3] if len(parts) > 3 else "") and _to_date(parts[7] if len(parts) > 7 else None))
+
+
+def _is_tabbed_activity_workbook(rows: list[list[Any]]) -> bool:
+    sample = rows[:200]
+    candidates = sum(1 for row in sample if _split_tabbed_activity_row(row))
+    valid = sum(1 for row in sample if _looks_like_tabbed_activity_row(row))
+    return valid >= 5 and valid >= max(3, candidates // 2)
+
+
+def _normalized_activity_rows(path: Path) -> tuple[list[list[Any]], str]:
+    rows = _read_workbook_rows(path)
+    if _is_tabbed_activity_workbook(rows):
+        normalized = [ACTIVIDAD_STANDARD_HEADERS]
+        for row in rows:
+            parts = _split_tabbed_activity_row(row)
+            if parts and _looks_like_tabbed_activity_row(row):
+                normalized.append(parts)
+        return normalized, "formato_tabulado_en_celda"
+    return rows, "formato_tabla"
+
+
 def _detect_file_kind(path: Path) -> str | None:
     try:
         rows = _read_workbook_rows(path)
@@ -532,6 +610,8 @@ def _detect_file_kind(path: Path) -> str | None:
         return None
     if not rows:
         return None
+    if _is_tabbed_activity_workbook(rows):
+        return "actividad"
     for row in rows[:5]:
         headers = set(_unique_headers(row))
         if {"legajo", "fecha"}.issubset(headers) and ("empleado" in headers or "sector" in headers):
@@ -567,6 +647,57 @@ def _as_paths(files: dict[str, Any], key: str) -> list[Path]:
     if isinstance(value, list):
         return [Path(item) for item in value]
     return [Path(value)]
+
+
+def _headers_match_kind(headers: set[str], kind: str) -> bool:
+    if kind == "actividad":
+        return {"legajo", "fecha"}.issubset(headers) and ("empleado" in headers or "sector" in headers)
+    if kind == "legajero":
+        return {"legajo", "nombre_del_empleado_o_candidato"}.issubset(headers) or {"legajo", "desc_funcion", "desc_posicion"}.issubset(headers)
+    if kind == "fichadas":
+        return {"legajo_apellido_y_nombre", "fecha_fichada"}.issubset(headers)
+    if kind == "sanciones":
+        return {"legajo", "apellido_y_nombre"}.issubset(headers) and ("causa_sancion" in headers or "descripcion_causa" in headers)
+    if kind == "francos":
+        legajo_headers = {"legajo", "numero_de_personal", "nro_personal", "numero_personal"}
+        saldo_headers = {"saldo", "saldo_francos", "francos", "dias", "dias_franco", "cuenta_corriente", "resto_global"}
+        return bool(headers.intersection(legajo_headers) and headers.intersection(saldo_headers))
+    if kind == "codigos_ausentismo":
+        return "cod_ausentismo" in headers or "codigo" in headers or "codigo_normalizado" in headers
+    return False
+
+
+def _header_index_for_kind(rows: list[list[Any]], kind: str) -> int:
+    for idx, row in enumerate(rows[:5]):
+        if _headers_match_kind(set(_unique_headers(row)), kind):
+            return idx
+    if kind == "fichadas" and rows:
+        return 1 if len(rows) > 1 and _norm_key(rows[0][0] if rows[0] else "") != "ubicacion" else 0
+    return 0
+
+
+def _excel_data_rows(path: Path, kind: str) -> int:
+    if kind == "codigos_ausentismo":
+        total = 0
+        for sheet in ("No Controlado", "Controlado"):
+            try:
+                rows = _read_workbook_rows(path, sheet)
+            except Exception:
+                continue
+            if rows:
+                total += max(len(rows) - 1, 0)
+        return total
+    try:
+        if kind == "actividad":
+            rows, _format = _normalized_activity_rows(path)
+        else:
+            rows = _read_workbook_rows(path)
+    except Exception:
+        return 0
+    if not rows:
+        return 0
+    header_idx = _header_index_for_kind(rows, kind)
+    return max(len(rows) - header_idx - 1, 0)
 
 
 def _detect_files(folder: Path) -> dict[str, Any]:
@@ -801,7 +932,7 @@ def _import_actividad(
     codes: dict[str, dict[str, str]] | None = None,
     no_count_patterns: list[str] | None = None,
 ) -> int:
-    rows = _read_workbook_rows(path)
+    rows, _activity_format = _normalized_activity_rows(path)
     headers = _unique_headers(rows[0])
     payload = []
     seen = seen if seen is not None else set()
@@ -980,13 +1111,28 @@ def _classify_ausentismo(codigo: Any, motivo: Any, horario: Any, codes: dict[str
 
 
 def _import_actividad_files(cur: sqlite3.Cursor, batch_id: int, paths: list[Path], gerencia: dict[str, int]) -> int:
+    total, _details = _import_actividad_files_detailed(cur, batch_id, paths, gerencia)
+    return total
+
+
+def _import_actividad_files_detailed(cur: sqlite3.Cursor, batch_id: int, paths: list[Path], gerencia: dict[str, int]) -> tuple[int, list[dict[str, Any]]]:
     seen: set[tuple[str, str]] = set()
     uo_sector_map = _unidad_sector_map(cur, batch_id)
     codes, no_count_patterns = _load_ausentismo_classifier(cur, batch_id)
     total = 0
-    for path in paths:
-        total += _import_actividad(cur, batch_id, path, gerencia, uo_sector_map, seen, codes, no_count_patterns)
-    return total
+    details: list[dict[str, Any]] = []
+    for path in sorted(paths, key=lambda item: item.stat().st_mtime if item.exists() else 0, reverse=True):
+        inserted = _import_actividad(cur, batch_id, path, gerencia, uo_sector_map, seen, codes, no_count_patterns)
+        total += inserted
+        _rows, activity_format = _normalized_activity_rows(path)
+        details.append({
+            "path": path,
+            "kind": "actividad",
+            "excel_rows": _excel_data_rows(path, "actividad"),
+            "inserted_rows": inserted,
+            "detail": activity_format,
+        })
+    return total, details
 
 
 def _parse_legajo_nombre(value: Any) -> tuple[str, str]:
@@ -1096,11 +1242,19 @@ def _import_sanciones(
 
 
 def _import_sanciones_files(cur: sqlite3.Cursor, batch_id: int, paths: list[Path], gerencia: dict[str, int]) -> int:
+    total, _details = _import_sanciones_files_detailed(cur, batch_id, paths, gerencia)
+    return total
+
+
+def _import_sanciones_files_detailed(cur: sqlite3.Cursor, batch_id: int, paths: list[Path], gerencia: dict[str, int]) -> tuple[int, list[dict[str, Any]]]:
     seen: set[tuple[str, str | None, str | None, str, str, str]] = set()
     total = 0
+    details: list[dict[str, Any]] = []
     for path in paths:
-        total += _import_sanciones(cur, batch_id, path, gerencia, seen)
-    return total
+        inserted = _import_sanciones(cur, batch_id, path, gerencia, seen)
+        total += inserted
+        details.append({"path": path, "kind": "sanciones", "excel_rows": _excel_data_rows(path, "sanciones"), "inserted_rows": inserted})
+    return total, details
 
 
 def _import_codigos(cur: sqlite3.Cursor, batch_id: int, path: Path) -> dict[str, int]:
@@ -1473,6 +1627,8 @@ def _rrhh_quality_warnings(cur: sqlite3.Cursor, batch_id: int, limit: int = 25) 
 
 def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: bool) -> dict[str, Any]:
     files = _detect_files(folder)
+    import_mode = "error"
+    import_log_details: list[dict[str, Any]] = []
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
@@ -1500,7 +1656,9 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
         batch_id = int(cur.lastrowid)
         import_mode = "completo"
         if files.get("legajero"):
-            legajero_info = _import_legajero(cur, batch_id, Path(files["legajero"]))
+            legajero_path = Path(files["legajero"])
+            legajero_info = _import_legajero(cur, batch_id, legajero_path)
+            import_log_details.append({"path": legajero_path, "kind": "legajero", "excel_rows": _excel_data_rows(legajero_path, "legajero"), "inserted_rows": legajero_info["inserted"]})
         elif reference_legajero_batch_id:
             legajero_info = _copy_legajero_from_batch(cur, batch_id, reference_legajero_batch_id)
             import_mode = "parcial_con_legajero_referencia"
@@ -1517,10 +1675,30 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
             }
             import_mode = "parcial_sin_legajero"
         gerencia_map = legajero_info["gerencia_map"]
-        codigos_info = _import_codigos(cur, batch_id, Path(files["codigos_ausentismo"])) if files.get("codigos_ausentismo") else {"codigos": 0, "reglas": 0}
-        francos_inicial = _import_francos_inicial(cur, Path(files["francos"]), imported_by) if files.get("francos") else 0
+        if files.get("codigos_ausentismo"):
+            codigos_path = Path(files["codigos_ausentismo"])
+            codigos_info = _import_codigos(cur, batch_id, codigos_path)
+            import_log_details.append({"path": codigos_path, "kind": "codigos_ausentismo", "excel_rows": _excel_data_rows(codigos_path, "codigos_ausentismo"), "inserted_rows": codigos_info["codigos"]})
+        else:
+            codigos_info = {"codigos": 0, "reglas": 0}
+        if files.get("francos"):
+            francos_path = Path(files["francos"])
+            francos_inicial = _import_francos_inicial(cur, francos_path, imported_by)
+            import_log_details.append({"path": francos_path, "kind": "francos", "excel_rows": _excel_data_rows(francos_path, "francos"), "inserted_rows": francos_inicial})
+        else:
+            francos_inicial = 0
         actividad_paths = _as_paths(files, "actividad_files")
         sanciones_paths = _as_paths(files, "sanciones_files")
+        actividad_total, actividad_details = _import_actividad_files_detailed(cur, batch_id, actividad_paths, gerencia_map) if actividad_paths else (0, [])
+        import_log_details.extend(actividad_details)
+        if files.get("fichadas"):
+            fichadas_path = Path(files["fichadas"])
+            fichadas_total = _import_fichadas(cur, batch_id, fichadas_path, gerencia_map)
+            import_log_details.append({"path": fichadas_path, "kind": "fichadas", "excel_rows": _excel_data_rows(fichadas_path, "fichadas"), "inserted_rows": fichadas_total})
+        else:
+            fichadas_total = 0
+        sanciones_total, sanciones_details = _import_sanciones_files_detailed(cur, batch_id, sanciones_paths, gerencia_map) if sanciones_paths else (0, [])
+        import_log_details.extend(sanciones_details)
         summary = {
             "modo_importacion": import_mode,
             "archivos_detectados": {
@@ -1541,10 +1719,10 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
             "codigos_ausentismo": codigos_info["codigos"],
             "reglas_ausentismo": codigos_info["reglas"],
             "francos_inicial": francos_inicial,
-            "actividad": _import_actividad_files(cur, batch_id, actividad_paths, gerencia_map) if actividad_paths else 0,
+            "actividad": actividad_total,
             "actividad_archivos": len(actividad_paths),
-            "fichadas": _import_fichadas(cur, batch_id, Path(files["fichadas"]), gerencia_map) if files.get("fichadas") else 0,
-            "sanciones": _import_sanciones_files(cur, batch_id, sanciones_paths, gerencia_map) if sanciones_paths else 0,
+            "fichadas": fichadas_total,
+            "sanciones": sanciones_total,
             "sanciones_archivos": len(sanciones_paths),
             "gerencia_legajos": sum(1 for value in gerencia_map.values() if value),
         }
@@ -1559,9 +1737,33 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
             (json.dumps(summary, ensure_ascii=False), batch_id),
         )
         conn.commit()
+        _write_rrhh_import_log([
+            _import_log_entry(
+                batch_key,
+                imported_by,
+                import_mode,
+                item["kind"],
+                item["path"],
+                item["excel_rows"],
+                item["inserted_rows"],
+                "OK_SIN_FILAS_INSERTADAS" if int(item["excel_rows"] or 0) > 0 and int(item["inserted_rows"] or 0) == 0 else "OK",
+                "; ".join(
+                    part
+                    for part in (
+                        item.get("detail", ""),
+                        "El archivo fue procesado pero no genero filas insertadas."
+                        if int(item["excel_rows"] or 0) > 0 and int(item["inserted_rows"] or 0) == 0
+                        else "",
+                    )
+                    if part
+                ),
+            )
+            for item in import_log_details
+        ])
         return {"batch_id": batch_id, "batch_key": batch_key, "files": files, "summary": summary}
     except Exception as exc:
         conn.rollback()
+        _write_rrhh_import_log(_error_import_log_entries(files, batch_key, imported_by, str(exc)))
         raise RuntimeError(str(exc)) from exc
     finally:
         conn.close()
@@ -1661,6 +1863,84 @@ def _unique_destination(dest_dir: Path, name: str) -> Path:
     raise RuntimeError(f"No se pudo generar destino unico para {name}.")
 
 
+def _rrhh_import_log_dir() -> Path:
+    return _env_path("RRHH_IMPORT_LOG_DIR", DEFAULT_RRHH_IMPORT_LOG_DIR) or DEFAULT_RRHH_IMPORT_LOG_DIR
+
+
+def _import_log_entry(
+    batch_key: str,
+    imported_by: str,
+    import_mode: str,
+    file_kind: str,
+    path: Path,
+    excel_rows: int,
+    inserted_rows: int,
+    status: str = "OK",
+    detail: str = "",
+) -> dict[str, Any]:
+    return {
+        "fecha_hora": _now(),
+        "batch_key": batch_key,
+        "importado_por": imported_by,
+        "modo_importacion": import_mode,
+        "tipo_archivo": file_kind,
+        "archivo": path.name,
+        "filas_excel": int(excel_rows or 0),
+        "filas_insertadas": int(inserted_rows or 0),
+        "estado": status,
+        "detalle": detail,
+    }
+
+
+def _write_rrhh_import_log(entries: list[dict[str, Any]]) -> str | None:
+    if not entries:
+        return None
+    try:
+        log_dir = _rrhh_import_log_dir()
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_path = log_dir / f"Importacion{date.today().strftime('%Y%m%d')}.txt"
+        needs_header = not log_path.exists() or log_path.stat().st_size == 0
+        with log_path.open("a", encoding="utf-8", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=RRHH_IMPORT_LOG_HEADERS, delimiter="\t", lineterminator="\n")
+            if needs_header:
+                writer.writeheader()
+            for entry in entries:
+                writer.writerow({header: entry.get(header, "") for header in RRHH_IMPORT_LOG_HEADERS})
+        return str(log_path)
+    except Exception as exc:
+        logger.warning("No se pudo escribir log operativo RRHH: %s", exc)
+        return None
+
+
+def _error_import_log_entries(
+    files: dict[str, Any],
+    batch_key: str,
+    imported_by: str,
+    detail: str,
+) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    for kind, value in (
+        ("actividad", files.get("actividad_files")),
+        ("legajero", files.get("legajero")),
+        ("fichadas", files.get("fichadas")),
+        ("sanciones", files.get("sanciones_files")),
+        ("codigos_ausentismo", files.get("codigos_ausentismo")),
+        ("francos", files.get("francos")),
+    ):
+        paths = [Path(item) for item in value] if isinstance(value, list) else ([Path(value)] if value else [])
+        for path in paths:
+            entries.append(_import_log_entry(batch_key, imported_by, "error", kind, path, _excel_data_rows(path, kind), 0, "ERROR", detail))
+    return entries
+
+
+def _error_import_log_entries_for_paths(paths: list[Path], batch_key: str, imported_by: str, detail: str) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    for path in paths:
+        kind = _detect_file_kind(path) or "desconocido"
+        entries.append(_import_log_entry(batch_key, imported_by, "error", kind, path, _excel_data_rows(path, kind), 0, "ERROR", detail))
+    return entries
+
+
 def _move_files(paths: list[Path], dest_root: Path, batch_key: str) -> list[str]:
     dest_root.mkdir(parents=True, exist_ok=True)
     moved: list[str] = []
@@ -1738,6 +2018,11 @@ async def _rrhh_monitor_loop() -> None:
                         logger.info("Monitor RRHH importo %s y movio %s archivo(s).", batch_key, len(moved))
                     except Exception as exc:
                         logger.exception("Monitor RRHH fallo al importar %s: %s", batch_key, exc)
+                        if "No se detectaron archivos RRHH compatibles" in str(exc):
+                            await asyncio.to_thread(
+                                _write_rrhh_import_log,
+                                _error_import_log_entries_for_paths(stable_files, batch_key, "rrhh_monitor", str(exc)),
+                            )
                         error_dir = _watch_error_dir(inbox)
                         moved = await asyncio.to_thread(_move_files, stable_files, error_dir, batch_key)
                         report = await asyncio.to_thread(_write_import_error_report, error_dir, batch_key, exc, stable_files, moved)
@@ -2470,6 +2755,7 @@ async def get_config(request: Request):
             "inbox": str(watch_inbox) if watch_inbox else None,
             "imported": str(_watch_imported_dir(watch_inbox)) if watch_inbox else None,
             "error": str(_watch_error_dir(watch_inbox)) if watch_inbox else None,
+            "import_log_dir": str(_rrhh_import_log_dir()),
             "poll_seconds": _env_int("RRHH_WATCH_POLL_SECONDS", 60, minimum=10, maximum=3600),
             "stability_seconds": _env_int("RRHH_WATCH_STABILITY_SECONDS", 30, minimum=5, maximum=3600),
         },

@@ -30,17 +30,18 @@
     .filters,.form-grid,.import-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.form-grid{border-top:1px solid var(--rule);margin-top:12px}.import-line{grid-template-columns:1fr auto auto auto auto}.indicator-filters{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(150px,.7fr) minmax(260px,1.4fr) auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
     .production-pair{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px;margin-top:12px}.production-card{position:relative;border:1px solid var(--rule-strong);border-top-width:4px;padding-top:42px;margin-top:0}.production-card::before{position:absolute;top:12px;left:12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}.production-card::after{content:"";position:absolute;top:13px;right:12px;width:10px;height:10px;border-radius:50%}.production-card.produced{border-top-color:var(--green);background:linear-gradient(90deg,var(--green-soft),transparent 42%),var(--panel)}.production-card.produced::before{content:"Alta de produccion";color:var(--green)}.production-card.produced::after{background:var(--green)}.production-card.delivered{border-top-color:var(--amber);background:linear-gradient(90deg,var(--amber-soft),transparent 42%),var(--panel)}.production-card.delivered::before{content:"Entrega a sector";color:var(--amber)}.production-card.delivered::after{background:var(--amber)}.logistic-summary{border:1px solid var(--rule);border-top:4px solid var(--blue);background:var(--panel);min-height:100%;padding:10px 12px}.logistic-summary.produced{border-top-color:var(--green)}.logistic-summary.delivered{border-top-color:var(--amber)}.summary-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:8px}.summary-head strong{font-size:13px}.summary-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);text-align:right}.summary-list{display:flex;flex-direction:column;gap:6px;max-height:150px;overflow:auto}.summary-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;border-bottom:1px solid var(--rule);padding-bottom:6px;font-size:12px}.summary-item:last-child{border-bottom:0}.summary-item b{font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px}.summary-item small{display:block;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.summary-item .qty{font-family:"IBM Plex Mono",Consolas,monospace;font-weight:600}.production-sections{display:grid;gap:14px;margin-top:14px}.production-section{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue)}.production-section.moves{border-top-color:var(--amber)}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--rule);background:#f8faf7}.section-head strong{font-size:14px}.section-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}.production-section .table-wrap{border:0;max-height:320px}.production-section.moves .table-wrap{max-height:260px}.production-section table th{top:0}
     .field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.span{grid-column:1/-1}.input,select,textarea{width:100%;min-height:34px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:7px 10px}.input,select{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px;font-weight:500}textarea{min-height:68px;resize:vertical}
-    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0}.kpi{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi.warn{border-top-color:var(--amber)}.kpi.ok{border-top-color:var(--green)}.kpi-num{font-family:"IBM Plex Mono",Consolas,monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi.warn .kpi-num{color:var(--amber)}.kpi.ok .kpi-num{color:var(--green)}.indicator-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.indicator-column{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--blue);min-width:0}.indicator-column.stock{border-top-color:var(--green)}.indicator-column.production{border-top-color:var(--amber)}.indicator-column.orders{border-top-color:var(--blue)}.indicator-column-head{padding:12px;border-bottom:1px solid var(--rule);background:#f8faf7}.indicator-column-head strong{font-size:16px}.mini-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px 12px;border-bottom:1px solid var(--rule)}.mini-kpi{border:1px solid var(--rule);background:var(--panel);padding:8px;min-width:0}.mini-kpi .label{font-size:9px;letter-spacing:.12em}.mini-kpi .kpi-num{font-size:22px;margin:6px 0 0}.indicator-column .chart-panel{border:0;border-top:1px solid var(--rule);min-height:256px}.indicator-column .chart-panel:first-of-type{border-top:0}.indicator-column .chart-panel.wide{grid-column:auto}.indicator-column .table-wrap{border:0;border-top:1px solid var(--rule);max-height:260px}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0}.kpi{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi.warn{border-top-color:var(--amber)}.kpi.ok{border-top-color:var(--green)}.kpi-num{font-family:"IBM Plex Mono",Consolas,monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi.warn .kpi-num{color:var(--amber)}.kpi.ok .kpi-num{color:var(--green)}.indicator-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.indicator-column{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--blue);min-width:0}.indicator-column.stock{border-top-color:var(--green)}.indicator-column.production{border-top-color:var(--amber)}.indicator-column.orders{border-top-color:var(--blue)}.indicator-column-head{padding:12px;border-bottom:1px solid var(--rule);background:#f8faf7}.indicator-column-head strong{font-size:16px}.mini-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;padding:10px 12px;border-bottom:1px solid var(--rule)}.mini-kpi{border:1px solid var(--rule);background:var(--panel);padding:8px;min-width:0;overflow:hidden}.mini-kpi.value-card{grid-column:span 2}.mini-kpi .label{font-size:9px;letter-spacing:.12em}.mini-kpi .kpi-num{font-size:20px;margin:6px 0 0;max-width:100%;overflow:hidden;text-overflow:ellipsis}.mini-kpi.value-card .kpi-num{font-size:18px}.indicator-column .chart-panel{border:0;border-top:1px solid var(--rule);min-height:256px}.indicator-column .chart-panel:first-of-type{border-top:0}.indicator-column .chart-panel.wide{grid-column:auto}.indicator-column .table-wrap{border:0;border-top:1px solid var(--rule);max-height:260px}
     .table-wrap{overflow:auto;max-height:560px;border:1px solid var(--rule);border-top:0;background:var(--panel)}table{width:100%;border-collapse:collapse;table-layout:fixed}th{position:sticky;top:0;background:#f6f8f5;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule);padding:9px;user-select:none;cursor:pointer}th:hover{color:var(--ink);background:#edf2ee}th.sorted{color:var(--ink)}th.sorted::after{content:attr(data-sort-mark);float:right;color:var(--green);letter-spacing:0}td{border-bottom:1px solid var(--rule);padding:8px 9px;font-size:13px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}tbody tr:nth-child(odd){background:#f8faf7}
     .state{display:inline-block;border:1px solid var(--green);background:var(--green-bg);color:var(--green);padding:3px 7px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px}.state.bad{border-color:var(--red);background:var(--red-bg);color:var(--red)}.muted{color:var(--soft);font-size:12px}.right{text-align:right}.actions{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none!important}
     .badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;margin-left:8px;border-radius:9px;background:var(--red);color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:0}.request-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:12px;margin-top:12px}.request-grid.pending-workbench{grid-template-columns:minmax(280px,360px) minmax(0,1fr)}.request-card{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--green);min-width:0}.request-card.pending{border-top-color:var(--amber)}.request-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid var(--rule);background:#f8faf7}.request-head strong{font-size:15px}.request-body{padding:12px}.request-table input,.request-table select{min-height:30px;padding:5px 7px}.request-table th:nth-child(1){width:92px}.request-table th:nth-child(3),.request-table th:nth-child(4),.request-table th:nth-child(5),.request-table th:nth-child(6){width:120px}.request-list{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto}.request-item{width:100%;text-align:left;border:1px solid var(--rule);background:var(--panel);padding:10px}.request-item.active{border-color:var(--green);box-shadow:inset 3px 0 0 var(--green)}.request-item strong{display:block;font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px}.request-item span{display:block;color:var(--soft);font-size:12px;margin-top:3px}.request-detail{background:var(--panel);border:1px solid var(--rule);min-height:220px;min-width:0}.detail-empty{padding:24px;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;text-transform:uppercase;font-size:11px}.status-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.state.warn{border-color:var(--amber);background:var(--amber-bg);color:var(--amber)}
     .request-top-grid{display:grid;grid-template-columns:minmax(360px,1.02fr) minmax(420px,1.35fr);gap:12px;margin-top:12px}.request-top-grid .form-grid{grid-template-columns:1fr;margin-top:0;border-top:1px solid var(--rule);align-content:start}.request-chart-card{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);min-width:0}.request-chart-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:end;padding:12px;border-bottom:1px solid var(--rule)}.request-chart-body{padding:12px;min-height:260px}.line-chart{width:100%;height:220px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;fill:var(--soft)}.line-chart polyline{fill:none;stroke-width:2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.bad{stroke:var(--red)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.bad{fill:var(--red)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend.inline{display:flex;flex-direction:row;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 8px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--blue)}.legend-dot.amber{background:var(--amber)}
-    .request-history-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,.95fr);gap:12px;margin-top:12px}.request-new-grid{display:grid;grid-template-columns:minmax(360px,.78fr) minmax(0,1.6fr);gap:12px;margin-top:12px;align-items:start}.request-new-form{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--green);min-width:0}.request-new-form .form-grid{grid-template-columns:minmax(180px,.75fr) minmax(220px,1fr) auto;margin-top:0;border:0;align-items:end}.request-new-form textarea{min-height:34px;height:34px;resize:vertical}.request-new-form .btn{height:34px;white-space:nowrap}.request-new-grid .table-wrap{max-height:520px}
-    .dashboard-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.chart-panel{background:var(--panel);border:1px solid var(--rule);padding:12px;min-height:318px;min-width:0}.chart-panel.short{min-height:286px}.chart-panel.wide{grid-column:span 2}.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.chart-head strong{font-size:15px}.chart-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}.bar-list{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(78px,1fr) minmax(110px,2fr) 54px;gap:8px;align-items:center;font-size:12px}.stock-location-chart .bar-row{grid-template-columns:minmax(0,52ch) minmax(110px,1fr) 54px}.stock-location-chart .bar-label{font-size:11px;line-height:1.2;white-space:nowrap}.bar-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-track{height:14px;background:#EAEEEB;display:flex;overflow:hidden}.bar-fill{height:100%;min-width:2px;background:var(--green)}.bar-fill.cd{background:var(--blue)}.bar-fill.jaula{background:var(--green)}.bar-fill.oficina{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-fill.soft{background:var(--rule-strong)}.stock-segment{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;font-weight:700;line-height:1;text-shadow:0 1px 1px rgba(0,0,0,.35)}.stock-segment.is-empty{display:none}.bar-value{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;color:var(--soft)}.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);text-transform:uppercase}.legend i{display:inline-block;width:12px;height:8px;margin-right:5px}.activity-list{display:flex;flex-direction:column;gap:8px}.activity-item{border-bottom:1px solid var(--rule);padding-bottom:8px;font-size:12px}.activity-item strong{display:block;font-family:"IBM Plex Mono",Consolas,monospace}.activity-item span{color:var(--soft)}.empty-chart{border:1px dashed var(--rule-strong);padding:18px;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;text-transform:uppercase}
+    .request-history-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,.95fr);gap:12px;margin-top:12px}.request-workbench{margin-top:12px}.request-mode{display:none}.request-mode.active{display:block}.request-order-form,.waste-card{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--green);min-width:0}.waste-card{border-top-color:var(--amber)}.request-order-controls{display:grid;grid-template-columns:minmax(220px,.42fr) minmax(320px,1fr);gap:12px;padding:12px;border-bottom:1px solid var(--rule);align-items:end}.request-order-controls textarea{min-height:34px;height:34px;resize:vertical}.request-order-catalog .table-wrap{border:0;max-height:520px}.request-submit{display:block;width:calc(100% - 24px);height:36px;margin:12px;white-space:nowrap;text-align:center}.waste-card .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:0;border:0}.waste-list{display:flex;flex-direction:column;gap:7px;max-height:220px;overflow:auto;padding:0 12px 12px}.waste-item{border:1px solid var(--rule);background:#f8faf7;padding:8px;font-size:12px}.waste-item strong{display:block;font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px}.waste-item span{display:block;color:var(--soft);margin-top:3px}.users-toolbar{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(220px,.7fr) auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.users-summary{font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;color:var(--soft)}.users-table th:first-child,.users-table td:first-child{width:42px;text-align:center}.users-table input[type="checkbox"]{width:16px;height:16px}
+    .dashboard-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}.chart-panel{background:var(--panel);border:1px solid var(--rule);padding:12px;min-height:318px;min-width:0}.chart-panel.short{min-height:286px}.chart-panel.wide{grid-column:span 2}.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.chart-head strong{font-size:15px}.chart-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}.bar-list{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(78px,1fr) minmax(110px,2fr) 54px;gap:8px;align-items:center;font-size:12px}.value-bars .bar-row{grid-template-columns:minmax(92px,1fr) minmax(120px,1.45fr) minmax(176px,.95fr)}.stock-location-chart .bar-row{grid-template-columns:minmax(0,52ch) minmax(110px,1fr) 54px}.stock-location-chart .bar-label{font-size:11px;line-height:1.2;white-space:nowrap}.bar-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-track{height:14px;background:#EAEEEB;display:flex;overflow:hidden}.bar-fill{height:100%;min-width:2px;background:var(--green)}.bar-fill.cd{background:var(--blue)}.bar-fill.jaula{background:var(--green)}.bar-fill.oficina{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-fill.soft{background:var(--rule-strong)}.stock-segment{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;font-weight:700;line-height:1;text-shadow:0 1px 1px rgba(0,0,0,.35)}.stock-segment.is-empty{display:none}.bar-value{text-align:right;font-family:"IBM Plex Mono",Consolas,monospace;color:var(--soft)}.value-bars .bar-value{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);text-transform:uppercase}.legend i{display:inline-block;width:12px;height:8px;margin-right:5px}.activity-list{display:flex;flex-direction:column;gap:8px}.activity-item{border-bottom:1px solid var(--rule);padding-bottom:8px;font-size:12px}.activity-item strong{display:block;font-family:"IBM Plex Mono",Consolas,monospace}.activity-item span{color:var(--soft)}.empty-chart{border:1px dashed var(--rule-strong);padding:18px;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;text-transform:uppercase}
     .subtabs{display:flex;gap:8px;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:10px 12px}.subtab{border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:8px 12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.subtab.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}.prod-view,.stock-view{display:none}.prod-view.active,.stock-view.active{display:block}.pie-wrap{display:grid;grid-template-columns:160px minmax(0,1fr);gap:14px;align-items:center}.pie{width:150px;height:150px;border-radius:50%;border:1px solid var(--rule);background:#e9eeeb}.chart-legend{display:flex;flex-direction:column;gap:7px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;color:var(--soft)}.chart-legend span{display:flex;align-items:center;gap:7px}.chart-legend i{width:12px;height:12px;display:inline-block}.vertical-chart{display:flex;align-items:flex-end;gap:10px;min-height:230px;overflow:auto;padding:8px 2px 0}.vbar-item{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:48px;max-width:72px}.vbar-track{height:170px;width:34px;background:#e9eeeb;display:flex;flex-direction:column-reverse;overflow:hidden;border:1px solid var(--rule)}.vbar-fill{width:100%;background:var(--green);display:flex;align-items:center;justify-content:center;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;text-shadow:0 1px 1px rgba(0,0,0,.35)}.vbar-label{width:100%;text-align:center;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vbar-value{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px}.stack-seg{width:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:"IBM Plex Mono",Consolas,monospace;font-size:9px;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-    @media(max-width:1100px){.page-head{grid-template-columns:1fr}.filters,.form-grid,.kpis,.dashboard-charts,.indicator-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.indicator-board{grid-template-columns:1fr}.production-pair,.request-grid,.request-top-grid,.request-history-grid,.request-new-grid{grid-template-columns:1fr}.chart-panel.wide{grid-column:span 2}.import-line{grid-template-columns:1fr 1fr}.request-chart-filters,.request-new-form .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:850px){.dashboard-charts{grid-template-columns:1fr}.chart-panel.wide{grid-column:auto}.mini-kpis{grid-template-columns:1fr}.stock-location-chart .bar-row{grid-template-columns:minmax(0,42ch) minmax(90px,1fr) 48px}}
-    @media(max-width:700px){.app{padding:0 10px 20px}.filters,.form-grid,.kpis,.import-line,.indicator-filters,.request-chart-filters,.request-new-form .form-grid{grid-template-columns:1fr}.tab{min-width:112px}.head-actions{align-items:flex-start}}
+    .guide-shell{display:grid;gap:14px;margin-top:14px}.guide-card{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--blue);min-width:0}.guide-card.flow{border-top-color:var(--green)}.guide-card.cost{border-top-color:var(--amber)}.guide-head{padding:12px;border-bottom:1px solid var(--rule);background:#f8faf7}.guide-head strong{font-size:15px}.flow-canvas{padding:14px;overflow:auto}.flow-svg{display:block;min-width:1040px;width:100%;height:auto;background:#fff;border:1px solid var(--rule)}.flow-svg text{font-family:"IBM Plex Mono",Consolas,monospace;fill:var(--ink)}.flow-svg .lane{fill:#f8faf7;stroke:var(--rule)}.flow-svg .lane-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;fill:var(--soft)}.flow-svg .phase{fill:#fff;stroke:var(--rule);stroke-dasharray:4 4}.flow-svg .phase-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;fill:var(--soft)}.flow-svg .box{fill:#fff;stroke:var(--rule-strong);stroke-width:1.2;filter:url(#flow-shadow)}.flow-svg .box.green{fill:#f4fbf6;stroke:var(--green)}.flow-svg .box.amber{fill:#fff8ed;stroke:var(--amber)}.flow-svg .box.blue{fill:#f3f8fd;stroke:var(--blue)}.flow-svg .decision{fill:#fff8ed;stroke:var(--amber);stroke-width:1.2;filter:url(#flow-shadow)}.flow-svg .title{font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;font-size:14px;font-weight:600}.flow-svg .note{font-size:9px;fill:var(--soft)}.flow-svg .step{font-size:9px;letter-spacing:.12em;fill:var(--green)}.flow-svg .screen{font-size:8px;letter-spacing:.08em;fill:var(--soft)}.flow-svg .line{fill:none;stroke:var(--rule-strong);stroke-width:1.4;marker-end:url(#flow-arrow)}.flow-svg .line.green{stroke:var(--green);marker-end:url(#flow-arrow-green)}.flow-svg .line.amber{stroke:var(--amber);marker-end:url(#flow-arrow-amber)}.flow-svg .line.blue{stroke:var(--blue);marker-end:url(#flow-arrow-blue)}.flow-svg .tag{fill:#fff;stroke:var(--rule);stroke-width:1}.flow-svg .tag-text{font-size:9px;fill:var(--soft)}.guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.guide-text{padding:12px}.guide-text p{margin:0 0 9px;font-size:13px;line-height:1.45}.guide-list{margin:0;padding-left:18px;font-size:13px;line-height:1.5}.guide-table{width:100%;table-layout:auto}.guide-table th,.guide-table td{position:static;white-space:normal;overflow:visible;text-overflow:clip}.guide-callout{border-left:3px solid var(--green);background:#f8faf7;margin:12px;padding:10px 12px;font-size:13px;line-height:1.45}
+    @media(max-width:1100px){.page-head{grid-template-columns:1fr}.filters,.form-grid,.kpis,.dashboard-charts,.indicator-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.indicator-board{grid-template-columns:1fr}.production-pair,.request-grid,.request-top-grid,.request-history-grid,.guide-grid{grid-template-columns:1fr}.chart-panel.wide{grid-column:span 2}.import-line{grid-template-columns:1fr 1fr}.request-chart-filters,.request-order-controls,.waste-card .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:850px){.dashboard-charts{grid-template-columns:1fr}.chart-panel.wide{grid-column:auto}.mini-kpis{grid-template-columns:1fr}.mini-kpi.value-card{grid-column:auto}.stock-location-chart .bar-row{grid-template-columns:minmax(0,42ch) minmax(90px,1fr) 48px}}
+    @media(max-width:700px){.app{padding:0 10px 20px}.filters,.form-grid,.kpis,.import-line,.indicator-filters,.request-chart-filters,.request-order-controls,.waste-card .form-grid,.users-toolbar{grid-template-columns:1fr}.flow-canvas{padding:10px}.tab{min-width:112px}.head-actions{align-items:flex-start}}
   </style>
 </head>
 <body>
@@ -62,14 +63,177 @@
   <nav class="tabs">
     <button class="tab active" data-tab="indicadores">Indicadores</button>
     <button class="tab" data-tab="stock-insumos">Stock Insumos</button>
-    <button class="tab" data-tab="pedido-insumos">Pedido de Insumos</button>
+    <button class="tab" data-tab="pedido-insumos">Pedido de Insumos y Carga de Mermas</button>
+    <button class="tab" data-tab="guia">Guia</button>
     <button class="tab" data-tab="pedidos-pendientes">Pedidos Pendientes<span class="badge hidden" id="pending-badge">0</span></button>
     <button class="tab" data-tab="produccion">Produccion</button>
     <button class="tab" data-tab="historial">Historial</button>
     <button class="tab" data-tab="importacion">Importacion CD</button>
     <button class="tab" data-tab="articulos">Articulos</button>
+    <button class="tab" data-tab="usuarios-panol">Usuarios</button>
   </nav>
   <div class="status" id="status">Inicializando pantalla...</div>
+
+  <section class="panel" id="panel-guia">
+    <div class="guide-shell">
+      <section class="guide-card flow">
+        <div class="guide-head"><strong>Flujo operativo</strong><div class="muted">Como se conectan PLUs, stock, pedidos, mermas, costos e indicadores</div></div>
+        <div class="flow-canvas">
+          <svg class="flow-svg" viewBox="0 0 1160 520" role="img" aria-label="Diagrama de flujo operativo de Panol Insumos">
+            <defs>
+              <marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#a9b4ac"></path>
+              </marker>
+              <marker id="flow-arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f7a4d"></path>
+              </marker>
+              <marker id="flow-arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#b25f00"></path>
+              </marker>
+              <marker id="flow-arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#0b5fae"></path>
+              </marker>
+              <filter id="flow-shadow" x="-8%" y="-16%" width="116%" height="132%">
+                <feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-color="#0e1620" flood-opacity=".12"></feDropShadow>
+              </filter>
+            </defs>
+
+            <rect class="lane" x="24" y="38" width="1112" height="112"></rect>
+            <rect class="lane" x="24" y="196" width="1112" height="112"></rect>
+            <rect class="lane" x="24" y="354" width="1112" height="112"></rect>
+            <text class="lane-label" x="48" y="68">Pedido de insumos</text>
+            <text class="lane-label" x="48" y="226">Mermas</text>
+            <text class="lane-label" x="48" y="384">Stock, costos e indicadores</text>
+
+            <rect class="box green" x="214" y="72" width="150" height="52"></rect>
+            <text class="step" x="230" y="90">SECTOR</text>
+            <text class="title" x="230" y="110">Selecciona sector</text>
+            <text class="screen" x="230" y="122">Solapa: Pedido de Insumos</text>
+            <rect class="box green" x="424" y="72" width="150" height="52"></rect>
+            <text class="step" x="440" y="90">PEDIDO</text>
+            <text class="title" x="440" y="110">Carga cantidades</text>
+            <text class="screen" x="440" y="122">Solapa: Pedido de Insumos</text>
+            <rect class="box amber" x="634" y="72" width="150" height="52"></rect>
+            <text class="step" x="650" y="90">PANOL</text>
+            <text class="title" x="650" y="110">Confirma entrega</text>
+            <text class="screen" x="650" y="122">Solapa: Pendientes</text>
+            <rect class="box blue" x="844" y="72" width="150" height="52"></rect>
+            <text class="step" x="860" y="90">HISTORIAL</text>
+            <text class="title" x="860" y="110">Recibido por dia</text>
+            <text class="screen" x="860" y="122">Solapa: Pedido de Insumos</text>
+            <path class="line green" d="M364 98 H424"></path>
+            <path class="line amber" d="M574 98 H634"></path>
+            <path class="line blue" d="M784 98 H844"></path>
+
+            <rect class="box amber" x="214" y="230" width="150" height="52"></rect>
+            <text class="step" x="230" y="248">SECTOR</text>
+            <text class="title" x="230" y="268">Detecta merma</text>
+            <text class="screen" x="230" y="280">No aplica</text>
+            <rect class="box amber" x="424" y="230" width="150" height="52"></rect>
+            <text class="step" x="440" y="248">REGISTRO</text>
+            <text class="title" x="440" y="268">Motivo y obs.</text>
+            <text class="screen" x="440" y="280">Solapa: Pedido de Insumos</text>
+            <rect class="box amber" x="634" y="230" width="150" height="52"></rect>
+            <text class="step" x="650" y="248">OPCIONAL</text>
+            <text class="title" x="650" y="268">Asocia pedido</text>
+            <text class="screen" x="650" y="280">Solapa: Pedido de Insumos</text>
+            <rect class="box green" x="844" y="230" width="150" height="52"></rect>
+            <text class="step" x="860" y="248">IMPACTO</text>
+            <text class="title" x="860" y="268">No toca stock</text>
+            <text class="screen" x="860" y="280">Solapa: Indicadores</text>
+            <path class="line amber" d="M364 256 H424"></path>
+            <path class="line amber" d="M574 256 H634"></path>
+            <path class="line green" d="M784 256 H844"></path>
+
+            <rect class="box blue" x="152" y="388" width="146" height="52"></rect>
+            <text class="step" x="168" y="406">MAESTRO</text>
+            <text class="title" x="168" y="426">PLUs y costo</text>
+            <text class="screen" x="168" y="438">Solapa: Articulos</text>
+            <rect class="box blue" x="348" y="388" width="146" height="52"></rect>
+            <text class="step" x="364" y="406">STOCK</text>
+            <text class="title" x="364" y="426">Stock actual</text>
+            <text class="screen" x="364" y="438">Solapa: Stock Insumos</text>
+            <rect class="box amber" x="544" y="388" width="146" height="52"></rect>
+            <text class="step" x="560" y="406">PRODUCCION</text>
+            <text class="title" x="560" y="426">Stock producido</text>
+            <text class="screen" x="560" y="438">Solapa: Produccion</text>
+            <rect class="box green" x="740" y="388" width="146" height="52"></rect>
+            <text class="step" x="756" y="406">MOVIMIENTOS</text>
+            <text class="title" x="756" y="426">Descuento real</text>
+            <text class="screen" x="756" y="438">Solapa: Pendientes</text>
+            <rect class="box green" x="936" y="388" width="146" height="52"></rect>
+            <text class="step" x="952" y="406">SALIDA</text>
+            <text class="title" x="952" y="426">Indicadores</text>
+            <text class="screen" x="952" y="438">Solapa: Indicadores</text>
+            <path class="line blue" d="M298 414 H348"></path>
+            <path class="line amber" d="M494 414 H544"></path>
+            <path class="line green" d="M690 414 H740"></path>
+            <path class="line green" d="M886 414 H936"></path>
+          </svg>
+        </div>
+      </section>
+
+      <div class="guide-grid">
+        <section class="guide-card">
+          <div class="guide-head"><strong>Pedidos</strong><div class="muted">Sector solicitante</div></div>
+          <div class="guide-text">
+            <p>Siempre se trabaja con un sector puntual seleccionado. El historial, el grafico recibido por dia y las mermas corresponden a ese sector.</p>
+            <ul class="guide-list">
+              <li>El pedido queda pendiente hasta que Panol lo confirma.</li>
+              <li>La confirmacion puede ser total o parcial.</li>
+              <li>Solo lo confirmado impacta stock o produccion entregada.</li>
+            </ul>
+          </div>
+        </section>
+        <section class="guide-card cost">
+          <div class="guide-head"><strong>Costos</strong><div class="muted">Vigencia historica</div></div>
+          <div class="guide-text">
+            <p>El costo se carga desde el maestro de PLUs con una fecha de vigencia. Esa fecha indica desde cuando el costo esta activo.</p>
+            <ul class="guide-list">
+              <li>Los reportes usan el costo vigente en la fecha del evento.</li>
+              <li>Si un PLU no tiene costo, se visualiza igual como Sin costo.</li>
+              <li>El cambio de costo no revaloriza eventos anteriores.</li>
+            </ul>
+          </div>
+        </section>
+        <section class="guide-card">
+          <div class="guide-head"><strong>Mermas</strong><div class="muted">No modifican stock</div></div>
+          <div class="guide-text">
+            <p>La merma sirve para registrar material recibido que queda inutilizable y no debe interpretarse como consumo normal del sector.</p>
+            <ul class="guide-list">
+              <li>La asociacion a pedido es opcional.</li>
+              <li>El motivo se selecciona de una lista tabulada.</li>
+              <li>Debe incluir observaciones para trazabilidad.</li>
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <section class="guide-card">
+        <div class="guide-head"><strong>Impacto por concepto</strong><div class="muted">Que modifica cada operacion</div></div>
+        <div class="table-wrap">
+          <table class="guide-table">
+            <thead><tr><th>Concepto</th><th>Modifica stock</th><th>Modifica indicadores</th><th>Observacion</th></tr></thead>
+            <tbody>
+              <tr><td>Importacion CD</td><td>Stock CD</td><td>Stock y valorizacion vigente</td><td>Actualiza disponibilidad central por PLU.</td></tr>
+              <tr><td>Movimiento</td><td>Jaula u Oficina</td><td>Stock, cobertura y movimientos</td><td>Alta, baja, ajuste o transferencia.</td></tr>
+              <tr><td>Inventario</td><td>Oficina o Jaula</td><td>Consumo calculado</td><td>El consumo surge de diferencia entre inventarios e ingresos.</td></tr>
+              <tr><td>Produccion</td><td>Stock producido</td><td>Produccion y valor producido</td><td>Alta interna de insumos producidos.</td></tr>
+              <tr><td>Pedido confirmado</td><td>Insumo o produccion entregada</td><td>Pedidos, sectores y valor confirmado</td><td>Solo descuenta lo confirmado.</td></tr>
+              <tr><td>Merma</td><td>No</td><td>Mermas por sector, PLU, motivo y valor</td><td>Registra uso no imputable a consumo normal.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="guide-card">
+        <div class="guide-head"><strong>Casos tipicos</strong><div class="muted">Lectura rapida</div></div>
+        <div class="guide-callout">Si un sector recibe insumos impresos duplicados o inutilizables, registra una merma. Esa merma queda en indicadores, pero no toca el stock.</div>
+        <div class="guide-callout">Si Panol entrega menos de lo pedido, el pedido queda confirmado parcial y los graficos muestran lo realmente recibido.</div>
+        <div class="guide-callout">Si falta costo en un PLU, el articulo sigue visible en stock, pedidos y reportes; simplemente no suma valor hasta que se cargue un costo vigente.</div>
+      </section>
+    </div>
+  </section>
 
   <section class="panel active" id="panel-indicadores">
     <div class="indicator-filters">
@@ -86,6 +250,8 @@
           <div class="mini-kpi"><div class="label">Articulos</div><div class="kpi-num" id="m-articulos">0</div></div>
           <div class="mini-kpi"><div class="label">Bajo minimo</div><div class="kpi-num" id="m-bajo">0</div></div>
           <div class="mini-kpi"><div class="label">Movs hoy</div><div class="kpi-num" id="m-movs">0</div></div>
+          <div class="mini-kpi value-card"><div class="label">Valor stock</div><div class="kpi-num" id="m-stock-value">$ 0</div></div>
+          <div class="mini-kpi"><div class="label">Sin costo</div><div class="kpi-num" id="m-no-cost">0</div></div>
         </div>
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Stock por ubicacion</strong><div class="muted">Top articulos por stock total</div></div><span>CD / Jaula / Oficina</span></div>
@@ -108,6 +274,7 @@
           <div class="mini-kpi"><div class="label">Producido hoy</div><div class="kpi-num" id="p-produced-today">0</div></div>
           <div class="mini-kpi"><div class="label">Entregado hoy</div><div class="kpi-num" id="p-delivered-today">0</div></div>
           <div class="mini-kpi"><div class="label">Stock prod.</div><div class="kpi-num" id="p-stock-total">0</div></div>
+          <div class="mini-kpi value-card"><div class="label">Valor stock</div><div class="kpi-num" id="p-stock-value">$ 0</div></div>
         </div>
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Historico entregado</strong><div class="muted">Total por destino</div></div><span>Torta</span></div>
@@ -125,14 +292,21 @@
           <div class="mini-kpi"><div class="label">Pedidos</div><div class="kpi-num" id="o-total">0</div></div>
           <div class="mini-kpi"><div class="label">Pendientes</div><div class="kpi-num" id="o-pending">0</div></div>
           <div class="mini-kpi"><div class="label">Confirmado</div><div class="kpi-num" id="o-confirmed">0</div></div>
+          <div class="mini-kpi"><div class="label">Mermas</div><div class="kpi-num" id="o-waste">0</div></div>
+          <div class="mini-kpi value-card"><div class="label">Valor conf.</div><div class="kpi-num" id="o-confirmed-value">$ 0</div></div>
+          <div class="mini-kpi value-card"><div class="label">Valor merma</div><div class="kpi-num" id="o-waste-value">$ 0</div></div>
         </div>
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Pedidos por sector</strong><div class="muted">Cantidad solicitada</div></div><span>Sectores</span></div>
-          <div class="bar-list" id="chart-orders-sector"></div>
+          <div class="bar-list value-bars" id="chart-orders-sector"></div>
         </article>
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Top PLUs pedidos</strong><div class="muted">Insumo + produccion</div></div><span>PLU</span></div>
-          <div class="bar-list" id="chart-orders-plu"></div>
+          <div class="bar-list value-bars" id="chart-orders-plu"></div>
+        </article>
+        <article class="chart-panel">
+          <div class="chart-head"><div><strong>Mermas por motivo</strong><div class="muted">No imputable a consumo</div></div><span>Merma</span></div>
+          <div class="bar-list value-bars" id="chart-waste-reason"></div>
         </article>
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Ultimos pedidos</strong><div class="muted">Actividad reciente</div></div><span>Log</span></div>
@@ -149,7 +323,7 @@
       <button class="subtab" data-stock-view="movimientos">Movimientos</button>
     </div>
     <div class="stock-view active" id="stock-view-stock">
-    <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">CD</th><th class="right">Jaula</th><th class="right">Oficina</th><th class="right">Total</th><th class="right">Minimo</th><th>Estado</th><th class="right">Cobertura</th></tr></thead><tbody id="stock-body"></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">CD</th><th class="right">Jaula</th><th class="right">Oficina</th><th class="right">Total</th><th class="right">Costo</th><th class="right">Valor</th><th class="right">Minimo</th><th>Estado</th><th class="right">Cobertura</th></tr></thead><tbody id="stock-body"></tbody></table></div>
     </div>
   </section>
 
@@ -174,19 +348,42 @@
         <div class="request-body"><div class="request-list" id="my-pedidos-list"></div></div>
       </section>
     </div>
-    <div class="request-new-grid">
-      <section class="request-new-form">
-        <div class="request-head"><div><strong>Nuevo pedido</strong><div class="muted">Sector, observacion y envio</div></div></div>
-        <form class="form-grid" id="supply-order-form">
-          <label class="field"><span class="label">Sector solicitante</span><select id="pedido-sector" required></select></label>
-          <div class="field"><label class="label">Observacion solicitud</label><textarea id="pedido-obs"></textarea></div>
-          <button class="btn primary">Enviar solicitud</button>
-        </form>
-      </section>
-      <section class="request-card">
-        <div class="request-head"><div><strong>PLUs con stock disponible</strong><div class="muted">Carga cantidad insumo y/o produccion</div></div><span class="state" id="pedido-catalog-count">0</span></div>
-        <div class="table-wrap"><table class="request-table"><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">Stock insumo</th><th class="right">Stock produccion</th><th class="right">Pedir insumo</th><th class="right">Pedir prod.</th></tr></thead><tbody id="pedido-catalog-body"></tbody></table></div>
-      </section>
+    <div class="request-workbench">
+      <div class="subtabs">
+        <button class="subtab active" data-request-view="pedido">Pedido de Insumos</button>
+        <button class="subtab" data-request-view="mermas">Carga de Mermas</button>
+      </div>
+      <div class="request-mode active" id="request-view-pedido">
+        <section class="request-order-form">
+          <div class="request-head"><div><strong>Nuevo pedido</strong><div class="muted">Sector, observacion, PLUs y envio</div></div></div>
+          <form id="supply-order-form">
+            <div class="request-order-controls">
+              <label class="field"><span class="label">Sector solicitante</span><select id="pedido-sector" required></select></label>
+              <div class="field"><label class="label">Observacion solicitud</label><textarea id="pedido-obs"></textarea></div>
+            </div>
+            <section class="request-order-catalog">
+              <div class="request-head"><div><strong>PLUs con stock disponible</strong><div class="muted">Carga cantidad insumo y/o produccion</div></div><span class="state" id="pedido-catalog-count">0</span></div>
+              <div class="table-wrap"><table class="request-table"><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">Stock insumo</th><th class="right">Stock produccion</th><th class="right">Pedir insumo</th><th class="right">Pedir prod.</th></tr></thead><tbody id="pedido-catalog-body"></tbody></table></div>
+            </section>
+            <button class="btn primary request-submit">Ingresar solicitud</button>
+          </form>
+        </section>
+      </div>
+      <div class="request-mode" id="request-view-mermas">
+        <section class="waste-card">
+          <div class="request-head"><div><strong>Registrar merma</strong><div class="muted">No modifica stock</div></div><span class="state warn" id="waste-count">0</span></div>
+          <form class="form-grid" id="waste-form">
+            <label class="field"><span class="label">Pedido asociado</span><select id="waste-pedido"></select></label>
+            <label class="field"><span class="label">PLU</span><select id="waste-articulo" required></select></label>
+            <label class="field"><span class="label">Tipo</span><select id="waste-tipo"><option value="INSUMO">Insumo</option><option value="PRODUCCION">Produccion</option></select></label>
+            <label class="field"><span class="label">Cantidad</span><input class="input right" id="waste-cantidad" type="number" step="0.001" min="0.001" required></label>
+            <label class="field span"><span class="label">Motivo</span><select id="waste-motivo" required></select></label>
+            <div class="field span"><label class="label">Observaciones</label><textarea id="waste-obs" required></textarea></div>
+            <button class="btn primary">Registrar merma</button>
+          </form>
+          <div class="waste-list" id="waste-list"></div>
+        </section>
+      </div>
     </div>
   </section>
 
@@ -209,6 +406,8 @@
       <div class="field"><label class="label">Unidad</label><input class="input" id="article-unit" value="UN"></div>
       <div class="field span"><label class="label">Uso</label><textarea id="article-usage" placeholder="Ej: Recepcion, RECHAZO, armado"></textarea></div>
       <div class="field"><label class="label">Stock minimo</label><input class="input" id="article-min" type="number" step="0.001" min="0" value="0"></div>
+      <div class="field"><label class="label">Costo unitario</label><input class="input" id="article-cost" type="number" step="0.01" min="0"></div>
+      <div class="field"><label class="label">Vigencia costo</label><input class="input" id="article-cost-date" type="date"></div>
       <label class="field"><span class="label">Activo</span><select id="article-active"><option value="1">Activo</option><option value="0">Inactivo</option></select></label>
       <div class="actions">
         <button class="btn primary" id="save-article">Guardar</button>
@@ -216,7 +415,18 @@
       </div>
       <div class="muted" id="article-note"></div>
     </form>
-    <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th>Categoria</th><th>Unidad</th><th>Uso</th><th class="right">Minimo</th><th>Activo</th><th>Accion</th></tr></thead><tbody id="articles-body"></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th>Categoria</th><th>Unidad</th><th>Uso</th><th class="right">Minimo</th><th class="right">Costo</th><th>Vigencia</th><th>Activo</th><th>Accion</th></tr></thead><tbody id="articles-body"></tbody></table></div>
+  </section>
+
+  <section class="panel" id="panel-usuarios-panol">
+    <div class="users-toolbar">
+      <label class="field"><span class="label">Sector a asignar</span><select id="user-sector-select"></select></label>
+      <label class="field"><span class="label">Buscar usuario</span><input class="input" id="user-sector-search" placeholder="Usuario o nombre"></label>
+      <button class="btn" type="button" id="user-sector-toggle">Marcar visibles</button>
+      <button class="btn primary" type="button" id="assign-user-sector">Asignar sector</button>
+      <div class="users-summary" id="user-sector-summary">Sin datos.</div>
+    </div>
+    <div class="table-wrap"><table class="users-table"><thead><tr><th><input type="checkbox" id="user-sector-check-all"></th><th>Usuario</th><th>Nombre</th><th>Sector activo</th><th>Actualizado</th></tr></thead><tbody id="user-sector-body"></tbody></table></div>
   </section>
 
   <section class="panel stock-view" id="stock-view-movimientos">
@@ -266,7 +476,7 @@
       <div class="production-sections">
         <section class="production-section">
           <div class="section-head"><div><strong>Stock producido</strong><div class="muted">Disponible por PLU</div></div><span>Saldo</span></div>
-          <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">Producido</th><th class="right">Entregado</th><th class="right">Stock producido</th></tr></thead><tbody id="production-stock-body"></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th class="right">Producido</th><th class="right">Entregado</th><th class="right">Stock producido</th><th class="right">Costo</th><th class="right">Valor</th></tr></thead><tbody id="production-stock-body"></tbody></table></div>
         </section>
         <section class="production-section moves">
           <div class="section-head"><div><strong>Ultimos movimientos</strong><div class="muted">Produccion y entregas registradas</div></div><span>Log</span></div>
@@ -312,11 +522,13 @@
 </div>
 
 <script>
-let ctx=null, articles=[], stockRows=[], movementRows=[], indicatorData={}, productionStockRows=[], productionMovementRows=[], productionIndicatorData={}, pedidoIndicatorData={}, requestCatalogRows=[], myPedidoRows=[], pendingPedidoRows=[], pedidoReceivedRows=[], selectedPendingPedido=null;
+let ctx=null, articles=[], stockRows=[], movementRows=[], indicatorData={}, productionStockRows=[], productionMovementRows=[], productionIndicatorData={}, pedidoIndicatorData={}, requestCatalogRows=[], myPedidoRows=[], pendingPedidoRows=[], pedidoReceivedRows=[], wasteRows=[], userSectorRows=[], selectedPendingPedido=null;
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function num(v){const n=Number(v||0);return Number.isFinite(n)?n:0}
 function fmt(v){return num(v).toLocaleString('es-AR',{maximumFractionDigits:3})}
+function fmtMoney(v){return `$ ${num(v).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}`}
+function costLabel(v){return v==null?'Sin costo':fmtMoney(v)}
 function shortDate(v){return v?String(v).replace('T',' ').slice(0,16):'-'}
 function setStatus(t,e=false){$('status').textContent=t||'';$('status').classList.toggle('error',!!e)}
 function emptyChart(text){return `<div class="empty-chart">${esc(text)}</div>`}
@@ -393,7 +605,7 @@ function renderDashboardCharts(){
   renderSimpleBars('chart-low-stock',low,{empty:'Sin articulos bajo minimo'});
   const coverage=stockRows.filter(r=>r.cobertura_dias!=null&&Number.isFinite(num(r.cobertura_dias))).sort((a,b)=>num(a.cobertura_dias)-num(b.cobertura_dias)).slice(0,8).map(r=>({label:r.codigo,value:num(r.cobertura_dias),display:fmt(r.cobertura_dias),cls:num(r.cobertura_dias)<7?'bad':'soft'}));
   renderSimpleBars('chart-coverage',coverage,{empty:'Sin consumos calculados'});
-  const dayRows=(indicatorData.consumo_por_dia_logistico||[]).map(r=>({label:r.dia_logistico,value:num(r.consumo),cls:'oficina'}));
+  const dayRows=(indicatorData.consumo_por_dia_logistico||[]).map(r=>({label:r.dia_logistico,value:num(r.consumo),display:`${fmt(r.consumo)} / ${fmtMoney(r.valor_consumo)}`,cls:'oficina'}));
   renderSimpleBars('chart-turn-consumption',dayRows,{empty:'Sin consumo por dia logistico'});
   const recentEl=$('chart-recent-moves');
   if(recentEl){
@@ -464,13 +676,17 @@ function renderPedidoIndicators(){
   $('o-total').textContent=fmt(metrics.total);
   $('o-pending').textContent=fmt(metrics.pendientes);
   $('o-confirmed').textContent=fmt(num(metrics.confirmados)+num(metrics.parciales));
-  renderSimpleBars('chart-orders-sector',(pedidoIndicatorData.pedidos_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmt(r.pedidos)} ped.`})),{empty:'Sin pedidos por sector'});
-  renderSimpleBars('chart-orders-plu',(pedidoIndicatorData.pedidos_por_plu||[]).map(r=>({label:r.codigo,value:num(r.cantidad),display:fmt(r.cantidad)})),{empty:'Sin PLUs pedidos'});
+  $('o-waste').textContent=fmt(metrics.mermas_cantidad);
+  $('o-confirmed-value').textContent=fmtMoney(metrics.valor_confirmado);
+  $('o-waste-value').textContent=fmtMoney(metrics.mermas_valor);
+  renderSimpleBars('chart-orders-sector',(pedidoIndicatorData.pedidos_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin pedidos por sector'});
+  renderSimpleBars('chart-orders-plu',(pedidoIndicatorData.pedidos_por_plu||[]).map(r=>({label:r.codigo,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin PLUs pedidos'});
+  renderSimpleBars('chart-waste-reason',(pedidoIndicatorData.mermas_por_motivo||[]).map(r=>({label:r.motivo_label||r.motivo,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin mermas registradas'});
   const recent=pedidoIndicatorData.recientes||[];
-  $('chart-orders-recent').innerHTML=recent.length?recent.map(r=>`<div class="activity-item"><strong>#${esc(r.id)} - ${esc(statusLabel(r.estado))} - ${fmt(r.cantidad)}</strong><span>${shortDate(r.fecha_solicitud)} - ${esc(r.sector||'-')} - ${esc(r.usuario_solicita||'')} - ${fmt(r.lineas)} PLUs</span></div>`).join(''):emptyChart('Sin pedidos recientes');
+  $('chart-orders-recent').innerHTML=recent.length?recent.map(r=>`<div class="activity-item"><strong>#${esc(r.id)} - ${esc(statusLabel(r.estado))} - ${fmt(r.cantidad)} - ${fmtMoney(r.valor)}</strong><span>${shortDate(r.fecha_solicitud)} - ${esc(r.sector||'-')} - ${esc(r.usuario_solicita||'')} - ${fmt(r.lineas)} PLUs</span></div>`).join(''):emptyChart('Sin pedidos recientes');
 }
 function renderProductionTables(){
-  $('production-stock-body').innerHTML=productionStockRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.producido)}</td><td class="right">${fmt(r.entregado)}</td><td class="right">${fmt(r.stock_producido)}</td></tr>`).join('')||'<tr><td colspan="5">Sin stock producido.</td></tr>';
+  $('production-stock-body').innerHTML=productionStockRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.producido)}</td><td class="right">${fmt(r.entregado)}</td><td class="right">${fmt(r.stock_producido)}</td><td class="right">${costLabel(r.costo_unitario)}</td><td class="right">${r.valor_stock_producido==null?'Sin costo':fmtMoney(r.valor_stock_producido)}</td></tr>`).join('')||'<tr><td colspan="7">Sin stock producido.</td></tr>';
   const sectorRows=productionIndicatorData.entregas_por_sector_plu||[];
   const sectorBody=$('production-sector-body');
   if(sectorBody)sectorBody.innerHTML=sectorRows.map(r=>`<tr><td>${esc(r.sector)}</td><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.cantidad)}</td></tr>`).join('')||'<tr><td colspan="4">Sin entregas por sector.</td></tr>';
@@ -551,7 +767,27 @@ function productionDeliveryOptions(empty=''){const rows=productionStockRows.filt
 function locationOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${(ctx?.ubicaciones||[]).map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}`}
 function sortedLocations(){return [...(ctx?.ubicaciones||[])].sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||''),'es-AR',{numeric:true,sensitivity:'base'}))}
 function destinationOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${sortedLocations().map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}`}
-function requestSectorOptions(){const rows=sortedLocations().filter(x=>!['JAULA','OFICINA_ADO'].includes(String(x.codigo||'').toUpperCase()));const source=rows.length?rows:sortedLocations();return source.map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}
+function requestSectors(){
+  const assigned=ctx?.user?.sector_asignado;
+  if(ctx?.user?.can_operate===false&&assigned)return [{id:assigned.sector_id,codigo:assigned.sector_codigo,descripcion:assigned.sector_descripcion}];
+  if(ctx?.user?.can_operate===false&&!assigned)return [];
+  const rows=ctx?.sectores_solicitantes||sortedLocations().filter(x=>!['JAULA','OFICINA_ADO'].includes(String(x.codigo||'').toUpperCase()));
+  return rows.length?rows:sortedLocations();
+}
+function requestSectorOptions(empty=''){const rows=requestSectors();return `${empty?`<option value="">${esc(empty)}</option>`:''}${rows.map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}`}
+function applyAssignedSector(){
+  const select=$('pedido-sector');
+  if(!select)return;
+  const assigned=ctx?.user?.sector_asignado;
+  if(ctx?.user?.can_operate===false){
+    select.disabled=!!assigned;
+    if(assigned)select.value=String(assigned.sector_id);
+    const blocked=!assigned;
+    $('supply-order-form')?.querySelectorAll('input,textarea,button').forEach(el=>{if(el.id!=='pedido-sector')el.disabled=blocked;});
+    $('waste-form')?.querySelectorAll('input,select,textarea,button').forEach(el=>{el.disabled=blocked;});
+    if(blocked)setStatus('Tu usuario no tiene sector asignado en Panol. Solicita la configuracion a un administrador.',true);
+  }
+}
 function setDefaultLocation(selectId, code){const el=$(selectId);const item=(ctx?.ubicaciones||[]).find(x=>String(x.codigo).toUpperCase()===code);if(el&&item)el.value=String(item.id)}
 function turnOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${(ctx?.turnos||[]).map(x=>`<option value="${esc(x.codigo)}">${esc(x.descripcion||x.codigo)}</option>`).join('')}`}
 function usageOptions(value){return String(value||'').replace(/\r/g,'\n').replace(/[;,]/g,'\n').split('\n').map(x=>x.trim()).filter(Boolean)}
@@ -598,29 +834,84 @@ function activateTab(tab){
   $(`panel-${tab}`)?.classList.add('active');
   if(tab==='stock-insumos')activateStockView(document.querySelector('[data-stock-view].active')?.dataset.stockView||'stock');
 }
+function activateRequestView(view){
+  document.querySelectorAll('[data-request-view]').forEach(x=>x.classList.toggle('active',x.dataset.requestView===view));
+  document.querySelectorAll('.request-mode').forEach(x=>x.classList.remove('active'));
+  const target=$(`request-view-${view}`);
+  if(target)target.classList.add('active');
+}
 function applyPanolPermissions(){
   const operate=canOperate();
   ['indicadores','stock-insumos','produccion','historial','importacion','articulos','pedidos-pendientes'].forEach(tab=>{
     const btn=document.querySelector(`[data-tab="${tab}"]`);
     if(btn)btn.classList.toggle('hidden',!operate);
   });
+  const usersTab=document.querySelector('[data-tab="usuarios-panol"]');
+  if(usersTab)usersTab.classList.toggle('hidden',!ctx?.user?.can_full);
   if(!operate)activateTab('pedido-insumos');
 }
-async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} - ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=requestSectorOptions();setDefaultReceivedDates();applyPanolPermissions();if(!canOperate())return;setDefaultIndicatorDates();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-ubicacion').innerHTML=locationOptions('Todas');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
+async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} - ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=requestSectorOptions();$('user-sector-select').innerHTML=requestSectorOptions('Seleccionar sector');setDefaultReceivedDates();applyPanolPermissions();applyAssignedSector();if(!canOperate())return;setDefaultIndicatorDates();resetArticle();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-ubicacion').innerHTML=locationOptions('Todas');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
 async function loadArticles(){const d=await api('/panol-insumos/api/articulos?include_inactive=1');articles=d.items||[];const active=articles.filter(a=>a.activo);$('mov-articulo').innerHTML=optionList(active);$('prod-articulo').innerHTML=optionList(active);$('deliv-articulo').innerHTML='<option value="">Sin PLU con stock producido</option>';$('hist-articulo').innerHTML=optionList(articles,'Todos');$('indicator-plu').innerHTML=optionList(active,'Todos');renderArticles();renderInventoryRows();}
-function renderArticles(){$('articles-body').innerHTML=articles.map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.categoria||'')}</td><td>${esc(a.unidad||'UN')}</td><td>${esc(a.uso||'')}</td><td class="right">${fmt(a.stock_minimo)}</td><td>${a.activo?'Si':'No'}</td><td><button class="btn" data-edit-article="${a.id}">Editar</button></td></tr>`).join('')||'<tr><td colspan="8">Sin articulos.</td></tr>'}
+function renderArticles(){$('articles-body').innerHTML=articles.map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.categoria||'')}</td><td>${esc(a.unidad||'UN')}</td><td>${esc(a.uso||'')}</td><td class="right">${fmt(a.stock_minimo)}</td><td class="right">${costLabel(a.costo_unitario)}</td><td>${esc(a.costo_fecha_desde||'-')}</td><td>${a.activo?'Si':'No'}</td><td><button class="btn" data-edit-article="${a.id}">Editar</button></td></tr>`).join('')||'<tr><td colspan="10">Sin articulos.</td></tr>'}
 function renderInventoryRows(){$('inventory-body').innerHTML=articles.filter(a=>a.activo).map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.unidad||'UN')}</td><td><input class="input right" type="number" step="0.001" min="0" data-inv-art="${a.id}" value="0"></td></tr>`).join('')||'<tr><td colspan="4">Crea articulos para cargar inventario.</td></tr>'}
-async function loadStock(){const p=indicatorQuery({dates:false});const d=await api(`/panol-insumos/api/stock?${p}`);stockRows=d.items||[];const m=d.metrics||{};$('m-articulos').textContent=m.total_articulos||0;$('m-bajo').textContent=m.bajo_minimo||0;$('m-movs').textContent=m.movimientos_hoy||0;$('stock-body').innerHTML=stockRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.stock_cd)}</td><td class="right">${fmt(r.stock_jaula)}</td><td class="right">${fmt(r.stock_oficina)}</td><td class="right">${fmt(r.stock_total)}</td><td class="right">${fmt(r.stock_minimo)}</td><td><span class="state ${r.estado==='BAJO_MINIMO'?'bad':''}">${r.estado==='BAJO_MINIMO'?'Bajo minimo':'OK'}</span></td><td class="right">${r.cobertura_dias==null?'-':fmt(r.cobertura_dias)}</td></tr>`).join('')||'<tr><td colspan="9">Sin stock para mostrar.</td></tr>'}
+async function loadStock(){const p=indicatorQuery({dates:false});const d=await api(`/panol-insumos/api/stock?${p}`);stockRows=d.items||[];const m=d.metrics||{};$('m-articulos').textContent=m.total_articulos||0;$('m-bajo').textContent=m.bajo_minimo||0;$('m-movs').textContent=m.movimientos_hoy||0;$('m-stock-value').textContent=fmtMoney(m.valor_stock_total);$('m-no-cost').textContent=fmt(m.articulos_sin_costo);$('stock-body').innerHTML=stockRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.stock_cd)}</td><td class="right">${fmt(r.stock_jaula)}</td><td class="right">${fmt(r.stock_oficina)}</td><td class="right">${fmt(r.stock_total)}</td><td class="right">${costLabel(r.costo_unitario)}</td><td class="right">${r.valor_stock_total==null?'Sin costo':fmtMoney(r.valor_stock_total)}</td><td class="right">${fmt(r.stock_minimo)}</td><td><span class="state ${r.estado==='BAJO_MINIMO'?'bad':''}">${r.estado==='BAJO_MINIMO'?'Bajo minimo':'OK'}</span></td><td class="right">${r.cobertura_dias==null?'-':fmt(r.cobertura_dias)}</td></tr>`).join('')||'<tr><td colspan="11">Sin stock para mostrar.</td></tr>'}
 function statusLabel(estado){const e=String(estado||'');return e==='PENDIENTE'?'Pendiente':e==='CONFIRMADO'?'Confirmado':e==='CONFIRMADO_PARCIAL'?'Parcial':e==='CANCELADO'?'Cancelado':e}
 function renderPedidoCatalog(){
   $('pedido-catalog-count').textContent=requestCatalogRows.length;
-  $('pedido-catalog-body').innerHTML=requestCatalogRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.stock_insumo)}</td><td class="right">${fmt(r.stock_produccion)}</td><td><input class="input right" type="number" step="0.001" min="0" max="${num(r.stock_insumo)}" data-pedido-insumo="${r.id}"></td><td><input class="input right" type="number" step="0.001" min="0" max="${num(r.stock_produccion)}" data-pedido-produccion="${r.id}"></td></tr>`).join('')||'<tr><td colspan="6">Sin PLUs con stock positivo.</td></tr>';
+  const blocked=ctx?.user?.can_operate===false&&!ctx?.user?.sector_asignado;
+  $('pedido-catalog-body').innerHTML=requestCatalogRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.stock_insumo)}</td><td class="right">${fmt(r.stock_produccion)}</td><td><input class="input right" type="number" step="0.001" min="0" max="${num(r.stock_insumo)}" data-pedido-insumo="${r.id}" ${blocked?'disabled':''}></td><td><input class="input right" type="number" step="0.001" min="0" max="${num(r.stock_produccion)}" data-pedido-produccion="${r.id}" ${blocked?'disabled':''}></td></tr>`).join('')||'<tr><td colspan="6">Sin PLUs con stock positivo.</td></tr>';
 }
 function renderMyPedidos(){
   $('my-pedidos-count').textContent=myPedidoRows.length;
   const selected=$('pedido-sector')?.selectedOptions?.[0]?.textContent||'Sector seleccionado';
   $('pedido-history-scope').textContent=`Historial de ${selected}`;
   $('my-pedidos-list').innerHTML=myPedidoRows.map(p=>`<div class="request-item"><div class="status-line"><strong>#${p.id} - ${esc(statusLabel(p.estado))}</strong><span class="state ${p.estado==='PENDIENTE'?'warn':''}">${esc(p.sector_codigo)}</span></div><span>${shortDate(p.fecha_solicitud)} - ${esc(p.observacion_solicitud||'Sin observacion')}</span><span>${(p.items||[]).map(i=>`${esc(i.codigo)} I:${fmt(i.cantidad_insumo_solicitada)} P:${fmt(i.cantidad_produccion_solicitada)}`).join(' | ')}</span></div>`).join('')||'<div class="detail-empty">Sin pedidos anteriores.</div>';
+}
+function wasteReasonOptions(){return (ctx?.merma_motivos||[]).map(x=>`<option value="${esc(x.codigo)}">${esc(x.descripcion)}</option>`).join('')}
+function wasteArticleOptions(){
+  const map=new Map();
+  myPedidoRows.forEach(p=>(p.items||[]).forEach(i=>map.set(String(i.articulo_id),{id:i.articulo_id,codigo:i.codigo,descripcion:i.descripcion})));
+  requestCatalogRows.forEach(i=>map.set(String(i.id),{id:i.id,codigo:i.codigo,descripcion:i.descripcion}));
+  const rows=[...map.values()].sort((a,b)=>String(a.codigo).localeCompare(String(b.codigo),'es-AR',{numeric:true,sensitivity:'base'}));
+  return `${rows.length?'':'<option value="">Sin PLUs recibidos</option>'}${rows.map(x=>`<option value="${x.id}">${esc(x.codigo)} - ${esc(x.descripcion||'')}</option>`).join('')}`;
+}
+function renderWasteControls(){
+  const confirmed=myPedidoRows.filter(p=>['CONFIRMADO','CONFIRMADO_PARCIAL'].includes(String(p.estado||'')));
+  $('waste-pedido').innerHTML=`<option value="">Sin asociar</option>${confirmed.map(p=>`<option value="${p.id}">#${p.id} - ${shortDate(p.fecha_confirmacion||p.fecha_solicitud)} - ${esc(p.sector_codigo)}</option>`).join('')}`;
+  $('waste-articulo').innerHTML=wasteArticleOptions();
+  $('waste-motivo').innerHTML=wasteReasonOptions();
+}
+function renderWasteList(){
+  $('waste-count').textContent=wasteRows.length;
+  $('waste-list').innerHTML=wasteRows.length?wasteRows.slice(0,8).map(r=>`<div class="waste-item"><strong>${shortDate(r.fecha_hora)} - ${esc(r.codigo)} - ${fmt(r.cantidad)} ${esc(r.tipo)}</strong><span>${esc(r.motivo_label||r.motivo)}${r.pedido_id?` - Pedido #${esc(r.pedido_id)}`:''} - ${esc(r.observacion||'')}</span></div>`).join(''):'<div class="detail-empty">Sin mermas registradas.</div>';
+}
+function filteredUserSectorRows(){
+  const q=String($('user-sector-search')?.value||'').trim().toLowerCase();
+  if(!q)return userSectorRows;
+  return userSectorRows.filter(r=>`${r.username||''} ${r.display_name||''} ${r.sector_codigo||''}`.toLowerCase().includes(q));
+}
+function renderUserSectors(){
+  const rows=filteredUserSectorRows();
+  const assigned=userSectorRows.filter(r=>r.sector_id).length;
+  $('user-sector-summary').textContent=`Solicitantes: ${userSectorRows.length}. Con sector: ${assigned}. Visibles: ${rows.length}.`;
+  $('user-sector-body').innerHTML=rows.map(r=>`<tr><td><input type="checkbox" data-user-sector-check="${esc(r.username)}"></td><td><strong>${esc(r.username)}</strong></td><td>${esc(r.display_name||'')}</td><td>${r.sector_codigo?esc(r.sector_codigo):'<span class="muted">Sin sector</span>'}</td><td>${esc(shortDate(r.sector_actualizado))}</td></tr>`).join('')||'<tr><td colspan="5">Sin usuarios solicitantes.</td></tr>';
+  $('user-sector-check-all').checked=false;
+}
+async function loadUserSectors(){
+  if(!ctx?.user?.can_full)return;
+  const d=await api('/panol-insumos/api/usuarios-solicitantes')||{};
+  userSectorRows=d.items||[];
+  if((d.sectores||[]).length)$('user-sector-select').innerHTML=optionList(d.sectores,'Seleccionar sector');
+  renderUserSectors();
+}
+async function assignUserSector(){
+  const sectorId=$('user-sector-select').value;
+  const usernames=[...document.querySelectorAll('[data-user-sector-check]:checked')].map(x=>x.dataset.userSectorCheck);
+  if(!sectorId)throw new Error('Selecciona un sector.');
+  if(!usernames.length)throw new Error('Marca al menos un usuario.');
+  await api('/panol-insumos/api/usuarios-solicitantes/asignar-sector',{method:'POST',body:JSON.stringify({sector_id:Number(sectorId),usernames})});
+  await loadUserSectors();
+  setStatus(`Sector asignado a ${usernames.length} usuario(s).`);
 }
 function renderPendingPedidos(){
   const badge=$('pending-badge');
@@ -644,8 +935,9 @@ function renderPendingDetail(p){
   $('cancel-pedido').onclick=()=>cancelPedido(p.id).catch(e=>setStatus(e.message,true));
 }
 async function loadPedidoCatalog(){const d=await api('/panol-insumos/api/pedidos/catalogo')||{};requestCatalogRows=d.items||[];$('received-plu').innerHTML=optionList(requestCatalogRows,'Todos');renderPedidoCatalog();}
-async function loadMyPedidos(){const sector=$('pedido-sector')?.value;if(!sector){myPedidoRows=[];renderMyPedidos();return;}const d=await api(`/panol-insumos/api/pedidos/mios?sector_id=${encodeURIComponent(sector)}`)||{};myPedidoRows=d.items||[];renderMyPedidos();}
+async function loadMyPedidos(){const sector=$('pedido-sector')?.value;if(!sector){myPedidoRows=[];renderMyPedidos();renderWasteControls();return;}const d=await api(`/panol-insumos/api/pedidos/mios?sector_id=${encodeURIComponent(sector)}`)||{};myPedidoRows=d.items||[];renderMyPedidos();renderWasteControls();}
 async function loadPedidoReceivedChart(){const sector=$('pedido-sector')?.value;if(!sector){pedidoReceivedRows=[];$('chart-sector-received').innerHTML=emptyChart('Selecciona un sector');$('received-chart-total').textContent='0';return;}const p=new URLSearchParams({sector_id:sector,tipo:$('received-type').value||'insumo'});if($('received-date-from').value)p.set('fecha_desde',$('received-date-from').value);if($('received-date-to').value)p.set('fecha_hasta',$('received-date-to').value);if($('received-plu').value)p.set('articulo_id',$('received-plu').value);const d=await api(`/panol-insumos/api/pedidos/recibido-dia?${p}`)||{};pedidoReceivedRows=d.items||[];$('received-chart-total').textContent=fmt(pedidoReceivedRows.reduce((sum,r)=>sum+num(r.cantidad),0));$('chart-sector-received').innerHTML=renderReceivedLine(pedidoReceivedRows);}
+async function loadWastes(){const sector=$('pedido-sector')?.value;if(!sector){wasteRows=[];renderWasteList();return;}const p=new URLSearchParams({sector_id:sector});const d=await api(`/panol-insumos/api/pedidos/mermas?${p}`)||{};wasteRows=d.items||[];renderWasteList();}
 async function loadPendingPedidos(){if(!canOperate())return;const d=await api('/panol-insumos/api/pedidos/pendientes')||{};pendingPedidoRows=d.items||[];if(selectedPendingPedido&&!pendingPedidoRows.some(p=>p.id===selectedPendingPedido.id))selectedPendingPedido=null;renderPendingPedidos();renderPendingDetail(selectedPendingPedido);}
 async function loadPedidoIndicators(){if(!canOperate())return;const q=indicatorQuery().toString();pedidoIndicatorData=await api(`/panol-insumos/api/pedidos/indicadores${q?`?${q}`:''}`)||{};renderPedidoIndicators();}
 async function savePedido(ev){
@@ -657,16 +949,30 @@ async function savePedido(ev){
   for(const item of items){const row=byId[String(item.articulo_id)];if(item.cantidad_insumo>num(row.stock_insumo)||item.cantidad_produccion>num(row.stock_produccion))throw new Error('Hay cantidades que superan el stock disponible.');}
   await api('/panol-insumos/api/pedidos',{method:'POST',body:JSON.stringify({sector_id:Number($('pedido-sector').value),observacion:$('pedido-obs').value,items})});
   $('pedido-obs').value='';document.querySelectorAll('[data-pedido-insumo],[data-pedido-produccion]').forEach(i=>i.value='');
-  await loadPedidoCatalog();await loadMyPedidos();await loadPedidoReceivedChart();await loadPendingPedidos();setStatus('Solicitud enviada.');
+  await loadPedidoCatalog();await loadMyPedidos();await loadWastes();await loadPedidoReceivedChart();await loadPendingPedidos();setStatus('Solicitud enviada.');
+}
+async function saveWaste(ev){
+  ev.preventDefault();
+  if(!$('pedido-sector').value)throw new Error('Selecciona un sector.');
+  if(!$('waste-articulo').value)throw new Error('Selecciona un PLU.');
+  const body={sector_id:Number($('pedido-sector').value),pedido_id:$('waste-pedido').value?Number($('waste-pedido').value):null,articulo_id:Number($('waste-articulo').value),tipo:$('waste-tipo').value,cantidad:Number($('waste-cantidad').value),motivo:$('waste-motivo').value,observacion:$('waste-obs').value};
+  await api('/panol-insumos/api/pedidos/mermas',{method:'POST',body:JSON.stringify(body)});
+  $('waste-cantidad').value='';
+  $('waste-obs').value='';
+  $('waste-pedido').value='';
+  await loadWastes();
+  await loadPedidoReceivedChart();
+  if(canOperate()){await loadPedidoIndicators();renderPedidoIndicators();}
+  setStatus('Merma registrada. No modifica stock.');
 }
 async function confirmPedido(id){
   const origin=Number($('confirm-origin').value);
   const itemIds=[...document.querySelectorAll('[data-confirm-insumo]')].map(i=>i.dataset.confirmInsumo);
   const items=itemIds.map(itemId=>({item_id:Number(itemId),ubicacion_origen_insumo_id:origin,cantidad_insumo_confirmada:Number(document.querySelector(`[data-confirm-insumo="${itemId}"]`)?.value||0),cantidad_produccion_confirmada:Number(document.querySelector(`[data-confirm-produccion="${itemId}"]`)?.value||0),uso_entrega:document.querySelector(`[data-confirm-uso="${itemId}"]`)?.value||''}));
   await api(`/panol-insumos/api/pedidos/${id}/confirmar`,{method:'POST',body:JSON.stringify({observacion:$('confirm-obs').value,items})});
-  selectedPendingPedido=null;await loadPendingPedidos();await loadPedidoCatalog();await loadMyPedidos();await loadPedidoReceivedChart();if(canOperate()){await loadStock();await loadProduction();await loadPedidoIndicators();renderDashboardCharts();}setStatus('Pedido confirmado.');
+  selectedPendingPedido=null;await loadPendingPedidos();await loadPedidoCatalog();await loadMyPedidos();await loadWastes();await loadPedidoReceivedChart();if(canOperate()){await loadStock();await loadProduction();await loadPedidoIndicators();renderDashboardCharts();}setStatus('Pedido confirmado.');
 }
-async function cancelPedido(id){await api(`/panol-insumos/api/pedidos/${id}/cancelar`,{method:'POST',body:JSON.stringify({observacion:$('confirm-obs')?.value||'',items:[]})});selectedPendingPedido=null;await loadPendingPedidos();await loadMyPedidos();await loadPedidoReceivedChart();await loadPedidoIndicators();setStatus('Pedido cancelado.');}
+async function cancelPedido(id){await api(`/panol-insumos/api/pedidos/${id}/cancelar`,{method:'POST',body:JSON.stringify({observacion:$('confirm-obs')?.value||'',items:[]})});selectedPendingPedido=null;await loadPendingPedidos();await loadMyPedidos();await loadWastes();await loadPedidoReceivedChart();await loadPedidoIndicators();setStatus('Pedido cancelado.');}
 async function loadIndicators(){const q=indicatorQuery().toString();indicatorData=await api(`/panol-insumos/api/indicadores${q?`?${q}`:''}`)||{}}
 async function loadMovements(){const q=indicatorQuery().toString();const d=await api(`/panol-insumos/api/movimientos${q?`?${q}`:''}`);movementRows=d.items||[];$('movements-body').innerHTML=movementRows.map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.codigo)}</td><td>${esc(r.tipo)}</td><td>${esc(r.origen_codigo||'-')}</td><td>${esc(r.destino_codigo||'-')}</td><td class="right">${fmt(r.cantidad)}</td><td>${esc(r.usuario||'')}</td><td>${esc(r.observacion||'')}</td></tr>`).join('')||'<tr><td colspan="8">Sin movimientos.</td></tr>'}
 function productionIndicatorQuery(){return indicatorQuery().toString()}
@@ -679,6 +985,7 @@ async function loadProduction(){
   $('p-produced-today').textContent=fmt(metrics.producido_hoy);
   $('p-delivered-today').textContent=fmt(metrics.entregado_hoy);
   $('p-stock-total').textContent=fmt(metrics.stock_total_producido);
+  $('p-stock-value').textContent=fmtMoney(metrics.valor_stock_producido);
   $('deliv-articulo').innerHTML=productionDeliveryOptions('Seleccionar PLU');
   renderLogisticSummary(await api('/panol-insumos/api/produccion/dia-logistico')||{});
   const indQuery=productionIndicatorQuery();
@@ -691,8 +998,8 @@ async function loadProduction(){
   initSortableTables();
 }
 async function loadInventoryHistory(){const p=new URLSearchParams();if($('hist-fecha').value)p.set('fecha',$('hist-fecha').value);if($('hist-ubicacion').value)p.set('ubicacion_id',$('hist-ubicacion').value);if($('hist-turno').value)p.set('turno',$('hist-turno').value);if($('hist-articulo').value)p.set('articulo_id',$('hist-articulo').value);const d=await api(`/panol-insumos/api/inventario-turno?${p}`);$('inventory-history-body').innerHTML=(d.items||[]).map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.fecha)}</td><td>${esc(r.ubicacion_codigo||'OFICINA_ADO')}</td><td>${esc(r.turno)}</td><td>${esc(r.codigo)}</td><td class="right">${r.stock_inicial==null?'-':fmt(r.stock_inicial)}</td><td class="right">${r.ingresos_turno==null?'-':fmt(r.ingresos_turno)}</td><td class="right">${fmt(r.stock_fisico)}</td><td class="right">${r.consumo_calculado==null?'-':fmt(r.consumo_calculado)}</td><td>${esc(r.usuario||'')}</td></tr>`).join('')||'<tr><td colspan="10">Sin inventarios.</td></tr>'}
-function resetArticle(){$('article-id').value='';$('article-code').value='';$('article-desc').value='';$('article-cat').value='';$('article-unit').value='UN';$('article-usage').value='';$('article-min').value='0';$('article-active').value='1'}
-async function saveArticle(ev){ev.preventDefault();const id=$('article-id').value;const body={codigo:$('article-code').value,descripcion:$('article-desc').value,categoria:$('article-cat').value,unidad:$('article-unit').value,uso:$('article-usage').value,stock_minimo:Number($('article-min').value||0),activo:$('article-active').value==='1'};await api(id?`/panol-insumos/api/articulos/${id}`:'/panol-insumos/api/articulos',{method:id?'PUT':'POST',body:JSON.stringify(body)});resetArticle();await loadArticles();await loadPedidoCatalog();await loadPendingPedidos();await loadProduction();await loadStock();renderDashboardCharts();setStatus('Articulo guardado.')}
+function resetArticle(){$('article-id').value='';$('article-code').value='';$('article-desc').value='';$('article-cat').value='';$('article-unit').value='UN';$('article-usage').value='';$('article-min').value='0';$('article-cost').value='';$('article-cost-date').value=localDateInputValue(new Date());$('article-active').value='1'}
+async function saveArticle(ev){ev.preventDefault();const id=$('article-id').value;const costValue=$('article-cost').value;const body={codigo:$('article-code').value,descripcion:$('article-desc').value,categoria:$('article-cat').value,unidad:$('article-unit').value,uso:$('article-usage').value,stock_minimo:Number($('article-min').value||0),activo:$('article-active').value==='1',costo_unitario:costValue===''?null:Number(costValue),moneda:'ARS',fecha_costo:$('article-cost-date').value};await api(id?`/panol-insumos/api/articulos/${id}`:'/panol-insumos/api/articulos',{method:id?'PUT':'POST',body:JSON.stringify(body)});resetArticle();await loadArticles();await loadPedidoCatalog();await loadPendingPedidos();await loadProduction();await loadStock();renderDashboardCharts();setStatus('Articulo guardado.')}
 async function saveMovement(ev){ev.preventDefault();const body={articulo_id:Number($('mov-articulo').value),tipo:$('mov-tipo').value,ubicacion_origen_id:$('mov-origen').value?Number($('mov-origen').value):null,ubicacion_destino_id:$('mov-destino').value?Number($('mov-destino').value):null,cantidad:Number($('mov-cantidad').value),motivo:$('mov-motivo').value,observacion:$('mov-obs').value};await api('/panol-insumos/api/movimientos',{method:'POST',body:JSON.stringify(body)});$('movement-form').reset();$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');await loadMovements();await loadStock();await loadPedidoCatalog();renderDashboardCharts();setStatus('Movimiento registrado.')}
 async function saveProduction(ev){ev.preventDefault();const body={articulo_id:Number($('prod-articulo').value),cantidad:Number($('prod-cantidad').value),observacion:$('prod-obs').value};const d=await api('/panol-insumos/api/produccion',{method:'POST',body:JSON.stringify(body)});$('production-form').reset();await loadProduction();await loadPedidoCatalog();setStatus(`Produccion registrada. Turno: ${esc(d.turno||'')}`)}
 async function saveProductionDelivery(ev){ev.preventDefault();if(!$('deliv-articulo').value)throw new Error('No hay PLU con stock producido disponible para entregar.');const body={articulo_id:Number($('deliv-articulo').value),ubicacion_destino_id:Number($('deliv-destino').value),cantidad:Number($('deliv-cantidad').value),observacion:$('deliv-obs').value};const d=await api('/panol-insumos/api/produccion/entregas',{method:'POST',body:JSON.stringify(body)});$('delivery-form').reset();$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');await loadProduction();await loadPedidoCatalog();setStatus(`Entrega registrada. Turno: ${esc(d.turno||'')}`)}
@@ -708,7 +1015,7 @@ async function syncCdOracle(force=false){
   renderDashboardCharts();
   setStatus(d.skipped?`Oracle diario: ya sincronizado ${shortDate(d.fecha_importacion)}.`:`Oracle diario: ${d.matched_count||0} PLUs propios actualizados, ${d.zeroed||0} sin stock CD, ${d.ignored||0} ignorados.`);
 }
-async function resetOperationalData(){const clave=prompt('Clave para depurar datos operativos');if(!clave)return;if(!confirm('Se borraran stock CD, movimientos, inventarios, consumos, produccion y pedidos. Los PLUs se conservan.'))return;const d=await api('/panol-insumos/api/admin/reset-operativo',{method:'POST',body:JSON.stringify({clave})});$('cd-preview-body').innerHTML=Object.entries(d.deleted||{}).map(([tabla,cantidad])=>`<tr><td>${esc(tabla)}</td><td class="right">${fmt(cantidad)}</td></tr>`).join('')||'<tr><td colspan="2">Depuracion ejecutada.</td></tr>';await loadStock();await loadIndicators();await loadMovements();await loadProduction();await loadInventoryHistory();await loadPedidoCatalog();await loadMyPedidos();await loadPedidoReceivedChart();await loadPendingPedidos();await loadPedidoIndicators();renderDashboardCharts();setStatus('Datos operativos depurados. PLUs conservados.')}
+async function resetOperationalData(){const clave=prompt('Clave para depurar datos operativos');if(!clave)return;if(!confirm('Se borraran stock CD, movimientos, inventarios, consumos, produccion y pedidos. Los PLUs se conservan.'))return;const d=await api('/panol-insumos/api/admin/reset-operativo',{method:'POST',body:JSON.stringify({clave})});$('cd-preview-body').innerHTML=Object.entries(d.deleted||{}).map(([tabla,cantidad])=>`<tr><td>${esc(tabla)}</td><td class="right">${fmt(cantidad)}</td></tr>`).join('')||'<tr><td colspan="2">Depuracion ejecutada.</td></tr>';await loadStock();await loadIndicators();await loadMovements();await loadProduction();await loadInventoryHistory();await loadPedidoCatalog();await loadMyPedidos();await loadWastes();await loadPedidoReceivedChart();await loadPendingPedidos();await loadPedidoIndicators();renderDashboardCharts();setStatus('Datos operativos depurados. PLUs conservados.')}
 function activateStockView(view){
   document.querySelectorAll('[data-stock-view]').forEach(x=>x.classList.toggle('active',x.dataset.stockView===view));
   document.querySelectorAll('.stock-view').forEach(x=>x.classList.remove('active'));
@@ -719,12 +1026,14 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>activateTab(b.dataset
 
 document.querySelectorAll('[data-stock-view]').forEach(b=>b.onclick=()=>{activateTab('stock-insumos');activateStockView(b.dataset.stockView)});
 
+document.querySelectorAll('[data-request-view]').forEach(b=>b.onclick=()=>activateRequestView(b.dataset.requestView));
+
 document.querySelectorAll('[data-prod-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-prod-view]').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.prod-view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(`prod-view-${b.dataset.prodView}`).classList.add('active')});
 $('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
 $('refresh-indicators').onclick=()=>refreshAllIndicators().catch(e=>setStatus(e.message,true));
 $('article-form').onsubmit=e=>saveArticle(e).catch(err=>setStatus(err.message,true));
 $('new-article').onclick=resetArticle;
-$('articles-body').onclick=ev=>{const b=ev.target.closest('[data-edit-article]');if(!b)return;const a=articles.find(x=>String(x.id)===String(b.dataset.editArticle));if(!a)return;$('article-id').value=a.id;$('article-code').value=a.codigo;$('article-desc').value=a.descripcion;$('article-cat').value=a.categoria||'';$('article-unit').value=a.unidad||'UN';$('article-usage').value=a.uso||'';$('article-min').value=a.stock_minimo||0;$('article-active').value=a.activo?'1':'0'};
+$('articles-body').onclick=ev=>{const b=ev.target.closest('[data-edit-article]');if(!b)return;const a=articles.find(x=>String(x.id)===String(b.dataset.editArticle));if(!a)return;$('article-id').value=a.id;$('article-code').value=a.codigo;$('article-desc').value=a.descripcion;$('article-cat').value=a.categoria||'';$('article-unit').value=a.unidad||'UN';$('article-usage').value=a.uso||'';$('article-min').value=a.stock_minimo||0;$('article-cost').value=a.costo_unitario??'';$('article-cost-date').value=a.costo_fecha_desde||localDateInputValue(new Date());$('article-active').value=a.activo?'1':'0'};
 $('movement-form').onsubmit=e=>saveMovement(e).catch(err=>setStatus(err.message,true));
 $('production-form').onsubmit=e=>saveProduction(e).catch(err=>setStatus(err.message,true));
 $('delivery-form').onsubmit=e=>saveProductionDelivery(e).catch(err=>setStatus(err.message,true));
@@ -746,11 +1055,16 @@ $('import-cd').onclick=()=>sendCd(false).catch(e=>setStatus(e.message,true));
 $('sync-cd-oracle').onclick=()=>syncCdOracle(false).catch(e=>setStatus(e.message,true));
 $('reset-operational').onclick=()=>resetOperationalData().catch(e=>setStatus(e.message,true));
 $('supply-order-form').onsubmit=e=>savePedido(e).catch(err=>setStatus(err.message,true));
-$('pedido-sector').onchange=()=>Promise.all([loadMyPedidos(),loadPedidoReceivedChart()]).catch(e=>setStatus(e.message,true));
+$('waste-form').onsubmit=e=>saveWaste(e).catch(err=>setStatus(err.message,true));
+$('pedido-sector').onchange=()=>Promise.all([loadMyPedidos(),loadWastes(),loadPedidoReceivedChart()]).catch(e=>setStatus(e.message,true));
+$('user-sector-search').oninput=renderUserSectors;
+$('user-sector-toggle').onclick=()=>{const checks=[...document.querySelectorAll('[data-user-sector-check]')];const mark=checks.some(x=>!x.checked);checks.forEach(x=>x.checked=mark);$('user-sector-check-all').checked=mark;};
+$('user-sector-check-all').onchange=ev=>document.querySelectorAll('[data-user-sector-check]').forEach(x=>x.checked=ev.target.checked);
+$('assign-user-sector').onclick=()=>assignUserSector().catch(e=>setStatus(e.message,true));
 $('refresh-received-chart').onclick=()=>loadPedidoReceivedChart().catch(e=>setStatus(e.message,true));
 $('refresh-pending').onclick=()=>loadPendingPedidos().catch(e=>setStatus(e.message,true));
 $('pending-pedidos-list').onclick=ev=>{const b=ev.target.closest('[data-open-pedido]');if(!b)return;selectedPendingPedido=pendingPedidoRows.find(p=>String(p.id)===String(b.dataset.openPedido));renderPendingPedidos();renderPendingDetail(selectedPendingPedido)};
-(async()=>{try{initSortableTables();setStatus('Validando sesion y permisos...');await loadContext();setStatus('Cargando pedidos...');await loadPedidoCatalog();await loadMyPedidos();await loadPedidoReceivedChart();await loadPendingPedidos();if(canOperate()){setStatus('Cargando articulos...');await loadArticles();setStatus('Calculando stock...');await loadStock();setStatus('Cargando indicadores...');await loadIndicators();setStatus('Cargando movimientos...');await loadMovements();setStatus('Cargando produccion...');await loadProduction();setStatus('Cargando pedidos...');await loadPedidoIndicators();setStatus('Cargando inventarios...');await loadInventoryHistory();renderDashboardCharts();}initSortableTables();setStatus('Listo.')}catch(e){setStatus(e.message,true)}})();
+(async()=>{try{initSortableTables();setStatus('Validando sesion y permisos...');await loadContext();setStatus('Cargando pedidos...');await loadPedidoCatalog();await loadMyPedidos();await loadWastes();await loadPedidoReceivedChart();await loadPendingPedidos();if(ctx?.user?.can_full){setStatus('Cargando usuarios solicitantes...');await loadUserSectors();}if(canOperate()){setStatus('Cargando articulos...');await loadArticles();setStatus('Calculando stock...');await loadStock();setStatus('Cargando indicadores...');await loadIndicators();setStatus('Cargando movimientos...');await loadMovements();setStatus('Cargando produccion...');await loadProduction();setStatus('Cargando pedidos...');await loadPedidoIndicators();setStatus('Cargando inventarios...');await loadInventoryHistory();renderDashboardCharts();}initSortableTables();setStatus('Listo.')}catch(e){setStatus(e.message,true)}})();
 </script>
 </body>
 </html>

@@ -116,6 +116,7 @@ def ensure_locations(conn: sqlite3.Connection) -> dict[str, int]:
 
 def clear_operational_data(conn: sqlite3.Connection) -> None:
     for table in [
+        "mermas_insumos",
         "pedidos_insumos_items",
         "pedidos_insumos",
         "movimientos",
@@ -130,7 +131,7 @@ def clear_operational_data(conn: sqlite3.Connection) -> None:
         DELETE FROM sqlite_sequence
         WHERE name IN (
             'pedidos_insumos_items', 'pedidos_insumos', 'movimientos', 'stock_cd_importado',
-            'inventario_turno', 'consumos_calculados', 'produccion_movimientos'
+            'inventario_turno', 'consumos_calculados', 'produccion_movimientos', 'mermas_insumos'
         )
         """
     )
