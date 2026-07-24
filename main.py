@@ -56,7 +56,11 @@ from routers.analisis_premio_productividad import (
     init_premio_productividad_db,
     router as analisis_premio_productividad_router,
 )
-from routers.rendimiento_online import router as rendimiento_online_router
+from routers.rendimiento_online import (
+    router as rendimiento_online_router,
+    start_rendimiento_historico_scheduler,
+    stop_rendimiento_historico_scheduler,
+)
 from routers.websocket import router as websocket_router
 from utils.db_backup import start_db_backup_scheduler, stop_db_backup_scheduler
 from utils.usage_log import cleanup_old_usage_logs, request_action, write_usage_log
@@ -100,6 +104,7 @@ async def lifespan(app: FastAPI):
     start_daily_auto_scheduler()
     start_historia_actividad_scheduler()
     start_panol_stock_cd_scheduler()
+    start_rendimiento_historico_scheduler()
     start_rrhh_folder_monitor()
     start_forms_import_monitor()
     start_db_backup_scheduler()
@@ -118,6 +123,7 @@ async def lifespan(app: FastAPI):
         await stop_panol_stock_cd_scheduler()
         await stop_forms_import_monitor()
         await stop_db_backup_scheduler()
+        await stop_rendimiento_historico_scheduler()
         await stop_daily_auto_scheduler()
         await stop_historia_actividad_scheduler()
         logger.info("VigIA detenido.")

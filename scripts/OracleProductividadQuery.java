@@ -112,12 +112,37 @@ public class OracleProductividadQuery {
         String almacenArg = args.length >= 13 ? args[12] : "SECOS + NOA";
 
         String sql;
-        if ("premio_escala".equalsIgnoreCase(queryKey)) {
+        if ("rend_premio_dias_pago".equalsIgnoreCase(queryKey)) {
+            sql = """
+                SELECT
+                    FECHA,
+                    LEGAJO
+                FROM PV_DIA_LABORAL
+                WHERE FECHA >= TO_NUMBER(REPLACE(?, '-', ''))
+                  AND FECHA <= TO_NUMBER(REPLACE(?, '-', ''))
+                ORDER BY FECHA, LEGAJO
+                """;
+        } else if ("rend_premio_escalas".equalsIgnoreCase(queryKey)) {
+            sql = """
+                SELECT
+                    B.DESCRIPCION AS OPERACION,
+                    C.DESCRIPCION AS DIVISION,
+                    A.NIVEL,
+                    A.DESDE,
+                    A.HASTA,
+                    A.PREMIO
+                FROM PV_ESCALA_DE_PREMIOS A
+                JOIN PV_GRUPO_DE_FUNCIONES_CAB B ON A.ID_DE_GRUPO_DE_FUNCIONES = B.ID
+                JOIN PV_GRUPO_PRODUCTIVO_CAB C ON A.ID_DE_GRUPO_PRODUCTIVO = C.ID
+                WHERE B.DESCRIPCION = 'PICKING'
+                ORDER BY C.DESCRIPCION, A.NIVEL
+                """;
+        } else if ("premio_escala".equalsIgnoreCase(queryKey)) {
             sql = """
                 SELECT
                     D.DESCRIPCION AS OPERACION,
                     D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA,
-                    F.DESCRIPCION AS GRUPOPRODUCTIVO,
+                    NVL(F.DESCRIPCION, 'TODOS') AS GRUPOPRODUCTIVO,
                     E.NIVEL,
                     E.DESDE AS DESDE_ACTUAL,
                     E.HASTA AS HASTA_ACTUAL,
@@ -127,7 +152,7 @@ public class OracleProductividadQuery {
                     ROUND(E.PREMIO/8, 0) AS PREMIO_X_HORA
                 FROM PV_ESCALA_DE_PREMIOS E
                 JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
-                JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
+                LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
                 WHERE E.ID_DE_GRUPO_DE_FUNCIONES = ?
                 ORDER BY 1, 3, 4
                 """;
@@ -186,7 +211,7 @@ public class OracleProductividadQuery {
                 SELECT
                     D.DESCRIPCION AS OPERACION,
                     D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA,
-                    F.DESCRIPCION AS GRUPOPRODUCTIVO,
+                    NVL(F.DESCRIPCION, 'TODOS') AS GRUPOPRODUCTIVO,
                     E.NIVEL,
                     E.DESDE AS DESDE_ACTUAL,
                     E.HASTA AS HASTA_ACTUAL,
@@ -198,9 +223,30 @@ public class OracleProductividadQuery {
                     E.ID_DE_GRUPO_DE_FUNCIONES
                 FROM PV_ESCALA_DE_PREMIOS E
                 JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
-                JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
+                LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
                 WHERE D.DESCRIPCION = ?
                 ORDER BY D.DESCRIPCION, F.DESCRIPCION, E.NIVEL
+                """;
+        } else if ("pp_premio_escalas_por_id".equalsIgnoreCase(queryKey)) {
+            sql = """
+                SELECT
+                    ? AS OPERACION,
+                    D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA,
+                    NVL(F.DESCRIPCION, 'TODOS') AS GRUPOPRODUCTIVO,
+                    E.NIVEL,
+                    E.DESDE AS DESDE_ACTUAL,
+                    E.HASTA AS HASTA_ACTUAL,
+                    E.PREMIO AS PREMIO_ACTUAL,
+                    ROUND(E.DESDE / 8, 0) AS DESDE_X_HORA,
+                    ROUND(E.HASTA / 8, 0) AS HASTA_X_HORA,
+                    ROUND(E.PREMIO / 8, 0) AS PREMIO_X_HORA,
+                    E.ID_DE_GRUPO_PRODUCTIVO,
+                    E.ID_DE_GRUPO_DE_FUNCIONES
+                FROM PV_ESCALA_DE_PREMIOS E
+                JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
+                LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
+                WHERE E.ID_DE_GRUPO_DE_FUNCIONES = ?
+                ORDER BY NVL(F.DESCRIPCION, 'TODOS'), E.NIVEL
                 """;
         } else if ("pp_premio_etapas_hora".equalsIgnoreCase(queryKey)) {
             sql = """
@@ -249,8 +295,8 @@ public class OracleProductividadQuery {
                     A.FECHA,
                     A.HORA,
                     A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
-                    E.ID_PV_GRUPO_PRODUCTIVO,
-                    F.DESCRIPCION AS GRUPO_PRODUCTIVO,
+                    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0) AS ID_PV_GRUPO_PRODUCTIVO,
+                    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
                     SUM(A.PROD_REAL) AS PROD_REAL,
                     SUM(A.PROD_EQUIV_SECTOR) AS PROD_EQUIV_SECTOR,
                     SUM(A.PROD_TRASLADO) AS PROD_TRASLADO,
@@ -260,7 +306,7 @@ public class OracleProductividadQuery {
                 JOIN PV_LIQUIDAC_DIA_DET1 E
                   ON A.ID_PV_DIA_LABORAL = E.ID_PV_DIA_LABORAL
                  AND E.ID_PV_GRUPO_DE_FUNCIONES = A.ID_PV_GRUPO_DE_FUNCIONES_CAB
-                JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
+                LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
                 GROUP BY
                     A.OPERACION,
                     A.LEGAJO,
@@ -269,9 +315,79 @@ public class OracleProductividadQuery {
                     A.FECHA,
                     A.HORA,
                     A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
-                    E.ID_PV_GRUPO_PRODUCTIVO,
-                    F.DESCRIPCION
-                ORDER BY A.LEGAJO, E.ID_PV_GRUPO_PRODUCTIVO, A.HORA
+                    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0),
+                    NVL(F.DESCRIPCION, 'TODOS')
+                ORDER BY A.LEGAJO, NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0), A.HORA
+                """;
+        } else if ("pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey)) {
+            sql = """
+                WITH FECHA_PARAM AS (
+                    SELECT TO_DATE(?, 'YYYY/MM/DD') AS FECHA_BASE
+                    FROM DUAL
+                ),
+                PARAMS AS (
+                    SELECT
+                        FECHA_BASE,
+                        TO_NUMBER(TO_CHAR(FECHA_BASE, 'YYYYMMDD')) AS FECHA_PREMIO,
+                        ? AS OPERACION,
+                        ? AS ID_GRUPO_FUNCIONES
+                    FROM FECHA_PARAM
+                ),
+                ETAPAS AS (
+                    SELECT
+                        PARA.OPERACION AS OPERACION,
+                        Z.LEGAJO,
+                        Z.TURNO,
+                        Z.ID AS ID_PV_DIA_LABORAL,
+                        A.FYHFIN,
+                        TRUNC(PARA.FECHA_BASE) AS FECHA,
+                        TO_NUMBER(TO_CHAR(A.FYHFIN, 'HH24')) AS HORA,
+                        C.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+                        A.PRODUCCION_REAL AS PROD_REAL,
+                        A.PRODUCCION_EQUIV_POR_SECTOR AS PROD_EQUIV_SECTOR,
+                        A.PRODUCCION_EQUIV_POR_TRASLADO AS PROD_TRASLADO,
+                        A.PROD_EQUIVAL_POR_CONSOLIDACION AS PROD_CONSOLIDACION,
+                        A.PRODUCCION_EQUIV_POR_SECTOR
+                          + A.PRODUCCION_EQUIV_POR_TRASLADO
+                          + A.PROD_EQUIVAL_POR_CONSOLIDACION AS PROD_FINAL
+                    FROM PARAMS PARA
+                    JOIN PV_DIA_LABORAL Z ON PARA.FECHA_PREMIO = Z.FECHA
+                    JOIN PV_ETAPA_CAB A ON Z.ID = A.ID_PV_DIA_LABORAL
+                    JOIN PV_FUNCION B ON A.COD_FUNCION = B.CODIGO
+                    JOIN PV_GRUPO_DE_FUNCIONES_DET C ON C.ID_PV_FUNCION = B.ID
+                    WHERE C.ID_PV_GRUPO_DE_FUNCIONES_CAB = TO_NUMBER(PARA.ID_GRUPO_FUNCIONES)
+                )
+                SELECT
+                    A.OPERACION,
+                    A.LEGAJO,
+                    A.TURNO,
+                    A.ID_PV_DIA_LABORAL,
+                    A.FECHA,
+                    A.HORA,
+                    A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+                    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0) AS ID_PV_GRUPO_PRODUCTIVO,
+                    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
+                    SUM(A.PROD_REAL) AS PROD_REAL,
+                    SUM(A.PROD_EQUIV_SECTOR) AS PROD_EQUIV_SECTOR,
+                    SUM(A.PROD_TRASLADO) AS PROD_TRASLADO,
+                    SUM(A.PROD_CONSOLIDACION) AS PROD_CONSOLIDACION,
+                    SUM(A.PROD_FINAL) AS PROD_FINAL
+                FROM ETAPAS A
+                JOIN PV_LIQUIDAC_DIA_DET1 E
+                  ON A.ID_PV_DIA_LABORAL = E.ID_PV_DIA_LABORAL
+                 AND E.ID_PV_GRUPO_DE_FUNCIONES = A.ID_PV_GRUPO_DE_FUNCIONES_CAB
+                LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
+                GROUP BY
+                    A.OPERACION,
+                    A.LEGAJO,
+                    A.TURNO,
+                    A.ID_PV_DIA_LABORAL,
+                    A.FECHA,
+                    A.HORA,
+                    A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+                    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0),
+                    NVL(F.DESCRIPCION, 'TODOS')
+                ORDER BY A.LEGAJO, NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0), A.HORA
                 """;
         } else if ("pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey)) {
             sql = """
@@ -312,8 +428,8 @@ public class OracleProductividadQuery {
                     A.TURNO,
                     A.ID_PV_DIA_LABORAL,
                     ROUND(E.A_PAGAR_TOTAL, 0) AS PREMIO,
-                    F.DESCRIPCION AS GRUPO_PRODUCTIVO,
-                    E.ID_PV_GRUPO_PRODUCTIVO,
+                    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
+                    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0) AS ID_PV_GRUPO_PRODUCTIVO,
                     A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
                     SUM(A.PROD_REAL) AS PROD_REAL,
                     SUM(A.PROD_EQUIV_SECTOR) AS PROD_EQUIV_SECTOR,
@@ -326,19 +442,174 @@ public class OracleProductividadQuery {
                 JOIN PV_LIQUIDAC_DIA_DET1 E
                   ON A.ID_PV_DIA_LABORAL = E.ID_PV_DIA_LABORAL
                  AND E.ID_PV_GRUPO_DE_FUNCIONES = A.ID_PV_GRUPO_DE_FUNCIONES_CAB
-                JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
+                LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
                 GROUP BY
                     A.OPERACION,
                     A.LEGAJO,
                     A.TURNO,
                     A.ID_PV_DIA_LABORAL,
                     E.A_PAGAR_TOTAL,
-                    F.DESCRIPCION,
-                    E.ID_PV_GRUPO_PRODUCTIVO,
+                    NVL(F.DESCRIPCION, 'TODOS'),
+                    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0),
                     A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
                     E.PENALIZACION_EXCESO_TNC,
                     E.PENALIZACION_POR_ERROR
-                ORDER BY A.LEGAJO, E.ID_PV_GRUPO_PRODUCTIVO
+                ORDER BY A.LEGAJO, NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0)
+                """;
+        } else if ("pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey)) {
+            sql = """
+                WITH FECHA_PARAM AS (
+                    SELECT TO_DATE(?, 'YYYY/MM/DD') AS FECHA_BASE
+                    FROM DUAL
+                ),
+                PARAMS AS (
+                    SELECT
+                        FECHA_BASE,
+                        TO_NUMBER(TO_CHAR(FECHA_BASE, 'YYYYMMDD')) AS FECHA_PREMIO,
+                        ? AS OPERACION,
+                        ? AS ID_GRUPO_FUNCIONES
+                    FROM FECHA_PARAM
+                ),
+                ETAPAS AS (
+                    SELECT
+                        PARA.OPERACION AS OPERACION,
+                        Z.LEGAJO,
+                        Z.TURNO,
+                        Z.ID AS ID_PV_DIA_LABORAL,
+                        C.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+                        A.PRODUCCION_REAL AS PROD_REAL,
+                        A.PRODUCCION_EQUIV_POR_SECTOR AS PROD_EQUIV_SECTOR,
+                        A.PRODUCCION_EQUIV_POR_TRASLADO AS PROD_TRASLADO,
+                        A.PROD_EQUIVAL_POR_CONSOLIDACION AS PROD_CONSOLIDACION
+                    FROM PARAMS PARA
+                    JOIN PV_DIA_LABORAL Z ON PARA.FECHA_PREMIO = Z.FECHA
+                    JOIN PV_ETAPA_CAB A ON Z.ID = A.ID_PV_DIA_LABORAL
+                    JOIN PV_FUNCION B ON A.COD_FUNCION = B.CODIGO
+                    JOIN PV_GRUPO_DE_FUNCIONES_DET C ON C.ID_PV_FUNCION = B.ID
+                    WHERE C.ID_PV_GRUPO_DE_FUNCIONES_CAB = TO_NUMBER(PARA.ID_GRUPO_FUNCIONES)
+                )
+                SELECT
+                    A.OPERACION,
+                    A.LEGAJO,
+                    A.TURNO,
+                    A.ID_PV_DIA_LABORAL,
+                    ROUND(E.A_PAGAR_TOTAL, 0) AS PREMIO,
+                    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
+                    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0) AS ID_PV_GRUPO_PRODUCTIVO,
+                    A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+                    SUM(A.PROD_REAL) AS PROD_REAL,
+                    SUM(A.PROD_EQUIV_SECTOR) AS PROD_EQUIV_SECTOR,
+                    SUM(A.PROD_TRASLADO) AS PROD_TRASLADO,
+                    SUM(A.PROD_CONSOLIDACION) AS PROD_CONSOLIDACION,
+                    SUM(A.PROD_EQUIV_SECTOR + A.PROD_TRASLADO + A.PROD_CONSOLIDACION) AS PROD_FINAL,
+                    NVL(E.PENALIZACION_EXCESO_TNC, 0) AS PENA_TNC,
+                    NVL(E.PENALIZACION_POR_ERROR, 0) AS PENA_ERROR
+                FROM ETAPAS A
+                JOIN PV_LIQUIDAC_DIA_DET1 E
+                  ON A.ID_PV_DIA_LABORAL = E.ID_PV_DIA_LABORAL
+                 AND E.ID_PV_GRUPO_DE_FUNCIONES = A.ID_PV_GRUPO_DE_FUNCIONES_CAB
+                LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
+                GROUP BY
+                    A.OPERACION,
+                    A.LEGAJO,
+                    A.TURNO,
+                    A.ID_PV_DIA_LABORAL,
+                    E.A_PAGAR_TOTAL,
+                    NVL(F.DESCRIPCION, 'TODOS'),
+                    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0),
+                    A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+                    E.PENALIZACION_EXCESO_TNC,
+                    E.PENALIZACION_POR_ERROR
+                ORDER BY A.LEGAJO, NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0)
+                """;
+        } else if ("pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey)) {
+            sql = """
+                SELECT
+                    D.ID AS ID_GRUPO_FUNCIONES,
+                    D.DESCRIPCION AS OPERACION_CAB,
+                    D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA,
+                    COUNT(E.ID_DE_GRUPO_DE_FUNCIONES) AS FILAS_ESCALA,
+                    MIN(E.ID_DE_GRUPO_PRODUCTIVO) AS MIN_GRUPO_PRODUCTIVO,
+                    MAX(E.ID_DE_GRUPO_PRODUCTIVO) AS MAX_GRUPO_PRODUCTIVO
+                FROM PV_GRUPO_DE_FUNCIONES_CAB D
+                LEFT JOIN PV_ESCALA_DE_PREMIOS E ON E.ID_DE_GRUPO_DE_FUNCIONES = D.ID
+                WHERE D.ID IN (1, 2, 3, 4, 241)
+                   OR UPPER(D.DESCRIPCION) LIKE '%CARRE%'
+                   OR UPPER(D.DESCRIPCION) LIKE '%TRASLADO%'
+                   OR UPPER(D.DESCRIPCION) LIKE '%CONSOLID%'
+                   OR UPPER(D.DESCRIPCION) LIKE '%CARGA%'
+                   OR UPPER(D.DESCRIPCION) LIKE '%CLARK%'
+                   OR UPPER(D.DESCRIPCION) LIKE '%CONTROL%'
+                GROUP BY D.ID, D.DESCRIPCION, D.ID_DE_UNIDAD_DE_PRODUCCION
+                ORDER BY D.ID, D.DESCRIPCION
+                """;
+        } else if ("pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey)) {
+            sql = """
+                SELECT
+                    A.DESC_FUNCION,
+                    COUNT(*) AS ETAPAS,
+                    COUNT(DISTINCT Z.LEGAJO) AS LEGAJOS,
+                    ROUND(SUM(NVL(A.PRODUCCION_REAL, 0)), 3) AS PROD_REAL,
+                    ROUND(SUM(NVL(A.PRODUCCION_EQUIV_POR_SECTOR, 0)), 3) AS PROD_EQUIV_SECTOR,
+                    ROUND(SUM(NVL(A.PRODUCCION_EQUIV_POR_TRASLADO, 0)), 3) AS PROD_TRASLADO,
+                    ROUND(SUM(NVL(A.PROD_EQUIVAL_POR_CONSOLIDACION, 0)), 3) AS PROD_CONSOLIDACION
+                FROM PV_DIA_LABORAL Z
+                JOIN PV_ETAPA_CAB A ON Z.ID = A.ID_PV_DIA_LABORAL
+                WHERE Z.FECHA = TO_NUMBER(TO_CHAR(TO_DATE(?, 'YYYY/MM/DD'), 'YYYYMMDD'))
+                  AND (
+                    UPPER(A.DESC_FUNCION) LIKE '%TRASLADO%'
+                    OR UPPER(A.DESC_FUNCION) LIKE '%CARRETEO%'
+                    OR UPPER(A.DESC_FUNCION) LIKE '%CONSOLIDACION%'
+                  )
+                GROUP BY A.DESC_FUNCION
+                ORDER BY A.DESC_FUNCION
+                """;
+        } else if ("pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey)) {
+            sql = """
+                SELECT
+                    G.ID AS ID_GRUPO_FUNCIONES,
+                    G.DESCRIPCION AS OPERACION,
+                    F.CODIGO,
+                    F.DESCRIPCION AS FUNCION,
+                    COUNT(*) AS ETAPAS,
+                    COUNT(DISTINCT Z.LEGAJO) AS LEGAJOS,
+                    ROUND(SUM(NVL(A.PRODUCCION_REAL, 0)), 3) AS PROD_REAL,
+                    ROUND(SUM(NVL(A.PRODUCCION_EQUIV_POR_SECTOR, 0)), 3) AS PROD_EQUIV_SECTOR,
+                    ROUND(SUM(NVL(A.PRODUCCION_EQUIV_POR_TRASLADO, 0)), 3) AS PROD_TRASLADO,
+                    ROUND(SUM(NVL(A.PROD_EQUIVAL_POR_CONSOLIDACION, 0)), 3) AS PROD_CONSOLIDACION,
+                    ROUND(SUM(
+                        NVL(A.PRODUCCION_EQUIV_POR_SECTOR, 0)
+                      + NVL(A.PRODUCCION_EQUIV_POR_TRASLADO, 0)
+                      + NVL(A.PROD_EQUIVAL_POR_CONSOLIDACION, 0)
+                    ), 3) AS PROD_FINAL
+                FROM PV_DIA_LABORAL Z
+                JOIN PV_ETAPA_CAB A ON Z.ID = A.ID_PV_DIA_LABORAL
+                JOIN PV_FUNCION F ON A.COD_FUNCION = F.CODIGO
+                JOIN PV_GRUPO_DE_FUNCIONES_DET GD ON GD.ID_PV_FUNCION = F.ID
+                JOIN PV_GRUPO_DE_FUNCIONES_CAB G ON G.ID = GD.ID_PV_GRUPO_DE_FUNCIONES_CAB
+                WHERE Z.FECHA = TO_NUMBER(TO_CHAR(TO_DATE(?, 'YYYY/MM/DD'), 'YYYYMMDD'))
+                  AND G.DESCRIPCION = ?
+                GROUP BY G.ID, G.DESCRIPCION, F.CODIGO, F.DESCRIPCION
+                ORDER BY F.CODIGO
+                """;
+        } else if ("pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey)) {
+            sql = """
+                SELECT
+                    B.ID_PV_GRUPO_DE_FUNCIONES,
+                    COUNT(*) AS FILAS,
+                    COUNT(DISTINCT A.LEGAJO) AS LEGAJOS,
+                    ROUND(SUM(NVL(B.A_PAGAR_TOTAL, 0)), 2) AS A_PAGAR_TOTAL,
+                    ROUND(SUM(NVL(B.PENALIZACION_EXCESO_TNC, 0)), 2) AS PENA_TNC,
+                    ROUND(SUM(NVL(B.PENALIZACION_POR_ERROR, 0)), 2) AS PENA_ERROR,
+                    MIN(B.OBJETIVO_NIVEL_ALCANZADO) AS MIN_NIVEL,
+                    MAX(B.OBJETIVO_NIVEL_ALCANZADO) AS MAX_NIVEL,
+                    MIN(B.ID_PV_GRUPO_PRODUCTIVO) AS MIN_GRUPO_PRODUCTIVO,
+                    MAX(B.ID_PV_GRUPO_PRODUCTIVO) AS MAX_GRUPO_PRODUCTIVO
+                FROM PV_DIA_LABORAL A
+                JOIN PV_LIQUIDAC_DIA_DET1 B ON A.ID = B.ID_PV_DIA_LABORAL
+                WHERE A.FECHA = TO_NUMBER(TO_CHAR(TO_DATE(?, 'YYYY/MM/DD'), 'YYYYMMDD'))
+                  AND B.ID_PV_GRUPO_DE_FUNCIONES = TO_NUMBER(?)
+                GROUP BY B.ID_PV_GRUPO_DE_FUNCIONES
                 """;
         } else if ("premio_caso_modelo_rango".equalsIgnoreCase(queryKey)) {
             sql =
@@ -471,20 +742,25 @@ public class OracleProductividadQuery {
                   SELECT
                     b.*,
                     l.DESC_FUNCION,
-                    NVL(
-                      CASE SUB1.CDIVISIO
-                        WHEN 1 THEN 'SECOS'
-                        WHEN 2 THEN 'REFRIGERADOS'
-                        WHEN 6 THEN 'NOA'
-                        WHEN 4 THEN 'REFRIGERADOS'
-                      END,
-                      c.ALMACEN
-                    ) AS ALMACEN
+                    CASE
+                      WHEN UPPER(TRIM(B.CZONAORI)) = 'T06'
+                        OR (B.CZONAORI IS NOT NULL AND INSTR(UPPER(TRIM(B.CZONAORI)), 'T') > 0)
+                        THEN 'REFRIGERADOS'
+                      ELSE NVL(
+                        c.ALMACEN,
+                        CASE SUB1.CDIVISIO
+                          WHEN 1 THEN 'SECOS'
+                          WHEN 2 THEN 'REFRIGERADOS'
+                          WHEN 6 THEN 'NOA'
+                          WHEN 4 THEN 'REFRIGERADOS'
+                        END
+                      )
+                    END AS ALMACEN
                   FROM LEGAJOS A
                   JOIN f132hist B
                     ON A.LEGAJO = B.COPECREA
                   LEFT JOIN PV_LEGAJO l
-                    ON l.LEGAJO = B.COPECREA
+                    ON TO_CHAR(l.LEGAJO) = TO_CHAR(B.COPECREA)
                   LEFT JOIN (
                     SELECT DISTINCT CZONALMA, CDIVISIO
                     FROM VW_UBICACIONES_DIVISION
@@ -1262,6 +1538,16 @@ public class OracleProductividadQuery {
                 "ORDER BY FECHA, LEGAJO, OPERACION";
         } else if ("rendimiento_online".equalsIgnoreCase(queryKey)) {
             sql =
+                "WITH PARAMS AS (SELECT TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') AS FECHA_DESDE, TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') AS FECHA_HASTA FROM DUAL), " +
+                "HIST_SOURCE AS ( " +
+                "    SELECT A.FCREAREG, A.CDESCRIP, A.CNUPALET, A.QCANTIDA, A.CREFEREN, A.CNPEDIDO, A.COPECREA, A.CZONADES, A.CZONAORI, A.CALMACEN " +
+                "    FROM F132HIST A JOIN PARAMS P ON A.FCREAREG >= P.FECHA_DESDE AND A.FCREAREG <= P.FECHA_HASTA " +
+                "    WHERE A.CDESCRIP IN ('Picking', 'TRANSPORTE DE PALETS') " +
+                "    UNION ALL " +
+                "    SELECT A.FCREAREG, A.CDESCRIP, A.CNUPALET, A.QCANTIDA, A.CREFEREN, A.CNPEDIDO, A.COPECREA, A.CZONADES, A.CZONAORI, A.CALMACEN " +
+                "    FROM F132HIST_HIST A JOIN PARAMS P ON A.FCREAREG >= P.FECHA_DESDE AND A.FCREAREG <= P.FECHA_HASTA " +
+                "    WHERE A.CDESCRIP IN ('Picking', 'TRANSPORTE DE PALETS') " +
+                ") " +
                 "SELECT " +
                 "    B.CNSECTOR, " +
                 "    A.FCREAREG, " +
@@ -1276,14 +1562,11 @@ public class OracleProductividadQuery {
                 "    A.CZONADES AS DESTINO, " +
                 "    SUB1.DESCDIVI AS DIVISION, " +
                 "    SYSDATE AS ORACLE_NOW " +
-                "FROM F132HIST A " +
+                "FROM HIST_SOURCE A " +
                 "JOIN F602ASEC B ON A.CREFEREN = B.CREFEREN AND A.CALMACEN = B.CALMACEN " +
-                "JOIN PV_LEGAJO C ON A.COPECREA = C.LEGAJO " +
+                "LEFT JOIN PV_LEGAJO C ON A.COPECREA = C.LEGAJO " +
                 "LEFT JOIN F002ARTI D ON A.CREFEREN = D.CREFEREN " +
                 "LEFT JOIN (SELECT DISTINCT CZONALMA, DESCDIVI FROM VW_UBICACIONES_DIVISION) SUB1 ON SUB1.CZONALMA = A.CZONAORI " +
-                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
-                "  AND A.FCREAREG <= TO_DATE(?, 'YYYY-MM-DD HH24:MI:SS') " +
-                "  AND A.CDESCRIP IN ('Picking', 'TRANSPORTE DE PALETS') " +
                 "ORDER BY A.COPECREA, A.FCREAREG";
         } else if ("online".equalsIgnoreCase(queryKey)) {
             sql =
@@ -1585,9 +1868,24 @@ public class OracleProductividadQuery {
                 ps.setString(4 + legajos.length, operacionArg);
             } else if ("pp_premio_escalas".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, operacionArg);
+            } else if ("pp_premio_escalas_por_id".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, operacionArg);
+                ps.setString(2, grupoFuncionesArg);
             } else if ("pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaOperativaArg.replace("-", "/"));
                 ps.setString(2, operacionArg);
+            } else if ("pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaOperativaArg.replace("-", "/"));
+                ps.setString(2, operacionArg);
+                ps.setString(3, grupoFuncionesArg);
+            } else if ("pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaOperativaArg.replace("-", "/"));
+            } else if ("pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaOperativaArg.replace("-", "/"));
+                ps.setString(2, operacionArg);
+            } else if ("pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaOperativaArg.replace("-", "/"));
+                ps.setString(2, grupoFuncionesArg);
             } else if ("premio_caso_modelo_final".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, grupoFuncionesArg);
                 ps.setString(2, fechaOperativaArg);
@@ -1625,7 +1923,7 @@ public class OracleProductividadQuery {
                 for (int i = 0; i < ubicaciones.length; i++) {
                     ps.setString(3 + i, ubicaciones[i] + "%");
                 }
-            } else if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey) && !"rack_inutilizadas".equalsIgnoreCase(queryKey)) {
+            } else if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey) && !"rack_inutilizadas".equalsIgnoreCase(queryKey) && !"pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) && !"rend_premio_escalas".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
                 ps.setString(2, fechaHasta);
                 if ("gestion_productividad_picking".equalsIgnoreCase(queryKey)) {
@@ -1658,7 +1956,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey)) {
+                    if ("premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_escalas_por_id".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey) || "pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) || "pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey) || "pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey) || "pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey) || "rend_premio_dias_pago".equalsIgnoreCase(queryKey) || "rend_premio_escalas".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

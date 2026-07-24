@@ -42,9 +42,12 @@
     .state-pill.ritmo-alto{color:var(--green);background:var(--green-soft);border-color:#C8E2D0}.state-pill.ritmo-ok{color:var(--blue);background:var(--blue-soft);border-color:#B8D4ED}.state-pill.ritmo-bajo{color:var(--red);background:var(--red-soft);border-color:#E5A6AE}.state-pill.ritmo-muestra{color:var(--amber);background:var(--amber-soft);border-color:#E1BF76}
     .panel{background:var(--panel);border:1px solid var(--rule);margin-bottom:14px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#F6F8F5;border-bottom:1px solid var(--rule);padding:9px 12px}.panel-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}.panel-body{padding:12px}.panel.collapsed .panel-body{display:none}.panel-toggle{min-height:26px;border:1px solid var(--rule);background:var(--panel);color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 8px}.panel-toggle:hover{color:var(--blue);border-color:var(--blue)}.panel-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .table-wrap{overflow:auto;max-height:560px}table{width:100%;border-collapse:collapse;min-width:1160px}th{position:sticky;top:0;background:#F6F8F5;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule);white-space:nowrap}td{padding:9px 10px;border-bottom:1px solid var(--rule);font-size:12px;vertical-align:middle}tbody tr:nth-child(odd){background:#F8FAF7}.records-table{min-width:1240px}.records-table .date-cell{width:142px;max-width:142px;white-space:nowrap}.mono{font-family:'IBM Plex Mono',monospace}.num{text-align:right}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
+    .hidden{display:none!important}.analysis-toolbar{display:grid;grid-template-columns:140px repeat(2,minmax(130px,1fr)) repeat(3,minmax(150px,1fr)) auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px;margin-bottom:14px}.analysis-toolbar .status{grid-column:1/-1}.analysis-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px}.analysis-kpi{border:1px solid var(--rule);border-top:3px solid var(--blue);background:var(--panel);padding:12px}.analysis-kpi:first-child{border-top-color:var(--green)}.analysis-kpi:nth-child(4){border-top-color:var(--amber)}.analysis-kpi-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}.analysis-kpi-value{font-family:'IBM Plex Mono',monospace;font-size:27px;font-weight:600;line-height:1.05;margin-top:8px}.estrato-grid{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:10px;margin-bottom:14px}.estrato-card{border:1px solid var(--rule);border-top:3px solid var(--rule-strong);background:var(--panel);padding:10px;text-align:left}.estrato-card:hover{border-color:var(--blue)}.estrato-card.active{outline:2px solid var(--blue);outline-offset:-2px;border-top-color:var(--blue);background:#F8FAF7}.estrato-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}.estrato-sub{font-size:11px;color:var(--ink-soft);margin-top:5px}.analysis-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.08em;text-transform:uppercase}
+    .multi-filter{position:relative}.multi-filter-btn{height:34px;width:100%;border:1px solid var(--rule);background:var(--panel);text-align:left;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}.multi-filter-btn::after{content:"+";font-weight:600;color:var(--green)}.multi-filter.open .multi-filter-btn::after{content:"-"}.multi-filter-menu{display:none;position:absolute;z-index:20;left:0;right:0;top:40px;max-height:300px;overflow:auto;border:1px solid var(--rule-strong);background:var(--panel);box-shadow:0 8px 20px rgba(14,22,32,.12);padding:8px}.multi-filter.open .multi-filter-menu{display:block}.multi-actions{display:flex;gap:6px;margin-bottom:6px}.multi-actions button{min-height:24px;border:1px solid var(--rule);background:#F8FAF7;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase}.multi-item{display:flex;align-items:center;gap:7px;padding:4px 2px;font-family:'IBM Plex Mono',monospace;font-size:11px}.multi-item input{width:14px;height:14px;min-height:14px}.hist-subpanels>.hidden{display:none!important}.chart-panel{background:var(--panel);border:1px solid var(--rule);min-height:318px;padding:12px;display:flex;flex-direction:column;min-width:0}.chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}.line-chart{width:100%;height:260px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart polyline{fill:none;stroke-width:2}.line-chart circle{stroke:var(--panel);stroke-width:1}.chart-legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:-2px 0 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle}
+    .heatmap-summary{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;margin-bottom:10px}.heatmap-stat{border:1px solid var(--rule);background:#F8FAF7;padding:9px 10px}.heatmap-stat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft)}.heatmap-stat-value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;line-height:1.05;margin-top:5px}.heatmap-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}.heatmap-box{display:inline-flex;width:14px;height:14px;border:1px solid var(--rule)}.heatmap-box.ok,.hm-cell.ok{background:#9BD86E}.heatmap-box.warn,.hm-cell.warn{background:#F2E85C}.heatmap-box.bad,.hm-cell.bad{background:#FF8A76}.heatmap-box.none,.hm-cell.none{background:#DDE2DE}.heatmap-box.empty,.hm-cell.empty{background:#FFFFFF}.heatmap-table{min-width:max-content}.heatmap-table th,.heatmap-table td{padding:5px 7px;text-align:center}.heatmap-table .hm-fixed{position:sticky;left:0;z-index:3;background:#F6F8F5;text-align:left}.heatmap-table tbody .hm-fixed{background:inherit}.heatmap-table .hm-legajo{min-width:78px}.heatmap-table .hm-name{left:78px;min-width:210px;max-width:210px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hm-cell{min-width:42px;height:28px;border:1px solid rgba(255,255,255,.75);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#102030}.hm-cell.active{outline:2px solid var(--blue);outline-offset:-2px}.hm-cell.empty{color:var(--ink-soft);font-weight:400}.hm-footer-cell{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;background:#EAF0EA}.hm-prom{font-weight:700;background:#F6F8F5}
     .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(14,22,32,.42);z-index:30;align-items:center;justify-content:center;padding:24px}.modal-backdrop.open{display:flex}.modal-panel{width:min(980px,100%);max-height:88vh;background:var(--panel);border:1px solid var(--rule-strong);display:flex;flex-direction:column}.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--rule);background:#F6F8F5}.modal-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);font-weight:600}.modal-body{padding:12px;overflow:auto}.modal-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border-top:1px solid var(--rule);background:var(--panel)}
     .standard-table{min-width:760px}.standard-table input{height:30px;width:100%;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:0 8px}.standard-table input[type="checkbox"]{width:16px;height:16px;min-height:16px}
-    @media(max-width:1180px){.toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.section-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero,.insight-strip{grid-template-columns:1fr}.card-metric-value{font-size:21px}}
+    @media(max-width:1180px){.toolbar,.analysis-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.section-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero,.insight-strip{grid-template-columns:1fr}.analysis-kpis,.estrato-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card-metric-value{font-size:21px}}
     @media(max-width:760px){.paper-app{padding:0 10px 14px}.paper-header,.page-head,.toolbar,.section-grid{grid-template-columns:1fr}.card-grid{grid-template-columns:repeat(4,minmax(240px,1fr));overflow:auto}.header-right{justify-self:start;flex-wrap:wrap}}
   </style>
 </head>
@@ -77,16 +80,22 @@
       </div>
     </header>
 
-    <section class="hero">
+    <div class="tabs" role="tablist" aria-label="Seccion principal">
+      <button class="tab-btn active" id="main-tab-online" type="button" onclick="setMainSection('online')">Actividad online</button>
+      <button class="tab-btn" id="main-tab-historico" type="button" onclick="setMainSection('historico')">Historico</button>
+    </div>
+
+    <section id="online-panel">
+      <section class="hero">
       <div>
         <div class="kicker">Dia logistico actual</div>
         <div class="hero-title" id="hero-title">Esperando consulta</div>
         <div class="hero-sub" id="hero-sub">Selecciona turno y consulta el estado operativo actual.</div>
       </div>
       <div class="status" id="summary-status">Sin datos cargados.</div>
-    </section>
+      </section>
 
-    <section class="toolbar">
+      <section class="toolbar">
       <div class="field">
         <label class="label" for="turno">Turno</label>
         <select id="turno">
@@ -100,9 +109,9 @@
       <button class="ghost-btn" type="button" onclick="openStandardsModal()">Editar estandares</button>
       <button class="ghost-btn" type="button" onclick="exportLegajos()">Exportar legajos</button>
       <div class="status" id="status">Listo para consultar.</div>
-    </section>
+      </section>
 
-    <section class="insight-strip" id="insight-strip">
+      <section class="insight-strip" id="insight-strip">
       <div class="timeline-card">
         <div class="timeline-head"><span>Linea del turno</span><span id="timeline-caption">Sin consulta</span></div>
         <div class="timeline-track" id="timeline-track"><div class="timeline-fill" style="width:0"></div></div>
@@ -110,12 +119,12 @@
       <div class="legend-card" id="insight-legend">
         <span class="cause-badge none">Sin datos</span>
       </div>
-    </section>
+      </section>
 
-    <div class="tabs" role="tablist" aria-label="Perspectiva de analisis">
-      <button class="tab-btn active" id="tab-sector" type="button" onclick="setPerspective('sector')">Por sector</button>
-      <button class="tab-btn" id="tab-legajo" type="button" onclick="setPerspective('legajo')">Por legajo</button>
-    </div>
+      <div class="tabs" role="tablist" aria-label="Vista online">
+        <button class="tab-btn active" id="tab-sector" type="button" onclick="setPerspective('sector')">Por sector</button>
+        <button class="tab-btn" id="tab-legajo" type="button" onclick="setPerspective('legajo')">Por legajo</button>
+      </div>
 
     <div class="crumb" id="crumb">Vista: <strong>Divisiones</strong></div>
     <section class="panel" id="panel-nivel-1">
@@ -169,6 +178,140 @@
         <div class="table-wrap" id="records-wrap"><div class="empty">Selecciona un legajo del ranking para ver sus registros.</div></div>
       </div>
     </section>
+    </section>
+
+    <section id="analysis-panel" class="hidden">
+      <section class="analysis-toolbar">
+        <div class="field">
+          <label class="label" for="hist-operacion">Operacion</label>
+          <select id="hist-operacion"><option value="PICKING">Picking</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="hist-desde">Desde</label>
+          <input id="hist-desde" type="date">
+        </div>
+        <div class="field">
+          <label class="label" for="hist-hasta">Hasta</label>
+          <input id="hist-hasta" type="date">
+        </div>
+        <div class="field multi-filter" id="hist-division-filter">
+          <label class="label">Divisiones</label>
+          <button class="multi-filter-btn" type="button" onclick="toggleMultiFilter('hist-division-filter')"><span id="hist-division-summary">Todas</span></button>
+          <div class="multi-filter-menu">
+            <div class="multi-actions"><button type="button" onclick="setAllMulti('hist-division-options', true)">Todas</button><button type="button" onclick="setAllMulti('hist-division-options', false)">Limpiar</button></div>
+            <div id="hist-division-options"></div>
+          </div>
+        </div>
+        <div class="field multi-filter" id="hist-sector-filter">
+          <label class="label">Sectores</label>
+          <button class="multi-filter-btn" type="button" onclick="toggleMultiFilter('hist-sector-filter')"><span id="hist-sector-summary">Todos</span></button>
+          <div class="multi-filter-menu">
+            <div class="multi-actions"><button type="button" onclick="setAllMulti('hist-sector-options', true)">Todos</button><button type="button" onclick="setAllMulti('hist-sector-options', false)">Limpiar</button></div>
+            <div id="hist-sector-options"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="hist-sector-rrhh">Sector RRHH</label>
+          <select id="hist-sector-rrhh"><option value="">Todos</option></select>
+        </div>
+        <div class="field">
+          <label class="label" for="hist-funcion">Funcion</label>
+          <select id="hist-funcion"><option value="">Todas</option></select>
+        </div>
+        <button class="primary-btn" id="hist-load-btn" type="button" onclick="consultHistoricSection()">Consultar</button>
+        <div class="status" id="hist-status">Listo para consultar historico.</div>
+      </section>
+
+      <div class="tabs" role="tablist" aria-label="Vistas historicas">
+        <button class="tab-btn active" id="hist-tab-analisis" type="button" onclick="setHistoricTab('analisis')">Analisis</button>
+        <button class="tab-btn" id="hist-tab-indicadores" type="button" onclick="setHistoricTab('indicadores')">Indicadores</button>
+        <button class="tab-btn" id="hist-tab-premios" type="button" onclick="setHistoricTab('premios')">Premios no incluidos</button>
+      </div>
+
+      <section class="hist-subpanels">
+      <section id="hist-panel-analisis">
+      <section class="estrato-grid" id="estrato-cards"></section>
+      <section class="analysis-kpis" id="analysis-kpis"></section>
+
+      <section class="panel" id="panel-hist-heatmap">
+        <div class="panel-head">
+          <div class="panel-title">Mapa de calor diario</div>
+          <div class="panel-actions">
+            <span class="state-pill none" id="hist-heatmap-count">0 dias</span>
+            <button class="panel-toggle" type="button" onclick="togglePanel('panel-hist-heatmap')">Contraer</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="hist-heatmap-wrap"><div class="empty">Consulta el historico para ver evolucion diaria.</div></div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-hist-legajos">
+        <div class="panel-head">
+          <div class="panel-title">Historico - Legajos</div>
+          <div class="panel-actions">
+            <span class="state-pill none" id="hist-legajos-count">0 legajos</span>
+            <button class="panel-toggle hidden" id="hist-clear-legajo" type="button" onclick="clearHistoricLegajo()">Ver todos</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap" id="hist-legajos-wrap"><div class="empty">Consulta el historico para cargar legajos desde cache local.</div></div>
+        </div>
+      </section>
+
+      <section class="panel collapsed" id="panel-hist-detalle">
+        <div class="panel-head">
+          <div class="panel-title" id="hist-detalle-title">Historico - Division y sector del legajo</div>
+          <div class="panel-actions">
+            <span class="state-pill none" id="hist-detalle-count">0 filas</span>
+            <button class="panel-toggle" type="button" onclick="togglePanel('panel-hist-detalle')">Expandir</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap" id="hist-detalle-wrap"><div class="empty">Selecciona un legajo para ver su detalle por division y sector.</div></div>
+        </div>
+      </section>
+      </section>
+
+      <section id="hist-panel-indicadores" class="hidden">
+        <section class="analysis-kpis" id="hist-indicator-kpis"></section>
+        <article class="chart-panel">
+          <div class="chart-title"><strong>Productividad grupal diaria</strong><span>Por division y filtros seleccionados</span></div>
+          <div id="hist-productivity-lines"><div class="empty">Consulta el historico para ver indicadores.</div></div>
+        </article>
+      </section>
+
+      <section id="hist-panel-premios" class="hidden">
+        <section class="estrato-grid" id="premium-estrato-cards"></section>
+        <section class="analysis-kpis" id="premium-kpis"></section>
+        <section class="panel" id="panel-premium-legajos">
+          <div class="panel-head">
+            <div class="panel-title">Premios no incluidos</div>
+            <div class="panel-actions">
+              <span class="state-pill none" id="premium-legajos-count">0 legajos</span>
+              <button class="panel-toggle" type="button" onclick="exportPremiumLegajos()">Exportar excel</button>
+              <button class="panel-toggle hidden" id="premium-clear-legajo" type="button" onclick="clearPremiumLegajo()">Ver todos</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap" id="premium-legajos-wrap"><div class="empty">Consulta el historico para estimar premios no incluidos.</div></div>
+          </div>
+        </section>
+        <section class="panel collapsed" id="panel-premium-detalle">
+          <div class="panel-head">
+            <div class="panel-title" id="premium-detalle-title">Detalle diario estimado</div>
+            <div class="panel-actions">
+              <span class="state-pill none" id="premium-detalle-count">0 filas</span>
+              <button class="panel-toggle" type="button" onclick="togglePanel('panel-premium-detalle')">Expandir</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap" id="premium-detalle-wrap"><div class="empty">Selecciona un legajo para ver los dias simulados.</div></div>
+          </div>
+        </section>
+      </section>
+      </section>
+    </section>
   </main>
 </div>
 
@@ -203,16 +346,39 @@
   const num = value => Number(value || 0).toLocaleString('es-AR', {maximumFractionDigits: 1});
   const pct = value => value == null ? '-' : `${num(value)}%`;
   let dashboard = null;
+  let historicRawDashboard = null;
+  let historicDashboard = null;
+  let premiumRawDashboard = null;
+  let premiumDashboard = null;
+  let mainSection = 'online';
   let perspective = 'sector';
   let selectedDivision = '';
   let selectedSector = '';
   let selectedLegajo = '';
+  let selectedHistLegajo = '';
+  let selectedHistDay = '';
+  let selectedPremiumLegajo = '';
+  let selectedEstrato = 'ALL';
+  let historicTab = 'analisis';
   let tableSorts = {
     sectorRanking: {key:'productividad_actual', dir:'desc'},
     legajoMain: {key:'cumplimiento_pct', dir:'asc'},
     legajoDetail: {key:'cumplimiento_pct', dir:'asc'},
+    histMain: {key:'cumplimiento_pct', dir:'asc'},
+    histDetail: {key:'cumplimiento_pct', dir:'asc'},
+    histHeatmap: {key:'cumplimiento_pct', dir:'asc'},
+    premiumMain: {key:'premio_estimado', dir:'desc'},
+    premiumDetail: {key:'dia_logistico', dir:'asc'},
   };
   let standards = [];
+  const estratos = [
+    {key:'ALL', title:'Todos', sub:'Sin filtro de antiguedad'},
+    {key:'LT15', title:'< 15 dias', sub:'Ingreso reciente'},
+    {key:'LT30', title:'15 a 30 dias', sub:'Adaptacion inicial'},
+    {key:'LT45', title:'30 a 45 dias', sub:'Curva media'},
+    {key:'GT45', title:'> 45 dias', sub:'Base estable'},
+    {key:'SIN_DATO', title:'Sin dato', sub:'Sin fecha en legajero'},
+  ];
 
   function stateLabel(state) {
     return {ok:'OK', warn:'Atencion', bad:'Bajo', none:'Sin est.'}[state] || '-';
@@ -232,6 +398,10 @@
 
   function statusClass(row) {
     return ['ok','warn','bad','none'].includes(row?.estado) ? row.estado : 'none';
+  }
+
+  function displayNombre(nombre) {
+    return nombre && String(nombre).trim() ? nombre : 'Sin nombre';
   }
 
   function rhythmInfo(row) {
@@ -412,8 +582,15 @@
 
   function setStatus(text, error=false) {
     const el = $('status');
-    el.textContent = text;
-    el.classList.toggle('error', error);
+    if (el) {
+      el.textContent = text;
+      el.classList.toggle('error', error);
+    }
+    const hist = $('hist-status');
+    if (hist && mainSection === 'historico') {
+      hist.textContent = text;
+      hist.classList.toggle('error', error);
+    }
   }
 
   function setPanelCollapsed(id, collapsed) {
@@ -430,6 +607,33 @@
     setPanelCollapsed(id, !panel.classList.contains('collapsed'));
   }
 
+  function setMainSection(next) {
+    mainSection = next === 'historico' ? 'historico' : 'online';
+    $('main-tab-online')?.classList.toggle('active', mainSection === 'online');
+    $('main-tab-historico')?.classList.toggle('active', mainSection === 'historico');
+    $('online-panel')?.classList.toggle('hidden', mainSection !== 'online');
+    $('analysis-panel')?.classList.toggle('hidden', mainSection !== 'historico');
+    if (mainSection === 'historico') {
+      initHistoricDefaults();
+      renderHistoricAnalysis();
+    } else {
+      renderDashboard();
+    }
+  }
+
+  function setHistoricTab(next) {
+    historicTab = ['analisis','indicadores','premios'].includes(next) ? next : 'analisis';
+    ['analisis','indicadores','premios'].forEach(tab => {
+      $(`hist-tab-${tab}`)?.classList.toggle('active', historicTab === tab);
+      $(`hist-panel-${tab}`)?.classList.toggle('hidden', historicTab !== tab);
+    });
+    if (historicTab === 'premios' && historicRawDashboard && !premiumRawDashboard) {
+      loadPremiumEstimation();
+      return;
+    }
+    renderHistoricAnalysis();
+  }
+
   function setPerspective(next) {
     perspective = next === 'legajo' ? 'legajo' : 'sector';
     $('tab-sector').classList.toggle('active', perspective === 'sector');
@@ -441,6 +645,996 @@
     setPanelCollapsed('panel-nivel-3', true);
     setPanelCollapsed('panel-nivel-4', true);
     renderDashboard();
+  }
+
+  function isoDateLocal(date) {
+    const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function initHistoricDefaults() {
+    if ($('hist-desde').value && $('hist-hasta').value) return;
+    const today = new Date();
+    const hasta = new Date(today);
+    hasta.setDate(today.getDate() - 1);
+    const desde = new Date(today.getFullYear(), today.getMonth(), 1);
+    $('hist-desde').value = isoDateLocal(desde);
+    $('hist-hasta').value = isoDateLocal(hasta);
+    renderEstratoCards();
+  }
+
+  function fillSelect(id, values, current='') {
+    const select = $(id);
+    if (!select) return;
+    const label = id === 'hist-funcion' ? 'Todas' : 'Todos';
+    select.innerHTML = `<option value="">${label}</option>` + (values || []).map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join('');
+    select.value = current && (values || []).includes(current) ? current : '';
+  }
+
+  function toggleMultiFilter(id) {
+    const target = $(id);
+    document.querySelectorAll('.multi-filter').forEach(node => {
+      if (node !== target) node.classList.remove('open');
+    });
+    target?.classList.toggle('open');
+  }
+
+  function renderMultiOptions(containerId, values, selectedValues=null) {
+    const container = $(containerId);
+    if (!container) return;
+    const selected = selectedValues == null ? null : new Set(selectedValues);
+    const changeHandler = containerId === 'hist-division-options' ? 'onHistoricDivisionFilterChanged()' : 'applyHistoricFilters()';
+    container.innerHTML = (values || []).map(value => `
+      <label class="multi-item"><input type="checkbox" value="${esc(value)}" ${selected == null || selected.has(value) ? 'checked' : ''} onchange="${changeHandler}"><span>${esc(value)}</span></label>
+    `).join('') || '<div class="analysis-meta">Sin opciones</div>';
+    updateMultiSummary(containerId);
+  }
+
+  function setAllMulti(containerId, checked) {
+    document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(input => { input.checked = checked; });
+    if (containerId === 'hist-division-options') onHistoricDivisionFilterChanged();
+    else applyHistoricFilters();
+  }
+
+  function checkedMultiValues(containerId) {
+    return [...document.querySelectorAll(`#${containerId} input[type="checkbox"]`)]
+      .filter(input => input.checked)
+      .map(input => input.value);
+  }
+
+  function selectedMultiValues(containerId) {
+    const inputs = [...document.querySelectorAll(`#${containerId} input[type="checkbox"]`)];
+    const checked = inputs.filter(input => input.checked).map(input => input.value);
+    if (inputs.length && !checked.length) return ['__NONE__'];
+    return checked.length === inputs.length ? [] : checked;
+  }
+
+  function sectorsForSelectedDivisions() {
+    const divisionInputs = [...document.querySelectorAll('#hist-division-options input[type="checkbox"]')];
+    const checkedDivisions = checkedMultiValues('hist-division-options');
+    if (divisionInputs.length && !checkedDivisions.length) return [];
+    const allDivisions = !divisionInputs.length || checkedDivisions.length === divisionInputs.length;
+    const sectors = new Set();
+    (historicRawDashboard?.diario || historicRawDashboard?.detalle || []).forEach(row => {
+      if (!allDivisions && !checkedDivisions.includes(row.division)) return;
+      if (row.sector) sectors.add(row.sector);
+    });
+    return [...sectors].sort((a,b) => String(a).localeCompare(String(b), 'es'));
+  }
+
+  function refreshSectorOptionsForDivisions() {
+    const previous = new Set(checkedMultiValues('hist-sector-options'));
+    const sectors = sectorsForSelectedDivisions();
+    const selected = sectors.filter(value => previous.has(value));
+    renderMultiOptions('hist-sector-options', sectors, selected.length ? selected : sectors);
+  }
+
+  function onHistoricDivisionFilterChanged() {
+    refreshSectorOptionsForDivisions();
+    applyHistoricFilters();
+  }
+
+  function updateMultiSummary(containerId) {
+    const inputs = [...document.querySelectorAll(`#${containerId} input[type="checkbox"]`)];
+    const checked = inputs.filter(input => input.checked).length;
+    const target = containerId === 'hist-division-options' ? $('hist-division-summary') : $('hist-sector-summary');
+    if (!target) return;
+    if (!inputs.length || checked === inputs.length) target.textContent = containerId === 'hist-division-options' ? 'Todas' : 'Todos';
+    else if (!checked) target.textContent = 'Sin seleccion';
+    else target.textContent = `${checked} seleccionados`;
+  }
+
+  function renderEstratoCards() {
+    const counts = new Map();
+    const estratoRows = historicRawDashboard ? aggregateHistoricRowsForEstratoCounts() : [];
+    estratoRows.forEach(row => {
+      counts.set(row.estrato, (counts.get(row.estrato) || 0) + 1);
+      counts.set('ALL', (counts.get('ALL') || 0) + 1);
+    });
+    $('estrato-cards').innerHTML = estratos.map(item => `
+      <button class="estrato-card ${selectedEstrato === item.key ? 'active' : ''}" type="button" onclick="setHistoricEstrato('${item.key}')">
+        <div class="estrato-title">${esc(item.title)}</div>
+        <div class="estrato-sub">${esc(item.sub)} · ${num(counts.get(item.key) || 0)} legajos</div>
+      </button>`).join('');
+  }
+
+  function aggregateHistoricRowsForEstratoCounts() {
+    const byLegajo = new Map();
+    historicDetailFiltered(true).forEach(row => {
+      if (!byLegajo.has(row.legajo)) byLegajo.set(row.legajo, row);
+    });
+    return [...byLegajo.values()];
+  }
+
+  function setHistoricEstrato(key) {
+    selectedEstrato = key || 'ALL';
+    selectedHistLegajo = '';
+    applyHistoricFilters();
+  }
+
+  function historicFilterValues() {
+    return {
+      divisiones: selectedMultiValues('hist-division-options'),
+      sectores: selectedMultiValues('hist-sector-options'),
+      sector_rrhh: $('hist-sector-rrhh')?.value || '',
+      funcion: $('hist-funcion')?.value || '',
+      estrato: selectedEstrato || 'ALL',
+    };
+  }
+
+  function historicDetailFiltered(ignoreEstrato=false) {
+    const filters = historicFilterValues();
+    return (historicRawDashboard?.detalle || []).filter(row => {
+      if (filters.divisiones.length && !filters.divisiones.includes(row.division)) return false;
+      if (filters.sectores.length && !filters.sectores.includes(row.sector)) return false;
+      if (filters.sector_rrhh && row.sector_rrhh !== filters.sector_rrhh) return false;
+      if (filters.funcion && row.funcion !== filters.funcion) return false;
+      if (!ignoreEstrato && filters.estrato && filters.estrato !== 'ALL' && row.estrato !== filters.estrato) return false;
+      return true;
+    });
+  }
+
+  function historicDailyFiltered(ignoreEstrato=false) {
+    const filters = historicFilterValues();
+    return (historicRawDashboard?.diario || []).filter(row => {
+      if (filters.divisiones.length && !filters.divisiones.includes(row.division)) return false;
+      if (filters.sectores.length && !filters.sectores.includes(row.sector)) return false;
+      if (filters.sector_rrhh && row.sector_rrhh !== filters.sector_rrhh) return false;
+      if (filters.funcion && row.funcion !== filters.funcion) return false;
+      if (!ignoreEstrato && filters.estrato && filters.estrato !== 'ALL' && row.estrato !== filters.estrato) return false;
+      return true;
+    });
+  }
+
+  function finishHistoricItem(item) {
+    const seconds = Number(item.segundos || 0);
+    const hours = seconds / 3600;
+    const actual = hours > 0 ? Number(item.bultos || 0) / hours : 0;
+    const expected = hours > 0 ? Number(item.bultos_esperados || 0) / hours : 0;
+    const state = calcState(actual, expected);
+    const out = {...item};
+    out.horas = Number(hours.toFixed(4));
+    out.minutos = Number((seconds / 60).toFixed(1));
+    out.productividad_actual = Number(actual.toFixed(2));
+    out.productividad_esperada = Number(expected.toFixed(2));
+    out.cumplimiento_pct = state.cumplimiento_pct == null ? null : Number(state.cumplimiento_pct.toFixed(1));
+    out.estado = state.estado;
+    out.bultos = Number(Number(item.bultos || 0).toFixed(2));
+    out.segundos = Number(seconds.toFixed(1));
+    out.bultos_esperados = Number(Number(item.bultos_esperados || 0).toFixed(2));
+    ['divisiones','sectores','dias'].forEach(key => {
+      if (out[key] instanceof Set) {
+        const values = [...out[key]].filter(Boolean).map(String).sort();
+        out[`${key}_count`] = values.length;
+        out[`${key}_lista`] = values.join(', ');
+        delete out[key];
+      }
+    });
+    return out;
+  }
+
+  function aggregateHistoricFromMemory() {
+    const detailRows = historicDetailFiltered();
+    const byLegajo = new Map();
+    const detail = detailRows.map(row => finishHistoricItem({...row}));
+    detailRows.forEach(row => {
+      const key = row.legajo || '';
+      if (!byLegajo.has(key)) {
+        byLegajo.set(key, {
+          legajo: key,
+          nombre: row.nombre || '',
+          sector_rrhh: row.sector_rrhh || '',
+          funcion: row.funcion || '',
+          area_personal: row.area_personal || '',
+          fecha_ingreso: row.fecha_ingreso,
+          antiguedad_dias_calc: row.antiguedad_dias_calc,
+          estrato: row.estrato,
+          bultos: 0,
+          segundos: 0,
+          operaciones: 0,
+          bultos_esperados: 0,
+          divisiones: new Set(),
+          sectores: new Set(),
+          dias: new Set(),
+          sectores_rojo: 0,
+          sector_critico: '',
+          peor_cumplimiento: null,
+          ultimo_movimiento: row.ultimo_movimiento,
+        });
+      }
+      const leg = byLegajo.get(key);
+      leg.bultos += Number(row.bultos || 0);
+      leg.segundos += Number(row.segundos || 0);
+      leg.operaciones += Number(row.operaciones || 0);
+      leg.bultos_esperados += Number(row.bultos_esperados || 0);
+      leg.divisiones.add(row.division);
+      leg.sectores.add(row.sector);
+      String(row.dias_lista || row.dia_logistico || '').split(',').map(value => value.trim()).filter(Boolean).forEach(day => leg.dias.add(day));
+      if (row.estado === 'bad') leg.sectores_rojo += 1;
+      const rowPct = row.cumplimiento_pct == null ? null : Number(row.cumplimiento_pct);
+      if (rowPct != null && (leg.peor_cumplimiento == null || rowPct < leg.peor_cumplimiento)) {
+        leg.peor_cumplimiento = rowPct;
+        leg.sector_critico = row.sector || '';
+      }
+      if (row.ultimo_movimiento && (!leg.ultimo_movimiento || row.ultimo_movimiento > leg.ultimo_movimiento)) leg.ultimo_movimiento = row.ultimo_movimiento;
+    });
+    const legajos = [...byLegajo.values()].map(finishHistoricItem);
+    const resumen = {
+      legajos: legajos.length,
+      bultos: Number(legajos.reduce((acc, row) => acc + Number(row.bultos || 0), 0).toFixed(2)),
+      horas: Number((legajos.reduce((acc, row) => acc + Number(row.segundos || 0), 0) / 3600).toFixed(2)),
+      sectores: new Set(detailRows.map(row => `${row.division || ''}|${row.sector || ''}`)).size,
+      dias: new Set(detailRows.flatMap(row => String(row.dias_lista || row.dia_logistico || '').split(',').map(value => value.trim()).filter(Boolean))).size,
+    };
+    resumen.productividad_actual = resumen.horas ? Number((resumen.bultos / resumen.horas).toFixed(2)) : 0;
+    return {...historicRawDashboard, resumen, legajos, detalle: detail, diario: historicDailyFiltered()};
+  }
+
+  function dayRange(fromValue, toValue) {
+    const from = new Date(`${fromValue}T00:00:00`);
+    const to = new Date(`${toValue}T00:00:00`);
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) {
+      return [...new Set((historicDailyFiltered() || []).map(row => row.dia_logistico).filter(Boolean))].sort();
+    }
+    const days = [];
+    const cursor = new Date(from);
+    while (cursor <= to && days.length < 93) {
+      days.push(isoDateLocal(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return days;
+  }
+
+  function dayLabel(day) {
+    return String(day || '').slice(8, 10) || '-';
+  }
+
+  function sortHeatmap(key) {
+    const sort = tableSorts.histHeatmap;
+    if (sort.key === key) {
+      sort.dir = sort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      tableSorts.histHeatmap = {key, dir: ['legajo','nombre'].includes(key) ? 'asc' : 'desc'};
+    }
+    renderHistoricHeatmap();
+  }
+
+  function heatmapSortMark(key) {
+    const sort = tableSorts.histHeatmap;
+    return sort.key === key ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+  }
+
+  function heatmapTh(label, key, cls='') {
+    return `<th class="${cls}" onclick="event.stopPropagation(); sortHeatmap('${esc(key)}')" style="cursor:pointer">${esc(label)}${heatmapSortMark(key)}</th>`;
+  }
+
+  function sortHeatmapRows(rows) {
+    const sort = tableSorts.histHeatmap;
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    const key = sort.key;
+    return [...rows].sort((a,b) => {
+      let av;
+      let bv;
+      if (String(key).startsWith('day:')) {
+        const day = key.slice(4);
+        av = a.cells.get(day)?.cumplimiento_pct ?? -1;
+        bv = b.cells.get(day)?.cumplimiento_pct ?? -1;
+      } else {
+        av = a[key] ?? '';
+        bv = b[key] ?? '';
+      }
+      if (typeof av === 'number' || typeof bv === 'number') return (Number(av || 0) - Number(bv || 0)) * dir;
+      return String(av).localeCompare(String(bv), 'es') * dir;
+    });
+  }
+
+  function aggregateHeatmap() {
+    const days = dayRange($('hist-desde')?.value, $('hist-hasta')?.value);
+    const dailyRows = historicDailyFiltered();
+    const byLegajo = new Map();
+    const byDay = new Map();
+    dailyRows.forEach(row => {
+      const day = row.dia_logistico || '';
+      const legajo = row.legajo || '';
+      if (!day || !legajo) return;
+      if (!byLegajo.has(legajo)) {
+        byLegajo.set(legajo, {
+          legajo,
+          nombre: row.nombre || '',
+          cells: new Map(),
+          total: {bultos:0, segundos:0, bultos_esperados:0},
+        });
+      }
+      const item = byLegajo.get(legajo);
+      if (!item.cells.has(day)) item.cells.set(day, {bultos:0, segundos:0, bultos_esperados:0, divisiones:new Set(), sectores:new Set()});
+      const cell = item.cells.get(day);
+      const bultos = Number(row.bultos || 0);
+      const segundos = Number(row.segundos || 0);
+      const esperados = Number(row.bultos_esperados || 0);
+      cell.bultos += bultos;
+      cell.segundos += segundos;
+      cell.bultos_esperados += esperados;
+      cell.divisiones.add(row.division);
+      cell.sectores.add(row.sector);
+      item.total.bultos += bultos;
+      item.total.segundos += segundos;
+      item.total.bultos_esperados += esperados;
+      if (!byDay.has(day)) byDay.set(day, {total:0, ok:0});
+    });
+    const rows = sortHeatmapRows([...byLegajo.values()].map(item => {
+      const total = finishHistoricItem(item.total);
+      const cells = new Map();
+      days.forEach(day => {
+        const raw = item.cells.get(day);
+        if (!raw) return;
+        cells.set(day, finishHistoricItem(raw));
+        const dayStat = byDay.get(day);
+        if (dayStat) {
+          dayStat.total += 1;
+          if ((cells.get(day).cumplimiento_pct || 0) >= 95) dayStat.ok += 1;
+        }
+      });
+      return {...item, ...total, cells};
+    }));
+    const totals = rows.reduce((acc, row) => {
+      acc.bultos += Number(row.bultos || 0);
+      acc.segundos += Number(row.segundos || 0);
+      acc.bultos_esperados += Number(row.bultos_esperados || 0);
+      return acc;
+    }, {bultos:0, segundos:0, bultos_esperados:0});
+    return {days, rows, byDay, summary: finishHistoricItem(totals)};
+  }
+
+  function cellTitle(row, day, cell) {
+    if (!cell) return `${row.legajo} - ${day}: sin actividad`;
+    return [
+      `${row.legajo} - ${displayNombre(row.nombre)}`,
+      day,
+      `Bultos: ${num(cell.bultos)}`,
+      `Tiempo: ${num(cell.minutos)} min`,
+      `Actual: ${num(cell.productividad_actual)} b/h`,
+      `Esperado: ${num(cell.productividad_esperada)} b/h`,
+      `Cumplimiento: ${pct(cell.cumplimiento_pct)}`,
+      `Divisiones: ${cell.divisiones_lista || '-'}`,
+      `Sectores: ${cell.sectores_lista || '-'}`,
+    ].join('\n');
+  }
+
+  function renderHistoricHeatmap() {
+    if (!historicDashboard) {
+      $('hist-heatmap-count').textContent = '0 dias';
+      $('hist-heatmap-wrap').innerHTML = '<div class="empty">Consulta el historico para ver evolucion diaria.</div>';
+      return;
+    }
+    const heat = aggregateHeatmap();
+    $('hist-heatmap-count').textContent = `${heat.days.length} dias - ${heat.rows.length} legajos`;
+    if (!heat.days.length || !heat.rows.length) {
+      $('hist-heatmap-wrap').innerHTML = '<div class="empty">Sin datos diarios para los filtros seleccionados.</div>';
+      return;
+    }
+    const above = heat.rows.filter(row => (row.cumplimiento_pct || 0) >= 95).length;
+    const below = heat.rows.length - above;
+    $('hist-heatmap-wrap').innerHTML = `
+      <div class="heatmap-summary">
+        <div class="heatmap-stat"><div class="heatmap-stat-label">Promedio equipo</div><div class="heatmap-stat-value">${num(heat.summary.productividad_actual)}</div></div>
+        <div class="heatmap-stat"><div class="heatmap-stat-label">Esperado ponderado</div><div class="heatmap-stat-value">${num(heat.summary.productividad_esperada)}</div></div>
+        <div class="heatmap-stat"><div class="heatmap-stat-label">Cumplimiento</div><div class="heatmap-stat-value">${pct(heat.summary.cumplimiento_pct)}</div></div>
+        <div class="heatmap-stat"><div class="heatmap-stat-label">Legajos >= obj.</div><div class="heatmap-stat-value">${num(above)}</div></div>
+        <div class="heatmap-stat"><div class="heatmap-stat-label">Legajos < obj.</div><div class="heatmap-stat-value">${num(below)}</div></div>
+      </div>
+      <div class="heatmap-legend">
+        <span class="legend-ref-title">Referencia</span>
+        <span class="heatmap-box ok"></span><span class="analysis-meta">>= 95%</span>
+        <span class="heatmap-box warn"></span><span class="analysis-meta">85% - 94,9%</span>
+        <span class="heatmap-box bad"></span><span class="analysis-meta">&lt; 85%</span>
+        <span class="heatmap-box none"></span><span class="analysis-meta">Sin est.</span>
+        <span class="heatmap-box empty"></span><span class="analysis-meta">Sin actividad</span>
+      </div>
+      <div class="table-wrap">
+        <table class="heatmap-table">
+          <thead>
+            <tr>${heatmapTh('Legajo', 'legajo', 'hm-fixed hm-legajo')}${heatmapTh('Nombre', 'nombre', 'hm-fixed hm-name')}${heat.days.map(day => heatmapTh(dayLabel(day), `day:${day}`)).join('')}${heatmapTh('Prom.', 'cumplimiento_pct')}</tr>
+          </thead>
+          <tbody>
+            ${heat.rows.map(row => `
+              <tr onclick="event.stopPropagation(); selectHistoricLegajo('${esc(row.legajo)}')" style="cursor:pointer">
+                <td class="hm-fixed hm-legajo mono">${esc(row.legajo)}</td>
+                <td class="hm-fixed hm-name">${esc(displayNombre(row.nombre))}</td>
+                ${heat.days.map(day => {
+                  const cell = row.cells.get(day);
+                  const active = selectedHistLegajo === row.legajo && selectedHistDay === day ? ' active' : '';
+                  return `<td class="hm-cell ${cell ? statusClass(cell) : 'empty'}${active}" title="${esc(cellTitle(row, day, cell))}" onclick="event.stopPropagation(); ${cell ? `selectHistoricLegajoDay('${esc(row.legajo)}','${esc(day)}')` : `selectHistoricLegajo('${esc(row.legajo)}')`}">${cell ? num(cell.productividad_actual) : '-'}</td>`;
+                }).join('')}
+                <td class="hm-cell hm-prom ${statusClass(row)}" title="${esc(`Cumplimiento: ${pct(row.cumplimiento_pct)}`)}">${num(row.productividad_actual)}</td>
+              </tr>`).join('')}
+            <tr>
+              <td class="hm-fixed hm-legajo mono" colspan="2">Frecuencia >= 95%</td>
+              ${heat.days.map(day => {
+                const stat = heat.byDay.get(day);
+                const value = stat && stat.total ? stat.ok / stat.total * 100 : null;
+                return `<td class="hm-footer-cell">${value == null ? '-' : pct(value)}</td>`;
+              }).join('')}
+              <td class="hm-footer-cell">${pct(heat.summary.cumplimiento_pct)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function paletteFor(idx) {
+    return ['#1F7A4D', '#0B5FAE', '#B25F00', '#C8102E', '#5C6773', '#6E56CF'][idx % 6];
+  }
+
+  function aggregateGroupProductivity() {
+    const rows = historicDailyFiltered(true);
+    const byKey = new Map();
+    rows.forEach(row => {
+      const day = row.dia_logistico || '';
+      const division = row.division || 'SIN DIVISION';
+      if (!day) return;
+      const key = `${division}|${day}`;
+      if (!byKey.has(key)) byKey.set(key, {division, day, bultos:0, segundos:0});
+      const item = byKey.get(key);
+      item.bultos += Number(row.bultos || 0);
+      item.segundos += Number(row.segundos || 0);
+    });
+    const days = [...new Set([...byKey.values()].map(row => row.day))].sort();
+    const divisions = [...new Set([...byKey.values()].map(row => row.division))].sort();
+    const series = divisions.map((division, idx) => ({
+      division,
+      color: paletteFor(idx),
+      points: days.map(day => {
+        const item = byKey.get(`${division}|${day}`);
+        const hours = Number(item?.segundos || 0) / 3600;
+        return {day, value: hours ? Number(item.bultos || 0) / hours : null, bultos: Number(item?.bultos || 0), horas: hours};
+      }),
+    }));
+    return {days, series};
+  }
+
+  function renderLineChart(data) {
+    const w = 1360, h = 270, left = 38, right = 8, top = 18, bottom = 42;
+    const values = data.series.flatMap(s => s.points.map(p => p.value).filter(v => v != null));
+    if (!data.days.length || !values.length) return '<div class="empty">Sin productividad grupal para los filtros seleccionados.</div>';
+    const max = Math.max(...values, 1);
+    const min = Math.min(0, ...values);
+    const span = Math.max(1, max - min);
+    const xFor = idx => data.days.length <= 1 ? left : left + idx * ((w - left - right) / (data.days.length - 1));
+    const yFor = value => h - bottom - ((value - min) / span) * (h - top - bottom);
+    const yMax = yFor(max);
+    const yMid = yFor(min + span / 2);
+    const labels = data.days.map((day, idx) => {
+      if (data.days.length > 18 && idx % Math.ceil(data.days.length / 12) !== 0 && idx !== data.days.length - 1) return '';
+      const x = xFor(idx);
+      return `<line class="grid" x1="${x}" y1="${h-bottom}" x2="${x}" y2="${h-bottom+4}"></line><text class="axis-label" x="${Math.max(2, Math.min(x - 14, w - 48))}" y="${h-9}">${esc(day.slice(8,10))}</text>`;
+    }).join('');
+    const lines = data.series.map(serie => {
+      const pts = serie.points.map((p, idx) => p.value == null ? null : {x:xFor(idx), y:yFor(p.value), ...p}).filter(Boolean);
+      const line = pts.length > 1 ? `<polyline points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" stroke="${serie.color}"></polyline>` : '';
+      const dots = pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${serie.color}"><title>${esc(`${serie.division} ${p.day}: ${num(p.value)} b/h`)}</title></circle>`).join('');
+      return `${line}${dots}`;
+    }).join('');
+    const legend = `<div class="chart-legend">${data.series.map(s => `<span><i class="legend-dot" style="background:${s.color}"></i>${esc(s.division)}</span>`).join('')}</div>`;
+    return `${legend}<svg class="line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Productividad grupal diaria">
+      <line class="grid" x1="${left}" y1="${yMax}" x2="${w-right}" y2="${yMax}"></line>
+      <line class="grid" x1="${left}" y1="${yMid}" x2="${w-right}" y2="${yMid}"></line>
+      <line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line>
+      <line class="axis" x1="${left}" y1="${h-bottom}" x2="${w-right}" y2="${h-bottom}"></line>
+      <text class="axis-label" x="4" y="${yMax + 4}">${num(max)}</text>
+      <text class="axis-label" x="4" y="${yMid + 4}">${num(min + span / 2)}</text>
+      ${labels}
+      ${lines}
+    </svg>`;
+  }
+
+  function renderHistoricIndicators() {
+    if (!historicDashboard) {
+      $('hist-indicator-kpis').innerHTML = '';
+      $('hist-productivity-lines').innerHTML = '<div class="empty">Consulta el historico para ver indicadores.</div>';
+      return;
+    }
+    const data = aggregateGroupProductivity();
+    const values = data.series.flatMap(s => s.points.map(p => p.value).filter(v => v != null));
+    const avg = values.length ? values.reduce((a,b) => a + b, 0) / values.length : 0;
+    $('hist-indicator-kpis').innerHTML = `
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Dias</div><div class="analysis-kpi-value">${num(data.days.length)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Divisiones</div><div class="analysis-kpi-value">${num(data.series.length)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Promedio b/h</div><div class="analysis-kpi-value">${num(avg)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Max b/h</div><div class="analysis-kpi-value">${num(Math.max(0, ...values))}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Sectores filtro</div><div class="analysis-kpi-value">${selectedMultiValues('hist-sector-options').length || 'Todos'}</div></div>`;
+    $('hist-productivity-lines').innerHTML = renderLineChart(data);
+  }
+
+  function premiumFilterValues() {
+    return historicFilterValues();
+  }
+
+  function listIncludesAny(listText, selected) {
+    if (!selected.length) return true;
+    const values = String(listText || '').split(',').map(value => value.trim()).filter(Boolean);
+    return selected.some(value => values.includes(value));
+  }
+
+  function premiumDetailFiltered(ignoreEstrato=false) {
+    const filters = premiumFilterValues();
+    return (premiumRawDashboard?.detalle || []).filter(row => {
+      if (!listIncludesAny(row.divisiones_lista, filters.divisiones)) return false;
+      if (!listIncludesAny(row.sectores_lista, filters.sectores)) return false;
+      if (filters.sector_rrhh && row.sector_rrhh !== filters.sector_rrhh) return false;
+      if (filters.funcion && row.funcion !== filters.funcion) return false;
+      if (!ignoreEstrato && filters.estrato && filters.estrato !== 'ALL' && row.estrato !== filters.estrato) return false;
+      return true;
+    });
+  }
+
+  function aggregatePremiumFromMemory() {
+    const detail = premiumDetailFiltered();
+    const byLegajo = new Map();
+    detail.forEach(row => {
+      const key = row.legajo || '';
+      if (!byLegajo.has(key)) {
+        byLegajo.set(key, {
+          legajo: key,
+          nombre: row.nombre || '',
+          sector_rrhh: row.sector_rrhh || '',
+          funcion: row.funcion || '',
+          fecha_ingreso: row.fecha_ingreso,
+          antiguedad_dias_calc: row.antiguedad_dias_calc,
+          estrato: row.estrato,
+          dias: new Set(),
+          grupos: new Set(),
+          divisiones: new Set(),
+          sectores: new Set(),
+          bultos: 0,
+          minutos: 0,
+          premio_estimado: 0,
+          dias_sin_escala: 0,
+          mejor_nivel: null,
+          ultimo_movimiento: row.ultimo_movimiento,
+        });
+      }
+      const item = byLegajo.get(key);
+      item.dias.add(row.dia_logistico);
+      item.grupos.add(row.grupo_premio);
+      String(row.divisiones_lista || '').split(',').map(v => v.trim()).filter(Boolean).forEach(v => item.divisiones.add(v));
+      String(row.sectores_lista || '').split(',').map(v => v.trim()).filter(Boolean).forEach(v => item.sectores.add(v));
+      item.bultos += Number(row.bultos || 0);
+      item.minutos += Number(row.minutos || 0);
+      item.premio_estimado += Number(row.premio || 0);
+      if (row.estado_premio === 'sin_escala') item.dias_sin_escala += 1;
+      if (row.nivel != null && (item.mejor_nivel == null || Number(row.nivel) > Number(item.mejor_nivel))) item.mejor_nivel = Number(row.nivel);
+      if (row.ultimo_movimiento && (!item.ultimo_movimiento || row.ultimo_movimiento > item.ultimo_movimiento)) item.ultimo_movimiento = row.ultimo_movimiento;
+    });
+    const legajos = [...byLegajo.values()].map(item => {
+      ['dias','grupos','divisiones','sectores'].forEach(key => {
+        const values = [...item[key]].filter(Boolean).map(String).sort();
+        item[`${key}_count`] = values.length;
+        item[`${key}_lista`] = values.join(', ');
+        delete item[key];
+      });
+      item.bultos = Number(item.bultos.toFixed(2));
+      item.minutos = Number(item.minutos.toFixed(1));
+      item.premio_estimado = Number(item.premio_estimado.toFixed(2));
+      return item;
+    });
+    const resumen = {
+      legajos: legajos.length,
+      dias_no_incluidos: new Set(detail.map(row => `${row.legajo}|${row.dia_logistico}`)).size,
+      filas_estimadas: detail.length,
+      bultos: Number(detail.reduce((acc, row) => acc + Number(row.bultos || 0), 0).toFixed(2)),
+      premio_estimado: Number(detail.reduce((acc, row) => acc + Number(row.premio || 0), 0).toFixed(2)),
+      sin_escala: detail.filter(row => row.estado_premio === 'sin_escala').length,
+      pagos_oracle: premiumRawDashboard?.resumen?.pagos_oracle || 0,
+      escalas: premiumRawDashboard?.resumen?.escalas || 0,
+    };
+    return {...premiumRawDashboard, resumen, legajos, detalle: detail};
+  }
+
+  async function loadPremiumEstimation() {
+    if (!historicRawDashboard) {
+      await loadHistoricAnalysis({loadPremium: false});
+    }
+    setStatus('Consultando pagos y escalas para estimar premios no incluidos.');
+    try {
+      const params = new URLSearchParams({
+        operacion: $('hist-operacion').value || 'PICKING',
+        fecha_desde: $('hist-desde').value,
+        fecha_hasta: $('hist-hasta').value,
+      });
+      const res = await fetch(`/api/rendimiento-online/historico/premios-no-incluidos?${params.toString()}`, {credentials:'same-origin'});
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'No se pudo estimar premios.');
+      premiumRawDashboard = data;
+      selectedPremiumLegajo = '';
+      premiumDashboard = aggregatePremiumFromMemory();
+      renderPremiumEstimation();
+      setStatus(`Premios estimados: ${num(data.resumen?.legajos)} legajos, ${num(data.resumen?.dias_no_incluidos)} dias sin pago.`);
+    } catch (err) {
+      setStatus(err.message || 'Error de premios.', true);
+      premiumRawDashboard = null;
+      premiumDashboard = null;
+      renderPremiumEstimation();
+    }
+  }
+
+  function renderPremiumEstimation() {
+    if (!premiumDashboard) {
+      $('premium-estrato-cards').innerHTML = '';
+      $('premium-kpis').innerHTML = '';
+      $('premium-legajos-count').textContent = '0 legajos';
+      $('premium-legajos-wrap').innerHTML = '<div class="empty">Entra a la solapa y consulta el historico para estimar premios no incluidos.</div>';
+      $('premium-detalle-count').textContent = '0 filas';
+      $('premium-detalle-wrap').innerHTML = '<div class="empty">Selecciona un legajo para ver los dias simulados.</div>';
+      return;
+    }
+    renderPremiumEstratoCards();
+    const resumen = premiumDashboard.resumen || {};
+    $('premium-kpis').innerHTML = `
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Legajos</div><div class="analysis-kpi-value">${num(resumen.legajos)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Dias sin pago</div><div class="analysis-kpi-value">${num(resumen.dias_no_incluidos)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Bultos efectivos</div><div class="analysis-kpi-value">${num(resumen.bultos)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Premio estimado</div><div class="analysis-kpi-value">${num(resumen.premio_estimado)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Sin escala</div><div class="analysis-kpi-value">${num(resumen.sin_escala)}</div></div>`;
+    const allRows = premiumDashboard.legajos || [];
+    const rows = sortedLegajos(allRows.filter(row => !selectedPremiumLegajo || row.legajo === selectedPremiumLegajo), 'premiumMain');
+    $('premium-legajos-count').textContent = selectedPremiumLegajo ? `${rows.length} de ${allRows.length} legajos` : `${rows.length} legajos`;
+    $('premium-clear-legajo')?.classList.toggle('hidden', !selectedPremiumLegajo);
+    if (!rows.length) {
+      $('premium-legajos-wrap').innerHTML = '<div class="empty">Sin legajos no incluidos para los filtros seleccionados. Revisa division, sector, sector RRHH, funcion o estrato.</div>';
+      renderPremiumDetail();
+      return;
+    }
+    $('premium-legajos-wrap').innerHTML = `
+      <table>
+        <thead><tr>
+          <th>#</th>${th('Legajo','legajo','','premiumMain')}${th('Nombre','nombre','','premiumMain')}${th('Funcion','funcion','','premiumMain')}
+          ${th('Sector RRHH','sector_rrhh','','premiumMain')}${th('Estrato','estrato','','premiumMain')}${th('Dias','dias_count','num','premiumMain')}
+          ${th('Bultos','bultos','num','premiumMain')}${th('Premio estimado','premio_estimado','num','premiumMain')}${th('Mejor nivel','mejor_nivel','num','premiumMain')}
+          ${th('Grupos','grupos_count','num','premiumMain')}${th('Sectores','sectores_count','num','premiumMain')}${th('Sin escala','dias_sin_escala','num','premiumMain')}
+        </tr></thead>
+        <tbody>${rows.map((row, idx) => `
+          <tr onclick="event.stopPropagation(); selectPremiumLegajo('${esc(row.legajo)}')" style="cursor:pointer">
+            <td class="mono">${idx + 1}</td>
+            <td class="mono">${esc(row.legajo)}</td>
+            <td>${esc(displayNombre(row.nombre))}</td>
+            <td>${esc(row.funcion || '-')}</td>
+            <td>${esc(row.sector_rrhh || '-')}</td>
+            <td><span class="state-pill none">${esc(estratos.find(item => item.key === row.estrato)?.title || row.estrato || '-')}</span></td>
+            <td class="num mono">${num(row.dias_count)}</td>
+            <td class="num mono">${num(row.bultos)}</td>
+            <td class="num mono">${num(row.premio_estimado)}</td>
+            <td class="num mono">${row.mejor_nivel == null ? '-' : num(row.mejor_nivel)}</td>
+            <td class="num mono" title="${esc(row.grupos_lista || '-')}">${num(row.grupos_count)}</td>
+            <td class="num mono" title="${esc(row.sectores_lista || '-')}">${num(row.sectores_count)}</td>
+            <td class="num mono">${num(row.dias_sin_escala)}</td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+    renderPremiumDetail();
+  }
+
+  function renderPremiumEstratoCards() {
+    const counts = new Map();
+    premiumDetailFiltered(true).forEach(row => {
+      const key = row.estrato || 'SIN_DATO';
+      if (!counts.has(row.legajo)) counts.set(row.legajo, new Set());
+      counts.get(row.legajo).add(key);
+    });
+    const byEstrato = new Map();
+    counts.forEach(values => {
+      byEstrato.set('ALL', (byEstrato.get('ALL') || 0) + 1);
+      values.forEach(key => byEstrato.set(key, (byEstrato.get(key) || 0) + 1));
+    });
+    $('premium-estrato-cards').innerHTML = estratos.map(item => `
+      <button class="estrato-card ${selectedEstrato === item.key ? 'active' : ''}" type="button" onclick="setHistoricEstrato('${item.key}')">
+        <div class="estrato-title">${esc(item.title)}</div>
+        <div class="estrato-sub">${esc(item.sub)} · ${num(byEstrato.get(item.key) || 0)} legajos</div>
+      </button>`).join('');
+  }
+
+  function selectPremiumLegajo(legajo) {
+    selectedPremiumLegajo = legajo;
+    setPanelCollapsed('panel-premium-detalle', false);
+    renderPremiumEstimation();
+  }
+
+  function clearPremiumLegajo() {
+    selectedPremiumLegajo = '';
+    setPanelCollapsed('panel-premium-detalle', true);
+    renderPremiumEstimation();
+  }
+
+  function renderPremiumDetail() {
+    const rows = sortedLegajos((premiumDashboard?.detalle || []).filter(row => row.legajo === selectedPremiumLegajo), 'premiumDetail');
+    $('premium-detalle-title').textContent = selectedPremiumLegajo ? `Detalle diario estimado - ${selectedPremiumLegajo}` : 'Detalle diario estimado';
+    $('premium-detalle-count').textContent = `${rows.length} filas`;
+    if (!selectedPremiumLegajo) {
+      $('premium-detalle-wrap').innerHTML = '<div class="empty">Selecciona un legajo para ver los dias simulados.</div>';
+      return;
+    }
+    $('premium-detalle-wrap').innerHTML = rows.length ? `
+      <table>
+        <thead><tr>
+          <th>#</th>${th('Dia','dia_logistico','','premiumDetail')}${th('Grupo premio','grupo_premio','','premiumDetail')}${th('Bultos','bultos','num','premiumDetail')}
+          ${th('Nivel','nivel','num','premiumDetail')}${th('Desde','desde','num','premiumDetail')}${th('Hasta','hasta','num','premiumDetail')}
+          ${th('Premio','premio','num','premiumDetail')}${th('Divisiones','divisiones_lista','','premiumDetail')}${th('Sectores','sectores_lista','','premiumDetail')}
+          ${th('Criterio','criterio_grupo','','premiumDetail')}${th('Ultimo mov.','ultimo_movimiento','','premiumDetail')}
+        </tr></thead>
+        <tbody>${rows.map((row, idx) => `
+          <tr>
+            <td class="mono">${idx + 1}</td>
+            <td class="mono">${esc(row.dia_logistico || '-')}</td>
+            <td class="mono">${esc(row.grupo_premio || '-')}</td>
+            <td class="num mono">${num(row.bultos)}</td>
+            <td class="num mono">${row.nivel == null ? '-' : num(row.nivel)}</td>
+            <td class="num mono">${row.desde == null ? '-' : num(row.desde)}</td>
+            <td class="num mono">${row.hasta == null ? '-' : num(row.hasta)}</td>
+            <td class="num mono">${num(row.premio)}</td>
+            <td class="mono">${esc(row.divisiones_lista || '-')}</td>
+            <td class="mono">${esc(row.sectores_lista || '-')}</td>
+            <td>${esc(row.criterio_grupo || '-')}</td>
+            <td class="mono">${esc(row.ultimo_movimiento || '-')}</td>
+          </tr>`).join('')}</tbody>
+      </table>` : '<div class="empty">Sin detalle de premio para el legajo seleccionado.</div>';
+  }
+
+  function csvCell(value) {
+    const text = String(value ?? '').replace(/\r?\n/g, ' ').replace(/"/g, '""');
+    return `"${text}"`;
+  }
+
+  function exportPremiumLegajos() {
+    if (!premiumDashboard) {
+      setStatus('No hay datos de premios para exportar.', true);
+      return;
+    }
+    const rows = sortedLegajos(
+      (premiumDashboard.legajos || []).filter(row => !selectedPremiumLegajo || row.legajo === selectedPremiumLegajo),
+      'premiumMain'
+    );
+    if (!rows.length) {
+      setStatus('La grilla de premios no tiene legajos para exportar.', true);
+      return;
+    }
+    const headers = [
+      'Legajo', 'Nombre', 'Funcion', 'Sector RRHH', 'Estrato', 'Dias sin pago',
+      'Bultos efectivos', 'Premio estimado', 'Mejor nivel', 'Grupos premio',
+      'Divisiones', 'Sectores', 'Dias sin escala', 'Ultimo movimiento'
+    ];
+    const body = rows.map(row => [
+      row.legajo,
+      displayNombre(row.nombre),
+      row.funcion || '',
+      row.sector_rrhh || '',
+      estratos.find(item => item.key === row.estrato)?.title || row.estrato || '',
+      row.dias_count,
+      row.bultos,
+      row.premio_estimado,
+      row.mejor_nivel ?? '',
+      row.grupos_lista || '',
+      row.divisiones_lista || '',
+      row.sectores_lista || '',
+      row.dias_sin_escala,
+      row.ultimo_movimiento || '',
+    ]);
+    const csv = [headers, ...body].map(line => line.map(csvCell).join(';')).join('\r\n');
+    const blob = new Blob(['\ufeff', csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    const desde = $('hist-desde')?.value || 'desde';
+    const hasta = $('hist-hasta')?.value || 'hasta';
+    a.href = URL.createObjectURL(blob);
+    a.download = `premios_no_incluidos_${desde}_${hasta}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(a.href);
+    a.remove();
+    setStatus(`Exportados ${num(rows.length)} legajos sin premio.`);
+  }
+
+  function applyHistoricFilters() {
+    updateMultiSummary('hist-division-options');
+    updateMultiSummary('hist-sector-options');
+    historicDashboard = historicRawDashboard ? aggregateHistoricFromMemory() : null;
+    premiumDashboard = premiumRawDashboard ? aggregatePremiumFromMemory() : null;
+    selectedHistLegajo = '';
+    selectedHistDay = '';
+    selectedPremiumLegajo = '';
+    renderHistoricAnalysis();
+  }
+
+  async function consultHistoricSection() {
+    if (historicTab === 'premios') {
+      const btn = $('hist-load-btn');
+      btn.disabled = true;
+      try {
+        await loadHistoricAnalysis({loadPremium: false});
+        await loadPremiumEstimation();
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
+    await loadHistoricAnalysis();
+  }
+
+  async function loadHistoricAnalysis(options={}) {
+    const loadPremium = options.loadPremium ?? (historicTab === 'premios');
+    const btn = $('hist-load-btn');
+    btn.disabled = true;
+    setStatus('Consultando historico desde cache local.');
+    try {
+      const params = new URLSearchParams({
+        operacion: $('hist-operacion').value || 'PICKING',
+        fecha_desde: $('hist-desde').value,
+        fecha_hasta: $('hist-hasta').value,
+      });
+      const res = await fetch(`/api/rendimiento-online/historico/analisis?${params.toString()}`, {credentials:'same-origin'});
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'No se pudo consultar historico.');
+      historicRawDashboard = data;
+      premiumRawDashboard = null;
+      premiumDashboard = null;
+      selectedHistLegajo = '';
+      selectedHistDay = '';
+      selectedPremiumLegajo = '';
+      renderMultiOptions('hist-division-options', data.filtros?.divisiones || []);
+      refreshSectorOptionsForDivisions();
+      fillSelect('hist-sector-rrhh', data.filtros?.sectores_rrhh || [], $('hist-sector-rrhh').value);
+      fillSelect('hist-funcion', data.filtros?.funciones || [], $('hist-funcion').value);
+      historicDashboard = aggregateHistoricFromMemory();
+      renderHistoricAnalysis();
+      setStatus(`Historico listo: ${num(data.resumen?.dias)} dias, ${num(data.resumen?.legajos)} legajos. Origen cache local.`);
+      if (loadPremium) await loadPremiumEstimation();
+    } catch (err) {
+      setStatus(err.message || 'Error de historico.', true);
+      throw err;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function renderHistoricAnalysis() {
+    if (mainSection !== 'historico') return;
+    if (historicTab === 'indicadores') {
+      renderHistoricIndicators();
+      return;
+    }
+    if (historicTab === 'premios') {
+      renderPremiumEstimation();
+      return;
+    }
+    renderEstratoCards();
+    const resumen = historicDashboard?.resumen || {};
+    $('analysis-kpis').innerHTML = `
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Legajos</div><div class="analysis-kpi-value">${num(resumen.legajos)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Bultos</div><div class="analysis-kpi-value">${num(resumen.bultos)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Horas</div><div class="analysis-kpi-value">${num(resumen.horas)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Actual b/h</div><div class="analysis-kpi-value">${num(resumen.productividad_actual)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">Sectores</div><div class="analysis-kpi-value">${num(resumen.sectores)}</div></div>`;
+    renderHistoricHeatmap();
+    const allRows = historicDashboard?.legajos || [];
+    const rows = sortedLegajos(allRows.filter(row => !selectedHistLegajo || row.legajo === selectedHistLegajo), 'histMain');
+    $('hist-legajos-count').textContent = selectedHistLegajo
+      ? `${rows.length} de ${allRows.length} legajos${selectedHistDay ? ` - ${selectedHistDay}` : ''}`
+      : `${rows.length} legajos`;
+    $('hist-clear-legajo')?.classList.toggle('hidden', !selectedHistLegajo);
+    if (!rows.length) {
+      $('hist-legajos-wrap').innerHTML = '<div class="empty">Sin cache historico para los filtros seleccionados.</div>';
+      renderHistoricDetail();
+      return;
+    }
+    $('hist-legajos-wrap').innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>${th('Estado','estado','','histMain')}${th('Legajo','legajo','','histMain')}${th('Nombre','nombre','','histMain')}
+            ${th('Funcion','funcion','','histMain')}${th('Sector RRHH','sector_rrhh','','histMain')}${th('Estrato','estrato','','histMain')}
+            ${th('Bultos','bultos','num','histMain')}${th('Tiempo min','minutos','num','histMain')}${th('Actual b/h','productividad_actual','num','histMain')}
+            ${th('Esperado b/h','productividad_esperada','num','histMain')}${th('Cumpl.','cumplimiento_pct','num','histMain')}<th>Ritmo</th>
+            ${th('Dias','dias_count','num','histMain')}${th('Divisiones','divisiones_count','num','histMain')}${th('Sectores','sectores_count','num','histMain')}${th('Sector crit.','sector_critico','','histMain')}
+          </tr>
+        </thead>
+        <tbody>${rows.map((row, idx) => `
+          <tr onclick="event.stopPropagation(); selectHistoricLegajo('${esc(row.legajo)}')" style="cursor:pointer">
+            <td class="mono">${idx + 1}</td>
+            <td><span class="state-pill ${esc(row.estado)}">${stateLabel(row.estado)}</span></td>
+            <td class="mono">${esc(row.legajo)}</td>
+            <td>${esc(displayNombre(row.nombre))}</td>
+            <td>${esc(row.funcion || '-')}</td>
+            <td>${esc(row.sector_rrhh || '-')}</td>
+            <td><span class="state-pill none">${esc(estratos.find(item => item.key === row.estrato)?.title || row.estrato || '-')}</span></td>
+            <td class="num mono">${num(row.bultos)}</td>
+            <td class="num mono">${num(row.minutos)}</td>
+            <td class="num mono">${num(row.productividad_actual)}</td>
+            <td class="num mono">${num(row.productividad_esperada)}</td>
+            <td class="num mono">${pct(row.cumplimiento_pct)}</td>
+            <td>${rhythmPill(row)}</td>
+            <td class="num mono">${num(row.dias_count)}</td>
+            <td class="num mono" title="${esc(row.divisiones_lista || '-')}">${num(row.divisiones_count)}</td>
+            <td class="num mono" title="${esc(row.sectores_lista || '-')}">${num(row.sectores_count)}</td>
+            <td class="mono">${esc(row.sector_critico || '-')}</td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+    renderHistoricDetail();
+  }
+
+  function selectHistoricLegajo(legajo) {
+    selectedHistLegajo = legajo;
+    selectedHistDay = '';
+    setPanelCollapsed('panel-hist-detalle', false);
+    renderHistoricAnalysis();
+  }
+
+  function selectHistoricLegajoDay(legajo, day) {
+    selectedHistLegajo = legajo;
+    selectedHistDay = day;
+    setPanelCollapsed('panel-hist-detalle', false);
+    renderHistoricAnalysis();
+  }
+
+  function clearHistoricLegajo() {
+    selectedHistLegajo = '';
+    selectedHistDay = '';
+    setPanelCollapsed('panel-hist-detalle', true);
+    renderHistoricAnalysis();
+  }
+
+  function renderHistoricDetail() {
+    const sourceRows = selectedHistDay ? (historicDashboard?.diario || []) : (historicDashboard?.detalle || []);
+    const rows = sortedLegajos(sourceRows.filter(row =>
+      row.legajo === selectedHistLegajo &&
+      (!selectedHistDay || row.dia_logistico === selectedHistDay)
+    ), 'histDetail');
+    $('hist-detalle-title').textContent = selectedHistLegajo
+      ? `Historico - Division y sector del legajo ${selectedHistLegajo}${selectedHistDay ? ` / ${selectedHistDay}` : ''}`
+      : 'Historico - Division y sector del legajo';
+    $('hist-detalle-count').textContent = `${rows.length} filas`;
+    if (!selectedHistLegajo) {
+      $('hist-detalle-wrap').innerHTML = '<div class="empty">Selecciona un legajo o una celda del mapa para ver su detalle.</div>';
+      return;
+    }
+    $('hist-detalle-wrap').innerHTML = rows.length ? `
+      <table>
+        <thead><tr>
+          <th>#</th>${selectedHistDay ? th('Dia','dia_logistico','','histDetail') : ''}${th('Estado','estado','','histDetail')}${th('Division','division','','histDetail')}${th('Sector','sector','','histDetail')}
+          ${th(selectedHistDay ? 'Dia sel.' : 'Dias','dias_count','num','histDetail')}${th('Bultos','bultos','num','histDetail')}${th('Tiempo min','minutos','num','histDetail')}
+          ${th('Actual b/h','productividad_actual','num','histDetail')}${th('Esperado b/h','productividad_esperada','num','histDetail')}${th('Cumpl.','cumplimiento_pct','num','histDetail')}${th('Ultimo mov.','ultimo_movimiento','','histDetail')}
+        </tr></thead>
+        <tbody>${rows.map((row, idx) => `
+          <tr>
+            <td class="mono">${idx + 1}</td>
+            ${selectedHistDay ? `<td class="mono">${esc(row.dia_logistico || '-')}</td>` : ''}
+            <td><span class="state-pill ${esc(row.estado)}">${stateLabel(row.estado)}</span></td>
+            <td class="mono">${esc(row.division || '-')}</td>
+            <td class="mono">${esc(row.sector || '-')}</td>
+            <td class="num mono">${selectedHistDay ? '1' : num(row.dias_count)}</td>
+            <td class="num mono">${num(row.bultos)}</td>
+            <td class="num mono">${num(row.minutos)}</td>
+            <td class="num mono">${num(row.productividad_actual)}</td>
+            <td class="num mono">${num(row.productividad_esperada)}</td>
+            <td class="num mono">${pct(row.cumplimiento_pct)}</td>
+            <td class="mono">${esc(row.ultimo_movimiento || '-')}</td>
+          </tr>`).join('')}</tbody>
+      </table>` : '<div class="empty">Sin detalle historico para el legajo seleccionado.</div>';
   }
 
   async function initAuth() {
@@ -503,6 +1697,7 @@
 
   function renderDashboard() {
     if (!dashboard) return;
+    if (mainSection !== 'online') return;
     const rango = dashboard.rango;
     $('hero-title').textContent = `${rango.turno_label} - ${rango.dia_logistico}`;
     $('hero-sub').textContent = `${rango.fecha_desde} a ${rango.fecha_hasta} - ${rango.en_curso ? 'turno en curso' : rango.futuro ? 'turno futuro' : 'turno vencido'}`;
@@ -518,11 +1713,11 @@
 
   function cardHtml(item, type) {
     const value = type === 'division' ? item.division : type === 'legajo' ? item.legajo : item.sector;
-    const title = type === 'legajo' ? `${item.legajo} - ${item.nombre || '-'}` : value;
+    const title = type === 'legajo' ? `${item.legajo} - ${displayNombre(item.nombre)}` : value;
     const sub = type === 'division'
       ? `${num(item.sectores_total ?? item.sectores_activos)} sectores (${num(item.sectores_activos)} con mov.) - ${num(item.legajos_activos)} legajos`
       : type === 'legajo'
-        ? `${esc(item.nombre || '-')} - ${num(item.sectores_activos)} sectores`
+        ? `${esc(displayNombre(item.nombre))} - ${num(item.sectores_activos)} sectores`
         : `${num(item.legajos_activos)} legajos - ${num(item.operaciones_abiertas)} abiertas`;
     const outMaster = type === 'sector' && item.en_maestro === false;
     const label = type === 'division' ? 'Division' : type === 'legajo' ? 'Legajo' : (outMaster ? 'Sector - fuera maestro' : 'Sector');
@@ -570,11 +1765,11 @@
           </thead>
           <tbody>
             ${rows.map((row, idx) => `
-              <tr onclick="selectLegajoPrincipal('${esc(row.legajo)}')" style="cursor:pointer">
+              <tr onclick="event.stopPropagation(); selectLegajoPrincipal('${esc(row.legajo)}')" style="cursor:pointer">
                 <td class="mono">${idx + 1}</td>
                 <td><span class="state-pill ${esc(row.estado)}">${stateLabel(row.estado)}</span></td>
                 <td class="mono">${esc(row.legajo)}</td>
-                <td>${esc(row.nombre || '-')}</td>
+                <td>${esc(displayNombre(row.nombre))}</td>
                 <td class="num mono">${num(row.bultos)}</td>
                 <td class="num mono">${num(row.minutos)}</td>
                 <td class="num mono">${num(row.productividad_actual)}</td>
@@ -637,7 +1832,7 @@
           </thead>
           <tbody>
             ${rows.map((row, idx) => `
-              <tr class="${selectedSummary?.sector_critico === row.sector ? 'critical-row' : ''}" onclick="selectSectorForLegajo('${esc(row.division)}','${esc(row.sector)}')" style="cursor:pointer">
+              <tr class="${selectedSummary?.sector_critico === row.sector ? 'critical-row' : ''}" onclick="event.stopPropagation(); selectSectorForLegajo('${esc(row.division)}','${esc(row.sector)}')" style="cursor:pointer">
                 <td class="mono">${idx + 1}</td>
                 <td><span class="state-pill ${esc(row.estado)}">${stateLabel(row.estado)}</span></td>
                 <td class="mono">${esc(row.division)}</td>
@@ -682,6 +1877,10 @@
     } else {
       tableSorts[scope] = {key, dir: ['legajo','nombre','sector','division','estado','ultimo_movimiento'].includes(key) ? 'asc' : 'desc'};
     }
+    if (String(scope).startsWith('hist') || String(scope).startsWith('premium')) {
+      renderHistoricAnalysis();
+      return;
+    }
     renderDashboard();
   }
 
@@ -700,7 +1899,7 @@
   function th(label, key, cls='', scope='sectorRanking') {
     const sort = tableSorts[scope] || tableSorts.sectorRanking;
     const mark = sort.key === key ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : '';
-    return `<th class="${cls}" onclick="sortLegajos('${key}','${scope}')" style="cursor:pointer">${label}${mark}</th>`;
+    return `<th class="${cls}" onclick="event.stopPropagation(); sortLegajos('${key}','${scope}')" style="cursor:pointer">${label}${mark}</th>`;
   }
 
   function renderRanking() {
@@ -728,12 +1927,12 @@
         </thead>
         <tbody>
           ${rows.map((row, idx) => `
-            <tr onclick="selectLegajo('${esc(row.legajo)}')" style="cursor:pointer">
+            <tr onclick="event.stopPropagation(); selectLegajo('${esc(row.legajo)}')" style="cursor:pointer">
               <td class="mono">${idx + 1}</td>
               <td><span class="state-pill ${esc(row.estado)}">${stateLabel(row.estado)}</span></td>
               <td class="mono">${esc(row.sector)}</td>
               <td class="mono">${esc(row.legajo)}</td>
-              <td>${esc(row.nombre || '-')}</td>
+              <td>${esc(displayNombre(row.nombre))}</td>
               <td class="num mono">${num(row.bultos)}</td>
               <td class="num mono">${num(row.horas)}</td>
               <td class="num mono">${num(row.productividad_actual)}</td>
@@ -917,6 +2116,9 @@
     $('division-cards').innerHTML = '<div class="empty">Consulta para cargar los datos del turno seleccionado.</div>';
     $('level2-cards').innerHTML = '';
     $('ranking-wrap').innerHTML = '<div class="empty">La grilla se carga a demanda luego de consultar Oracle.</div>';
+    ['hist-sector-rrhh','hist-funcion'].forEach(id => {
+      $(id)?.addEventListener('change', () => applyHistoricFilters());
+    });
   })();
 </script>
 </body>

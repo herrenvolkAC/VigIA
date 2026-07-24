@@ -73,8 +73,11 @@ from routers.productividad_analisis import (
     query_productive_db_daily_planificacion,
     query_productive_db_daily_despacho_raw,
     query_productive_db_gestion_productividad_picking,
-    query_productive_db_historia_productividad_bulk,
     query_productive_db_picking_tiempos_muertos,
+)
+from routers.rendimiento_online import (
+    build_rendimiento_online_operations,
+    query_rendimiento_online_rows,
 )
 
 logger = logging.getLogger("vigia.gestion_operativa")
@@ -82,13 +85,13 @@ router = APIRouter(prefix="/api/gestion-operativa", tags=["gestion-operativa"])
 GESTION_PRODUCTIVIDAD_IA_PROMPT_VERSION = "gestion_productividad_picking_v1"
 DAILY_AUTO_SCHEDULE_TIME = dt_time(7, 35)
 DAILY_AUTO_SCHEDULE_GRACE_MINUTES = 10
-DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_distinct_pallets_v1"
-DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_prev_movement_v2"
+DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_oc_congelados_v2"
+DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_oc_congelados_v3"
 DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_raw_cache_v1"
 DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION = "despacho_raw_f922traf_hojaruta_funcion_distinct_v5"
 DAILY_AUTO_DESPACHO_QUERY_VERSION = "despacho_raw_cache_funcion_distinct_v4"
 DAILY_AUTO_PLANIFICACION_QUERY_VERSION = "planificacion_unificada_v1"
-DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION = "productividad_raw_f132hist_funcion_v4"
+DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION = "productividad_raw_f132hist_plu_funcion_v6"
 DAILY_AUTO_AVANCE_QUERY_VERSION = "avance_6a730_cache_v1"
 _daily_auto_scheduler_task: asyncio.Task | None = None
 _daily_auto_scheduler_stop: asyncio.Event | None = None
@@ -165,6 +168,8 @@ DAILY_PICKING_REAL_PARAM_IDS_BY_SECTOR = {
     "Noa": "OP_PROD_PICKING_NOA_6A6",
     "Secos": "OP_PROD_PICKING_SECOS_6A6",
     "Refrigerados": "OP_PROD_PICKING_REFRI_6A6",
+    "OC": "OP_PROD_PICKING_OC_6A6",
+    "Congelados": "OP_PROD_PICKING_CONGELADOS_6A6",
 }
 DAILY_DESPACHO_REAL_PARAM_IDS_BY_SECTOR = {
     "Secos": "OP_PROD_DESPACHO_SECOS_6A6",
@@ -174,6 +179,8 @@ DAILY_CLARK_REAL_PARAM_IDS_BY_SECTOR = {
     "Noa": "OP_PROD_CLARK_NOA_6A6",
     "Secos": "OP_PROD_CLARK_SECOS_6A6",
     "Refrigerados": "OP_PROD_CLARK_REFRI_6A6",
+    "OC": "OP_PROD_CLARK_OC_6A6",
+    "Congelados": "OP_PROD_CLARK_CONGELADOS_6A6",
 }
 DAILY_PICKING_PLAN_PARAM_IDS_BY_SECTOR = {
     "Noa": "OP_CUMP_PICKING_PLAN_6A6",
@@ -204,6 +211,12 @@ DAILY_RAW_SECTOR_TO_ALMACEN = {
     "Noa": "NOA",
     "Secos": "SECOS",
     "Refrigerados": "REFRIGERADOS",
+    "OC": "OC",
+    "Congelados": "CONGELADOS",
+}
+
+PRODUCTIVIDAD_JORNADA_BY_DIVISION = {
+    "Congelados": 6.0,
 }
 
 DAILY_MANUAL_XLSX_DEFAULT = Path(r"C:\Users\207189\Documents\DailyManual.xlsx")
@@ -748,25 +761,107 @@ async def _build_legajos_productividad_payload(
     antiguedad: str = "ALL",
 ) -> dict[str, Any]:
     selected = [str(item).strip() for item in sectores if str(item).strip()]
-    all_sectors = await _load_legajos_sector_options()
-    sector_filter_active = bool(selected) and set(selected) != set(all_sectors)
     dotacion = str(dotacion or "ALL").strip()
     proveedor = str(proveedor or "ALL").strip()
     antiguedad = str(antiguedad or "ALL").strip()
+    fecha_desde_dt = datetime.strptime(fecha_desde[:10], "%Y-%m-%d")
     fecha_hasta_dt = datetime.strptime(fecha_hasta[:10], "%Y-%m-%d")
+    query_start = datetime.combine(fecha_desde_dt.date(), dt_time(6, 0))
+    query_end = datetime.combine(fecha_hasta_dt.date() + timedelta(days=1), dt_time(6, 0))
     raw_rows = await asyncio.to_thread(
-        query_productive_db_historia_productividad_bulk,
-        fecha_desde.replace("-", "")[:8],
-        fecha_hasta.replace("-", "")[:8],
+        query_rendimiento_online_rows,
+        query_start.strftime("%Y-%m-%d %H:%M:%S"),
+        query_end.strftime("%Y-%m-%d %H:%M:%S"),
     )
     logger.info(
-        "[gestion-operativa:analisis-legajos] Modulo Productividad rango=%s..%s filas=%s sectores=%s",
+        "[gestion-operativa:analisis-legajos] Rendimiento Online crudo rango=%s..%s movimientos=%s",
         fecha_desde,
         fecha_hasta,
         len(raw_rows),
-        ",".join(selected) if selected else "ALL",
     )
-    legajos = {_norm_legajo(row.get("LEGAJO") or row.get("legajo")) for row in raw_rows}
+
+    oracle_now = next(
+        (
+            _parse_dt(row.get("ORACLE_NOW") or row.get("oracle_now"))
+            for row in raw_rows
+            if row.get("ORACLE_NOW") or row.get("oracle_now")
+        ),
+        None,
+    ) or datetime.now()
+    rows_by_window: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for raw in raw_rows:
+        ts = _parse_dt(raw.get("FCREAREG") or raw.get("fcreareg"))
+        if not ts or ts < query_start or ts >= query_end:
+            continue
+        logistic_day = (ts - timedelta(hours=6)).date().isoformat()
+        if 6 <= ts.hour < 14:
+            turno = "Manana"
+        elif 14 <= ts.hour < 22:
+            turno = "Tarde"
+        else:
+            turno = "Noche"
+        rows_by_window[(logistic_day, turno)].append(raw)
+
+    operations: list[dict[str, Any]] = []
+    day_cursor = fecha_desde_dt.date()
+    while day_cursor <= fecha_hasta_dt.date():
+        windows = [
+            ("Manana", datetime.combine(day_cursor, dt_time(6, 0)), datetime.combine(day_cursor, dt_time(14, 0))),
+            ("Tarde", datetime.combine(day_cursor, dt_time(14, 0)), datetime.combine(day_cursor, dt_time(22, 0))),
+            ("Noche", datetime.combine(day_cursor, dt_time(22, 0)), datetime.combine(day_cursor + timedelta(days=1), dt_time(6, 0))),
+        ]
+        for turno, window_start, window_end in windows:
+            window_rows = rows_by_window.get((day_cursor.isoformat(), turno), [])
+            if not window_rows:
+                continue
+            cutoff = min(oracle_now, window_end) if oracle_now >= window_start else window_start
+            for operation in build_rendimiento_online_operations(window_rows, cutoff):
+                operations.append({**operation, "fecha": day_cursor.isoformat(), "turno": turno})
+        day_cursor += timedelta(days=1)
+
+    grouped_operations: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for operation in operations:
+        legajo = _norm_legajo(operation.get("legajo"))
+        if not legajo:
+            continue
+        fecha = str(operation.get("fecha") or "")
+        division = str(operation.get("division") or "SIN MAPEAR").strip() or "SIN MAPEAR"
+        sector = str(operation.get("sector") or "SIN SECTOR").strip() or "SIN SECTOR"
+        key = (fecha, division, sector, legajo)
+        bucket = grouped_operations.setdefault(
+            key,
+            {
+                "fecha": fecha,
+                "division": division,
+                "sector": sector,
+                "legajo": legajo,
+                "nombre_oracle": str(operation.get("nombre") or "").strip(),
+                "produccion": 0.0,
+                "tiempo_segundos": 0.0,
+                "operaciones": 0,
+                "operaciones_abiertas": 0,
+                "pallets": 0,
+                "pedidos": 0,
+                "turnos": set(),
+                "primer_movimiento": None,
+                "ultimo_movimiento": None,
+            },
+        )
+        bucket["produccion"] += _to_float(operation.get("bultos"))
+        bucket["tiempo_segundos"] += _to_float(operation.get("segundos"))
+        bucket["operaciones"] += 1
+        bucket["operaciones_abiertas"] += int(str(operation.get("cierre") or "") == "ABIERTA")
+        bucket["pallets"] += int(operation.get("pallets") or 0)
+        bucket["pedidos"] += int(operation.get("pedidos") or 0)
+        bucket["turnos"].add(str(operation.get("turno") or ""))
+        start = operation.get("inicio")
+        end = operation.get("fin")
+        if start and (bucket["primer_movimiento"] is None or start < bucket["primer_movimiento"]):
+            bucket["primer_movimiento"] = start
+        if end and (bucket["ultimo_movimiento"] is None or end > bucket["ultimo_movimiento"]):
+            bucket["ultimo_movimiento"] = end
+
+    legajos = {key[3] for key in grouped_operations}
     legajos.discard("")
     people_by_legajo: dict[str, dict[str, Any]] = {}
     async with aiosqlite.connect(DB_PATH) as db:
@@ -788,22 +883,22 @@ async def _build_legajos_productividad_payload(
                     for row in await cur.fetchall()
                 }
 
+    all_divisions = sorted({key[1] for key in grouped_operations}, key=lambda value: value.upper())
+    all_sectors = sorted({key[2] for key in grouped_operations}, key=lambda value: value.upper())
+    sector_filter_active = bool(selected) and set(selected) != set(all_sectors)
     rows: list[dict[str, Any]] = []
-    for raw in raw_rows:
-        data = {str(key).lower(): value for key, value in raw.items()}
-        legajo = _norm_legajo(data.get("legajo"))
+    for data in grouped_operations.values():
+        legajo = data["legajo"]
         person = people_by_legajo.get(legajo, {})
-        sector = str(person.get("desc_sector_generico") or "SIN SECTOR").strip() or "SIN SECTOR"
+        sector = data["sector"]
         grupo_personal = str(person.get("desc_grupo_personal") or "").strip() or "SIN GRUPO"
         razon_social = str(person.get("razon_social") or "").strip() or "SIN PROVEEDOR"
         fecha_ingreso = str(person.get("fecha_ingreso") or "").strip()
         funcion_legajero = str(person.get("desc_funcion") or "").strip() or "SIN FUNCION"
-        funcion_productiva = str(data.get("funcion") or "").strip() or "SIN FUNCION PRODUCTIVA"
-        produccion = _to_float(data.get("produccion") if data.get("produccion") is not None else data.get("productividad"))
-        tiempo_neto = _to_float(data.get("tiemponeto"))
-        tiempo_total = _to_float(data.get("tiempototal"))
-        productividad_neta = (produccion / (tiempo_neto / 3600)) if tiempo_neto > 0 else 0
-        productividad_bruta = (produccion / (tiempo_total / 3600)) if tiempo_total > 0 else 0
+        sector_legajero = str(person.get("desc_sector_generico") or "").strip() or "SIN SECTOR LEGAJERO"
+        produccion = _to_float(data.get("produccion"))
+        tiempo_segundos = _to_float(data.get("tiempo_segundos"))
+        productividad = _productividad_hora(produccion, tiempo_segundos)
         antiguedad_anios = _years_between(person.get("fecha_ingreso"), fecha_hasta_dt)
         if sector_filter_active and sector not in selected:
             continue
@@ -815,35 +910,39 @@ async def _build_legajos_productividad_payload(
             continue
         rows.append(
             {
-                "fecha": _date_only(data.get("fecha")),
+                "fecha": data["fecha"],
+                "division": data["division"],
                 "legajo": legajo,
-                "nombre": person.get("nombre") or legajo,
+                "nombre": person.get("nombre") or data.get("nombre_oracle") or legajo,
                 "sector": sector,
+                "sector_legajero": sector_legajero,
                 "funcion": funcion_legajero,
-                "funcion_productiva": funcion_productiva,
+                "funcion_productiva": "PICKING",
                 "posicion": str(person.get("desc_posicion") or "").strip(),
                 "dotacion": grupo_personal,
                 "proveedor": razon_social,
                 "fecha_ingreso": fecha_ingreso[:10] if fecha_ingreso else "",
                 "antiguedad_anios": antiguedad_anios,
-                "tipo": str(data.get("tipo") or "").strip(),
+                "tipo": "BULTOS",
                 "produccion": round(produccion, 2),
-                "tiempo_neto_segundos": round(tiempo_neto, 2),
-                "tiempo_total_segundos": round(tiempo_total, 2),
-                "productividad": round(productividad_neta, 2),
-                "productividad_neta": round(productividad_neta, 2),
-                "productividad_bruta": round(productividad_bruta, 2),
+                "tiempo_neto_segundos": round(tiempo_segundos, 2),
+                "tiempo_total_segundos": round(tiempo_segundos, 2),
+                "productividad": round(productividad, 2),
+                "productividad_neta": round(productividad, 2),
+                "productividad_bruta": round(productividad, 2),
+                "operaciones": int(data.get("operaciones") or 0),
+                "operaciones_abiertas": int(data.get("operaciones_abiertas") or 0),
+                "pallets": int(data.get("pallets") or 0),
+                "pedidos": int(data.get("pedidos") or 0),
+                "turnos": ", ".join(sorted(item for item in data.get("turnos", set()) if item)),
+                "primer_movimiento": data["primer_movimiento"].strftime("%Y-%m-%d %H:%M:%S") if data.get("primer_movimiento") else "",
+                "ultimo_movimiento": data["ultimo_movimiento"].strftime("%Y-%m-%d %H:%M:%S") if data.get("ultimo_movimiento") else "",
             }
         )
 
-    groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     totals_rows_by_date: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
-        fecha = _date_only(row.get("fecha"))
-        sector = str(row.get("sector") or "SIN SECTOR")
-        row["fecha"] = fecha
-        groups[(fecha, sector)].append(row)
-        totals_rows_by_date[fecha].append(row)
+        totals_rows_by_date[row["fecha"]].append(row)
 
     def aggregate(items: list[dict[str, Any]]) -> dict[str, Any]:
         produccion = sum(_to_float(row.get("produccion")) for row in items)
@@ -857,8 +956,10 @@ async def _build_legajos_productividad_payload(
         return {
             "operarios": operarios,
             "registros": len(items),
+            "divisiones": len({str(row.get("division") or "") for row in items if row.get("division")}),
             "funciones": funciones,
             "tipos": tipos,
+            "operaciones": sum(int(row.get("operaciones") or 0) for row in items),
             "produccion": round(produccion, 2),
             "tiempo_neto_segundos": round(tiempo_neto, 2),
             "tiempo_total_segundos": round(tiempo_total, 2),
@@ -869,80 +970,62 @@ async def _build_legajos_productividad_payload(
         }
 
     dates = sorted(totals_rows_by_date)
-    sectors = sorted({sector for _, sector in groups}, key=lambda value: value.upper())
-    by_date_sector = {
-        key: {"fecha": key[0], "sector": key[1], **aggregate(items)}
-        for key, items in groups.items()
-    }
     totals_by_date = {
         fecha: {"fecha": fecha, "sector": "TOTAL", **aggregate(items)}
         for fecha, items in totals_rows_by_date.items()
     }
+    by_division_groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    by_sector_groups: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        by_division_groups[(row["fecha"], row["division"])].append(row)
+        by_sector_groups[(row["fecha"], row["division"], row["sector"])].append(row)
+    by_division_day = [
+        {"fecha": fecha, "division": division, **aggregate(items)}
+        for (fecha, division), items in sorted(by_division_groups.items())
+    ]
+    by_sector_day = [
+        {"fecha": fecha, "division": division, "sector": sector, **aggregate(items)}
+        for (fecha, division, sector), items in sorted(by_sector_groups.items())
+    ]
     summary = aggregate(rows)
     first = totals_by_date.get(dates[0], {}) if dates else {}
     last = totals_by_date.get(dates[-1], {}) if dates else {}
     summary.update({
         "dias": len(dates),
-        "sectores": len(sectors),
+        "divisiones": len({row["division"] for row in rows}),
+        "sectores": len({(row["division"], row["sector"]) for row in rows}),
         "corridas": 0,
         "delta_productividad_pct": _pct_change(_to_float(last.get("productividad")), _to_float(first.get("productividad"))) if dates else None,
     })
     operator_trends = _build_legajos_operator_trends(rows, dates, totals_by_date)
     summary["legajos_con_tendencia"] = operator_trends["count"]
-    charts = [
-        _legajos_chart("productividad_neta", "Productividad neta", " bultos/h", "Produccion / horas netas del modulo de Productividad. Se calcula con suma de bultos y suma de segundos.", by_date_sector, totals_by_date, dates, sectors),
-        _legajos_chart("productividad_bruta", "Productividad bruta", " bultos/h", "Produccion / horas totales del modulo de Productividad. Se calcula con suma de bultos y suma de segundos.", by_date_sector, totals_by_date, dates, sectors),
-        _legajos_chart("produccion", "Produccion", "", "Suma de PROD_REAL del modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
-        _legajos_chart("operarios", "Legajos con productividad", "", "Cantidad de legajos con registros de PROD_REAL en el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
-        _legajos_chart("registros", "Registros de productividad", "", "Cantidad de combinaciones fecha, legajo, funcion y tipo devueltas por el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
-        _legajos_chart("funciones", "Funciones productivas", "", "Cantidad de funciones distintas informadas por el modulo de Productividad.", by_date_sector, totals_by_date, dates, sectors),
-        _legajos_chart("tipos", "Tipos de unidad", "", "Cantidad de tipos de unidad de produccion distintos informados por el modulo.", by_date_sector, totals_by_date, dates, sectors),
-        *operator_trends["charts"],
-    ]
-    grid = [
-        {
-            "fecha": row.get("fecha"),
-            "sector": row.get("sector"),
-            "legajo": row.get("legajo"),
-            "nombre": row.get("nombre"),
-            "funcion": row.get("funcion"),
-            "funcion_productiva": row.get("funcion_productiva"),
-            "posicion": row.get("posicion"),
-            "dotacion": row.get("dotacion"),
-            "proveedor": row.get("proveedor"),
-            "fecha_ingreso": row.get("fecha_ingreso"),
-            "antiguedad_anios": row.get("antiguedad_anios"),
-            "tipo": row.get("tipo"),
-            "produccion": row.get("produccion"),
-            "tiempo_neto_segundos": row.get("tiempo_neto_segundos"),
-            "tiempo_total_segundos": row.get("tiempo_total_segundos"),
-            "productividad": row.get("productividad"),
-            "productividad_neta": row.get("productividad_neta"),
-            "productividad_bruta": row.get("productividad_bruta"),
-        }
-        for row in rows
-    ]
+    rows.sort(key=lambda row: (row["fecha"], row["division"], row["sector"], row["legajo"]))
     return {
-        "source": "modulo_productividad_pv",
-        "source_label": "Modulo de Productividad: PV_DIA_LABORAL + PV_LIQUIDAC_DIA_DET2 + PV_GRUPO_DE_FUNCIONES_CAB. No WMS/WF.",
+        "source": "rendimiento_online_raw",
+        "source_label": "Mismo crudo de Rendimiento Online: F132HIST + F602ASEC + PV_LEGAJO + F002ARTI + VW_UBICACIONES_DIVISION; enriquecido con rrhh_personas.",
         "fecha_desde": fecha_desde,
         "fecha_hasta": fecha_hasta,
         "raw_rows_count": len(raw_rows),
+        "operations_count": len(operations),
         "filtered_rows_count": len(rows),
         "sector_filter_active": sector_filter_active,
+        "division_options": all_divisions,
         "sector_options": all_sectors,
         "selected_sectors": selected,
         "selected_filters": {"dotacion": dotacion, "proveedor": proveedor, "antiguedad": antiguedad},
+        "legajero_matches": len(people_by_legajo),
+        "legajero_missing": max(len(legajos) - len(people_by_legajo), 0),
         "summary": summary,
-        "by_sector_day": list(by_date_sector.values()),
+        "by_division_day": by_division_day,
+        "by_sector_day": by_sector_day,
         "totals_by_day": list(totals_by_date.values()),
         "operator_trends": {
             "improving": operator_trends["improving"],
             "worsening": operator_trends["worsening"],
             "count": operator_trends["count"],
         },
-        "charts": charts,
-        "grid": grid,
+        "charts": operator_trends["charts"],
+        "grid": rows,
     }
 
 
@@ -1716,7 +1799,7 @@ def _build_picking_rows_from_productividad_raw(
         seconds = max((ts - prev).total_seconds(), 0.0) if prev else 0.0
         picking_rows.append(
             {
-                "ALMACEN": _daily_picking_raw_almacen(row),
+                "ALMACEN": _daily_productividad_raw_division(row),
                 "COPECREA": legajo,
                 "BULTOS_PICKING": _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad")),
                 "HS_PICKING": seconds / 3600,
@@ -1803,8 +1886,8 @@ def _build_clark_rows_from_productividad_raw(
         operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
         if operacion not in clark_ops:
             continue
-        almacen = str(row.get("ALMACEN") or "").strip().upper()
-        if almacen not in {"NOA", "SECOS", "REFRIGERADOS"}:
+        almacen = _daily_productividad_raw_division(row)
+        if almacen not in {"NOA", "SECOS", "OC", "CONGELADOS"}:
             continue
         bucket = grouped.setdefault(
             almacen,
@@ -2093,7 +2176,7 @@ def _shift_build_summary(
         operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
         cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
         if operacion == "PICKING":
-            almacen = _daily_picking_raw_almacen(row)
+            almacen = _daily_productividad_raw_division(row)
             if almacen == almacen_target:
                 real["picking_bultos"] += cantidad
                 real["picking_legajos"].add(legajo)
@@ -2135,7 +2218,7 @@ def _shift_build_summary(
         prev = previous_by_legajo.get(legajo, start)
         previous_by_legajo[legajo] = ts
         operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
-        if operacion != "PICKING" or _daily_picking_raw_almacen(row) != almacen_target:
+        if operacion != "PICKING" or _daily_productividad_raw_division(row) != almacen_target:
             continue
         seconds = max((ts - prev).total_seconds(), 0.0)
         bucket = ranking.setdefault(legajo, {"legajo": legajo, "bultos": 0.0, "horas": 0.0, "productividad": 0.0})
@@ -2195,6 +2278,8 @@ def _olas_plan_from_cache(cached_rows: list[dict[str, Any]], operation: str) -> 
     plan = {
         "Secos": {"cantidad": 0.0, "pallets": 0.0},
         "Refrigerados": {"cantidad": 0.0, "pallets": 0.0},
+        "OC": {"cantidad": 0.0, "pallets": 0.0},
+        "Congelados": {"cantidad": 0.0, "pallets": 0.0},
         "Noa": {"cantidad": 0.0, "pallets": 0.0},
     }
     param_by_op = {
@@ -2237,7 +2322,7 @@ def _olas_operation_config(operation: str) -> dict[str, Any]:
             "quantity_label": "Pallets",
             "unit": "pallets",
             "operation_filter": {"GUARADO PALETS ENTRADA", "EXTRACCION DE REAPROS", "EXTRACCION TRASPASOS", "SURTIDO P.COMPLETOS"},
-            "sector_source": "raw",
+            "sector_source": "productividad_division",
             "quantity_mode": "distinct_pallets",
             "positive_quantity": False,
             "time_based": True,
@@ -2310,7 +2395,7 @@ def _build_olas_raw_operation_summary(
         cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
         if config.get("positive_quantity") and cantidad <= 0:
             continue
-        almacen = _daily_picking_raw_almacen(row) if config.get("sector_source") == "picking" else str(row.get("ALMACEN") or "").strip().upper()
+        almacen = _daily_productividad_raw_division(row) if config.get("sector_source") in {"picking", "productividad_division"} else str(row.get("ALMACEN") or "").strip().upper()
         if almacen != almacen_target:
             continue
         seconds = max((ts - prev).total_seconds(), 0.0)
@@ -2349,10 +2434,11 @@ def _build_olas_raw_operation_summary(
                 break
 
     ranking_rows = []
+    jornada = _daily_productividad_jornada(sector)
     for item in ranking.values():
         horas = float(item["horas"] or 0)
         item["productividad"] = round(item["cantidad"] / horas, 2) if horas else 0.0
-        item["productividad_dia"] = round(item["productividad"] * 6.5, 2)
+        item["productividad_dia"] = round(item["productividad"] * jornada, 2)
         item["pallets"] = len(item["pallets"])
         item["cantidad"] = round(item["cantidad"], 2)
         item["horas"] = round(horas, 4)
@@ -2365,7 +2451,7 @@ def _build_olas_raw_operation_summary(
     for item in sorted(turnos.values(), key=lambda row: row["_start"]):
         horas = float(item["horas"] or 0)
         prod_hora = round(item["cantidad"] / horas, 2) if horas else 0.0
-        turno_rows.append({"turno": item["turno"], "fecha": item["fecha"], "cantidad": round(item["cantidad"], 2), "pallets": len(item["pallets"]), "legajos": len(item["legajos"]), "horas": round(horas, 4), "productividad_hora": prod_hora, "productividad_dia": round(prod_hora * 6.5, 2)})
+        turno_rows.append({"turno": item["turno"], "fecha": item["fecha"], "cantidad": round(item["cantidad"], 2), "pallets": len(item["pallets"]), "legajos": len(item["legajos"]), "horas": round(horas, 4), "productividad_hora": prod_hora, "productividad_dia": round(prod_hora * jornada, 2)})
 
     plan_sector = plan.get(sector, {"cantidad": 0.0, "pallets": 0.0})
     legajos = len(totals["legajos"])
@@ -2385,10 +2471,10 @@ def _build_olas_raw_operation_summary(
             "pallets": len(totals["pallets"]),
             "legajos": legajos,
             "horas": round(horas_total, 2),
-            "ocupacion_pct": round((horas_total / (legajos * 6.5) * 100), 2) if legajos else 0.0,
+            "ocupacion_pct": round((horas_total / (legajos * jornada) * 100), 2) if legajos else 0.0,
             "productividad_hora": productividad_hora,
             "cantidad_por_pallet": round(cantidad_total / len(totals["pallets"]), 2) if totals["pallets"] else 0.0,
-            "productividad_dia": round(productividad_hora * 6.5, 2),
+            "productividad_dia": round(productividad_hora * jornada, 2),
             "lineas": totals["lineas"],
         },
         "turnos": turno_rows,
@@ -2510,7 +2596,7 @@ def _build_olas_picking_summary(
         prev = previous_by_legajo.get(legajo, start)
         previous_by_legajo[legajo] = ts
         operacion = str(row.get("CDESCRIP") or row.get("OPERACION") or "").strip().upper()
-        if operacion != "PICKING" or _daily_picking_raw_almacen(row) != almacen_target:
+        if operacion != "PICKING" or _daily_productividad_raw_division(row) != almacen_target:
             continue
         seconds = max((ts - prev).total_seconds(), 0.0)
         horas = seconds / 3600
@@ -2561,10 +2647,11 @@ def _build_olas_picking_summary(
                 break
 
     ranking_rows = []
+    jornada = _daily_productividad_jornada(sector)
     for item in ranking.values():
         horas = float(item["horas"] or 0)
         item["productividad"] = round(item["bultos"] / horas, 2) if horas else 0.0
-        item["productividad_dia"] = round(item["productividad"] * 6.5, 2)
+        item["productividad_dia"] = round(item["productividad"] * jornada, 2)
         item["pallets"] = len(item["pallets"])
         item["bultos"] = round(item["bultos"], 2)
         item["horas"] = round(horas, 4)
@@ -2586,7 +2673,7 @@ def _build_olas_picking_summary(
                 "legajos": len(item["legajos"]),
                 "horas": round(horas, 4),
                 "productividad_hora": prod_hora,
-                "productividad_dia": round(prod_hora * 6.5, 2),
+                "productividad_dia": round(prod_hora * jornada, 2),
             }
         )
 
@@ -2596,7 +2683,7 @@ def _build_olas_picking_summary(
     bultos_total = float(totals["bultos"] or 0)
     pallets_total = len(totals["pallets"])
     productividad_hora = round(bultos_total / horas_total, 2) if horas_total else 0.0
-    ocupacion_pct = round((horas_total / (legajos * 6.5) * 100), 2) if legajos else 0.0
+    ocupacion_pct = round((horas_total / (legajos * jornada) * 100), 2) if legajos else 0.0
     return {
         "division": sector,
         "almacen": almacen_target,
@@ -2612,7 +2699,7 @@ def _build_olas_picking_summary(
             "ocupacion_pct": ocupacion_pct,
             "bultos_por_hora": productividad_hora,
             "bultos_por_pallet": round(bultos_total / pallets_total, 2) if pallets_total else 0.0,
-            "productividad_dia": round(productividad_hora * 6.5, 2),
+            "productividad_dia": round(productividad_hora * jornada, 2),
             "lineas": totals["lineas"],
         },
         "turnos": turno_rows,
@@ -2643,7 +2730,7 @@ async def cambio_turno_resumen(
     except Exception as exc:
         logger.exception("[cambio-turno] No se pudo calcular resumen")
         raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle para Cambio Turno: {exc}") from exc
-    division_names = ["Secos", "Refrigerados", "Noa"]
+    division_names = ["Secos", "Refrigerados", "OC", "Congelados", "Noa"]
     summaries = {
         item: _shift_build_summary(
             division=item,
@@ -2705,7 +2792,7 @@ async def olas_picking_resumen(
 
     cached_rows = await get_cached_results(daily["daily_key"])
     plan = _olas_plan_from_cache(cached_rows, op)
-    division_names = ["Secos", "Refrigerados", "Noa"]
+    division_names = ["Secos", "Refrigerados", "OC", "Congelados", "Noa"]
     if op == "DESPACHO":
         despacho_rows = await get_despacho_raw_cache_rows(daily["daily_key"])
         summaries = {
@@ -3352,14 +3439,22 @@ async def analisis_legajos(
     if hasta < desde:
         raise HTTPException(status_code=400, detail="fecha_hasta debe ser mayor o igual a fecha_desde.")
     selected = [item.strip() for item in sectores.split(",") if item.strip()]
-    return await _build_legajos_productividad_payload(
-        fecha_desde[:10],
-        fecha_hasta[:10],
-        selected,
-        dotacion=dotacion,
-        proveedor=proveedor,
-        antiguedad=antiguedad,
-    )
+    try:
+        return await _build_legajos_productividad_payload(
+            fecha_desde[:10],
+            fecha_hasta[:10],
+            selected,
+            dotacion=dotacion,
+            proveedor=proveedor,
+            antiguedad=antiguedad,
+        )
+    except Exception as exc:
+        logger.exception("[gestion-operativa:analisis-legajos] No se pudo completar la consulta")
+        detail = str(exc).splitlines()[0].strip() or "Error interno sin detalle."
+        raise HTTPException(
+            status_code=502,
+            detail=f"No se pudo consultar el crudo de Rendimiento Online: {detail}",
+        ) from exc
 
 
 @router.get("/daily/config")
@@ -3371,7 +3466,7 @@ async def daily_config(request: Request):
         "usuario_carga": auth.get("display_name") or auth.get("username"),
         "tipo_daily_options": ["Operacion", "Logistica Inversa", "Planeamiento"],
         "sector_options": {
-            "Operacion": ["Noa", "Secos", "Refrigerados"],
+            "Operacion": ["Noa", "Secos", "Refrigerados", "OC", "Congelados"],
             "Logistica Inversa": ["Logistica Inversa"],
             "Planeamiento": ["Planeamiento"],
         },
@@ -3685,16 +3780,29 @@ def _daily_planificacion_sql_preview(fecha_desde: str, fecha_hasta: str) -> str:
 
 def _daily_picking_raw_almacen(row: dict[str, Any]) -> str:
     almacen = str(row.get("ALMACEN") or "").strip().upper()
-    if almacen in {"NOA", "SECOS", "REFRIGERADOS"}:
-        return almacen
     zona = str(row.get("CZONAORI") or "").strip().upper()
     if zona == "T06":
         return "REFRIGERADOS"
     if zona and "T" in zona:
         return "REFRIGERADOS"
+    if almacen in {"NOA", "SECOS", "REFRIGERADOS"}:
+        return almacen
     if zona in {"N01", "N02", "N04", "N05", "N07", "N09", "N10", "N15"}:
         return "NOA"
     return "SECOS"
+
+
+def _daily_productividad_raw_division(row: dict[str, Any]) -> str:
+    base = _daily_picking_raw_almacen(row)
+    if base != "REFRIGERADOS":
+        return base
+    zona = str(row.get("CZONAORI") or "").strip().upper()
+    return "CONGELADOS" if zona == "T06" else "OC"
+
+
+def _daily_productividad_jornada(division: str) -> float:
+    sector = normalize_sector(division)
+    return PRODUCTIVIDAD_JORNADA_BY_DIVISION.get(sector, 6.5)
 
 
 def _daily_raw_detail_mode(param_id: str, process: str) -> dict[str, Any] | None:
@@ -3717,7 +3825,7 @@ def _daily_raw_detail_mode(param_id: str, process: str) -> dict[str, Any] | None
                 "EXTRACCION TRASPASOS",
                 "SURTIDO P.COMPLETOS",
             },
-            "sector_source": "raw",
+            "sector_source": "productividad_division",
             "positive_quantity": False,
         }
     if proc == "DESPACHO" or param.startswith("OP_PROD_DESPACHO_") or param in {"OP_CUMP_DESPACHO_REAL_6A6", "OP_DOT_DESPACHO_LEGAJOS_6A8"}:
@@ -3862,7 +3970,11 @@ async def _build_daily_raw_detail_payload(
         cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
         if mode.get("positive_quantity") and cantidad <= 0:
             continue
-        almacen_calc = _daily_picking_raw_almacen(row) if mode["sector_source"] == "picking" else str(row.get("ALMACEN") or "").strip().upper()
+        almacen_calc = (
+            _daily_productividad_raw_division(row)
+            if mode["sector_source"] in {"picking", "productividad_division"}
+            else str(row.get("ALMACEN") or "").strip().upper()
+        )
         if almacen_calc != almacen_target:
             continue
         detail_rows.append(_daily_raw_detail_row(row, ts=ts, legajo=legajo, almacen_calc=almacen_calc, prev_ts=prev))
@@ -3872,8 +3984,8 @@ async def _build_daily_raw_detail_payload(
         {"key": "legajo", "label": "Legajo"},
         *([{"key": "desc_funcion", "label": "Funcion"}] if mode["process"] == "PICKING" else []),
         {"key": "operacion", "label": "Operacion"},
-        {"key": "almacen", "label": "Almacen crudo"},
-        {"key": "almacen_calculo", "label": "Almacen calculo"},
+        {"key": "almacen", "label": "Division cruda"},
+        {"key": "almacen_calculo", "label": "Division calculo"},
         {"key": "zona_origen", "label": "Zona origen"},
         {"key": "ubicacion", "label": "Ubicacion"},
         {"key": "pallet", "label": "Pallet"},

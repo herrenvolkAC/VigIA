@@ -70,8 +70,8 @@
   <section class="filters">
     <div class="field"><label class="label" for="rango-desde">Fecha desde</label><input class="paper-input" type="date" id="rango-desde"></div>
     <div class="field"><label class="label" for="rango-hasta">Fecha hasta</label><input class="paper-input" type="date" id="rango-hasta"></div>
-    <div class="field"><label class="label" for="operacion-select">Operacion</label><select class="paper-select" id="operacion-select"><option value="PICKING">PICKING</option></select></div>
-    <div class="field"><label class="label" for="almacen-select">Almacen</label><select class="paper-select" id="almacen-select"><option value="TODOS">TODOS</option><option value="SECOS + NOA">SECOS + NOA</option><option value="CAMARA 06">CAMARA 06</option><option value="OTRAS CAMARAS">OTRAS CAMARAS</option><option value="AREA SECOS Y NO ALIMENTOS">AREA SECOS Y NO ALIMENTOS</option></select></div>
+    <div class="field"><label class="label" for="operacion-select">Operacion</label><select class="paper-select" id="operacion-select"><option value="PICKING">PICKING</option><option value="CLARK">CLARK</option><option value="CARGA">CARGA</option><option value="CARRETEO">CARRETEO</option><option value="CONTROL DE PROCESOS CHP + CBF">CONTROL DE PROCESOS CHP + CBF</option></select></div>
+    <div class="field"><label class="label" for="almacen-select">Division</label><select class="paper-select" id="almacen-select"><option value="TODOS">TODOS</option><option value="SECOS + NOA">SECOS + NOA</option><option value="CAMARA 06">CAMARA 06</option><option value="OTRAS CAMARAS">OTRAS CAMARAS</option><option value="AREA SECOS Y NO ALIMENTOS">AREA SECOS Y NO ALIMENTOS</option><option value="AREA REFRIGERADOS">AREA REFRIGERADOS</option></select></div>
     <div class="field"><label class="label" for="divisor-select">Escenario hora</label><select class="paper-select" id="divisor-select"><option value="6.5" selected>Escala /6.5</option><option value="8">Escala /8</option></select></div>
     <button class="primary-cta" id="consultar-rango">Consultar</button>
     <div class="case-cell"><div class="label">Ciclo diario</div><strong>Incluye ambos extremos - 06:00 a 06:00 - siempre desde cache</strong></div>
@@ -109,7 +109,7 @@
     <article class="data-panel" style="margin-top:12px">
       <div class="chart-title"><strong>Simulacion por legajo y dia</strong><span>premio individual + reparto grupal</span></div>
       <section class="group-table-tools">
-        <div class="field"><label class="label" for="grupal-f-almacen">Almacen</label><select class="paper-select" id="grupal-f-almacen"></select></div>
+        <div class="field"><label class="label" for="grupal-f-almacen">Division</label><select class="paper-select" id="grupal-f-almacen"></select></div>
         <div class="field"><label class="label" for="grupal-f-fecha">Fecha</label><input class="paper-input" type="date" id="grupal-f-fecha"></div>
         <div class="field"><label class="label" for="grupal-f-legajo">Legajo</label><input class="paper-input" id="grupal-f-legajo" inputmode="numeric" placeholder="Todos"></div>
         <button class="secondary-cta" id="exportar-grupal-excel" type="button">Exportar Excel</button>
@@ -185,13 +185,13 @@
     <header class="modal-head">
       <div>
         <div class="label">Premio grupal</div>
-        <strong id="fijos-grupal-title">Editar fijos diarios por almacen</strong>
+        <strong id="fijos-grupal-title">Editar fijos diarios por operacion y division</strong>
       </div>
       <button class="icon-btn" id="cerrar-fijos-grupal" title="Cerrar">X</button>
     </header>
     <div class="modal-body">
       <table class="fixed-grid">
-        <thead><tr><th>Almacen</th><th>$ fijo diario</th></tr></thead>
+        <thead><tr><th>Division</th><th>$ fijo diario</th></tr></thead>
         <tbody id="fijos-grupal-body"></tbody>
       </table>
       <div class="tool-row">
@@ -224,13 +224,19 @@
 
 <script>
   const $ = id => document.getElementById(id);
-  const GROUP_FIXED_DEFAULTS = {
+  const GROUP_OPERATIONS = ['PICKING', 'CLARK', 'CARGA', 'CARRETEO', 'CONTROL DE PROCESOS CHP + CBF'];
+  const GROUP_FIXED_BY_DIVISION_DEFAULTS = {
     'SECOS + NOA': 260000,
     'OTRAS CAMARAS': 55000,
     'CAMARA 06': 5000,
     'AREA SECOS Y NO ALIMENTOS': 3000,
     'AREA REFRIGERADOS': 0,
   };
+  const GROUP_FIXED_DEFAULTS = Object.fromEntries(
+    GROUP_OPERATIONS.flatMap(operacion =>
+      Object.entries(GROUP_FIXED_BY_DIVISION_DEFAULTS).map(([division, value]) => [`${operacion}|${division}`, value])
+    )
+  );
   const state = {activeTab:'resumen', loading:false, loadError:'', fechaDesde:'', fechaHasta:'', operacion:'PICKING', almacen:'TODOS', divisorHorario:'6.5', resumenRows:[], detalleResumenRows:[], detalleRows:[], groupFixedDaily:{...GROUP_FIXED_DEFAULTS}, groupMarginPct:90, groupBonusRows:[], groupFilters:{almacen:'TODOS', fecha:'', legajo:''}, groupLegajoSelected:'', problematicaRows:[], problematicaModes:{}, problematicaSets:{confirmados:[], analizados:[], pendientes:[]}, problematicaMode:'caida_inicio', problematicaView:'confirmados', problematicaSelected:0, sorts:{}, explicacion:null};
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmt = value => new Intl.NumberFormat('es-AR', {maximumFractionDigits:2}).format(Number(value || 0));
@@ -243,6 +249,17 @@
   }
   function groupMarginRatio(){
     return groupMarginPct() / 100;
+  }
+  function unidadProductiva(){
+    if (state.operacion === 'CONTROL DE PROCESOS CHP + CBF') return 'Huecos';
+    if (['CLARK', 'CARGA', 'CARRETEO'].includes(state.operacion)) return 'Pallets';
+    return 'Bultos';
+  }
+  function unidadProductivaLower(){
+    return unidadProductiva().toLowerCase();
+  }
+  function groupFixedKey(division, operacion=state.operacion){
+    return `${String(operacion || 'PICKING').trim().toUpperCase()}|${String(division || '').trim()}`;
   }
   function pctDiff(base, value){
     const b = Math.abs(Number(base || 0));
@@ -319,7 +336,7 @@
     const qtyDias = Math.max(1, Number(dias || 1));
     const bultosDia = qtyBultos / qtyDias;
     const prod = qtyLegajos ? bultosDia / qtyLegajos : 0;
-    return `Bultos/dia ${fmt(bultosDia)} · Legajos ${fmt(qtyLegajos)} · Productividad ${fmt(prod)}`;
+    return `${unidadProductiva()}/dia ${fmt(bultosDia)} · Legajos ${fmt(qtyLegajos)} · Productividad ${fmt(prod)}`;
   }
   function bars(id, rows, key='valor', label='grupo'){
     const max = Math.max(...(rows || []).map(r => Math.abs(Number(r[key] || 0))), 1);
@@ -611,7 +628,7 @@
           <div class="mini-row"><span>Actual</span><div class="mini-track"><div class="mini-fill" style="width:${Math.max(2, actual/max*100)}%"></div></div><span>${esc(money(actual))}</span></div>
           <div class="mini-row"><span>Horas + ext.</span><div class="mini-track"><div class="mini-fill bad" style="width:${Math.max(2, horas/max*100)}%"></div></div><span>${esc(money(horas))}</span></div>
         </div>
-        <div class="kpi-foot" style="margin-top:8px">Bultos total ${esc(fmt(row.bultos))} - Bultos turno ${esc(fmt(row.bultosturno))} - Desc. ${esc(money(row.descuentos_total))}</div>
+        <div class="kpi-foot" style="margin-top:8px">${esc(unidadProductiva())} total ${esc(fmt(row.bultos))} - ${esc(unidadProductiva())} turno ${esc(fmt(row.bultosturno))} - Desc. ${esc(money(row.descuentos_total))}</div>
         <button class="secondary-cta case-action" data-action="case-detail" type="button">Ver detalle horario</button>
       </article>`;
     }
@@ -722,7 +739,7 @@
     const eligibility = estimateEligibilitySavings(rows, detailRows);
     $('sugerencias').innerHTML = [
       `Elegibilidad minima: >= 4 horas productivas evitaria ${money(eligibility.horas.ahorro)} en ${fmt(eligibility.horas.casos)} casos.`,
-      `Piso de volumen: >= 50% de bultos minimos diarios estimados evitaria ${money(eligibility.bultos.ahorro)} en ${fmt(eligibility.bultos.casos)} casos.`,
+      `Piso de volumen: >= 50% de ${unidadProductivaLower()} minimos diarios estimados evitaria ${money(eligibility.bultos.ahorro)} en ${fmt(eligibility.bultos.casos)} casos.`,
       `Regla de control: actual $0 y horas > $0 requiere habilitacion previa (${fmt(actualCeroHorasPaga)} casos).`,
       `Piloto mensual con topes por jornada antes de productivizar (${fmt(horasMayor)} casos donde horas paga mas).`,
     ].map(x => `<li>${esc(x)}</li>`).join('');
@@ -798,8 +815,14 @@
     return {divisor, margin, minDailyPaid, shifts, uniquePeople:uniquePeople.size, legajosDiaProm, targetMes, bultosMes, targetDiaProm, diasRango, diasConBase, byTurno, turnos};
   }
   function groupFixedValue(almacen){
-    const key = String(almacen || '').trim();
-    return Number(state.groupFixedDaily[key] ?? GROUP_FIXED_DEFAULTS[key] ?? 0);
+    const division = String(almacen || '').trim();
+    const key = groupFixedKey(division);
+    return Number(
+      state.groupFixedDaily[key]
+      ?? GROUP_FIXED_DEFAULTS[key]
+      ?? GROUP_FIXED_BY_DIVISION_DEFAULTS[division]
+      ?? 0
+    );
   }
   function groupBonusQualificationByDay(detailRows=[]){
     const stats = groupBonusStats(detailRows);
@@ -907,9 +930,9 @@
       {key:'legajo', label:'Legajo', mono:true, w:'90px'},
       {key:'nombre', label:'Nombre', w:'170px'},
       {key:'fecha', label:'Fecha', mono:true, w:'105px'},
-      {key:'almacen', label:'Almacen', w:'170px'},
+      {key:'almacen', label:'Division', w:'170px'},
       {key:'premio_horas_65', label:'$ Premio x Horas / 6.5', money:true, w:'150px'},
-      {key:'bultos', label:'Bultos', num:true, w:'110px'},
+      {key:'bultos', label:unidadProductiva(), num:true, w:'110px'},
       {key:'bultos_target', label:'Target dia', num:true, w:'120px'},
       {key:'estado_objetivo', label:'Objetivo', w:'105px'},
       {key:'monto_fijo_objetivo_grupal', label:'$ Monto Fijo objetivo Grupal', money:true, w:'170px'},
@@ -945,7 +968,7 @@
     const total = key => rows.reduce((acc, row) => acc + Number(row[key] || 0), 0);
     $('grupal-filter-totals').innerHTML = [
       ['Premio x Horas / 6.5', money(total('premio_horas_65'))],
-      ['Bultos', fmt(total('bultos'))],
+      [unidadProductiva(), fmt(total('bultos'))],
       ['Monto Fijo objetivo Grupal', money(total('monto_fijo_objetivo_grupal'))],
       ['Total a Cobrar', money(total('total_a_cobrar'))],
     ].map(([label, value]) => `<div class="group-total-cell"><div class="label">${esc(label)}</div><strong>${esc(value)}</strong></div>`).join('');
@@ -960,7 +983,7 @@
     return [
       {key:'legajo', label:'Legajo', mono:true, w:'90px'},
       {key:'nombre', label:'Nombre', w:'180px'},
-      {key:'almacenes', label:'Almacenes', w:'190px'},
+      {key:'almacenes', label:'Divisiones', w:'190px'},
       {key:'jornadas', label:'Jornadas', num:true, w:'95px'},
       {key:'premio_actual', label:'$ Cobro periodo', money:true, w:'145px'},
       {key:'premio_horas_65', label:`$ Cobraría x horas ${escenario}`, money:true, w:'155px'},
@@ -973,13 +996,13 @@
     const escenario = state.divisorHorario === '6.5' ? '/6.5' : '/8';
     return [
       {key:'fecha', label:'Fecha', mono:true, w:'105px'},
-      {key:'almacen', label:'Almacen', w:'180px'},
+      {key:'almacen', label:'Division', w:'180px'},
       {key:'premio_actual', label:'$ Cobro', money:true, w:'130px'},
       {key:'premio_horas_65', label:`$ Horas ${escenario}`, money:true, w:'130px'},
       {key:'monto_fijo_objetivo_grupal', label:'$ Grupal', money:true, w:'130px'},
       {key:'total_a_cobrar', label:'$ Total escenario', money:true, w:'150px'},
       {key:'diferencia', label:'$ Diferencia', money:true, w:'130px'},
-      {key:'bultos', label:'Bultos', num:true, w:'95px'},
+      {key:'bultos', label:unidadProductiva(), num:true, w:'95px'},
       {key:'bultos_target', label:'Target dia', num:true, w:'115px'},
       {key:'estado_objetivo', label:'Objetivo', w:'105px'},
     ];
@@ -1138,26 +1161,26 @@
     const totalCobrar = simRows.reduce((acc, row) => acc + Number(row.total_a_cobrar || 0), 0);
     const activeAlmacenes = [...new Set((state.detalleRows || []).map(row => String(row.almacen || '').trim()).filter(Boolean))];
     const fixedDailyTotal = activeAlmacenes.reduce((acc, almacen) => acc + groupFixedValue(almacen), 0);
-    const fixedLabel = state.almacen === 'TODOS' ? 'Fijo diario total' : `Fijo diario ${state.almacen}`;
+    const fixedLabel = state.almacen === 'TODOS' ? 'Fijo diario total' : `Fijo diario division ${state.almacen}`;
     $('grupal-parametros').innerHTML = [
-      `<div class="group-param"><div class="label">Bultos minimos a realizar</div><strong>${esc(fmt(stats.minDailyPaid))}</strong><div class="kpi-foot">Primer nivel con pago > 0, sin horas extra</div></div>`,
+      `<div class="group-param"><div class="label">${esc(unidadProductiva())} minimos a realizar</div><strong>${esc(fmt(stats.minDailyPaid))}</strong><div class="kpi-foot">Primer nivel con pago > 0, sin horas extra</div></div>`,
       `<div class="group-param"><label class="label" for="grupal-margen-pct">% margen</label><div class="group-margin-control"><input id="grupal-margen-pct" type="number" min="0" max="200" step="1" value="${esc(groupMarginPct())}"><span>%</span></div><div class="kpi-foot">Factor aplicado al objetivo. Recalcula target y reparto elegible.</div></div>`,
-      `<div class="group-param"><div class="label">${esc(fixedLabel)}</div><strong>${esc(money(state.almacen === 'TODOS' ? fixedDailyTotal : groupFixedValue(state.almacen)))}</strong><div class="kpi-foot">Editable por gerencia. Reparto puro por bultos del dia.</div></div>`,
+      `<div class="group-param"><div class="label">${esc(fixedLabel)}</div><strong>${esc(money(state.almacen === 'TODOS' ? fixedDailyTotal : groupFixedValue(state.almacen)))}</strong><div class="kpi-foot">Editable por gerencia. Reparto puro por ${esc(unidadProductivaLower())} del dia.</div></div>`,
     ].join('');
     const totalRow = `<div class="group-kpi-row"><div class="group-row-title">Totales</div>${[
-      kpi('Cantidad legajos', fmt(stats.legajosDiaProm), 'Promedio diario de personas con bultos de turno > 0.'),
-      kpi('Bultos target dia', fmt(stats.targetDiaProm), 'Promedio diario de la suma de targets por turno.', 'warn'),
-      kpi('Bultos target mes', fmt(stats.targetMes), `Suma targets por turno. Bultos turno reales: ${fmt(stats.bultosMes)}.`, stats.bultosMes >= stats.targetMes ? 'ok' : 'bad'),
+      kpi('Cantidad legajos', fmt(stats.legajosDiaProm), `Promedio diario de personas con ${unidadProductivaLower()} de turno > 0.`),
+      kpi(`${unidadProductiva()} target dia`, fmt(stats.targetDiaProm), 'Promedio diario de la suma de targets por turno.', 'warn'),
+      kpi(`${unidadProductiva()} target mes`, fmt(stats.targetMes), `Suma targets por turno. ${unidadProductiva()} turno reales: ${fmt(stats.bultosMes)}.`, stats.bultosMes >= stats.targetMes ? 'ok' : 'bad'),
       kpi('Reparto grupal', money(totalGrupal), `Total simulado en ${fmt(simRows.length)} legajo/dia con reparto puro.`, 'ok'),
     ].join('')}</div>`;
     const turnoRows = stats.turnos.map(turno => {
       const item = stats.byTurno[turno.key] || {legajos:0, promBultosDia:0, cumplen:0, dias:0};
       const pctCumplen = item.dias ? (item.cumplen / item.dias) * 100 : 0;
       return `<div class="group-kpi-row"><div class="group-row-title">${esc(turno.label)}</div>${[
-        kpi('Cantidad legajos', fmt(item.legajos), 'Promedio diario de personas con bultos de turno > 0.'),
-        kpi('Prom. bultos x dia', fmt(item.promBultosDia), 'Promedio de bultos de turno por dia/turno.'),
+        kpi('Cantidad legajos', fmt(item.legajos), `Promedio diario de personas con ${unidadProductivaLower()} de turno > 0.`),
+        kpi(`Prom. ${unidadProductivaLower()} x dia`, fmt(item.promBultosDia), `Promedio de ${unidadProductivaLower()} de turno por dia/turno.`),
         kpi('Dias sobre target', `${fmt(item.cumplen)} / ${fmt(item.dias)} (${fmt(pctCumplen)}%)`, 'Dias del turno que superaron su target.', item.cumplen >= item.dias && item.dias ? 'ok' : item.cumplen ? 'warn' : 'bad'),
-        kpi('Bultos turno', fmt(item.bultos), 'Suma de bultos dentro del turno en el rango.'),
+        kpi(`${unidadProductiva()} turno`, fmt(item.bultos), `Suma de ${unidadProductivaLower()} dentro del turno en el rango.`),
       ].join('')}</div>`;
     }).join('');
     $('kpis-grupal').innerHTML = totalRow + turnoRows;
@@ -1197,9 +1220,11 @@
       }
       const cobertura = await api('/api/analisis-premio-productividad/cache-cobertura?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...combo}));
       const faltantes = cobertura.faltantes || [];
+      const operacionesCacheadas = cobertura.operaciones_cacheadas || [state.operacion];
+      const alcanceCarga = operacionesCacheadas.length > 1 ? `operaciones ${operacionesCacheadas.join(' + ')}` : `operacion ${operacionesCacheadas[0] || state.operacion}`;
       setStatus(faltantes.length
-        ? `Cache diaria: ${fmt(cobertura.dias_cache)}/${fmt(cobertura.dias)} dias. Faltantes que iran a Oracle: ${faltantes.slice(0,6).join(', ')}${faltantes.length > 6 ? '...' : ''}.`
-        : `Cache diaria completa: ${fmt(cobertura.dias_cache)}/${fmt(cobertura.dias)} dias. No deberia consultar Oracle.`
+        ? `Cache diaria (${alcanceCarga}): ${fmt(cobertura.dias_cache)}/${fmt(cobertura.dias)} dias completos. Faltantes que iran a Oracle: ${faltantes.slice(0,6).join(', ')}${faltantes.length > 6 ? '...' : ''}.`
+        : `Cache diaria completa (${alcanceCarga}): ${fmt(cobertura.dias_cache)}/${fmt(cobertura.dias)} dias. No deberia consultar Oracle.`
       );
       if (!force && !faltantes.length) {
         const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...combo}));
@@ -1214,14 +1239,14 @@
         renderResumen(data, state.detalleRows);
         if (state.activeTab === 'grupal') renderPremioGrupal();
         if (state.activeTab === 'grupal-legajos') renderPremioGrupalLegajos();
-        setStatus(`Rango listo desde cache. Dias: ${cobertura.dias || 0}, desde Oracle: 0, ya cacheados: ${cobertura.dias_cache || 0}.`);
+        setStatus(`Rango listo desde cache para ${alcanceCarga}. Dias: ${cobertura.dias || 0}, desde Oracle: 0, ya cacheados: ${cobertura.dias_cache || 0}.`);
         return true;
       }
       const estados = [];
       const diasAConsultar = force ? days : faltantes;
       for (let i = 0; i < diasAConsultar.length; i++) {
         const day = diasAConsultar[i];
-        setStatus(`Consultando faltante ${day} (${i + 1}/${diasAConsultar.length}). Se completa desde Oracle...`);
+        setStatus(`Consultando faltante ${day} (${i + 1}/${diasAConsultar.length}). Se completan ${alcanceCarga} desde Oracle...`);
         const parcial = await api('/api/analisis-premio-productividad/consultar-rango', {
           method:'POST',
           body:JSON.stringify({fecha_desde:day, fecha_hasta:day, force, ...combo})
@@ -1230,7 +1255,8 @@
         estados.push(...detalleDia);
         const estadoDia = detalleDia[0]?.estado || 'cache';
         const rowsDia = detalleDia[0]?.rows || 0;
-        setStatus(`${day} listo desde ${estadoDia === 'oracle' ? 'Oracle' : 'cache'} (${fmt(rowsDia)} registros).`);
+        const opsDia = (detalleDia[0]?.operaciones || []).map(x => `${x.operacion}:${fmt(x.rows || 0)}`).join(' · ');
+        setStatus(`${day} listo desde ${estadoDia === 'oracle' ? 'Oracle' : 'cache'} (${fmt(rowsDia)} registros${opsDia ? `; ${opsDia}` : ''}).`);
       }
       setStatus('Leyendo rango completo desde cache SQLite...');
       const data = await api('/api/analisis-premio-productividad/rango-cache?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...combo}));
@@ -1246,7 +1272,7 @@
       if (state.activeTab === 'grupal') renderPremioGrupal();
       if (state.activeTab === 'grupal-legajos') renderPremioGrupalLegajos();
       const m = data.meta || {};
-      setStatus(`Rango listo desde cache. Dias: ${m.dias || 0}, desde Oracle: ${m.dias_oracle || 0}, ya cacheados: ${m.dias_cache || 0}.`);
+      setStatus(`Rango listo desde cache para ${alcanceCarga}. Dias: ${m.dias || 0}, desde Oracle: ${m.dias_oracle || 0}, ya cacheados: ${m.dias_cache || 0}.`);
       return true;
     } finally {
       setBusy(false);
@@ -1280,7 +1306,7 @@
     const finalConGrupal = Number(k.premio_x_horas_sin_extras || 0) + incentivoGrupal;
     $('kpis-resumen').innerHTML = [
       kpi('Actual jornada', money(k.premio_anterior), `Pago real neto del modulo. Base: ${footTotal}`),
-      kpi('Actual sin extras', money(k.premio_actual), `Recalcula escala diaria solo con bultos del turno. Cae ${money(impactoExtraActual)} (${pctDiff(k.premio_anterior, impactoExtraActual)}).`, 'warn'),
+      kpi('Actual sin extras', money(k.premio_actual), `Recalcula escala diaria solo con ${unidadProductivaLower()} del turno. Cae ${money(impactoExtraActual)} (${pctDiff(k.premio_anterior, impactoExtraActual)}).`, 'warn'),
       kpi('Extras en metodo actual', money(impactoExtraActual), `Actual jornada - Actual sin extras. Mide cuanto suma la produccion fuera del turno. ${footExtra}`, impactoExtraActual > 0 ? 'bad' : 'ok'),
       kpi(`Horas con extras ${escenario}`, money(k.premio_x_horas), `Suma premios por hora y aplica el mismo descuento monetario. Vs actual: ${signedMoney(-brechaConExtras)}.`, brechaConExtras < 0 ? 'bad' : 'ok'),
       kpi(`Horas sin extras ${escenario}`, money(k.premio_x_horas_sin_extras), `Solo horas dentro del turno. Vs actual sin extras: ${signedMoney(-brechaSinExtras)}.`, brechaSinExtras < 0 ? 'bad' : 'ok'),
@@ -1296,7 +1322,7 @@
       'Resultado mostrado desde cache diaria pp_caso_modelo_dia. Oracle se consulta solo para dias faltantes.',
       `Escenario horario activo: escala ${escenario}. Los umbrales y premios por hora se recalculan con ese divisor.`,
       'TNC/error no se distribuye por hora: se estima el descuento monetario con el metodo actual y se aplica al escenario horario.',
-      'La version sin extras del metodo actual usa bultos del turno contra la escala diaria vigente; la version horaria simplemente excluye horas fuera del turno.'
+      `La version sin extras del metodo actual usa ${unidadProductivaLower()} del turno contra la escala diaria vigente; la version horaria simplemente excluye horas fuera del turno.`
     ].map(x => `<li>${esc(x)}</li>`).join('');
   }
   function problematicaCols(){
@@ -1305,8 +1331,8 @@
       {key:'operario',label:'Legajo',mono:true,w:'90px'},
       {key:'premio_actual',label:'Premio actual',money:true},
       {key:'premio_x_horas_sin_extras',label:'Premio horario turno',money:true},
-      {key:'bultos_turno',label:'Bultos estandar',num:true},
-      {key:'bultos_fuera_turno',label:'Bultos extra',num:true},
+      {key:'bultos_turno',label:`${unidadProductiva()} estandar`,num:true},
+      {key:'bultos_fuera_turno',label:`${unidadProductiva()} extra`,num:true},
       {key:'pct_fuera_turno',label:'% extra',num:true},
       {key:'promedio_dentro_turno',label:'Prom est.',num:true},
       {key:'promedio_extra_activa',label:'Prom extra',num:true},
@@ -1319,7 +1345,7 @@
       {key:'premio_actual',label:'Premio actual',money:true},
       {key:'premio_x_horas_sin_extras',label:'Premio horario',money:true},
       {key:'hora_pico_label',label:'Pico',mono:true,w:'72px'},
-      {key:'bultos_pico',label:'Bultos pico',num:true},
+      {key:'bultos_pico',label:`${unidadProductiva()} pico`,num:true},
       {key:'promedio_posterior',label:'Prom posterior',num:true},
       {key:'caida_posterior_pct',label:'Caida %',num:true},
       {key:'concentracion_pico_pct',label:'Concentracion %',num:true},
@@ -1341,7 +1367,7 @@
       summaryCell('Fecha', caso.fecha || ''),
       summaryCell('Legajo', caso.operario || ''),
       summaryCell('Pico', caso.hora_pico_label || ''),
-      summaryCell('Bultos pico', caso.bultos_pico || 0, false, true),
+      summaryCell(`${unidadProductiva()} pico`, caso.bultos_pico || 0, false, true),
       summaryCell('Prom posterior', caso.promedio_posterior || 0, false, true),
       summaryCell('Caida posterior', `${fmt(caso.caida_posterior_pct)}%`),
       summaryCell('Premio actual', escalaLabel ? `${escalaLabel} - ${money(escalaMonto)}` : money(escalaMonto)),
@@ -1350,8 +1376,8 @@
       summaryCell('Diferencia', caso.diferencia_x_horas_sin_extras || 0, true),
       summaryCell('Horas sobre obj.', caso.resumen_modelo?.horas_sobre_objetivo_cobrado || 0, false, true),
       summaryCell('Horas sin premio h.', caso.resumen_modelo?.horas_sin_premio_horario || 0, false, true),
-      summaryCell('Bultos estandar', caso.resumen_modelo?.bultos_dentro_turno || caso.bultos_turno || 0, false, true),
-      summaryCell('Bultos extra', caso.resumen_modelo?.bultos_fuera_turno || 0, false, true),
+      summaryCell(`${unidadProductiva()} estandar`, caso.resumen_modelo?.bultos_dentro_turno || caso.bultos_turno || 0, false, true),
+      summaryCell(`${unidadProductiva()} extra`, caso.resumen_modelo?.bultos_fuera_turno || 0, false, true),
       summaryCell('% extra', `${fmt(caso.resumen_modelo?.pct_fuera_turno || caso.pct_fuera_turno || 0)}%`),
     ].join('');
     const horas = (caso.horas || []).filter(x => Number(x.bultos || 0) > 0);
@@ -1425,7 +1451,7 @@
         ${points.map(p => {
           const caidaFuerte = p.es_posterior && Number(p.caida_vs_pico_pct || 0) >= 50;
           const cls = p.es_pico ? 'pico' : caidaFuerte ? 'caida' : p.es_extra ? 'extra' : p.es_posterior ? 'posterior' : 'pre';
-          const title = `${p.hora_label}: ${fmt(p.bultos)} bultos${p.es_pico ? ' - pico' : p.es_posterior ? ` - caida ${fmt(p.caida_vs_pico_pct)}% vs pico` : ''}`;
+          const title = `${p.hora_label}: ${fmt(p.bultos)} ${unidadProductivaLower()}${p.es_pico ? ' - pico' : p.es_posterior ? ` - caida ${fmt(p.caida_vs_pico_pct)}% vs pico` : ''}`;
           return `
             <circle class="point ${cls}" cx="${p.x}" cy="${p.y}" r="${p.es_pico ? 6 : 5}"><title>${esc(title)}</title></circle>
             <text class="label" x="${p.x}" y="${Math.max(12, p.y - 10)}" text-anchor="middle">${fmt(p.bultos)}</text>
@@ -1560,8 +1586,8 @@
       {key:'fecha',label:'Fecha',mono:true,w:'92px'},
       {key:'operario',label:'Operario',mono:true,w:'100px',link:'detalle-legajo'},
       {key:'operacion',label:'Operacion'},
-      {key:'bultos',label:'Bultos',num:true},
-      {key:'almacen',label:'Almacen'},
+      {key:'bultos',label:unidadProductiva(),num:true},
+      {key:'almacen',label:'Division'},
       {key:'descuentos_total',label:'Desc. TNC/error',money:true},
       {key:'premio_x_horas_bruto',label:`Premio horas ${escenario} bruto`,money:true},
       {key:'premio_x_horas',label:`Premio horas ${escenario} neto`,money:true},
@@ -1569,7 +1595,7 @@
       {key:'premio_x_horas_sin_extras',label:`Premio horas ${escenario} sin extras neto`,money:true},
       {key:'productividad_anterior',label:'Prod anterior',num:true},
       {key:'premio_anterior',label:'Premio anterior neto',money:true},
-      {key:'bultosturno',label:'Bultos turno',num:true},
+      {key:'bultosturno',label:`${unidadProductiva()} turno`,num:true},
       {key:'premio_actual_bruto',label:'Premio sin extras bruto',money:true},
       {key:'premio_actual',label:'Premio sin extras neto',money:true},
       {key:'diferencia_x_horas',label:'Diferencia x horas',money:true},
@@ -1582,11 +1608,11 @@
     return [
       {key:'hora',label:'Hora',num:true,w:'70px'},
       {key:'turno',label:'Turno',w:'92px'},
-      {key:'bultos',label:'Bultos',num:true},
+      {key:'bultos',label:unidadProductiva(),num:true},
       {key:'bultos_hora_min',label:'Min hora',num:true},
       {key:'bultos_hora_max',label:'Max hora',num:true},
       {key:'premio_x_hora',label:`Premio hora ${escenario}`,money:true},
-      {key:'bultos_modulo',label:'Bultos modulo',num:true},
+      {key:'bultos_modulo',label:`${unidadProductiva()} modulo`,num:true},
     ];
   }
   function detalleCacheCols(){
@@ -1597,9 +1623,9 @@
       {key:'hora',label:'Hora',num:true,w:'70px'},
       {key:'turno',label:'Turno',w:'92px'},
       {key:'operacion',label:'Operacion'},
-      {key:'almacen',label:'Almacen'},
-      {key:'bultos',label:'Bultos',num:true},
-      {key:'bultos_modulo',label:'Bultos modulo',num:true},
+      {key:'almacen',label:'Division'},
+      {key:'bultos',label:unidadProductiva(),num:true},
+      {key:'bultos_modulo',label:`${unidadProductiva()} modulo`,num:true},
       {key:'premio_x_hora',label:`Premio hora ${escenario}`,money:true},
       {key:'prod_modulo',label:'Prod modulo',num:true},
       {key:'pago_modulo',label:'Pago modulo',money:true},
@@ -1677,11 +1703,11 @@
       summaryCell('Operario', first.operario || ''),
       summaryCell('Nombre', first.nombre || ''),
       summaryCell('Operacion', first.operacion || ''),
-      summaryCell('Almacen', first.almacen || ''),
+      summaryCell('Division', first.almacen || ''),
       summaryCell('Prod modulo', first.prod_modulo || 0, false, true),
       summaryCell('Pago modulo', first.pago_modulo || 0, true),
-      summaryCell('Bultos modulo', kpis.bultos_modulo || 0, false, true),
-      summaryCell('Bultos turno', kpis.bultosturno || 0, false, true),
+      summaryCell(`${unidadProductiva()} modulo`, kpis.bultos_modulo || 0, false, true),
+      summaryCell(`${unidadProductiva()} turno`, kpis.bultosturno || 0, false, true),
       summaryCell('Premio sin extra', kpis.premio_sin_extra || first.premio_sin_extra || 0, true),
       summaryCell('Penalizacion TNC', kpis.penalizacion_tnc || first.penalizacion_tnc || ''),
       summaryCell('Penalizacion error', kpis.penalizacion_error || first.penalizacion_error || ''),
@@ -1709,7 +1735,7 @@
     });
     if (!best) return {label:'', premio:pagoModulo};
     const maxLabel = best.maxBultos >= 80000 ? 'sin tope' : fmt(best.maxBultos);
-    return {label:`${fmt(best.minBultos)}-${maxLabel} bultos`, premio:best.premio};
+    return {label:`${fmt(best.minBultos)}-${maxLabel} ${unidadProductivaLower()}`, premio:best.premio};
   }
   function detalleExtraTransfers(points, objetivo){
     const standard = points.filter(p => !p.es_extra && Number(p.bultos || 0) < objetivo);
@@ -1833,7 +1859,7 @@
         <text class="axis-label" x="${left - 8}" y="${yMid + 4}" text-anchor="end">${fmt(maxVal / 2)}</text>
         ${points.map(p => {
           const yTop = yFor(p.bultos);
-          return `<rect class="prod-bar ${p.es_extra ? 'extra' : 'standard'}" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yFor(0) - yTop)}"><title>${esc(`${p.hora_label}: ${fmt(p.bultos)} bultos ${p.es_extra ? 'extra' : 'estandar'}`)}</title></rect>`;
+          return `<rect class="prod-bar ${p.es_extra ? 'extra' : 'standard'}" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yFor(0) - yTop)}"><title>${esc(`${p.hora_label}: ${fmt(p.bultos)} ${unidadProductivaLower()} ${p.es_extra ? 'extra' : 'estandar'}`)}</title></rect>`;
         }).join('')}
         ${objetivo > 0 ? points.filter(p => !p.es_extra).map(p => `<line class="target-cap" x1="${p.x - prodBarWidth / 2 - 3}" y1="${yObjetivo}" x2="${p.x + prodBarWidth / 2 + 3}" y2="${yObjetivo}"></line>`).join('') : ''}
         ${transferModelFinal.leftover.map(item => {
@@ -1841,13 +1867,13 @@
           const used = p.bultos - item.amount;
           const yTop = yFor(p.bultos);
           const yBottom = yFor(used);
-          return `<rect class="leftover-extra" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yBottom - yTop)}"><title>Extra sin reasignar: ${fmt(item.amount)} bultos</title></rect>`;
+          return `<rect class="leftover-extra" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yBottom - yTop)}"><title>Extra sin reasignar: ${fmt(item.amount)} ${unidadProductivaLower()}</title></rect>`;
         }).join('')}
         ${points.filter(p => transferModelFinal.standardSourceUsed.get(p.idx)).map(p => {
           const amount = transferModelFinal.standardSourceUsed.get(p.idx) || 0;
           const yTop = yFor(p.bultos);
           const yBottom = yFor(p.bultos - amount);
-          return `<rect class="source-used" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yBottom - yTop)}"><title>Excedente estandar usado visualmente: ${fmt(amount)} bultos</title></rect>`;
+          return `<rect class="source-used" x="${p.x - prodBarWidth / 2}" y="${yTop}" width="${prodBarWidth}" height="${Math.max(1, yBottom - yTop)}"><title>Excedente estandar usado visualmente: ${fmt(amount)} ${unidadProductivaLower()}</title></rect>`;
         }).join('')}
         ${points.map(p => {
           const rawMax = Number(p.bultos_hora_max || 0);
@@ -1874,13 +1900,13 @@
           const transform = eased === null ? '' : ` transform="translate(${fromX * (1 - eased)} ${fromY * (1 - eased)})"`;
           const cls = `${animate && exportProgress === null ? 'transfer-segment animating' : 'transfer-segment'} ${item.sourceKind === 'standard' ? 'from-standard' : ''}`;
           const sourceLabel = item.sourceKind === 'standard' ? 'excedente estandar' : 'extra';
-          return `<rect class="${cls}" style="--from-x:${fromX}px;--from-y:${fromY}px;animation-delay:${idx * 90}ms" x="${item.target.x - prodBarWidth / 2}" y="${finalTop}" width="${prodBarWidth}" height="${Math.max(2, finalBottom - finalTop)}"${transform}><title>${fmt(item.amount)} bultos ${sourceLabel} de ${esc(item.source.hora_label)} montados sobre ${esc(item.target.hora_label)}</title></rect>`;
+          return `<rect class="${cls}" style="--from-x:${fromX}px;--from-y:${fromY}px;animation-delay:${idx * 90}ms" x="${item.target.x - prodBarWidth / 2}" y="${finalTop}" width="${prodBarWidth}" height="${Math.max(2, finalBottom - finalTop)}"${transform}><title>${fmt(item.amount)} ${unidadProductivaLower()} ${sourceLabel} de ${esc(item.source.hora_label)} montados sobre ${esc(item.target.hora_label)}</title></rect>`;
         }).join('')}
         ${objetivo > 0 ? `<line class="line-objetivo" x1="${left}" y1="${yObjetivo}" x2="${w - right}" y2="${yObjetivo}"></line>
         <text class="legend-label" x="${w - right}" y="${Math.max(12, yObjetivo - 7)}" text-anchor="end">${esc(objetivoLabel)}</text>` : ''}
         <polyline class="line-main" points="${allPolyline}"></polyline>
         ${points.map(p => `
-          <circle class="point ${p.es_extra ? 'extra' : 'pre'}" cx="${p.x}" cy="${p.y}" r="5"><title>${esc(`${p.hora_label}: ${fmt(p.bultos)} bultos`)}</title></circle>
+          <circle class="point ${p.es_extra ? 'extra' : 'pre'}" cx="${p.x}" cy="${p.y}" r="5"><title>${esc(`${p.hora_label}: ${fmt(p.bultos)} ${unidadProductivaLower()}`)}</title></circle>
           <text class="label" x="${p.x}" y="${Math.max(12, p.y - 10)}" text-anchor="middle">${fmt(p.bultos)}</text>
           <text class="axis-label" x="${p.x}" y="${h - 14}" text-anchor="middle">${esc(p.hora_label)}</text>
         `).join('')}
@@ -2005,7 +2031,7 @@
       renderDetalleLegajoChart(detalleRows);
       table('tabla-detalle-legajo', detalleLegajoCols(), detalleRows);
       const m = data.meta || {}; const k = data.kpis || {};
-      $('detalle-status').textContent = `${esc(m.fecha)} · ${esc(m.origen)} · hora ${esc(m.escenario_horario || ('/' + state.divisorHorario))} · ${fmt(k.horas)} horas · ${fmt(k.bultos)} bultos`;
+      $('detalle-status').textContent = `${esc(m.fecha)} · ${esc(m.origen)} · hora ${esc(m.escenario_horario || ('/' + state.divisorHorario))} · ${fmt(k.horas)} horas · ${fmt(k.bultos)} ${unidadProductivaLower()}`;
       setStatus(`Detalle ${legajo} cargado desde ${m.origen === 'oracle' ? 'Oracle y cacheado' : 'cache'}.`);
     } finally {
       setBusy(false);
@@ -2056,7 +2082,7 @@
     const procesos = data.procesos || [];
     $('cache-info').innerHTML = `<table class="paper-table"><tbody>
       <tr><th>Rango</th><td>${esc(data.fecha_desde)} a ${esc(data.fecha_hasta)}</td></tr>
-      <tr><th>Combinacion</th><td>${esc(data.operacion || state.operacion)} / ${esc(data.almacen || state.almacen)}</td></tr>
+      <tr><th>Operacion / Division</th><td>${esc(data.operacion || state.operacion)} / ${esc(data.almacen || state.almacen)}</td></tr>
       <tr><th>Estado</th><td><span class="pill ${coverage.dias_faltantes ? 'warn' : ''}">${coverage.dias_faltantes ? 'INCOMPLETO' : 'OK'}</span></td></tr>
       <tr><th>Cobertura diaria</th><td>${fmt(coverage.dias_cache || 0)} / ${fmt(coverage.dias || 0)} dias cacheados${coverage.faltantes?.length ? ` · faltantes: ${esc(coverage.faltantes.join(', '))}` : ''}</td></tr>
       <tr><th>Versiones</th><td>Dia: <span class="mono">${esc(versions.dia)}</span> · Detalle: <span class="mono">${esc(versions.detalle)}</span></td></tr>
@@ -2157,13 +2183,16 @@
     printHtmlDocument(`Analisis Premio Productividad - ${title}`, wrapper.outerHTML, 'detalle');
   }
   function renderFijosGrupalModal(){
-    const almacenes = Object.keys(GROUP_FIXED_DEFAULTS);
-    $('fijos-grupal-body').innerHTML = almacenes.map(almacen => `
+    const almacenes = Object.keys(GROUP_FIXED_BY_DIVISION_DEFAULTS);
+    $('fijos-grupal-title').textContent = `Editar fijos diarios ${state.operacion} por division`;
+    $('fijos-grupal-body').innerHTML = almacenes.map(almacen => {
+      const key = groupFixedKey(almacen);
+      return `
       <tr>
         <td class="mono">${esc(almacen)}</td>
-        <td><input class="paper-input" data-almacen="${esc(almacen)}" type="number" min="0" step="1000" value="${Number(state.groupFixedDaily[almacen] ?? GROUP_FIXED_DEFAULTS[almacen] ?? 0)}"></td>
-      </tr>
-    `).join('');
+        <td><input class="paper-input" data-fixed-key="${esc(key)}" type="number" min="0" step="1000" value="${Number(state.groupFixedDaily[key] ?? GROUP_FIXED_DEFAULTS[key] ?? 0)}"></td>
+      </tr>`;
+    }).join('');
   }
   function abrirFijosGrupal(){
     renderFijosGrupalModal();
@@ -2173,14 +2202,14 @@
     $('fijos-grupal-modal').classList.remove('active');
   }
   function aplicarFijosGrupal(){
-    $('fijos-grupal-body').querySelectorAll('input[data-almacen]').forEach(input => {
-      const almacen = input.dataset.almacen;
-      state.groupFixedDaily[almacen] = Math.max(0, Number(input.value || 0));
+    $('fijos-grupal-body').querySelectorAll('input[data-fixed-key]').forEach(input => {
+      const key = input.dataset.fixedKey;
+      state.groupFixedDaily[key] = Math.max(0, Number(input.value || 0));
     });
     cerrarFijosGrupal();
     if (state.activeTab === 'grupal') renderPremioGrupal();
     if (state.activeTab === 'grupal-legajos') renderPremioGrupalLegajos();
-    setStatus('Fijos diarios actualizados para la simulacion.');
+    setStatus(`Fijos diarios actualizados para ${state.operacion}.`);
   }
   function restaurarFijosGrupal(){
     state.groupFixedDaily = {...GROUP_FIXED_DEFAULTS};

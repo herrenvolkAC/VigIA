@@ -1112,20 +1112,25 @@ PRE AS (
   SELECT
     b.*,
     l.DESC_FUNCION,
-    NVL(
-      CASE SUB1.CDIVISIO
-        WHEN 1 THEN 'SECOS'
-        WHEN 2 THEN 'REFRIGERADOS'
-        WHEN 6 THEN 'NOA'
-        WHEN 4 THEN 'REFRIGERADOS'
-      END,
-      c.ALMACEN
-    ) AS ALMACEN
+    CASE
+      WHEN UPPER(TRIM(B.CZONAORI)) = 'T06'
+        OR (B.CZONAORI IS NOT NULL AND INSTR(UPPER(TRIM(B.CZONAORI)), 'T') > 0)
+        THEN 'REFRIGERADOS'
+      ELSE NVL(
+        c.ALMACEN,
+        CASE SUB1.CDIVISIO
+          WHEN 1 THEN 'SECOS'
+          WHEN 2 THEN 'REFRIGERADOS'
+          WHEN 6 THEN 'NOA'
+          WHEN 4 THEN 'REFRIGERADOS'
+        END
+      )
+    END AS ALMACEN
   FROM LEGAJOS A
   JOIN f132hist B
     ON A.LEGAJO = B.COPECREA
   LEFT JOIN PV_LEGAJO l
-    ON l.LEGAJO = B.COPECREA
+    ON TO_CHAR(l.LEGAJO) = TO_CHAR(B.COPECREA)
   LEFT JOIN (
     SELECT DISTINCT CZONALMA, CDIVISIO
     FROM VW_UBICACIONES_DIVISION
@@ -2497,6 +2502,22 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         and "F956MTNC" in normalized_query
     ):
         query_key = "tnc"
+    elif (
+        "FROM PV_DIA_LABORAL" in normalized_query
+        and "FECHA" in normalized_query
+        and "LEGAJO" in normalized_query
+        and "JOIN" not in normalized_query
+    ):
+        query_key = "rend_premio_dias_pago"
+    elif (
+        "PV_ESCALA_DE_PREMIOS" in normalized_query
+        and "PV_GRUPO_DE_FUNCIONES_CAB" in normalized_query
+        and "PV_GRUPO_PRODUCTIVO_CAB" in normalized_query
+        and "PICKING" in normalized_query
+        and "A.NIVEL" in normalized_query
+        and "A.PREMIO" in normalized_query
+    ):
+        query_key = "rend_premio_escalas"
     elif (
         "PV_LIQUIDAC_DIA_DET2" in normalized_query
         and "PROD_REAL" in normalized_query

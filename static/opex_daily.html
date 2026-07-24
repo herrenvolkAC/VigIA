@@ -337,7 +337,7 @@
   let comparisonSort = { key: 'diferencia_abs', dir: 'desc' };
   const comparisonFilterFields = [
     { key: 'fecha_daily', label: 'Fecha', id: 'comparison-filter-fecha' },
-    { key: 'sector', label: 'Almacen', id: 'comparison-filter-sector' },
+    { key: 'sector', label: 'Division', id: 'comparison-filter-sector' },
   ];
   let comparisonFilters = {};
 
@@ -890,7 +890,7 @@
         <thead>
           <tr>
             ${comparisonTh('Fecha', 'fecha_daily')}
-            ${comparisonTh('Almacen', 'sector')}
+            ${comparisonTh('Division', 'sector')}
             ${comparisonTh('Tipo', 'tipo_daily')}
             ${comparisonTh('Usuario', 'usuario_carga')}
             ${comparisonTh('Carga', 'carga_id')}
@@ -934,7 +934,7 @@
   function comparisonExportColumns() {
     return [
       { key: 'fecha_daily', label: 'Fecha' },
-      { key: 'sector', label: 'Almacen' },
+      { key: 'sector', label: 'Division' },
       { key: 'tipo_daily', label: 'Tipo' },
       { key: 'usuario_carga', label: 'Usuario' },
       { key: 'carga_id', label: 'Carga' },
@@ -1339,9 +1339,9 @@
       ? 'Planificado'
       : 'Cantidad';
     const note = isPickingProductividad
-      ? 'Picking se calcula por almacen: legajos = COUNT(DISTINCT COPECREA), cumplimiento real = SUM(bultos_picking), productividad = (SUM(bultos_picking) / SUM(hs_picking)) * 6,5 horas_turno.'
+      ? 'Picking se calcula por division: OC y Congelados se separan por CZONAORI. Congelados usa jornada efectiva 6,0; el resto 6,5.'
       : isClarkProductividad
-      ? 'Clark se calcula por almacen desde la consulta unificada: pallets = COUNT(DISTINCT CNUPALET), legajos = COUNT(DISTINCT COPECREA), productividad = (pallets / SUM(hs_clark_total)) * 6,5 horas_turno.'
+      ? 'Clark se calcula por division desde la consulta unificada: OC y Congelados se separan por CZONAORI. Congelados usa jornada efectiva 6,0; el resto 6,5.'
       : isSpcReal
       ? 'SPC real usa la misma consulta unificada, tomando solo SURTIDO P.COMPLETOS: pallets = COUNT(DISTINCT CNUPALET), dotacion = COUNT(DISTINCT COPECREA).'
       : item?.proceso === 'DESPACHO'

@@ -416,7 +416,7 @@
   <div class="module-panel" id="panel-legajos">
     <div class="source-banner">
       <strong>Fuente de productividad</strong>
-      La productividad se toma del modulo de Productividad. No es productividad calculada desde WMS/WF.
+      Se usa el mismo crudo de Rendimiento Online (F132HIST), calculado por día logístico y turno, y luego enriquecido con el legajero local.
     </div>
     <section class="toolbar">
       <div class="field">
@@ -426,6 +426,12 @@
       <div class="field">
         <label for="leg-fecha-hasta">Fecha fin</label>
         <input type="date" id="leg-fecha-hasta">
+      </div>
+      <div class="field">
+        <label for="leg-division">Division operativa</label>
+        <select id="leg-division" onchange="renderLegajosFromMemory()">
+          <option value="ALL">Todas</option>
+        </select>
       </div>
       <div class="field">
         <label for="leg-dotacion">Dotacion</label>
@@ -458,16 +464,25 @@
         </select>
       </div>
       <button class="primary-btn" id="btn-leg-consultar" type="button" onclick="consultarAnalisisLegajos()">Consultar</button>
-      <div class="status" id="leg-status">Fuente: modulo de Productividad. No WMS/WF.</div>
+      <div class="status" id="leg-status">Fuente: crudo de Rendimiento Online, con cruce posterior al legajero.</div>
       <div class="field wide-field">
-        <label>Sectores</label>
+        <label>Sectores operativos</label>
         <div class="sector-checks" id="leg-sector-checks">
-          <div class="empty">Cargando sectores.</div>
+          <div class="empty">Consultá un rango para cargar los sectores con actividad.</div>
         </div>
       </div>
     </section>
 
     <section class="chart-grid" id="leg-chart-grid"></section>
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title">Productividad por division y sector</div>
+        <div class="section-count" id="leg-dimension-count">0 grupos</div>
+      </div>
+      <div class="table-wrap" id="leg-dimension-wrap">
+        <div class="empty">Sin consulta ejecutada.</div>
+      </div>
+    </section>
     <section class="section">
       <div class="section-head">
         <div class="section-title">Detalle por legajo</div>
@@ -492,6 +507,7 @@
   let lastProdView = null;
   let selectedProdAlmacen = 'ALL';
   let loadingLegajos = false;
+  let legajosDivisionOptions = [];
   let legajosSectorOptions = [];
   let legajosProveedorOptions = [];
   let legajosFuncionOptions = [];
@@ -995,6 +1011,23 @@
     el.className = `status ${cls}`.trim();
   }
 
+  async function readLegajosResponse(resp, fallbackMessage) {
+    const raw = await resp.text();
+    let data = {};
+    if (raw) {
+      try {
+        data = JSON.parse(raw);
+      } catch (_) {
+        if (resp.ok) throw new Error('El servidor devolvio una respuesta invalida.');
+      }
+    }
+    if (!resp.ok) {
+      const detail = typeof data?.detail === 'string' ? data.detail : '';
+      throw new Error(detail || `${fallbackMessage} (HTTP ${resp.status}).`);
+    }
+    return data;
+  }
+
   function selectedLegajosSectores() {
     if (document.getElementById('leg-sector-all')?.checked) return [];
     return [...document.querySelectorAll('#leg-sector-checks input[type="checkbox"]:checked')]
@@ -1007,7 +1040,7 @@
     const wrap = document.getElementById('leg-sector-checks');
     if (!wrap) return;
     if (!legajosSectorOptions.length) {
-      wrap.innerHTML = '<div class="empty">No hay sectores cargados en legajero/personas.</div>';
+      wrap.innerHTML = '<div class="empty">Consultá un rango para cargar los sectores operativos con actividad.</div>';
       return;
     }
     wrap.innerHTML = `
@@ -1019,6 +1052,17 @@
         </label>
       `).join('')}
     `;
+  }
+
+  function renderLegajosDivisionOptions() {
+    const select = document.getElementById('leg-division');
+    if (!select) return;
+    const current = select.value || 'ALL';
+    select.innerHTML = [
+      '<option value="ALL">Todas</option>',
+      ...legajosDivisionOptions.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`),
+    ].join('');
+    select.value = legajosDivisionOptions.includes(current) ? current : 'ALL';
   }
 
   function toggleAllLegajosSectores(checked) {
@@ -1039,26 +1083,21 @@
   async function initAnalisisLegajos() {
     if (!document.getElementById('leg-fecha-desde')?.value) {
       const end = new Date();
-      const start = new Date();
-      start.setDate(end.getDate() - 30);
-      document.getElementById('leg-fecha-desde').value = localDateValue(start);
+      document.getElementById('leg-fecha-desde').value = localDateValue(end);
       document.getElementById('leg-fecha-hasta').value = localDateValue(end);
     }
-    if (legajosSectorOptions.length) return;
+    if (legajosProveedorOptions.length || legajosFuncionOptions.length) return;
     try {
-      setLegajosStatus('Cargando sectores desde legajero local.');
+      setLegajosStatus('Cargando filtros del legajero local.');
       const resp = await fetch('/api/gestion-operativa/analisis-legajos/sectores', { credentials: 'same-origin' });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.detail || 'No se pudieron cargar sectores.');
-      legajosSectorOptions = Array.isArray(data.sectores) ? data.sectores : [];
+      const data = await readLegajosResponse(resp, 'No se pudieron cargar sectores');
       legajosProveedorOptions = Array.isArray(data.proveedores) ? data.proveedores : [];
       legajosFuncionOptions = Array.isArray(data.funciones) ? data.funciones : [];
-      renderLegajosSectorChecks();
       renderLegajosProveedorOptions();
       renderLegajosFuncionOptions();
-      setLegajosStatus('Selecciona fechas y sectores. Fuente: modulo de Productividad, no WMS/WF.');
+      setLegajosStatus('Seleccioná un rango. División y sector se obtienen del crudo de Rendimiento Online.');
     } catch (err) {
-      setLegajosStatus(err.message || 'No se pudieron cargar sectores.', 'error');
+      setLegajosStatus(err.message || 'No se pudieron cargar los filtros del legajero.', 'error');
     }
   }
 
@@ -1120,10 +1159,12 @@
 
   function legajosPassLocalFilters(row) {
     const sectors = selectedLegajosSectores();
+    const division = document.getElementById('leg-division')?.value || 'ALL';
     const dotacion = document.getElementById('leg-dotacion')?.value || 'ALL';
     const proveedor = document.getElementById('leg-proveedor')?.value || 'ALL';
     const estrato = document.getElementById('leg-estrato')?.value || 'ALL';
     const funcion = document.getElementById('leg-funcion')?.value || 'ALL';
+    if (division !== 'ALL' && (row.division || 'SIN MAPEAR') !== division) return false;
     if (sectors.length && !sectors.includes(row.sector || 'SIN SECTOR')) return false;
     if (dotacion !== 'ALL' && (row.dotacion || '') !== dotacion) return false;
     if (proveedor !== 'ALL' && (row.proveedor || 'SIN PROVEEDOR') !== proveedor) return false;
@@ -1167,6 +1208,8 @@
       productividad_promedio: productividadNeta,
       operarios: legajos.size,
       registros: rows.length,
+      operaciones: rows.reduce((acc, row) => acc + Number(row.operaciones || 0), 0),
+      divisiones: new Set(rows.map(row => row.division).filter(Boolean)).size,
       sectores: new Set(rows.map(row => row.sector).filter(Boolean)).size,
       funciones: new Set(rows.map(row => row.funcion).filter(Boolean)).size,
       tipos: new Set(rows.map(row => row.tipo).filter(Boolean)).size,
@@ -1175,6 +1218,100 @@
 
   function dateRangeFromRows(rows = []) {
     return [...new Set(rows.map(row => row.fecha).filter(Boolean))].sort();
+  }
+
+  function legajosDimensionKey(row, dimension) {
+    if (dimension === 'division') return row.division || 'SIN MAPEAR';
+    return `${row.division || 'SIN MAPEAR'} / ${row.sector || 'SIN SECTOR'}`;
+  }
+
+  function renderLegajosDimensionChart(rows = [], dimension = 'division') {
+    const dates = dateRangeFromRows(rows);
+    const grouped = new Map();
+    rows.forEach(row => {
+      const key = legajosDimensionKey(row, dimension);
+      if (!grouped.has(key)) grouped.set(key, { produccion: 0, dates: new Map() });
+      const item = grouped.get(key);
+      item.produccion += Number(row.produccion || 0);
+      if (!item.dates.has(row.fecha)) item.dates.set(row.fecha, []);
+      item.dates.get(row.fecha).push(row);
+    });
+    const visible = [...grouped.entries()]
+      .sort((a, b) => b[1].produccion - a[1].produccion)
+      .slice(0, dimension === 'division' ? 20 : 12);
+    if (!dates.length || !visible.length) {
+      const label = dimension === 'division' ? 'Productividad por division' : 'Productividad por sector';
+      return `<article class="chart-card"><div class="chart-title">${label}</div><div class="empty">Sin datos para graficar.</div></article>`;
+    }
+    const chart = {
+      metric: dimension === 'division' ? 'productividad_division' : 'productividad_sector',
+      label: dimension === 'division' ? 'Productividad por division' : 'Productividad por division y sector',
+      unit: ' b/h',
+      description: dimension === 'division'
+        ? 'Bultos por hora calculados desde el crudo de Rendimiento Online.'
+        : 'Hasta 12 sectores con mayor produccion del filtro actual. El detalle completo se muestra en la tabla.',
+      context: 'legajos',
+      series_type: dimension === 'division' ? 'division' : 'division_sector',
+      total: dates.map(fecha => {
+        const daily = rows.filter(row => row.fecha === fecha);
+        const summary = aggregateLegajosRows(daily);
+        return { fecha, valor: summary.productividad };
+      }),
+      series: visible.map(([key, item]) => ({
+        sector: key,
+        almacen: key,
+        points: dates.map(fecha => {
+          const summary = aggregateLegajosRows(item.dates.get(fecha) || []);
+          return { fecha, valor: summary.productividad };
+        }),
+      })),
+      note: 'Productividad = suma de bultos / suma de horas calculadas entre Picking y Transporte de Palets.',
+    };
+    return renderLineChart(chart, dimension === 'division');
+  }
+
+  function renderLegajosDimensionSummary(rows = []) {
+    const wrap = document.getElementById('leg-dimension-wrap');
+    const count = document.getElementById('leg-dimension-count');
+    const grouped = new Map();
+    rows.forEach(row => {
+      const key = `${row.division || 'SIN MAPEAR'}\u0000${row.sector || 'SIN SECTOR'}`;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(row);
+    });
+    const data = [...grouped.entries()].map(([key, items]) => {
+      const [division, sector] = key.split('\u0000');
+      return { division, sector, items, summary: aggregateLegajosRows(items) };
+    }).sort((a, b) => a.division.localeCompare(b.division, 'es') || a.sector.localeCompare(b.sector, 'es'));
+    count.textContent = `${num(data.length)} grupos`;
+    if (!data.length) {
+      wrap.innerHTML = '<div class="empty">No hay productividad para los filtros seleccionados.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Division</th>
+          <th>Sector</th>
+          <th>Legajos</th>
+          <th>Bultos</th>
+          <th>Horas</th>
+          <th>Productividad</th>
+          <th>Operaciones</th>
+        </tr></thead>
+        <tbody>${data.map(item => `
+          <tr>
+            <td><strong>${escapeHtml(item.division)}</strong></td>
+            <td>${escapeHtml(item.sector)}</td>
+            <td>${fmtMetric(item.summary.operarios)}</td>
+            <td>${fmtMetric(item.summary.produccion)}</td>
+            <td>${fmtMetric(Number(item.summary.tiempo_neto_segundos || 0) / 3600, ' h')}</td>
+            <td><strong>${fmtMetric(item.summary.productividad, ' b/h')}</strong></td>
+            <td>${fmtMetric(item.summary.operaciones)}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table>
+    `;
   }
 
   function buildLegajosTrendData(rows = [], dates = []) {
@@ -1319,7 +1456,7 @@
     const group = topLegajosRanking(legajos);
     selectedLegajoRanking = selectedLegajoFromRanking(group);
     if (!dates.length || !group.length) {
-      return '<article class="chart-card primary-chart"><div class="chart-title">Ranking productividad neta</div><div class="empty">Sin datos para graficar.</div></article>';
+      return '<article class="chart-card primary-chart"><div class="chart-title">Ranking productividad</div><div class="empty">Sin datos para graficar.</div></article>';
     }
     const width = 1200;
     const rowH = 34;
@@ -1344,8 +1481,8 @@
     }).join('');
     return `
       <article class="chart-card primary-chart">
-        <div class="chart-title">Ranking productividad neta</div>
-        <div class="chart-subtitle">Calculado como suma de produccion / suma de segundos netos del rango. Eje X: bultos/h. Eje Y: legajos.</div>
+        <div class="chart-title">Ranking productividad</div>
+        <div class="chart-subtitle">Calculado como suma de bultos / suma de segundos entre Picking y Transporte de Palets. Eje X: bultos/h. Eje Y: legajos.</div>
         <div class="rank-toolbar">
           <button class="rank-toggle ${legajosRankingMode === 'top' ? 'active' : ''}" type="button" onclick="setLegajosRankingMode('top')">10 mejores</button>
           <button class="rank-toggle ${legajosRankingMode === 'bottom' ? 'active' : ''}" type="button" onclick="setLegajosRankingMode('bottom')">10 peores</button>
@@ -1416,7 +1553,7 @@
       metric: 'legajo_seleccionado',
       label: 'Actividad diaria legajo seleccionado',
       unit: ' bultos/h',
-      description: `${label}. Eje X: fechas. Eje Y: productividad neta diaria por hora.`,
+      description: `${label}. Eje X: fechas. Eje Y: productividad diaria calculada desde el crudo de Rendimiento Online.`,
       context: 'legajos',
       series_type: 'legajo',
       total: dates.map(fecha => ({ fecha, valor: productividadHora(selected.daily?.[fecha]?.produccion, selected.daily?.[fecha]?.tiempoNeto) })),
@@ -1604,7 +1741,7 @@
     document.getElementById('leg-grid-count').textContent = `${num(rows.length)} registros`;
     const wrap = document.getElementById('leg-grid-wrap');
     if (!rows.length) {
-      wrap.innerHTML = '<div class="empty">No hay registros del modulo de Productividad para el filtro.</div>';
+      wrap.innerHTML = '<div class="empty">No hay registros del crudo de Rendimiento Online para el filtro.</div>';
       return;
     }
     wrap.innerHTML = `
@@ -1612,18 +1749,18 @@
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Sector</th>
+            <th>Division</th>
+            <th>Sector operativo</th>
+            <th>Sector legajero</th>
             <th>Legajo</th>
             <th>Funcion</th>
-            <th>Funcion prod.</th>
             <th>Dotacion</th>
             <th>Proveedor</th>
-            <th>Ingreso</th>
-            <th>Antiguedad</th>
-            <th>Produccion</th>
-            <th>Prod. neta</th>
-            <th>Prod. bruta</th>
-            <th>Tipo</th>
+            <th>Turnos</th>
+            <th>Bultos</th>
+            <th>Horas</th>
+            <th>Productividad</th>
+            <th>Operaciones</th>
             <th>Fuente</th>
           </tr>
         </thead>
@@ -1631,19 +1768,19 @@
           ${rows.map(row => `
             <tr>
               <td>${escapeHtml(row.fecha || '-')}</td>
+              <td><strong>${escapeHtml(row.division || 'SIN MAPEAR')}</strong></td>
               <td>${escapeHtml(row.sector || '-')}</td>
+              <td>${escapeHtml(row.sector_legajero || '-')}</td>
               <td><strong>${escapeHtml(row.nombre || row.legajo || '-')}</strong><br><span class="muted">${escapeHtml(row.legajo || '')}</span></td>
               <td>${escapeHtml(row.funcion || '-')}<br><span class="muted">${escapeHtml(row.posicion || '')}</span></td>
-              <td>${escapeHtml(row.funcion_productiva || '-')}</td>
               <td>${escapeHtml(row.dotacion || '-')}</td>
               <td>${escapeHtml(row.proveedor || '-')}</td>
-              <td>${escapeHtml(row.fecha_ingreso || '-')}</td>
-              <td>${row.antiguedad_anios === null || row.antiguedad_anios === undefined ? '-' : fmtMetric(row.antiguedad_anios, ' anios')}</td>
+              <td>${escapeHtml(row.turnos || '-')}</td>
               <td>${fmtMetric(row.produccion)}</td>
-              <td>${fmtMetric(row.productividad_neta || row.productividad, ' b/h')}</td>
-              <td>${fmtMetric(row.productividad_bruta, ' b/h')}</td>
-              <td>${escapeHtml(row.tipo || '-')}</td>
-              <td><span class="chip baja">Modulo Productividad</span></td>
+              <td>${fmtMetric(Number(row.tiempo_neto_segundos || 0) / 3600, ' h')}</td>
+              <td><strong>${fmtMetric(row.productividad, ' b/h')}</strong></td>
+              <td>${fmtMetric(row.operaciones)}</td>
+              <td><span class="chip baja">Rendimiento Online</span></td>
             </tr>
           `).join('')}
         </tbody>
@@ -1654,6 +1791,10 @@
   function renderLegajosResult(data) {
     lastLegajosRawResult = data;
     selectedLegajoRanking = '';
+    legajosDivisionOptions = Array.isArray(data.division_options) ? data.division_options : [];
+    legajosSectorOptions = Array.isArray(data.sector_options) ? data.sector_options : [];
+    renderLegajosDivisionOptions();
+    renderLegajosSectorChecks();
     renderLegajosFuncionOptions();
     renderLegajosFromMemory();
   }
@@ -1664,6 +1805,8 @@
     const dates = dateRangeFromRows(rows);
     const trends = buildLegajosTrendData(rows, dates);
     const charts = [
+      renderLegajosDimensionChart(rows, 'division'),
+      renderLegajosDimensionChart(rows, 'sector'),
       renderLegajosRankingChart(rows),
       renderLegajosSelectedDailyChart(rows),
     ];
@@ -1676,9 +1819,12 @@
       filtered_rows_count: rows.length,
     };
     renderLegajosCharts(charts);
+    renderLegajosDimensionSummary(rows);
     renderLegajosGrid(rows);
     const sourceRows = Number(lastLegajosRawResult.raw_rows_count || lastLegajosRawResult.grid?.length || 0);
-    setLegajosStatus(`Dataset en memoria: ${num(sourceRows)} filas; filtro actual: ${num(rows.length)}. Cambiar filtros no consulta nuevamente.`);
+    const operations = Number(lastLegajosRawResult.operations_count || 0);
+    const missing = Number(lastLegajosRawResult.legajero_missing || 0);
+    setLegajosStatus(`Crudo en memoria: ${num(sourceRows)} movimientos, ${num(operations)} operaciones; vista actual: ${num(rows.length)} filas. Sin cruce local: ${num(missing)} legajos.`);
   }
 
   function setLegajosRankingMode(mode) {
@@ -1713,6 +1859,12 @@
     const fecha = payload.fecha || '';
     const serie = payload.serie || 'Total';
     let filtered = rows.filter(row => row.fecha === fecha);
+    if ((payload.serie_tipo || '') === 'division' && serie !== 'Total') {
+      filtered = filtered.filter(row => (row.division || 'SIN MAPEAR') === serie);
+    }
+    if ((payload.serie_tipo || '') === 'division_sector' && serie !== 'Total') {
+      filtered = filtered.filter(row => `${row.division || 'SIN MAPEAR'} / ${row.sector || 'SIN SECTOR'}` === serie);
+    }
     if ((payload.serie_tipo || '') === 'sector' && serie !== 'Total') {
       filtered = filtered.filter(row => (row.sector || 'SIN SECTOR') === serie);
     }
@@ -1761,15 +1913,14 @@
     }
     loadingLegajos = true;
     document.getElementById('btn-leg-consultar').disabled = true;
-    setLegajosStatus('Consultando modulo de Productividad. Los filtros se aplican luego en memoria.');
+    setLegajosStatus('Consultando el crudo de Rendimiento Online y cruzando los legajos localmente.');
     try {
       const params = new URLSearchParams({
         fecha_desde: fechaDesde,
         fecha_hasta: fechaHasta,
       });
       const resp = await fetch(`/api/gestion-operativa/analisis-legajos?${params.toString()}`, { credentials: 'same-origin' });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.detail || 'No se pudo consultar analisis de legajos.');
+      const data = await readLegajosResponse(resp, 'No se pudo consultar analisis de legajos');
       renderLegajosResult(data);
     } catch (err) {
       setLegajosStatus(err.message || 'No se pudo consultar analisis de legajos.', 'error');

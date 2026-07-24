@@ -245,6 +245,10 @@ PARAMETROS_SEED: list[dict[str, Any]] = [
     {"id_parametro": "OP_PROD_RECEPCION_REFRI_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "RECEPCION", "ventana_horaria": "6 a 6", "fuente": "Plataforma PI", "nombre": "Pallets recepcionados por legajo y turno", "descripcion": "Cuantos pallets se recepcionaron, por legajo y turno?", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 80, "regla_cumplimiento": "productividad", "orden": 10},
     {"id_parametro": "OP_PROD_PICKING_REFRI_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "PICKING", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Bultos armados por legajo y turno", "descripcion": "Cuantos bultos se armaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Bultos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 910, "regla_cumplimiento": "productividad", "orden": 20},
     {"id_parametro": "OP_PROD_CLARK_REFRI_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "CLARK", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Pallets movilizados por legajo y turno", "descripcion": "Cuantos pallets se movilizaron, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 130, "regla_cumplimiento": "productividad", "orden": 30},
+    {"id_parametro": "OP_PROD_PICKING_OC_6A6", "tipo_daily": "Operacion", "sector_aplicable": "OC", "grupo": "PRODUCTIVIDAD", "proceso": "PICKING", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Bultos armados por legajo y turno", "descripcion": "Productividad de picking para camaras refrigeradas excepto T06.", "unidad": "Bultos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 940, "regla_cumplimiento": "productividad", "orden": 20},
+    {"id_parametro": "OP_PROD_PICKING_CONGELADOS_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Congelados", "grupo": "PRODUCTIVIDAD", "proceso": "PICKING", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Bultos armados por legajo y turno", "descripcion": "Productividad de picking para Camara T06. La jornada efectiva se proyecta a 6 horas.", "unidad": "Bultos / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 600, "regla_cumplimiento": "productividad", "orden": 20},
+    {"id_parametro": "OP_PROD_CLARK_OC_6A6", "tipo_daily": "Operacion", "sector_aplicable": "OC", "grupo": "PRODUCTIVIDAD", "proceso": "CLARK", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Pallets movilizados por legajo y turno", "descripcion": "Productividad de Clark para camaras refrigeradas excepto T06.", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 130, "regla_cumplimiento": "productividad", "orden": 30},
+    {"id_parametro": "OP_PROD_CLARK_CONGELADOS_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Congelados", "grupo": "PRODUCTIVIDAD", "proceso": "CLARK", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Pallets movilizados por legajo y turno", "descripcion": "Productividad de Clark para Camara T06. La jornada efectiva se proyecta a 6 horas.", "unidad": "Pallet / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 130, "regla_cumplimiento": "productividad", "orden": 30},
     {"id_parametro": "OP_PROD_DESPACHO_REFRI_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Refrigerados", "grupo": "PRODUCTIVIDAD", "proceso": "DESPACHO", "ventana_horaria": "6 a 6", "fuente": "Reporte WF", "nombre": "Viajes despachados por legajo y turno", "descripcion": "Cuantos viajes se despacharon, por legajo y turno? Filtrar Logisu + Mayores 45.", "unidad": "Viajes / Turno x Operario", "tipo_campo": "numerico", "valor_esperado": 6, "regla_cumplimiento": "productividad", "orden": 40},
     # Operacion - Cumplimiento
     {"id_parametro": "OP_CUMP_RECEPCION_PLAN_6A6", "tipo_daily": "Operacion", "sector_aplicable": "Noa|Secos|Refrigerados", "grupo": "CUMPLIMIENTO", "proceso": "RECEPCION", "ventana_horaria": "6 a 6", "fuente": "Excel Planeamiento IN", "nombre": "Pallets planificados para recibir", "descripcion": "Cuantos pallets se planificaron, desde C.Proveedores, para recibir?", "unidad": "Pallets", "tipo_campo": "numerico", "valor_esperado": 100, "regla_cumplimiento": "informativo", "orden": 50},
@@ -376,6 +380,10 @@ async def _apply_parametros_migrations(db: aiosqlite.Connection) -> None:
         "OP_PROD_RECEPCION_REFRI_6A6",
         "OP_PROD_PICKING_REFRI_6A6",
         "OP_PROD_CLARK_REFRI_6A6",
+        "OP_PROD_PICKING_OC_6A6",
+        "OP_PROD_PICKING_CONGELADOS_6A6",
+        "OP_PROD_CLARK_OC_6A6",
+        "OP_PROD_CLARK_CONGELADOS_6A6",
         "OP_PROD_DESPACHO_REFRI_6A6",
         "LI_PROD_CARGA_DESCARGA_MOVILES_6A6",
         "LI_PROD_RECEPCION_ENVASES_6A6",
@@ -409,6 +417,15 @@ async def _apply_parametros_migrations(db: aiosqlite.Connection) -> None:
                 id_parametro,
             ),
         )
+    await db.execute(
+        """
+        UPDATE daily_parametros_cumplimiento
+        SET activo = 0,
+            updated_at = ?
+        WHERE id_parametro IN ('OP_PROD_PICKING_REFRI_6A6', 'OP_PROD_CLARK_REFRI_6A6')
+        """,
+        (now,),
+    )
 
 
 async def _seed_consolidado_historico_if_available(db: aiosqlite.Connection) -> None:
@@ -505,6 +522,11 @@ def normalize_sector(value: str) -> str:
         "noa": "Noa",
         "secos": "Secos",
         "refrigerados": "Refrigerados",
+        "oc": "OC",
+        "otras camaras": "OC",
+        "congelados": "Congelados",
+        "camara 06": "Congelados",
+        "cámara 06": "Congelados",
         "logistica inversa": "Logistica Inversa",
         "planeamiento": "Planeamiento",
     }

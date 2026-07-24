@@ -35,15 +35,35 @@ CASO_MODELO_DIA_QUERY_VERSION = "premio_hora_v11_etapas_python"
 CASO_MODELO_DETALLE_QUERY_VERSION = "premio_hora_v9_etapas_python"
 DEFAULT_OPERACION = "PICKING"
 DEFAULT_ALMACEN = "TODOS"
-OPERACIONES_PREMIO_PRODUCTIVIDAD = {DEFAULT_OPERACION}
-ALMACENES_PREMIO_PRODUCTIVIDAD = {DEFAULT_ALMACEN, "SECOS + NOA", "CAMARA 06", "OTRAS CAMARAS", "AREA SECOS Y NO ALIMENTOS"}
+OPERACIONES_PREMIO_PRODUCTIVIDAD = {
+    DEFAULT_OPERACION,
+    "CARGA",
+    "CARRETEO",
+    "CLARK",
+    "CONTROL DE PROCESOS CHP + CBF",
+}
+OPERACION_GRUPO_FUNCIONES_ID = {
+    "PICKING": 1,
+    "CLARK": 2,
+    "CARGA": 3,
+    "CARRETEO": 4,
+    "CONTROL DE PROCESOS CHP + CBF": 241,
+}
+ALMACENES_PREMIO_PRODUCTIVIDAD = {
+    DEFAULT_ALMACEN,
+    "SECOS + NOA",
+    "CAMARA 06",
+    "OTRAS CAMARAS",
+    "AREA SECOS Y NO ALIMENTOS",
+    "AREA REFRIGERADOS",
+}
 
 CONSULTA_PP_ESCALAS = """
 /* PP_PREMIO_ESCALAS */
 SELECT
     D.DESCRIPCION AS OPERACION,
     D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA,
-    F.DESCRIPCION AS GRUPOPRODUCTIVO,
+    NVL(F.DESCRIPCION, 'TODOS') AS GRUPOPRODUCTIVO,
     E.NIVEL,
     E.DESDE AS DESDE_ACTUAL,
     E.HASTA AS HASTA_ACTUAL,
@@ -55,9 +75,31 @@ SELECT
     E.ID_DE_GRUPO_DE_FUNCIONES
 FROM PV_ESCALA_DE_PREMIOS E
 JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
-JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
 WHERE D.DESCRIPCION = :operacion
-ORDER BY D.DESCRIPCION, F.DESCRIPCION, E.NIVEL
+ORDER BY D.DESCRIPCION, NVL(F.DESCRIPCION, 'TODOS'), E.NIVEL
+"""
+
+CONSULTA_PP_ESCALAS_POR_ID = """
+/* PP_PREMIO_ESCALAS_POR_ID */
+SELECT
+    :operacion AS OPERACION,
+    D.ID_DE_UNIDAD_DE_PRODUCCION AS ULMEDIDA,
+    NVL(F.DESCRIPCION, 'TODOS') AS GRUPOPRODUCTIVO,
+    E.NIVEL,
+    E.DESDE AS DESDE_ACTUAL,
+    E.HASTA AS HASTA_ACTUAL,
+    E.PREMIO AS PREMIO_ACTUAL,
+    ROUND(E.DESDE / 8, 0) AS DESDE_X_HORA,
+    ROUND(E.HASTA / 8, 0) AS HASTA_X_HORA,
+    ROUND(E.PREMIO / 8, 0) AS PREMIO_X_HORA,
+    E.ID_DE_GRUPO_PRODUCTIVO,
+    E.ID_DE_GRUPO_DE_FUNCIONES
+FROM PV_ESCALA_DE_PREMIOS E
+JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
+WHERE E.ID_DE_GRUPO_DE_FUNCIONES = :grupo_funciones_id
+ORDER BY NVL(F.DESCRIPCION, 'TODOS'), E.NIVEL
 """
 
 CONSULTA_PP_ETAPAS_HORA = """
@@ -107,8 +149,8 @@ SELECT
     A.FECHA,
     A.HORA,
     A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
-    E.ID_PV_GRUPO_PRODUCTIVO,
-    F.DESCRIPCION AS GRUPO_PRODUCTIVO,
+    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0) AS ID_PV_GRUPO_PRODUCTIVO,
+    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
     SUM(A.PROD_REAL) AS PROD_REAL,
     SUM(A.PROD_EQUIV_SECTOR) AS PROD_EQUIV_SECTOR,
     SUM(A.PROD_TRASLADO) AS PROD_TRASLADO,
@@ -118,7 +160,7 @@ FROM ETAPAS A
 JOIN PV_LIQUIDAC_DIA_DET1 E
   ON A.ID_PV_DIA_LABORAL = E.ID_PV_DIA_LABORAL
  AND E.ID_PV_GRUPO_DE_FUNCIONES = A.ID_PV_GRUPO_DE_FUNCIONES_CAB
-JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
 GROUP BY
     A.OPERACION,
     A.LEGAJO,
@@ -127,9 +169,80 @@ GROUP BY
     A.FECHA,
     A.HORA,
     A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
-    E.ID_PV_GRUPO_PRODUCTIVO,
-    F.DESCRIPCION
-ORDER BY A.LEGAJO, E.ID_PV_GRUPO_PRODUCTIVO, A.HORA
+    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0),
+    NVL(F.DESCRIPCION, 'TODOS')
+ORDER BY A.LEGAJO, NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0), A.HORA
+"""
+
+CONSULTA_PP_ETAPAS_HORA_POR_ID = """
+/* PP_PREMIO_ETAPAS_HORA_POR_ID */
+WITH FECHA_PARAM AS (
+    SELECT TO_DATE(:fecha_base, 'YYYY/MM/DD') AS FECHA_BASE
+    FROM DUAL
+),
+PARAMS AS (
+    SELECT
+        FECHA_BASE,
+        TO_NUMBER(TO_CHAR(FECHA_BASE, 'YYYYMMDD')) AS FECHA_PREMIO,
+        :operacion AS OPERACION,
+        :grupo_funciones_id AS ID_GRUPO_FUNCIONES
+    FROM FECHA_PARAM
+),
+ETAPAS AS (
+    SELECT
+        PARA.OPERACION AS OPERACION,
+        Z.LEGAJO,
+        Z.TURNO,
+        Z.ID AS ID_PV_DIA_LABORAL,
+        A.FYHFIN,
+        TRUNC(PARA.FECHA_BASE) AS FECHA,
+        TO_NUMBER(TO_CHAR(A.FYHFIN, 'HH24')) AS HORA,
+        C.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+        A.PRODUCCION_REAL AS PROD_REAL,
+        A.PRODUCCION_EQUIV_POR_SECTOR AS PROD_EQUIV_SECTOR,
+        A.PRODUCCION_EQUIV_POR_TRASLADO AS PROD_TRASLADO,
+        A.PROD_EQUIVAL_POR_CONSOLIDACION AS PROD_CONSOLIDACION,
+        A.PRODUCCION_EQUIV_POR_SECTOR
+          + A.PRODUCCION_EQUIV_POR_TRASLADO
+          + A.PROD_EQUIVAL_POR_CONSOLIDACION AS PROD_FINAL
+    FROM PARAMS PARA
+    JOIN PV_DIA_LABORAL Z ON PARA.FECHA_PREMIO = Z.FECHA
+    JOIN PV_ETAPA_CAB A ON Z.ID = A.ID_PV_DIA_LABORAL
+    JOIN PV_FUNCION B ON A.COD_FUNCION = B.CODIGO
+    JOIN PV_GRUPO_DE_FUNCIONES_DET C ON C.ID_PV_FUNCION = B.ID
+    WHERE C.ID_PV_GRUPO_DE_FUNCIONES_CAB = PARA.ID_GRUPO_FUNCIONES
+)
+SELECT
+    A.OPERACION,
+    A.LEGAJO,
+    A.TURNO,
+    A.ID_PV_DIA_LABORAL,
+    A.FECHA,
+    A.HORA,
+    A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0) AS ID_PV_GRUPO_PRODUCTIVO,
+    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
+    SUM(A.PROD_REAL) AS PROD_REAL,
+    SUM(A.PROD_EQUIV_SECTOR) AS PROD_EQUIV_SECTOR,
+    SUM(A.PROD_TRASLADO) AS PROD_TRASLADO,
+    SUM(A.PROD_CONSOLIDACION) AS PROD_CONSOLIDACION,
+    SUM(A.PROD_FINAL) AS PROD_FINAL
+FROM ETAPAS A
+JOIN PV_LIQUIDAC_DIA_DET1 E
+  ON A.ID_PV_DIA_LABORAL = E.ID_PV_DIA_LABORAL
+ AND E.ID_PV_GRUPO_DE_FUNCIONES = A.ID_PV_GRUPO_DE_FUNCIONES_CAB
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
+GROUP BY
+    A.OPERACION,
+    A.LEGAJO,
+    A.TURNO,
+    A.ID_PV_DIA_LABORAL,
+    A.FECHA,
+    A.HORA,
+    A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0),
+    NVL(F.DESCRIPCION, 'TODOS')
+ORDER BY A.LEGAJO, NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0), A.HORA
 """
 
 CONSULTA_PP_LIQUIDACION_DIA = """
@@ -171,8 +284,8 @@ SELECT
     A.TURNO,
     A.ID_PV_DIA_LABORAL,
     ROUND(E.A_PAGAR_TOTAL, 0) AS PREMIO,
-    F.DESCRIPCION AS GRUPO_PRODUCTIVO,
-    E.ID_PV_GRUPO_PRODUCTIVO,
+    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
+    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0) AS ID_PV_GRUPO_PRODUCTIVO,
     A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
     SUM(A.PROD_REAL) AS PROD_REAL,
     SUM(A.PROD_EQUIV_SECTOR) AS PROD_EQUIV_SECTOR,
@@ -185,19 +298,86 @@ FROM ETAPAS A
 JOIN PV_LIQUIDAC_DIA_DET1 E
   ON A.ID_PV_DIA_LABORAL = E.ID_PV_DIA_LABORAL
  AND E.ID_PV_GRUPO_DE_FUNCIONES = A.ID_PV_GRUPO_DE_FUNCIONES_CAB
-JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
 GROUP BY
     A.OPERACION,
     A.LEGAJO,
     A.TURNO,
     A.ID_PV_DIA_LABORAL,
     E.A_PAGAR_TOTAL,
-    F.DESCRIPCION,
-    E.ID_PV_GRUPO_PRODUCTIVO,
+    NVL(F.DESCRIPCION, 'TODOS'),
+    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0),
     A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
     E.PENALIZACION_EXCESO_TNC,
     E.PENALIZACION_POR_ERROR
-ORDER BY A.LEGAJO, E.ID_PV_GRUPO_PRODUCTIVO
+ORDER BY A.LEGAJO, NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0)
+"""
+
+CONSULTA_PP_LIQUIDACION_DIA_POR_ID = """
+/* PP_PREMIO_LIQUIDACION_DIA_POR_ID */
+WITH FECHA_PARAM AS (
+    SELECT TO_DATE(:fecha_base, 'YYYY/MM/DD') AS FECHA_BASE
+    FROM DUAL
+),
+PARAMS AS (
+    SELECT
+        FECHA_BASE,
+        TO_NUMBER(TO_CHAR(FECHA_BASE, 'YYYYMMDD')) AS FECHA_PREMIO,
+        :operacion AS OPERACION,
+        :grupo_funciones_id AS ID_GRUPO_FUNCIONES
+    FROM FECHA_PARAM
+),
+ETAPAS AS (
+    SELECT
+        PARA.OPERACION AS OPERACION,
+        Z.LEGAJO,
+        Z.TURNO,
+        Z.ID AS ID_PV_DIA_LABORAL,
+        C.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+        A.PRODUCCION_REAL AS PROD_REAL,
+        A.PRODUCCION_EQUIV_POR_SECTOR AS PROD_EQUIV_SECTOR,
+        A.PRODUCCION_EQUIV_POR_TRASLADO AS PROD_TRASLADO,
+        A.PROD_EQUIVAL_POR_CONSOLIDACION AS PROD_CONSOLIDACION
+    FROM PARAMS PARA
+    JOIN PV_DIA_LABORAL Z ON PARA.FECHA_PREMIO = Z.FECHA
+    JOIN PV_ETAPA_CAB A ON Z.ID = A.ID_PV_DIA_LABORAL
+    JOIN PV_FUNCION B ON A.COD_FUNCION = B.CODIGO
+    JOIN PV_GRUPO_DE_FUNCIONES_DET C ON C.ID_PV_FUNCION = B.ID
+    WHERE C.ID_PV_GRUPO_DE_FUNCIONES_CAB = PARA.ID_GRUPO_FUNCIONES
+)
+SELECT
+    A.OPERACION,
+    A.LEGAJO,
+    A.TURNO,
+    A.ID_PV_DIA_LABORAL,
+    ROUND(E.A_PAGAR_TOTAL, 0) AS PREMIO,
+    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
+    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0) AS ID_PV_GRUPO_PRODUCTIVO,
+    A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+    SUM(A.PROD_REAL) AS PROD_REAL,
+    SUM(A.PROD_EQUIV_SECTOR) AS PROD_EQUIV_SECTOR,
+    SUM(A.PROD_TRASLADO) AS PROD_TRASLADO,
+    SUM(A.PROD_CONSOLIDACION) AS PROD_CONSOLIDACION,
+    SUM(A.PROD_EQUIV_SECTOR + A.PROD_TRASLADO + A.PROD_CONSOLIDACION) AS PROD_FINAL,
+    NVL(E.PENALIZACION_EXCESO_TNC, 0) AS PENA_TNC,
+    NVL(E.PENALIZACION_POR_ERROR, 0) AS PENA_ERROR
+FROM ETAPAS A
+JOIN PV_LIQUIDAC_DIA_DET1 E
+  ON A.ID_PV_DIA_LABORAL = E.ID_PV_DIA_LABORAL
+ AND E.ID_PV_GRUPO_DE_FUNCIONES = A.ID_PV_GRUPO_DE_FUNCIONES_CAB
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_PV_GRUPO_PRODUCTIVO = F.ID
+GROUP BY
+    A.OPERACION,
+    A.LEGAJO,
+    A.TURNO,
+    A.ID_PV_DIA_LABORAL,
+    E.A_PAGAR_TOTAL,
+    NVL(F.DESCRIPCION, 'TODOS'),
+    NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0),
+    A.ID_PV_GRUPO_DE_FUNCIONES_CAB,
+    E.PENALIZACION_EXCESO_TNC,
+    E.PENALIZACION_POR_ERROR
+ORDER BY A.LEGAJO, NVL(E.ID_PV_GRUPO_PRODUCTIVO, 0)
 """
 CONSULTA_CASO_MODELO_FINAL = """
 WITH ESCALAS AS (
@@ -817,8 +997,18 @@ CREATE TABLE IF NOT EXISTS pp_caso_modelo_detalle (
     penalizacion_error TEXT NOT NULL DEFAULT '',
     loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS pp_caso_modelo_carga (
+    fecha_base DATE NOT NULL,
+    operacion TEXT NOT NULL,
+    query_version TEXT NOT NULL,
+    rows_dia INTEGER NOT NULL DEFAULT 0,
+    rows_detalle INTEGER NOT NULL DEFAULT 0,
+    loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (fecha_base, operacion, query_version)
+);
 CREATE INDEX IF NOT EXISTS idx_pp_caso_dia ON pp_caso_modelo_dia(fecha_base, operacion, almacen, query_version);
 CREATE INDEX IF NOT EXISTS idx_pp_caso_detalle ON pp_caso_modelo_detalle(fecha_base, operacion, almacen, legajo, query_version);
+CREATE INDEX IF NOT EXISTS idx_pp_caso_carga ON pp_caso_modelo_carga(fecha_base, operacion, query_version);
 """
 
 
@@ -874,17 +1064,23 @@ def _normalize_almacen(value: Any) -> str:
         almacen = "SECOS + NOA"
     if almacen in {"AREA SECOS Y NO ALIMENTOS", "AREA SECOS Y NO ALIMENTOS "}:
         almacen = "AREA SECOS Y NO ALIMENTOS"
+    if almacen in {"AREA REFRIGERADOS", "REFRIGERADOS"}:
+        almacen = "AREA REFRIGERADOS"
     if almacen not in ALMACENES_PREMIO_PRODUCTIVIDAD:
-        raise HTTPException(status_code=400, detail=f"Almacen no soportado: {almacen}.")
+        raise HTTPException(status_code=400, detail=f"Division no soportada: {almacen}.")
     return almacen
 
 
 def _normalize_grupo_productivo(value: Any) -> str:
     grupo = _upper(value)
+    if grupo in {"", "ALL", "TODO", "TODOS"}:
+        return DEFAULT_ALMACEN
     if grupo in {"SECOS+NOA", "SECOS NOA", "SECTOR SECOS", "VARIOS NO ALIMENTOS"}:
         return "SECOS + NOA"
     if grupo in {"AREA SECOS Y NO ALIMENTOS", "AREA SECOS Y NO ALIMENTOS "}:
         return "AREA SECOS Y NO ALIMENTOS"
+    if grupo in {"AREA REFRIGERADOS", "REFRIGERADOS"}:
+        return "AREA REFRIGERADOS"
     if grupo == "CAMARA 06":
         return "CAMARA 06"
     if grupo.startswith("CAMARA"):
@@ -893,7 +1089,8 @@ def _normalize_grupo_productivo(value: Any) -> str:
 
 
 def _matches_almacen_filter(grupo: str, almacen: str) -> bool:
-    return almacen == DEFAULT_ALMACEN or _normalize_grupo_productivo(grupo) == almacen
+    normalized = _normalize_grupo_productivo(grupo)
+    return almacen == DEFAULT_ALMACEN or normalized == DEFAULT_ALMACEN or normalized == almacen
 
 
 def _num(value: Any, default: float = 0.0) -> float:
@@ -1067,7 +1264,13 @@ def _query_oracle_via_jdbc(sql: str, binds: dict[str, Any]) -> list[dict[str, An
         raise RuntimeError(f"No se encontro driver JDBC Oracle: {ojdbc_jar}")
 
     normalized = " ".join(sql.upper().split())
-    if "PP_PREMIO_ESCALAS" in normalized:
+    if "PP_PREMIO_ESCALAS_POR_ID" in normalized:
+        query_key = "pp_premio_escalas_por_id"
+    elif "PP_PREMIO_ETAPAS_HORA_POR_ID" in normalized:
+        query_key = "pp_premio_etapas_hora_por_id"
+    elif "PP_PREMIO_LIQUIDACION_DIA_POR_ID" in normalized:
+        query_key = "pp_premio_liquidacion_dia_por_id"
+    elif "PP_PREMIO_ESCALAS" in normalized:
         query_key = "pp_premio_escalas"
     elif "PP_PREMIO_ETAPAS_HORA" in normalized:
         query_key = "pp_premio_etapas_hora"
@@ -1307,17 +1510,23 @@ def _day_key_from_row(row: dict[str, Any]) -> tuple[str, str, int, int]:
 
 
 async def _fetch_premio_base(fecha_base: str, operacion: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[tuple[str, int, int], list[dict[str, Any]]]]:
+    grupo_funciones_id = OPERACION_GRUPO_FUNCIONES_ID.get(_upper(operacion))
     binds = {"fecha_base": _to_date(fecha_base).strftime("%Y/%m/%d"), "operacion": operacion}
+    if grupo_funciones_id:
+        binds["grupo_funciones_id"] = grupo_funciones_id
+    sql_scales = CONSULTA_PP_ESCALAS_POR_ID if grupo_funciones_id else CONSULTA_PP_ESCALAS
+    sql_hours = CONSULTA_PP_ETAPAS_HORA_POR_ID if grupo_funciones_id else CONSULTA_PP_ETAPAS_HORA
+    sql_days = CONSULTA_PP_LIQUIDACION_DIA_POR_ID if grupo_funciones_id else CONSULTA_PP_LIQUIDACION_DIA
     if os.getenv("PRODUCTIVE_DB_USE_JDBC", "1").strip().lower() in {"1", "true", "yes", "si"}:
         await asyncio.to_thread(_ensure_java_helper_compiled)
-        raw_scales = await asyncio.to_thread(_query_oracle, CONSULTA_PP_ESCALAS, {"operacion": operacion})
-        raw_hours = await asyncio.to_thread(_query_oracle, CONSULTA_PP_ETAPAS_HORA, binds)
-        raw_days = await asyncio.to_thread(_query_oracle, CONSULTA_PP_LIQUIDACION_DIA, binds)
+        raw_scales = await asyncio.to_thread(_query_oracle, sql_scales, binds)
+        raw_hours = await asyncio.to_thread(_query_oracle, sql_hours, binds)
+        raw_days = await asyncio.to_thread(_query_oracle, sql_days, binds)
         return raw_hours, raw_days, _build_scale_index(raw_scales)
     raw_scales, raw_hours, raw_days = await asyncio.gather(
-        asyncio.to_thread(_query_oracle, CONSULTA_PP_ESCALAS, {"operacion": operacion}),
-        asyncio.to_thread(_query_oracle, CONSULTA_PP_ETAPAS_HORA, binds),
-        asyncio.to_thread(_query_oracle, CONSULTA_PP_LIQUIDACION_DIA, binds),
+        asyncio.to_thread(_query_oracle, sql_scales, binds),
+        asyncio.to_thread(_query_oracle, sql_hours, binds),
+        asyncio.to_thread(_query_oracle, sql_days, binds),
     )
     return raw_hours, raw_days, _build_scale_index(raw_scales)
 
@@ -1513,20 +1722,66 @@ async def _load_day_to_cache(
     force: bool = False,
 ) -> dict[str, Any]:
     fecha_base = day.isoformat()
-    existing = await _fetch_one(
+    load_marker = await _fetch_one(
+        db,
+        """
+        SELECT rows_dia, rows_detalle
+        FROM pp_caso_modelo_carga
+        WHERE fecha_base = ?
+          AND operacion = ?
+          AND query_version = ?
+        """,
+        (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION),
+    )
+    if load_marker and not force:
+        return {
+            "fecha": fecha_base,
+            "operacion": operacion,
+            "estado": "cache",
+            "rows": int(load_marker["rows_dia"] or 0),
+            "detail_rows": int(load_marker["rows_detalle"] or 0),
+        }
+
+    existing_all = await _fetch_one(
         db,
         """
         SELECT COUNT(*) qty
         FROM pp_caso_modelo_dia
         WHERE fecha_base = ?
           AND operacion = ?
-          AND (? = 'TODOS' OR almacen = ?)
           AND query_version = ?
         """,
-        (fecha_base, operacion, almacen, almacen, CASO_MODELO_DIA_QUERY_VERSION),
+        (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION),
     )
-    if existing and int(existing["qty"] or 0) > 0 and not force:
-        return {"fecha": fecha_base, "estado": "cache", "rows": int(existing["qty"])}
+    existing_detail_all = await _fetch_one(
+        db,
+        """
+        SELECT COUNT(*) qty
+        FROM pp_caso_modelo_detalle
+        WHERE fecha_base = ?
+          AND operacion = ?
+          AND query_version = ?
+        """,
+        (fecha_base, operacion, CASO_MODELO_DETALLE_QUERY_VERSION),
+    )
+    existing_rows = int(existing_all["qty"] or 0) if existing_all else 0
+    existing_detail_rows = int(existing_detail_all["qty"] or 0) if existing_detail_all else 0
+    if existing_rows > 0 and not force:
+        await db.execute(
+            """
+            INSERT OR REPLACE INTO pp_caso_modelo_carga
+                (fecha_base, operacion, query_version, rows_dia, rows_detalle, loaded_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION, existing_rows, existing_detail_rows, _now()),
+        )
+        return {
+            "fecha": fecha_base,
+            "operacion": operacion,
+            "estado": "cache",
+            "rows": existing_rows,
+            "detail_rows": existing_detail_rows,
+        }
 
     if force:
         await db.execute(
@@ -1534,24 +1789,31 @@ async def _load_day_to_cache(
             DELETE FROM pp_caso_modelo_dia
             WHERE fecha_base = ?
               AND operacion = ?
-              AND (? = 'TODOS' OR almacen = ?)
               AND query_version = ?
             """,
-            (fecha_base, operacion, almacen, almacen, CASO_MODELO_DIA_QUERY_VERSION),
+            (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION),
         )
         await db.execute(
             """
             DELETE FROM pp_caso_modelo_detalle
             WHERE fecha_base = ?
               AND operacion = ?
-              AND (? = 'TODOS' OR almacen = ?)
               AND query_version = ?
             """,
-            (fecha_base, operacion, almacen, almacen, CASO_MODELO_DETALLE_QUERY_VERSION),
+            (fecha_base, operacion, CASO_MODELO_DETALLE_QUERY_VERSION),
+        )
+        await db.execute(
+            """
+            DELETE FROM pp_caso_modelo_carga
+            WHERE fecha_base = ?
+              AND operacion = ?
+              AND query_version = ?
+            """,
+            (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION),
         )
 
     hour_rows, day_rows, scales = await _fetch_premio_base(fecha_base, operacion)
-    rows, detail_rows = _simulate_premio_rows(fecha_base, operacion, almacen, hour_rows, day_rows, scales)
+    rows, detail_rows = _simulate_premio_rows(fecha_base, operacion, DEFAULT_ALMACEN, hour_rows, day_rows, scales)
     await db.executemany(
         """
         INSERT INTO pp_caso_modelo_dia
@@ -1595,7 +1857,34 @@ async def _load_day_to_cache(
             for r in detail_rows
         ],
     )
-    return {"fecha": fecha_base, "estado": "oracle", "rows": len(rows)}
+    await db.execute(
+        """
+        INSERT OR REPLACE INTO pp_caso_modelo_carga
+            (fecha_base, operacion, query_version, rows_dia, rows_detalle, loaded_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION, len(rows), len(detail_rows), _now()),
+    )
+    return {"fecha": fecha_base, "operacion": operacion, "estado": "oracle", "rows": len(rows), "detail_rows": len(detail_rows)}
+
+
+async def _load_day_all_operations_to_cache(
+    db: aiosqlite.Connection,
+    day: date,
+    force: bool = False,
+) -> dict[str, Any]:
+    operaciones = sorted(OPERACIONES_PREMIO_PRODUCTIVIDAD)
+    estados = [
+        await _load_day_to_cache(db, day, operacion, DEFAULT_ALMACEN, force=force)
+        for operacion in operaciones
+    ]
+    return {
+        "fecha": day.isoformat(),
+        "estado": "oracle" if any(row["estado"] == "oracle" for row in estados) else "cache",
+        "rows": sum(int(row.get("rows") or 0) for row in estados),
+        "detail_rows": sum(int(row.get("detail_rows") or 0) for row in estados),
+        "operaciones": estados,
+    }
 
 
 async def obtenerDetalleLegajo(params: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2403,7 +2692,7 @@ async def consultar_rango(req: RangoCasoModeloRequest):
         db.row_factory = aiosqlite.Row
         estados = []
         for day in days:
-            estados.append(await _load_day_to_cache(db, day, operacion, almacen, force=req.force))
+            estados.append(await _load_day_all_operations_to_cache(db, day, force=req.force))
             await db.commit()
         rows = await _cache_rows_for_range(db, days[0].isoformat(), days[-1].isoformat(), operacion, almacen)
         detail_rows = await _detail_rows_for_range_internal(db, days[0].isoformat(), days[-1].isoformat(), operacion, almacen)
@@ -2524,35 +2813,78 @@ async def cache_cobertura(
     expected = [day.isoformat() for day in days]
     operacion = _normalize_operacion(operacion)
     almacen = _normalize_almacen(almacen)
+    operaciones = sorted(OPERACIONES_PREMIO_PRODUCTIVIDAD)
     async with aiosqlite.connect(PREMIO_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        cached_rows = await _fetch_rows(
+        marker_rows = await _fetch_rows(
             db,
             """
-            SELECT fecha_base, COUNT(*) rows
+            SELECT fecha_base, operacion, rows_dia rows, rows_detalle detail_rows
+            FROM pp_caso_modelo_carga
+            WHERE fecha_base >= ?
+              AND fecha_base <= ?
+              AND query_version = ?
+            ORDER BY fecha_base, operacion
+            """,
+            (expected[0], expected[-1], CASO_MODELO_DIA_QUERY_VERSION),
+        )
+        legacy_rows = await _fetch_rows(
+            db,
+            """
+            SELECT fecha_base, operacion, COUNT(*) rows
             FROM pp_caso_modelo_dia
             WHERE fecha_base >= ?
               AND fecha_base <= ?
-              AND operacion = ?
-              AND (? = 'TODOS' OR almacen = ?)
               AND query_version = ?
-            GROUP BY fecha_base
-            ORDER BY fecha_base
+            GROUP BY fecha_base, operacion
+            ORDER BY fecha_base, operacion
             """,
-            (expected[0], expected[-1], operacion, almacen, almacen, CASO_MODELO_DIA_QUERY_VERSION),
+            (expected[0], expected[-1], CASO_MODELO_DIA_QUERY_VERSION),
         )
-    cached = {row["fecha_base"]: int(row["rows"] or 0) for row in cached_rows}
-    missing = [day for day in expected if day not in cached]
+    marker = {
+        (row["fecha_base"], _upper(row["operacion"])): {
+            "rows": int(row["rows"] or 0),
+            "detail_rows": int(row["detail_rows"] or 0),
+            "source": "marker",
+        }
+        for row in marker_rows
+    }
+    legacy = {
+        (row["fecha_base"], _upper(row["operacion"])): {
+            "rows": int(row["rows"] or 0),
+            "detail_rows": 0,
+            "source": "legacy",
+        }
+        for row in legacy_rows
+    }
+    cached: dict[str, dict[str, Any]] = {}
+    missing_by_day: dict[str, list[str]] = {}
+    for day in expected:
+        op_status = []
+        for op in operaciones:
+            item = marker.get((day, op)) or legacy.get((day, op))
+            if item:
+                op_status.append({"operacion": op, **item})
+            else:
+                missing_by_day.setdefault(day, []).append(op)
+        if len(op_status) == len(operaciones):
+            cached[day] = {
+                "rows": sum(int(row.get("rows") or 0) for row in op_status),
+                "operaciones": op_status,
+            }
+    missing = [day for day in expected if day in missing_by_day]
     return {
         "fecha_desde": expected[0],
         "fecha_hasta": expected[-1],
         "operacion": operacion,
         "almacen": almacen,
+        "operaciones_cacheadas": operaciones,
         "dias": len(expected),
         "dias_cache": len(cached),
         "dias_faltantes": len(missing),
         "faltantes": missing,
-        "cache": [{"fecha": day, "rows": cached[day]} for day in expected if day in cached],
+        "faltantes_detalle": [{"fecha": day, "operaciones": missing_by_day[day]} for day in missing],
+        "cache": [{"fecha": day, **cached[day]} for day in expected if day in cached],
         "query_version": CASO_MODELO_DIA_QUERY_VERSION,
     }
 
@@ -2721,7 +3053,7 @@ async def problematica_modelo_actual(
     async with aiosqlite.connect(PREMIO_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         for day in days:
-            estado = await _load_day_to_cache(db, day, operacion, almacen, force=False)
+            estado = await _load_day_all_operations_to_cache(db, day, force=False)
             if estado["estado"] == "oracle":
                 dias_oracle += 1
             else:

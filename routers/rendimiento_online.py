@@ -5,7 +5,9 @@ import io
 import json
 import math
 import asyncio
+import logging
 from collections import defaultdict
+from contextlib import suppress
 from datetime import datetime, time, timedelta
 from pathlib import Path
 from typing import Any
@@ -15,15 +17,44 @@ from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from pydantic import BaseModel
 
+from db.rendimiento_historico import (
+    get_analysis as get_historic_analysis,
+    get_run as get_historic_run,
+    init_rendimiento_historico_db,
+    save_day_cache,
+)
 from routers.productividad_analisis import _query_productive_db_sql
 
 
 router = APIRouter(prefix="/api/rendimiento-online", tags=["rendimiento-online"])
 BASE_DIR = Path(__file__).resolve().parent.parent
 STANDARD_PATH = BASE_DIR / "datos" / "productividad_estandar_sector.json"
+logger = logging.getLogger("vigia.rendimiento_online")
+HISTORICO_QUERY_VERSION = "rend_online_picking_legajo_sector_v2"
+HISTORICO_SCHEDULE_TIME = time(6, 30)
+HISTORICO_BACKFILL_DAYS = 62
+_historico_scheduler_task: asyncio.Task | None = None
+_historico_scheduler_stop: asyncio.Event | None = None
 
 
 QUERY_RENDIMIENTO_ONLINE = """
+WITH HIST_SOURCE AS (
+    SELECT
+        FCREAREG, CDESCRIP, CNUPALET, QCANTIDA, CREFEREN, CNPEDIDO,
+        COPECREA, CZONADES, CZONAORI, CALMACEN
+    FROM F132HIST
+    WHERE FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+      AND FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+      AND CDESCRIP IN ('Picking', 'TRANSPORTE DE PALETS')
+    UNION ALL
+    SELECT
+        FCREAREG, CDESCRIP, CNUPALET, QCANTIDA, CREFEREN, CNPEDIDO,
+        COPECREA, CZONADES, CZONAORI, CALMACEN
+    FROM F132HIST_HIST
+    WHERE FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
+      AND FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
+      AND CDESCRIP IN ('Picking', 'TRANSPORTE DE PALETS')
+)
 SELECT
     B.CNSECTOR,
     A.FCREAREG,
@@ -38,11 +69,11 @@ SELECT
     A.CZONADES AS DESTINO,
     SUB1.DESCDIVI AS DIVISION,
     SYSDATE AS ORACLE_NOW
-FROM F132HIST A
+FROM HIST_SOURCE A
 JOIN F602ASEC B
   ON A.CREFEREN = B.CREFEREN
  AND A.CALMACEN = B.CALMACEN
-JOIN PV_LEGAJO C
+LEFT JOIN PV_LEGAJO C
   ON A.COPECREA = C.LEGAJO
 LEFT JOIN F002ARTI D
   ON A.CREFEREN = D.CREFEREN
@@ -51,10 +82,30 @@ LEFT JOIN (
     FROM VW_UBICACIONES_DIVISION
 ) SUB1
   ON SUB1.CZONALMA = A.CZONAORI
-WHERE A.FCREAREG >= TO_DATE(:fecha_desde, 'YYYY-MM-DD HH24:MI:SS')
-  AND A.FCREAREG <= TO_DATE(:fecha_hasta, 'YYYY-MM-DD HH24:MI:SS')
-  AND A.CDESCRIP IN ('Picking', 'TRANSPORTE DE PALETS')
 ORDER BY A.COPECREA, A.FCREAREG
+"""
+
+QUERY_PREMIO_DIAS_PAGO = """
+SELECT FECHA, LEGAJO
+FROM PV_DIA_LABORAL
+WHERE FECHA >= :fecha_desde
+  AND FECHA <= :fecha_hasta
+ORDER BY FECHA, LEGAJO
+"""
+
+QUERY_PREMIO_ESCALAS = """
+SELECT
+    B.descripcion AS operacion,
+    C.descripcion AS division,
+    A.nivel,
+    A.desde,
+    A.hasta,
+    A.premio
+FROM PV_ESCALA_DE_PREMIOS A
+JOIN PV_GRUPO_DE_FUNCIONES_CAB B ON A.ID_DE_GRUPO_DE_FUNCIONES = B.ID
+JOIN PV_GRUPO_PRODUCTIVO_CAB C ON A.ID_DE_GRUPO_PRODUCTIVO = C.ID
+WHERE B.descripcion = 'PICKING'
+ORDER BY C.descripcion, A.nivel
 """
 
 TURNOS = {
@@ -596,12 +647,21 @@ def _summarize(operations: list[dict[str, Any]], standards: dict[tuple[str, str]
     }
 
 
-def _query_rows(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+def query_rendimiento_online_rows(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_RENDIMIENTO_ONLINE,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )
+
+
+def build_rendimiento_online_operations(rows: list[dict[str, Any]], cutoff: datetime) -> list[dict[str, Any]]:
+    standards = _standard_map()
+    return _build_operations(rows, cutoff, _division_by_sector(standards))
+
+
+def _query_rows(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return query_rendimiento_online_rows(fecha_desde, fecha_hasta)
 
 
 def _standards_diagnostics(summary: dict[str, Any], standards: dict[tuple[str, str], dict[str, Any]]) -> dict[str, Any]:
@@ -641,7 +701,7 @@ async def _build_payload(turno: str) -> dict[str, Any]:
     oracle_now = next((_parse_dt(row.get("ORACLE_NOW")) for row in rows if row.get("ORACLE_NOW")), None) or now
     standards = _standard_map()
     sector_divisions = _division_by_sector(standards)
-    operations = _build_operations(rows, min(oracle_now, rango["fecha_hasta"]), sector_divisions)
+    operations = build_rendimiento_online_operations(rows, min(oracle_now, rango["fecha_hasta"]))
     summary = _summarize(operations, standards)
     diagnostics = _standards_diagnostics(summary, standards)
     return {
@@ -664,6 +724,325 @@ async def _build_payload(turno: str) -> dict[str, Any]:
     }
 
 
+def _closed_logistic_days(now: datetime, days: int = HISTORICO_BACKFILL_DAYS) -> list[dict[str, Any]]:
+    last_closed = _logistic_date(now)
+    if now.time() < time(6, 0):
+        last_closed = last_closed - timedelta(days=1)
+    result = []
+    for offset in range(days):
+        start = last_closed - timedelta(days=offset + 1)
+        end = start + timedelta(days=1)
+        result.append({
+            "dia_logistico": start.strftime("%Y-%m-%d"),
+            "fecha_desde": start.replace(hour=6).strftime("%Y-%m-%d %H:%M:%S"),
+            "fecha_hasta": end.replace(hour=6).strftime("%Y-%m-%d %H:%M:%S"),
+        })
+    return result
+
+
+async def _cache_closed_day(day: dict[str, Any], *, force: bool = False, trigger: str = "manual") -> dict[str, Any]:
+    operacion = "PICKING"
+    existing = await get_historic_run(operacion, day["dia_logistico"])
+    if (
+        existing
+        and existing.get("status") == "success"
+        and existing.get("query_version") == HISTORICO_QUERY_VERSION
+        and not force
+    ):
+        return {"dia_logistico": day["dia_logistico"], "status": "skipped"}
+    started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        rows = await asyncio.to_thread(query_rendimiento_online_rows, day["fecha_desde"], day["fecha_hasta"])
+        standards = _standard_map()
+        operations = _build_operations(rows, _parse_dt(day["fecha_hasta"]) or datetime.now(), _division_by_sector(standards))
+        summary = _summarize(operations, standards)
+        saved = await save_day_cache(
+            operacion=operacion,
+            dia_logistico=day["dia_logistico"],
+            fecha_desde=day["fecha_desde"],
+            fecha_hasta=day["fecha_hasta"],
+            movimientos=len(rows),
+            operaciones=len(operations),
+            query_version=HISTORICO_QUERY_VERSION,
+            legajos=summary["legajos"],
+            started_at=started,
+        )
+        logger.info(
+            "[rendimiento-historico] Cache %s dia=%s movimientos=%s operaciones=%s trigger=%s",
+            operacion, day["dia_logistico"], len(rows), len(operations), trigger,
+        )
+        return saved
+    except Exception as exc:
+        await save_day_cache(
+            operacion=operacion,
+            dia_logistico=day["dia_logistico"],
+            fecha_desde=day["fecha_desde"],
+            fecha_hasta=day["fecha_hasta"],
+            movimientos=0,
+            operaciones=0,
+            query_version=HISTORICO_QUERY_VERSION,
+            legajos=[],
+            status="error",
+            error=str(exc),
+            started_at=started,
+        )
+        logger.exception("[rendimiento-historico] Error cacheando dia %s", day["dia_logistico"])
+        return {"dia_logistico": day["dia_logistico"], "status": "error", "error": str(exc)}
+
+
+async def run_rendimiento_historico_backfill(
+    *, force: bool = False, trigger: str = "manual", days: int = HISTORICO_BACKFILL_DAYS
+) -> dict[str, Any]:
+    await init_rendimiento_historico_db()
+    closed_days = _closed_logistic_days(datetime.now(), days)
+    results = []
+    for day in closed_days:
+        results.append(await _cache_closed_day(day, force=force, trigger=trigger))
+    return {
+        "ok": True,
+        "operacion": "PICKING",
+        "days_checked": len(closed_days),
+        "cached": sum(1 for row in results if row.get("status") == "success"),
+        "skipped": sum(1 for row in results if row.get("status") == "skipped"),
+        "errors": [row for row in results if row.get("status") == "error"],
+        "results": results,
+    }
+
+
+def _next_historico_run_after(now: datetime) -> datetime:
+    candidate = datetime.combine(now.date(), HISTORICO_SCHEDULE_TIME)
+    if candidate <= now:
+        candidate += timedelta(days=1)
+    return candidate
+
+
+async def _historico_scheduler_loop() -> None:
+    assert _historico_scheduler_stop is not None
+    await init_rendimiento_historico_db()
+    logger.info("[rendimiento-historico] Scheduler iniciado. Hora diaria: %s.", HISTORICO_SCHEDULE_TIME.strftime("%H:%M"))
+    while not _historico_scheduler_stop.is_set():
+        now = datetime.now()
+        run_time = datetime.combine(now.date(), HISTORICO_SCHEDULE_TIME)
+        if run_time <= now < run_time + timedelta(minutes=10):
+            await run_rendimiento_historico_backfill(trigger="scheduler")
+            with suppress(asyncio.TimeoutError):
+                await asyncio.wait_for(_historico_scheduler_stop.wait(), timeout=600)
+            continue
+        next_run = _next_historico_run_after(now)
+        sleep_seconds = max(30.0, min((next_run - now).total_seconds(), 1800.0))
+        with suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(_historico_scheduler_stop.wait(), timeout=sleep_seconds)
+
+
+def start_rendimiento_historico_scheduler() -> None:
+    global _historico_scheduler_task, _historico_scheduler_stop
+    if _historico_scheduler_task and not _historico_scheduler_task.done():
+        return
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return
+    _historico_scheduler_stop = asyncio.Event()
+    _historico_scheduler_task = loop.create_task(_historico_scheduler_loop())
+
+
+async def stop_rendimiento_historico_scheduler() -> None:
+    global _historico_scheduler_task, _historico_scheduler_stop
+    if _historico_scheduler_stop:
+        _historico_scheduler_stop.set()
+    if _historico_scheduler_task:
+        _historico_scheduler_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await _historico_scheduler_task
+    _historico_scheduler_task = None
+    _historico_scheduler_stop = None
+
+
+def _premium_group_for_row(row: dict[str, Any]) -> tuple[str, str]:
+    division = _normalize_division(row.get("division"))
+    if division in {"SECOS", "NOA"}:
+        return "SECOS + NOA", "SECOS/NOA agrupado por escala"
+    if division == "REFRIGERADOS":
+        return "OTRAS CAMARAS", "REFRIGERADOS estimado como OTRAS CAMARAS"
+    return division or "SIN ESCALA", "division directa"
+
+
+def _scale_match(scales: list[dict[str, Any]], bultos: float) -> dict[str, Any] | None:
+    for scale in sorted(scales, key=lambda r: (float(r.get("DESDE") or 0), float(r.get("NIVEL") or 0))):
+        desde = float(scale.get("DESDE") or 0)
+        hasta = float(scale.get("HASTA") or 0)
+        if bultos >= desde and (hasta <= 0 or bultos <= hasta):
+            return scale
+    return None
+
+
+def _yyyymmdd(day: str) -> int:
+    return int(str(day or "").replace("-", "")[:8] or 0)
+
+
+async def _build_premios_no_incluidos(
+    *,
+    operacion: str,
+    fecha_desde: str,
+    fecha_hasta: str,
+) -> dict[str, Any]:
+    historic = await get_historic_analysis(
+        operacion=operacion,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+    pagos_rows, escala_rows = await asyncio.gather(
+        asyncio.to_thread(_query_productive_db_sql, QUERY_PREMIO_DIAS_PAGO, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta),
+        asyncio.to_thread(_query_productive_db_sql, QUERY_PREMIO_ESCALAS, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta),
+    )
+    pagos = {
+        (int(row.get("FECHA") or 0), str(row.get("LEGAJO") or "").strip())
+        for row in pagos_rows
+        if row.get("FECHA") is not None and str(row.get("LEGAJO") or "").strip()
+    }
+    escalas: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in escala_rows:
+        grupo = _norm(row.get("DIVISION"))
+        if grupo:
+            escalas[grupo].append(row)
+
+    by_day_group: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for row in historic.get("diario", []):
+        legajo = str(row.get("legajo") or "").strip()
+        day = str(row.get("dia_logistico") or "")
+        if not legajo or not day:
+            continue
+        fecha_num = _yyyymmdd(day)
+        if (fecha_num, legajo) in pagos:
+            continue
+        grupo, criterio = _premium_group_for_row(row)
+        key = (legajo, day, grupo)
+        item = by_day_group.setdefault(key, {
+            "legajo": legajo,
+            "nombre": row.get("nombre") or "",
+            "dia_logistico": day,
+            "fecha_pago": fecha_num,
+            "grupo_premio": grupo,
+            "criterio_grupo": criterio,
+            "sector_rrhh": row.get("sector_rrhh") or "",
+            "funcion": row.get("funcion") or "",
+            "area_personal": row.get("area_personal") or "",
+            "fecha_ingreso": row.get("fecha_ingreso"),
+            "antiguedad_dias_calc": row.get("antiguedad_dias_calc"),
+            "estrato": row.get("estrato"),
+            "bultos": 0.0,
+            "segundos": 0.0,
+            "divisiones": set(),
+            "sectores": set(),
+            "ultimo_movimiento": row.get("ultimo_movimiento"),
+        })
+        item["bultos"] += float(row.get("bultos") or 0)
+        item["segundos"] += float(row.get("segundos") or 0)
+        item["divisiones"].add(row.get("division"))
+        item["sectores"].add(row.get("sector"))
+        if row.get("ultimo_movimiento") and (not item.get("ultimo_movimiento") or row["ultimo_movimiento"] > item["ultimo_movimiento"]):
+            item["ultimo_movimiento"] = row["ultimo_movimiento"]
+
+    detalle = []
+    for item in by_day_group.values():
+        bultos = float(item.get("bultos") or 0)
+        scales = escalas.get(_norm(item.get("grupo_premio")), [])
+        match = _scale_match(scales, bultos)
+        divisiones = sorted(str(v) for v in item.pop("divisiones") if v)
+        sectores = sorted(str(v) for v in item.pop("sectores") if v)
+        item.update({
+            "bultos": round(bultos, 2),
+            "minutos": round(float(item.get("segundos") or 0) / 60, 1),
+            "divisiones_count": len(divisiones),
+            "divisiones_lista": ", ".join(divisiones),
+            "sectores_count": len(sectores),
+            "sectores_lista": ", ".join(sectores),
+            "nivel": int(match.get("NIVEL")) if match else None,
+            "desde": float(match.get("DESDE") or 0) if match else None,
+            "hasta": float(match.get("HASTA") or 0) if match else None,
+            "premio": round(float(match.get("PREMIO") or 0), 2) if match else 0.0,
+            "estado_premio": "estimado" if match else "sin_escala",
+        })
+        detalle.append(item)
+
+    by_legajo: dict[str, dict[str, Any]] = {}
+    for row in detalle:
+        legajo = row["legajo"]
+        leg = by_legajo.setdefault(legajo, {
+            "legajo": legajo,
+            "nombre": row.get("nombre") or "",
+            "sector_rrhh": row.get("sector_rrhh") or "",
+            "funcion": row.get("funcion") or "",
+            "area_personal": row.get("area_personal") or "",
+            "fecha_ingreso": row.get("fecha_ingreso"),
+            "antiguedad_dias_calc": row.get("antiguedad_dias_calc"),
+            "estrato": row.get("estrato"),
+            "dias": set(),
+            "grupos": set(),
+            "divisiones": set(),
+            "sectores": set(),
+            "bultos": 0.0,
+            "minutos": 0.0,
+            "premio_estimado": 0.0,
+            "dias_sin_escala": 0,
+            "mejor_nivel": None,
+            "ultimo_movimiento": row.get("ultimo_movimiento"),
+        })
+        leg["dias"].add(row.get("dia_logistico"))
+        leg["grupos"].add(row.get("grupo_premio"))
+        for value in str(row.get("divisiones_lista") or "").split(","):
+            if value.strip():
+                leg["divisiones"].add(value.strip())
+        for value in str(row.get("sectores_lista") or "").split(","):
+            if value.strip():
+                leg["sectores"].add(value.strip())
+        leg["bultos"] += float(row.get("bultos") or 0)
+        leg["minutos"] += float(row.get("minutos") or 0)
+        leg["premio_estimado"] += float(row.get("premio") or 0)
+        if row.get("estado_premio") == "sin_escala":
+            leg["dias_sin_escala"] += 1
+        nivel = row.get("nivel")
+        if nivel is not None and (leg["mejor_nivel"] is None or int(nivel) > int(leg["mejor_nivel"])):
+            leg["mejor_nivel"] = int(nivel)
+        if row.get("ultimo_movimiento") and (not leg.get("ultimo_movimiento") or row["ultimo_movimiento"] > leg["ultimo_movimiento"]):
+            leg["ultimo_movimiento"] = row["ultimo_movimiento"]
+
+    legajos = []
+    for item in by_legajo.values():
+        for key in ("dias", "grupos", "divisiones", "sectores"):
+            values = sorted(str(v) for v in item[key] if v)
+            item[f"{key}_count"] = len(values)
+            item[f"{key}_lista"] = ", ".join(values)
+            item.pop(key, None)
+        item["bultos"] = round(float(item.get("bultos") or 0), 2)
+        item["minutos"] = round(float(item.get("minutos") or 0), 1)
+        item["premio_estimado"] = round(float(item.get("premio_estimado") or 0), 2)
+        legajos.append(item)
+
+    legajos.sort(key=lambda r: (-float(r.get("premio_estimado") or 0), str(r.get("legajo") or "")))
+    detalle.sort(key=lambda r: (str(r.get("legajo") or ""), str(r.get("dia_logistico") or ""), str(r.get("grupo_premio") or "")))
+    resumen = {
+        "legajos": len(legajos),
+        "dias_no_incluidos": len({(row.get("legajo"), row.get("dia_logistico")) for row in detalle}),
+        "filas_estimadas": len(detalle),
+        "bultos": round(sum(float(row.get("bultos") or 0) for row in detalle), 2),
+        "premio_estimado": round(sum(float(row.get("premio") or 0) for row in detalle), 2),
+        "sin_escala": sum(1 for row in detalle if row.get("estado_premio") == "sin_escala"),
+        "pagos_oracle": len(pagos_rows),
+        "escalas": len(escala_rows),
+    }
+    return {
+        "source": "rendimiento_historico_cache + oracle_productiva",
+        "operacion": operacion,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "resumen": resumen,
+        "legajos": legajos,
+        "detalle": detalle,
+        "escalas": escala_rows,
+    }
+
+
 @router.get("/estandares")
 async def get_estandares():
     return {"estandares": _load_standards()}
@@ -682,6 +1061,49 @@ async def get_tablero(turno: str = Query("manana")):
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"No se pudo calcular rendimiento online: {exc}") from exc
+
+
+@router.get("/historico/analisis")
+async def get_historico_analisis(
+    operacion: str = Query("PICKING"),
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+):
+    op = _norm(operacion)
+    if op != "PICKING":
+        raise HTTPException(status_code=400, detail="Por ahora solo esta disponible la operacion Picking.")
+    today = _logistic_date(datetime.now()).date()
+    default_to = (today - timedelta(days=1)).isoformat()
+    default_from = (today - timedelta(days=62)).isoformat()
+    return await get_historic_analysis(
+        operacion=op,
+        fecha_desde=fecha_desde or default_from,
+        fecha_hasta=fecha_hasta or default_to,
+    )
+
+
+@router.get("/historico/premios-no-incluidos")
+async def get_historico_premios_no_incluidos(
+    operacion: str = Query("PICKING"),
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+):
+    op = _norm(operacion)
+    if op != "PICKING":
+        raise HTTPException(status_code=400, detail="Por ahora solo esta disponible la operacion Picking.")
+    today = _logistic_date(datetime.now()).date()
+    default_to = (today - timedelta(days=1)).isoformat()
+    default_from = (today - timedelta(days=62)).isoformat()
+    try:
+        return await _build_premios_no_incluidos(
+            operacion=op,
+            fecha_desde=fecha_desde or default_from,
+            fecha_hasta=fecha_hasta or default_to,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"No se pudo estimar premios no incluidos: {exc}") from exc
 
 
 @router.get("/export/legajos.xlsx")

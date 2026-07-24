@@ -190,6 +190,8 @@ SECTOR_MAP = {
     "NOA": "Noa",
     "SECOS": "Secos",
     "REFRIGERADOS": "Refrigerados",
+    "OC": "OC",
+    "CONGELADOS": "Congelados",
 }
 
 
@@ -197,12 +199,16 @@ CLARK_PARAM_IDS_BY_SECTOR = {
     "Noa": "OP_PROD_CLARK_NOA_6A6",
     "Secos": "OP_PROD_CLARK_SECOS_6A6",
     "Refrigerados": "OP_PROD_CLARK_REFRI_6A6",
+    "OC": "OP_PROD_CLARK_OC_6A6",
+    "Congelados": "OP_PROD_CLARK_CONGELADOS_6A6",
 }
 
 PICKING_PARAM_IDS_BY_SECTOR = {
     "Noa": "OP_PROD_PICKING_NOA_6A6",
     "Secos": "OP_PROD_PICKING_SECOS_6A6",
     "Refrigerados": "OP_PROD_PICKING_REFRI_6A6",
+    "OC": "OP_PROD_PICKING_OC_6A6",
+    "Congelados": "OP_PROD_PICKING_CONGELADOS_6A6",
 }
 
 PICKING_REAL_PARAM_IDS_BY_SECTOR = {
@@ -281,6 +287,15 @@ DESPACHO_PLAN_PARAM_IDS_BY_SECTOR = {
     "Secos": "OP_CUMP_DESPACHO_PLAN_6A6",
     "Refrigerados": "OP_CUMP_DESPACHO_PLAN_6A6",
 }
+
+PRODUCTIVIDAD_JORNADA_BY_SECTOR = {
+    "Congelados": 6.0,
+}
+
+
+def _productividad_jornada(sector: str) -> float:
+    return PRODUCTIVIDAD_JORNADA_BY_SECTOR.get(sector, 6.5)
+
 
 AVANCE_PARAM_IDS = {
     ("RECEPCION", "PLAN"): "OP_AVANCE_RECEPCION_PLAN_6A8",
@@ -847,7 +862,7 @@ async def save_clark_summary_cache(
             sector = SECTOR_MAP[sector_oracle]
             pallets = values["pallets"]
             legajos = float(len(values["legajos"]))
-            valor = round(pallets / values["hs_clark"] * 6.5, 2) if values["hs_clark"] else 0.0
+            valor = round(pallets / values["hs_clark"] * _productividad_jornada(sector), 2) if values["hs_clark"] else 0.0
             pallets_surtido = values["pallets_surtido"]
             await db.execute(
                 """
@@ -862,32 +877,26 @@ async def save_clark_summary_cache(
                 ),
             )
             result_count += 1
-            await db.execute(
-                """
-                INSERT INTO daily_auto_resultados (
-                    run_id, daily_key, process, sector, sector_oracle, id_parametro,
-                    valor, cantidad, legajos, details_count
-                ) VALUES (?, ?, 'CLARK', ?, ?, ?, ?, ?, ?, 0)
-                """,
-                (
-                    run_id, daily["daily_key"], sector, sector_oracle, SPC_REAL_PARAM_IDS_BY_SECTOR[sector],
-                    pallets_surtido, pallets_surtido, legajos,
-                ),
-            )
-            result_count += 1
-            await db.execute(
-                """
-                INSERT INTO daily_auto_resultados (
-                    run_id, daily_key, process, sector, sector_oracle, id_parametro,
-                    valor, cantidad, legajos, details_count
-                ) VALUES (?, ?, 'CLARK', ?, ?, ?, ?, ?, ?, 0)
-                """,
-                (
-                    run_id, daily["daily_key"], sector, sector_oracle, CLARK_DOTACION_PARAM_IDS_BY_SECTOR[sector],
-                    legajos, legajos, legajos,
-                ),
-            )
-            result_count += 1
+            for param_map, item_value, item_cantidad, item_legajos in (
+                (SPC_REAL_PARAM_IDS_BY_SECTOR, pallets_surtido, pallets_surtido, legajos),
+                (CLARK_DOTACION_PARAM_IDS_BY_SECTOR, legajos, legajos, legajos),
+            ):
+                id_parametro = param_map.get(sector)
+                if not id_parametro:
+                    continue
+                await db.execute(
+                    """
+                    INSERT INTO daily_auto_resultados (
+                        run_id, daily_key, process, sector, sector_oracle, id_parametro,
+                        valor, cantidad, legajos, details_count
+                    ) VALUES (?, ?, 'CLARK', ?, ?, ?, ?, ?, ?, 0)
+                    """,
+                    (
+                        run_id, daily["daily_key"], sector, sector_oracle, id_parametro,
+                        item_value, item_cantidad, item_legajos,
+                    ),
+                )
+                result_count += 1
         await db.commit()
     return {"run_id": run_id, "rows": len(rows), "resultados": result_count}
 
@@ -957,12 +966,13 @@ async def save_clark_raw_summary_cache(
             legajos_clark = _row_float(row, "LEGAJOS_CLARK")
             pallets_spc = _row_float(row, "PALLETS_SPC_DISTINTOS")
             legajos_spc = _row_float(row, "LEGAJOS_SPC")
-            productividad = round(pallets / hs_clark * 6.5, 2) if hs_clark else 0.0
-            for id_parametro, valor, cantidad, legajos in (
-                (CLARK_PARAM_IDS_BY_SECTOR[sector], productividad, pallets, legajos_clark),
-                (SPC_REAL_PARAM_IDS_BY_SECTOR[sector], pallets_spc, pallets_spc, legajos_spc),
-                (CLARK_DOTACION_PARAM_IDS_BY_SECTOR[sector], legajos_spc, legajos_spc, legajos_spc),
-            ):
+            productividad = round(pallets / hs_clark * _productividad_jornada(sector), 2) if hs_clark else 0.0
+            items = [(CLARK_PARAM_IDS_BY_SECTOR[sector], productividad, pallets, legajos_clark)]
+            if sector in SPC_REAL_PARAM_IDS_BY_SECTOR:
+                items.append((SPC_REAL_PARAM_IDS_BY_SECTOR[sector], pallets_spc, pallets_spc, legajos_spc))
+            if sector in CLARK_DOTACION_PARAM_IDS_BY_SECTOR:
+                items.append((CLARK_DOTACION_PARAM_IDS_BY_SECTOR[sector], legajos_spc, legajos_spc, legajos_spc))
+            for id_parametro, valor, cantidad, legajos in items:
                 await db.execute(
                     """
                     INSERT INTO daily_auto_resultados (
@@ -1013,7 +1023,10 @@ async def save_picking_summary_cache(
             "ALMACEN": sector_oracle,
             "BULTOS": values["bultos"],
             "LEGAJOS": len(values["legajos"]),
-            "PRODUCCION": round(values["bultos"] / values["hs_picking"] * 6.5, 2) if values["hs_picking"] else 0.0,
+            "PRODUCCION": round(
+                values["bultos"] / values["hs_picking"] * _productividad_jornada(SECTOR_MAP.get(sector_oracle, "")),
+                2,
+            ) if values["hs_picking"] else 0.0,
         }
         for sector_oracle, values in grouped.items()
     ]
@@ -1082,32 +1095,26 @@ async def save_picking_summary_cache(
                 ),
             )
             result_count += 1
-            await db.execute(
-                """
-                INSERT INTO daily_auto_resultados (
-                    run_id, daily_key, process, sector, sector_oracle, id_parametro,
-                    valor, cantidad, legajos, details_count
-                ) VALUES (?, ?, 'PICKING', ?, ?, ?, ?, ?, ?, 0)
-                """,
-                (
-                    run_id, daily["daily_key"], sector, sector_oracle, PICKING_REAL_PARAM_IDS_BY_SECTOR[sector],
-                    bultos, bultos, legajos,
-                ),
-            )
-            result_count += 1
-            await db.execute(
-                """
-                INSERT INTO daily_auto_resultados (
-                    run_id, daily_key, process, sector, sector_oracle, id_parametro,
-                    valor, cantidad, legajos, details_count
-                ) VALUES (?, ?, 'PICKING', ?, ?, ?, ?, ?, ?, 0)
-                """,
-                (
-                    run_id, daily["daily_key"], sector, sector_oracle, PICKING_DOTACION_PARAM_IDS_BY_SECTOR[sector],
-                    legajos, legajos, legajos,
-                ),
-            )
-            result_count += 1
+            for param_map, item_value, item_cantidad, item_legajos in (
+                (PICKING_REAL_PARAM_IDS_BY_SECTOR, bultos, bultos, legajos),
+                (PICKING_DOTACION_PARAM_IDS_BY_SECTOR, legajos, legajos, legajos),
+            ):
+                id_parametro = param_map.get(sector)
+                if not id_parametro:
+                    continue
+                await db.execute(
+                    """
+                    INSERT INTO daily_auto_resultados (
+                        run_id, daily_key, process, sector, sector_oracle, id_parametro,
+                        valor, cantidad, legajos, details_count
+                    ) VALUES (?, ?, 'PICKING', ?, ?, ?, ?, ?, ?, 0)
+                    """,
+                    (
+                        run_id, daily["daily_key"], sector, sector_oracle, id_parametro,
+                        item_value, item_cantidad, item_legajos,
+                    ),
+                )
+                result_count += 1
         await db.commit()
     if rows and result_count == 0:
         raise ValueError("La consulta Picking no genero resultados para sectores habilitados.")

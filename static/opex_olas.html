@@ -78,6 +78,8 @@
         <option value="Secos">Secos</option>
         <option value="Noa">Noa</option>
         <option value="Refrigerados">Refrigerados</option>
+        <option value="OC">OC</option>
+        <option value="Congelados">Congelados</option>
       </select>
     </div>
     <div class="field">
@@ -240,7 +242,7 @@
       setStatus('No hay datos para la division seleccionada.', 'error');
       return;
     }
-    $('state').textContent = `${olasData.daily?.daily_label || ''} | ${data.operation_label || olasData.operation_label || ''} | ${data.almacen} | cache`;
+    $('state').textContent = `${olasData.daily?.daily_label || ''} | ${data.operation_label || olasData.operation_label || ''} | ${data.division || data.almacen} | cache`;
     $('hero-sub').textContent = `${olasData.fecha_desde || ''} a ${olasData.fecha_hasta || ''}`;
     $('summary-title').textContent = `Indicadores generales de ${data.operation_label || 'operacion'}`;
     $('turnos-title').textContent = `Calculo de productividades reales por turno - ${data.operation_label || ''}`;
