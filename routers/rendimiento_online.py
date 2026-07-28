@@ -12,7 +12,7 @@ from datetime import datetime, time, timedelta
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from pydantic import BaseModel
@@ -24,6 +24,7 @@ from db.rendimiento_historico import (
     save_day_cache,
 )
 from routers.productividad_analisis import _query_productive_db_sql
+from routers.auth_local import current_auth
 
 
 router = APIRouter(prefix="/api/rendimiento-online", tags=["rendimiento-online"])
@@ -35,6 +36,7 @@ HISTORICO_SCHEDULE_TIME = time(6, 30)
 HISTORICO_BACKFILL_DAYS = 62
 _historico_scheduler_task: asyncio.Task | None = None
 _historico_scheduler_stop: asyncio.Event | None = None
+PREMIOS_ALLOWED_ROLES = {"admin", "rrhh"}
 
 
 QUERY_RENDIMIENTO_ONLINE = """
@@ -1084,10 +1086,16 @@ async def get_historico_analisis(
 
 @router.get("/historico/premios-no-incluidos")
 async def get_historico_premios_no_incluidos(
+    request: Request,
     operacion: str = Query("PICKING"),
     fecha_desde: str = Query(""),
     fecha_hasta: str = Query(""),
 ):
+    auth = await current_auth(request)
+    if not auth or auth.get("device_status") != "approved":
+        raise HTTPException(status_code=401, detail="No autenticado.")
+    if (auth.get("role") or "") not in PREMIOS_ALLOWED_ROLES:
+        raise HTTPException(status_code=403, detail="Requiere perfil admin o RRHH.")
     op = _norm(operacion)
     if op != "PICKING":
         raise HTTPException(status_code=400, detail="Por ahora solo esta disponible la operacion Picking.")

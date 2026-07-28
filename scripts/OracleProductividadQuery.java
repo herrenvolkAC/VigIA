@@ -112,7 +112,271 @@ public class OracleProductividadQuery {
         String almacenArg = args.length >= 13 ? args[12] : "SECOS + NOA";
 
         String sql;
-        if ("rend_premio_dias_pago".equalsIgnoreCase(queryKey)) {
+        if ("monitor_cargas".equalsIgnoreCase(queryKey)) {
+            sql = """
+                WITH VIAJES AS (
+                    SELECT
+                        V.CEMPRESA,
+                        V.CCENTDIS,
+                        V.CNUVIAJE,
+                        V.HOJARUTA,
+                        V.CAMIMATR,
+                        V.CNUANDEN,
+                        V.CDIVISIO,
+                        V.CARGADOR,
+                        V.FCREAREG,
+                        V.FEAPERTU,
+                        V.FMODIREG,
+                        V.CSITVIAJ,
+                        T.QPALMAXI,
+                        T.QVOLMAXI
+                    FROM F810VIAJ V
+                    LEFT JOIN F811TRAI T
+                      ON T.CEMPRESA = V.CEMPRESA
+                     AND T.CAMIMATR = V.CAMIMATR
+                    WHERE V.CSITVIAJ = 'EP'
+                ),
+                EXPEDICIONES AS (
+                    SELECT
+                        V.CEMPRESA,
+                        V.CCENTDIS,
+                        V.CNUVIAJE,
+                        E.CNUMEXPE,
+                        E.CSITEXPE,
+                        E.FCREACIO,
+                        E.QTBULTOS AS BULTOS_F035,
+                        E.QVOLTOTA AS VOLUMEN_F035
+                    FROM VIAJES V
+                    JOIN F035EXPE E
+                      ON E.CEMPRESA = V.CEMPRESA
+                     AND E.CCENTDIS = V.CCENTDIS
+                     AND E.CNUVIAJE = V.CNUVIAJE
+                ),
+                PALLETS AS (
+                    SELECT
+                        E.CEMPRESA,
+                        E.CCENTDIS,
+                        E.CNUVIAJE,
+                        E.CNUMEXPE,
+                        P.CALMACEN,
+                        P.CNUPALET,
+                        P.QTBULTOS,
+                        P.QVOLTOTA,
+                        P.CSITPALS,
+                        P.CTIPTRAB,
+                        P.CTIPPALS
+                    FROM EXPEDICIONES E
+                    JOIN F080CPSA P
+                      ON P.CEMPRESA = E.CEMPRESA
+                     AND P.CNUMEXPE = E.CNUMEXPE
+                    WHERE NVL(P.XANULADA, 'N') <> 'S'
+                ),
+                LINEAS_ACTIVAS AS (
+                    SELECT
+                        P.CEMPRESA,
+                        P.CCENTDIS,
+                        P.CNUVIAJE,
+                        P.CNUMEXPE,
+                        P.CALMACEN,
+                        P.CNUPALET,
+                        L.CREFEPLA,
+                        L.CVARLPLA,
+                        L.CCNSGPRO,
+                        L.QCANTIDA
+                    FROM PALLETS P
+                    JOIN F081LPSA L
+                      ON L.CEMPRESA = P.CEMPRESA
+                     AND L.CALMACEN = P.CALMACEN
+                     AND L.CNUPALET = P.CNUPALET
+                ),
+                CLAVES_VLOG AS (
+                    SELECT DISTINCT
+                        CEMPRESA,
+                        CCNSGPRO,
+                        CREFEPLA,
+                        CVARLPLA
+                    FROM LINEAS_ACTIVAS
+                ),
+                VLOG AS (
+                    SELECT
+                        G.CEMPRESA,
+                        G.CCONSIGN,
+                        G.CREFEREN,
+                        G.CVARLOGI,
+                        MAX(G.CCNIVELE) AS CCNIVELE,
+                        MAX(G.QCANTDEP) AS QCANTDEP,
+                        MAX(G.NALTUEXP) AS NALTUEXP,
+                        MAX(G.NANCHEXP) AS NANCHEXP,
+                        MAX(G.NLONGEXP) AS NLONGEXP,
+                        COUNT(*) AS COINCIDENCIAS
+                    FROM F054VLOG G
+                    JOIN CLAVES_VLOG K
+                      ON K.CEMPRESA = G.CEMPRESA
+                     AND K.CCNSGPRO = G.CCONSIGN
+                     AND K.CREFEPLA = G.CREFEREN
+                     AND K.CVARLPLA = G.CVARLOGI
+                    GROUP BY
+                        G.CEMPRESA,
+                        G.CCONSIGN,
+                        G.CREFEREN,
+                        G.CVARLOGI
+                ),
+                LINEAS_PALLET AS (
+                    SELECT
+                        L.CEMPRESA,
+                        L.CNUVIAJE,
+                        L.CNUMEXPE,
+                        L.CALMACEN,
+                        L.CNUPALET,
+                        COUNT(*) AS LINEAS,
+                        SUM(
+                            CASE G.CCNIVELE
+                                WHEN 2 THEN L.QCANTIDA
+                                WHEN 3 THEN L.QCANTIDA * G.QCANTDEP
+                                ELSE 0
+                            END
+                        ) AS BULTOS_CALCULADOS,
+                        SUM(
+                            CASE
+                                WHEN G.NALTUEXP > 0
+                                 AND G.NANCHEXP > 0
+                                 AND G.NLONGEXP > 0
+                                THEN L.QCANTIDA * G.NALTUEXP * G.NANCHEXP * G.NLONGEXP / 1000
+                                ELSE 0
+                            END
+                        ) AS VOLUMEN_CALCULADO,
+                        SUM(
+                            CASE
+                                WHEN NVL(L.QCANTIDA, 0) > 0
+                                 AND G.CREFEREN IS NULL
+                                THEN 1 ELSE 0
+                            END
+                        ) AS LINEAS_SIN_VLOG,
+                        SUM(
+                            CASE
+                                WHEN NVL(L.QCANTIDA, 0) > 0
+                                 AND (
+                                     NVL(G.NALTUEXP, 0) <= 0
+                                     OR NVL(G.NANCHEXP, 0) <= 0
+                                     OR NVL(G.NLONGEXP, 0) <= 0
+                                 )
+                                THEN 1 ELSE 0
+                            END
+                        ) AS LINEAS_SIN_DIMENSION,
+                        SUM(
+                            CASE
+                                WHEN NVL(L.QCANTIDA, 0) > 0
+                                 AND NVL(G.CCNIVELE, -1) NOT IN (2, 3)
+                                THEN 1 ELSE 0
+                            END
+                        ) AS LINEAS_NIVEL_INVALIDO,
+                        SUM(
+                            CASE
+                                WHEN NVL(L.QCANTIDA, 0) > 0
+                                 AND NVL(G.COINCIDENCIAS, 0) > 1
+                                THEN 1 ELSE 0
+                            END
+                        ) AS LINEAS_VLOG_DUPLICADA
+                    FROM LINEAS_ACTIVAS L
+                    LEFT JOIN VLOG G
+                      ON G.CEMPRESA = L.CEMPRESA
+                     AND G.CCONSIGN = L.CCNSGPRO
+                     AND G.CREFEREN = L.CREFEPLA
+                     AND G.CVARLOGI = L.CVARLPLA
+                    GROUP BY
+                        L.CEMPRESA,
+                        L.CNUVIAJE,
+                        L.CNUMEXPE,
+                        L.CALMACEN,
+                        L.CNUPALET
+                ),
+                CARGA_EXPEDICION AS (
+                    SELECT
+                        P.CEMPRESA,
+                        P.CNUVIAJE,
+                        P.CNUMEXPE,
+                        COUNT(*) AS PALLETS,
+                        SUM(NVL(L.LINEAS, 0)) AS LINEAS,
+                        SUM(NVL(L.BULTOS_CALCULADOS, 0)) AS BULTOS_CALCULADOS,
+                        SUM(NVL(L.VOLUMEN_CALCULADO, 0)) AS VOLUMEN_CALCULADO,
+                        SUM(P.QTBULTOS) AS BULTOS_F080,
+                        SUM(P.QVOLTOTA) AS VOLUMEN_F080,
+                        SUM(
+                            CASE
+                                WHEN L.CNUPALET IS NULL
+                                 AND (NVL(P.QTBULTOS, 0) > 0 OR NVL(P.QVOLTOTA, 0) > 0)
+                                THEN 1 ELSE 0
+                            END
+                        ) AS PALLETS_SIN_DETALLE,
+                        SUM(NVL(L.LINEAS_SIN_VLOG, 0)) AS LINEAS_SIN_VLOG,
+                        SUM(NVL(L.LINEAS_SIN_DIMENSION, 0)) AS LINEAS_SIN_DIMENSION,
+                        SUM(NVL(L.LINEAS_NIVEL_INVALIDO, 0)) AS LINEAS_NIVEL_INVALIDO,
+                        SUM(NVL(L.LINEAS_VLOG_DUPLICADA, 0)) AS LINEAS_VLOG_DUPLICADA
+                    FROM PALLETS P
+                    LEFT JOIN LINEAS_PALLET L
+                      ON L.CEMPRESA = P.CEMPRESA
+                     AND L.CNUVIAJE = P.CNUVIAJE
+                     AND L.CNUMEXPE = P.CNUMEXPE
+                     AND L.CALMACEN = P.CALMACEN
+                     AND L.CNUPALET = P.CNUPALET
+                    GROUP BY
+                        P.CEMPRESA,
+                        P.CNUVIAJE,
+                        P.CNUMEXPE
+                )
+                SELECT
+                    V.CEMPRESA,
+                    V.CCENTDIS,
+                    V.CNUVIAJE,
+                    V.HOJARUTA,
+                    V.CAMIMATR,
+                    V.CNUANDEN,
+                    V.CDIVISIO,
+                    CASE
+                        WHEN V.CDIVISIO IN (1, 3) THEN 'SECOS'
+                        WHEN V.CDIVISIO IN (2, 4) THEN 'REFRIGERADOS'
+                        WHEN V.CDIVISIO = 6 THEN 'NOA'
+                        ELSE 'OTROS'
+                    END AS DIVISION,
+                    V.CARGADOR,
+                    V.FCREAREG,
+                    V.FEAPERTU,
+                    V.FMODIREG,
+                    V.QPALMAXI,
+                    V.QVOLMAXI,
+                    E.CNUMEXPE,
+                    E.CSITEXPE,
+                    E.FCREACIO AS FECHA_EXPEDICION,
+                    NVL(C.PALLETS, 0) AS PALLETS,
+                    NVL(C.LINEAS, 0) AS LINEAS,
+                    NVL(C.BULTOS_CALCULADOS, 0) AS BULTOS_CALCULADOS,
+                    ROUND(NVL(C.VOLUMEN_CALCULADO, 0), 3) AS VOLUMEN_CALCULADO,
+                    NVL(C.BULTOS_F080, 0) AS BULTOS_F080,
+                    ROUND(NVL(C.VOLUMEN_F080, 0), 3) AS VOLUMEN_F080,
+                    NVL(E.BULTOS_F035, 0) AS BULTOS_F035,
+                    ROUND(NVL(E.VOLUMEN_F035, 0), 3) AS VOLUMEN_F035,
+                    NVL(C.PALLETS_SIN_DETALLE, 0) AS PALLETS_SIN_DETALLE,
+                    NVL(C.LINEAS_SIN_VLOG, 0) AS LINEAS_SIN_VLOG,
+                    NVL(C.LINEAS_SIN_DIMENSION, 0) AS LINEAS_SIN_DIMENSION,
+                    NVL(C.LINEAS_NIVEL_INVALIDO, 0) AS LINEAS_NIVEL_INVALIDO,
+                    NVL(C.LINEAS_VLOG_DUPLICADA, 0) AS LINEAS_VLOG_DUPLICADA,
+                    SYSDATE AS ORACLE_NOW
+                FROM VIAJES V
+                LEFT JOIN EXPEDICIONES E
+                  ON E.CEMPRESA = V.CEMPRESA
+                 AND E.CCENTDIS = V.CCENTDIS
+                 AND E.CNUVIAJE = V.CNUVIAJE
+                LEFT JOIN CARGA_EXPEDICION C
+                  ON C.CEMPRESA = E.CEMPRESA
+                 AND C.CNUVIAJE = E.CNUVIAJE
+                 AND C.CNUMEXPE = E.CNUMEXPE
+                ORDER BY
+                    CASE WHEN V.CNUANDEN IS NULL THEN 1 ELSE 0 END,
+                    V.CNUANDEN,
+                    NVL(V.FEAPERTU, V.FCREAREG) DESC,
+                    E.CNUMEXPE
+                """;
+        } else if ("rend_premio_dias_pago".equalsIgnoreCase(queryKey)) {
             sql = """
                 SELECT
                     FECHA,
@@ -610,6 +874,64 @@ public class OracleProductividadQuery {
                 WHERE A.FECHA = TO_NUMBER(TO_CHAR(TO_DATE(?, 'YYYY/MM/DD'), 'YYYYMMDD'))
                   AND B.ID_PV_GRUPO_DE_FUNCIONES = TO_NUMBER(?)
                 GROUP BY B.ID_PV_GRUPO_DE_FUNCIONES
+                """;
+        } else if ("pp_estudio_premios_oracle".equalsIgnoreCase(queryKey)) {
+            sql = """
+                WITH PARAMS AS (
+                    SELECT
+                        TO_NUMBER(TO_CHAR(TO_DATE(?, 'YYYY/MM/DD'), 'YYYYMMDD')) AS FECHA_DESDE,
+                        TO_NUMBER(TO_CHAR(TO_DATE(?, 'YYYY/MM/DD'), 'YYYYMMDD')) AS FECHA_HASTA
+                    FROM DUAL
+                ),
+                BASE AS (
+                    SELECT
+                        A.LEGAJO,
+                        A.FECHA,
+                        D.ID AS ID_GRUPO_FUNCIONES,
+                        D.DESCRIPCION AS OPERACION,
+                        NVL(D.ID_DE_UNIDAD_DE_PRODUCCION, 'NA') AS UNIDAD_MEDIDA,
+                        CASE
+                            WHEN NVL(D.ID_DE_UNIDAD_DE_PRODUCCION, 'NA') = 'NA' THEN 'NO MEDIBLE'
+                            ELSE 'MEDIBLE'
+                        END AS TIPO_PREMIO,
+                        NVL(F.DESCRIPCION, 'TODOS') AS DIVISION,
+                        NVL(B.A_PAGAR_TOTAL, 0) AS PAGO,
+                        NVL(C.PROD_REAL, 0) AS PROD,
+                        NVL(B.PENALIZACION_EXCESO_TNC, 0) AS PENA_TNC,
+                        NVL(B.PENALIZACION_POR_ERROR, 0) AS PENA_ERROR
+                    FROM PARAMS P
+                    JOIN PV_DIA_LABORAL A
+                      ON A.FECHA BETWEEN P.FECHA_DESDE AND P.FECHA_HASTA
+                    JOIN PV_LIQUIDAC_DIA_DET1 B
+                      ON A.ID = B.ID_PV_DIA_LABORAL
+                    JOIN PV_GRUPO_DE_FUNCIONES_CAB D
+                      ON D.ID = B.ID_PV_GRUPO_DE_FUNCIONES
+                    LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F
+                      ON B.ID_PV_GRUPO_PRODUCTIVO = F.ID
+                    LEFT JOIN PV_LIQUIDAC_DIA_DET2 C
+                      ON A.ID = C.ID_PV_DIA_LABORAL
+                     AND B.ID_PV_GRUPO_DE_FUNCIONES = C.ID_PV_GRUPO_DE_FUNCIONES
+                     AND NVL(B.ID_PV_GRUPO_PRODUCTIVO, 0) = NVL(C.ID_PV_GRUPO_PRODUCTIVO, 0)
+                )
+                SELECT
+                    LEGAJO,
+                    FECHA,
+                    OPERACION,
+                    UNIDAD_MEDIDA,
+                    TIPO_PREMIO,
+                    DIVISION,
+                    COUNT(*) AS JORNADAS_CON_MEDICION,
+                    COUNT(DISTINCT FECHA) AS DIAS_CON_MEDICION,
+                    SUM(CASE WHEN PAGO > 0 THEN 1 ELSE 0 END) AS JORNADAS_CON_PREMIO,
+                    SUM(CASE WHEN PROD > 0 THEN 1 ELSE 0 END) AS JORNADAS_CON_ACTIVIDAD,
+                    SUM(CASE WHEN PROD > 0 AND PAGO <= 0 THEN 1 ELSE 0 END) AS JORNADAS_ACTIVIDAD_SIN_PREMIO,
+                    SUM(CASE WHEN PROD <= 0 AND PAGO > 0 THEN 1 ELSE 0 END) AS JORNADAS_PREMIO_SIN_ACTIVIDAD,
+                    ROUND(SUM(PAGO), 2) AS PREMIO_ACTUAL_TOTAL,
+                    ROUND(SUM(PROD), 3) AS PRODUCTIVIDAD_TOTAL,
+                    ROUND(SUM(PROD), 3) AS PRODUCTIVIDAD_TURNO_TOTAL
+                FROM BASE
+                GROUP BY LEGAJO, FECHA, OPERACION, UNIDAD_MEDIDA, TIPO_PREMIO, DIVISION
+                ORDER BY PREMIO_ACTUAL_TOTAL DESC, LEGAJO, FECHA, TIPO_PREMIO, OPERACION, DIVISION
                 """;
         } else if ("premio_caso_modelo_rango".equalsIgnoreCase(queryKey)) {
             sql =
@@ -1923,7 +2245,7 @@ public class OracleProductividadQuery {
                 for (int i = 0; i < ubicaciones.length; i++) {
                     ps.setString(3 + i, ubicaciones[i] + "%");
                 }
-            } else if (!"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey) && !"rack_inutilizadas".equalsIgnoreCase(queryKey) && !"pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) && !"rend_premio_escalas".equalsIgnoreCase(queryKey)) {
+            } else if (!"monitor_cargas".equalsIgnoreCase(queryKey) && !"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey) && !"rack_inutilizadas".equalsIgnoreCase(queryKey) && !"pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) && !"rend_premio_escalas".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
                 ps.setString(2, fechaHasta);
                 if ("gestion_productividad_picking".equalsIgnoreCase(queryKey)) {
@@ -1956,7 +2278,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_escalas_por_id".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey) || "pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) || "pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey) || "pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey) || "pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey) || "rend_premio_dias_pago".equalsIgnoreCase(queryKey) || "rend_premio_escalas".equalsIgnoreCase(queryKey)) {
+                    if ("monitor_cargas".equalsIgnoreCase(queryKey) || "premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_escalas_por_id".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey) || "pp_estudio_premios_oracle".equalsIgnoreCase(queryKey) || "pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) || "pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey) || "pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey) || "pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey) || "rend_premio_dias_pago".equalsIgnoreCase(queryKey) || "rend_premio_escalas".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

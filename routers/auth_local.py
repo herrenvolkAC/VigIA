@@ -11,12 +11,12 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import aiosqlite
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from db.auth import auth_db
-from utils.usage_log import write_usage_log
+from utils.usage_log import ensure_usage_events_schema, write_usage_log
 
 router = APIRouter(prefix="/api/auth", tags=["auth-local"])
 
@@ -175,7 +175,7 @@ APP_MODULES = [
     {"id": "checklist_tareas", "label": "CheckList Tareas", "path": "/checklist-tareas"},
     {"id": "recepcion", "label": "Recepcion", "path": "/recepcion.html", "available": False},
     {"id": "mapa", "label": "Mapa", "path": "", "available": False},
-    {"id": "control_procesos", "label": "Control de Procesos", "path": "", "available": False},
+    {"id": "control_procesos", "label": "Monitor Cargas", "path": "/monitor-cargas"},
     {"id": "trafico", "label": "Trafico", "path": "", "available": False},
     {"id": "generales", "label": "Generales", "path": "", "available": False},
 ]
@@ -757,6 +757,58 @@ async def list_users(request: Request):
     for row in rows:
         row["rrhh_sectors"] = [item for item in (row.get("rrhh_sectors") or "").split("|") if item]
     return {"users": rows}
+
+
+@router.get("/admin/usage-events")
+async def list_usage_events(
+    request: Request,
+    username: str = Query(""),
+    module: str = Query(""),
+    action: str = Query(""),
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    limit: int = Query(200, ge=1, le=1000),
+):
+    await _require_admin(request)
+    ensure_usage_events_schema()
+    where = []
+    args: list[Any] = []
+    username = _normalize_username(str(username or ""))
+    module = str(module or "").strip()
+    action = str(action or "").strip()
+    fecha_desde = str(fecha_desde or "").strip()
+    fecha_hasta = str(fecha_hasta or "").strip()
+    if username:
+        where.append("username = ?")
+        args.append(username)
+    if module:
+        where.append("module = ?")
+        args.append(module)
+    if action:
+        where.append("action = ?")
+        args.append(action)
+    if fecha_desde:
+        where.append("fecha >= ?")
+        args.append(fecha_desde)
+    if fecha_hasta:
+        where.append("fecha <= ?")
+        args.append(fecha_hasta)
+    where_sql = f"WHERE {' AND '.join(where)}" if where else ""
+    async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT event_id, created_at, fecha, hora, username, ip_address, module,
+                   module_label, action, action_label, path, method, status_code, metadata_json
+            FROM auth_usage_events
+            {where_sql}
+            ORDER BY event_id DESC
+            LIMIT ?
+            """,
+            tuple([*args, limit]),
+        )
+    return {"events": rows, "limit": limit}
 
 
 @router.post("/admin/users/legajo")

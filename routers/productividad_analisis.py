@@ -2482,6 +2482,14 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     classpath = os.pathsep.join([str(JAVA_BUILD_DIR), ojdbc_jar])
     normalized_query = " ".join(query.upper().split())
     if (
+        "F810VIAJ" in normalized_query
+        and "F080CPSA" in normalized_query
+        and "BULTOS_CALCULADOS" in normalized_query
+        and "VOLUMEN_CALCULADO" in normalized_query
+        and "CSITVIAJ = 'EP'" in normalized_query
+    ):
+        query_key = "monitor_cargas"
+    elif (
         "F956MTNC" in normalized_query
         and "CODIGO_TNC" in normalized_query
         and "F957ATNC" not in normalized_query

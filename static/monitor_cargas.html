@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>VigIA - Monitor Cargas</title>
+  <style>
+    :root{
+      --bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;
+      --rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;
+      --amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;
+      --blue:#0B5FAE;--blue-soft:#E4F0FB;--teal:#007C91;--teal-soft:#DFF2F4;
+    }
+    *{box-sizing:border-box}
+    html{background:var(--bg)}
+    body{
+      margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;
+      background-color:var(--bg);
+      background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);
+      background-size:24px 24px;
+    }
+    button,input,select{font:inherit;color:inherit}
+    button{cursor:pointer}
+    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{
+      outline:2px solid var(--green);outline-offset:2px;
+    }
+    .paper-app{width:100%;min-height:100vh;padding:0 16px 22px}
+    .mono{font-family:'IBM Plex Mono',monospace}
+    .label{
+      font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;
+      text-transform:uppercase;color:var(--ink-soft);
+    }
+    .paper-header{
+      display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;
+      padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom-color:var(--rule-strong);
+    }
+    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-logo{width:86px;height:44px;object-fit:contain}
+    .brand-rule{width:1px;height:28px;background:var(--rule)}
+    .kicker{
+      font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;
+      text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;
+    }
+    h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}
+    .amp{color:var(--red)}
+    .connection-state{
+      justify-self:center;display:flex;align-items:center;gap:8px;border:1px solid var(--rule);
+      background:#F8FAF7;padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+      letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);
+    }
+    .connection-dot{width:7px;height:7px;border-radius:50%;background:var(--rule-strong)}
+    .connection-state.online{color:var(--green);border-color:#C8E2D0;background:var(--green-soft)}
+    .connection-state.online .connection-dot{background:var(--green)}
+    .connection-state.error{color:var(--red);border-color:#E9B8C0;background:var(--red-soft)}
+    .connection-state.error .connection-dot{background:var(--red)}
+    .header-right{display:flex;align-items:center;gap:10px}
+    .user-chip{border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}
+    .user-value{
+      font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);
+      max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .paper-link,.logout-btn,.refresh-btn{
+      min-height:30px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);
+      padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;
+      text-transform:uppercase;text-decoration:none;
+    }
+    .paper-link:hover{color:var(--blue);border-color:var(--blue)}
+    .logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .refresh-btn{height:34px;color:#fff;background:var(--green);border-color:var(--green);font-weight:600}
+    .refresh-btn:hover{background:#185F3D}
+    .refresh-btn:disabled{cursor:wait;opacity:.66}
+    .env-banner,.error-banner{
+      display:none;margin:10px 0 0;padding:8px 12px;border:1px solid var(--amber);
+      background:var(--amber-soft);color:#6F4300;font-family:'IBM Plex Mono',monospace;
+      font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    }
+    .env-banner.visible,.error-banner.visible{display:block}
+    .error-banner{border-color:var(--red);background:var(--red-soft);color:#7B0C20}
+    .monitor-heading{
+      display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:18px;
+      margin-top:12px;padding:13px 14px;background:var(--panel);border:1px solid var(--rule);
+    }
+    .monitor-heading h2{font-size:18px;font-weight:600;margin:3px 0 0}
+    .heading-note{font-size:12px;color:var(--ink-soft);margin-top:4px}
+    .heading-meta{
+      text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.7;
+      letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);
+    }
+    .filters{
+      display:grid;grid-template-columns:minmax(220px,1.4fr) minmax(180px,.7fr) auto auto;
+      gap:10px;align-items:end;margin-top:10px;padding:11px 12px;background:var(--panel);border:1px solid var(--rule);
+    }
+    .field{display:grid;gap:5px}
+    .paper-input,.paper-select{
+      width:100%;height:34px;border:1px solid var(--rule);border-radius:2px;background:#FBFCFA;
+      padding:0 10px;font-size:12px;
+    }
+    .paper-input:hover,.paper-select:hover{border-color:var(--rule-strong)}
+    .kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+    .kpi-card{
+      position:relative;overflow:hidden;min-height:132px;padding:15px 16px;background:var(--panel);
+      border:1px solid var(--rule);border-top:4px solid var(--metric-color);
+    }
+    .kpi-card::after{
+      content:"";position:absolute;right:-42px;top:-54px;width:150px;height:150px;border-radius:50%;
+      background:var(--metric-soft);opacity:.78;pointer-events:none;
+    }
+    .kpi-card.bultos{--metric-color:var(--blue);--metric-soft:var(--blue-soft)}
+    .kpi-card.volumen{--metric-color:var(--teal);--metric-soft:var(--teal-soft)}
+    .kpi-card.ocupacion{--metric-color:var(--green);--metric-soft:var(--green-soft)}
+    .kpi-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .metric-unit{
+      border:1px solid var(--metric-color);background:var(--metric-soft);color:var(--metric-color);
+      padding:4px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    }
+    .kpi-value{
+      position:relative;z-index:1;margin-top:12px;font-family:'IBM Plex Mono',monospace;
+      font-size:38px;line-height:1;font-weight:600;color:var(--metric-color);font-variant-numeric:tabular-nums;
+    }
+    #total-ocupacion.warning{color:var(--amber)}
+    #total-ocupacion.over{color:var(--red)}
+    .kpi-note{position:relative;z-index:1;margin-top:9px;font-size:11px;color:var(--ink-soft)}
+    .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .paper-panel{background:var(--panel);border:1px solid var(--rule);min-width:0}
+    .panel-head{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;
+      border-bottom:1px solid var(--rule);background:#F8FAF7;
+    }
+    .panel-title{font-size:13px;font-weight:600}
+    .panel-count{
+      font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--ink-soft);
+    }
+    .chart-list{display:grid;gap:9px;padding:12px;min-height:180px}
+    .chart-row{display:grid;grid-template-columns:92px minmax(80px,1fr) 150px;gap:9px;align-items:center}
+    .chart-trip{
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'IBM Plex Mono',monospace;
+      font-size:10px;font-weight:600;color:var(--ink);
+    }
+    .bar-track{height:10px;background:#EDF0ED;border:1px solid var(--rule);overflow:hidden}
+    .bar-fill{height:100%;min-width:0;background:var(--bar-color);transition:width .25s ease}
+    .bar-fill.warning{background:var(--amber)}
+    .bar-fill.over{background:var(--red)}
+    .chart-row.is-empty{opacity:.52}
+    .bultos-chart{--bar-color:var(--blue)}
+    .volumen-chart{--bar-color:var(--teal)}
+    .chart-value{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+    .table-panel{margin-top:10px}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:1280px}
+    th{
+      position:sticky;top:0;z-index:1;background:#F8FAF7;border-bottom:1px solid var(--rule-strong);
+      padding:9px 10px;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:9px;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;
+    }
+    td{padding:10px;border-bottom:1px solid var(--rule);font-size:11px;vertical-align:middle}
+    .trip-row{cursor:pointer;background:var(--panel)}
+    .trip-row:hover{background:#F8FAF7}
+    .trip-row.open{background:#F4F8F5}
+    .trip-row.loaded td:first-child{box-shadow:inset 3px 0 0 var(--green)}
+    .trip-row.no-load td{height:32px;padding:4px 10px;background:#FAFBF9;color:var(--ink-soft);line-height:1.05}
+    .trip-row.no-load:hover td{background:#F5F7F4}
+    .trip-row.no-load .trip-sub,.trip-row.no-load .occupancy-track{display:none}
+    .trip-row.no-load .trip-main{font-size:10px;font-weight:500}
+    .trip-row.no-load .expand-mark{width:17px;height:17px;font-size:10px}
+    .trip-row.no-load .load-badge,.trip-row.no-load .quality-badge{padding:2px 6px}
+    .trip-row.no-load .occupancy-value{font-size:10px;font-weight:500;color:var(--ink-soft)}
+    .trip-cell{display:flex;align-items:center;gap:9px}
+    .expand-mark{
+      width:20px;height:20px;display:grid;place-items:center;border:1px solid var(--rule);
+      font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--green);flex:0 0 auto;
+    }
+    .trip-row.open .expand-mark{background:var(--green-soft);border-color:#C8E2D0}
+    .trip-main{font-family:'IBM Plex Mono',monospace;font-weight:600}
+    .trip-sub{margin-top:2px;color:var(--ink-soft);font-size:10px;white-space:nowrap}
+    .number{text-align:right;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+    .division-badge,.quality-badge,.load-badge{
+      display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid var(--rule);
+      font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
+    }
+    .division-badge{color:var(--blue);border-color:#BED4EA;background:var(--blue-soft)}
+    .division-badge.refrigerados{color:var(--teal);border-color:#B8DDE1;background:var(--teal-soft)}
+    .load-badge{color:var(--green);border-color:#C8E2D0;background:var(--green-soft)}
+    .load-badge.is-empty{color:var(--ink-soft);border-color:var(--rule);background:#F3F5F2}
+    .quality-badge{color:var(--green);border-color:#C8E2D0;background:var(--green-soft)}
+    .quality-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+    .quality-badge.review{color:var(--amber);border-color:#EACB99;background:var(--amber-soft)}
+    .occupancy-cell{min-width:142px}
+    .occupancy-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .occupancy-value{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--teal)}
+    .occupancy-value.warning{color:var(--amber)}
+    .occupancy-value.over{color:var(--red)}
+    .occupancy-track{height:6px;margin-top:5px;background:#EDF0ED;border:1px solid var(--rule);overflow:hidden}
+    .occupancy-fill{height:100%;background:var(--teal)}
+    .occupancy-fill.warning{background:var(--amber)}
+    .occupancy-fill.over{background:var(--red)}
+    .detail-row{display:none;background:#FAFBF9}
+    .detail-row.visible{display:table-row}
+    .detail-row td{padding:0 12px 12px 40px}
+    .expedition-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:10px}
+    .expedition-card{border:1px solid var(--rule);background:var(--panel);padding:10px}
+    .expedition-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+    .expedition-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600}
+    .expedition-status{
+      padding:3px 6px;background:#F3F5F2;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;
+      font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+    }
+    .expedition-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+    .expedition-metric{border-top:1px solid var(--rule);padding-top:7px}
+    .expedition-value{margin-top:3px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600}
+    .expedition-foot{margin-top:8px;font-size:10px;color:var(--ink-soft)}
+    .expedition-occupancy{margin-top:9px;padding-top:8px;border-top:1px solid var(--rule)}
+    .quality-note{margin-top:8px;padding:6px 7px;background:var(--amber-soft);color:#6F4300;font-size:10px}
+    .empty{
+      min-height:120px;display:grid;place-items:center;padding:22px;text-align:center;color:var(--ink-soft);
+      font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.5;
+    }
+    .loading-line{
+      height:10px;margin:7px 0;background:linear-gradient(90deg,#EDF0ED,#F8FAF7,#EDF0ED);
+      background-size:200% 100%;animation:loading 1.2s linear infinite;
+    }
+    @keyframes loading{to{background-position:-200% 0}}
+    @media(max-width:1100px){
+      .paper-header{grid-template-columns:1fr}.connection-state{justify-self:start}.header-right{justify-self:start;flex-wrap:wrap}
+      .filters{grid-template-columns:1fr 1fr}.charts-grid{grid-template-columns:1fr}
+      .expedition-grid{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:700px){
+      .paper-app{padding:0 10px 16px}.monitor-heading{grid-template-columns:1fr}.heading-meta{text-align:left}
+      .filters,.kpi-grid{grid-template-columns:1fr}.expedition-grid{grid-template-columns:1fr}
+      .chart-row{grid-template-columns:76px minmax(60px,1fr) 120px}.kpi-value{font-size:32px}
+    }
+  </style>
+</head>
+<body>
+<div class="paper-app">
+  <header class="paper-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
+      <div class="brand-rule"></div>
+      <div>
+        <div class="kicker">Despacho en linea</div>
+        <h1>Monitor <span class="amp">Cargas</span></h1>
+      </div>
+    </div>
+    <div class="connection-state" id="connection-state"><span class="connection-dot"></span><span id="connection-text">Preparando consulta</span></div>
+    <div class="header-right">
+      <a class="paper-link" href="/selector">Selector</a>
+      <div class="user-chip"><div class="label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div>
+      <button class="logout-btn" id="logout-btn">Salir</button>
+    </div>
+  </header>
+
+  <div class="env-banner" id="env-banner"></div>
+  <div class="error-banner" id="error-banner"></div>
+
+  <section class="monitor-heading">
+    <div>
+      <div class="label">Viajes en preparacion · Estado EP</div>
+      <h2>Bultos y volumen cargados por anden</h2>
+      <div class="heading-note">Lectura operativa actual. La ocupacion compara el volumen cargado con la capacidad nominal QVOLMAXI del trailer.</div>
+    </div>
+    <div class="heading-meta">
+      <div id="update-label">Sin actualizar</div>
+      <div id="result-label">Esperando datos de Oracle</div>
+    </div>
+  </section>
+
+  <section class="filters" aria-label="Filtros del monitor">
+    <div class="field">
+      <label class="label" for="search-input">Buscar viaje</label>
+      <input class="paper-input" id="search-input" autocomplete="off" placeholder="Anden, viaje, hoja de ruta o matricula">
+    </div>
+    <div class="field">
+      <label class="label" for="division-select">Division</label>
+      <select class="paper-select" id="division-select">
+        <option value="">Todas</option>
+        <option value="SECOS">Secos</option>
+        <option value="REFRIGERADOS">Refrigerados</option>
+        <option value="NOA">NOA</option>
+        <option value="OTROS">Otros</option>
+      </select>
+    </div>
+    <button class="refresh-btn" id="refresh-btn">Actualizar</button>
+  </section>
+
+  <section class="kpi-grid" aria-label="Totales cargados">
+    <article class="kpi-card bultos">
+      <div class="kpi-top"><div class="label">Bultos cargados</div><div class="metric-unit">Bultos</div></div>
+      <div class="kpi-value" id="total-bultos">—</div>
+      <div class="kpi-note" id="bultos-note">Suma calculada desde el detalle logistico de los pallets.</div>
+    </article>
+    <article class="kpi-card volumen">
+      <div class="kpi-top"><div class="label">Volumen cargado</div><div class="metric-unit">dm³</div></div>
+      <div class="kpi-value" id="total-volumen">—</div>
+      <div class="kpi-note" id="volumen-note">Alto × ancho × largo convertido desde centimetros.</div>
+    </article>
+    <article class="kpi-card ocupacion">
+      <div class="kpi-top"><div class="label">Ocupacion volumetrica</div><div class="metric-unit">%</div></div>
+      <div class="kpi-value" id="total-ocupacion">—</div>
+      <div class="kpi-note" id="ocupacion-note">Volumen cargado sobre capacidad nominal informada.</div>
+    </article>
+  </section>
+
+  <section class="charts-grid" aria-label="Comparacion de carga por viaje">
+    <article class="paper-panel">
+      <div class="panel-head">
+        <div class="panel-title">Bultos por anden</div>
+        <div class="panel-count" id="bultos-chart-count">0 viajes</div>
+      </div>
+      <div class="chart-list bultos-chart" id="bultos-chart">
+        <div class="empty">Consultando bultos cargados.</div>
+      </div>
+    </article>
+    <article class="paper-panel">
+      <div class="panel-head">
+        <div class="panel-title">Volumen y ocupacion por anden</div>
+        <div class="panel-count" id="volumen-chart-count">0 viajes</div>
+      </div>
+      <div class="chart-list volumen-chart" id="volumen-chart">
+        <div class="empty">Consultando volumen cargado.</div>
+      </div>
+    </article>
+  </section>
+
+  <section class="paper-panel table-panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Viajes abiertos</div>
+        <div class="trip-sub">Selecciona una fila para ver el detalle por expedicion.</div>
+      </div>
+      <div class="panel-count" id="table-count">0 viajes</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Anden / viaje</th>
+            <th>Division</th>
+            <th>Matricula / capacidad</th>
+            <th>Estado</th>
+            <th class="number">Expediciones</th>
+            <th class="number">Pallets</th>
+            <th class="number">Bultos</th>
+            <th class="number">Volumen dm³</th>
+            <th>Ocupacion</th>
+            <th>Apertura</th>
+            <th>Datos</th>
+          </tr>
+        </thead>
+        <tbody id="trip-table">
+          <tr><td colspan="11"><div class="empty"><div style="width:min(560px,80%)"><div class="loading-line"></div><div class="loading-line"></div><div class="loading-line"></div></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const state = { payload:null, loading:false, expanded:new Set(), lastLoadedAt:0 };
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const fmtInt = value => Math.round(Number(value || 0)).toLocaleString('es-AR');
+  const fmtVolume = value => Number(value || 0).toLocaleString('es-AR', {minimumFractionDigits:1, maximumFractionDigits:1});
+
+  function parseDate(value) {
+    if (!value) return null;
+    const normalized = String(value).replace(' ', 'T').replace(/\.0$/, '');
+    const date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function fmtDate(value) {
+    const date = parseDate(value);
+    if (!date) return '—';
+    return date.toLocaleString('es-AR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+
+  function sinceDate(value) {
+    const date = parseDate(value);
+    const oracleNow = parseDate(state.payload?.oracle_now) || new Date();
+    if (!date) return 'Sin hora';
+    const minutes = Math.max(0, Math.round((oracleNow - date) / 60000));
+    if (minutes < 60) return `Hace ${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    return `Hace ${hours} h${rest ? ` ${rest} min` : ''}`;
+  }
+
+  function setConnection(mode, text) {
+    const container = $('connection-state');
+    container.classList.remove('online', 'error');
+    if (mode) container.classList.add(mode);
+    $('connection-text').textContent = text;
+  }
+
+  function qualityText(quality) {
+    if (!quality || quality.estado === 'ok') return 'Validado';
+    return `${quality.incidencias || 1} observacion${Number(quality.incidencias || 1) === 1 ? '' : 'es'}`;
+  }
+
+  function capacityText(trip) {
+    const parts = [];
+    if (Number(trip.capacidad_volumen_dm3 || 0) > 0) parts.push(`${fmtVolume(trip.capacidad_volumen_dm3)} dm³ max.`);
+    if (Number(trip.capacidad_pallets || 0) > 0) parts.push(`${fmtInt(trip.capacidad_pallets)} pallets max.`);
+    return parts.join(' · ') || 'Capacidad no informada';
+  }
+
+  function hasOccupancy(value) {
+    return value !== null && value !== undefined && Number.isFinite(Number(value));
+  }
+
+  function fmtOccupancy(value) {
+    return hasOccupancy(value)
+      ? `${Number(value).toLocaleString('es-AR', {minimumFractionDigits:1, maximumFractionDigits:1})}%`
+      : 'Sin capacidad';
+  }
+
+  function occupancyClass(value) {
+    if (!hasOccupancy(value)) return '';
+    if (Number(value) > 100) return 'over';
+    if (Number(value) >= 90) return 'warning';
+    return '';
+  }
+
+  function occupancyVisual(value) {
+    const cssClass = occupancyClass(value);
+    const width = hasOccupancy(value) ? Math.max(0, Math.min(100, Number(value))) : 0;
+    return `
+      <div class="occupancy-head">
+        <span class="occupancy-value ${cssClass}">${esc(fmtOccupancy(value))}</span>
+      </div>
+      <div class="occupancy-track" aria-hidden="true"><div class="occupancy-fill ${cssClass}" style="width:${width.toFixed(1)}%"></div></div>`;
+  }
+
+  function qualityDetails(quality) {
+    if (!quality || quality.estado === 'ok') return '';
+    const labels = [
+      ['pallets_sin_detalle','pallets sin detalle'],
+      ['lineas_sin_vlog','lineas sin variable logistica'],
+      ['lineas_sin_dimension','lineas sin dimensiones'],
+      ['lineas_nivel_invalido','lineas con nivel invalido'],
+      ['lineas_vlog_duplicada','lineas con variable duplicada'],
+    ];
+    const issues = labels.filter(([key]) => Number(quality[key] || 0) > 0).map(([key,label]) => `${fmtInt(quality[key])} ${label}`);
+    if (!issues.length) issues.push('Diferencia entre el detalle calculado y las cabeceras de control');
+    return issues.join(' · ');
+  }
+
+  function filteredTrips() {
+    const trips = state.payload?.viajes || [];
+    const query = $('search-input').value.trim().toLowerCase();
+    const division = $('division-select').value;
+    return trips.filter(trip => {
+      if (division && trip.division !== division) return false;
+      if (!query) return true;
+      return [trip.anden,trip.viaje,trip.hoja_ruta,trip.matricula,trip.camion,trip.cargador]
+        .some(value => String(value || '').toLowerCase().includes(query));
+    });
+  }
+
+  function renderSummary(trips) {
+    const bultos = trips.reduce((sum, trip) => sum + Number(trip.bultos || 0), 0);
+    const volume = trips.reduce((sum, trip) => sum + Number(trip.volumen_dm3 || 0), 0);
+    const capacity = trips.reduce((sum, trip) => sum + Math.max(0, Number(trip.capacidad_volumen_dm3 || 0)), 0);
+    const occupancy = capacity > 0 ? (volume / capacity) * 100 : null;
+    const loadedTrips = trips.filter(trip => Number(trip.bultos || 0) > 0 || Number(trip.volumen_dm3 || 0) > 0).length;
+    $('total-bultos').textContent = fmtInt(bultos);
+    $('total-volumen').textContent = fmtVolume(volume);
+    $('total-ocupacion').textContent = hasOccupancy(occupancy) ? fmtOccupancy(occupancy) : '—';
+    $('total-ocupacion').classList.remove('warning', 'over');
+    if (occupancyClass(occupancy)) $('total-ocupacion').classList.add(occupancyClass(occupancy));
+    $('bultos-note').textContent = `${loadedTrips} de ${trips.length} viajes visibles con carga registrada.`;
+    $('volumen-note').textContent = `Equivale a ${Number(volume / 1000).toLocaleString('es-AR', {maximumFractionDigits:1})} m³ logisticos cargados.`;
+    $('ocupacion-note').textContent = capacity > 0
+      ? `${fmtVolume(volume)} de ${fmtVolume(capacity)} dm³ nominales en los viajes visibles.`
+      : 'Los viajes visibles no tienen capacidad volumetrica informada.';
+  }
+
+  function renderChart(containerId, countId, trips, metric) {
+    const sorted = trips
+      .filter(trip => Number(trip.bultos || 0) > 0 || Number(trip.volumen_dm3 || 0) > 0)
+      .slice(0,12);
+    $(countId).textContent = `${sorted.length} con carga`;
+    if (!sorted.length) {
+      $(containerId).innerHTML = '<div class="empty">No hay carga registrada para los filtros seleccionados.</div>';
+      return;
+    }
+    const max = Math.max(...sorted.map(trip => Number(trip[metric] || 0)), 0);
+    $(containerId).innerHTML = sorted.map(trip => {
+      const raw = Number(trip[metric] || 0);
+      const isVolume = metric === 'volumen_dm3';
+      const occupancy = trip.ocupacion_pct;
+      const width = isVolume
+        ? (hasOccupancy(occupancy) ? Math.max(0, Math.min(100, Number(occupancy))) : 0)
+        : (max > 0 && raw > 0 ? Math.max(1.5, (raw / max) * 100) : 0);
+      const value = isVolume
+        ? `${fmtVolume(raw)} dm³ · ${fmtOccupancy(occupancy)}`
+        : fmtInt(raw);
+      const cssClass = isVolume ? occupancyClass(occupancy) : '';
+      const emptyClass = raw <= 0 ? ' is-empty' : '';
+      return `
+        <div class="chart-row${emptyClass}" title="Anden ${esc(trip.anden || 'sin asignar')} · Viaje ${esc(trip.viaje)} · ${esc(value)}">
+          <div class="chart-trip">A ${esc(trip.anden || 'S/A')}</div>
+          <div class="bar-track"><div class="bar-fill ${cssClass}" style="width:${width.toFixed(2)}%"></div></div>
+          <div class="chart-value">${esc(value)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function expeditionCards(trip) {
+    if (!trip.expediciones.length) {
+      return '<div class="empty">El viaje todavia no tiene expediciones asociadas.</div>';
+    }
+    return `<div class="expedition-grid">${trip.expediciones.map(expedition => {
+      const review = expedition.calidad?.estado !== 'ok';
+      return `
+        <article class="expedition-card">
+          <div class="expedition-head">
+            <div>
+              <div class="label">Expedicion</div>
+              <div class="expedition-title">${esc(expedition.expedicion)}</div>
+            </div>
+            <div class="expedition-status">${esc(expedition.estado || 'Sin estado')}</div>
+          </div>
+          <div class="expedition-metrics">
+            <div class="expedition-metric"><div class="label">Bultos</div><div class="expedition-value">${fmtInt(expedition.bultos)}</div></div>
+            <div class="expedition-metric"><div class="label">Volumen dm³</div><div class="expedition-value">${fmtVolume(expedition.volumen_dm3)}</div></div>
+          </div>
+          <div class="expedition-foot">${fmtInt(expedition.pallets)} pallets · ${fmtInt(expedition.lineas)} lineas logisticas</div>
+          <div class="expedition-occupancy">
+            <div class="label">Aporte a la ocupacion del camion</div>
+            ${occupancyVisual(expedition.ocupacion_pct)}
+          </div>
+          ${review ? `<div class="quality-note">${esc(qualityDetails(expedition.calidad))}</div>` : ''}
+        </article>`;
+    }).join('')}</div>`;
+  }
+
+  function renderTable(trips) {
+    $('table-count').textContent = `${trips.length} viaje${trips.length === 1 ? '' : 's'}`;
+    if (!trips.length) {
+      $('trip-table').innerHTML = '<tr><td colspan="11"><div class="empty">No hay viajes que coincidan con los filtros seleccionados.</div></td></tr>';
+      return;
+    }
+
+    $('trip-table').innerHTML = trips.map(trip => {
+      const key = `${trip.empresa}-${trip.centro_distribucion}-${trip.viaje}`;
+      const open = state.expanded.has(key);
+      const loaded = Number(trip.bultos || 0) > 0 || Number(trip.volumen_dm3 || 0) > 0;
+      const review = trip.calidad?.estado !== 'ok';
+      const divisionClass = trip.division === 'REFRIGERADOS' ? ' refrigerados' : '';
+      return `
+        <tr class="trip-row ${loaded ? 'loaded' : 'no-load'}${open ? ' open' : ''}" data-key="${esc(key)}" tabindex="0" aria-expanded="${open}">
+          <td>
+            <div class="trip-cell">
+              <span class="expand-mark">${open ? '−' : '+'}</span>
+              <div><div class="trip-main">Anden ${esc(trip.anden || 'sin asignar')}</div><div class="trip-sub">V ${esc(trip.viaje)} · HR ${esc(trip.hoja_ruta || '—')}</div></div>
+            </div>
+          </td>
+          <td><span class="division-badge${divisionClass}">${esc(trip.division)}</span></td>
+          <td><div class="trip-main">${esc(trip.matricula || trip.camion || 'Sin matricula')}</div><div class="trip-sub">${esc(capacityText(trip))}</div></td>
+          <td><span class="load-badge${loaded ? '' : ' is-empty'}">${loaded ? 'Carga registrada' : 'Sin carga'}</span></td>
+          <td class="number">${fmtInt(trip.expediciones.length)}</td>
+          <td class="number">${fmtInt(trip.pallets)}</td>
+          <td class="number"><strong>${fmtInt(trip.bultos)}</strong></td>
+          <td class="number"><strong>${fmtVolume(trip.volumen_dm3)}</strong></td>
+          <td class="occupancy-cell">${occupancyVisual(trip.ocupacion_pct)}</td>
+          <td><div>${fmtDate(trip.fecha_apertura || trip.fecha_creacion)}</div><div class="trip-sub">${esc(sinceDate(trip.fecha_apertura || trip.fecha_creacion))}</div></td>
+          <td><span class="quality-badge${review ? ' review' : ''}" title="${esc(review ? 'Requiere revisar la consistencia de los datos fuente.' : 'Detalle reconciliado contra cabeceras F080 y F035.')}">${esc(qualityText(trip.calidad))}</span></td>
+        </tr>
+        <tr class="detail-row${open ? ' visible' : ''}" data-detail="${esc(key)}"><td colspan="11">${expeditionCards(trip)}</td></tr>`;
+    }).join('');
+
+    document.querySelectorAll('.trip-row').forEach(row => {
+      const toggle = () => {
+        const key = row.dataset.key;
+        if (state.expanded.has(key)) state.expanded.delete(key); else state.expanded.add(key);
+        renderAll();
+      };
+      row.addEventListener('click', toggle);
+      row.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggle();
+        }
+      });
+    });
+  }
+
+  function renderAll() {
+    const trips = filteredTrips();
+    renderSummary(trips);
+    renderChart('bultos-chart', 'bultos-chart-count', trips, 'bultos');
+    renderChart('volumen-chart', 'volumen-chart-count', trips, 'volumen_dm3');
+    renderTable(trips);
+    const total = state.payload?.summary?.viajes || 0;
+    $('result-label').textContent = `${trips.length} de ${total} viajes visibles`;
+  }
+
+  async function loadData(force=false) {
+    if (state.loading) return;
+    state.loading = true;
+    $('refresh-btn').disabled = true;
+    $('refresh-btn').textContent = 'Consultando';
+    $('error-banner').classList.remove('visible');
+    setConnection('', 'Consultando Oracle');
+    try {
+      const response = await fetch(`/api/monitor-cargas/tablero${force ? '?force=true' : ''}`, {credentials:'same-origin'});
+      if (response.status === 401) {
+        location.href = '/login?next=/monitor-cargas';
+        return;
+      }
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.detail || 'No se pudo actualizar el monitor.');
+      state.payload = payload;
+      state.lastLoadedAt = Date.now();
+      if (payload.stale) {
+        setConnection('error', 'Ultimo dato disponible');
+        $('error-banner').textContent = 'Oracle no respondio a la ultima consulta. Se mantiene visible la lectura anterior.';
+        $('error-banner').classList.add('visible');
+      } else {
+        setConnection('online', 'Oracle en linea');
+      }
+      $('update-label').textContent = `Actualizado ${fmtDate(payload.oracle_now || payload.refreshed_at)}`;
+      renderAll();
+    } catch (error) {
+      setConnection('error', 'Consulta no disponible');
+      $('error-banner').textContent = error.message || 'No se pudo actualizar el monitor de cargas.';
+      $('error-banner').classList.add('visible');
+      if (!state.payload) {
+        $('trip-table').innerHTML = '<tr><td colspan="11"><div class="empty">No fue posible recuperar los viajes abiertos. Reintenta la consulta.</div></td></tr>';
+        $('bultos-chart').innerHTML = '<div class="empty">Sin datos disponibles.</div>';
+        $('volumen-chart').innerHTML = '<div class="empty">Sin datos disponibles.</div>';
+      }
+    } finally {
+      state.loading = false;
+      $('refresh-btn').disabled = false;
+      $('refresh-btn').textContent = 'Actualizar';
+    }
+  }
+
+  async function initAuth() {
+    const response = await fetch('/api/auth/me', {credentials:'same-origin'}).catch(() => null);
+    if (!response || !response.ok) {
+      location.replace('/login?next=/monitor-cargas');
+      return false;
+    }
+    const user = await response.json();
+    $('user-label').textContent = user.display_name || user.username;
+    const appInfo = await fetch('/api/app-info', {credentials:'same-origin'}).then(res => res.ok ? res.json() : null).catch(() => null);
+    if (appInfo?.show_banner && appInfo.banner) {
+      $('env-banner').textContent = appInfo.banner;
+      $('env-banner').classList.add('visible');
+    }
+    return true;
+  }
+
+  $('search-input').addEventListener('input', renderAll);
+  $('division-select').addEventListener('change', renderAll);
+  $('refresh-btn').addEventListener('click', () => loadData(true));
+  $('logout-btn').addEventListener('click', async () => {
+    sessionStorage.removeItem('vigia_session');
+    await fetch('/api/auth/logout', {method:'POST',credentials:'same-origin'}).catch(() => {});
+    location.replace('/login');
+  });
+  (async function init() {
+    if (await initAuth()) await loadData();
+  })();
+</script>
+</body>
+</html>

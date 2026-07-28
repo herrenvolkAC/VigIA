@@ -292,6 +292,8 @@ PRODUCTIVIDAD_JORNADA_BY_SECTOR = {
     "Congelados": 6.0,
 }
 
+REFRIGERADOS_SPLIT_SECTORS = {"OC", "Congelados"}
+
 
 def _productividad_jornada(sector: str) -> float:
     return PRODUCTIVIDAD_JORNADA_BY_SECTOR.get(sector, 6.5)
@@ -897,6 +899,27 @@ async def save_clark_summary_cache(
                     ),
                 )
                 result_count += 1
+        refri_values = [values for sector_oracle, values in grouped.items() if SECTOR_MAP.get(sector_oracle) in REFRIGERADOS_SPLIT_SECTORS]
+        if refri_values:
+            pallets_surtido = sum(float(values["pallets_surtido"] or 0) for values in refri_values)
+            legajos_refri: set[str] = set()
+            for values in refri_values:
+                legajos_refri.update(values["legajos"])
+            legajos = float(len(legajos_refri))
+            for id_parametro, valor, cantidad, item_legajos in (
+                (SPC_REAL_PARAM_IDS_BY_SECTOR["Refrigerados"], pallets_surtido, pallets_surtido, legajos),
+                (CLARK_DOTACION_PARAM_IDS_BY_SECTOR["Refrigerados"], legajos, legajos, legajos),
+            ):
+                await db.execute(
+                    """
+                    INSERT INTO daily_auto_resultados (
+                        run_id, daily_key, process, sector, sector_oracle, id_parametro,
+                        valor, cantidad, legajos, details_count
+                    ) VALUES (?, ?, 'CLARK', 'Refrigerados', 'REFRIGERADOS', ?, ?, ?, ?, 0)
+                    """,
+                    (run_id, daily["daily_key"], id_parametro, valor, cantidad, item_legajos),
+                )
+                result_count += 1
         await db.commit()
     return {"run_id": run_id, "rows": len(rows), "resultados": result_count}
 
@@ -956,6 +979,9 @@ async def save_clark_raw_summary_cache(
         await db.execute("DELETE FROM daily_auto_clark_detalle WHERE daily_key = ?", (daily["daily_key"],))
 
         result_count = 0
+        refri_spc_pallets = 0.0
+        refri_spc_legajos_count = 0.0
+        refri_spc_legajos_ids: set[str] = set()
         for row in rows:
             sector_oracle = str(_row_value(row, "ALMACEN") or "").strip().upper()
             sector = SECTOR_MAP.get(sector_oracle)
@@ -967,6 +993,13 @@ async def save_clark_raw_summary_cache(
             pallets_spc = _row_float(row, "PALLETS_SPC_DISTINTOS")
             legajos_spc = _row_float(row, "LEGAJOS_SPC")
             productividad = round(pallets / hs_clark * _productividad_jornada(sector), 2) if hs_clark else 0.0
+            if sector in REFRIGERADOS_SPLIT_SECTORS:
+                refri_spc_pallets += pallets_spc
+                ids = _row_value(row, "LEGAJOS_SPC_IDS") or []
+                if isinstance(ids, (list, tuple, set)):
+                    refri_spc_legajos_ids.update(str(item).strip() for item in ids if str(item).strip())
+                else:
+                    refri_spc_legajos_count += legajos_spc
             items = [(CLARK_PARAM_IDS_BY_SECTOR[sector], productividad, pallets, legajos_clark)]
             if sector in SPC_REAL_PARAM_IDS_BY_SECTOR:
                 items.append((SPC_REAL_PARAM_IDS_BY_SECTOR[sector], pallets_spc, pallets_spc, legajos_spc))
@@ -984,6 +1017,22 @@ async def save_clark_raw_summary_cache(
                         run_id, daily["daily_key"], sector, sector_oracle, id_parametro,
                         valor, cantidad, legajos,
                     ),
+                )
+                result_count += 1
+        if refri_spc_pallets or refri_spc_legajos_ids or refri_spc_legajos_count:
+            legajos_spc = float(len(refri_spc_legajos_ids)) if refri_spc_legajos_ids else refri_spc_legajos_count
+            for id_parametro, valor, cantidad, legajos in (
+                (SPC_REAL_PARAM_IDS_BY_SECTOR["Refrigerados"], refri_spc_pallets, refri_spc_pallets, legajos_spc),
+                (CLARK_DOTACION_PARAM_IDS_BY_SECTOR["Refrigerados"], legajos_spc, legajos_spc, legajos_spc),
+            ):
+                await db.execute(
+                    """
+                    INSERT INTO daily_auto_resultados (
+                        run_id, daily_key, process, sector, sector_oracle, id_parametro,
+                        valor, cantidad, legajos, details_count
+                    ) VALUES (?, ?, 'CLARK', 'Refrigerados', 'REFRIGERADOS', ?, ?, ?, ?, 0)
+                    """,
+                    (run_id, daily["daily_key"], id_parametro, valor, cantidad, legajos),
                 )
                 result_count += 1
         await db.commit()
@@ -1113,6 +1162,27 @@ async def save_picking_summary_cache(
                         run_id, daily["daily_key"], sector, sector_oracle, id_parametro,
                         item_value, item_cantidad, item_legajos,
                     ),
+                )
+                result_count += 1
+        refri_values = [values for sector_oracle, values in grouped.items() if SECTOR_MAP.get(sector_oracle) in REFRIGERADOS_SPLIT_SECTORS]
+        if refri_values:
+            bultos = sum(float(values["bultos"] or 0) for values in refri_values)
+            legajos_refri: set[str] = set()
+            for values in refri_values:
+                legajos_refri.update(values["legajos"])
+            legajos = float(len(legajos_refri))
+            for id_parametro, valor, cantidad, item_legajos in (
+                (PICKING_REAL_PARAM_IDS_BY_SECTOR["Refrigerados"], bultos, bultos, legajos),
+                (PICKING_DOTACION_PARAM_IDS_BY_SECTOR["Refrigerados"], legajos, legajos, legajos),
+            ):
+                await db.execute(
+                    """
+                    INSERT INTO daily_auto_resultados (
+                        run_id, daily_key, process, sector, sector_oracle, id_parametro,
+                        valor, cantidad, legajos, details_count
+                    ) VALUES (?, ?, 'PICKING', 'Refrigerados', 'REFRIGERADOS', ?, ?, ?, ?, 0)
+                    """,
+                    (run_id, daily["daily_key"], id_parametro, valor, cantidad, item_legajos),
                 )
                 result_count += 1
         await db.commit()

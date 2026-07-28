@@ -85,8 +85,8 @@ router = APIRouter(prefix="/api/gestion-operativa", tags=["gestion-operativa"])
 GESTION_PRODUCTIVIDAD_IA_PROMPT_VERSION = "gestion_productividad_picking_v1"
 DAILY_AUTO_SCHEDULE_TIME = dt_time(7, 35)
 DAILY_AUTO_SCHEDULE_GRACE_MINUTES = 10
-DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_oc_congelados_v2"
-DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_oc_congelados_v3"
+DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_oc_congelados_refri_totales_v3"
+DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_oc_congelados_refri_totales_v4"
 DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_raw_cache_v1"
 DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION = "despacho_raw_f922traf_hojaruta_funcion_distinct_v5"
 DAILY_AUTO_DESPACHO_QUERY_VERSION = "despacho_raw_cache_funcion_distinct_v4"
@@ -1918,6 +1918,7 @@ def _build_clark_rows_from_productividad_raw(
             "LEGAJOS_CLARK": float(len(values["legajos_clark"])),
             "PALLETS_SPC_DISTINTOS": float(len(values["pallets_spc"])),
             "LEGAJOS_SPC": float(len(values["legajos_spc"])),
+            "LEGAJOS_SPC_IDS": sorted(values["legajos_spc"]),
         }
         for almacen, values in grouped.items()
     ]

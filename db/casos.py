@@ -297,9 +297,8 @@ RACK_STATES = [
     ("REGISTRADO", "Registrado", "ADO", 10, 0, 0),
     ("PENDIENTE_VALIDACION", "Pendiente Validacion", "ADO", 20, 1, 0),
     ("REQUIERE_CORRECCION", "Requiere Correccion", "OPERACION", 30, 0, 0),
-    ("PENDIENTE_TRASPASOS", "Pendiente Traspasos", "MAPA_ALMACEN", 40, 0, 0),
-    ("TRASPASOS_ASIGNADOS", "Traspasos Asignados", "OPERACION", 50, 0, 0),
-    ("EN_EJECUCION", "En Ejecucion", "OPERACION", 60, 0, 0),
+    ("PENDIENTE_TRASPASOS", "Pendiente Generar Traspasos", "MAPA_ALMACEN", 40, 0, 0),
+    ("TRASPASOS_ASIGNADOS", "Traspasos Finalizados", "MAPA_ALMACEN", 50, 0, 0),
     ("POSICION_BLOQUEADA", "Posicion Bloqueada", "MANTENIMIENTO", 70, 0, 0),
     ("EN_REPARACION", "En Reparacion", "MANTENIMIENTO", 80, 0, 0),
     ("REPARADO", "Reparado", "MAPA_ALMACEN", 90, 0, 0),
@@ -307,6 +306,8 @@ RACK_STATES = [
     ("CERRADO", "Cerrado", "OPERACION", 110, 0, 1),
     ("CANCELADO", "Cancelado", "OPERACION", 120, 0, 1),
 ]
+
+LEGACY_INACTIVE_RACK_STATES = ["EN_EJECUCION"]
 
 RACK_CRITICIDADES = [
     ("BAJA", "Baja", 168, "#16a34a"),
@@ -523,9 +524,7 @@ async def seed_cases_db(db: aiosqlite.Connection) -> None:
         ("PENDIENTE_VALIDACION", "PENDIENTE_TRASPASOS", "ADO", 0),
         ("REQUIERE_CORRECCION", "PENDIENTE_VALIDACION", "OPERACION", 1),
         ("PENDIENTE_TRASPASOS", "TRASPASOS_ASIGNADOS", "MAPA_ALMACEN", 0),
-        ("TRASPASOS_ASIGNADOS", "EN_EJECUCION", "OPERACION", 0),
-        ("TRASPASOS_ASIGNADOS", "EN_EJECUCION", "ACTIVACION", 0),
-        ("EN_EJECUCION", "POSICION_BLOQUEADA", "MAPA_ALMACEN", 0),
+        ("TRASPASOS_ASIGNADOS", "POSICION_BLOQUEADA", "MAPA_ALMACEN", 0),
         ("POSICION_BLOQUEADA", "EN_REPARACION", "MANTENIMIENTO", 0),
         ("EN_REPARACION", "REPARADO", "MANTENIMIENTO", 1),
         ("REPARADO", "PENDIENTE_HABILITACION", "MAPA_ALMACEN", 0),
@@ -548,6 +547,12 @@ async def seed_cases_db(db: aiosqlite.Connection) -> None:
             if src in state_ids and dst in state_ids
         ],
     )
+    if LEGACY_INACTIVE_RACK_STATES:
+        placeholders = ",".join("?" for _ in LEGACY_INACTIVE_RACK_STATES)
+        await db.execute(
+            f"UPDATE ticket_estado SET activo = 0 WHERE tipo_id = ? AND codigo IN ({placeholders})",
+            (tipo_id, *LEGACY_INACTIVE_RACK_STATES),
+        )
     if "REGISTRADO" in state_ids and "PENDIENTE_VALIDACION" in state_ids:
         await db.execute(
             """
@@ -560,6 +565,19 @@ async def seed_cases_db(db: aiosqlite.Connection) -> None:
               AND activo = 1
             """,
             (state_ids["PENDIENTE_VALIDACION"], tipo_id, state_ids["REGISTRADO"]),
+        )
+    if "EN_EJECUCION" in state_ids and "TRASPASOS_ASIGNADOS" in state_ids:
+        await db.execute(
+            """
+            UPDATE ticket
+            SET estado_id = ?,
+                perfil_asignado = 'MAPA_ALMACEN',
+                sector_asignado = 'MAPA_ALMACEN'
+            WHERE tipo_id = ?
+              AND estado_id = ?
+              AND activo = 1
+            """,
+            (state_ids["TRASPASOS_ASIGNADOS"], tipo_id, state_ids["EN_EJECUCION"]),
         )
     await db.execute(
         """

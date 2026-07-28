@@ -78,11 +78,31 @@ CREATE TABLE IF NOT EXISTS auth_user_legajos (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS auth_usage_events (
+    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fecha TEXT NOT NULL,
+    hora TEXT NOT NULL,
+    username TEXT,
+    ip_address TEXT,
+    module TEXT,
+    module_label TEXT,
+    action TEXT,
+    action_label TEXT NOT NULL,
+    path TEXT,
+    method TEXT,
+    status_code INTEGER,
+    metadata_json TEXT
+);
 CREATE INDEX IF NOT EXISTS idx_auth_devices_username ON auth_devices(username, status);
 CREATE INDEX IF NOT EXISTS idx_auth_sessions_username ON auth_sessions(username, expires_at);
 CREATE INDEX IF NOT EXISTS idx_auth_scopes_username_module ON auth_user_module_scopes(username, module, active);
 CREATE INDEX IF NOT EXISTS idx_auth_app_access_user_module ON auth_user_app_access(username, module, enabled);
 CREATE INDEX IF NOT EXISTS idx_auth_user_legajos_legajo ON auth_user_legajos(legajo);
+CREATE INDEX IF NOT EXISTS idx_auth_usage_events_created ON auth_usage_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_auth_usage_events_user_created ON auth_usage_events(username, created_at);
+CREATE INDEX IF NOT EXISTS idx_auth_usage_events_module_created ON auth_usage_events(module, created_at);
+CREATE INDEX IF NOT EXISTS idx_auth_usage_events_action_created ON auth_usage_events(action, created_at);
 """
 
 AUTH_TABLES = [
@@ -92,6 +112,7 @@ AUTH_TABLES = [
     "auth_user_module_scopes",
     "auth_user_app_access",
     "auth_user_legajos",
+    "auth_usage_events",
 ]
 
 

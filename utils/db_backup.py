@@ -83,7 +83,7 @@ def _mb(size_bytes: int | float) -> str:
 
 def _log_backup_usage(action_text: str) -> None:
     try:
-        write_usage_event("sistema", "servidor", "sistema", action_text)
+        write_usage_event("sistema", "servidor", "sistema", action_text, action="backup", attention=True)
     except Exception:
         logger.debug("[db-backup] No se pudo escribir en VigiaLog.", exc_info=True)
 

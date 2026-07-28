@@ -727,9 +727,9 @@ async def _apply_rack_transition_payload(
             """,
             (traspasos, auth["username"], now, ticket["id"]),
         )
-        notes.append(f"Observacion traspasos WMS: {traspasos}" if traspasos else "Traspasos WMS informados")
+        notes.append(f"Observacion traspasos WMS: {traspasos}" if traspasos else "Traspasos WMS finalizados")
 
-    if current == "EN_EJECUCION" and destino == "POSICION_BLOQUEADA":
+    if current == "TRASPASOS_ASIGNADOS" and destino == "POSICION_BLOQUEADA":
         if not req.vaciado_confirmado:
             raise HTTPException(status_code=400, detail="Debe confirmarse que las ubicaciones fueron vaciadas.")
         if not req.inutilizacion_wms_confirmada:

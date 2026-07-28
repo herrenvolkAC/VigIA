@@ -61,9 +61,10 @@ from routers.rendimiento_online import (
     start_rendimiento_historico_scheduler,
     stop_rendimiento_historico_scheduler,
 )
+from routers.monitor_cargas import router as monitor_cargas_router
 from routers.websocket import router as websocket_router
 from utils.db_backup import start_db_backup_scheduler, stop_db_backup_scheduler
-from utils.usage_log import cleanup_old_usage_logs, request_action, write_usage_log
+from utils.usage_log import cleanup_old_usage_logs, ensure_usage_events_schema, request_action, write_usage_log
 
 # ── Configuración ─────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
@@ -100,6 +101,7 @@ async def lifespan(app: FastAPI):
     await init_simulador_db()
     await init_premio_productividad_db()
     await ensure_bootstrap_admin()
+    ensure_usage_events_schema()
     cleanup_old_usage_logs()
     start_daily_auto_scheduler()
     start_historia_actividad_scheduler()
@@ -152,6 +154,7 @@ app.include_router(plantel_optimo_router)
 app.include_router(simulador_operativo_router)
 app.include_router(analisis_premio_productividad_router)
 app.include_router(rendimiento_online_router)
+app.include_router(monitor_cargas_router)
 app.include_router(websocket_router)
 app.include_router(auth_router)
 app.include_router(checklist_tareas_router)
@@ -186,6 +189,8 @@ PROTECTED_PAGE_PATHS = {
     "/plantel-optimo.html",
     "/rendimiento-online",
     "/rendimiento-online.html",
+    "/monitor-cargas",
+    "/monitor-cargas.html",
     "/checklist-tareas",
     "/checklist-tareas.html",
 }
@@ -201,6 +206,7 @@ PROTECTED_API_PREFIXES = (
     "/api/analisis-premio-productividad",
     "/api/plantel-optimo",
     "/api/rendimiento-online",
+    "/api/monitor-cargas",
     "/api/checklist-tareas",
 )
 ADMIN_PAGE_PATHS = {
@@ -210,6 +216,8 @@ ADMIN_PAGE_PATHS = {
     "/admin/usuarios.html",
     "/admin/accesos",
     "/admin/accesos.html",
+    "/admin/auditoria",
+    "/admin/auditoria.html",
 }
 PAGE_MODULES = {
     "/productividad": "productividad",
@@ -244,6 +252,8 @@ PAGE_MODULES = {
     "/plantel-optimo.html": "plantel_optimo",
     "/rendimiento-online": "rendimiento_online",
     "/rendimiento-online.html": "rendimiento_online",
+    "/monitor-cargas": "control_procesos",
+    "/monitor-cargas.html": "control_procesos",
     "/checklist-tareas": "checklist_tareas",
     "/checklist-tareas.html": "checklist_tareas",
     "/reposicion": "reposicion",
@@ -264,6 +274,7 @@ API_MODULE_PREFIXES = (
     ("/api/analisis-premio-productividad", "analisis_premio_productividad"),
     ("/api/plantel-optimo", "plantel_optimo"),
     ("/api/rendimiento-online", "rendimiento_online"),
+    ("/api/monitor-cargas", "control_procesos"),
     ("/api/checklist-tareas", "checklist_tareas"),
 )
 
@@ -289,26 +300,26 @@ async def auth_gate(request: Request, call_next):
         module = PAGE_MODULES.get(path)
         if not module:
             module = next((module_id for prefix, module_id in API_MODULE_PREFIXES if path.startswith(prefix)), None)
-        write_usage_log(request, None, module or "acceso", "unauthenticated")
+        write_usage_log(request, None, module or "acceso", "unauthenticated", status_code=401)
         if is_protected_api:
             return JSONResponse({"detail": "No autenticado."}, status_code=401)
         return _login_redirect(path)
 
     if auth.get("device_status") != "approved":
-        write_usage_log(request, auth.get("username"), "acceso", "pending_device")
+        write_usage_log(request, auth.get("username"), "acceso", "pending_device", status_code=403)
         if is_protected_api:
             return JSONResponse({"detail": "Dispositivo pendiente de aprobacion."}, status_code=403)
         return RedirectResponse("/api/auth/pending", status_code=303)
 
     if is_admin_page and auth.get("role") != "admin":
-        write_usage_log(request, auth.get("username"), "admin", "access_denied")
+        write_usage_log(request, auth.get("username"), "admin", "access_denied", status_code=403)
         return JSONResponse({"detail": "Requiere administrador."}, status_code=403)
 
     module = PAGE_MODULES.get(path)
     if not module:
         module = next((module_id for prefix, module_id in API_MODULE_PREFIXES if path.startswith(prefix)), None)
     if module and not await user_has_module_access(auth, module):
-        write_usage_log(request, auth.get("username"), module, "access_denied")
+        write_usage_log(request, auth.get("username"), module, "access_denied", status_code=403)
         if is_protected_api or path.startswith("/api/") or path.startswith("/panol-insumos/api"):
             return JSONResponse({"detail": "No tenes acceso habilitado a este modulo."}, status_code=403)
         return RedirectResponse(f"/selector?denied={quote(module)}", status_code=303)
@@ -320,6 +331,7 @@ async def auth_gate(request: Request, call_next):
             auth.get("username"),
             module or ("admin" if is_admin_page else "sistema"),
             request_action(request.method, is_module_page or is_admin_page),
+            status_code=response.status_code,
         )
     return response
 
@@ -447,6 +459,14 @@ async def page_plantel_optimo():
 async def page_rendimiento_online():
     return FileResponse(STATIC_DIR / "rendimiento_online.html")
 
+@app.get("/monitor-cargas.html", include_in_schema=False)
+@app.get("/monitor-cargas",      include_in_schema=False)
+async def page_monitor_cargas():
+    return FileResponse(
+        STATIC_DIR / "monitor_cargas.html",
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
+
 @app.get("/checklist-tareas.html", include_in_schema=False)
 @app.get("/checklist-tareas",      include_in_schema=False)
 async def page_checklist_tareas():
@@ -466,6 +486,10 @@ async def page_admin_usuarios(): return FileResponse(STATIC_DIR / "admin_usuario
 @app.get("/admin/accesos.html", include_in_schema=False)
 @app.get("/admin/accesos",      include_in_schema=False)
 async def page_admin_accesos(): return FileResponse(STATIC_DIR / "admin_accesos.html")
+
+@app.get("/admin/auditoria.html", include_in_schema=False)
+@app.get("/admin/auditoria",      include_in_schema=False)
+async def page_admin_auditoria(): return FileResponse(STATIC_DIR / "admin_auditoria.html")
 
 @app.get("/recepcion.html",    include_in_schema=False)
 @app.get("/recepcion",         include_in_schema=False)

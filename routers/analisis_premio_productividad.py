@@ -20,6 +20,8 @@ from pydantic import BaseModel
 from PIL import Image
 
 from db.paths import ROOT_DIR, resolve_db_path
+from db.schema import DB_PATH as OPERATIONAL_DB_PATH
+from routers.auth_local import current_auth
 
 
 router = APIRouter(prefix="/api/analisis-premio-productividad", tags=["analisis-premio-productividad"])
@@ -57,6 +59,7 @@ ALMACENES_PREMIO_PRODUCTIVIDAD = {
     "AREA SECOS Y NO ALIMENTOS",
     "AREA REFRIGERADOS",
 }
+PREMIO_ESTUDIO_DEFAULT_ALLOWED_USERS = {"acucci", "admin", "207189"}
 
 CONSULTA_PP_ESCALAS = """
 /* PP_PREMIO_ESCALAS */
@@ -100,6 +103,11 @@ JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
 LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON E.ID_DE_GRUPO_PRODUCTIVO = F.ID
 WHERE E.ID_DE_GRUPO_DE_FUNCIONES = :grupo_funciones_id
 ORDER BY NVL(F.DESCRIPCION, 'TODOS'), E.NIVEL
+"""
+
+CONSULTA_PP_ESTUDIO_PREMIOS_ORACLE = """
+/* PP_ESTUDIO_PREMIOS_ORACLE */
+SELECT 1 AS DUMMY FROM DUAL
 """
 
 CONSULTA_PP_ETAPAS_HORA = """
@@ -1047,6 +1055,28 @@ def _upper(value: Any) -> str:
     return _clean(value).upper()
 
 
+def _premio_estudio_allowed_users() -> set[str]:
+    raw = os.getenv("PREMIO_ESTUDIO_ALLOWED_USERS", "").strip()
+    if raw:
+        return {item.strip().lower() for item in raw.replace(";", ",").split(",") if item.strip()}
+    users = {item.lower() for item in PREMIO_ESTUDIO_DEFAULT_ALLOWED_USERS}
+    for env_name in ("USERNAME", "USER"):
+        value = os.getenv(env_name, "").strip().lower()
+        if value:
+            users.add(value)
+    return users
+
+
+async def _require_premio_estudio(request: Request) -> dict[str, Any]:
+    auth = await current_auth(request)
+    if not auth or auth.get("device_status") != "approved":
+        raise HTTPException(status_code=401, detail="No autenticado.")
+    username = str(auth.get("username") or "").strip().lower()
+    if username not in _premio_estudio_allowed_users():
+        raise HTTPException(status_code=403, detail="Solapa de estudio no habilitada para este usuario.")
+    return auth
+
+
 def _normalize_operacion(value: Any) -> str:
     raw = value if isinstance(value, str) else DEFAULT_OPERACION
     operacion = _upper(raw or DEFAULT_OPERACION)
@@ -1266,6 +1296,8 @@ def _query_oracle_via_jdbc(sql: str, binds: dict[str, Any]) -> list[dict[str, An
     normalized = " ".join(sql.upper().split())
     if "PP_PREMIO_ESCALAS_POR_ID" in normalized:
         query_key = "pp_premio_escalas_por_id"
+    elif "PP_ESTUDIO_PREMIOS_ORACLE" in normalized:
+        query_key = "pp_estudio_premios_oracle"
     elif "PP_PREMIO_ETAPAS_HORA_POR_ID" in normalized:
         query_key = "pp_premio_etapas_hora_por_id"
     elif "PP_PREMIO_LIQUIDACION_DIA_POR_ID" in normalized:
@@ -1303,8 +1335,8 @@ def _query_oracle_via_jdbc(sql: str, binds: dict[str, Any]) -> list[dict[str, An
         jdbc_url,
         user,
         password,
-        str(binds.get("fecha_ini") or binds.get("fecha_yyyymmdd") or binds.get("fecha_base") or ""),
-        str(binds.get("fecha_fin") or binds.get("fecha_yyyymmdd") or binds.get("fecha_base") or ""),
+        str(binds.get("fecha_ini") or binds.get("fecha_desde") or binds.get("fecha_yyyymmdd") or binds.get("fecha_base") or ""),
+        str(binds.get("fecha_fin") or binds.get("fecha_hasta") or binds.get("fecha_yyyymmdd") or binds.get("fecha_base") or ""),
         query_key,
         legajos,
         str(binds.get("operacion") or "PICKING"),
@@ -1380,6 +1412,371 @@ async def _fetch_one(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] =
     async with db.execute(sql, args) as cur:
         row = await cur.fetchone()
     return dict(row) if row else None
+
+
+async def _rrhh_activos_rows() -> list[dict[str, Any]]:
+    async with aiosqlite.connect(OPERATIONAL_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_rows(
+            db,
+            """
+            SELECT legajo, nombre, empresa, division_personal, sucursal,
+                   desc_unidad_organizativa, sector_generico, desc_sector_generico,
+                   clave_funcion, desc_funcion, posicion, desc_posicion,
+                   grupo_personal, desc_grupo_personal, area_personal,
+                   desc_area_personal, fecha_ingreso, fecha_baja,
+                   proveedor, razon_social, es_gerencia, active
+            FROM rrhh_personas
+            WHERE COALESCE(active, 1) = 1
+            ORDER BY desc_sector_generico, desc_funcion, nombre
+            """,
+        )
+        if rows:
+            return rows
+        return await _fetch_rows(
+            db,
+            """
+            WITH ult AS (
+                SELECT legajo, MAX(batch_id) batch_id
+                FROM rrhh_legajero
+                GROUP BY legajo
+            )
+            SELECT l.legajo, l.nombre, l.empresa, l.division_personal, l.sucursal,
+                   l.desc_unidad_organizativa, l.sector_generico, l.desc_sector_generico,
+                   l.clave_funcion, l.desc_funcion, l.posicion, l.desc_posicion,
+                   l.grupo_personal, l.desc_grupo_personal, l.area_personal,
+                   l.desc_area_personal, l.fecha_ingreso, l.fecha_baja,
+                   l.proveedor, l.razon_social, l.es_gerencia, 1 AS active
+            FROM rrhh_legajero l
+            JOIN ult ON ult.legajo = l.legajo AND ult.batch_id = l.batch_id
+            WHERE l.fecha_baja IS NULL OR TRIM(COALESCE(l.fecha_baja, '')) = ''
+            ORDER BY l.desc_sector_generico, l.desc_funcion, l.nombre
+            """,
+        )
+
+
+async def _rrhh_personas_index() -> dict[str, dict[str, Any]]:
+    async with aiosqlite.connect(OPERATIONAL_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_rows(
+            db,
+            """
+            SELECT legajo, nombre, desc_sector_generico, desc_funcion, fecha_baja, active
+            FROM rrhh_personas
+            """,
+        )
+        if not rows:
+            rows = await _fetch_rows(
+                db,
+                """
+                WITH ult AS (
+                    SELECT legajo, MAX(batch_id) batch_id
+                    FROM rrhh_legajero
+                    GROUP BY legajo
+                )
+                SELECT l.legajo, l.nombre, l.desc_sector_generico, l.desc_funcion, l.fecha_baja,
+                       CASE
+                           WHEN l.fecha_baja IS NULL OR TRIM(COALESCE(l.fecha_baja, '')) = '' THEN 1
+                           ELSE 0
+                       END AS active
+                FROM rrhh_legajero l
+                JOIN ult ON ult.legajo = l.legajo AND ult.batch_id = l.batch_id
+                """,
+            )
+    return {str(row.get("legajo") or "").strip(): row for row in rows if str(row.get("legajo") or "").strip()}
+
+
+async def _premio_estudio_cache_rows(fecha_desde: str, fecha_hasta: str) -> dict[str, dict[str, Any]]:
+    rows = await asyncio.to_thread(
+        _query_oracle,
+        CONSULTA_PP_ESTUDIO_PREMIOS_ORACLE,
+        {
+            "fecha_desde": _to_date(fecha_desde).strftime("%Y/%m/%d"),
+            "fecha_hasta": _to_date(fecha_hasta).strftime("%Y/%m/%d"),
+        },
+    )
+    rows = [{str(key).lower(): value for key, value in row.items()} for row in rows]
+    by_legajo: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        legajo = str(row.get("legajo") or "").strip()
+        if not legajo:
+            continue
+        item = by_legajo.setdefault(legajo, {
+            "legajo": legajo,
+            "jornadas_con_medicion": 0,
+            "dias_con_medicion": 0,
+            "jornadas_con_premio": 0,
+            "jornadas_con_actividad": 0,
+            "jornadas_actividad_sin_premio": 0,
+            "jornadas_premio_sin_actividad": 0,
+            "premio_actual_total": 0.0,
+            "premio_medible_total": 0.0,
+            "premio_no_medible_total": 0.0,
+            "premio_horas_total": 0.0,
+            "productividad_total": 0.0,
+            "productividad_turno_total": 0.0,
+            "dias_set": set(),
+            "operaciones_set": set(),
+            "operaciones_medibles_set": set(),
+            "operaciones_no_medibles_set": set(),
+            "operaciones_aggs": {},
+            "divisiones_set": set(),
+        })
+        fecha = str(row.get("fecha") or "").strip()
+        if fecha:
+            item["dias_set"].add(fecha)
+        for field in (
+            "jornadas_con_medicion",
+            "jornadas_con_premio",
+            "jornadas_con_actividad",
+            "jornadas_actividad_sin_premio",
+            "jornadas_premio_sin_actividad",
+        ):
+            item[field] += int(_num(row.get(field)))
+        for field in ("premio_actual_total", "productividad_total", "productividad_turno_total"):
+            item[field] = round(float(item[field]) + _num(row.get(field)), 3 if "productividad" in field else 2)
+        operacion = _clean(row.get("operacion"))
+        tipo_premio = _clean(row.get("tipo_premio")).upper()
+        pago_total = _num(row.get("premio_actual_total"))
+        if tipo_premio == "NO MEDIBLE":
+            item["premio_no_medible_total"] = round(float(item["premio_no_medible_total"]) + pago_total, 2)
+            if operacion:
+                item["operaciones_no_medibles_set"].add(operacion)
+        else:
+            item["premio_medible_total"] = round(float(item["premio_medible_total"]) + pago_total, 2)
+            if operacion:
+                item["operaciones_medibles_set"].add(operacion)
+        division = _normalize_grupo_productivo(row.get("division"))
+        if operacion:
+            item["operaciones_set"].add(operacion)
+            op_key = f"{tipo_premio or 'MEDIBLE'}|{operacion}"
+            op_agg = item["operaciones_aggs"].setdefault(op_key, {
+                "operacion": operacion,
+                "tipo_premio": "No medible" if tipo_premio == "NO MEDIBLE" else "Medible",
+                "dias_set": set(),
+                "jornadas_con_medicion": 0,
+                "jornadas_con_premio": 0,
+                "jornadas_con_actividad": 0,
+                "premio_total": 0.0,
+                "productividad_total": 0.0,
+            })
+            if fecha:
+                op_agg["dias_set"].add(fecha)
+            for field in ("jornadas_con_medicion", "jornadas_con_premio", "jornadas_con_actividad"):
+                op_agg[field] += int(_num(row.get(field)))
+            op_agg["premio_total"] = round(float(op_agg["premio_total"]) + pago_total, 2)
+            op_agg["productividad_total"] = round(float(op_agg["productividad_total"]) + _num(row.get("productividad_total")), 3)
+        if division:
+            item["divisiones_set"].add(division)
+    for item in by_legajo.values():
+        item["dias_con_medicion"] = len(item.pop("dias_set"))
+        item["operaciones_premio"] = ",".join(sorted(item.pop("operaciones_set")))
+        item["operaciones_medibles_premio"] = ",".join(sorted(item.pop("operaciones_medibles_set")))
+        item["operaciones_no_medibles_premio"] = ",".join(sorted(item.pop("operaciones_no_medibles_set")))
+        operaciones_detalle = []
+        for op_agg in item.pop("operaciones_aggs").values():
+            op_agg["dias_con_medicion"] = len(op_agg.pop("dias_set"))
+            operaciones_detalle.append(op_agg)
+        item["operaciones_detalle"] = operaciones_detalle
+        item["divisiones_premio"] = ",".join(sorted(item.pop("divisiones_set")))
+    return by_legajo
+
+
+def _split_concat(value: Any) -> list[str]:
+    return sorted({item.strip() for item in str(value or "").split(",") if item.strip()})
+
+
+def _status_estudio(item: dict[str, Any]) -> str:
+    premio = _num(item.get("premio_actual_total"))
+    actividad = _num(item.get("productividad_total"))
+    if premio > 0 and actividad > 0:
+        return "Cobra premio"
+    if premio > 0:
+        return "Cobra sin actividad medida"
+    if actividad > 0:
+        return "Actividad sin premio"
+    return "Sin actividad/premio"
+
+
+def _tipo_cobro_estudio(item: dict[str, Any]) -> str:
+    premio_medible = _num(item.get("premio_medible_total"))
+    premio_no_medible = _num(item.get("premio_no_medible_total"))
+    if premio_medible > 0 and premio_no_medible > 0:
+        return "Mixto"
+    if premio_medible > 0:
+        return "Medible"
+    if premio_no_medible > 0:
+        return "No medible"
+    return "Sin premio"
+
+
+def _build_premio_estudio(
+    rrhh_rows: list[dict[str, Any]],
+    premio_by_legajo: dict[str, dict[str, Any]],
+    rrhh_index: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    rows_fuera_rrhh: list[dict[str, Any]] = []
+    by_sector: dict[str, dict[str, Any]] = {}
+    by_funcion: dict[str, dict[str, Any]] = {}
+    by_operacion: dict[str, dict[str, Any]] = {}
+    rrhh_legajos: set[str] = set()
+    for person in rrhh_rows:
+        legajo = str(person.get("legajo") or "").strip()
+        if legajo:
+            rrhh_legajos.add(legajo)
+        premio = premio_by_legajo.get(legajo) or {}
+        operaciones = _split_concat(premio.get("operaciones_premio"))
+        operaciones_medibles = _split_concat(premio.get("operaciones_medibles_premio"))
+        operaciones_no_medibles = _split_concat(premio.get("operaciones_no_medibles_premio"))
+        divisiones = _split_concat(premio.get("divisiones_premio"))
+        item = {
+            "legajo": legajo,
+            "nombre": person.get("nombre") or "",
+            "empresa": person.get("empresa") or "",
+            "sector": person.get("desc_sector_generico") or "",
+            "sector_codigo": person.get("sector_generico") or "",
+            "funcion_rrhh": person.get("desc_funcion") or "",
+            "funcion_codigo": person.get("clave_funcion") or "",
+            "unidad_organizativa": person.get("desc_unidad_organizativa") or "",
+            "area_personal": person.get("desc_area_personal") or "",
+            "operaciones_premio": " | ".join(operaciones),
+            "operaciones_medibles_premio": " | ".join(operaciones_medibles),
+            "operaciones_no_medibles_premio": " | ".join(operaciones_no_medibles),
+            "operaciones_detalle": premio.get("operaciones_detalle") or [],
+            "divisiones_premio": " | ".join(divisiones),
+            "jornadas_con_medicion": int(_num(premio.get("jornadas_con_medicion"))),
+            "dias_con_medicion": int(_num(premio.get("dias_con_medicion"))),
+            "jornadas_con_premio": int(_num(premio.get("jornadas_con_premio"))),
+            "jornadas_con_actividad": int(_num(premio.get("jornadas_con_actividad"))),
+            "jornadas_actividad_sin_premio": int(_num(premio.get("jornadas_actividad_sin_premio"))),
+            "jornadas_premio_sin_actividad": int(_num(premio.get("jornadas_premio_sin_actividad"))),
+            "premio_actual_total": round(_num(premio.get("premio_actual_total")), 2),
+            "premio_medible_total": round(_num(premio.get("premio_medible_total")), 2),
+            "premio_no_medible_total": round(_num(premio.get("premio_no_medible_total")), 2),
+            "premio_horas_total": round(_num(premio.get("premio_horas_total")), 2),
+            "productividad_total": round(_num(premio.get("productividad_total")), 3),
+            "productividad_turno_total": round(_num(premio.get("productividad_turno_total")), 3),
+        }
+        item["estado"] = _status_estudio(item)
+        item["tipo_cobro"] = _tipo_cobro_estudio(item)
+        rows.append(item)
+
+        sector_key = item["sector"] or "Sin sector"
+        funcion_key = item["funcion_rrhh"] or "Sin funcion"
+        for bucket, key, label_field in ((by_sector, sector_key, "sector"), (by_funcion, funcion_key, "funcion_rrhh")):
+            agg = bucket.setdefault(key, {
+                label_field: key,
+                "activos": 0,
+                "con_premio": 0,
+                "con_actividad": 0,
+                "actividad_sin_premio": 0,
+                "premio_total": 0.0,
+                "premio_medible_total": 0.0,
+                "premio_no_medible_total": 0.0,
+            })
+            agg["activos"] += 1
+            if item["premio_actual_total"] > 0:
+                agg["con_premio"] += 1
+            if item["productividad_total"] > 0:
+                agg["con_actividad"] += 1
+            if item["productividad_total"] > 0 and item["premio_actual_total"] <= 0:
+                agg["actividad_sin_premio"] += 1
+            agg["premio_total"] = round(float(agg["premio_total"]) + item["premio_actual_total"], 2)
+            agg["premio_medible_total"] = round(float(agg["premio_medible_total"]) + item["premio_medible_total"], 2)
+            agg["premio_no_medible_total"] = round(float(agg["premio_no_medible_total"]) + item["premio_no_medible_total"], 2)
+
+        for op_item in premio.get("operaciones_detalle") or []:
+            operacion = _clean(op_item.get("operacion"))
+            if not operacion:
+                continue
+            tipo_premio = _clean(op_item.get("tipo_premio")) or "Medible"
+            key = f"{operacion}|{tipo_premio}"
+            agg = by_operacion.setdefault(key, {
+                "operacion": operacion,
+                "tipo_premio": tipo_premio,
+                "legajos": set(),
+                "premio_total": 0.0,
+                "productividad_total": 0.0,
+            })
+            agg["legajos"].add(legajo)
+            agg["premio_total"] = round(float(agg["premio_total"]) + _num(op_item.get("premio_total")), 2)
+            agg["productividad_total"] = round(float(agg["productividad_total"]) + _num(op_item.get("productividad_total")), 3)
+
+    for legajo, premio in premio_by_legajo.items():
+        if legajo in rrhh_legajos:
+            continue
+        rrhh_person = (rrhh_index or {}).get(legajo) or {}
+        exists_rrhh = bool(rrhh_person)
+        rrhh_active = int(_num(rrhh_person.get("active"))) == 1 if exists_rrhh else False
+        estado_rrhh = "Activo" if rrhh_active else "Inactivo" if exists_rrhh else "No existe en RRHH"
+        operaciones = _split_concat(premio.get("operaciones_premio"))
+        operaciones_medibles = _split_concat(premio.get("operaciones_medibles_premio"))
+        operaciones_no_medibles = _split_concat(premio.get("operaciones_no_medibles_premio"))
+        divisiones = _split_concat(premio.get("divisiones_premio"))
+        rows_fuera_rrhh.append({
+            "legajo": legajo,
+            "nombre": rrhh_person.get("nombre") or "",
+            "estado_rrhh": estado_rrhh,
+            "sector": rrhh_person.get("desc_sector_generico") or "",
+            "funcion_rrhh": rrhh_person.get("desc_funcion") or "",
+            "fecha_baja": rrhh_person.get("fecha_baja") or "",
+            "operaciones_premio": " | ".join(operaciones),
+            "operaciones_medibles_premio": " | ".join(operaciones_medibles),
+            "operaciones_no_medibles_premio": " | ".join(operaciones_no_medibles),
+            "operaciones_detalle": premio.get("operaciones_detalle") or [],
+            "divisiones_premio": " | ".join(divisiones),
+            "tipo_cobro": _tipo_cobro_estudio(premio),
+            "jornadas_con_medicion": int(_num(premio.get("jornadas_con_medicion"))),
+            "jornadas_con_premio": int(_num(premio.get("jornadas_con_premio"))),
+            "jornadas_con_actividad": int(_num(premio.get("jornadas_con_actividad"))),
+            "premio_actual_total": round(_num(premio.get("premio_actual_total")), 2),
+            "premio_medible_total": round(_num(premio.get("premio_medible_total")), 2),
+            "premio_no_medible_total": round(_num(premio.get("premio_no_medible_total")), 2),
+            "productividad_total": round(_num(premio.get("productividad_total")), 3),
+        })
+
+    rows.sort(key=lambda row: (0 if row["premio_actual_total"] > 0 else 1, row["sector"], row["funcion_rrhh"], row["nombre"]))
+    rows_fuera_rrhh.sort(key=lambda row: row["premio_actual_total"], reverse=True)
+    by_operacion_rows = []
+    for agg in by_operacion.values():
+        if agg["operacion"] == "Sin premio":
+            continue
+        if not agg["legajos"] and not agg["premio_total"] and not agg["productividad_total"]:
+            continue
+        by_operacion_rows.append({
+            "operacion": agg["operacion"],
+            "tipo_premio": agg.get("tipo_premio") or "",
+            "legajos": len(agg["legajos"]),
+            "premio_total": agg["premio_total"],
+            "productividad_total": agg["productividad_total"],
+        })
+
+    kpis = {
+        "activos_rrhh": len(rows),
+        "con_premio": sum(1 for row in rows if row["premio_actual_total"] > 0),
+        "sin_premio": sum(1 for row in rows if row["premio_actual_total"] <= 0),
+        "con_actividad": sum(1 for row in rows if row["productividad_total"] > 0),
+        "actividad_sin_premio": sum(1 for row in rows if row["productividad_total"] > 0 and row["premio_actual_total"] <= 0),
+        "premio_sin_actividad": sum(1 for row in rows if row["productividad_total"] <= 0 and row["premio_actual_total"] > 0),
+        "premio_total": round(sum(row["premio_actual_total"] for row in rows), 2),
+        "premio_medible_total": round(sum(row["premio_medible_total"] for row in rows), 2),
+        "premio_no_medible_total": round(sum(row["premio_no_medible_total"] for row in rows), 2),
+        "con_premio_no_medible": sum(1 for row in rows if row["premio_no_medible_total"] > 0),
+        "jornadas_con_premio": sum(row["jornadas_con_premio"] for row in rows),
+        "premio_fuera_rrhh_activo": len(rows_fuera_rrhh),
+        "premio_fuera_rrhh_total": round(sum(row["premio_actual_total"] for row in rows_fuera_rrhh), 2),
+    }
+    return {
+        "kpis": kpis,
+        "rows": rows,
+        "rows_fuera_rrhh": rows_fuera_rrhh,
+        "by_sector": sorted(by_sector.values(), key=lambda row: row["premio_total"], reverse=True),
+        "by_funcion": sorted(by_funcion.values(), key=lambda row: row["premio_total"], reverse=True),
+        "by_operacion": sorted(by_operacion_rows, key=lambda row: row["premio_total"], reverse=True),
+        "sectores": sorted({row["sector"] for row in rows if row["sector"]}),
+        "funciones": sorted({row["funcion_rrhh"] for row in rows if row["funcion_rrhh"]}),
+    }
 
 
 def _date_range(fecha_desde: str, fecha_hasta: str) -> list[str]:
@@ -2692,7 +3089,7 @@ async def consultar_rango(req: RangoCasoModeloRequest):
         db.row_factory = aiosqlite.Row
         estados = []
         for day in days:
-            estados.append(await _load_day_all_operations_to_cache(db, day, force=req.force))
+            estados.append(await _load_day_to_cache(db, day, operacion, almacen, force=req.force))
             await db.commit()
         rows = await _cache_rows_for_range(db, days[0].isoformat(), days[-1].isoformat(), operacion, almacen)
         detail_rows = await _detail_rows_for_range_internal(db, days[0].isoformat(), days[-1].isoformat(), operacion, almacen)
@@ -2813,7 +3210,7 @@ async def cache_cobertura(
     expected = [day.isoformat() for day in days]
     operacion = _normalize_operacion(operacion)
     almacen = _normalize_almacen(almacen)
-    operaciones = sorted(OPERACIONES_PREMIO_PRODUCTIVIDAD)
+    operaciones = [operacion]
     async with aiosqlite.connect(PREMIO_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         marker_rows = await _fetch_rows(
@@ -2970,6 +3367,46 @@ async def ultima_fecha_cache(
     }
 
 
+@router.get("/estudio/meta")
+async def estudio_meta(request: Request):
+    auth = await current_auth(request)
+    username = str((auth or {}).get("username") or "").strip().lower()
+    enabled = bool(auth and auth.get("device_status") == "approved" and username in _premio_estudio_allowed_users())
+    return {
+        "enabled": enabled,
+        "username": username,
+        "query_version": CASO_MODELO_DIA_QUERY_VERSION,
+    }
+
+
+@router.get("/estudio")
+async def estudio_premio_productividad(
+    request: Request,
+    fecha_desde: str = Query(...),
+    fecha_hasta: str = Query(...),
+):
+    await _require_premio_estudio(request)
+    days = _date_range_inclusive(fecha_desde, fecha_hasta)
+    fecha_desde_norm = days[0].isoformat()
+    fecha_hasta_norm = days[-1].isoformat()
+    rrhh_rows, rrhh_index, premio_by_legajo = await asyncio.gather(
+        _rrhh_activos_rows(),
+        _rrhh_personas_index(),
+        _premio_estudio_cache_rows(fecha_desde_norm, fecha_hasta_norm),
+    )
+    data = _build_premio_estudio(rrhh_rows, premio_by_legajo, rrhh_index)
+    data["meta"] = {
+        "fecha_desde": fecha_desde_norm,
+        "fecha_hasta": fecha_hasta_norm,
+        "dias": len(days),
+        "universo": "rrhh_personas.active=1",
+        "premio_source": "oracle_productiv",
+        "rrhh_db": str(OPERATIONAL_DB_PATH),
+        "query_version": CASO_MODELO_DIA_QUERY_VERSION,
+    }
+    return data
+
+
 @router.get("/detalle-legajo")
 async def detalle_legajo(
     fecha: str = Query(...),
@@ -3053,7 +3490,7 @@ async def problematica_modelo_actual(
     async with aiosqlite.connect(PREMIO_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         for day in days:
-            estado = await _load_day_all_operations_to_cache(db, day, force=False)
+            estado = await _load_day_to_cache(db, day, operacion, almacen, force=False)
             if estado["estado"] == "oracle":
                 dias_oracle += 1
             else:
