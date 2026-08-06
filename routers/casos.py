@@ -1843,6 +1843,8 @@ async def listar(
     request: Request,
     tipo_id: int | None = None,
     codigo_visible: str = "",
+    service_externo: str = "",
+    ubicacion: str = "",
     estado_id: int | None = None,
     criticidad_id: int | None = None,
     fecha_desde: str = "",
@@ -1864,6 +1866,33 @@ async def listar(
         if codigo_visible:
             where.append("t.codigo_visible LIKE ?")
             args.append(f"%{codigo_visible.strip()}%")
+        if service_externo:
+            where.append("UPPER(COALESCE(d.service_externo_id, '')) LIKE ?")
+            args.append(f"%{service_externo.strip().upper()}%")
+        if ubicacion:
+            raw_ubicacion = ubicacion.strip().upper()
+            norm_ubicacion = re.sub(r"[^A-Z0-9]+", "", raw_ubicacion)
+            location_like = f"%{raw_ubicacion}%"
+            norm_like = f"%{norm_ubicacion}%"
+            where.append(
+                """
+                (
+                    UPPER(COALESCE(d.zona_text, rz.nombre, '')) LIKE ?
+                    OR UPPER(COALESCE(d.pasillo, '')) LIKE ?
+                    OR UPPER(COALESCE(rc.nombre, '')) LIKE ?
+                    OR UPPER(COALESCE(d.ubicaciones, '')) LIKE ?
+                    OR UPPER(COALESCE(d.niveles, '')) LIKE ?
+                    OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(
+                        COALESCE(d.zona_text, rz.nombre, '') ||
+                        COALESCE(d.pasillo, '') ||
+                        COALESCE(rc.nombre, '') ||
+                        COALESCE(d.ubicaciones, '') ||
+                        COALESCE(d.niveles, '')
+                    ), ' ', ''), '-', ''), ',', ''), '/', ''), ';', '') LIKE ?
+                )
+                """
+            )
+            args.extend([location_like, location_like, location_like, location_like, location_like, norm_like])
         if estado_id:
             where.append("t.estado_id = ?")
             args.append(estado_id)
@@ -1902,6 +1931,9 @@ async def listar(
             JOIN ticket_tipo tt ON tt.id = t.tipo_id
             JOIN ticket_estado e ON e.id = t.estado_id
             JOIN ticket_criticidad c ON c.id = t.criticidad_id
+            LEFT JOIN ticket_rack_detalle d ON d.ticket_id = t.id
+            LEFT JOIN rack_zona rz ON rz.id = d.zona_id
+            LEFT JOIN rack_cara rc ON rc.id = d.cara_id
             WHERE {" AND ".join(where)}
             ORDER BY t.fecha_ultima_actualizacion DESC, t.id DESC
             LIMIT 500

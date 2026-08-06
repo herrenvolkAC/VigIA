@@ -20,6 +20,7 @@ import logging
 import os
 import time as time_module
 import traceback
+import unicodedata
 from contextlib import suppress
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
@@ -50,12 +51,19 @@ logger = logging.getLogger("vigia.rrhh_novedades")
 
 SOURCE_ROOT = Path(__file__).parent.parent / "Docs" / "Panel_Choferes" / "PROCESADOS"
 DEFAULT_RRHH_IMPORT_LOG_DIR = Path(__file__).parent.parent / "logs" / "rrhh_importaciones"
+ROOT_DIR = Path(__file__).parent.parent
+DEFAULT_RRHH_LOGISTIC_WINDOWS_PATH = ROOT_DIR / "config" / "rrhh_jornadas_logisticas.json"
+JAVA_HELPER_SRC = ROOT_DIR / "scripts" / "OracleProductividadQuery.java"
+JAVA_BUILD_DIR = ROOT_DIR / "scripts" / "java_build"
 FULL_ACCESS_ROLES = {"admin", "rrhh"}
 IMPORT_ROLES = {"admin", "rrhh"}
 RRHH_SCOPE_MODULE = "novedades_cd"
 _rrhh_import_lock: asyncio.Lock | None = None
 _rrhh_monitor_task: asyncio.Task | None = None
 _rrhh_monitor_stop: asyncio.Event | None = None
+_rrhh_oracle_scheduler_task: asyncio.Task | None = None
+_rrhh_oracle_scheduler_stop: asyncio.Event | None = None
+_rrhh_oracle_scheduler_last_attempt: str | None = None
 _rrhh_monitor_seen: dict[str, tuple[int, int, float]] = {}
 RRHH_IMPORT_LOG_HEADERS = (
     "fecha_hora",
@@ -124,6 +132,11 @@ class ImportFolderRequest(BaseModel):
     force: bool = False
 
 
+class ImportOracleActividadRequest(BaseModel):
+    fecha_operativa: date | None = None
+    force: bool = True
+
+
 class FuncionCatalogoRequest(BaseModel):
     descripcion: str
 
@@ -135,6 +148,19 @@ class FuncionCambioRequest(BaseModel):
     fecha_fin: date | None = None
     motivo: str
     conflicto: str = "omitir"
+
+
+ACTIVIDAD_INSERT_COLUMNS = (
+    "batch_id", "legajo", "empleado", "fecha", "division", "subdivision", "sector",
+    "grupo_profesional", "area_personal", "dia", "pausa", "horario",
+    "horario_teorico", "ingreso_teorico", "salida_teorica", "horas_teoricas",
+    "aus_pres_codigo", "aus_pres_codigo_norm", "ausentismo_tratamiento", "ausentismo_tipo",
+    "ausentismo_clasificacion", "ausentismo_contabiliza", "ausentismo_regla",
+    "motivo", "comida", "entrada", "p1_ini", "p1_fin", "mas", "salida", "hs_trab",
+    "hs_ext_realiz", "hs_50_autorizadas", "hs_100", "recargo_50", "recargo_100",
+    "rec_noct", "hs_fer", "tarde", "viajes_equiv", "es_gerencia",
+    "origen_dato", "source_file", "source_key", "updated_at", "raw_json",
+)
 
 
 class FuncionCambioCancelRequest(BaseModel):
@@ -922,6 +948,80 @@ def _import_legajero(cur: sqlite3.Cursor, batch_id: int, path: Path) -> dict[str
     return {"inserted": inserted, "gerencia_map": gerencia_by_legajo, **master_stats}
 
 
+def _actividad_placeholders() -> str:
+    return ", ".join("?" for _ in ACTIVIDAD_INSERT_COLUMNS)
+
+
+def _insert_actividad_payload(
+    cur: sqlite3.Cursor,
+    payload: list[tuple[Any, ...]],
+    *,
+    source: str,
+) -> dict[str, int]:
+    if not payload:
+        return {"inserted": 0, "updated": 0, "skipped_existing_oracle": 0}
+    now_text = _now()
+    inserted_payload: list[tuple[Any, ...]] = []
+    updated = 0
+    skipped_existing_oracle = 0
+    for item in payload:
+        data = dict(zip(ACTIVIDAD_INSERT_COLUMNS, item))
+        legajo = _norm_legajo(data.get("legajo"))
+        fecha = _to_date(data.get("fecha"))
+        if not legajo or not fecha:
+            continue
+        if source == "oracle_auto":
+            cur.execute(
+                """
+                SELECT COUNT(*) c
+                FROM rrhh_actividad_diaria
+                WHERE LTRIM(legajo, '0') = ? AND fecha = ?
+                """,
+                (legajo, fecha),
+            )
+            existed = int(cur.fetchone()["c"] or 0)
+            cur.execute(
+                """
+                DELETE FROM rrhh_actividad_diaria
+                WHERE LTRIM(legajo, '0') = ? AND fecha = ?
+                """,
+                (legajo, fecha),
+            )
+            if existed:
+                updated += 1
+        else:
+            cur.execute(
+                """
+                SELECT 1
+                FROM rrhh_actividad_diaria
+                WHERE LTRIM(legajo, '0') = ?
+                  AND fecha = ?
+                  AND origen_dato = 'oracle_auto'
+                LIMIT 1
+                """,
+                (legajo, fecha),
+            )
+            if cur.fetchone():
+                skipped_existing_oracle += 1
+                continue
+        data["updated_at"] = now_text
+        inserted_payload.append(tuple(data[column] for column in ACTIVIDAD_INSERT_COLUMNS))
+    if inserted_payload:
+        columns = ", ".join(ACTIVIDAD_INSERT_COLUMNS)
+        cur.executemany(
+            f"""
+            INSERT INTO rrhh_actividad_diaria ({columns})
+            VALUES ({_actividad_placeholders()})
+            """,
+            inserted_payload,
+        )
+    return {
+        "inserted": len(inserted_payload),
+        "updated": updated,
+        "skipped_existing_oracle": skipped_existing_oracle,
+    }
+
+
 def _import_actividad(
     cur: sqlite3.Cursor,
     batch_id: int,
@@ -931,7 +1031,7 @@ def _import_actividad(
     seen: set[tuple[str, str]] | None = None,
     codes: dict[str, dict[str, str]] | None = None,
     no_count_patterns: list[str] | None = None,
-) -> int:
+) -> dict[str, int]:
     rows, _activity_format = _normalized_activity_rows(path)
     headers = _unique_headers(rows[0])
     payload = []
@@ -972,24 +1072,10 @@ def _import_actividad(
             _to_hours(data.get("recargo_50")), _to_hours(data.get("recargo_100")),
             _to_hours(data.get("rec_noct")), _to_hours(data.get("hs_fer")),
             _to_hours(data.get("tarde")), _to_float(data.get("viajes_equiv")),
-            gerencia.get(legajo, 0), _raw_json(headers, row),
+            gerencia.get(legajo, 0),
+            "excel", path.name, f"excel:{path.name}", None, _raw_json(headers, row),
         ))
-    cur.executemany(
-        """
-        INSERT INTO rrhh_actividad_diaria (
-            batch_id, legajo, empleado, fecha, division, subdivision, sector,
-            grupo_profesional, area_personal, dia, pausa, horario,
-            horario_teorico, ingreso_teorico, salida_teorica, horas_teoricas,
-            aus_pres_codigo, aus_pres_codigo_norm, ausentismo_tratamiento, ausentismo_tipo,
-            ausentismo_clasificacion, ausentismo_contabiliza, ausentismo_regla,
-            motivo, comida, entrada, p1_ini, p1_fin, mas, salida, hs_trab,
-            hs_ext_realiz, hs_50_autorizadas, hs_100, recargo_50, recargo_100,
-            rec_noct, hs_fer, tarde, viajes_equiv, es_gerencia, raw_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        payload,
-    )
-    return len(payload)
+    return _insert_actividad_payload(cur, payload, source="excel")
 
 
 def _unidad_sector_map(cur: sqlite3.Cursor, batch_id: int) -> dict[str, str]:
@@ -1122,15 +1208,20 @@ def _import_actividad_files_detailed(cur: sqlite3.Cursor, batch_id: int, paths: 
     total = 0
     details: list[dict[str, Any]] = []
     for path in sorted(paths, key=lambda item: item.stat().st_mtime if item.exists() else 0, reverse=True):
-        inserted = _import_actividad(cur, batch_id, path, gerencia, uo_sector_map, seen, codes, no_count_patterns)
+        stats = _import_actividad(cur, batch_id, path, gerencia, uo_sector_map, seen, codes, no_count_patterns)
+        inserted = int(stats.get("inserted") or 0)
         total += inserted
         _rows, activity_format = _normalized_activity_rows(path)
+        detail_parts = [activity_format]
+        if stats.get("skipped_existing_oracle"):
+            detail_parts.append(f"ignoradas_por_oracle={stats['skipped_existing_oracle']}")
         details.append({
             "path": path,
             "kind": "actividad",
             "excel_rows": _excel_data_rows(path, "actividad"),
             "inserted_rows": inserted,
-            "detail": activity_format,
+            "detail": "; ".join(part for part in detail_parts if part),
+            "skipped_existing_oracle": int(stats.get("skipped_existing_oracle") or 0),
         })
     return total, details
 
@@ -1781,6 +1872,11 @@ async def _import_folder_locked(folder: Path, batch_key: str, imported_by: str, 
         return await asyncio.to_thread(_import_folder_sync, folder, batch_key, imported_by, force)
 
 
+async def _import_oracle_activity_locked(fecha_operativa: str, imported_by: str = "rrhh_oracle_scheduler", force: bool = True) -> dict[str, Any]:
+    async with _get_import_lock():
+        return await asyncio.to_thread(_import_oracle_activity_sync, fecha_operativa, imported_by, force)
+
+
 def _watch_inbox() -> Path | None:
     return _env_path("RRHH_WATCH_INBOX", _env_path("RRHH_WATCH_FOLDER", SOURCE_ROOT))
 
@@ -2063,6 +2159,135 @@ async def stop_rrhh_folder_monitor() -> None:
     _rrhh_monitor_stop = None
 
 
+def _rrhh_oracle_scheduler_enabled() -> bool:
+    return _env_bool("RRHH_ORACLE_ACTIVITY_SYNC_ENABLED", False)
+
+
+def _rrhh_oracle_scheduler_time() -> time:
+    raw = os.getenv("RRHH_ORACLE_ACTIVITY_SYNC_TIME", "07:00").strip()
+    try:
+        hour, minute = raw.split(":", 1)
+        return time(int(hour), int(minute))
+    except Exception:
+        logger.warning("RRHH Oracle actividad: hora invalida %r; se usa 07:00.", raw)
+        return time(7, 0)
+
+
+def _rrhh_oracle_fecha_vencida(now: datetime | None = None) -> str:
+    now = now or datetime.now()
+    return (now.date() - timedelta(days=1)).isoformat()
+
+
+def _rrhh_oracle_backfill_enabled() -> bool:
+    return _env_bool("RRHH_ORACLE_ACTIVITY_BACKFILL_ENABLED", True)
+
+
+def _rrhh_oracle_backfill_max_days() -> int:
+    return _env_int("RRHH_ORACLE_ACTIVITY_BACKFILL_MAX_DAYS", 15, minimum=1, maximum=120)
+
+
+def _rrhh_oracle_last_imported_date_sync() -> str | None:
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT MAX(fecha) fecha
+            FROM rrhh_actividad_diaria
+            WHERE origen_dato = 'oracle_auto'
+            """
+        )
+        row = cur.fetchone()
+        fecha = _to_date(row["fecha"] if row else None)
+        if fecha:
+            return fecha
+        cur.execute(
+            """
+            SELECT MAX(fecha) fecha
+            FROM rrhh_actividad_diaria
+            WHERE TRIM(COALESCE(fecha, '')) <> ''
+            """
+        )
+        row = cur.fetchone()
+        return _to_date(row["fecha"] if row else None)
+    finally:
+        conn.close()
+
+
+async def _rrhh_oracle_pending_dates(hasta_fecha: str) -> list[str]:
+    hasta = datetime.strptime(hasta_fecha, "%Y-%m-%d").date()
+    last_date_text = await asyncio.to_thread(_rrhh_oracle_last_imported_date_sync)
+    if last_date_text:
+        start = datetime.strptime(last_date_text, "%Y-%m-%d").date() + timedelta(days=1)
+    else:
+        start = hasta
+    if start > hasta:
+        return []
+    all_dates = [
+        (start + timedelta(days=offset)).isoformat()
+        for offset in range((hasta - start).days + 1)
+    ]
+    if not _rrhh_oracle_backfill_enabled():
+        return all_dates[-1:]
+    return all_dates[-_rrhh_oracle_backfill_max_days():]
+
+
+async def _rrhh_oracle_scheduler_loop() -> None:
+    global _rrhh_oracle_scheduler_last_attempt
+    assert _rrhh_oracle_scheduler_stop is not None
+    logger.info("Scheduler RRHH Oracle iniciado. Hora diaria: %s.", _rrhh_oracle_scheduler_time().strftime("%H:%M"))
+    while not _rrhh_oracle_scheduler_stop.is_set():
+        try:
+            if _rrhh_oracle_scheduler_enabled():
+                now = datetime.now()
+                today = now.strftime("%Y-%m-%d")
+                if now.time() >= _rrhh_oracle_scheduler_time() and _rrhh_oracle_scheduler_last_attempt != today:
+                    _rrhh_oracle_scheduler_last_attempt = today
+                    fecha_vencida = _rrhh_oracle_fecha_vencida(now)
+                    pending_dates = await _rrhh_oracle_pending_dates(fecha_vencida)
+                    if not pending_dates:
+                        logger.info("RRHH Oracle actividad: no hay fechas pendientes hasta %s.", fecha_vencida)
+                    for fecha_operativa in pending_dates:
+                        result = await _import_oracle_activity_locked(fecha_operativa, "rrhh_oracle_scheduler", True)
+                        logger.info(
+                            "RRHH Oracle actividad importada para %s: %s filas, %s actualizadas, %s sin Oracle.",
+                            fecha_operativa,
+                            result.get("actividad"),
+                            result.get("actividad_actualizada"),
+                            result.get("actividad_sin_oracle"),
+                        )
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            logger.warning("No se pudo importar RRHH actividad desde Oracle: %s", exc)
+        try:
+            await asyncio.wait_for(_rrhh_oracle_scheduler_stop.wait(), timeout=300)
+        except asyncio.TimeoutError:
+            pass
+    logger.info("Scheduler RRHH Oracle detenido.")
+
+
+def start_rrhh_oracle_activity_scheduler() -> None:
+    global _rrhh_oracle_scheduler_task, _rrhh_oracle_scheduler_stop
+    if _rrhh_oracle_scheduler_task and not _rrhh_oracle_scheduler_task.done():
+        return
+    _rrhh_oracle_scheduler_stop = asyncio.Event()
+    _rrhh_oracle_scheduler_task = asyncio.create_task(_rrhh_oracle_scheduler_loop())
+
+
+async def stop_rrhh_oracle_activity_scheduler() -> None:
+    global _rrhh_oracle_scheduler_task, _rrhh_oracle_scheduler_stop
+    if _rrhh_oracle_scheduler_stop:
+        _rrhh_oracle_scheduler_stop.set()
+    if _rrhh_oracle_scheduler_task:
+        _rrhh_oracle_scheduler_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await _rrhh_oracle_scheduler_task
+    _rrhh_oracle_scheduler_task = None
+    _rrhh_oracle_scheduler_stop = None
+
+
 async def _require_auth(request: Request) -> dict[str, Any]:
     auth = await current_auth(request)
     if not auth or auth.get("device_status") != "approved":
@@ -2213,6 +2438,668 @@ def _append_multi_filter(where: list[str], params: list[Any], expression: str, v
     placeholders = ", ".join("?" for _ in values)
     where.append(f"{expression} IN ({placeholders})")
     params.extend(values)
+
+
+def _productive_db_local_only_enabled() -> bool:
+    return os.getenv("PRODUCTIVE_DB_LOCAL_ONLY", "0").strip().lower() in {"1", "true", "yes", "si"}
+
+
+def _ensure_rrhh_java_helper_compiled() -> None:
+    javac_bin = os.getenv(
+        "PRODUCTIVE_DB_JAVAC_BIN",
+        r"C:\Program Files\Android\openjdk\jdk-21.0.8\bin\javac.exe",
+    ).strip()
+    if not Path(javac_bin).exists():
+        raise RuntimeError(f"No se encontro javac para el fallback JDBC: {javac_bin}")
+    JAVA_BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    class_file = JAVA_BUILD_DIR / "OracleProductividadQuery.class"
+    if class_file.exists() and class_file.stat().st_mtime >= JAVA_HELPER_SRC.stat().st_mtime:
+        return
+    result = subprocess.run(
+        [javac_bin, "-d", str(JAVA_BUILD_DIR), str(JAVA_HELPER_SRC)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            "No se pudo compilar el helper JDBC de Oracle. "
+            f"STDERR: {result.stderr.strip() or result.stdout.strip()}"
+        )
+
+
+def _query_rrhh_presencias_jdbc(fecha: str, legajos: list[str]) -> list[dict[str, Any]]:
+    if _productive_db_local_only_enabled():
+        raise RuntimeError("La BD productiva Oracle esta temporalmente bloqueada por configuracion.")
+    clean_legajos = [_norm_legajo(item) for item in legajos if _norm_legajo(item)]
+    if not clean_legajos:
+        return []
+    user = os.getenv("PRODUCTIVE_DB_USER", "").strip()
+    password = os.getenv("PRODUCTIVE_DB_PASSWORD", "").strip()
+    host = os.getenv("PRODUCTIVE_DB_HOST", "").strip()
+    port = os.getenv("PRODUCTIVE_DB_PORT", "1521").strip()
+    service_name = os.getenv("PRODUCTIVE_DB_SERVICE_NAME", "").strip()
+    java_bin = os.getenv(
+        "PRODUCTIVE_DB_JAVA_BIN",
+        r"C:\Users\207189\AppData\Local\DBeaver\jre\bin\java.exe",
+    ).strip()
+    ojdbc_jar = os.getenv(
+        "PRODUCTIVE_DB_OJDBC_JAR",
+        r"C:\Users\207189\AppData\Roaming\DBeaverData\drivers\maven\maven-central\com.oracle.database.jdbc\ojdbc11-23.2.0.0.jar",
+    ).strip()
+    if not all([user, password, host, service_name]):
+        raise RuntimeError("Faltan variables JDBC PRODUCTIVE_DB_USER, PRODUCTIVE_DB_PASSWORD, PRODUCTIVE_DB_HOST o PRODUCTIVE_DB_SERVICE_NAME.")
+    if not Path(java_bin).exists():
+        raise RuntimeError(f"No se encontro Java para fallback JDBC: {java_bin}")
+    if not Path(ojdbc_jar).exists():
+        raise RuntimeError(f"No se encontro el driver JDBC Oracle: {ojdbc_jar}")
+    _ensure_rrhh_java_helper_compiled()
+    jdbc_url = f"jdbc:oracle:thin:@//{host}:{port}/{service_name}"
+    classpath = os.pathsep.join([str(JAVA_BUILD_DIR), ojdbc_jar])
+    command = [
+        java_bin,
+        "-cp",
+        classpath,
+        "OracleProductividadQuery",
+        jdbc_url,
+        user,
+        password,
+        fecha,
+        fecha,
+        "rrhh_presencias",
+        ",".join(clean_legajos),
+    ]
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=int(os.getenv("PRODUCTIVE_DB_JDBC_TIMEOUT_SECONDS", "300")),
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"No se pudo consultar Oracle via JDBC. STDERR: {result.stderr.strip() or result.stdout.strip()}")
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"La respuesta JDBC no fue JSON valido. Salida: {result.stdout[:300]}") from exc
+
+
+def _oracle_time_text(*values: Any) -> str | None:
+    for value in values:
+        text = _norm(value)
+        if not text:
+            continue
+        match = re.search(r"(\d{1,2}):(\d{2})(?::(\d{2}))?", text)
+        if match:
+            return f"{int(match.group(1)):02d}:{int(match.group(2)):02d}:{int(match.group(3) or 0):02d}"
+    return None
+
+
+def _oracle_activity_schedule(row: dict[str, Any]) -> dict[str, Any]:
+    descripcion = _norm(row.get("PLAN_HORARIO"))
+    start = _oracle_time_text(row.get("HORA_INICIO"), row.get("ENTRADAT"))
+    end = _oracle_time_text(row.get("FECHA_FIN"), row.get("SALIDAT"))
+    hours = _to_hours(row.get("HORAS_TEORICAS"))
+    if descripcion:
+        return {
+            "descripcion": descripcion,
+            "inicio": (start or "")[:5],
+            "fin": (end or "")[:5],
+            "horas": hours,
+        }
+    if start and hours > 0:
+        parsed = _parse_schedule(f"{hours:g} hs {start[:5]}")
+        if end:
+            parsed["fin"] = end[:5]
+        return parsed
+    return {"descripcion": "", "inicio": (start or "")[:5], "fin": (end or "")[:5], "horas": hours}
+
+
+def _latest_legajero_rows_for_oracle(cur: sqlite3.Cursor) -> list[dict[str, Any]]:
+    cur.execute(
+        """
+        SELECT *
+        FROM (
+            SELECT l.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY l.legajo
+                       ORDER BY b.imported_at DESC, l.batch_id DESC, l.id DESC
+                   ) rn
+            FROM rrhh_legajero l
+            JOIN rrhh_import_batches b ON b.batch_id = l.batch_id
+            WHERE b.status = 'complete'
+              AND TRIM(COALESCE(l.fecha_baja, '')) = ''
+              AND TRIM(COALESCE(l.legajo, '')) <> ''
+        )
+        WHERE rn = 1
+        ORDER BY legajo
+        """
+    )
+    return [dict(row) for row in cur.fetchall()]
+
+
+def _oracle_activity_payload(
+    batch_id: int,
+    fecha_operativa: str,
+    legajero_rows: list[dict[str, Any]],
+    oracle_rows: list[dict[str, Any]],
+    codes: dict[str, dict[str, str]],
+    no_count_patterns: list[str],
+) -> tuple[list[tuple[Any, ...]], int]:
+    window_start = datetime.strptime(f"{fecha_operativa} 06:00:00", "%Y-%m-%d %H:%M:%S")
+    window_end = window_start + timedelta(days=1) - timedelta(seconds=1)
+    oracle_by_legajo: dict[str, list[dict[str, Any]]] = {}
+    for row in oracle_rows:
+        legajo = _norm_legajo(row.get("LEGAJO_NORM"))
+        if legajo:
+            oracle_by_legajo.setdefault(legajo, []).append(row)
+    payload: list[tuple[Any, ...]] = []
+    matched = 0
+    source_key = f"oracle:{fecha_operativa}"
+    for leg_row in legajero_rows:
+        legajo = _norm_legajo(leg_row.get("legajo"))
+        oracle_row = _select_oracle_presence_row(
+            oracle_by_legajo.get(legajo, []),
+            fecha_iso=fecha_operativa,
+            window_start=window_start,
+            window_end=window_end,
+        )
+        if not oracle_row:
+            continue
+        matched += 1
+        aus_codigo = _norm(oracle_row.get("CLASE_AUSENTISMO"))
+        motivo = _norm(oracle_row.get("DESCRIPCION_AUS"))
+        schedule = _oracle_activity_schedule(oracle_row)
+        aus_info = _classify_ausentismo(aus_codigo, motivo, schedule.get("descripcion"), codes, no_count_patterns)
+        entrada = _oracle_time_text(oracle_row.get("ENTRADA_REAL"), oracle_row.get("ENTRADAR"))
+        salida = _oracle_time_text(oracle_row.get("SALIDA_REAL"), oracle_row.get("SALIDAR"))
+        raw = json.dumps(oracle_row, ensure_ascii=False, default=str)
+        payload.append((
+            batch_id,
+            legajo,
+            _norm(oracle_row.get("NOMBRE_ORACLE")) or _norm(leg_row.get("nombre")),
+            fecha_operativa,
+            _norm(leg_row.get("division_personal")),
+            _norm(leg_row.get("sucursal")),
+            _norm(leg_row.get("desc_sector_generico")) or _norm(oracle_row.get("DESC_UNORG")),
+            _norm(leg_row.get("desc_grupo_personal")),
+            _norm(leg_row.get("desc_area_personal")),
+            "",
+            _norm(oracle_row.get("PLAN_PAUSAS")),
+            _norm(oracle_row.get("PLAN_HORARIO")),
+            schedule["descripcion"],
+            schedule["inicio"],
+            schedule["fin"],
+            _to_hours(schedule["horas"]),
+            aus_codigo,
+            aus_info["codigo_norm"],
+            aus_info["tratamiento"],
+            aus_info["tipo"],
+            aus_info["clasificacion"],
+            aus_info["contabiliza"],
+            aus_info["regla"],
+            motivo,
+            "",
+            entrada,
+            None,
+            None,
+            "",
+            salida,
+            _to_hours(oracle_row.get("HS_TRABAJADAS")),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            _to_hours(oracle_row.get("TARDANZAS")),
+            0.0,
+            int(leg_row.get("es_gerencia") or 0),
+            "oracle_auto",
+            "T_VTADOT_ZHR_PRESENCIAS",
+            source_key,
+            None,
+            raw,
+        ))
+    return payload, matched
+
+
+def _import_oracle_activity_sync(fecha_operativa: str, imported_by: str = "rrhh_oracle_scheduler", force: bool = True) -> dict[str, Any]:
+    fecha_operativa = _to_date(fecha_operativa) or fecha_operativa
+    batch_key = f"oracle_actividad_{fecha_operativa.replace('-', '')}"
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    cur = conn.cursor()
+    try:
+        _cleanup_rrhh_orphans(cur)
+        legajero_rows = _latest_legajero_rows_for_oracle(cur)
+        if not legajero_rows:
+            raise RuntimeError("No hay legajero activo para consultar actividad Oracle.")
+        cur.execute("SELECT batch_id FROM rrhh_import_batches WHERE batch_key = ?", (batch_key,))
+        existing = cur.fetchone()
+        if existing and not force:
+            raise RuntimeError(f"El lote {batch_key} ya existe. Usar force=true para reimportar.")
+        if existing:
+            existing_batch_id = int(existing["batch_id"])
+            _delete_rrhh_batch_children(cur, existing_batch_id)
+            cur.execute("DELETE FROM rrhh_import_batches WHERE batch_id = ?", (existing_batch_id,))
+        # No mantener una transacción SQLite abierta mientras Oracle responde.
+        # La consulta JDBC puede demorar varios minutos y bloquearía el arranque
+        # de la aplicación (init_db) y el resto de las lecturas locales.
+        conn.commit()
+        legajos = [_norm_legajo(row.get("legajo")) for row in legajero_rows if _norm_legajo(row.get("legajo"))]
+        oracle_rows: list[dict[str, Any]] = []
+        oracle_dates = [
+            fecha_operativa,
+            (datetime.strptime(fecha_operativa, "%Y-%m-%d").date() + timedelta(days=1)).isoformat(),
+        ]
+        for oracle_date in oracle_dates:
+            for start in range(0, len(legajos), 850):
+                oracle_rows.extend(_query_rrhh_presencias_jdbc(oracle_date, legajos[start:start + 850]))
+        cur.execute(
+            """
+            INSERT INTO rrhh_import_batches (batch_key, source_dir, imported_by, status, files_json)
+            VALUES (?, ?, ?, 'running', ?)
+            """,
+            (
+                batch_key,
+                "ORACLE:T_VTADOT_ZHR_PRESENCIAS",
+                imported_by,
+                json.dumps({"oracle_table": "T_VTADOT_ZHR_PRESENCIAS", "fecha_operativa": fecha_operativa}, ensure_ascii=False),
+            ),
+        )
+        batch_id = int(cur.lastrowid)
+        codes, no_count_patterns = _load_ausentismo_classifier(cur, batch_id)
+        payload, matched = _oracle_activity_payload(batch_id, fecha_operativa, legajero_rows, oracle_rows, codes, no_count_patterns)
+        stats = _insert_actividad_payload(cur, payload, source="oracle_auto")
+        summary = {
+            "modo_importacion": "oracle_auto",
+            "fecha_operativa": fecha_operativa,
+            "legajero_activo": len(legajero_rows),
+            "oracle_rows": len(oracle_rows),
+            "oracle_legajos_match": matched,
+            "actividad": stats["inserted"],
+            "actividad_actualizada": stats["updated"],
+            "actividad_sin_oracle": len(legajero_rows) - matched,
+        }
+        cur.execute(
+            """
+            UPDATE rrhh_import_batches
+            SET status = 'complete', summary_json = ?, error = NULL
+            WHERE batch_id = ?
+            """,
+            (json.dumps(summary, ensure_ascii=False), batch_id),
+        )
+        conn.commit()
+        _write_rrhh_import_log([
+            _import_log_entry(
+                batch_key,
+                imported_by,
+                "oracle_auto",
+                "actividad",
+                Path("T_VTADOT_ZHR_PRESENCIAS"),
+                len(oracle_rows),
+                stats["inserted"],
+                "OK",
+                f"fecha_operativa={fecha_operativa}; actualizadas={stats['updated']}; sin_oracle={summary['actividad_sin_oracle']}",
+            )
+        ])
+        return {"batch_id": batch_id, "batch_key": batch_key, **summary}
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def _parse_oracle_presence_datetime(value: Any, fecha_iso: str) -> datetime | None:
+    text = _norm(value)
+    if not text:
+        return None
+    candidates = [text]
+    digits = re.sub(r"\D", "", text)
+    if len(digits) >= 12:
+        candidates.append(f"{digits[:8]} {digits[8:10]}:{digits[10:12]}")
+    if re.fullmatch(r"\d{1,2}:\d{2}", text):
+        candidates.append(f"{fecha_iso} {text}")
+    formats = ("%Y%m%d %H:%M:%S", "%Y%m%d %H:%M", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%d.%m.%Y %H:%M", "%Y-%m-%d")
+    for candidate in candidates:
+        for fmt in formats:
+            with suppress(ValueError):
+                return datetime.strptime(candidate, fmt)
+    return None
+
+
+def _presence_hours(value: Any) -> float:
+    try:
+        return float(_norm(value).replace(",", ".") or 0)
+    except ValueError:
+        return 0.0
+
+
+def _presence_entry_exit(oracle_row: dict[str, Any], fecha_iso: str) -> tuple[datetime | None, datetime | None]:
+    entrada = _parse_oracle_presence_datetime(oracle_row.get("ENTRADAR"), fecha_iso)
+    salida = _parse_oracle_presence_datetime(oracle_row.get("SALIDAR"), fecha_iso)
+    if not entrada:
+        entrada = _parse_oracle_presence_datetime(oracle_row.get("ENTRADA_REAL"), fecha_iso)
+    if not salida:
+        salida = _parse_oracle_presence_datetime(oracle_row.get("SALIDA_REAL"), fecha_iso)
+    if entrada and salida and salida < entrada:
+        salida = salida + timedelta(days=1)
+    return entrada, salida
+
+
+def _presence_display_hours(
+    oracle_row: dict[str, Any] | None,
+    fecha_iso: str,
+    *,
+    window_start: datetime,
+    window_end: datetime,
+) -> str:
+    if not oracle_row:
+        return ""
+    raw_hours = _presence_hours(oracle_row.get("HS_TRABAJADAS"))
+    if raw_hours > 0:
+        return f"{raw_hours:.2f}"
+    if oracle_row.get("_FICHADA_IGNORADA_JORNADA") or oracle_row.get("_FICHADA_FUERA_JORNADA"):
+        return f"{raw_hours:.2f}" if _norm(oracle_row.get("HS_TRABAJADAS")) else ""
+    entrada, salida = _presence_entry_exit(oracle_row, fecha_iso)
+    if entrada and salida:
+        if salida > entrada:
+            hours = (salida - entrada).total_seconds() / 3600
+            return f"{hours:.2f}"
+    return f"{raw_hours:.2f}" if _norm(oracle_row.get("HS_TRABAJADAS")) else ""
+
+
+def _presence_reason_kind(value: Any) -> str:
+    text = _norm(value).upper()
+    if not text:
+        return ""
+    if "VACAC" in text or "VACACIONES" in text:
+        return "vacaciones"
+    if "HOME OFFICE" in text or "HOMEOFFICE" in text:
+        return "home_office"
+    if (
+        "FRANCO" in text
+        or "DESCANSO JORNADA NOCTURNA" in text
+        or "DESCANSO EN HORA NOCT" in text
+        or "DESCANSO HORA NOCT" in text
+        or "DESCANSO NOCT" in text
+    ):
+        return "franco"
+    return "ausente"
+
+
+def _presence_status(
+    oracle_row: dict[str, Any] | None,
+    fecha_iso: str,
+    now_dt: datetime,
+    *,
+    window_start: datetime | None = None,
+    window_end: datetime | None = None,
+) -> dict[str, Any]:
+    if not oracle_row:
+        return {"estado": "sin_registro", "estado_label": "Sin registro", "disponible": False}
+    ausencia = _norm(oracle_row.get("DESCRIPCION_AUS"))
+    reason_kind = _presence_reason_kind(ausencia)
+    if oracle_row.get("_FICHADA_IGNORADA_JORNADA") or oracle_row.get("_FICHADA_FUERA_JORNADA"):
+        return {"estado": "sin_fichada", "estado_label": "Sin fichada", "disponible": False}
+    entrada, salida = _presence_entry_exit(oracle_row, fecha_iso)
+    hs_trabajadas = _presence_hours(oracle_row.get("HS_TRABAJADAS"))
+    has_presence = bool(_norm(oracle_row.get("ENTRADA_REAL")) or _norm(oracle_row.get("SALIDA_REAL")) or hs_trabajadas > 0)
+    if reason_kind in {"vacaciones", "franco", "home_office"} and not has_presence:
+        labels = {"vacaciones": "Vacaciones", "franco": "Franco", "home_office": "Home Office"}
+        return {"estado": reason_kind, "estado_label": labels[reason_kind], "disponible": False}
+    if reason_kind == "ausente" and not has_presence:
+        return {"estado": "ausente", "estado_label": "Ausente", "disponible": False}
+    if not has_presence:
+        return {"estado": "sin_fichada", "estado_label": "Sin fichada", "disponible": False}
+    disponible = False
+    if entrada and not salida:
+        disponible = entrada <= now_dt and (window_end is None or now_dt <= window_end)
+    elif entrada and salida:
+        disponible = entrada <= now_dt <= salida
+    elif salida:
+        disponible = (window_start is None or window_start <= now_dt) and now_dt <= salida
+    estado = "disponible" if disponible else "presente_no_disponible"
+    label = "Disponible ahora" if disponible else "Presente hoy"
+    return {"estado": estado, "estado_label": label, "disponible": disponible}
+
+
+def _fold_config_key(value: Any) -> str:
+    text = unicodedata.normalize("NFKD", _norm(value))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = re.sub(r"\s+", " ", text).strip().upper()
+    return text
+
+
+def _parse_hhmm(value: Any, fallback: time) -> time:
+    text = _norm(value)
+    try:
+        hour, minute = text.split(":", 1)
+        return time(int(hour), int(minute[:2]))
+    except Exception:
+        return fallback
+
+
+def _rrhh_logistic_windows_path() -> Path:
+    return _env_path("RRHH_LOGISTIC_WINDOWS_PATH", DEFAULT_RRHH_LOGISTIC_WINDOWS_PATH) or DEFAULT_RRHH_LOGISTIC_WINDOWS_PATH
+
+
+def _rrhh_logistic_windows_config() -> dict[str, dict[str, Any]]:
+    default_config = {
+        "default": {"inicio": "06:00", "fin": "05:59", "descripcion": "Jornada logistica general"},
+        "CD-TRAFICO": {"inicio": "16:00", "fin": "15:59", "lunes_inicio": "22:00", "margen_ingreso_minutos": 30, "descripcion": "Jornada logistica Trafico"},
+    }
+    path = _rrhh_logistic_windows_path()
+    try:
+        if path.exists():
+            with path.open("r", encoding="utf-8") as fh:
+                loaded = json.load(fh)
+            if isinstance(loaded, dict):
+                return {
+                    _fold_config_key(key) if key != "default" else "default": value
+                    for key, value in loaded.items()
+                    if isinstance(value, dict)
+                } | {"default": loaded.get("default", default_config["default"])}
+    except Exception as exc:
+        logger.warning("No se pudo leer configuracion de jornadas RRHH %s: %s", path, exc)
+    return default_config
+
+
+def _rrhh_operational_window(now_dt: datetime | None = None, sectores: list[str] | None = None) -> dict[str, Any]:
+    now_dt = now_dt or datetime.now()
+    config = _rrhh_logistic_windows_config()
+    default_window = config.get("default") or {"inicio": "06:00", "fin": "05:59", "descripcion": "Jornada logistica general"}
+    sector_keys = sorted({_fold_config_key(sector) for sector in (sectores or []) if _norm(sector)})
+    matched_windows: dict[str, dict[str, Any]] = {
+        key: config[key]
+        for key in sector_keys
+        if key in config
+    }
+    unique_profiles = {
+        json.dumps(
+            {
+                "inicio": value.get("inicio"),
+                "fin": value.get("fin"),
+                "lunes_inicio": value.get("lunes_inicio"),
+                "margen_ingreso_minutos": value.get("margen_ingreso_minutos"),
+            },
+            sort_keys=True,
+        )
+        for value in matched_windows.values()
+    }
+    if len(matched_windows) == 1 and len(sector_keys) == 1:
+        jornada_key = next(iter(matched_windows))
+        selected = matched_windows[jornada_key]
+        source = "sector"
+        mixed = False
+    elif matched_windows and len(unique_profiles) == 1 and len(matched_windows) == len(sector_keys):
+        jornada_key = "+".join(matched_windows)
+        selected = next(iter(matched_windows.values()))
+        source = "sectores"
+        mixed = False
+    else:
+        jornada_key = "default"
+        selected = default_window
+        source = "default" if not matched_windows else "default_por_mezcla"
+        mixed = bool(matched_windows and len(sector_keys) > 1)
+    start_clock = _parse_hhmm(selected.get("inicio"), time(6, 0))
+    end_clock = _parse_hhmm(selected.get("fin"), time(5, 59))
+    entry_margin_minutes = _env_int("RRHH_LOGISTIC_DEFAULT_ENTRY_MARGIN_MINUTES", int(selected.get("margen_ingreso_minutos") or 0), minimum=0, maximum=240)
+    start_day = now_dt.date()
+    end_day = now_dt.date() + timedelta(days=1)
+    start_for_window = start_clock
+    if now_dt.time() < start_clock:
+        start_day = start_day - timedelta(days=1)
+        end_day = now_dt.date()
+        if now_dt.weekday() == 0 and selected.get("lunes_inicio"):
+            start_for_window = _parse_hhmm(selected.get("lunes_inicio"), start_clock)
+    start_dt = datetime.combine(start_day, start_for_window)
+    end_dt = datetime.combine(end_day, end_clock)
+    if end_dt <= start_dt:
+        end_dt = start_dt + timedelta(days=1) - timedelta(seconds=1)
+    return {
+        "fecha": start_day.isoformat(),
+        "inicio": start_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        "fin": end_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        "now": now_dt,
+        "jornada_key": jornada_key,
+        "jornada_descripcion": _norm(selected.get("descripcion")) or jornada_key,
+        "jornada_inicio_hora": start_for_window.strftime("%H:%M"),
+        "jornada_fin_hora": end_clock.strftime("%H:%M"),
+        "jornada_margen_ingreso_minutos": entry_margin_minutes,
+        "jornada_source": source,
+        "jornada_mixta": mixed,
+        "jornada_sectores": sector_keys,
+    }
+
+
+def _select_oracle_presence_row(
+    rows: list[dict[str, Any]],
+    *,
+    fecha_iso: str,
+    window_start: datetime,
+    window_end: datetime,
+    entry_cutoff: datetime | None = None,
+) -> dict[str, Any] | None:
+    if not rows:
+        return None
+
+    def row_datetimes(row: dict[str, Any]) -> tuple[str, datetime | None, datetime | None]:
+        raw_fecha = _norm(row.get("FECHA"))
+        row_fecha = f"{raw_fecha[:4]}-{raw_fecha[4:6]}-{raw_fecha[6:8]}" if re.fullmatch(r"\d{8}", raw_fecha) else fecha_iso
+        entrada = _parse_oracle_presence_datetime(row.get("ENTRADAR"), row_fecha)
+        salida = _parse_oracle_presence_datetime(row.get("SALIDAR"), row_fecha)
+        if not entrada:
+            entrada = _parse_oracle_presence_datetime(row.get("ENTRADA_REAL"), row_fecha)
+        if not salida:
+            salida = _parse_oracle_presence_datetime(row.get("SALIDA_REAL"), row_fecha)
+        return row_fecha, entrada, salida
+
+    def is_ignored_carryover(row: dict[str, Any]) -> bool:
+        if entry_cutoff is None:
+            return False
+        _row_fecha, entrada, salida = row_datetimes(row)
+        return bool(entrada and salida and entrada < entry_cutoff and salida > window_start)
+
+    def timed_presence_overlaps(entrada: datetime | None, salida: datetime | None) -> bool:
+        if entrada:
+            interval_end = salida or window_end
+            return entrada <= window_end and interval_end >= window_start
+        if salida:
+            return window_start <= salida <= window_end
+        return False
+
+    def is_outside_window(row: dict[str, Any]) -> bool:
+        _row_fecha, entrada, salida = row_datetimes(row)
+        if not (entrada or salida):
+            return False
+        return not timed_presence_overlaps(entrada, salida)
+
+    def row_score(row: dict[str, Any]) -> tuple[int, str]:
+        raw_fecha = _norm(row.get("FECHA"))
+        row_fecha, entrada, salida = row_datetimes(row)
+        ausencia = _norm(row.get("DESCRIPCION_AUS"))
+        hs = _presence_hours(row.get("HS_TRABAJADAS"))
+        has_presence = bool(_norm(row.get("ENTRADA_REAL")) or _norm(row.get("SALIDA_REAL")) or hs > 0)
+        ignored = is_ignored_carryover(row)
+        overlaps = timed_presence_overlaps(entrada, salida)
+        if overlaps and not ignored:
+            return (100, raw_fecha)
+        if ausencia and window_start.date().isoformat() <= row_fecha <= window_end.date().isoformat():
+            return (80, raw_fecha)
+        if has_presence and not ignored and not (entrada or salida):
+            return (70, raw_fecha)
+        if row_fecha == fecha_iso:
+            return (50, raw_fecha)
+        if ausencia:
+            return (30, raw_fecha)
+        return (10, raw_fecha)
+
+    selected = max(rows, key=row_score)
+    if is_ignored_carryover(selected):
+        selected = dict(selected)
+        selected["_FICHADA_IGNORADA_JORNADA"] = True
+    elif is_outside_window(selected):
+        selected = dict(selected)
+        selected["_FICHADA_FUERA_JORNADA"] = True
+    return selected
+
+
+def _dates_between(start_dt: datetime, end_dt: datetime) -> list[str]:
+    current = start_dt.date()
+    end_date = end_dt.date()
+    out: list[str] = []
+    while current <= end_date:
+        out.append(current.isoformat())
+        current += timedelta(days=1)
+    return out
+
+
+def _rollup_presencias(rows: list[dict[str, Any]], group_key: str, label_key: str = "label") -> list[dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        label = _norm(row.get(group_key)) or "Sin dato"
+        item = grouped.setdefault(
+            label,
+            {
+                label_key: label,
+                "dotacion": 0,
+                "presentes_hoy": 0,
+                "disponibles": 0,
+                "presentes_no_disponibles": 0,
+                "ausentes": 0,
+                "vacaciones": 0,
+                "francos": 0,
+                "home_office": 0,
+                "sin_registro": 0,
+                "sin_fichada": 0,
+            },
+        )
+        item["dotacion"] += 1
+        estado = row.get("estado")
+        if estado in {"disponible", "presente_no_disponible"}:
+            item["presentes_hoy"] += 1
+        if estado == "disponible":
+            item["disponibles"] += 1
+        elif estado == "presente_no_disponible":
+            item["presentes_no_disponibles"] += 1
+        elif estado == "ausente":
+            item["ausentes"] += 1
+        elif estado == "vacaciones":
+            item["vacaciones"] += 1
+        elif estado == "franco":
+            item["francos"] += 1
+        elif estado == "home_office":
+            item["home_office"] += 1
+        elif estado == "sin_registro":
+            item["sin_registro"] += 1
+        elif estado == "sin_fichada":
+            item["sin_fichada"] += 1
+    return sorted(grouped.values(), key=lambda item: (-item["dotacion"], item[label_key]))
 
 
 CONSOLIDATED_CTES = """
@@ -2891,6 +3778,17 @@ async def import_folder(req: ImportFolderRequest, request: Request):
     return result
 
 
+@router.post("/import/oracle-actividad")
+async def import_oracle_actividad(req: ImportOracleActividadRequest, request: Request):
+    auth = await _require_auth(request)
+    _require_import_role(auth)
+    fecha_operativa = (req.fecha_operativa or date.today() - timedelta(days=1)).isoformat()
+    try:
+        return await _import_oracle_activity_locked(fecha_operativa, auth.get("username", ""), req.force)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @router.get("/resumen")
 async def get_resumen(request: Request, batch_id: int | None = None):
     auth = await _require_auth(request)
@@ -3375,6 +4273,225 @@ async def get_indicadores(
             "sanciones": sanciones,
             "ranking": ranking,
         },
+    }
+
+
+@router.get("/presencias/filtros")
+async def get_presencias_filtros(request: Request):
+    auth = await _require_auth(request)
+    op_window = _rrhh_operational_window()
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db, actividad=False, sanciones=False, fichadas=False)
+        filter_vis = _visibility_sql(auth, "l", "l.desc_sector_generico")
+        async with db.execute(
+            f"""
+            SELECT DISTINCT l.desc_sector_generico value
+            FROM latest_legajero l
+            WHERE {filter_vis}
+              AND TRIM(COALESCE(l.fecha_baja, '')) = ''
+              AND TRIM(COALESCE(l.desc_sector_generico, '')) <> ''
+            ORDER BY value
+            """,
+            (),
+        ) as cur:
+            sectores = [row["value"] for row in await cur.fetchall()]
+        async with db.execute(
+            f"""
+            SELECT DISTINCT COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), '')) value
+            FROM latest_legajero l
+            WHERE {filter_vis}
+              AND TRIM(COALESCE(l.fecha_baja, '')) = ''
+              AND TRIM(COALESCE(l.legajo, '')) <> ''
+              AND COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), '')) IS NOT NULL
+            ORDER BY value
+            """,
+            (),
+        ) as cur:
+            funciones = [row["value"] for row in await cur.fetchall()]
+        async with db.execute(
+            f"""
+            SELECT l.desc_sector_generico sector,
+                   COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), '')) funcion
+            FROM latest_legajero l
+            WHERE {filter_vis}
+              AND TRIM(COALESCE(l.fecha_baja, '')) = ''
+              AND TRIM(COALESCE(l.legajo, '')) <> ''
+              AND TRIM(COALESCE(l.desc_sector_generico, '')) <> ''
+              AND COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), '')) IS NOT NULL
+            GROUP BY l.desc_sector_generico, COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''))
+            ORDER BY l.desc_sector_generico, funcion
+            """,
+            (),
+        ) as cur:
+            sector_funciones: dict[str, list[str]] = {}
+            for row in await cur.fetchall():
+                sector_name = row["sector"]
+                funcion_name = row["funcion"]
+                if sector_name and funcion_name:
+                    sector_funciones.setdefault(sector_name, []).append(funcion_name)
+    return {
+        "fecha": op_window["fecha"],
+        "jornada_inicio": op_window["inicio"],
+        "jornada_fin": op_window["fin"],
+        "jornada_key": op_window["jornada_key"],
+        "jornada_descripcion": op_window["jornada_descripcion"],
+        "jornada_source": op_window["jornada_source"],
+        "jornada_mixta": op_window["jornada_mixta"],
+        "jornada_margen_ingreso_minutos": op_window["jornada_margen_ingreso_minutos"],
+        "consultado_en": op_window["now"].strftime("%Y-%m-%d %H:%M:%S"),
+        "restricted": not _can_see_all(auth),
+        "filters": {"sectores": sectores, "funciones": funciones, "sector_funciones": sector_funciones},
+    }
+
+
+@router.get("/presencias")
+async def get_presencias(
+    request: Request,
+    sector: str = "ALL",
+    cargo: str = "ALL",
+    persona: str = "",
+):
+    auth = await _require_auth(request)
+    sectores_sel = _multi_query_values(request, "sector", sector)
+    funciones_sel = _multi_query_values(request, "cargo", cargo)
+
+    where = [_visibility_sql(auth, "l", "l.desc_sector_generico")]
+    params: list[Any] = []
+    _append_multi_filter(where, params, "l.desc_sector_generico", sectores_sel)
+    _append_multi_filter(where, params, "COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''), 'Sin funcion')", funciones_sel)
+    _append_persona_filter(where, params, persona, record_alias="l", legajero_alias="l", name_columns=("l.nombre",))
+
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db, actividad=False, sanciones=False, fichadas=False)
+        async with db.execute(
+            f"""
+            {_with_consolidated()}
+            SELECT l.legajo,
+                   l.nombre,
+                   COALESCE(NULLIF(TRIM(l.desc_sector_generico), ''), 'Sin sector') sector,
+                   COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), ''), 'Sin funcion') funcion,
+                   COALESCE(NULLIF(TRIM(l.desc_unidad_organizativa), ''), '') unidad,
+                   COALESCE(NULLIF(TRIM(l.fecha_baja), ''), '') fecha_baja
+            FROM latest_legajero l
+            WHERE {" AND ".join(where)}
+              AND TRIM(COALESCE(l.fecha_baja, '')) = ''
+              AND TRIM(COALESCE(l.legajo, '')) <> ''
+            ORDER BY sector, funcion, nombre
+            """,
+            tuple(params),
+        ) as cur:
+            legajero = [dict(row) for row in await cur.fetchall()]
+
+    resolved_sectors = sorted({
+        _norm(row.get("sector"))
+        for row in legajero
+        if _norm(row.get("sector")) and _norm(row.get("sector")) != "Sin sector"
+    })
+    op_window = _rrhh_operational_window(sectores=resolved_sectors)
+    fecha_iso = op_window["fecha"]
+    legajos = [_norm_legajo(row.get("legajo")) for row in legajero]
+    oracle_rows: list[dict[str, Any]] = []
+    chunk_size = 850
+    window_start = datetime.strptime(op_window["inicio"], "%Y-%m-%d %H:%M:%S")
+    window_end = datetime.strptime(op_window["fin"], "%Y-%m-%d %H:%M:%S")
+    entry_margin = int(op_window.get("jornada_margen_ingreso_minutos") or 0)
+    entry_cutoff = window_start - timedelta(minutes=entry_margin) if entry_margin > 0 else None
+    oracle_dates = _dates_between(window_start, window_end)
+    try:
+        for oracle_date in oracle_dates:
+            for start in range(0, len(legajos), chunk_size):
+                chunk = legajos[start:start + chunk_size]
+                oracle_rows.extend(await asyncio.to_thread(_query_rrhh_presencias_jdbc, oracle_date, chunk))
+    except RuntimeError as exc:
+        logger.warning("No se pudo consultar presencias RRHH Oracle: %s", exc)
+        raise HTTPException(status_code=500, detail=f"No se pudo consultar Oracle para presencias: {exc}") from exc
+
+    oracle_by_legajo: dict[str, list[dict[str, Any]]] = {}
+    for row in oracle_rows:
+        oracle_by_legajo.setdefault(_norm_legajo(row.get("LEGAJO_NORM")), []).append(row)
+    now_dt = op_window["now"]
+    detail: list[dict[str, Any]] = []
+    for row in legajero:
+        legajo_norm = _norm_legajo(row.get("legajo"))
+        oracle_row = _select_oracle_presence_row(
+            oracle_by_legajo.get(legajo_norm, []),
+            fecha_iso=fecha_iso,
+            window_start=window_start,
+            window_end=window_end,
+            entry_cutoff=entry_cutoff,
+        )
+        status = _presence_status(
+            oracle_row,
+            fecha_iso,
+            now_dt,
+            window_start=window_start,
+            window_end=window_end,
+        )
+        detail.append(
+            {
+                "legajo": row.get("legajo"),
+                "legajo_norm": legajo_norm,
+                "nombre": row.get("nombre"),
+                "sector": row.get("sector"),
+                "funcion": row.get("funcion"),
+                "unidad": row.get("unidad"),
+                "estado": status["estado"],
+                "estado_label": status["estado_label"],
+                "disponible": status["disponible"],
+                "entrada_real": (oracle_row or {}).get("ENTRADA_REAL") or "",
+                "salida_real": (oracle_row or {}).get("SALIDA_REAL") or "",
+                "hs_trabajadas": _presence_display_hours(
+                    oracle_row,
+                    fecha_iso,
+                    window_start=window_start,
+                    window_end=window_end,
+                ),
+                "hs_trabajadas_oracle": (oracle_row or {}).get("HS_TRABAJADAS") or "",
+                "clase_ausentismo": (oracle_row or {}).get("CLASE_AUSENTISMO") or "",
+                "descripcion_aus": (oracle_row or {}).get("DESCRIPCION_AUS") or "",
+                "desc_unorg_oracle": (oracle_row or {}).get("DESC_UNORG") or "",
+                "funcion_oracle": (oracle_row or {}).get("DESC_FUNCION") or "",
+                "registros_oracle": (oracle_row or {}).get("REGISTROS") or 0,
+            }
+        )
+
+    totals = _rollup_presencias(detail, "__all__")
+    total = totals[0] if totals else {
+        "dotacion": 0,
+        "presentes_hoy": 0,
+        "disponibles": 0,
+        "presentes_no_disponibles": 0,
+        "ausentes": 0,
+        "vacaciones": 0,
+        "francos": 0,
+        "home_office": 0,
+        "sin_registro": 0,
+        "sin_fichada": 0,
+    }
+    sectores = _rollup_presencias(detail, "sector")
+    funciones = _rollup_presencias(detail, "funcion")
+    estados = _rollup_presencias(detail, "estado_label")
+    return {
+        "fecha": fecha_iso,
+        "jornada_inicio": op_window["inicio"],
+        "jornada_fin": op_window["fin"],
+        "jornada_key": op_window["jornada_key"],
+        "jornada_descripcion": op_window["jornada_descripcion"],
+        "jornada_source": op_window["jornada_source"],
+        "jornada_mixta": op_window["jornada_mixta"],
+        "jornada_sectores": op_window["jornada_sectores"],
+        "jornada_margen_ingreso_minutos": op_window["jornada_margen_ingreso_minutos"],
+        "sectores_consultados": resolved_sectors,
+        "fechas_oracle": oracle_dates,
+        "consultado_en": now_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        "restricted": not _can_see_all(auth),
+        "totals": total,
+        "sectores": sectores,
+        "funciones": funciones,
+        "estados": estados,
+        "rows": detail,
     }
 
 

@@ -3,8 +3,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 
 public class OracleProductividadQuery {
     private static final DateTimeFormatter TS_FMT =
@@ -98,8 +100,10 @@ public class OracleProductividadQuery {
         }
 
         String jdbcUrl = args[0];
-        String user = args[1];
-        String password = args[2];
+        String envUser = System.getenv("VIGIA_ORACLE_JDBC_USER");
+        String envPassword = System.getenv("VIGIA_ORACLE_JDBC_PASSWORD");
+        String user = envUser != null && !envUser.isBlank() ? envUser : args[1];
+        String password = envPassword != null && !envPassword.isBlank() ? envPassword : args[2];
         String fechaDesde = args[3];
         String fechaHasta = args[4];
         String queryKey = args.length >= 6 ? args[5] : "productividad";
@@ -112,7 +116,13 @@ public class OracleProductividadQuery {
         String almacenArg = args.length >= 13 ? args[12] : "SECOS + NOA";
 
         String sql;
-        if ("monitor_cargas".equalsIgnoreCase(queryKey)) {
+        if ("raw_sql_env".equalsIgnoreCase(queryKey)) {
+            String encodedSql = System.getenv("VIGIA_ORACLE_SQL_B64");
+            if (encodedSql == null || encodedSql.isBlank()) {
+                throw new IllegalArgumentException("Falta VIGIA_ORACLE_SQL_B64 para raw_sql_env.");
+            }
+            sql = new String(Base64.getDecoder().decode(encodedSql), StandardCharsets.UTF_8);
+        } else if ("monitor_cargas".equalsIgnoreCase(queryKey)) {
             sql = """
                 WITH VIAJES AS (
                     SELECT
@@ -1064,6 +1074,7 @@ public class OracleProductividadQuery {
                   SELECT
                     b.*,
                     l.DESC_FUNCION,
+                    emp.FEC_ING,
                     CASE
                       WHEN UPPER(TRIM(B.CZONAORI)) = 'T06'
                         OR (B.CZONAORI IS NOT NULL AND INSTR(UPPER(TRIM(B.CZONAORI)), 'T') > 0)
@@ -1083,6 +1094,14 @@ public class OracleProductividadQuery {
                     ON A.LEGAJO = B.COPECREA
                   LEFT JOIN PV_LEGAJO l
                     ON TO_CHAR(l.LEGAJO) = TO_CHAR(B.COPECREA)
+                  LEFT JOIN (
+                    SELECT
+                      NVL(NULLIF(LTRIM(TRIM(TO_CHAR(Legajo)), '0'), ''), '0') AS LEGAJO_KEY,
+                      MAX(Fec_ing) AS FEC_ING
+                    FROM WF_ACTIVE_EMPLOYEE
+                    GROUP BY NVL(NULLIF(LTRIM(TRIM(TO_CHAR(Legajo)), '0'), ''), '0')
+                  ) emp
+                    ON emp.LEGAJO_KEY = NVL(NULLIF(LTRIM(TRIM(TO_CHAR(B.COPECREA)), '0'), ''), '0')
                   LEFT JOIN (
                     SELECT DISTINCT CZONALMA, CDIVISIO
                     FROM VW_UBICACIONES_DIVISION
@@ -2128,6 +2147,36 @@ public class OracleProductividadQuery {
                 "AND h.CODINUTI = b.CODINUTI " +
                 "AND h.rn = 1 " +
                 "ORDER BY h.FCREAREG";
+        } else if ("rrhh_presencias".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "MAX(FECHA) AS FECHA, " +
+                "LTRIM(LEGAJO, '0') AS LEGAJO_NORM, " +
+                "MAX(LEGAJO) AS LEGAJO_ORACLE, " +
+                "MAX(NOMBRE) AS NOMBRE_ORACLE, " +
+                "MAX(DESC_UNORG) AS DESC_UNORG, " +
+                "MAX(DESC_FUNCION) AS DESC_FUNCION, " +
+                "MAX(PLAN_HORARIO) AS PLAN_HORARIO, " +
+                "MAX(PLAN_PAUSAS) AS PLAN_PAUSAS, " +
+                "MAX(HORA_INICIO) AS HORA_INICIO, " +
+                "MAX(FECHA_FIN) AS FECHA_FIN, " +
+                "MAX(HORAS_TEORICAS) AS HORAS_TEORICAS, " +
+                "MAX(CLASE_AUSENTISMO) AS CLASE_AUSENTISMO, " +
+                "MAX(DESCRIPCION_AUS) AS DESCRIPCION_AUS, " +
+                "MAX(ENTRADA_REAL) AS ENTRADA_REAL, " +
+                "MAX(SALIDA_REAL) AS SALIDA_REAL, " +
+                "MAX(ENTRADAR) AS ENTRADAR, " +
+                "MAX(SALIDAR) AS SALIDAR, " +
+                "MAX(ENTRADAT) AS ENTRADAT, " +
+                "MAX(SALIDAT) AS SALIDAT, " +
+                "MAX(HS_TRABAJADAS) AS HS_TRABAJADAS, " +
+                "MAX(TARDANZAS) AS TARDANZAS, " +
+                "COUNT(*) AS REGISTROS " +
+                "FROM T_VTADOT_ZHR_PRESENCIAS " +
+                "WHERE FECHA = ? " +
+                "AND LTRIM(LEGAJO, '0') IN (" + placeholders(legajo) + ") " +
+                "GROUP BY LTRIM(LEGAJO, '0') " +
+                "ORDER BY LTRIM(LEGAJO, '0')";
         } else if ("stock_cd".equalsIgnoreCase(queryKey)) {
             sql =
                 "SELECT " +
@@ -2169,7 +2218,16 @@ public class OracleProductividadQuery {
             Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
             PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            if ("premio_escala".equalsIgnoreCase(queryKey)) {
+            if ("raw_sql_env".equalsIgnoreCase(queryKey)) {
+                String encodedBinds = System.getenv("VIGIA_ORACLE_BINDS_B64");
+                if (encodedBinds != null && !encodedBinds.isEmpty()) {
+                    String[] values = encodedBinds.split(",", -1);
+                    for (int i = 0; i < values.length; i++) {
+                        String value = new String(Base64.getDecoder().decode(values[i]), StandardCharsets.UTF_8);
+                        ps.setString(i + 1, value);
+                    }
+                }
+            } else if ("premio_escala".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, grupoFuncionesArg);
             } else if ("premio_pago_actual".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
@@ -2245,7 +2303,13 @@ public class OracleProductividadQuery {
                 for (int i = 0; i < ubicaciones.length; i++) {
                     ps.setString(3 + i, ubicaciones[i] + "%");
                 }
-            } else if (!"monitor_cargas".equalsIgnoreCase(queryKey) && !"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey) && !"rack_inutilizadas".equalsIgnoreCase(queryKey) && !"pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) && !"rend_premio_escalas".equalsIgnoreCase(queryKey)) {
+            } else if ("rrhh_presencias".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaDesde.replace("-", ""));
+                String[] legajos = splitList(legajo);
+                for (int i = 0; i < legajos.length; i++) {
+                    ps.setString(2 + i, legajos[i]);
+                }
+            } else if (!"monitor_cargas".equalsIgnoreCase(queryKey) && !"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey) && !"rack_inutilizadas".equalsIgnoreCase(queryKey) && !"rrhh_presencias".equalsIgnoreCase(queryKey) && !"pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) && !"rend_premio_escalas".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
                 ps.setString(2, fechaHasta);
                 if ("gestion_productividad_picking".equalsIgnoreCase(queryKey)) {
@@ -2278,7 +2342,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("monitor_cargas".equalsIgnoreCase(queryKey) || "premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_escalas_por_id".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey) || "pp_estudio_premios_oracle".equalsIgnoreCase(queryKey) || "pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) || "pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey) || "pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey) || "pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey) || "rend_premio_dias_pago".equalsIgnoreCase(queryKey) || "rend_premio_escalas".equalsIgnoreCase(queryKey)) {
+                    if ("raw_sql_env".equalsIgnoreCase(queryKey) || "monitor_cargas".equalsIgnoreCase(queryKey) || "premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_escalas_por_id".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey) || "pp_estudio_premios_oracle".equalsIgnoreCase(queryKey) || "pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) || "pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey) || "pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey) || "pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "rrhh_presencias".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey) || "rend_premio_dias_pago".equalsIgnoreCase(queryKey) || "rend_premio_escalas".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

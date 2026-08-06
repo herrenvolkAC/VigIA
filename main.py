@@ -43,7 +43,9 @@ from routers.historia_legajo import (
 from routers.rrhh_novedades import (
     router as rrhh_novedades_router,
     start_rrhh_folder_monitor,
+    start_rrhh_oracle_activity_scheduler,
     stop_rrhh_folder_monitor,
+    stop_rrhh_oracle_activity_scheduler,
 )
 from routers.panol_insumos import (
     router as panol_insumos_router,
@@ -108,6 +110,7 @@ async def lifespan(app: FastAPI):
     start_panol_stock_cd_scheduler()
     start_rendimiento_historico_scheduler()
     start_rrhh_folder_monitor()
+    start_rrhh_oracle_activity_scheduler()
     start_forms_import_monitor()
     start_db_backup_scheduler()
     provider = os.getenv("AI_PROVIDER", "claude")
@@ -122,6 +125,7 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         await stop_rrhh_folder_monitor()
+        await stop_rrhh_oracle_activity_scheduler()
         await stop_panol_stock_cd_scheduler()
         await stop_forms_import_monitor()
         await stop_db_backup_scheduler()

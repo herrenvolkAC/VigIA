@@ -85,13 +85,14 @@ router = APIRouter(prefix="/api/gestion-operativa", tags=["gestion-operativa"])
 GESTION_PRODUCTIVIDAD_IA_PROMPT_VERSION = "gestion_productividad_picking_v1"
 DAILY_AUTO_SCHEDULE_TIME = dt_time(7, 35)
 DAILY_AUTO_SCHEDULE_GRACE_MINUTES = 10
-DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_oc_congelados_refri_totales_v3"
-DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_oc_congelados_refri_totales_v4"
+DAILY_AUTO_FORCE_USERS = {"acucci"}
+DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_pallet_cuenta_v4"
+DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_antiguedad_legajo_v6"
 DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_raw_cache_v1"
 DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION = "despacho_raw_f922traf_hojaruta_funcion_distinct_v5"
 DAILY_AUTO_DESPACHO_QUERY_VERSION = "despacho_raw_cache_funcion_distinct_v4"
 DAILY_AUTO_PLANIFICACION_QUERY_VERSION = "planificacion_unificada_v1"
-DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION = "productividad_raw_f132hist_plu_funcion_v6"
+DAILY_AUTO_PRODUCTIVIDAD_RAW_QUERY_VERSION = "productividad_raw_f132hist_fec_ing_v8"
 DAILY_AUTO_AVANCE_QUERY_VERSION = "avance_6a730_cache_v1"
 _daily_auto_scheduler_task: asyncio.Task | None = None
 _daily_auto_scheduler_stop: asyncio.Event | None = None
@@ -1797,12 +1798,19 @@ def _build_picking_rows_from_productividad_raw(
         if operacion != "PICKING":
             continue
         seconds = max((ts - prev).total_seconds(), 0.0) if prev else 0.0
+        hs_picking = seconds / 3600
+        antiguedad = _picking_legajo_antiguedad(row, start)
         picking_rows.append(
             {
                 "ALMACEN": _daily_productividad_raw_division(row),
                 "COPECREA": legajo,
                 "BULTOS_PICKING": _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad")),
-                "HS_PICKING": seconds / 3600,
+                "HS_PICKING": hs_picking if antiguedad["cuenta_legajo_bool"] else 0.0,
+                "HS_PICKING_TOTAL": hs_picking,
+                "FEC_ING": antiguedad["fec_ing"],
+                "ANTIGUEDAD_DIAS": antiguedad["antiguedad_dias"],
+                "CUENTA_LEGAJO": antiguedad["cuenta_legajo"],
+                "MOTIVO_NO_CUENTA": antiguedad["motivo_no_cuenta"],
                 "FCREAREG": ts.isoformat(sep=" "),
             }
         )
@@ -1889,6 +1897,9 @@ def _build_clark_rows_from_productividad_raw(
         almacen = _daily_productividad_raw_division(row)
         if almacen not in {"NOA", "SECOS", "OC", "CONGELADOS"}:
             continue
+        pallet = str(row.get("CNUPALET") or "").strip()
+        if not _valid_clark_pallet(row):
+            continue
         bucket = grouped.setdefault(
             almacen,
             {
@@ -1902,11 +1913,9 @@ def _build_clark_rows_from_productividad_raw(
         seconds = max((ts - prev).total_seconds(), 0.0) if prev else 0.0
         bucket["hs_clark"] += seconds / 3600
         bucket["legajos_clark"].add(legajo)
-        pallet = str(row.get("CNUPALET") or "").strip()
-        if pallet and pallet != "0":
-            bucket["pallets"].add(pallet)
-            if operacion == "SURTIDO P.COMPLETOS":
-                bucket["pallets_spc"].add(pallet)
+        bucket["pallets"].add(pallet)
+        if operacion == "SURTIDO P.COMPLETOS":
+            bucket["pallets_spc"].add(pallet)
         if operacion == "SURTIDO P.COMPLETOS":
             bucket["legajos_spc"].add(legajo)
 
@@ -3694,12 +3703,16 @@ async def daily_raw_detail(
 @router.post("/daily/auto/retry-pending")
 async def daily_auto_retry_pending(req: DailyAutoRetryRequest, request: Request):
     auth = await _require_request_auth(request)
-    if auth.get("role") != "admin":
+    username = str(auth.get("username") or "").strip().lower()
+    is_force = bool(req.force)
+    if is_force and username not in DAILY_AUTO_FORCE_USERS:
+        raise HTTPException(status_code=403, detail="No tenes permiso para forzar el recalculo automatico.")
+    if not is_force and auth.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Requiere administrador.")
     usuario = str(auth.get("display_name") or auth.get("username") or "").strip()
     retry = await run_daily_auto_precache_pending(
-        force=bool(req.force),
-        trigger="manual_exception",
+        force=is_force,
+        trigger="manual_force" if is_force else "manual_exception",
         usuario=usuario,
     )
     daily = calculate_daily_window()
@@ -3806,6 +3819,61 @@ def _daily_productividad_jornada(division: str) -> float:
     return PRODUCTIVIDAD_JORNADA_BY_DIVISION.get(sector, 6.5)
 
 
+def _valid_clark_pallet(row: dict[str, Any]) -> bool:
+    pallet = str(row.get("CNUPALET") or row.get("pallet") or "").strip()
+    return bool(pallet and pallet != "0")
+
+
+def _clark_cuenta_movimiento(row: dict[str, Any]) -> dict[str, str]:
+    if _valid_clark_pallet(row):
+        return {"cuenta": "SI", "motivo_no_cuenta": ""}
+    return {"cuenta": "NO", "motivo_no_cuenta": "Pallet vacio o cero"}
+
+
+def _parse_wf_fec_ing(value: Any) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if "." in text:
+        text = text.split(".", 1)[0]
+    if len(text) != 8 or not text.isdigit():
+        return None
+    try:
+        return datetime.strptime(text, "%Y%m%d")
+    except ValueError:
+        return None
+
+
+def _picking_legajo_antiguedad(row: dict[str, Any], daily_start: datetime) -> dict[str, Any]:
+    raw_fec_ing = row.get("FEC_ING") if row.get("FEC_ING") is not None else row.get("fec_ing")
+    fec_ing = _parse_wf_fec_ing(raw_fec_ing)
+    if not str(raw_fec_ing or "").strip():
+        return {
+            "fec_ing": "",
+            "antiguedad_dias": None,
+            "cuenta_legajo_bool": True,
+            "cuenta_legajo": "SI",
+            "motivo_no_cuenta": "Sin fecha de ingreso",
+        }
+    if not fec_ing:
+        return {
+            "fec_ing": str(raw_fec_ing).strip(),
+            "antiguedad_dias": None,
+            "cuenta_legajo_bool": True,
+            "cuenta_legajo": "SI",
+            "motivo_no_cuenta": "Fecha de ingreso invalida",
+        }
+    antiguedad = (daily_start.date() - fec_ing.date()).days
+    cuenta = antiguedad >= 15
+    return {
+        "fec_ing": fec_ing.strftime("%Y-%m-%d"),
+        "antiguedad_dias": antiguedad,
+        "cuenta_legajo_bool": cuenta,
+        "cuenta_legajo": "SI" if cuenta else "NO",
+        "motivo_no_cuenta": "" if cuenta else "Menor a 15 dias",
+    }
+
+
 def _daily_raw_detail_mode(param_id: str, process: str) -> dict[str, Any] | None:
     param = str(param_id or "").strip().upper()
     proc = str(process or "").strip().upper()
@@ -3841,10 +3909,13 @@ def _daily_raw_detail_row(
     legajo: str,
     almacen_calc: str,
     prev_ts: datetime | None,
+    daily_start: datetime | None = None,
+    cuenta_movimiento: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     seconds = max((ts - prev_ts).total_seconds(), 0.0) if prev_ts else 0.0
     cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
-    return {
+    cuenta = (cuenta_movimiento or {}).get("cuenta", "SI")
+    detail = {
         "fecha": ts.strftime("%Y-%m-%d %H:%M:%S"),
         "legajo": legajo,
         "desc_funcion": str(row.get("DESC_FUNCION") or row.get("desc_funcion") or "").strip(),
@@ -3857,8 +3928,22 @@ def _daily_raw_detail_row(
         "referencia": str(row.get("CREFEREN") or "").strip(),
         "cantidad": cantidad,
         "minutos_desde_anterior": round(seconds / 60, 4),
+        "cuenta": cuenta,
+        "motivo_no_cuenta": (cuenta_movimiento or {}).get("motivo_no_cuenta", ""),
+        "minutos_cuenta": round(seconds / 60, 4) if cuenta == "SI" else 0,
         "row_index": row.get("_row_index"),
     }
+    if daily_start:
+        antiguedad = _picking_legajo_antiguedad(row, daily_start)
+        detail.update(
+            {
+                "fec_ing": antiguedad["fec_ing"],
+                "antiguedad_dias": antiguedad["antiguedad_dias"],
+                "cuenta_legajo": antiguedad["cuenta_legajo"],
+                "motivo_no_cuenta": antiguedad["motivo_no_cuenta"],
+            }
+        )
+    return detail
 
 
 async def _build_daily_raw_detail_payload(
@@ -3871,7 +3956,9 @@ async def _build_daily_raw_detail_payload(
     mode = _daily_raw_detail_mode(param_id, process)
     if not mode:
         raise HTTPException(status_code=400, detail="El parametro no se calcula desde la cache cruda.")
-    almacen_target = DAILY_RAW_SECTOR_TO_ALMACEN.get(normalize_sector(sector))
+    sector_norm = normalize_sector(sector)
+    param_upper = str(param_id or "").strip().upper()
+    almacen_target = DAILY_RAW_SECTOR_TO_ALMACEN.get(sector_norm)
     if not almacen_target:
         raise HTTPException(status_code=400, detail="Sector invalido para detalle crudo.")
     if str(param_id or "").upper().startswith("OP_AVANCE_"):
@@ -3960,6 +4047,11 @@ async def _build_daily_raw_detail_payload(
     detail_rows: list[dict[str, Any]] = []
     previous_by_legajo: dict[str, datetime] = {}
     operations = mode["operations"]
+    aggregate_refri_picking = (
+        mode["process"] == "PICKING"
+        and sector_norm == "Refrigerados"
+        and param_upper in {"OP_CUMP_PICKING_REAL_6A6", "OP_DOT_PICKING_LEGAJOS_6A8"}
+    )
     for row in scoped_rows:
         legajo = row["_legajo"]
         ts = row["_ts"]
@@ -3971,19 +4063,44 @@ async def _build_daily_raw_detail_payload(
         cantidad = _to_float(row.get("QCANTIDA") if row.get("QCANTIDA") is not None else row.get("cantidad"))
         if mode.get("positive_quantity") and cantidad <= 0:
             continue
-        almacen_calc = (
-            _daily_productividad_raw_division(row)
-            if mode["sector_source"] in {"picking", "productividad_division"}
-            else str(row.get("ALMACEN") or "").strip().upper()
-        )
-        if almacen_calc != almacen_target:
+        if aggregate_refri_picking:
+            if _daily_picking_raw_almacen(row) != "REFRIGERADOS":
+                continue
+            almacen_calc = _daily_productividad_raw_division(row)
+        else:
+            almacen_calc = (
+                _daily_productividad_raw_division(row)
+                if mode["sector_source"] in {"picking", "productividad_division"}
+                else str(row.get("ALMACEN") or "").strip().upper()
+            )
+        if not aggregate_refri_picking and almacen_calc != almacen_target:
             continue
-        detail_rows.append(_daily_raw_detail_row(row, ts=ts, legajo=legajo, almacen_calc=almacen_calc, prev_ts=prev))
+        detail_rows.append(
+            _daily_raw_detail_row(
+                row,
+                ts=ts,
+                legajo=legajo,
+                almacen_calc=almacen_calc,
+                prev_ts=prev,
+                daily_start=(cache_start or start) if mode["process"] == "PICKING" else None,
+                cuenta_movimiento=_clark_cuenta_movimiento(row) if mode["process"] in {"CLARK", "SPC"} else None,
+            )
+        )
 
     columns = [
         {"key": "fecha", "label": "Fecha"},
         {"key": "legajo", "label": "Legajo"},
         *([{"key": "desc_funcion", "label": "Funcion"}] if mode["process"] == "PICKING" else []),
+        *(
+            [
+                {"key": "fec_ing", "label": "Fec ing"},
+                {"key": "antiguedad_dias", "label": "Antig dias"},
+                {"key": "cuenta_legajo", "label": "Cuenta legajo"},
+                {"key": "motivo_no_cuenta", "label": "Motivo no cuenta"},
+            ]
+            if mode["process"] == "PICKING"
+            else []
+        ),
         {"key": "operacion", "label": "Operacion"},
         {"key": "almacen", "label": "Division cruda"},
         {"key": "almacen_calculo", "label": "Division calculo"},
@@ -3993,6 +4110,15 @@ async def _build_daily_raw_detail_payload(
         {"key": "referencia", "label": "Referencia"},
         {"key": "cantidad", "label": "Cantidad"},
         {"key": "minutos_desde_anterior", "label": "Min prev"},
+        *(
+            [
+                {"key": "cuenta", "label": "Cuenta"},
+                {"key": "motivo_no_cuenta", "label": "Motivo no cuenta"},
+                {"key": "minutos_cuenta", "label": "Min cuenta"},
+            ]
+            if mode["process"] in {"CLARK", "SPC"}
+            else []
+        ),
         {"key": "row_index", "label": "Fila cache"},
     ]
     return {
@@ -4000,7 +4126,7 @@ async def _build_daily_raw_detail_payload(
         "query_key": "daily_productividad_raw_cache",
         "source_process": "PRODUCTIVIDAD_RAW",
         "detail_process": mode["process"],
-        "sector": normalize_sector(sector),
+        "sector": sector_norm,
         "almacen": almacen_target,
         "param_id": param_id,
         "fecha_desde": detail_fecha_desde,

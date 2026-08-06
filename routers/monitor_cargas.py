@@ -310,11 +310,8 @@ def _integer(value: Any) -> int:
 
 def _quality_for_expedition(row: dict[str, Any]) -> dict[str, Any]:
     bultos_calculados = _number(row.get("BULTOS_CALCULADOS"))
-    volumen_calculado = _number(row.get("VOLUMEN_CALCULADO"))
     bultos_f080 = _number(row.get("BULTOS_F080"))
-    volumen_f080 = _number(row.get("VOLUMEN_F080"))
     bultos_f035 = _number(row.get("BULTOS_F035"))
-    volumen_f035 = _number(row.get("VOLUMEN_F035"))
 
     details = {
         "pallets_sin_detalle": _integer(row.get("PALLETS_SIN_DETALLE")),
@@ -323,9 +320,7 @@ def _quality_for_expedition(row: dict[str, Any]) -> dict[str, Any]:
         "lineas_nivel_invalido": _integer(row.get("LINEAS_NIVEL_INVALIDO")),
         "lineas_vlog_duplicada": _integer(row.get("LINEAS_VLOG_DUPLICADA")),
         "diferencia_bultos_f080": round(bultos_calculados - bultos_f080, 3),
-        "diferencia_volumen_f080": round(volumen_calculado - volumen_f080, 3),
         "diferencia_bultos_f035": round(bultos_calculados - bultos_f035, 3),
-        "diferencia_volumen_f035": round(volumen_calculado - volumen_f035, 3),
     }
     structural_issues = sum(
         details[key]
@@ -339,9 +334,7 @@ def _quality_for_expedition(row: dict[str, Any]) -> dict[str, Any]:
     )
     reconciliation_issue = (
         abs(details["diferencia_bultos_f080"]) > 0.5
-        or abs(details["diferencia_volumen_f080"]) > 0.1
         or abs(details["diferencia_bultos_f035"]) > 0.5
-        or abs(details["diferencia_volumen_f035"]) > 0.1
     )
     return {
         "estado": "revisar" if structural_issues or reconciliation_issue else "ok",

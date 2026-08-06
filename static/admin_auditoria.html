@@ -13,9 +13,10 @@
     h2{margin:0;font-size:17px}.muted{font-size:12px;color:var(--soft)}.actions{display:flex;gap:8px;flex-wrap:wrap}
     button,.button{min-height:34px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:8px 12px;text-decoration:none;cursor:pointer;font-size:11px}.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
     label{display:block;font-size:10px;color:var(--soft);margin-bottom:6px}input,select{width:100%;min-height:36px;border:1px solid var(--rule);background:var(--panel);padding:7px 9px}
-    .filters{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr)) auto;gap:12px;align-items:end}.message{min-height:18px;font-size:12px;color:var(--soft)}
-    table{width:100%;border-collapse:collapse;background:var(--panel)}th{text-align:left;color:var(--soft);background:#f6f8f5;font-size:10px;padding:10px 8px;border-bottom:1px solid var(--rule)}td{padding:10px 8px;border-bottom:1px solid var(--rule);font-size:13px;vertical-align:top}tr:nth-child(odd) td{background:#f8faf7}.mono{font-family:Consolas,"Courier New",monospace}.table-wrap{overflow-x:auto}.path{max-width:300px;word-break:break-word}.action-text{min-width:260px}.status-bad{color:var(--red);background:var(--red-bg);padding:2px 6px;border:1px solid var(--red)}
-    @media(max-width:1100px){.filters{grid-template-columns:1fr 1fr}.band-head,header{align-items:flex-start;flex-direction:column}}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{background:var(--panel)}.tab.active{background:var(--ink);border-color:var(--ink);color:var(--bg)}.tab-panel{display:none}.tab-panel.active{display:grid;gap:18px}
+    .summary-filters{display:grid;grid-template-columns:minmax(160px,240px) auto 1fr;gap:12px;align-items:end}.filters{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr)) auto;gap:12px;align-items:end}.message{min-height:18px;font-size:12px;color:var(--soft)}
+    table{width:100%;border-collapse:collapse;background:var(--panel)}th{text-align:left;color:var(--soft);background:#f6f8f5;font-size:10px;padding:10px 8px;border-bottom:1px solid var(--rule)}td{padding:10px 8px;border-bottom:1px solid var(--rule);font-size:13px;vertical-align:top}tr:nth-child(odd) td{background:#f8faf7}tr.selectable{cursor:pointer}tr.selectable:hover td{background:#eef3ed}tr.selected td{background:#e4ece2!important}.mono{font-family:Consolas,"Courier New",monospace}.table-wrap{overflow-x:auto}.path{max-width:300px;word-break:break-word}.action-text{min-width:260px}.status-bad{color:var(--red);background:var(--red-bg);padding:2px 6px;border:1px solid var(--red)}
+    @media(max-width:1100px){.filters,.summary-filters{grid-template-columns:1fr 1fr}.band-head,header{align-items:flex-start;flex-direction:column}}
     @media(max-width:700px){.filters{grid-template-columns:1fr}}
   </style>
 </head>
@@ -36,7 +37,45 @@
   <main>
     <section class="band">
       <div class="band-head">
-        <div><h2>Eventos</h2><div class="muted">Vista basica de los registros guardados en SQLite. El TXT queda para eventos de atencion.</div></div>
+        <div><h2>Auditoria</h2><div class="muted">Vista basica de los registros guardados en SQLite. El TXT queda para eventos de atencion.</div></div>
+        <div class="tabs"><button class="tab active" data-tab="summary" type="button">Resumen</button><button class="tab" data-tab="events" type="button">Eventos</button></div>
+      </div>
+    </section>
+    <div class="tab-panel active" id="tab-summary">
+    <section class="band">
+      <div class="band-head">
+        <div><h2>Modulos por fecha</h2><div class="muted">Solo accesos a pantallas. No incluye consultas o acciones internas del modulo.</div></div>
+        <button class="primary" id="summary-refresh-btn">Refrescar</button>
+      </div>
+      <form class="summary-filters" id="summary-filters">
+        <div><label for="summary-date">Fecha</label><input id="summary-date" type="date"></div>
+        <button class="primary" type="submit">Buscar</button>
+        <div class="message" id="summary-message"></div>
+      </form>
+    </section>
+    <section class="band">
+      <div class="band-head"><div><h2>Resumen de modulos</h2><div class="muted">Click en un modulo para ver usuarios.</div></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Modulo</th><th>Usuarios</th><th>Accesos</th><th>Ultimo acceso</th></tr></thead>
+          <tbody id="modules-body"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="band">
+      <div class="band-head"><div><h2 id="detail-title">Detalle de usuarios</h2><div class="muted">Cantidad de accesos a la pantalla y ultimo acceso del dia.</div></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Usuario</th><th>Accesos</th><th>Ultimo acceso</th></tr></thead>
+          <tbody id="module-detail-body"></tbody>
+        </table>
+      </div>
+    </section>
+    </div>
+    <div class="tab-panel" id="tab-events">
+    <section class="band">
+      <div class="band-head">
+        <div><h2>Eventos</h2><div class="muted">Detalle tecnico de eventos registrados.</div></div>
         <button class="primary" id="refresh-btn">Refrescar</button>
       </div>
       <form class="filters" id="filters">
@@ -58,14 +97,20 @@
         </table>
       </div>
     </section>
+    </div>
   </main>
   <script>
-    const body=document.getElementById('events-body'),msg=document.getElementById('message');
+    const body=document.getElementById('events-body'),msg=document.getElementById('message'),modulesBody=document.getElementById('modules-body'),detailBody=document.getElementById('module-detail-body'),summaryMsg=document.getElementById('summary-message'),detailTitle=document.getElementById('detail-title');let selectedModule='';
     function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
     function setMsg(t,e=false){msg.textContent=t||'';msg.style.color=e?'var(--red)':'var(--soft)'}
+    function setSummaryMsg(t,e=false){summaryMsg.textContent=t||'';summaryMsg.style.color=e?'var(--red)':'var(--soft)'}
     async function api(path,opt={}){const r=await fetch(path,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});if(r.status===401){location.href='/login?next=/admin/auditoria';return null}const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||'La operacion no pudo completarse.');return d}
+    function today(){const d=new Date();const offset=d.getTimezoneOffset();return new Date(d.getTime()-offset*60000).toISOString().slice(0,10)}
     function params(){const p=new URLSearchParams();const values={username:document.getElementById('f-user').value.trim(),module:document.getElementById('f-module').value.trim(),action:document.getElementById('f-action').value.trim(),fecha_desde:document.getElementById('f-from').value,fecha_hasta:document.getElementById('f-to').value,limit:document.getElementById('f-limit').value};Object.entries(values).forEach(([k,v])=>{if(v)p.set(k,v)});return p.toString()}
+    function summaryParams(module=''){const p=new URLSearchParams();p.set('fecha',document.getElementById('summary-date').value||today());if(module)p.set('module',module);return p.toString()}
     function statusCell(value){if(value==null)return '';const n=Number(value);return n>=400?`<span class="status-bad">${esc(value)}</span>`:esc(value)}
+    function renderModules(rows){modulesBody.innerHTML=(rows||[]).map(row=>`<tr class="selectable ${row.module===selectedModule?'selected':''}" data-module="${esc(row.module)}" data-label="${esc(row.module_label||row.module)}"><td><strong>${esc(row.module_label||row.module)}</strong><div class="muted mono">${esc(row.module)}</div></td><td class="mono">${esc(row.usuarios)}</td><td class="mono">${esc(row.accesos)}</td><td class="mono">${esc(row.ultimo_acceso||'')}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Sin accesos a pantallas para la fecha.</td></tr>'}
+    function renderDetails(rows,label){detailTitle.textContent=label?`Detalle de usuarios - ${label}`:'Detalle de usuarios';detailBody.innerHTML=(rows||[]).map(row=>`<tr><td class="mono"><strong>${esc(row.username)}</strong></td><td class="mono">${esc(row.accesos)}</td><td class="mono">${esc(row.ultimo_acceso||'')}</td></tr>`).join('')||'<tr><td colspan="3" class="muted">Seleccione un modulo con accesos.</td></tr>'}
     function render(events){body.innerHTML=(events||[]).map(row=>`<tr>
       <td class="mono">${esc(row.fecha)}</td>
       <td class="mono">${esc(row.hora)}</td>
@@ -77,11 +122,17 @@
       <td class="mono">${esc(row.method||'')}</td>
       <td class="mono">${statusCell(row.status_code)}</td>
     </tr>`).join('')||'<tr><td colspan="9" class="muted">Sin eventos para el filtro.</td></tr>'}
+    async function loadSummary(module=''){setSummaryMsg('Consultando...');const data=await api(`/api/auth/admin/usage-module-summary?${summaryParams(module)}`);if(!data)return;selectedModule=data.selected_module||'';renderModules(data.modules||[]);const selected=(data.modules||[]).find(row=>row.module===selectedModule);renderDetails(data.details||[],selected?.module_label||selectedModule);setSummaryMsg(`Actualizado. Modulos: ${(data.modules||[]).length}.`)}
     async function load(){setMsg('Consultando...');const q=params();const data=await api(`/api/auth/admin/usage-events${q?'?'+q:''}`);if(!data)return;render(data.events||[]);setMsg(`Actualizado. Registros: ${(data.events||[]).length}.`)}
+    document.querySelectorAll('button[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('button[data-tab]').forEach(b=>b.classList.toggle('active',b===btn));document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.toggle('active',panel.id===`tab-${btn.dataset.tab}`));if(btn.dataset.tab==='summary')loadSummary(selectedModule).catch(e=>setSummaryMsg(e.message,true));else load().catch(e=>setMsg(e.message,true))}));
+    modulesBody.addEventListener('click',ev=>{const row=ev.target.closest('tr[data-module]');if(!row)return;loadSummary(row.dataset.module).catch(e=>setSummaryMsg(e.message,true))});
+    document.getElementById('summary-date').value=today();
+    document.getElementById('summary-filters').addEventListener('submit',ev=>{ev.preventDefault();loadSummary('').catch(e=>setSummaryMsg(e.message,true))});
+    document.getElementById('summary-refresh-btn').onclick=()=>loadSummary(selectedModule).catch(e=>setSummaryMsg(e.message,true));
     document.getElementById('filters').addEventListener('submit',ev=>{ev.preventDefault();load().catch(e=>setMsg(e.message,true))});
     document.getElementById('refresh-btn').onclick=()=>load().catch(e=>setMsg(e.message,true));
     document.getElementById('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
-    load().catch(e=>setMsg(e.message,true));
+    loadSummary('').catch(e=>setSummaryMsg(e.message,true));
   </script>
 </body>
 </html>

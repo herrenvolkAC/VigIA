@@ -1646,8 +1646,34 @@ async def confirm_supply_order(pedido_id: int, req: SupplyOrderConfirmRequest, r
 
 @router.post("/pedidos/{pedido_id}/cancelar")
 async def cancel_supply_order(pedido_id: int, req: SupplyOrderConfirmRequest, request: Request):
-    auth = await _require_panol_operator(request)
+    auth = await _require_panol_access(request)
     async with panol_db() as db:
+        pedido = await _fetch_one(
+            db,
+            """
+            SELECT p.*, u.codigo AS sector_codigo
+            FROM pedidos_insumos p
+            JOIN ubicaciones u ON u.id = p.sector_id
+            WHERE p.id = ?
+            """,
+            (pedido_id,),
+        )
+        if not pedido:
+            raise HTTPException(status_code=404, detail="Pedido no encontrado.")
+        if pedido["estado"] != "PENDIENTE":
+            raise HTTPException(status_code=400, detail="El pedido ya fue procesado.")
+        if auth.get("panol_request_only"):
+            assigned = await _active_user_sector(db, str(auth.get("username") or ""))
+            if not assigned:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Tu usuario no tiene sector asignado en Panol. Solicita la asignacion a ADO.",
+                )
+            if int(assigned["sector_id"]) != int(pedido["sector_id"]):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Solo el sector generador puede cancelar este pedido pendiente.",
+                )
         cur = await db.execute(
             """
             UPDATE pedidos_insumos
@@ -1673,8 +1699,8 @@ async def reset_operational_data(req: OperationalResetRequest, request: Request)
         "pedidos_insumos",
         "movimientos",
         "stock_cd_importado",
-        "inventario_turno",
         "consumos_calculados",
+        "inventario_turno",
         "produccion_movimientos",
     ]
     deleted: dict[str, int] = {}

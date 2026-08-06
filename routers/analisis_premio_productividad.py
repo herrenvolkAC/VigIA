@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import io
 import logging
 import os
 import json
+import re
+import shutil
 import subprocess
 from collections import defaultdict
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -28,13 +31,17 @@ router = APIRouter(prefix="/api/analisis-premio-productividad", tags=["analisis-
 logger = logging.getLogger("vigia.analisis_premio_productividad")
 
 PREMIO_DB_PATH = resolve_db_path("PREMIO_PRODUCTIVIDAD_DB_PATH", "premio_productividad.db", ROOT_DIR)
+PREMIO_FOTO_JSON_PATH = PREMIO_DB_PATH.with_name("premio_tabla_foto.json")
+PREMIO_FOTO_ALGORITHM_VERSION = "sector_sin_equivalencias_enteros_v3"
 JORNADA_HORAS = 8
 DEFAULT_DIVISOR_HORARIO = 6.5
-DIVISORES_HORARIOS = {8.0, 6.5}
+DIVISORES_HORARIOS = {DEFAULT_DIVISOR_HORARIO}
 JAVA_HELPER_SRC = ROOT_DIR / "scripts" / "OracleProductividadQuery.java"
 JAVA_BUILD_DIR = ROOT_DIR / "scripts" / "java_build"
-CASO_MODELO_DIA_QUERY_VERSION = "premio_hora_v11_etapas_python"
-CASO_MODELO_DETALLE_QUERY_VERSION = "premio_hora_v9_etapas_python"
+CASO_MODELO_DIA_QUERY_VERSION = "premio_hora_v12_limites_piso"
+CASO_MODELO_DETALLE_QUERY_VERSION = "premio_hora_v11_equilibrio"
+EVALUACION_PICKING_QUERY_VERSION = "evaluacion_picking_real_sector_v4_extras_equivalentes_hora"
+EVALUACION_PICKING_PAYMENT_QUERY_VERSION = "evaluacion_picking_pago_real_picking_v8_componentes_equivalencia"
 DEFAULT_OPERACION = "PICKING"
 DEFAULT_ALMACEN = "TODOS"
 OPERACIONES_PREMIO_PRODUCTIVIDAD = {
@@ -105,9 +112,210 @@ WHERE E.ID_DE_GRUPO_DE_FUNCIONES = :grupo_funciones_id
 ORDER BY NVL(F.DESCRIPCION, 'TODOS'), E.NIVEL
 """
 
+CONSULTA_PP_ESCALAS_FOTO = """
+SELECT
+    E.ID_DE_GRUPO_DE_FUNCIONES AS ID_GRUPO_FUNCIONES,
+    D.DESCRIPCION AS OPERACION,
+    E.ID_DE_GRUPO_PRODUCTIVO AS ID_GRUPO_PRODUCTIVO,
+    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
+    E.NIVEL,
+    E.DESDE,
+    E.HASTA,
+    E.PREMIO,
+    NVL(E.PREMIO_POR_UNIDAD_EXCEDENTE, 0) AS PREMIO_POR_UNIDAD_EXCEDENTE,
+    E.FECHA_VIGENCIA_DESDE,
+    E.FECHA_VIGENCIA_HASTA
+FROM PV_ESCALA_DE_PREMIOS E
+JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON F.ID = E.ID_DE_GRUPO_PRODUCTIVO
+WHERE E.ID_DE_GRUPO_DE_FUNCIONES = 1
+ORDER BY E.ID_DE_GRUPO_PRODUCTIVO, E.NIVEL
+"""
+
+CONSULTA_PP_SECTORES_FOTO = """
+SELECT
+    T.ID AS ID_TIEMPO_PICKING,
+    T.DIVISION,
+    T.SECTOR,
+    T.EQUIVALENCIA,
+    T.CANTIDAD_DE_REGISTROS,
+    T.TIEMPONORMAL,
+    T.ES_VALOR_ESTANDAR,
+    T.ID_PV_GRUPO_DE_DIVISIONES_CAB AS ID_GRUPO_DIVISION,
+    T.EQ_X_SETUP_FIJA,
+    T.EQ_X_SETUP_VAR,
+    T.METODO_DE_CALCULO,
+    T.EQUIVALENCIA_ESPECIFICA,
+    T.ESTANDAR_POSICION_SECTOR,
+    D.ID_DE_GRUPO_PRODUCTIVO AS ID_GRUPO_PRODUCTIVO,
+    C.DESCRIPCION AS GRUPO_PRODUCTIVO
+FROM PV_TIEMPOS_DE_PICKING T
+LEFT JOIN PV_GRUPO_PRODUCTIVO_DET D
+  ON D.ID_DE_DIVISION = T.DIVISION
+ AND TRIM(D.ID_DE_SECTOR) = TRIM(T.SECTOR)
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB C ON C.ID = D.ID_DE_GRUPO_PRODUCTIVO
+ORDER BY T.DIVISION, T.SECTOR
+"""
+
+CONSULTA_PP_EVALUACION_PICKING = """
+SELECT
+    Z.FECHA,
+    Z.LEGAJO,
+    Z.TURNO,
+    A.ID AS ID_ETAPA,
+    A.FYHINI,
+    A.FYHFIN,
+    A.COD_FUNCION,
+    A.DESC_FUNCION,
+    A.DIVISION,
+    A.SECTOR,
+    A.PRODUCCION_REAL,
+    A.PRODUCCION_EQUIV_POR_SECTOR,
+    A.PRODUCCION_EQUIV_POR_TRASLADO,
+    A.PROD_EQUIVAL_POR_CONSOLIDACION
+FROM PV_DIA_LABORAL Z
+JOIN PV_ETAPA_CAB A ON A.ID_PV_DIA_LABORAL = Z.ID
+JOIN PV_FUNCION B ON A.COD_FUNCION = B.CODIGO
+JOIN PV_GRUPO_DE_FUNCIONES_DET C ON C.ID_PV_FUNCION = B.ID
+WHERE C.ID_PV_GRUPO_DE_FUNCIONES_CAB = 1
+  AND Z.FECHA BETWEEN TO_NUMBER(TO_CHAR(TO_DATE(:fecha_desde, 'YYYY/MM/DD'), 'YYYYMMDD'))
+                  AND TO_NUMBER(TO_CHAR(TO_DATE(:fecha_hasta, 'YYYY/MM/DD'), 'YYYYMMDD'))
+  AND A.FYHINI IS NOT NULL
+  AND A.FYHFIN IS NOT NULL
+  AND A.FYHFIN > A.FYHINI
+ORDER BY Z.FECHA, Z.LEGAJO, A.FYHINI, A.ID
+"""
+
+CONSULTA_PP_EVALUACION_PICKING_PAGO_REAL = """
+WITH DET1_BASE AS (
+    SELECT ID_PV_DIA_LABORAL, SUM(NVL(A_PAGAR_TOTAL, 0)) AS BASE_TOTAL
+    FROM PV_LIQUIDAC_DIA_DET1
+    GROUP BY ID_PV_DIA_LABORAL
+),
+DET2_AGG AS (
+    SELECT ID_PV_DIA_LABORAL, ID_PV_GRUPO_DE_FUNCIONES, ID_PV_GRUPO_PRODUCTIVO,
+           SUM(NVL(PROD_REAL, 0)) AS BULTOS_ACTUALES,
+           SUM(NVL(PROD_EQUIVAL_POR_SECTOR, 0)) AS EQUIVALENCIA_SECTOR,
+           SUM(NVL(PROD_EQUIVAL_POR_TRASLADO, 0)) AS EQUIVALENCIA_TRASLADO,
+           SUM(NVL(PROD_EQUIVAL_POR_CONSOLIDACION, 0)) AS EQUIVALENCIA_CONSOLIDACION,
+           SUM(NVL(TOTAL_DE_PUNTOS_EQUIVALENTES, 0)) AS TOTAL_EQUIVALENTES
+    FROM PV_LIQUIDAC_DIA_DET2
+    GROUP BY ID_PV_DIA_LABORAL, ID_PV_GRUPO_DE_FUNCIONES, ID_PV_GRUPO_PRODUCTIVO
+),
+MULT_DIA AS (
+    SELECT C.FECHA, COUNT(D.ID) AS MULT_REGISTROS,
+           MIN(NVL(D.MULTIPLICADOR, 1)) AS MULT_MIN,
+           MAX(NVL(D.MULTIPLICADOR, 1)) AS MULT_MAX
+    FROM PV_MULTIPLICADOR_CAB C
+    JOIN PV_MULTIPLICADOR_DET D ON D.PV_MULTIPLICADOR_CAB_ID = C.ID
+    GROUP BY C.FECHA
+)
+SELECT
+    A.FECHA,
+    A.LEGAJO,
+    MAX(B.OBJETIVO_NIVEL_ALCANZADO) AS NIVEL_ACTUAL,
+    MAX(NVL(C.BULTOS_ACTUALES, 0)) AS BULTOS_ACTUALES,
+    MAX(NVL(C.EQUIVALENCIA_SECTOR, 0)) AS EQUIVALENCIA_SECTOR,
+    MAX(NVL(C.EQUIVALENCIA_TRASLADO, 0)) AS EQUIVALENCIA_TRASLADO,
+    MAX(NVL(C.EQUIVALENCIA_CONSOLIDACION, 0)) AS EQUIVALENCIA_CONSOLIDACION,
+    MAX(NVL(C.TOTAL_EQUIVALENTES, 0)) AS TOTAL_EQUIVALENTES,
+    (SELECT MAX(E1.DESDE) FROM PV_ESCALA_DE_PREMIOS E1 WHERE E1.ID_DE_GRUPO_DE_FUNCIONES = B.ID_PV_GRUPO_DE_FUNCIONES AND E1.NIVEL = B.OBJETIVO_NIVEL_ALCANZADO) AS DESDE_ACTUAL,
+    (SELECT MAX(E2.HASTA) FROM PV_ESCALA_DE_PREMIOS E2 WHERE E2.ID_DE_GRUPO_DE_FUNCIONES = B.ID_PV_GRUPO_DE_FUNCIONES AND E2.NIVEL = B.OBJETIVO_NIVEL_ALCANZADO) AS HASTA_ACTUAL,
+    SUM(NVL(B.A_PAGAR_TOTAL, 0)) AS PAGO_BASE_PICKING,
+    MAX(NVL(A.PREMIO, 0)) AS PREMIO_CABECERA,
+    MAX(NVL(T.BASE_TOTAL, 0)) AS BASE_TOTAL_DIA,
+    CASE
+        WHEN MAX(NVL(T.BASE_TOTAL, 0)) > 0
+         AND MAX(NVL(M.MULT_REGISTROS, 0)) > 0
+         AND MAX(NVL(A.PREMIO, 0)) / MAX(T.BASE_TOTAL) BETWEEN 1.25 AND 2.25
+        THEN ROUND((MAX(NVL(A.PREMIO, 0)) / MAX(T.BASE_TOTAL)) * 2) / 2
+        ELSE 1
+    END AS FACTOR_MULTIPLICADOR,
+    CASE
+        WHEN MAX(NVL(T.BASE_TOTAL, 0)) > 0
+         AND MAX(NVL(M.MULT_REGISTROS, 0)) > 0
+         AND MAX(NVL(A.PREMIO, 0)) / MAX(T.BASE_TOTAL) BETWEEN 1.25 AND 2.25
+        THEN 'multiplicador_detectado'
+        ELSE 'sin_ajuste'
+    END AS MOTIVO_AJUSTE,
+    SUM(NVL(B.A_PAGAR_TOTAL, 0)) * CASE
+        WHEN MAX(NVL(T.BASE_TOTAL, 0)) > 0
+         AND MAX(NVL(M.MULT_REGISTROS, 0)) > 0
+         AND MAX(NVL(A.PREMIO, 0)) / MAX(T.BASE_TOTAL) BETWEEN 1.25 AND 2.25
+        THEN ROUND((MAX(NVL(A.PREMIO, 0)) / MAX(T.BASE_TOTAL)) * 2) / 2
+        ELSE 1
+    END AS PREMIO_REAL
+FROM PV_DIA_LABORAL A
+JOIN PV_LIQUIDAC_DIA_DET1 B ON A.ID = B.ID_PV_DIA_LABORAL
+LEFT JOIN DET2_AGG C ON A.ID = C.ID_PV_DIA_LABORAL
+    AND C.ID_PV_GRUPO_DE_FUNCIONES = B.ID_PV_GRUPO_DE_FUNCIONES
+    AND NVL(C.ID_PV_GRUPO_PRODUCTIVO, 0) = NVL(B.ID_PV_GRUPO_PRODUCTIVO, 0)
+LEFT JOIN DET1_BASE T ON T.ID_PV_DIA_LABORAL = A.ID
+LEFT JOIN MULT_DIA M ON M.FECHA = A.FECHA
+WHERE A.FECHA BETWEEN TO_NUMBER(TO_CHAR(TO_DATE(:fecha_desde, 'YYYY/MM/DD'), 'YYYYMMDD'))
+                  AND TO_NUMBER(TO_CHAR(TO_DATE(:fecha_hasta, 'YYYY/MM/DD'), 'YYYYMMDD'))
+  AND B.ID_PV_GRUPO_DE_FUNCIONES = 1
+GROUP BY A.FECHA, A.LEGAJO, B.ID_PV_GRUPO_DE_FUNCIONES, B.OBJETIVO_NIVEL_ALCANZADO
+ORDER BY A.FECHA, A.LEGAJO
+"""
+
 CONSULTA_PP_ESTUDIO_PREMIOS_ORACLE = """
 /* PP_ESTUDIO_PREMIOS_ORACLE */
-SELECT 1 AS DUMMY FROM DUAL
+WITH PARAMS AS (
+    SELECT
+        TO_NUMBER(TO_CHAR(TO_DATE(:fecha_desde, 'YYYY/MM/DD'), 'YYYYMMDD')) AS FECHA_DESDE,
+        TO_NUMBER(TO_CHAR(TO_DATE(:fecha_hasta, 'YYYY/MM/DD'), 'YYYYMMDD')) AS FECHA_HASTA
+    FROM DUAL
+),
+BASE AS (
+    SELECT
+        A.LEGAJO,
+        A.FECHA,
+        D.ID AS ID_GRUPO_FUNCIONES,
+        D.DESCRIPCION AS OPERACION,
+        NVL(D.ID_DE_UNIDAD_DE_PRODUCCION, 'NA') AS UNIDAD_MEDIDA,
+        CASE
+            WHEN NVL(D.ID_DE_UNIDAD_DE_PRODUCCION, 'NA') = 'NA' THEN 'NO MEDIBLE'
+            ELSE 'MEDIBLE'
+        END AS TIPO_PREMIO,
+        NVL(F.DESCRIPCION, 'TODOS') AS DIVISION,
+        NVL(B.A_PAGAR_TOTAL, 0) AS PAGO,
+        NVL(C.PROD_REAL, 0) AS PROD,
+        NVL(B.PENALIZACION_EXCESO_TNC, 0) AS PENA_TNC,
+        NVL(B.PENALIZACION_POR_ERROR, 0) AS PENA_ERROR
+    FROM PARAMS P
+    JOIN PV_DIA_LABORAL A
+      ON A.FECHA BETWEEN P.FECHA_DESDE AND P.FECHA_HASTA
+    JOIN PV_LIQUIDAC_DIA_DET1 B
+      ON A.ID = B.ID_PV_DIA_LABORAL
+    JOIN PV_GRUPO_DE_FUNCIONES_CAB D
+      ON D.ID = B.ID_PV_GRUPO_DE_FUNCIONES
+    LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F
+      ON B.ID_PV_GRUPO_PRODUCTIVO = F.ID
+    LEFT JOIN PV_LIQUIDAC_DIA_DET2 C
+      ON A.ID = C.ID_PV_DIA_LABORAL
+     AND B.ID_PV_GRUPO_DE_FUNCIONES = C.ID_PV_GRUPO_DE_FUNCIONES
+     AND NVL(B.ID_PV_GRUPO_PRODUCTIVO, 0) = NVL(C.ID_PV_GRUPO_PRODUCTIVO, 0)
+)
+SELECT
+    LEGAJO,
+    FECHA,
+    OPERACION,
+    UNIDAD_MEDIDA,
+    TIPO_PREMIO,
+    DIVISION,
+    COUNT(*) AS JORNADAS_CON_MEDICION,
+    COUNT(DISTINCT FECHA) AS DIAS_CON_MEDICION,
+    SUM(CASE WHEN PAGO > 0 THEN 1 ELSE 0 END) AS JORNADAS_CON_PREMIO,
+    SUM(CASE WHEN PROD > 0 THEN 1 ELSE 0 END) AS JORNADAS_CON_ACTIVIDAD,
+    SUM(CASE WHEN PROD > 0 AND PAGO <= 0 THEN 1 ELSE 0 END) AS JORNADAS_ACTIVIDAD_SIN_PREMIO,
+    SUM(CASE WHEN PROD <= 0 AND PAGO > 0 THEN 1 ELSE 0 END) AS JORNADAS_PREMIO_SIN_ACTIVIDAD,
+    ROUND(SUM(PAGO), 2) AS PREMIO_ACTUAL_TOTAL,
+    ROUND(SUM(PROD), 3) AS PRODUCTIVIDAD_TOTAL,
+    ROUND(SUM(PROD), 3) AS PRODUCTIVIDAD_TURNO_TOTAL
+FROM BASE
+GROUP BY LEGAJO, FECHA, OPERACION, UNIDAD_MEDIDA, TIPO_PREMIO, DIVISION
+ORDER BY PREMIO_ACTUAL_TOTAL DESC, LEGAJO, FECHA, TIPO_PREMIO, OPERACION, DIVISION
 """
 
 CONSULTA_PP_ETAPAS_HORA = """
@@ -1009,6 +1217,7 @@ CREATE TABLE IF NOT EXISTS pp_caso_modelo_carga (
     fecha_base DATE NOT NULL,
     operacion TEXT NOT NULL,
     query_version TEXT NOT NULL,
+    detail_query_version TEXT NOT NULL DEFAULT '',
     rows_dia INTEGER NOT NULL DEFAULT 0,
     rows_detalle INTEGER NOT NULL DEFAULT 0,
     loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -1017,6 +1226,134 @@ CREATE TABLE IF NOT EXISTS pp_caso_modelo_carga (
 CREATE INDEX IF NOT EXISTS idx_pp_caso_dia ON pp_caso_modelo_dia(fecha_base, operacion, almacen, query_version);
 CREATE INDEX IF NOT EXISTS idx_pp_caso_detalle ON pp_caso_modelo_detalle(fecha_base, operacion, almacen, legajo, query_version);
 CREATE INDEX IF NOT EXISTS idx_pp_caso_carga ON pp_caso_modelo_carga(fecha_base, operacion, query_version);
+CREATE TABLE IF NOT EXISTS pp_premio_foto_meta (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    snapshot_id TEXT NOT NULL,
+    source_hash TEXT NOT NULL,
+    captured_at TEXT NOT NULL,
+    current_source_hash TEXT,
+    source_changed INTEGER NOT NULL DEFAULT 0,
+    scale_rows INTEGER NOT NULL DEFAULT 0,
+    sector_rows INTEGER NOT NULL DEFAULT 0,
+    sector_scale_rows INTEGER NOT NULL DEFAULT 0,
+    algorithm_version TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS pp_premio_foto_escala (
+    snapshot_id TEXT NOT NULL,
+    id_grupo_funciones INTEGER NOT NULL,
+    operacion TEXT NOT NULL,
+    id_grupo_productivo INTEGER,
+    grupo_productivo TEXT NOT NULL,
+    nivel INTEGER NOT NULL,
+    desde REAL NOT NULL DEFAULT 0,
+    hasta REAL NOT NULL DEFAULT 0,
+    premio REAL NOT NULL DEFAULT 0,
+    premio_por_unidad_excedente REAL NOT NULL DEFAULT 0,
+    fecha_vigencia_desde TEXT,
+    fecha_vigencia_hasta TEXT,
+    PRIMARY KEY (snapshot_id, id_grupo_funciones, id_grupo_productivo, nivel)
+);
+CREATE TABLE IF NOT EXISTS pp_premio_foto_sector (
+    snapshot_id TEXT NOT NULL,
+    id_tiempo_picking INTEGER,
+    division INTEGER NOT NULL,
+    sector TEXT NOT NULL,
+    equivalencia REAL NOT NULL DEFAULT 0,
+    cantidad_de_registros REAL NOT NULL DEFAULT 0,
+    tiempo_normal REAL NOT NULL DEFAULT 0,
+    es_valor_estandar INTEGER NOT NULL DEFAULT 0,
+    id_grupo_division INTEGER,
+    eq_x_setup_fija REAL NOT NULL DEFAULT 0,
+    eq_x_setup_var REAL NOT NULL DEFAULT 0,
+    metodo_de_calculo TEXT NOT NULL DEFAULT '',
+    equivalencia_especifica REAL NOT NULL DEFAULT 0,
+    estandar_posicion_sector REAL NOT NULL DEFAULT 0,
+    id_grupo_productivo INTEGER,
+    grupo_productivo TEXT,
+    PRIMARY KEY (snapshot_id, division, sector)
+);
+CREATE TABLE IF NOT EXISTS pp_premio_sector_escala_hora (
+    snapshot_id TEXT NOT NULL,
+    division INTEGER NOT NULL,
+    sector TEXT NOT NULL,
+    id_grupo_productivo INTEGER NOT NULL,
+    grupo_productivo TEXT NOT NULL,
+    metodo_de_calculo TEXT NOT NULL DEFAULT '',
+    nivel INTEGER NOT NULL,
+    desde_jornada REAL NOT NULL DEFAULT 0,
+    hasta_jornada REAL NOT NULL DEFAULT 0,
+    premio_jornada REAL NOT NULL DEFAULT 0,
+    excedente_por_unidad REAL NOT NULL DEFAULT 0,
+    desde_hora_equiv REAL NOT NULL DEFAULT 0,
+    hasta_hora_equiv REAL NOT NULL DEFAULT 0,
+    premio_hora REAL NOT NULL DEFAULT 0,
+    desde_hora_bultos REAL,
+    hasta_hora_bultos REAL,
+    equivalencia REAL NOT NULL DEFAULT 0,
+    unidad_umbral TEXT NOT NULL DEFAULT 'equivalente',
+    PRIMARY KEY (snapshot_id, division, sector, nivel)
+);
+CREATE INDEX IF NOT EXISTS idx_pp_premio_sector_escala ON pp_premio_sector_escala_hora(snapshot_id, division, sector, nivel);
+CREATE TABLE IF NOT EXISTS pp_evaluacion_picking (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha_base DATE NOT NULL,
+    legajo TEXT NOT NULL,
+    turno TEXT,
+    hora INTEGER NOT NULL,
+    division INTEGER,
+    sector TEXT NOT NULL,
+    funciones TEXT NOT NULL DEFAULT '',
+    segundos_sector REAL NOT NULL DEFAULT 0,
+    peso_sector REAL NOT NULL DEFAULT 0,
+    bultos_reales REAL NOT NULL DEFAULT 0,
+    equivalencia_sector REAL NOT NULL DEFAULT 0,
+    equivalencia_traslado REAL NOT NULL DEFAULT 0,
+    equivalencia_consolidacion REAL NOT NULL DEFAULT 0,
+    ritmo_bultos_hora REAL NOT NULL DEFAULT 0,
+    nivel INTEGER,
+    desde_bultos INTEGER,
+    hasta_bultos INTEGER,
+    premio_hora REAL NOT NULL DEFAULT 0,
+    premio_aplicado REAL NOT NULL DEFAULT 0,
+    estado TEXT NOT NULL DEFAULT '',
+    query_version TEXT NOT NULL,
+    loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_pp_evaluacion_picking ON pp_evaluacion_picking(fecha_base, legajo, hora, division, sector, query_version);
+CREATE INDEX IF NOT EXISTS idx_pp_evaluacion_picking_fecha ON pp_evaluacion_picking(fecha_base, legajo, hora, sector, query_version);
+CREATE TABLE IF NOT EXISTS pp_evaluacion_picking_carga (
+    fecha_base DATE PRIMARY KEY,
+    query_version TEXT NOT NULL,
+    rows_count INTEGER NOT NULL DEFAULT 0,
+    loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS pp_evaluacion_picking_pago (
+    fecha_base DATE NOT NULL,
+    legajo TEXT NOT NULL,
+    nivel_actual INTEGER,
+    bultos_actuales REAL NOT NULL DEFAULT 0,
+    desde_actual REAL,
+    hasta_actual REAL,
+    pago_base_picking REAL NOT NULL DEFAULT 0,
+    premio_cabecera REAL NOT NULL DEFAULT 0,
+    base_total_dia REAL NOT NULL DEFAULT 0,
+    factor_multiplicador REAL NOT NULL DEFAULT 1,
+    motivo_ajuste TEXT NOT NULL DEFAULT '',
+    premio_real REAL NOT NULL DEFAULT 0,
+    equivalencia_sector REAL NOT NULL DEFAULT 0,
+    equivalencia_traslado REAL NOT NULL DEFAULT 0,
+    equivalencia_consolidacion REAL NOT NULL DEFAULT 0,
+    total_equivalentes REAL NOT NULL DEFAULT 0,
+    query_version TEXT NOT NULL,
+    loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (fecha_base, legajo, query_version)
+);
+CREATE TABLE IF NOT EXISTS pp_evaluacion_picking_pago_carga (
+    fecha_base DATE PRIMARY KEY,
+    query_version TEXT NOT NULL,
+    rows_count INTEGER NOT NULL DEFAULT 0,
+    loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 
@@ -1261,10 +1598,11 @@ def _ensure_java_helper_compiled() -> None:
     class_file = JAVA_BUILD_DIR / "OracleProductividadQuery.class"
     if class_file.exists() and class_file.stat().st_mtime >= JAVA_HELPER_SRC.stat().st_mtime:
         return
-    javac_bin = os.getenv(
-        "PRODUCTIVE_DB_JAVAC_BIN",
-        r"C:\Program Files\Android\openjdk\jdk-21.0.8\bin\javac.exe",
-    ).strip()
+    javac_bin = (
+        os.getenv("PRODUCTIVE_DB_JAVAC_BIN", "").strip()
+        or shutil.which("javac")
+        or r"C:\Program Files\Android\openjdk\jdk-21.0.8\bin\javac.exe"
+    )
     result = subprocess.run(
         [javac_bin, "-d", str(JAVA_BUILD_DIR), str(JAVA_HELPER_SRC)],
         capture_output=True,
@@ -1275,77 +1613,85 @@ def _ensure_java_helper_compiled() -> None:
         raise RuntimeError(f"No se pudo compilar helper JDBC: {result.stderr[:500]}")
 
 
+def _discover_ojdbc_jar() -> str:
+    app_data = os.getenv("APPDATA", "").strip()
+    if not app_data:
+        return ""
+    driver_root = Path(app_data) / "DBeaverData" / "drivers" / "maven" / "maven-central" / "com.oracle.database.jdbc"
+    candidates = sorted(driver_root.glob("**/ojdbc*.jar"), key=lambda item: item.stat().st_mtime, reverse=True)
+    return str(candidates[0]) if candidates else ""
+
+
+def _jdbc_positional_query(sql: str, binds: dict[str, Any]) -> tuple[str, list[Any]]:
+    values: list[Any] = []
+
+    def replace(match: re.Match[str]) -> str:
+        name = match.group(1)
+        if name not in binds:
+            raise RuntimeError(f"Falta el parametro Oracle :{name}.")
+        value = binds[name]
+        if isinstance(value, (list, tuple, set)):
+            items = list(value)
+            if not items:
+                return "NULL"
+            values.extend(items)
+            return ",".join("?" for _ in items)
+        values.append(value)
+        return "?"
+
+    query = re.sub(r"(?<![A-Za-z0-9_]):([A-Za-z_][A-Za-z0-9_]*)", replace, sql)
+    return query, values
+
+
 def _query_oracle_via_jdbc(sql: str, binds: dict[str, Any]) -> list[dict[str, Any]]:
     user = os.getenv("PRODUCTIVE_DB_USER", "").strip()
     password = os.getenv("PRODUCTIVE_DB_PASSWORD", "").strip()
     host = os.getenv("PRODUCTIVE_DB_HOST", "").strip()
     port = os.getenv("PRODUCTIVE_DB_PORT", "1521").strip()
     service_name = os.getenv("PRODUCTIVE_DB_SERVICE_NAME", "").strip()
-    java_bin = os.getenv("PRODUCTIVE_DB_JAVA_BIN", r"C:\Users\207189\AppData\Local\DBeaver\jre\bin\java.exe").strip()
-    ojdbc_jar = os.getenv(
-        "PRODUCTIVE_DB_OJDBC_JAR",
-        r"C:\Users\207189\AppData\Roaming\DBeaverData\drivers\maven\maven-central\com.oracle.database.jdbc\ojdbc11-23.2.0.0.jar",
-    ).strip()
+    local_app_data = os.getenv("LOCALAPPDATA", "").strip()
+    dbeaver_java = str(Path(local_app_data) / "DBeaver" / "jre" / "bin" / "java.exe") if local_app_data else ""
+    java_bin = (
+        os.getenv("PRODUCTIVE_DB_JAVA_BIN", "").strip()
+        or shutil.which("java")
+        or dbeaver_java
+    )
+    ojdbc_jar = (
+        os.getenv("PRODUCTIVE_DB_OJDBC_JAR", "").strip()
+        or _discover_ojdbc_jar()
+    )
     if not all([user, password, host, service_name]):
         raise RuntimeError("Faltan variables JDBC PRODUCTIVE_DB_USER/PASSWORD/HOST/SERVICE_NAME.")
-    if not Path(java_bin).exists():
+    if not java_bin or not Path(java_bin).exists():
         raise RuntimeError(f"No se encontro Java para JDBC: {java_bin}")
-    if not Path(ojdbc_jar).exists():
+    if not ojdbc_jar or not Path(ojdbc_jar).exists():
         raise RuntimeError(f"No se encontro driver JDBC Oracle: {ojdbc_jar}")
 
-    normalized = " ".join(sql.upper().split())
-    if "PP_PREMIO_ESCALAS_POR_ID" in normalized:
-        query_key = "pp_premio_escalas_por_id"
-    elif "PP_ESTUDIO_PREMIOS_ORACLE" in normalized:
-        query_key = "pp_estudio_premios_oracle"
-    elif "PP_PREMIO_ETAPAS_HORA_POR_ID" in normalized:
-        query_key = "pp_premio_etapas_hora_por_id"
-    elif "PP_PREMIO_LIQUIDACION_DIA_POR_ID" in normalized:
-        query_key = "pp_premio_liquidacion_dia_por_id"
-    elif "PP_PREMIO_ESCALAS" in normalized:
-        query_key = "pp_premio_escalas"
-    elif "PP_PREMIO_ETAPAS_HORA" in normalized:
-        query_key = "pp_premio_etapas_hora"
-    elif "PP_PREMIO_LIQUIDACION_DIA" in normalized:
-        query_key = "pp_premio_liquidacion_dia"
-    elif "BULTOS_HORA_MIN" in normalized and "BULTOSTURNO" in normalized:
-        query_key = "premio_caso_modelo_detalle"
-    elif "FECHA_PARAM" in normalized and "DIFERENCIA_SIN_EXTRAS" in normalized:
-        query_key = "premio_caso_modelo_rango"
-    elif "TODOPREMIO" in normalized and "DIFERENCIA_SIN_EXTRAS" in normalized:
-        query_key = "premio_caso_modelo_final"
-    elif "PV_LIQUIDAC_DIA_DET1" in normalized:
-        query_key = "premio_pago_actual"
-    elif "F132HIST" in normalized and "SUM(QCANTIDA) AS CANTIDAD" in normalized:
-        query_key = "premio_produccion_hora"
-    elif "PV_ESCALA_DE_PREMIOS" in normalized:
-        query_key = "premio_escala"
-    else:
-        raise RuntimeError("Consulta premio productividad no soportada por helper JDBC.")
-
     _ensure_java_helper_compiled()
+    query, positional_binds = _jdbc_positional_query(sql, binds)
+    query_key = "raw_sql_env"
     jdbc_url = f"jdbc:oracle:thin:@//{host}:{port}/{service_name}"
     classpath = os.pathsep.join([str(JAVA_BUILD_DIR), ojdbc_jar])
-    legajos = ",".join(str(x) for x in binds.get("legajos", []))
     command = [
         java_bin,
         "-cp",
         classpath,
         "OracleProductividadQuery",
         jdbc_url,
-        user,
-        password,
-        str(binds.get("fecha_ini") or binds.get("fecha_desde") or binds.get("fecha_yyyymmdd") or binds.get("fecha_base") or ""),
-        str(binds.get("fecha_fin") or binds.get("fecha_hasta") or binds.get("fecha_yyyymmdd") or binds.get("fecha_base") or ""),
+        "",
+        "",
+        "",
+        "",
         query_key,
-        legajos,
-        str(binds.get("operacion") or "PICKING"),
-        str(binds.get("nivel") or ""),
-        str(binds.get("grupo_funciones_id") or 1),
-        str(binds.get("fecha_operativa") or binds.get("fecha_base") or ""),
-        str(binds.get("legajo") or ""),
-        str(binds.get("almacen") or DEFAULT_ALMACEN),
     ]
+    process_env = os.environ.copy()
+    process_env["VIGIA_ORACLE_JDBC_USER"] = user
+    process_env["VIGIA_ORACLE_JDBC_PASSWORD"] = password
+    process_env["VIGIA_ORACLE_SQL_B64"] = base64.b64encode(query.encode("utf-8")).decode("ascii")
+    process_env["VIGIA_ORACLE_BINDS_B64"] = ",".join(
+        base64.b64encode(("" if value is None else str(value)).encode("utf-8")).decode("ascii")
+        for value in positional_binds
+    )
     timeout_seconds = int(os.getenv("PRODUCTIVE_DB_JDBC_TIMEOUT_SECONDS", "90"))
     try:
         result = subprocess.run(
@@ -1354,6 +1700,7 @@ def _query_oracle_via_jdbc(sql: str, binds: dict[str, Any]) -> list[dict[str, An
             text=True,
             check=False,
             timeout=timeout_seconds,
+            env=process_env,
         )
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError(
@@ -1378,7 +1725,12 @@ async def init_premio_productividad_db() -> None:
 
 async def _ensure_columns(db: aiosqlite.Connection) -> None:
     additions = {
-        "pp_caso_modelo_detalle": [
+    "pp_caso_modelo_detalle": [
+            ("bultos_reales", "REAL NOT NULL DEFAULT 0"),
+            ("equivalencia_sector", "REAL NOT NULL DEFAULT 0"),
+            ("equivalencia_traslado", "REAL NOT NULL DEFAULT 0"),
+            ("equivalencia_consolidacion", "REAL NOT NULL DEFAULT 0"),
+            ("total_equivalentes", "REAL NOT NULL DEFAULT 0"),
             ("premio_sin_extra", "REAL NOT NULL DEFAULT 0"),
             ("penalizacion_tnc", "TEXT NOT NULL DEFAULT ''"),
             ("penalizacion_error", "TEXT NOT NULL DEFAULT ''"),
@@ -1394,6 +1746,32 @@ async def _ensure_columns(db: aiosqlite.Connection) -> None:
             ("descuentos_total", "REAL NOT NULL DEFAULT 0"),
             ("diferencia_x_horas_sin_extras", "REAL NOT NULL DEFAULT 0"),
         ],
+        "pp_caso_modelo_carga": [
+            ("detail_query_version", "TEXT NOT NULL DEFAULT ''"),
+        ],
+        "pp_premio_foto_meta": [
+            ("algorithm_version", "TEXT NOT NULL DEFAULT ''"),
+        ],
+        "pp_evaluacion_picking": [
+            ("equivalencia_sector", "REAL NOT NULL DEFAULT 0"),
+            ("equivalencia_traslado", "REAL NOT NULL DEFAULT 0"),
+            ("equivalencia_consolidacion", "REAL NOT NULL DEFAULT 0"),
+        ],
+        "pp_evaluacion_picking_pago": [
+            ("nivel_actual", "INTEGER"),
+            ("bultos_actuales", "REAL NOT NULL DEFAULT 0"),
+            ("desde_actual", "REAL"),
+            ("hasta_actual", "REAL"),
+            ("pago_base_picking", "REAL NOT NULL DEFAULT 0"),
+            ("premio_cabecera", "REAL NOT NULL DEFAULT 0"),
+            ("base_total_dia", "REAL NOT NULL DEFAULT 0"),
+            ("factor_multiplicador", "REAL NOT NULL DEFAULT 1"),
+            ("motivo_ajuste", "TEXT NOT NULL DEFAULT ''"),
+            ("equivalencia_sector", "REAL NOT NULL DEFAULT 0"),
+            ("equivalencia_traslado", "REAL NOT NULL DEFAULT 0"),
+            ("equivalencia_consolidacion", "REAL NOT NULL DEFAULT 0"),
+            ("total_equivalentes", "REAL NOT NULL DEFAULT 0"),
+        ],
     }
     for table, columns in additions.items():
         async with db.execute(f"PRAGMA table_info({table})") as cur:
@@ -1401,6 +1779,417 @@ async def _ensure_columns(db: aiosqlite.Connection) -> None:
         for name, definition in columns:
             if name not in existing:
                 await db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
+
+
+def _snapshot_row(row: dict[str, Any]) -> dict[str, Any]:
+    """Normaliza una fila Oracle para hash estable y persistencia local."""
+    return {str(key).lower(): value for key, value in row.items()}
+
+
+def _round_bultos(value: Any) -> int:
+    return int(Decimal(str(_num(value))).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def _snapshot_hash(scales: list[dict[str, Any]], sectors: list[dict[str, Any]]) -> str:
+    payload = json.dumps(
+        {"escalas": scales, "sectores": sectors},
+        ensure_ascii=False,
+        sort_keys=True,
+        default=str,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _snapshot_id(source_hash: str) -> str:
+    return f"picking-{source_hash[:16]}"
+
+
+def _hourly_scale_rows(
+    snapshot_id: str,
+    scales: list[dict[str, Any]],
+    sectors: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    by_group: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    for raw in scales:
+        item = _snapshot_row(raw)
+        group_id = int(_num(item.get("id_grupo_productivo")))
+        if group_id:
+            by_group[group_id].append(item)
+    result: list[dict[str, Any]] = []
+    for raw in sectors:
+        sector = _snapshot_row(raw)
+        group_id = int(_num(sector.get("id_grupo_productivo")))
+        if not group_id:
+            continue
+        metodo = _upper(sector.get("metodo_de_calculo")) or "GENERAL"
+        for scale in by_group.get(group_id, []):
+            desde = _num(scale.get("desde"))
+            hasta = _num(scale.get("hasta"))
+            premio = _num(scale.get("premio"))
+            desde_hora = desde / DEFAULT_DIVISOR_HORARIO
+            hasta_hora = hasta / DEFAULT_DIVISOR_HORARIO
+            premio_hora = premio / DEFAULT_DIVISOR_HORARIO
+            result.append({
+                "snapshot_id": snapshot_id,
+                "division": int(_num(sector.get("division"))),
+                "sector": _clean(sector.get("sector")),
+                "id_grupo_productivo": group_id,
+                "grupo_productivo": _clean(sector.get("grupo_productivo")) or "SIN GRUPO",
+                "metodo_de_calculo": metodo,
+                "nivel": int(_num(scale.get("nivel"))),
+                "desde_jornada": desde,
+                "hasta_jornada": hasta,
+                "premio_jornada": premio,
+                "excedente_por_unidad": _num(scale.get("premio_por_unidad_excedente")),
+                "desde_hora_equiv": desde_hora,
+                "hasta_hora_equiv": hasta_hora,
+                "premio_hora": premio_hora,
+                "desde_hora_sector": _round_bultos(desde_hora),
+                "hasta_hora_sector": _round_bultos(hasta_hora),
+                "equivalencia": 0,
+                "unidad_umbral": "sector",
+            })
+    return result
+
+
+async def _tabla_premios_payload() -> dict[str, Any]:
+    """Obtiene una foto inicial y luego conserva esa foto aunque Oracle cambie."""
+    await init_premio_productividad_db()
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        meta = await _fetch_one(db, "SELECT * FROM pp_premio_foto_meta WHERE id = 1")
+
+    current_scales: list[dict[str, Any]] = []
+    current_sectors: list[dict[str, Any]] = []
+    source_error = ""
+    try:
+        current_scales, current_sectors = await asyncio.gather(
+            asyncio.to_thread(_query_oracle, CONSULTA_PP_ESCALAS_FOTO, {}),
+            asyncio.to_thread(_query_oracle, CONSULTA_PP_SECTORES_FOTO, {}),
+        )
+        current_scales = [_snapshot_row(row) for row in current_scales]
+        current_sectors = [_snapshot_row(row) for row in current_sectors]
+    except Exception as exc:
+        source_error = str(exc)
+
+    current_hash = _snapshot_hash(current_scales, current_sectors) if current_scales or current_sectors else ""
+    if not meta and not current_hash:
+        raise HTTPException(status_code=502, detail=f"No se pudo tomar la foto Oracle: {source_error or 'sin datos'}")
+
+    if not meta:
+        snapshot_id = _snapshot_id(current_hash)
+        hourly_rows = _hourly_scale_rows(snapshot_id, current_scales, current_sectors)
+        now = _now()
+        async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+            await db.execute("BEGIN IMMEDIATE")
+            await db.execute(
+                "INSERT INTO pp_premio_foto_meta(id,snapshot_id,source_hash,captured_at,current_source_hash,source_changed,scale_rows,sector_rows,sector_scale_rows,algorithm_version) VALUES (1,?,?,?,?,0,?,?,?,?)",
+                (snapshot_id, current_hash, now, current_hash, len(current_scales), len(current_sectors), len(hourly_rows), PREMIO_FOTO_ALGORITHM_VERSION),
+            )
+            await db.executemany(
+                """INSERT INTO pp_premio_foto_escala
+                (snapshot_id,id_grupo_funciones,operacion,id_grupo_productivo,grupo_productivo,nivel,desde,hasta,premio,premio_por_unidad_excedente,fecha_vigencia_desde,fecha_vigencia_hasta)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                [(
+                    snapshot_id, int(_num(row.get("id_grupo_funciones"))), _clean(row.get("operacion")),
+                    int(_num(row.get("id_grupo_productivo"))) or 0, _clean(row.get("grupo_productivo")) or "TODOS",
+                    int(_num(row.get("nivel"))), _num(row.get("desde")), _num(row.get("hasta")), _num(row.get("premio")),
+                    _num(row.get("premio_por_unidad_excedente")), _clean(row.get("fecha_vigencia_desde")), _clean(row.get("fecha_vigencia_hasta")),
+                ) for row in current_scales],
+            )
+            await db.executemany(
+                """INSERT INTO pp_premio_foto_sector
+                (snapshot_id,id_tiempo_picking,division,sector,equivalencia,cantidad_de_registros,tiempo_normal,es_valor_estandar,id_grupo_division,eq_x_setup_fija,eq_x_setup_var,metodo_de_calculo,equivalencia_especifica,estandar_posicion_sector,id_grupo_productivo,grupo_productivo)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                [(
+                    snapshot_id, int(_num(row.get("id_tiempo_picking"))) or None, int(_num(row.get("division"))), _clean(row.get("sector")),
+                    _num(row.get("equivalencia")), _num(row.get("cantidad_de_registros")), _num(row.get("tiemponormal")),
+                    int(_num(row.get("es_valor_estandar"))), int(_num(row.get("id_grupo_division"))) or None,
+                    _num(row.get("eq_x_setup_fija")), _num(row.get("eq_x_setup_var")), _upper(row.get("metodo_de_calculo")),
+                    _num(row.get("equivalencia_especifica")), _num(row.get("estandar_posicion_sector")),
+                    int(_num(row.get("id_grupo_productivo"))) or None, _clean(row.get("grupo_productivo")),
+                ) for row in current_sectors],
+            )
+            await db.executemany(
+                """INSERT INTO pp_premio_sector_escala_hora
+                (snapshot_id,division,sector,id_grupo_productivo,grupo_productivo,metodo_de_calculo,nivel,desde_jornada,hasta_jornada,premio_jornada,excedente_por_unidad,desde_hora_equiv,hasta_hora_equiv,premio_hora,desde_hora_bultos,hasta_hora_bultos,equivalencia,unidad_umbral)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                [tuple(row.get(key) for key in (
+                    "snapshot_id","division","sector","id_grupo_productivo","grupo_productivo","metodo_de_calculo","nivel","desde_jornada","hasta_jornada","premio_jornada","excedente_por_unidad","desde_hora_equiv","hasta_hora_equiv","premio_hora","desde_hora_sector","hasta_hora_sector","equivalencia","unidad_umbral"
+                )) for row in hourly_rows],
+            )
+            await db.commit()
+        PREMIO_FOTO_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+        PREMIO_FOTO_JSON_PATH.write_text(json.dumps({"snapshot_id": snapshot_id, "captured_at": now, "source_hash": current_hash, "escalas": current_scales, "sectores": current_sectors, "escalas_sector_hora": hourly_rows}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+        meta = {"id": 1, "snapshot_id": snapshot_id, "source_hash": current_hash, "captured_at": now, "current_source_hash": current_hash, "source_changed": 0, "scale_rows": len(current_scales), "sector_rows": len(current_sectors), "sector_scale_rows": len(hourly_rows), "algorithm_version": PREMIO_FOTO_ALGORITHM_VERSION}
+    elif current_hash and current_hash != meta.get("source_hash"):
+        async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+            await db.execute("UPDATE pp_premio_foto_meta SET current_source_hash = ?, source_changed = 1 WHERE id = 1", (current_hash,))
+            await db.commit()
+        meta["current_source_hash"] = current_hash
+        meta["source_changed"] = 1
+
+    # La foto de Oracle se conserva, pero las escalas derivadas se migran una vez
+    # cuando cambia la regla de generación (en este caso, sin equivalencias).
+    algorithm_migrated = False
+    if meta.get("algorithm_version") != PREMIO_FOTO_ALGORITHM_VERSION:
+        async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+            db.row_factory = aiosqlite.Row
+            snapshot_id = str(meta["snapshot_id"])
+            stored_scales = await _fetch_rows(db, "SELECT * FROM pp_premio_foto_escala WHERE snapshot_id = ? ORDER BY id_grupo_productivo, nivel", (snapshot_id,))
+            stored_sectors = await _fetch_rows(db, "SELECT * FROM pp_premio_foto_sector WHERE snapshot_id = ? ORDER BY division, sector", (snapshot_id,))
+            rebuilt = _hourly_scale_rows(snapshot_id, stored_scales, stored_sectors)
+            await db.execute("DELETE FROM pp_premio_sector_escala_hora WHERE snapshot_id = ?", (snapshot_id,))
+            await db.executemany(
+                """INSERT INTO pp_premio_sector_escala_hora
+                (snapshot_id,division,sector,id_grupo_productivo,grupo_productivo,metodo_de_calculo,nivel,desde_jornada,hasta_jornada,premio_jornada,excedente_por_unidad,desde_hora_equiv,hasta_hora_equiv,premio_hora,desde_hora_bultos,hasta_hora_bultos,equivalencia,unidad_umbral)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                [tuple(row.get(key) for key in (
+                    "snapshot_id","division","sector","id_grupo_productivo","grupo_productivo","metodo_de_calculo","nivel","desde_jornada","hasta_jornada","premio_jornada","excedente_por_unidad","desde_hora_equiv","hasta_hora_equiv","premio_hora","desde_hora_sector","hasta_hora_sector","equivalencia","unidad_umbral"
+                )) for row in rebuilt],
+            )
+            await db.execute("UPDATE pp_premio_foto_meta SET algorithm_version = ?, sector_scale_rows = ? WHERE id = 1", (PREMIO_FOTO_ALGORITHM_VERSION, len(rebuilt)))
+            await db.commit()
+        meta["algorithm_version"] = PREMIO_FOTO_ALGORITHM_VERSION
+        meta["sector_scale_rows"] = len(rebuilt)
+        algorithm_migrated = True
+
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        snapshot_id = str(meta["snapshot_id"])
+        scales = await _fetch_rows(db, "SELECT * FROM pp_premio_foto_escala WHERE snapshot_id = ? ORDER BY id_grupo_productivo, nivel", (snapshot_id,))
+        sectors = await _fetch_rows(db, "SELECT * FROM pp_premio_foto_sector WHERE snapshot_id = ? ORDER BY division, sector", (snapshot_id,))
+        hourly = await _fetch_rows(db, "SELECT * FROM pp_premio_sector_escala_hora WHERE snapshot_id = ? ORDER BY division, sector, nivel", (snapshot_id,))
+    if not PREMIO_FOTO_JSON_PATH.exists():
+        PREMIO_FOTO_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+        PREMIO_FOTO_JSON_PATH.write_text(json.dumps({"snapshot_id": snapshot_id, "captured_at": meta.get("captured_at"), "source_hash": meta.get("source_hash"), "escalas": scales, "sectores": sectors, "escalas_sector_hora": hourly}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    elif algorithm_migrated:
+        PREMIO_FOTO_JSON_PATH.write_text(json.dumps({"snapshot_id": snapshot_id, "captured_at": meta.get("captured_at"), "source_hash": meta.get("source_hash"), "escalas": scales, "sectores": sectors, "escalas_sector_hora": hourly}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    current_scales_view = [{**row, "desde_hora": _round_bultos(_num(row["desde"]) / DEFAULT_DIVISOR_HORARIO), "hasta_hora": _round_bultos(_num(row["hasta"]) / DEFAULT_DIVISOR_HORARIO), "premio_hora": _num(row["premio"]) / DEFAULT_DIVISOR_HORARIO} for row in scales]
+    sector_groups: dict[str, dict[str, Any]] = {}
+    for row in hourly:
+        row["desde_hora_sector"] = row.get("desde_hora_bultos") if row.get("desde_hora_bultos") is not None else row.get("desde_hora_equiv")
+        row["hasta_hora_sector"] = row.get("hasta_hora_bultos") if row.get("hasta_hora_bultos") is not None else row.get("hasta_hora_equiv")
+        key = f"{row['division']}|{row['sector']}"
+        sector_groups.setdefault(key, {"division": row["division"], "sector": row["sector"], "grupo_productivo": row["grupo_productivo"], "metodo_de_calculo": row["metodo_de_calculo"], "filas": []})["filas"].append(row)
+    for sector in sectors:
+        key = f"{sector['division']}|{sector['sector']}"
+        sector_groups.setdefault(key, {"division": sector["division"], "sector": sector["sector"], "grupo_productivo": sector.get("grupo_productivo") or "SIN GRUPO", "metodo_de_calculo": sector.get("metodo_de_calculo") or "", "filas": []})
+    return {
+        "foto": {**meta, "divisor_horario": DEFAULT_DIVISOR_HORARIO, "origen": "foto_local_sqlite", "archivo_local": str(PREMIO_FOTO_JSON_PATH), "source_error": source_error},
+        "escalas_jornada": scales,
+        "escalas_hora": current_scales_view,
+        "sectores": list(sector_groups.values()),
+    }
+
+
+def _evaluation_datetime(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    text = _clean(value).replace("Z", "")
+    if not text:
+        return None
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S.%f"):
+        try:
+            return datetime.strptime(text[:26], fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def _evaluation_date(value: Any) -> str:
+    text = _clean(value)
+    if text.isdigit() and len(text) == 8:
+        return f"{text[:4]}-{text[4:6]}-{text[6:]}"
+    return _to_date(text).isoformat()
+
+
+async def _local_evaluation_scales() -> dict[tuple[int, str], list[dict[str, Any]]]:
+    await init_premio_productividad_db()
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        meta = await _fetch_one(db, "SELECT snapshot_id FROM pp_premio_foto_meta WHERE id = 1")
+        if not meta:
+            raise HTTPException(status_code=409, detail="Primero debe generarse la foto de Tabla Premios.")
+        rows = await _fetch_rows(
+            db,
+            """SELECT division, sector, nivel, desde_hora_bultos, hasta_hora_bultos,
+                      premio_hora, metodo_de_calculo
+               FROM pp_premio_sector_escala_hora
+               WHERE snapshot_id = ?
+               ORDER BY division, sector, nivel""",
+            (meta["snapshot_id"],),
+        )
+    scales: dict[tuple[int, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        key = (int(_num(row.get("division"))), _clean(row.get("sector")))
+        scales[key].append(row)
+    return scales
+
+
+def _find_evaluation_scale(rows: list[dict[str, Any]], value: float) -> dict[str, Any] | None:
+    if not rows:
+        return None
+    for row in rows:
+        low = _num(row.get("desde_hora_bultos"))
+        high = _num(row.get("hasta_hora_bultos"))
+        if value >= low and value <= high:
+            return row
+    if value > _num(rows[-1].get("hasta_hora_bultos")):
+        return rows[-1]
+    return None
+
+
+def _build_evaluation_rows(raw_rows: list[dict[str, Any]], scales: dict[tuple[int, str], list[dict[str, Any]]]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str, int, int, str], dict[str, Any]] = {}
+    for raw in raw_rows:
+        item = _snapshot_row(raw)
+        start = _evaluation_datetime(item.get("fyhini"))
+        end = _evaluation_datetime(item.get("fyhfin"))
+        if not start or not end or end <= start:
+            continue
+        duration = (end - start).total_seconds()
+        real = _num(item.get("produccion_real"))
+        fecha = _evaluation_date(item.get("fecha"))
+        legajo = _clean(item.get("legajo"))
+        division = int(_num(item.get("division")))
+        sector = _clean(item.get("sector")) or "SIN_SECTOR"
+        turno = _turno_code(item.get("turno"))
+        funcion = _clean(item.get("cod_funcion")) or _clean(item.get("desc_funcion"))
+        hour_start = start.replace(minute=0, second=0, microsecond=0)
+        while hour_start < end:
+            hour_end = hour_start + timedelta(hours=1)
+            overlap_start = max(start, hour_start)
+            overlap_end = min(end, hour_end)
+            seconds = max(0.0, (overlap_end - overlap_start).total_seconds())
+            if seconds > 0:
+                key = (fecha, legajo, hour_start.hour, division, sector)
+                agg = grouped.setdefault(key, {"fecha_base": fecha, "legajo": legajo, "turno": turno, "hora": hour_start.hour, "division": division, "sector": sector, "funciones_set": set(), "segundos_sector": 0.0, "bultos_reales": 0.0, "equivalencia_sector": 0.0, "equivalencia_traslado": 0.0, "equivalencia_consolidacion": 0.0})
+                agg["funciones_set"].add(funcion)
+                agg["segundos_sector"] += seconds
+                # La producción real pertenece a la etapa y no se prorratea por minutos.
+                # Se asigna completa a la hora en la que comienza la etapa; los minutos
+                # sí conservan el corte horario para ponderar sectores.
+                if hour_start == start.replace(minute=0, second=0, microsecond=0):
+                    agg["bultos_reales"] += real
+                    agg["equivalencia_sector"] += _num(item.get("produccion_equiv_por_sector"))
+                    agg["equivalencia_traslado"] += _num(item.get("produccion_equiv_por_traslado"))
+                    agg["equivalencia_consolidacion"] += _num(item.get("prod_equival_por_consolidacion"))
+            hour_start = hour_end
+
+    by_hour: dict[tuple[str, str, int], list[dict[str, Any]]] = defaultdict(list)
+    for row in grouped.values():
+        by_hour[(row["fecha_base"], row["legajo"], row["hora"])].append(row)
+    result: list[dict[str, Any]] = []
+    for hour_rows in by_hour.values():
+        measurable = [row for row in hour_rows if row["sector"] != "SIN_SECTOR"]
+        total_seconds = sum(row["segundos_sector"] for row in measurable)
+        for row in sorted(hour_rows, key=lambda item: item["sector"]):
+            weight = row["segundos_sector"] / total_seconds if row in measurable and total_seconds > 0 else 0.0
+            rhythm = row["bultos_reales"] / weight if weight > 0 else row["bultos_reales"]
+            scale = _find_evaluation_scale(scales.get((row["division"], row["sector"]), []), rhythm)
+            state = "OK" if scale and row["sector"] != "SIN_SECTOR" else "SIN_ESCALA" if row["sector"] != "SIN_SECTOR" else "SIN_SECTOR"
+            result.append({
+                "fecha_base": row["fecha_base"], "legajo": row["legajo"], "turno": row["turno"], "hora": row["hora"],
+                "division": row["division"], "sector": row["sector"], "funciones": ", ".join(sorted(x for x in row["funciones_set"] if x)),
+                "segundos_sector": round(row["segundos_sector"], 3), "peso_sector": round(weight, 6),
+                "bultos_reales": round(row["bultos_reales"], 3), "ritmo_bultos_hora": round(rhythm, 3),
+                "equivalencia_sector": round(row["equivalencia_sector"], 3), "equivalencia_traslado": round(row["equivalencia_traslado"], 3), "equivalencia_consolidacion": round(row["equivalencia_consolidacion"], 3),
+                "nivel": int(_num(scale.get("nivel"))) if scale else None,
+                "desde_bultos": int(_num(scale.get("desde_hora_bultos"))) if scale else None,
+                "hasta_bultos": int(_num(scale.get("hasta_hora_bultos"))) if scale else None,
+                "premio_hora": round(_num(scale.get("premio_hora")), 2) if scale else 0.0,
+                "premio_aplicado": round(_num(scale.get("premio_hora")) * weight, 2) if scale else 0.0,
+                "estado": state, "query_version": EVALUACION_PICKING_QUERY_VERSION,
+            })
+    return sorted(result, key=lambda row: (row["fecha_base"], row["legajo"], row["hora"], row["sector"]))
+
+
+async def _load_evaluation_range(fecha_desde: str, fecha_hasta: str, allow_oracle: bool = True) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    days = _date_range_inclusive(fecha_desde, fecha_hasta)
+    expected = [day.isoformat() for day in days]
+    scales = await _local_evaluation_scales()
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        loaded = await _fetch_rows(db, "SELECT fecha_base FROM pp_evaluacion_picking_carga WHERE query_version = ? AND fecha_base BETWEEN ? AND ?", (EVALUACION_PICKING_QUERY_VERSION, expected[0], expected[-1]))
+        paid_loaded = await _fetch_rows(db, "SELECT fecha_base FROM pp_evaluacion_picking_pago_carga WHERE query_version = ? AND fecha_base BETWEEN ? AND ?", (EVALUACION_PICKING_PAYMENT_QUERY_VERSION, expected[0], expected[-1]))
+    cached_days = {str(row["fecha_base"])[:10] for row in loaded}
+    missing = [day for day in expected if day not in cached_days]
+    cached_paid_days = {str(row["fecha_base"])[:10] for row in paid_loaded}
+    missing_paid = [day for day in expected if day not in cached_paid_days]
+    oracle_days = 0
+    if missing and allow_oracle:
+        query_start, query_end = min(missing), max(missing)
+        raw = await asyncio.to_thread(_query_oracle, CONSULTA_PP_EVALUACION_PICKING, {"fecha_desde": _to_date(query_start).strftime("%Y/%m/%d"), "fecha_hasta": _to_date(query_end).strftime("%Y/%m/%d")})
+        raw = [_snapshot_row(row) for row in raw]
+        calculated = _build_evaluation_rows(raw, scales)
+        by_date: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for row in calculated:
+            by_date[row["fecha_base"]].append(row)
+        async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+            await db.execute("BEGIN IMMEDIATE")
+            for day in missing:
+                await db.execute("DELETE FROM pp_evaluacion_picking WHERE fecha_base = ? AND query_version = ?", (day, EVALUACION_PICKING_QUERY_VERSION))
+                day_rows = by_date.get(day, [])
+                await db.executemany(
+                    """INSERT INTO pp_evaluacion_picking
+                    (fecha_base,legajo,turno,hora,division,sector,funciones,segundos_sector,peso_sector,bultos_reales,equivalencia_sector,equivalencia_traslado,equivalencia_consolidacion,ritmo_bultos_hora,nivel,desde_bultos,hasta_bultos,premio_hora,premio_aplicado,estado,query_version,loaded_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    [(row["fecha_base"],row["legajo"],row["turno"],row["hora"],row["division"],row["sector"],row["funciones"],row["segundos_sector"],row["peso_sector"],row["bultos_reales"],row["equivalencia_sector"],row["equivalencia_traslado"],row["equivalencia_consolidacion"],row["ritmo_bultos_hora"],row["nivel"],row["desde_bultos"],row["hasta_bultos"],row["premio_hora"],row["premio_aplicado"],row["estado"],row["query_version"],_now()) for row in day_rows],
+                )
+                await db.execute("INSERT OR REPLACE INTO pp_evaluacion_picking_carga(fecha_base,query_version,rows_count,loaded_at) VALUES (?,?,?,?)", (day, EVALUACION_PICKING_QUERY_VERSION, len(day_rows), _now()))
+            await db.commit()
+        oracle_days = len(missing)
+    payment_oracle_days = 0
+    if missing_paid and allow_oracle:
+        payment_start, payment_end = min(missing_paid), max(missing_paid)
+        paid_raw = await asyncio.to_thread(_query_oracle, CONSULTA_PP_EVALUACION_PICKING_PAGO_REAL, {"fecha_desde": _to_date(payment_start).strftime("%Y/%m/%d"), "fecha_hasta": _to_date(payment_end).strftime("%Y/%m/%d")})
+        paid_by_date: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for row in paid_raw:
+            item = _snapshot_row(row)
+            date_key = str(item.get("fecha") or "")[:10]
+            if len(date_key) == 8 and date_key.isdigit():
+                date_key = f"{date_key[:4]}-{date_key[4:6]}-{date_key[6:]}"
+                paid_by_date[date_key].append({"fecha_base": date_key, "legajo": _clean(item.get("legajo")), "nivel_actual": int(_num(item.get("nivel_actual"))) if item.get("nivel_actual") is not None else None, "bultos_actuales": round(_num(item.get("bultos_actuales")), 3), "desde_actual": int(_num(item.get("desde_actual"))) if item.get("desde_actual") is not None else None, "hasta_actual": int(_num(item.get("hasta_actual"))) if item.get("hasta_actual") is not None else None, "pago_base_picking": round(_num(item.get("pago_base_picking")), 2), "premio_cabecera": round(_num(item.get("premio_cabecera")), 2), "base_total_dia": round(_num(item.get("base_total_dia")), 2), "factor_multiplicador": round(_num(item.get("factor_multiplicador")) or 1, 2), "motivo_ajuste": _clean(item.get("motivo_ajuste")), "premio_real": round(_num(item.get("premio_real")), 2), "equivalencia_sector": round(_num(item.get("equivalencia_sector")), 3), "equivalencia_traslado": round(_num(item.get("equivalencia_traslado")), 3), "equivalencia_consolidacion": round(_num(item.get("equivalencia_consolidacion")), 3), "total_equivalentes": round(_num(item.get("total_equivalentes")), 3)})
+        async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+            await db.execute("BEGIN IMMEDIATE")
+            for day in missing_paid:
+                await db.execute("DELETE FROM pp_evaluacion_picking_pago WHERE fecha_base = ? AND query_version = ?", (day, EVALUACION_PICKING_PAYMENT_QUERY_VERSION))
+                day_paid = paid_by_date.get(day, [])
+                await db.executemany(
+                    """INSERT OR REPLACE INTO pp_evaluacion_picking_pago(fecha_base,legajo,nivel_actual,bultos_actuales,desde_actual,hasta_actual,pago_base_picking,premio_cabecera,base_total_dia,factor_multiplicador,motivo_ajuste,premio_real,equivalencia_sector,equivalencia_traslado,equivalencia_consolidacion,total_equivalentes,query_version,loaded_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    [(row["fecha_base"], row["legajo"], row["nivel_actual"], row["bultos_actuales"], row["desde_actual"], row["hasta_actual"], row["pago_base_picking"], row["premio_cabecera"], row["base_total_dia"], row["factor_multiplicador"], row["motivo_ajuste"], row["premio_real"], row["equivalencia_sector"], row["equivalencia_traslado"], row["equivalencia_consolidacion"], row["total_equivalentes"], EVALUACION_PICKING_PAYMENT_QUERY_VERSION, _now()) for row in day_paid],
+                )
+                await db.execute("INSERT OR REPLACE INTO pp_evaluacion_picking_pago_carga(fecha_base,query_version,rows_count,loaded_at) VALUES (?,?,?,?)", (day, EVALUACION_PICKING_PAYMENT_QUERY_VERSION, len(day_paid), _now()))
+            await db.commit()
+        payment_oracle_days = len(missing_paid)
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_rows(db, "SELECT * FROM pp_evaluacion_picking WHERE fecha_base BETWEEN ? AND ? AND query_version = ? ORDER BY fecha_base, legajo, hora, sector", (expected[0], expected[-1], EVALUACION_PICKING_QUERY_VERSION))
+        factor_rows = await _fetch_rows(
+            db,
+            """SELECT fecha_base, legajo, factor_multiplicador
+               FROM pp_evaluacion_picking_pago
+               WHERE fecha_base BETWEEN ? AND ? AND query_version = ?""",
+            (expected[0], expected[-1], EVALUACION_PICKING_PAYMENT_QUERY_VERSION),
+        )
+    factores = {
+        (str(item.get("fecha_base") or "")[:10], _clean(item.get("legajo"))): max(_num(item.get("factor_multiplicador")), 1.0)
+        for item in factor_rows
+    }
+    # El escenario nuevo debe quedar expresado en el mismo universo de pago:
+    # aplicar el multiplicador detectado al premio horario de Picking, sin
+    # modificar la escala base almacenada ni consultar nuevamente Oracle.
+    for row in rows:
+        key = (str(row.get("fecha_base") or "")[:10], _clean(row.get("legajo")))
+        factor = factores.get(key, 1.0)
+        base = _num(row.get("premio_aplicado"))
+        row["premio_aplicado_base"] = round(base, 2)
+        row["factor_multiplicador"] = round(factor, 2)
+        row["premio_aplicado"] = round(base * factor, 2)
+    return rows, {"fecha_desde": expected[0], "fecha_hasta": expected[-1], "dias": len(expected), "dias_oracle": oracle_days, "dias_pago_oracle": payment_oracle_days, "dias_cache": len(expected) - len(missing), "dias_faltantes": len(missing), "dias_pago_faltantes": len(missing_paid), "query_version": EVALUACION_PICKING_QUERY_VERSION, "origen": "cache_sqlite"}
 
 
 async def _fetch_rows(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
@@ -1890,9 +2679,7 @@ def _find_scale(
         for row in rows:
             low = float(row.get(desde_key) or 0)
             high = float(row.get(hasta_key) or 0)
-            if candidate > low and candidate < high:
-                return row
-            if not hourly and candidate >= low and candidate <= high:
+            if candidate > low and candidate <= high:
                 return row
     return None
 
@@ -1904,6 +2691,57 @@ def _day_key_from_row(row: dict[str, Any]) -> tuple[str, str, int, int]:
         int(_num(row.get("ID_PV_GRUPO_DE_FUNCIONES_CAB"))),
         int(_num(row.get("ID_PV_GRUPO_PRODUCTIVO"))),
     )
+
+
+def _aggregate_simulated_daily_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_key: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    additive_fields = (
+        "bultos",
+        "premio_x_horas",
+        "premio_x_horas_bruto",
+        "premio_x_horas_sin_extras",
+        "premio_x_horas_sin_extras_bruto",
+        "productividad_anterior",
+        "premio_anterior",
+        "premio_anterior_bruto",
+        "descuento_tnc",
+        "descuento_error",
+        "descuentos_total",
+        "bultosturno",
+        "premio_actual",
+        "premio_actual_bruto",
+    )
+    for row in rows:
+        key = (
+            str(row.get("fecha") or row.get("fecha_base") or "")[:10],
+            str(row.get("operario") or row.get("legajo") or "").strip(),
+            _upper(row.get("operacion")),
+            _normalize_grupo_productivo(row.get("almacen")),
+        )
+        item = by_key.get(key)
+        if item is None:
+            item = dict(row)
+            for field in additive_fields:
+                item[field] = 0.0
+            by_key[key] = item
+        for field in additive_fields:
+            item[field] += float(row.get(field) or 0)
+
+    out: list[dict[str, Any]] = []
+    for item in by_key.values():
+        for field in ("bultos", "productividad_anterior", "bultosturno"):
+            item[field] = round(float(item.get(field) or 0), 3)
+        for field in additive_fields:
+            if field not in {"bultos", "productividad_anterior", "bultosturno"}:
+                item[field] = round(float(item.get(field) or 0), 2)
+        item["diferencia_x_horas"] = round(item["premio_anterior"] - item["premio_x_horas"], 2)
+        item["diferencia_sin_extras"] = round(item["premio_anterior"] - item["premio_actual"], 2)
+        item["diferencia_x_horas_sin_extras"] = round(
+            item["premio_anterior"] - item["premio_x_horas_sin_extras"],
+            2,
+        )
+        out.append(item)
+    return sorted(out, key=lambda item: (item["fecha"], item["operario"], item["operacion"], item["almacen"]))
 
 
 async def _fetch_premio_base(fecha_base: str, operacion: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[tuple[str, int, int], list[dict[str, Any]]]]:
@@ -1966,6 +2804,11 @@ def _simulate_premio_rows(
             "prod_equiv_sector": _num(row.get("PROD_EQUIV_SECTOR")),
             "prod_traslado": _num(row.get("PROD_TRASLADO")),
             "prod_consolidacion": _num(row.get("PROD_CONSOLIDACION")),
+            "bultos_reales": _num(row.get("PROD_REAL")),
+            "equivalencia_sector": _num(row.get("PROD_EQUIV_SECTOR")),
+            "equivalencia_traslado": _num(row.get("PROD_TRASLADO")),
+            "equivalencia_consolidacion": _num(row.get("PROD_CONSOLIDACION")),
+            "total_equivalentes": prod_final,
             "bultos_modulo": prod_final if dentro else 0.0,
             "es_extra": 0 if dentro else 1,
             "id_pv_dia_laboral": int(_num(row.get("ID_PV_DIA_LABORAL"))),
@@ -2005,9 +2848,9 @@ def _simulate_premio_rows(
         if not scale_sin_extras and abs(bultosturno - prod_final) <= 0.01 and premio_pagado > 0:
             premio_actual_sin_extras_bruto = premio_pagado + descuento_monetario
 
-        premio_x_horas = round(premio_x_horas_bruto - descuento_monetario, 2)
-        premio_x_horas_sin_extras = round(premio_x_horas_sin_extras_bruto - descuento_monetario, 2)
-        premio_actual_sin_extras = round(premio_actual_sin_extras_bruto - descuento_monetario, 2)
+        premio_x_horas = round(max(0.0, premio_x_horas_bruto - descuento_monetario), 2)
+        premio_x_horas_sin_extras = round(max(0.0, premio_x_horas_sin_extras_bruto - descuento_monetario), 2)
+        premio_actual_sin_extras = round(max(0.0, premio_actual_sin_extras_bruto - descuento_monetario), 2)
         if abs(bultosturno - prod_final) <= 0.01:
             premio_actual_sin_extras = premio_pagado
             premio_actual_sin_extras_bruto = premio_pagado + descuento_monetario
@@ -2044,7 +2887,7 @@ def _simulate_premio_rows(
             "diferencia_sin_extras": round(premio_pagado - premio_actual_sin_extras, 2),
             "diferencia_x_horas_sin_extras": round(premio_pagado - premio_x_horas_sin_extras, 2),
         })
-    return daily_rows, detail_rows
+    return _aggregate_simulated_daily_rows(daily_rows), detail_rows
 
 
 async def obtenerCasoModeloFinal(params: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2096,7 +2939,8 @@ async def _detail_rows_for_range_internal(
         db,
         """
         SELECT fecha_base, legajo, fecha, hora, turno, operario, nombre, operacion,
-               bultos, almacen, bultos_hora_min, bultos_hora_max, premio_x_hora,
+               bultos, bultos_reales, equivalencia_sector, equivalencia_traslado,
+               equivalencia_consolidacion, total_equivalentes, almacen, bultos_hora_min, bultos_hora_max, premio_x_hora,
                prod_modulo, pago_modulo, bultos_modulo, bultosturno,
                premio_sin_extra, penalizacion_tnc, penalizacion_error, loaded_at
         FROM pp_caso_modelo_detalle
@@ -2127,8 +2971,9 @@ async def _load_day_to_cache(
         WHERE fecha_base = ?
           AND operacion = ?
           AND query_version = ?
+          AND detail_query_version = ?
         """,
-        (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION),
+        (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION, CASO_MODELO_DETALLE_QUERY_VERSION),
     )
     if load_marker and not force:
         return {
@@ -2163,14 +3008,14 @@ async def _load_day_to_cache(
     )
     existing_rows = int(existing_all["qty"] or 0) if existing_all else 0
     existing_detail_rows = int(existing_detail_all["qty"] or 0) if existing_detail_all else 0
-    if existing_rows > 0 and not force:
+    if existing_rows > 0 and existing_detail_rows > 0 and not force:
         await db.execute(
             """
             INSERT OR REPLACE INTO pp_caso_modelo_carga
-                (fecha_base, operacion, query_version, rows_dia, rows_detalle, loaded_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+                (fecha_base, operacion, query_version, detail_query_version, rows_dia, rows_detalle, loaded_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION, existing_rows, existing_detail_rows, _now()),
+            (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION, CASO_MODELO_DETALLE_QUERY_VERSION, existing_rows, existing_detail_rows, _now()),
         )
         return {
             "fecha": fecha_base,
@@ -2238,15 +3083,18 @@ async def _load_day_to_cache(
         """
         INSERT INTO pp_caso_modelo_detalle
             (fecha_base, legajo, query_version, fecha, hora, turno, operario, nombre,
-             operacion, bultos, almacen, bultos_hora_min, bultos_hora_max,
+             operacion, bultos, bultos_reales, equivalencia_sector, equivalencia_traslado,
+             equivalencia_consolidacion, total_equivalentes, almacen, bultos_hora_min, bultos_hora_max,
              premio_x_hora, prod_modulo, pago_modulo, bultos_modulo, bultosturno,
              premio_sin_extra, penalizacion_tnc, penalizacion_error, loaded_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         [
             (
                 fecha_base, r["operario"], CASO_MODELO_DETALLE_QUERY_VERSION, r["fecha"], r["hora"], r["turno"],
-                r["operario"], r["nombre"], r["operacion"], r["bultos"], r["almacen"],
+                r["operario"], r["nombre"], r["operacion"], r["bultos"], r["bultos_reales"],
+                r["equivalencia_sector"], r["equivalencia_traslado"], r["equivalencia_consolidacion"],
+                r["total_equivalentes"], r["almacen"],
                 r["bultos_hora_min"], r["bultos_hora_max"], r["premio_x_hora"],
                 r["prod_modulo"], r["pago_modulo"], r["bultos_modulo"], r["bultosturno"],
                 r["premio_sin_extra"], r["penalizacion_tnc"], r["penalizacion_error"], _now(),
@@ -2257,10 +3105,10 @@ async def _load_day_to_cache(
     await db.execute(
         """
         INSERT OR REPLACE INTO pp_caso_modelo_carga
-            (fecha_base, operacion, query_version, rows_dia, rows_detalle, loaded_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+            (fecha_base, operacion, query_version, detail_query_version, rows_dia, rows_detalle, loaded_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION, len(rows), len(detail_rows), _now()),
+        (fecha_base, operacion, CASO_MODELO_DIA_QUERY_VERSION, CASO_MODELO_DETALLE_QUERY_VERSION, len(rows), len(detail_rows), _now()),
     )
     return {"fecha": fecha_base, "operacion": operacion, "estado": "oracle", "rows": len(rows), "detail_rows": len(detail_rows)}
 
@@ -2304,7 +3152,8 @@ async def _detalle_rows(
     return await _fetch_rows(
         db,
         """
-        SELECT fecha, hora, turno, operario, nombre, operacion, bultos, almacen,
+        SELECT fecha, hora, turno, operario, nombre, operacion, bultos, bultos_reales,
+               equivalencia_sector, equivalencia_traslado, equivalencia_consolidacion, total_equivalentes, almacen,
                bultos_hora_min, bultos_hora_max, premio_x_hora, prod_modulo,
                pago_modulo, bultos_modulo, bultosturno, premio_sin_extra,
                penalizacion_tnc, penalizacion_error
@@ -2352,15 +3201,18 @@ async def _load_detalle_to_cache(
         """
         INSERT INTO pp_caso_modelo_detalle
             (fecha_base, legajo, query_version, fecha, hora, turno, operario, nombre,
-             operacion, bultos, almacen, bultos_hora_min, bultos_hora_max,
+             operacion, bultos, bultos_reales, equivalencia_sector, equivalencia_traslado,
+             equivalencia_consolidacion, total_equivalentes, almacen, bultos_hora_min, bultos_hora_max,
              premio_x_hora, prod_modulo, pago_modulo, bultos_modulo, bultosturno,
              premio_sin_extra, penalizacion_tnc, penalizacion_error, loaded_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         [
             (
                 fecha_base, legajo, CASO_MODELO_DETALLE_QUERY_VERSION, r["fecha"], r["hora"], r["turno"],
-                r["operario"], r["nombre"], r["operacion"], r["bultos"], r["almacen"],
+                r["operario"], r["nombre"], r["operacion"], r["bultos"], r["bultos_reales"],
+                r["equivalencia_sector"], r["equivalencia_traslado"], r["equivalencia_consolidacion"],
+                r["total_equivalentes"], r["almacen"],
                 r["bultos_hora_min"], r["bultos_hora_max"], r["premio_x_hora"],
                 r["prod_modulo"], r["pago_modulo"], r["bultos_modulo"], r["bultosturno"],
                 r["premio_sin_extra"], r["penalizacion_tnc"], r["penalizacion_error"], _now(),
@@ -2810,15 +3662,15 @@ def _normalize_divisor_horario(value: Any) -> float:
     try:
         divisor = float(value)
     except (TypeError, ValueError):
-        divisor = float(JORNADA_HORAS)
+        divisor = DEFAULT_DIVISOR_HORARIO
     for allowed in DIVISORES_HORARIOS:
         if abs(divisor - allowed) < 0.001:
             return allowed
-    return float(JORNADA_HORAS)
+    return DEFAULT_DIVISOR_HORARIO
 
 
 def _hourly_scenario_label(divisor: float) -> str:
-    return "/6.5" if abs(float(divisor) - 6.5) < 0.001 else "/8"
+    return "/6.5"
 
 
 def _scale_catalog_from_detail(detail_rows: list[dict[str, Any]]) -> dict[tuple[str, str], list[dict[str, float]]]:
@@ -2851,7 +3703,7 @@ def _find_hourly_scale_from_catalog(
         low = round(float(row["desde_actual"]) / divisor, 0)
         high = round(float(row["hasta_actual"]) / divisor, 0)
         value = float(bultos or 0)
-        if value > low and value < high:
+        if value > low and value <= high:
             return {
                 "bultos_hora_min": low,
                 "bultos_hora_max": high,
@@ -3078,6 +3930,123 @@ def _caso_modelo_payload(
     }
 
 
+@router.get("/evaluacion-picking")
+async def evaluacion_picking(
+    fecha_desde: str = Query(...),
+    fecha_hasta: str = Query(...),
+    solo_cache: bool = Query(True),
+):
+    rows, meta = await _load_evaluation_range(fecha_desde, fecha_hasta, allow_oracle=not solo_cache)
+    days = _date_range_inclusive(fecha_desde, fecha_hasta)
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        paid_rows = await _fetch_rows(
+            db,
+            """SELECT fecha_base, legajo, nivel_actual, bultos_actuales, desde_actual, hasta_actual, pago_base_picking, premio_cabecera, base_total_dia, factor_multiplicador, motivo_ajuste, premio_real, equivalencia_sector, equivalencia_traslado, equivalencia_consolidacion, total_equivalentes
+               FROM pp_evaluacion_picking_pago
+               WHERE fecha_base BETWEEN ? AND ? AND query_version = ?""",
+            (days[0].isoformat(), days[-1].isoformat(), EVALUACION_PICKING_PAYMENT_QUERY_VERSION),
+        )
+    paid_by_key = {(str(row.get("fecha_base") or "")[:10], _clean(row.get("legajo"))): row for row in paid_rows}
+    premio_nuevo_por_legajo: dict[tuple[str, str], float] = defaultdict(float)
+    for row in rows:
+        premio_nuevo_por_legajo[(str(row.get("fecha_base") or "")[:10], _clean(row.get("legajo")))] += _num(row.get("premio_aplicado"))
+    for row in rows:
+        key = (str(row.get("fecha_base") or "")[:10], _clean(row.get("legajo")))
+        pago_row = paid_by_key.get(key)
+        pago_real = _num(pago_row.get("premio_real")) if pago_row else None
+        row["nivel_actual"] = pago_row.get("nivel_actual") if pago_row else None
+        row["desde_actual"] = pago_row.get("desde_actual") if pago_row else None
+        row["hasta_actual"] = pago_row.get("hasta_actual") if pago_row else None
+        total_nuevo = premio_nuevo_por_legajo.get(key, 0.0)
+        asignado = (pago_real * _num(row.get("premio_aplicado")) / total_nuevo) if pago_real is not None and total_nuevo > 0 else None
+        row["premio_real_asignado"] = round(asignado, 2) if asignado is not None else None
+        row["diferencia"] = round(_num(row.get("premio_aplicado")) - asignado, 2) if asignado is not None else None
+    by_legajo: dict[tuple[str, str], dict[str, Any]] = {}
+    by_day: dict[str, dict[str, Any]] = {}
+    by_sector: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        legajo_key = (str(row.get("fecha_base") or "")[:10], _clean(row.get("legajo")))
+        pago_row = paid_by_key.get(legajo_key)
+        legajo = by_legajo.setdefault(legajo_key, {"fecha": legajo_key[0], "legajo": legajo_key[1], "horas": set(), "sectores": set(), "bultos_reales": 0.0, "premio": 0.0, "premio_real": _num(pago_row.get("premio_real")) if pago_row else None, "nivel_actual": pago_row.get("nivel_actual") if pago_row else None, "bultos_actuales": _num(pago_row.get("bultos_actuales")) if pago_row else None, "desde_actual": pago_row.get("desde_actual") if pago_row else None, "hasta_actual": pago_row.get("hasta_actual") if pago_row else None, "pago_base_picking": _num(pago_row.get("pago_base_picking")) if pago_row else None, "premio_cabecera": _num(pago_row.get("premio_cabecera")) if pago_row else None, "base_total_dia": _num(pago_row.get("base_total_dia")) if pago_row else None, "factor_multiplicador": _num(pago_row.get("factor_multiplicador")) if pago_row else 1, "motivo_ajuste": pago_row.get("motivo_ajuste") if pago_row else "", "equivalencia_sector": _num(pago_row.get("equivalencia_sector")) if pago_row else 0, "equivalencia_traslado": _num(pago_row.get("equivalencia_traslado")) if pago_row else 0, "equivalencia_consolidacion": _num(pago_row.get("equivalencia_consolidacion")) if pago_row else 0, "total_equivalentes": _num(pago_row.get("total_equivalentes")) if pago_row else 0, "filas": 0})
+        legajo["horas"].add(row.get("hora")); legajo["sectores"].add(row.get("sector")); legajo["bultos_reales"] += _num(row.get("bultos_reales")); legajo["premio"] += _num(row.get("premio_aplicado")); legajo["filas"] += 1
+        day_key = str(row.get("fecha_base") or "")[:10]
+        day = by_day.setdefault(day_key, {"fecha": day_key, "legajos": set(), "horas": set(), "bultos_reales": 0.0, "premio": 0.0, "premio_real": 0.0})
+        day["legajos"].add(legajo_key[1]); day["horas"].add((legajo_key[1], row.get("hora"))); day["bultos_reales"] += _num(row.get("bultos_reales")); day["premio"] += _num(row.get("premio_aplicado"))
+        sector_key = f"{row.get('division') or 0}|{row.get('sector') or ''}"
+        sector = by_sector.setdefault(sector_key, {"division": row.get("division") or 0, "sector": row.get("sector") or "", "horas": set(), "legajos": set(), "bultos_reales": 0.0, "premio": 0.0})
+        sector["horas"].add((day_key, legajo_key[1], row.get("hora"))); sector["legajos"].add(legajo_key[1]); sector["bultos_reales"] += _num(row.get("bultos_reales")); sector["premio"] += _num(row.get("premio_aplicado"))
+    for item in by_legajo.values():
+        item["horas"] = len(item["horas"]); item["sectores"] = len(item["sectores"]); item["bultos_reales"] = round(item["bultos_reales"], 3); item["premio"] = round(item["premio"], 2)
+        by_day[item["fecha"]]["premio_real"] += _num(item.get("premio_real"))
+    for item in by_day.values():
+        item["legajos"] = len(item["legajos"]); item["horas"] = len(item["horas"]); item["bultos_reales"] = round(item["bultos_reales"], 3); item["premio"] = round(item["premio"], 2); item["premio_real"] = round(item["premio_real"], 2)
+    for item in by_sector.values():
+        item["legajos"] = len(item["legajos"]); item["horas"] = len(item["horas"]); item["bultos_reales"] = round(item["bultos_reales"], 3); item["premio"] = round(item["premio"], 2)
+    distinct_legajos = len({item["legajo"] for item in by_legajo.values()})
+    paid_total = round(sum(_num(value.get("premio_real")) for value in paid_by_key.values()), 2)
+    new_total = round(sum(_num(item.get("premio")) for item in by_legajo.values()), 2)
+    meta["pago_real_origen"] = "cache_sqlite"
+    meta["legajos_pago_real_disponible"] = sum(1 for item in by_legajo.values() if item.get("premio_real") is not None)
+    return {"meta": meta, "kpis": {"legajos": distinct_legajos, "legajos_dia": len(by_legajo), "premio_real": paid_total, "premio_nuevo": new_total, "filas": len(rows)}, "rows": rows, "resumen_legajos": sorted(by_legajo.values(), key=lambda x: (x["fecha"], x["legajo"])), "resumen_dias": sorted(by_day.values(), key=lambda x: x["fecha"]), "resumen_sectores": sorted(by_sector.values(), key=lambda x: (x["division"], x["sector"]))}
+
+
+@router.post("/precargar-evaluacion-picking")
+async def precargar_evaluacion_picking(
+    fecha_desde: str = Query(...),
+    fecha_hasta: str = Query(...),
+):
+    _, meta = await _load_evaluation_range(fecha_desde, fecha_hasta, allow_oracle=True)
+    return {"ok": True, "meta": meta, "mensaje": "Rango de Evaluación Picking precargado en SQLite local."}
+
+
+@router.get("/calculo-pago-grupal")
+async def calculo_pago_grupal(fecha_desde: str = Query(...), fecha_hasta: str = Query(...)):
+    rows, meta = await _load_evaluation_range(fecha_desde, fecha_hasta)
+    dotacion = [item for item in await _rrhh_activos_rows() if "ARMADOR" in str(item.get("desc_funcion") or "").upper()]
+    sector_by_legajo = {str(item.get("legajo") or "").strip(): (item.get("desc_sector_generico") or item.get("sector_generico") or "SIN_SECTOR").strip() or "SIN_SECTOR" for item in dotacion}
+    total_by_sector: dict[str, set[str]] = defaultdict(set)
+    for item in dotacion:
+        legajo = str(item.get("legajo") or "").strip()
+        if legajo:
+            total_by_sector[sector_by_legajo.get(legajo, "SIN_SECTOR")].add(legajo)
+    premio_by_day_sector: dict[tuple[str, str], set[str]] = defaultdict(set)
+    actividad_by_key: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in rows:
+        key = (str(row.get("fecha_base") or "")[:10], str(row.get("legajo") or "").strip())
+        item = actividad_by_key.setdefault(key, {"bultos": 0.0, "premio": 0.0})
+        item["bultos"] += _num(row.get("bultos_reales")); item["premio"] += _num(row.get("premio_aplicado"))
+        if _num(row.get("premio_aplicado")) > 0:
+            day = str(row.get("fecha_base") or "")[:10]
+            sector = sector_by_legajo.get(str(row.get("legajo") or "").strip(), "SIN_SECTOR")
+            premio_by_day_sector[(day, sector)].add(str(row.get("legajo") or "").strip())
+    days = [day.isoformat() for day in _date_range_inclusive(fecha_desde, fecha_hasta)]
+    sectores = []
+    detalle = []
+    for sector, legajos in sorted(total_by_sector.items()):
+        for day in days:
+            con_premio = len(premio_by_day_sector.get((day, sector), set()) & legajos)
+            total = len(legajos)
+            detalle.append({"sector": sector, "fecha": day, "legajos_totales": total, "legajos_con_premio": con_premio, "cumplimiento": round((con_premio / total) * 100, 2) if total else 0})
+        sectores.append({"sector": sector, "legajos_totales": len(legajos), "dias": len(days)})
+    async with aiosqlite.connect(OPERATIONAL_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        novedades = await _fetch_rows(db, "SELECT legajo, fecha, motivo, aus_pres_codigo, ausentismo_clasificacion FROM rrhh_actividad_diaria WHERE fecha BETWEEN ? AND ?", (days[0], days[-1])) if days else []
+    nov_by_key = {(str(row.get("fecha") or "")[:10], str(row.get("legajo") or "").strip()): (row.get("motivo") or row.get("ausentismo_clasificacion") or row.get("aus_pres_codigo") or "") for row in novedades}
+    detalle_legajos = []
+    for sector, legajos in sorted(total_by_sector.items()):
+        for day in days:
+            for legajo in sorted(legajos):
+                activity = actividad_by_key.get((day, legajo), {})
+                detalle_legajos.append({"sector": sector, "fecha": day, "legajo": legajo, "bultos": round(_num(activity.get("bultos")), 3), "premio_nuevo": round(_num(activity.get("premio")), 2), "motivo_ausencia": nov_by_key.get((day, legajo), "")})
+    return {"meta": {**meta, "dotacion_origen": "rrhh_personas/rrhh_legajero", "dotacion_legajos": len(dotacion), "filtro_funcion": "Armador"}, "sectores": sectores, "detalle": detalle, "detalle_legajos": detalle_legajos}
+
+
+@router.get("/tabla-premios")
+async def tabla_premios():
+    return await _tabla_premios_payload()
+
+
 @router.post("/consultar-rango")
 async def consultar_rango(req: RangoCasoModeloRequest):
     await init_premio_productividad_db()
@@ -3221,22 +4190,10 @@ async def cache_cobertura(
             WHERE fecha_base >= ?
               AND fecha_base <= ?
               AND query_version = ?
+              AND detail_query_version = ?
             ORDER BY fecha_base, operacion
             """,
-            (expected[0], expected[-1], CASO_MODELO_DIA_QUERY_VERSION),
-        )
-        legacy_rows = await _fetch_rows(
-            db,
-            """
-            SELECT fecha_base, operacion, COUNT(*) rows
-            FROM pp_caso_modelo_dia
-            WHERE fecha_base >= ?
-              AND fecha_base <= ?
-              AND query_version = ?
-            GROUP BY fecha_base, operacion
-            ORDER BY fecha_base, operacion
-            """,
-            (expected[0], expected[-1], CASO_MODELO_DIA_QUERY_VERSION),
+            (expected[0], expected[-1], CASO_MODELO_DIA_QUERY_VERSION, CASO_MODELO_DETALLE_QUERY_VERSION),
         )
     marker = {
         (row["fecha_base"], _upper(row["operacion"])): {
@@ -3246,20 +4203,12 @@ async def cache_cobertura(
         }
         for row in marker_rows
     }
-    legacy = {
-        (row["fecha_base"], _upper(row["operacion"])): {
-            "rows": int(row["rows"] or 0),
-            "detail_rows": 0,
-            "source": "legacy",
-        }
-        for row in legacy_rows
-    }
     cached: dict[str, dict[str, Any]] = {}
     missing_by_day: dict[str, list[str]] = {}
     for day in expected:
         op_status = []
         for op in operaciones:
-            item = marker.get((day, op)) or legacy.get((day, op))
+            item = marker.get((day, op))
             if item:
                 op_status.append({"operacion": op, **item})
             else:
@@ -3658,6 +4607,8 @@ async def detalle_cache(
     almacen: str = Query(DEFAULT_ALMACEN),
     divisor_horario: float = Query(DEFAULT_DIVISOR_HORARIO),
     limit: int = Query(5000, ge=0, le=100000),
+    offset: int = Query(0, ge=0),
+    compact: bool = Query(False),
     legajo: str = "",
 ):
     days = _date_range_inclusive(fecha_desde, fecha_hasta)
@@ -3670,16 +4621,38 @@ async def detalle_cache(
     if legajo_filter:
         legajo_sql = "AND CAST(legajo AS TEXT) LIKE ?"
         params.append(f"%{legajo_filter}%")
-    limit_sql = "" if limit == 0 else f"LIMIT {int(limit)}"
+    limit_sql = "" if limit == 0 else f"LIMIT {int(limit)} OFFSET {int(offset)}"
+    select_columns = (
+        "fecha_base, legajo, fecha, hora, turno, operario, nombre, operacion, "
+        "bultos, almacen, bultos_hora_min, bultos_hora_max, premio_x_hora, "
+        "bultos_modulo"
+        if compact
+        else
+        "fecha_base, legajo, fecha, hora, turno, operario, nombre, operacion, "
+        "bultos, almacen, bultos_hora_min, bultos_hora_max, premio_x_hora, "
+        "prod_modulo, pago_modulo, bultos_modulo, bultosturno, "
+        "premio_sin_extra, penalizacion_tnc, penalizacion_error, loaded_at"
+    )
     async with aiosqlite.connect(PREMIO_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
+        count_rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT COUNT(*) AS total
+            FROM pp_caso_modelo_detalle
+            WHERE fecha_base >= ?
+              AND fecha_base <= ?
+              AND operacion = ?
+              AND (? = 'TODOS' OR almacen = ?)
+              AND query_version = ?
+              {legajo_sql}
+            """,
+            tuple(params),
+        )
         rows = await _fetch_rows(
             db,
             f"""
-            SELECT fecha_base, legajo, fecha, hora, turno, operario, nombre, operacion,
-                   bultos, almacen, bultos_hora_min, bultos_hora_max, premio_x_hora,
-                   prod_modulo, pago_modulo, bultos_modulo, bultosturno,
-                   premio_sin_extra, penalizacion_tnc, penalizacion_error, loaded_at
+            SELECT {select_columns}
             FROM pp_caso_modelo_detalle
             WHERE fecha_base >= ?
               AND fecha_base <= ?
@@ -3703,6 +4676,9 @@ async def detalle_cache(
         "query_version": CASO_MODELO_DETALLE_QUERY_VERSION,
         "rows": rows,
         "limit": limit,
+        "offset": offset,
+        "total": int((count_rows[0] if count_rows else {}).get("total") or 0),
+        "compact": compact,
     }
 
 

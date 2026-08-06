@@ -39,7 +39,7 @@
     .daily-hero-title{font-size:24px;line-height:1.1;font-weight:700;color:var(--ink);margin:4px 0 7px}
     .daily-hero-sub{font-size:12px;color:var(--ink-soft)}
     .daily-save-state{min-width:250px;border:1px solid var(--rule);padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);background:#F8FAF7}
-    .daily-toolbar{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(150px,.8fr) minmax(130px,.7fr) minmax(180px,1fr) auto auto auto auto auto minmax(210px,1fr);gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px;margin-bottom:14px}
+    .daily-toolbar{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(150px,.8fr) minmax(130px,.7fr) minmax(180px,1fr) auto auto auto auto auto auto minmax(210px,1fr);gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px;margin-bottom:14px}
     .daily-tabs{display:flex;gap:0;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:0 12px;overflow:auto}
     .daily-tab-btn{min-height:36px;border:0;border-left:1px solid transparent;border-right:1px solid transparent;background:transparent;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:0 13px;white-space:nowrap}
     .daily-tab-btn.active{background:var(--panel);border-left-color:var(--rule);border-right-color:var(--rule);border-top:2px solid var(--green);color:var(--green);margin-top:-1px}
@@ -51,6 +51,8 @@
     .primary-btn:disabled{opacity:.55;cursor:wait}
     .exception-btn{display:none;border-color:var(--amber);background:var(--amber)}
     .exception-btn.visible{display:inline-block}
+    .force-btn{display:none;border-color:var(--red);background:var(--red)}
+    .force-btn.visible{display:inline-block}
     .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);line-height:1.35;align-self:stretch}
     .status.error{color:var(--red);font-weight:500}
     .daily-form{display:block}
@@ -110,6 +112,9 @@
     .raw-detail-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft)}
     .raw-detail-table{min-width:1280px}
     .raw-detail-table th,.raw-detail-table td{padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
+    .raw-detail-table th.sortable{cursor:pointer;user-select:none}
+    .raw-detail-table th.sortable:hover{color:var(--green);background:#EEF4F0}
+    .raw-detail-table th.sorted{color:var(--green)}
     .raw-sql-box{margin:0 0 12px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#f8fafc;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.45;white-space:pre;overflow:auto;max-height:340px}
     .comparison-wrap{background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
     .comparison-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:12px;flex-wrap:wrap}
@@ -244,6 +249,7 @@
       <button class="primary-btn" id="btn-daily-refresh" type="button" onclick="loadDailyConfig()">Actualizar</button>
       <button class="primary-btn" id="btn-daily-auto" type="button" onclick="calcularDailyAutomatico()">Calcular Automatico</button>
       <button class="primary-btn exception-btn" id="btn-daily-retry" type="button" onclick="reintentarPrecargaDaily()">Reintentar precarga Daily</button>
+      <button class="primary-btn force-btn" id="btn-daily-force" type="button" onclick="forzarPrecargaDaily()">Forzar automatico</button>
       <button class="primary-btn" id="btn-daily-parametros" type="button" onclick="abrirParametrosDaily()">Parametros</button>
       <button class="primary-btn" id="btn-daily-export" type="button" onclick="exportarCsvDaily()">Exportar CSV</button>
       <div class="status" id="daily-status">Cargando configuracion Daily.</div>
@@ -332,6 +338,7 @@
   let clarkDetailCache = {};
   let currentRawDetail = null;
   let currentRawSql = null;
+  let rawDetailSort = { key: '', dir: 'asc' };
   let dailyComparisonData = null;
   let comparisonSource = 'cargas';
   let comparisonSort = { key: 'diferencia_abs', dir: 'desc' };
@@ -415,10 +422,20 @@
     return authUser?.role === 'admin';
   }
 
+  function canForceDailyAuto() {
+    return String(authUser?.username || '').toLowerCase() === 'acucci';
+  }
+
   function setRetryVisible(show) {
     const btn = document.getElementById('btn-daily-retry');
     if (!btn) return;
     btn.classList.toggle('visible', Boolean(show && canRetryDailyAuto()));
+  }
+
+  function setForceVisible() {
+    const btn = document.getElementById('btn-daily-force');
+    if (!btn) return;
+    btn.classList.toggle('visible', canForceDailyAuto());
   }
 
   function apiErrorMessage(data, fallback) {
@@ -1375,9 +1392,79 @@
     return String(value);
   }
 
+  function rawDetailSortValue(row, key) {
+    const value = row?.[key];
+    if (value === null || value === undefined || value === '') return '';
+    const numeric = Number(String(value).replace(/\./g, '').replace(',', '.'));
+    return Number.isFinite(numeric) && String(value).trim() !== '' ? numeric : String(value);
+  }
+
+  function sortedRawDetailRows(data = currentRawDetail) {
+    const rows = data?.rows || [];
+    const key = rawDetailSort.key;
+    if (!key) return rows;
+    const dir = rawDetailSort.dir === 'desc' ? -1 : 1;
+    return [...rows].sort((a, b) => {
+      const av = rawDetailSortValue(a, key);
+      const bv = rawDetailSortValue(b, key);
+      if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+      return String(av).localeCompare(String(bv), 'es-AR', { numeric: true, sensitivity: 'base' }) * dir;
+    });
+  }
+
+  function setRawDetailSort(key) {
+    rawDetailSort = {
+      key,
+      dir: rawDetailSort.key === key && rawDetailSort.dir === 'asc' ? 'desc' : 'asc',
+    };
+    renderCurrentRawDetailTable(Boolean(currentRawSql && document.querySelector('.raw-sql-box')));
+  }
+
+  function rawDetailHeader(col) {
+    const key = String(col.key || '');
+    const active = rawDetailSort.key === key;
+    const mark = active ? (rawDetailSort.dir === 'asc' ? ' ^' : ' v') : '';
+    return `<th class="sortable ${active ? 'sorted' : ''}" onclick="setRawDetailSort('${escapeHtml(key)}')">${escapeHtml(col.label || col.key)}${mark}</th>`;
+  }
+
+  function rawDetailTableHtml(data, { showSql = false } = {}) {
+    const rows = sortedRawDetailRows(data);
+    const columns = data?.columns || [];
+    const displayLimit = 3000;
+    const visibleRows = rows.slice(0, displayLimit);
+    const sqlButton = currentRawSql && !showSql ? '<button class="ghost-btn" type="button" onclick="mostrarConsultaCruda()">Ver SQL cruda</button>' : '';
+    if (!rows.length) return '<div class="empty">No hay filas crudas para este filtro.</div>';
+    return `
+      <div class="raw-detail-toolbar">
+        <div class="raw-detail-count">${escapeHtml(num(rows.length))} filas disponibles para copiar${rows.length > displayLimit ? `; mostrando ${escapeHtml(num(displayLimit))}` : ''}.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${sqlButton}
+          <button class="ghost-btn" type="button" onclick="copiarDetalleCrudo()">Copiar Excel</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="raw-detail-table">
+          <thead><tr>${columns.map(rawDetailHeader).join('')}</tr></thead>
+          <tbody>
+            ${visibleRows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(rawCell(row[col.key]))}</td>`).join('')}</tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderCurrentRawDetailTable(showSql = false) {
+    const wrap = document.getElementById('clark-detail-wrap');
+    if (!wrap || !currentRawDetail) return;
+    wrap.innerHTML = `
+      ${showSql && currentRawSql ? `<pre class="raw-sql-box">${escapeHtml(currentRawSql)}</pre>` : renderDetalleAutoSummary(currentRawDetail.item || {})}
+      ${rawDetailTableHtml(currentRawDetail, { showSql })}
+    `;
+  }
+
   function rawDetailTsv(data) {
     const columns = data?.columns || [];
-    const rows = data?.rows || [];
+    const rows = sortedRawDetailRows(data);
     const clean = value => rawCell(value).replace(/\r?\n/g, ' ').replace(/\t/g, ' ');
     return [
       columns.map(col => clean(col.label || col.key)).join('\t'),
@@ -1390,71 +1477,24 @@
     const status = document.getElementById('clark-detail-status');
     const wrap = document.getElementById('clark-detail-wrap');
     if (!wrap) return;
-    currentRawDetail = data;
+    currentRawDetail = { ...(data || {}), item };
     currentRawSql = data?.sql_preview || data?.sql_template || null;
+    rawDetailSort = { key: '', dir: 'asc' };
     setRawCopyVisible(Boolean(data?.rows?.length));
     setRawSqlVisible(Boolean(currentRawSql));
     const rows = data?.rows || [];
-    const columns = data?.columns || [];
-    const displayLimit = 3000;
-    const visibleRows = rows.slice(0, displayLimit);
     if (status) {
       status.className = 'status';
       status.textContent = `${data?.query_key || 'cache crudo'} | ${data?.fecha_desde || ''} a ${data?.fecha_hasta || ''}. ${num(rows.length)} filas filtradas. No ejecuta Oracle.`;
     }
-    const table = rows.length
-      ? `
-        <div class="raw-detail-toolbar">
-          <div class="raw-detail-count">${escapeHtml(num(rows.length))} filas disponibles para copiar${rows.length > displayLimit ? `; mostrando ${escapeHtml(num(displayLimit))}` : ''}.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            ${currentRawSql ? '<button class="ghost-btn" type="button" onclick="mostrarConsultaCruda()">Ver SQL cruda</button>' : ''}
-            <button class="ghost-btn" type="button" onclick="copiarDetalleCrudo()">Copiar Excel</button>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table class="raw-detail-table">
-            <thead><tr>${columns.map(col => `<th>${escapeHtml(col.label || col.key)}</th>`).join('')}</tr></thead>
-            <tbody>
-              ${visibleRows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(rawCell(row[col.key]))}</td>`).join('')}</tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      `
-      : '<div class="empty">No hay filas crudas para este filtro.</div>';
-    wrap.innerHTML = `
-      ${renderDetalleAutoSummary(item)}
-      ${table}
-    `;
+    renderCurrentRawDetailTable(false);
     modal?.classList.add('open');
   }
 
   function mostrarConsultaCruda() {
     const wrap = document.getElementById('clark-detail-wrap');
     if (!wrap || !currentRawSql || !currentRawDetail) return;
-    const rows = currentRawDetail?.rows || [];
-    const columns = currentRawDetail?.columns || [];
-    const displayLimit = 3000;
-    const visibleRows = rows.slice(0, displayLimit);
-    const table = rows.length
-      ? `
-        <div class="raw-detail-toolbar">
-          <div class="raw-detail-count">${escapeHtml(num(rows.length))} filas disponibles para copiar${rows.length > displayLimit ? `; mostrando ${escapeHtml(num(displayLimit))}` : ''}.</div>
-          <button class="ghost-btn" type="button" onclick="copiarDetalleCrudo()">Copiar Excel</button>
-        </div>
-        <div class="table-wrap">
-          <table class="raw-detail-table">
-            <thead><tr>${columns.map(col => `<th>${escapeHtml(col.label || col.key)}</th>`).join('')}</tr></thead>
-            <tbody>
-              ${visibleRows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(rawCell(row[col.key]))}</td>`).join('')}</tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      `
-      : '<div class="empty">No hay filas crudas para este filtro.</div>';
-    wrap.innerHTML = `
-      <pre class="raw-sql-box">${escapeHtml(currentRawSql)}</pre>
-      ${table}
-    `;
+    renderCurrentRawDetailTable(true);
   }
 
   async function copiarDetalleCrudo() {
@@ -1514,11 +1554,13 @@
   async function loadDailyConfig() {
     setDailyStatus('Cargando configuracion Daily.');
     setRetryVisible(false);
+    setForceVisible();
     try {
       const resp = await fetch('/api/gestion-operativa/daily/config', { credentials: 'same-origin' });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.detail || 'No se pudo cargar la configuracion.');
       dailyConfig = data;
+      setForceVisible();
       fillDailySectorOptions();
       renderDailyMeta();
       if (!data.daily?.can_load) {
@@ -1618,6 +1660,40 @@
       if (btn) {
         btn.disabled = false;
         btn.textContent = 'Reintentar precarga Daily';
+      }
+    }
+  }
+
+  async function forzarPrecargaDaily() {
+    if (!canForceDailyAuto()) return;
+    const tipo = document.getElementById('daily-tipo')?.value || 'Operacion';
+    if (tipo !== 'Operacion') {
+      setDailyStatus('El recalculo forzado aplica solo a Daily Operacion.', 'error');
+      return;
+    }
+    if (!window.confirm('Esto fuerza la re-ejecucion completa del calculo automatico para la Daily vigente y reemplaza solo resultados automaticos. No toca la carga manual. Continuar?')) return;
+    const btn = document.getElementById('btn-daily-force');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Forzando...';
+    }
+    setDailyStatus('Forzando recalculo automatico completo para la Daily vigente.');
+    try {
+      const resp = await fetch('/api/gestion-operativa/daily/auto/retry-pending', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ force: true }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(apiErrorMessage(data, 'No se pudo forzar el recalculo automatico.'));
+      applyDailyAutoPayload(data);
+    } catch (err) {
+      setDailyStatus(err.message || 'No se pudo forzar el recalculo automatico.', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Forzar automatico';
       }
     }
   }

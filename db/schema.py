@@ -797,6 +797,10 @@ CREATE TABLE IF NOT EXISTS rrhh_actividad_diaria (
     tarde                   REAL DEFAULT 0,
     viajes_equiv            REAL DEFAULT 0,
     es_gerencia             INTEGER DEFAULT 0,
+    origen_dato             TEXT DEFAULT 'excel',
+    source_file             TEXT,
+    source_key              TEXT,
+    updated_at              DATETIME,
     raw_json                TEXT,
     created_at              DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -1220,6 +1224,10 @@ async def init_db():
             "ausentismo_clasificacion": "TEXT",
             "ausentismo_contabiliza": "INTEGER DEFAULT 0",
             "ausentismo_regla": "TEXT",
+            "origen_dato": "TEXT DEFAULT 'excel'",
+            "source_file": "TEXT",
+            "source_key": "TEXT",
+            "updated_at": "DATETIME",
         }.items():
             if column_name not in rrhh_act_cols:
                 await db.execute(f"ALTER TABLE rrhh_actividad_diaria ADD COLUMN {column_name} {column_type}")

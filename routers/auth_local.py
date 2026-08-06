@@ -232,6 +232,13 @@ def _clean_legajo(value: str | None) -> str:
     return "".join(ch for ch in str(value or "").strip() if ch.isdigit())
 
 
+def _module_label_by_id(module: str) -> str:
+    for item in APP_MODULES:
+        if item["id"] == module:
+            return item["label"]
+    return module
+
+
 def _username_part(value: str | None) -> str:
     normalized = unicodedata.normalize("NFKD", str(value or ""))
     ascii_value = normalized.encode("ascii", "ignore").decode("ascii")
@@ -756,7 +763,7 @@ async def list_users(request: Request):
             rows = [dict(row) for row in await cur.fetchall()]
     for row in rows:
         row["rrhh_sectors"] = [item for item in (row.get("rrhh_sectors") or "").split("|") if item]
-    return {"users": rows}
+    return {"users": rows, "modules": APP_MODULES}
 
 
 @router.get("/admin/usage-events")
@@ -809,6 +816,61 @@ async def list_usage_events(
             tuple([*args, limit]),
         )
     return {"events": rows, "limit": limit}
+
+
+@router.get("/admin/usage-module-summary")
+async def usage_module_summary(
+    request: Request,
+    fecha: str = Query(""),
+    module: str = Query(""),
+):
+    await _require_admin(request)
+    ensure_usage_events_schema()
+    fecha = str(fecha or "").strip() or datetime.now().strftime("%Y-%m-%d")
+    module = str(module or "").strip()
+    async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        modules = await _fetch_rows(
+            db,
+            """
+            SELECT module,
+                   COALESCE(NULLIF(module_label, ''), module) module_label,
+                   COUNT(DISTINCT COALESCE(NULLIF(username, ''), ip_address, 'sin_usuario')) usuarios,
+                   COUNT(*) accesos,
+                   MAX(created_at) ultimo_acceso
+            FROM auth_usage_events
+            WHERE fecha = ?
+              AND action = 'open_page'
+              AND COALESCE(module, '') <> ''
+            GROUP BY module, COALESCE(NULLIF(module_label, ''), module)
+            ORDER BY usuarios DESC, accesos DESC, module_label
+            """,
+            (fecha,),
+        )
+        selected_module = module or (modules[0]["module"] if modules else "")
+        details: list[dict[str, Any]] = []
+        if selected_module:
+            details = await _fetch_rows(
+                db,
+                """
+                SELECT COALESCE(NULLIF(username, ''), 'sin_usuario') username,
+                       COUNT(*) accesos,
+                       MAX(created_at) ultimo_acceso
+                FROM auth_usage_events
+                WHERE fecha = ?
+                  AND action = 'open_page'
+                  AND module = ?
+                GROUP BY COALESCE(NULLIF(username, ''), 'sin_usuario')
+                ORDER BY accesos DESC, ultimo_acceso DESC, username
+                """,
+                (fecha, selected_module),
+            )
+    return {
+        "fecha": fecha,
+        "selected_module": selected_module,
+        "modules": modules,
+        "details": details,
+    }
 
 
 @router.post("/admin/users/legajo")
@@ -968,6 +1030,70 @@ async def _set_cases_access_db(
         """,
         (username, profile, sector or None, email or None, 1 if enabled else 0, _now()),
     )
+
+
+async def _grant_initial_module_access(
+    db: aiosqlite.Connection,
+    *,
+    username: str,
+    module: str,
+    panol_profile: str = "OPERACION",
+) -> None:
+    if module == "none":
+        return
+    if module == "novedades_cd":
+        await _set_rrhh_scope_db(db, username, "operativo", [])
+        await _upsert_app_access(
+            db,
+            username=username,
+            module=module,
+            enabled=True,
+            scope="operativo",
+        )
+    elif module == "casos":
+        await _set_cases_access_db(
+            db,
+            username=username,
+            enabled=True,
+            profile="OPERACION",
+            sector="",
+            email="",
+        )
+        await _upsert_app_access(
+            db,
+            username=username,
+            module=module,
+            enabled=True,
+            profile="OPERACION",
+            scope="perfil",
+        )
+    elif module == "panol":
+        await _upsert_app_access(
+            db,
+            username=username,
+            module=module,
+            enabled=True,
+            profile=panol_profile,
+            scope="perfil",
+        )
+    elif module == "checklist_tareas":
+        await _upsert_app_access(
+            db,
+            username=username,
+            module=module,
+            enabled=True,
+            profile="OPERADOR",
+            scope="sector",
+            sector="Mapa de Almacen",
+            metadata={"sectors": ["MAPA_ALMACEN"]},
+        )
+    else:
+        await _upsert_app_access(
+            db,
+            username=username,
+            module=module,
+            enabled=True,
+        )
 
 
 @router.get("/admin/access-context")
@@ -1309,7 +1435,7 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
     module = (req.module or "none").strip().lower()
     if module in {"", "sin_modulo", "sin-modulo"}:
         module = "none"
-    if module not in {"none", "panol"}:
+    if module != "none" and module not in APP_MODULE_IDS:
         raise HTTPException(status_code=400, detail="Modulo inicial no soportado para alta masiva.")
     profile = (req.profile or "OPERACION").strip().upper()
     if module == "panol" and profile not in {"SOLICITANTE", "OPERACION", "ADMIN"}:
@@ -1374,7 +1500,7 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
         }
         for row in review_rows
     )
-    async with auth_db() as db:
+    async with auth_db(attach_operational=True) as db:
         db.row_factory = aiosqlite.Row
         for item in cleaned:
             username = item["username"]
@@ -1388,16 +1514,14 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
                     "UPDATE auth_users SET active = 1, updated_at = ? WHERE username = ?",
                     (_now(), username),
                 )
-                if module == "panol":
-                    await _upsert_app_access(
+                if module != "none":
+                    await _grant_initial_module_access(
                         db,
                         username=username,
                         module=module,
-                        enabled=True,
-                        profile=profile,
-                        scope="perfil",
+                        panol_profile=profile,
                     )
-                    message = "Ya existia. Acceso a Panol actualizado."
+                    message = f"Ya existia. Acceso a {_module_label_by_id(module)} actualizado."
                 else:
                     message = "Ya existia. Sin cambios de modulos."
                 if legajo:
@@ -1429,14 +1553,12 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
                 """,
                 (username, _hash_password(password), display_name, role),
             )
-            if module == "panol":
-                await _upsert_app_access(
+            if module != "none":
+                await _grant_initial_module_access(
                     db,
                     username=username,
                     module=module,
-                    enabled=True,
-                    profile=profile,
-                    scope="perfil",
+                    panol_profile=profile,
                 )
             if legajo:
                 await db.execute(
@@ -1460,7 +1582,13 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
             )
         await db.commit()
 
-    return {"ok": True, "module": module, "profile": profile if module == "panol" else "", "results": results}
+    return {
+        "ok": True,
+        "module": module,
+        "module_label": _module_label_by_id(module) if module != "none" else "",
+        "profile": profile if module == "panol" else "",
+        "results": results,
+    }
 
 
 async def _set_user_active(req: UserActionRequest, request: Request, active: int) -> dict[str, bool]:

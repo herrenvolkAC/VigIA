@@ -44,7 +44,7 @@
     .paper-panel{display:none}.paper-panel.active{display:block}
     .filters{
       display:grid;
-      grid-template-columns:minmax(132px,.62fr) minmax(132px,.62fr) minmax(260px,1.25fr) 128px 128px;
+      grid-template-columns:minmax(132px,.62fr) minmax(132px,.62fr) minmax(260px,1.25fr) 160px 136px;
       gap:12px;
       align-items:end;
       background:var(--panel);
@@ -52,6 +52,9 @@
       border-top:0;
       padding:12px;
     }
+    .filters.presence-mode{grid-template-columns:minmax(280px,1fr) 178px 144px}
+    .filters.presence-mode .check-grid{grid-template-columns:1fr 1fr}
+    .filters.presence-mode .filter-check-motivo{display:none}
     .range-note{
       grid-column:1 / -1;
       margin-top:-2px;
@@ -72,7 +75,8 @@
     .quality-warning{margin-top:12px;border:1px solid var(--amber);background:var(--amber-soft);padding:12px;color:#6f4300}.quality-warning.hidden{display:none}.quality-warning strong{display:block;margin-bottom:8px}.quality-warning ul{margin:8px 0 0;padding-left:18px}.quality-warning li{margin:3px 0;font-family:'IBM Plex Mono',monospace;font-size:11px}
     .import-help{margin-top:12px;border:1px solid var(--rule);background:var(--panel);padding:12px;font-size:12px;color:var(--ink-soft);line-height:1.45}
     .import-help strong{display:block;color:var(--ink);margin-bottom:4px}.import-result{margin-top:12px;display:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.import-result.visible{display:grid}.import-card{border:1px solid var(--rule);background:var(--panel);padding:10px;min-height:78px}.import-card .value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--green);margin-top:6px}.import-card .sub{font-size:11px;color:var(--ink-soft);margin-top:2px}.import-note{grid-column:1 / -1;border:1px solid var(--rule);background:#F8FAF7;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
-    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}
+    .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}
+    #presence-kpis{grid-template-columns:repeat(6,1fr)}
     .kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}
     .kpi-number{font-family:'IBM Plex Mono',monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}
     .kpi-foot{display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--ink-soft)}.metric{font-family:'IBM Plex Mono',monospace;color:var(--ink)}
@@ -85,6 +89,9 @@
     .mini-table{width:100%;border-collapse:collapse}.mini-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);background:#F6F8F5;border-bottom:1px solid var(--rule);padding:8px;text-align:left}.mini-table td{border-bottom:1px solid var(--rule);padding:8px;font-size:12px}.mini-table tbody tr:nth-child(odd){background:#F8FAF7}
     .detail-table-wrap{max-height:540px;border-top:1px solid var(--rule)}
     .detail-table-wrap .mini-table th{position:sticky;top:0;z-index:2;box-shadow:0 1px 0 var(--rule);background:#F6F8F5}
+    .presence-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;padding:10px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
+    .presence-path{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.presence-chip{border:1px solid var(--rule);background:#F8FAF7;padding:4px 7px;color:var(--ink)}.presence-chip button{border:0;background:transparent;color:var(--red);min-height:0;padding:0 0 0 6px;font-family:'IBM Plex Mono',monospace}
+    .presence-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.presence-row{cursor:pointer}.presence-row:hover td{background:#EDF2EE}.presence-table-wrap .paper-table th{position:sticky;top:0;z-index:2;box-shadow:0 1px 0 var(--rule);background:#F6F8F5}.status-pill{display:inline-block;min-width:118px;padding:3px 7px;border:1px solid var(--rule);background:#F8FAF7;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase}.status-pill.disponible{border-color:#C8E2D0;background:var(--green-soft);color:var(--green)}.status-pill.presente_no_disponible{border-color:#BFD4E8;background:#E5F0FA;color:var(--blue)}.status-pill.ausente,.status-pill.sin_registro,.status-pill.sin_fichada{border-color:#E8B7BE;background:var(--red-soft);color:var(--red)}.status-pill.vacaciones,.status-pill.franco{border-color:#E1BF76;background:var(--amber-soft);color:var(--amber)}.status-pill.home_office{border-color:#BFD4E8;background:#E5F0FA;color:var(--blue)}
     .import-line{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
     .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);border-top:0}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 12px}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--ink);background:#EDF2EE}.paper-table th .sort-mark{float:right;color:var(--green);letter-spacing:0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 12px;font-size:13px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}
     .table-wrap{overflow:auto;max-height:540px}.hidden{display:none!important}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
@@ -93,8 +100,8 @@
     .change-box{margin-top:12px;border:1px solid var(--green);background:#F8FAF7;padding:12px}.change-grid{display:grid;grid-template-columns:1.2fr .7fr .7fr 1.4fr .9fr auto;gap:10px;align-items:end}.change-summary{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
     .danger-cta{height:34px;border:1px solid var(--red);background:var(--panel);color:var(--red);padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase}.small-btn{min-height:26px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 7px}
     #legajero-table{min-width:1500px}#funcion-lotes-table{min-width:1250px}
-    @media(max-width:1100px){.filters,.import-line,.change-grid,.legajero-tools{grid-template-columns:1fr 1fr}.check-grid{grid-template-columns:1fr}.dashboard-grid,.paired-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}}
-    @media(max-width:700px){.paper-app{padding:0 14px 18px}.filters,.import-line,.kpi-row{grid-template-columns:1fr}.tab-list{overflow:auto}.tab-btn{min-width:120px;padding-left:12px;padding-right:12px}}
+    @media(max-width:1100px){.filters,.import-line,.change-grid,.legajero-tools{grid-template-columns:1fr 1fr}.check-grid{grid-template-columns:1fr}.dashboard-grid,.paired-grid,.presence-grid{grid-template-columns:1fr}.kpi-row,#presence-kpis{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}}
+    @media(max-width:700px){.paper-app{padding:0 14px 18px}.filters,.import-line,.kpi-row,#presence-kpis{grid-template-columns:1fr}.tab-list{overflow:auto}.tab-btn{min-width:120px;padding-left:12px;padding-right:12px}}
   </style>
 </head>
 <body>
@@ -121,6 +128,7 @@
   <div class="paper-tabs">
     <div class="tab-list">
       <button class="tab-btn active" data-tab="indicadores">Indicadores</button>
+      <button class="tab-btn" data-tab="presencias">Presencias</button>
       <button class="tab-btn" data-tab="datos">Datos</button>
       <button class="tab-btn" data-tab="francos">Francos</button>
       <button class="tab-btn" data-tab="legajero">Legajero</button>
@@ -129,23 +137,23 @@
   </div>
 
   <section class="filters">
-    <div class="field"><label class="label" for="fecha-desde">Desde</label><input class="paper-input" type="date" id="fecha-desde"></div>
-    <div class="field"><label class="label" for="fecha-hasta">Hasta</label><input class="paper-input" type="date" id="fecha-hasta"></div>
+    <div class="field date-filter-field"><label class="label" for="fecha-desde">Desde</label><input class="paper-input" type="date" id="fecha-desde"></div>
+    <div class="field date-filter-field"><label class="label" for="fecha-hasta">Hasta</label><input class="paper-input" type="date" id="fecha-hasta"></div>
     <div class="field"><label class="label" for="filter-persona">Legajo / apellido</label><input class="paper-input" id="filter-persona" autocomplete="off" placeholder="Legajo o apellido"></div>
     <button class="filter-toggle" id="toggle-filters">Filtros avanzados</button>
     <button class="primary-cta" id="apply-filters">Aplicar</button>
     <div class="filter-panel" id="filter-panel">
       <div class="check-grid">
-        <div class="check-box">
-          <div class="check-head"><div class="check-title"><span class="label">Sector</span><span class="check-summary" id="summary-sector">Todos</span></div><div class="check-actions"><button class="link-btn" data-clear-filter="sector">Limpiar</button></div></div>
+        <div class="check-box filter-check-sector">
+          <div class="check-head"><div class="check-title"><span class="label">Sector</span><span class="check-summary" id="summary-sector">Todos</span></div><div class="check-actions"><button class="link-btn" data-select-filter="sector">Todos</button><button class="link-btn" data-clear-filter="sector">Ninguno</button></div></div>
           <div class="check-list" id="filter-sector"></div>
         </div>
-        <div class="check-box">
-          <div class="check-head"><div class="check-title"><span class="label">Cargo</span><span class="check-summary" id="summary-cargo">Todos</span></div><div class="check-actions"><button class="link-btn" data-clear-filter="cargo">Limpiar</button></div></div>
+        <div class="check-box filter-check-cargo">
+          <div class="check-head"><div class="check-title"><span class="label">Cargo</span><span class="check-summary" id="summary-cargo">Todos</span></div><div class="check-actions"><button class="link-btn" data-select-filter="cargo">Todos</button><button class="link-btn" data-clear-filter="cargo">Ninguno</button></div></div>
           <div class="check-list" id="filter-cargo"></div>
         </div>
-        <div class="check-box">
-          <div class="check-head"><div class="check-title"><span class="label">Motivo</span><span class="check-summary" id="summary-motivo">Todos</span></div><div class="check-actions"><button class="link-btn" data-clear-filter="motivo">Limpiar</button></div></div>
+        <div class="check-box filter-check-motivo presence-hide">
+          <div class="check-head"><div class="check-title"><span class="label">Motivo</span><span class="check-summary" id="summary-motivo">Todos</span></div><div class="check-actions"><button class="link-btn" data-select-filter="motivo">Todos</button><button class="link-btn" data-clear-filter="motivo">Ninguno</button></div></div>
           <div class="check-list" id="filter-motivo"></div>
         </div>
       </div>
@@ -233,12 +241,38 @@
     </section>
   </section>
 
+  <section class="paper-panel" id="panel-presencias">
+    <section class="presence-toolbar">
+      <div>
+        <div class="label">Dotacion online</div>
+        <div id="presence-updated">Sin consultar</div>
+      </div>
+      <div class="presence-path" id="presence-path"></div>
+    </section>
+    <section class="kpi-row" id="presence-kpis"></section>
+    <section class="presence-grid">
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Resumen por sector</strong><span>Click para bajar</span></div>
+        <div class="table-wrap presence-table-wrap"><table class="paper-table" id="presence-sector-table"></table></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-title"><strong>Resumen por funcion</strong><span id="presence-function-label">Filtro actual</span></div>
+        <div class="table-wrap presence-table-wrap"><table class="paper-table" id="presence-function-table"></table></div>
+      </article>
+    </section>
+    <section class="chart-panel" style="margin-top:12px;min-height:320px">
+      <div class="chart-title"><strong>Detalle por legajo</strong><span id="presence-detail-label">Todos los visibles</span></div>
+      <div class="table-wrap presence-table-wrap detail-table-wrap"><table class="paper-table" id="presence-detail-table"></table></div>
+    </section>
+  </section>
+
   <section class="paper-panel" id="panel-datos">
     <div class="paper-tabs" style="margin-top:14px">
       <div class="tab-list">
         <button class="tab-btn active inner-tab" data-inner="actividad">Actividad</button>
         <button class="tab-btn inner-tab" data-inner="sanciones">Sanciones</button>
       </div>
+      <button class="link-btn" id="actividad-exportar">Exportar Excel</button>
     </div>
     <div class="table-wrap" id="inner-actividad"><table class="paper-table" id="actividad-table"></table></div>
     <div class="table-wrap hidden" id="inner-sanciones"><table class="paper-table" id="sanciones-table"></table></div>
@@ -321,7 +355,7 @@
 </div>
 
 <script>
-  const state = { config:null, batches:[], filtersLoaded:false, importLoaded:false, legajeroLoaded:false, legajeroRows:[], legajeroLotes:[], legajeroSelected:new Set(), legajeroExpanded:new Set(), legajeroSort:{key:'nombre',dir:'asc'}, legajeroLotesSort:{key:'created_at',dir:'desc'}, canEditFunciones:false, activeTab:'indicadores', indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
+  const state = { config:null, batches:[], filtersLoaded:false, importLoaded:false, legajeroLoaded:false, presenciasLoaded:false, presenceNeedsRefresh:false, presenceFiltersLoaded:false, presenceSectorOptions:[], presenceFunctionOptions:[], presenceSectorFunctionMap:{}, presencias:null, presenciaDrill:{sector:'',funcion:''}, presenceSort:{'presence-sector-table':{key:'dotacion',dir:'desc'},'presence-function-table':{key:'dotacion',dir:'desc'},'presence-detail-table':{key:'estado_label',dir:'asc'}}, legajeroRows:[], legajeroLotes:[], legajeroSelected:new Set(), legajeroExpanded:new Set(), legajeroSort:{key:'nombre',dir:'asc'}, legajeroLotesSort:{key:'created_at',dir:'desc'}, canEditFunciones:false, activeTab:'indicadores', indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
   const STORAGE_KEY = 'vigia.novedades_cd.advanced_filters.v1';
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
@@ -331,7 +365,7 @@
     const button = $('apply-filters');
     if (!button) return;
     button.disabled = loading;
-    button.textContent = loading ? 'Consultando...' : 'Aplicar';
+    button.textContent = loading ? 'Consultando...' : (state.activeTab === 'presencias' ? 'Consultar' : 'Aplicar');
   }
   async function api(path, options={}){
     const res = await fetch(path, { credentials:'same-origin', headers:{'Content-Type':'application/json'}, ...options });
@@ -361,6 +395,14 @@
     [['sector','sector'],['cargo','cargo'],['motivo','motivo']].forEach(([key,id]) => {
       selectedValues(id).forEach(value => p.append(key, value));
     });
+    return p.toString();
+  }
+  function presenceParams(){
+    const p = new URLSearchParams();
+    const persona = $('filter-persona').value;
+    if (persona) p.set('persona', persona);
+    selectedValues('sector').forEach(value => p.append('sector', value));
+    selectedValues('cargo').forEach(value => p.append('cargo', value));
     return p.toString();
   }
   function selectedValues(key){
@@ -410,6 +452,30 @@
       </label>
     `).join('') || '<div class="empty">Sin opciones</div>';
   }
+  function presenceSectorOptions(data){
+    if (state.presenceSectorOptions.length) return state.presenceSectorOptions;
+    const fromFilters = Array.isArray(data?.filters?.sectores) ? data.filters.sectores : [];
+    if (fromFilters.length) return fromFilters;
+    return Array.from(new Set((data?.rows || []).map(row => String(row.sector || '').trim()).filter(Boolean)))
+      .sort((a,b) => a.localeCompare(b, 'es'));
+  }
+  function setChecklistPreserving(key, values){
+    const previous = state.selected[key] || [];
+    setChecklist(key, values);
+    return previous.length !== (state.selected[key] || []).length;
+  }
+  function refreshPresenceFunctionFilter(){
+    if (state.activeTab !== 'presencias' || !state.presenceFiltersLoaded) return false;
+    const selectedSectors = selectedValues('sector');
+    const allowed = new Set();
+    if (selectedSectors.length) {
+      selectedSectors.forEach(sector => (state.presenceSectorFunctionMap[sector] || []).forEach(fn => allowed.add(fn)));
+    } else {
+      (state.presenceFunctionOptions || []).forEach(fn => allowed.add(fn));
+    }
+    const values = Array.from(allowed).sort((a,b) => a.localeCompare(b, 'es'));
+    return setChecklistPreserving('cargo', values);
+  }
   function updateChecklistSummary(key){
     const total = state.selected[key]?.length || 0;
     const summary = $(`summary-${key}`);
@@ -427,6 +493,219 @@
     $('kpis').innerHTML = cells.map(([label,value,tone,foot]) => `
       <div class="kpi-cell ${tone}"><div class="label">${esc(label)}</div><div class="kpi-number">${esc(fmtMaybe(value))}</div><div class="kpi-foot"><span>${esc(foot)}</span><span class="metric">RRHH</span></div></div>
     `).join('');
+  }
+  function presenceStatusPill(row){
+    const key = row.estado || '';
+    const titles = {
+      sin_fichada: 'Oracle tiene registro para el legajo en la jornada, pero sin entrada, salida ni horas trabajadas.',
+      sin_registro: 'Oracle no devolvio ningun registro para el legajo dentro de la jornada consultada.',
+      disponible: 'Tiene fichada de entrada y esta dentro de su ventana actual.',
+      presente_no_disponible: 'Tuvo fichada en la jornada, pero no figura disponible ahora.',
+      ausente: 'Oracle informa una ausencia para la jornada.',
+      vacaciones: 'Oracle informa vacaciones para la jornada.',
+      franco: 'Oracle informa franco o descanso planificado para la jornada.',
+      home_office: 'Oracle informa Home Office para la jornada.',
+    };
+    return `<span class="status-pill ${esc(key)}" title="${esc(titles[key] || row.estado_label || key)}">${esc(row.estado_label || key)}</span>`;
+  }
+  function aggregatePresence(rows, key){
+    const map = new Map();
+    (rows || []).forEach(row => {
+      const label = String(row[key] || 'Sin dato');
+      if (!map.has(label)) map.set(label, {label, dotacion:0, presentes_hoy:0, disponibles:0, presentes_no_disponibles:0, ausentes:0, vacaciones:0, francos:0, home_office:0, sin_registro:0, sin_fichada:0});
+      const item = map.get(label);
+      item.dotacion += 1;
+      if (['disponible','presente_no_disponible'].includes(row.estado)) item.presentes_hoy += 1;
+      if (row.estado === 'disponible') item.disponibles += 1;
+      else if (row.estado === 'presente_no_disponible') item.presentes_no_disponibles += 1;
+      else if (row.estado === 'ausente') item.ausentes += 1;
+      else if (row.estado === 'vacaciones') item.vacaciones += 1;
+      else if (row.estado === 'franco') item.francos += 1;
+      else if (row.estado === 'home_office') item.home_office += 1;
+      else if (row.estado === 'sin_registro') item.sin_registro += 1;
+      else if (row.estado === 'sin_fichada') item.sin_fichada += 1;
+    });
+    return Array.from(map.values()).sort((a,b) => b.dotacion - a.dotacion || a.label.localeCompare(b.label, 'es'));
+  }
+  function sortPresenceRows(id, rows){
+    const sort = state.presenceSort[id] || {};
+    const dir = sort.dir === 'desc' ? -1 : 1;
+    if (!sort.key) return rows || [];
+    return [...(rows || [])].sort((a,b) => {
+      const av = sortValue(a[sort.key]);
+      const bv = sortValue(b[sort.key]);
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  }
+  function presenceHeader(id, key, label, tooltip=''){
+    const sort = state.presenceSort[id] || {};
+    const active = sort.key === key;
+    const mark = active ? `<span class="sort-mark">${sort.dir === 'desc' ? 'v' : '^'}</span>` : '';
+    const title = tooltip ? `${tooltip} Click para ordenar.` : `Ordenar por ${label}`;
+    return `<th class="sortable presence-sort" data-presence-table="${esc(id)}" data-key="${esc(key)}" title="${esc(title)}">${esc(label)}${mark}</th>`;
+  }
+  function renderPresenceKpis(total){
+    const k = total || {};
+    const sinFichada = Number(k.sin_fichada || 0);
+    const sinRegistro = Number(k.sin_registro || 0);
+    const ausentes = Number(k.ausentes || 0);
+    const homeOffice = Number(k.home_office || 0);
+    const francos = Number(k.francos || 0);
+    const sinPresencia = ausentes + sinFichada + sinRegistro + homeOffice;
+    const cells = [
+      ['Dotacion', k.dotacion, 'ok', 'Universo visible', 'Legajos activos visibles segun los filtros aplicados. Es la base contra la que cierran los demas cards.'],
+      ['Disponibles', k.disponibles, 'ok', 'Fichados y en horario', 'Personas con entrada registrada que figuran disponibles en este momento dentro de la jornada consultada.'],
+      ['No disponibles', k.presentes_no_disponibles, 'blue', 'Estuvieron presentes', 'Personas con fichada en la jornada que ya no figuran disponibles ahora, generalmente porque tienen salida o su tramo ya termino.'],
+      ['Vacaciones', k.vacaciones, Number(k.vacaciones || 0) ? 'warn' : 'ok', 'Ausencia planificada', 'Personas informadas por Oracle como vacaciones en la jornada consultada. Se muestra separado por utilidad operativa.'],
+      ['Francos', francos, francos ? 'warn' : 'ok', 'Planificado', 'Personas informadas por Oracle con franco o descanso nocturno. Se muestra separado de ausencias.'],
+      ['Sin presencia', sinPresencia, sinPresencia ? 'bad' : 'ok', `${fmt(ausentes)} aus. | ${fmt(homeOffice)} HO | ${fmt(sinFichada)} sin fich. | ${fmt(sinRegistro)} sin reg.`, 'Personas no presentes para la lectura operativa: ausentes informados, Home Office, registros Oracle sin fichada y legajos sin registro Oracle en la jornada. No incluye vacaciones ni francos.'],
+    ];
+    $('presence-kpis').innerHTML = cells.map(([label,value,tone,foot,title]) => `
+      <div class="kpi-cell ${tone}" title="${esc(title || '')}"><div class="label">${esc(label)}</div><div class="kpi-number">${esc(fmtMaybe(value))}</div><div class="kpi-foot"><span>${esc(foot)}</span><span class="metric">HOY</span></div></div>
+    `).join('');
+  }
+  function renderPresenceSummaryTable(id, rows, drillKey){
+    const data = sortPresenceRows(id, rows);
+    const attr = drillKey === 'sector' ? 'data-presence-sector' : 'data-presence-function';
+    $(id).innerHTML = `<thead><tr>
+      ${presenceHeader(id, 'label', drillKey === 'sector' ? 'Sector' : 'Funcion')}
+      ${presenceHeader(id, 'dotacion', 'Dotacion')}
+      ${presenceHeader(id, 'disponibles', 'Disp.')}
+      ${presenceHeader(id, 'presentes_no_disponibles', 'No disp.')}
+      ${presenceHeader(id, 'ausentes', 'Aus.')}
+      ${presenceHeader(id, 'vacaciones', 'Vac.')}
+      ${presenceHeader(id, 'francos', 'Fr.', 'Oracle informa franco o descanso nocturno planificado para la jornada.')}
+      ${presenceHeader(id, 'home_office', 'HO', 'Oracle informa Home Office para la jornada.')}
+      ${presenceHeader(id, 'sin_fichada', 'Sin fich.', 'Oracle tiene registro para el legajo en la jornada, pero sin entrada, salida ni horas trabajadas.')}
+      ${presenceHeader(id, 'sin_registro', 'Sin reg.', 'Oracle no devolvio ningun registro para el legajo dentro de la jornada consultada.')}
+    </tr></thead><tbody>${data.map(row => `
+      <tr class="presence-row" ${attr}="${esc(encodeURIComponent(row.label))}">
+        <td title="${esc(row.label)}">${esc(row.label)}</td>
+        <td class="mono">${fmt(row.dotacion)}</td>
+        <td class="mono">${fmt(row.disponibles)}</td>
+        <td class="mono">${fmt(row.presentes_no_disponibles)}</td>
+        <td class="mono">${fmt(row.ausentes)}</td>
+        <td class="mono">${fmt(row.vacaciones)}</td>
+        <td class="mono">${fmt(row.francos)}</td>
+        <td class="mono">${fmt(row.home_office)}</td>
+        <td class="mono">${fmt(row.sin_fichada)}</td>
+        <td class="mono">${fmt(row.sin_registro)}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="10">Sin datos.</td></tr>'}</tbody>`;
+  }
+  function renderPresenceDetail(rows){
+    const data = sortPresenceRows('presence-detail-table', rows);
+    $('presence-detail-table').innerHTML = `<thead><tr>
+      ${presenceHeader('presence-detail-table', 'estado_label', 'Estado')}
+      ${presenceHeader('presence-detail-table', 'legajo', 'Legajo')}
+      ${presenceHeader('presence-detail-table', 'nombre', 'Nombre')}
+      ${presenceHeader('presence-detail-table', 'sector', 'Sector')}
+      ${presenceHeader('presence-detail-table', 'funcion', 'Funcion')}
+      ${presenceHeader('presence-detail-table', 'entrada_real', 'Entrada')}
+      ${presenceHeader('presence-detail-table', 'salida_real', 'Salida')}
+      ${presenceHeader('presence-detail-table', 'hs_trabajadas', 'Hs.')}
+      ${presenceHeader('presence-detail-table', 'descripcion_aus', 'Motivo')}
+    </tr></thead><tbody>${data.map(row => `
+      <tr>
+        <td>${presenceStatusPill(row)}</td>
+        <td class="mono">${esc(row.legajo || '')}</td>
+        <td title="${esc(row.nombre || '')}">${esc(row.nombre || '')}</td>
+        <td title="${esc(row.sector || '')}">${esc(row.sector || '')}</td>
+        <td title="${esc(row.funcion || '')}">${esc(row.funcion || '')}</td>
+        <td class="mono">${esc(row.entrada_real || '')}</td>
+        <td class="mono">${esc(row.salida_real || '')}</td>
+        <td class="mono">${esc(row.hs_trabajadas || '')}</td>
+        <td title="${esc(row.descripcion_aus || '')}">${esc(row.descripcion_aus || '')}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="9">Sin legajos.</td></tr>'}</tbody>`;
+  }
+  function renderPresencePath(){
+    const parts = [];
+    if (state.presenciaDrill.sector) parts.push(`<span class="presence-chip">Sector: ${esc(state.presenciaDrill.sector)} <button data-presence-reset="sector" title="Quitar sector">x</button></span>`);
+    if (state.presenciaDrill.funcion) parts.push(`<span class="presence-chip">Funcion: ${esc(state.presenciaDrill.funcion)} <button data-presence-reset="funcion" title="Quitar funcion">x</button></span>`);
+    $('presence-path').innerHTML = parts.join('') || '<span class="presence-chip">Todos los visibles</span>';
+  }
+  function presenceWindowText(data){
+    if (!data?.consultado_en) return 'Sin consultar';
+    const desc = data.jornada_descripcion || data.jornada_key || 'Jornada';
+    const source = data.jornada_source === 'sector' ? 'sector' : data.jornada_source === 'sectores' ? 'sectores' : data.jornada_source === 'default_por_mezcla' ? 'default por mezcla' : 'default';
+    const margin = Number(data.jornada_margen_ingreso_minutos || 0);
+    const marginText = margin ? ` | Ingresos validos desde ${margin} min antes del inicio` : '';
+    const pending = state.presenceNeedsRefresh ? ' | Filtros cambiados: consultar para recalcular jornada' : '';
+    return `Consulta ${data.consultado_en} | ${desc} (${source}) | ${data.jornada_inicio || data.fecha} a ${data.jornada_fin || ''}${marginText}${pending}`;
+  }
+  function presencePersonaMatches(row, text){
+    const value = String(text || '').trim().toUpperCase();
+    if (!value) return true;
+    const legajo = String(row.legajo || '').trim();
+    const legajoNorm = String(row.legajo_norm || '').trim();
+    const nombre = String(row.nombre || '').toUpperCase();
+    return legajo === value || legajoNorm === value || legajo.includes(value) || legajoNorm.includes(value) || nombre.includes(value);
+  }
+  function renderPresencias(){
+    const data = state.presencias || {};
+    const selectedSectors = new Set(selectedValues('sector'));
+    const selectedFunctions = new Set(selectedValues('cargo'));
+    const personaText = $('filter-persona')?.value || '';
+    const filteredRows = selectedSectors.size
+      ? (data.rows || []).filter(row => selectedSectors.has(String(row.sector || '')))
+      : (data.rows || []);
+    const functionRows = selectedFunctions.size
+      ? filteredRows.filter(row => selectedFunctions.has(String(row.funcion || '')))
+      : filteredRows;
+    const allRows = functionRows.filter(row => presencePersonaMatches(row, personaText));
+    const sector = state.presenciaDrill.sector;
+    const funcion = state.presenciaDrill.funcion;
+    const sectorRows = sector ? allRows.filter(row => String(row.sector || '') === sector) : allRows;
+    const detailRows = funcion ? sectorRows.filter(row => String(row.funcion || '') === funcion) : sectorRows;
+    $('presence-updated').textContent = presenceWindowText(data);
+    renderPresencePath();
+    renderPresenceKpis(aggregatePresence(detailRows, '__all__')[0] || data.totals || {});
+    renderPresenceSummaryTable('presence-sector-table', aggregatePresence(allRows, 'sector'), 'sector');
+    renderPresenceSummaryTable('presence-function-table', aggregatePresence(sectorRows, 'funcion'), 'funcion');
+    $('presence-function-label').textContent = sector ? sector : 'Filtro actual';
+    $('presence-detail-label').textContent = [sector, funcion].filter(Boolean).join(' / ') || 'Todos los visibles';
+    renderPresenceDetail(detailRows);
+  }
+  async function loadPresenceFilters(){
+    if (state.presenceFiltersLoaded && $('filter-sector')?.querySelector('input')) return;
+    setStatus('Cargando sectores de Presencias...');
+    $('filter-sector').innerHTML = '<div class="empty">Cargando sectores...</div>';
+    const data = await api('/api/rrhh/presencias/filtros');
+    state.presencias = data || {};
+    const sectores = Array.isArray(data?.filters?.sectores) ? data.filters.sectores : [];
+    if (sectores.length) {
+      state.presenceSectorOptions = sectores;
+      state.presenceFunctionOptions = Array.isArray(data?.filters?.funciones) ? data.filters.funciones : [];
+      state.presenceSectorFunctionMap = data?.filters?.sector_funciones || {};
+      setChecklist('sector', sectores);
+      setChecklist('cargo', state.presenceFunctionOptions);
+      state.presenceFiltersLoaded = true;
+      refreshPresenceFunctionFilter();
+    } else {
+      $('filter-sector').innerHTML = '<div class="empty">Sin sectores disponibles</div>';
+      $('filter-cargo').innerHTML = '<div class="empty">Sin funciones disponibles</div>';
+    }
+    renderPresencias();
+    setStatus('Selecciona sectores y presiona Consultar.');
+  }
+  async function loadPresencias(){
+    setApplyLoading(true);
+    try {
+      setStatus('Consultando presencias Oracle...');
+      const data = await api(`/api/rrhh/presencias?${presenceParams()}`);
+      state.presencias = data || {};
+      state.presenciasLoaded = true;
+      state.presenceNeedsRefresh = false;
+      state.presenciaDrill = {sector:'', funcion:''};
+      if (!state.presenceFiltersLoaded) await loadPresenceFilters();
+      renderPresencias();
+      setStatus('Presencias actualizadas.');
+    } finally {
+      setApplyLoading(false);
+    }
   }
   function renderFrancos(data, candidatos){
     const k = data?.kpis || {};
@@ -717,6 +996,49 @@
     }).join('')}</tr></thead><tbody>${data.map(row=>`<tr>${cols.map(c=>`<td class="${c.mono?'mono':''}" title="${esc(valueFor(row, c) ?? '')}">${esc(valueFor(row, c) ?? '')}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}">Sin datos.</td></tr>`}</tbody>`;
     $(id).__rows = rows || [];
     $(id).__cols = cols;
+  }
+  function exportTableExcel(tableId, filename, sheetName='Datos'){
+    const table = $(tableId);
+    const cols = table?.__cols || [];
+    const rows = sortedRows(tableId, table?.__rows || []);
+    if (!cols.length || !rows.length) {
+      setStatus('No hay filas visibles para exportar.', true);
+      return;
+    }
+    const hoursToTime = value => {
+      const numeric = Number(value || 0);
+      if (!Number.isFinite(numeric)) return '';
+      const sign = numeric < 0 ? '-' : '';
+      const totalMinutes = Math.round(Math.abs(numeric) * 60);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${sign}${hours}:${String(minutes).padStart(2, '0')}`;
+    };
+    const valueFor = (row, col) => {
+      const value = row[col.key];
+      if (col.format === 'hhmm') return hoursToTime(value);
+      if (col.format === 'number') return fmt(value);
+      if (col.format === 'integer') return Number(value || 0).toLocaleString('es-AR', { maximumFractionDigits: 0 });
+      return value ?? '';
+    };
+    const html = `<!doctype html><html><head><meta charset="utf-8">
+      <xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>${esc(sheetName)}</x:Name><x:WorksheetOptions></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>
+    </head><body>
+      <table>
+        <thead><tr>${cols.map(col => `<th>${esc(col.label)}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(row => `<tr>${cols.map(col => `<td>${esc(valueFor(row, col))}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </body></html>`;
+    const blob = new Blob(['\ufeff', html], {type:'application/vnd.ms-excel;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename.endsWith('.xls') ? filename : `${filename}.xls`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setStatus(`${rows.length.toLocaleString('es-AR')} filas exportadas a Excel.`);
   }
   const rankCol = {key:'rank', label:'#', mono:true};
   const personCols = [rankCol, {key:'legajo', label:'Legajo', mono:true}, {key:'empleado', label:'Empleado'}, {key:'funcion', label:'Funcion'}];
@@ -1144,20 +1466,28 @@
   }
   function activateMainTab(tab){
     state.activeTab = tab;
-    document.querySelector('.filters')?.classList.toggle('hidden', tab === 'legajero');
+    const filters = document.querySelector('.filters');
+    filters?.classList.toggle('hidden', tab === 'legajero');
+    filters?.classList.toggle('presence-mode', tab === 'presencias');
     $('access-note')?.classList.toggle('hidden', tab === 'legajero');
+    document.querySelectorAll('.date-filter-field').forEach(field => field.classList.toggle('hidden', tab === 'presencias'));
+    $('range-note')?.classList.toggle('hidden', tab === 'presencias');
+    $('apply-filters').textContent = tab === 'presencias' ? 'Consultar' : 'Aplicar';
+    if (tab === 'presencias') $('filter-panel')?.classList.add('open');
     document.querySelectorAll('.tab-btn[data-tab]').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.paper-panel').forEach(x => x.classList.remove('active'));
     document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
     $(`panel-${tab}`)?.classList.add('active');
     if (tab === 'importacion' && !state.importLoaded) loadBatches().catch(e => setStatus(e.message, true));
     if (tab === 'legajero' && !state.legajeroLoaded) loadLegajeroFunciones().catch(e => setStatus(e.message, true));
+    if (tab === 'presencias') loadPresenceFilters().catch(e => setStatus(e.message, true));
   }
   function activateInnerTab(tab){
     document.querySelectorAll('.inner-tab').forEach(x => x.classList.remove('active'));
     ['actividad','sanciones'].forEach(id => $(`inner-${id}`).classList.add('hidden'));
     document.querySelector(`.inner-tab[data-inner="${tab}"]`)?.classList.add('active');
     $(`inner-${tab}`)?.classList.remove('hidden');
+    $('actividad-exportar')?.classList.toggle('hidden', tab !== 'actividad');
   }
   function activateFrancoTab(tab){
     document.querySelectorAll('.franco-tab').forEach(x => x.classList.remove('active'));
@@ -1202,6 +1532,10 @@
       await loadLegajeroFunciones();
       return;
     }
+    if (state.activeTab === 'presencias') {
+      await loadPresencias();
+      return;
+    }
     if (state.activeTab === 'francos') {
       setStatus('Consultando francos...');
       await loadFrancos();
@@ -1226,9 +1560,10 @@
         loadActividad(),
         loadSanciones(),
         loadFrancos(),
+        loadPresencias(),
         loadBatches(),
       ]);
-      setStatus('Indicadores, datos, francos e importacion actualizados.');
+      setStatus('Indicadores, presencias, datos, francos e importacion actualizados.');
       $('filter-panel').classList.remove('open');
       saveFilters();
     } catch (e) {
@@ -1258,6 +1593,42 @@
     renderDetail($('ranking-table').__allRows || []);
   });
   document.addEventListener('click', (event) => {
+    const presenceSort = event.target.closest('.presence-sort[data-presence-table][data-key]');
+    if (presenceSort) {
+      const id = presenceSort.dataset.presenceTable;
+      const key = presenceSort.dataset.key;
+      const current = state.presenceSort[id] || {};
+      state.presenceSort[id] = {
+        key,
+        dir: current.key === key && current.dir === 'asc' ? 'desc' : 'asc',
+      };
+      renderPresencias();
+      return;
+    }
+    const presenceSector = event.target.closest('[data-presence-sector]');
+    if (presenceSector) {
+      state.presenciaDrill.sector = decodeURIComponent(presenceSector.dataset.presenceSector || '');
+      state.presenciaDrill.funcion = '';
+      renderPresencias();
+      return;
+    }
+    const presenceFunction = event.target.closest('[data-presence-function]');
+    if (presenceFunction) {
+      state.presenciaDrill.funcion = decodeURIComponent(presenceFunction.dataset.presenceFunction || '');
+      renderPresencias();
+      return;
+    }
+    const presenceReset = event.target.closest('[data-presence-reset]');
+    if (presenceReset) {
+      if (presenceReset.dataset.presenceReset === 'sector') {
+        state.presenciaDrill.sector = '';
+        state.presenciaDrill.funcion = '';
+      } else {
+        state.presenciaDrill.funcion = '';
+      }
+      renderPresencias();
+      return;
+    }
     const cancelLote = event.target.closest('.cancel-funcion-lote[data-lote]');
     if (cancelLote) {
       cancelFuncionLote(cancelLote.dataset.lote).catch(e => setStatus(e.message, true));
@@ -1316,6 +1687,16 @@
     const current = new Set(state.selected[key] || []);
     if (input.checked) current.add(input.value); else current.delete(input.value);
     state.selected[key] = Array.from(current);
+    if (state.activeTab === 'presencias' && (key === 'sector' || key === 'cargo')) {
+      if (state.presenciaDrill.sector && !current.has(state.presenciaDrill.sector)) state.presenciaDrill = {sector:'', funcion:''};
+      if (key === 'cargo') state.presenciaDrill.funcion = '';
+      if (key === 'sector') {
+        const changedCargo = refreshPresenceFunctionFilter();
+        if (changedCargo) state.presenciaDrill.funcion = '';
+      }
+      state.presenceNeedsRefresh = true;
+      renderPresencias();
+    }
     updateChecklistSummary(key);
     saveFilters();
   });
@@ -1324,12 +1705,48 @@
       const key = button.dataset.clearFilter;
       state.selected[key] = [];
       setChecklist(key, Array.from($(`filter-${key}`).querySelectorAll('input')).map(input => input.value));
+      if (state.activeTab === 'presencias' && (key === 'sector' || key === 'cargo')) {
+        state.presenciaDrill = {sector:'', funcion:''};
+        if (key === 'sector') refreshPresenceFunctionFilter();
+        state.presenceNeedsRefresh = true;
+        renderPresencias();
+      }
+      updateChecklistSummary(key);
+      saveFilters();
+    });
+  });
+  document.querySelectorAll('[data-select-filter]').forEach(button => {
+    button.addEventListener('click', () => {
+      const key = button.dataset.selectFilter;
+      const values = Array.from($(`filter-${key}`).querySelectorAll('input')).map(input => input.value);
+      state.selected[key] = values;
+      setChecklist(key, values);
+      if (state.activeTab === 'presencias' && (key === 'sector' || key === 'cargo')) {
+        state.presenciaDrill = {sector:'', funcion:''};
+        if (key === 'sector') refreshPresenceFunctionFilter();
+        state.presenceNeedsRefresh = true;
+        renderPresencias();
+      }
       updateChecklistSummary(key);
       saveFilters();
     });
   });
   $('toggle-filters').onclick = () => { $('filter-panel').classList.toggle('open'); saveFilters(); };
-  $('apply-filters').onclick = applyAllTabs;
+  $('apply-filters').onclick = () => {
+    const fn = state.activeTab === 'presencias' ? applyCurrentView : applyAllTabs;
+    fn().catch(e => setStatus(e.message || 'No se pudo consultar.', true));
+  };
+  $('actividad-exportar').onclick = () => {
+    const desde = $('fecha-desde')?.value || 'desde';
+    const hasta = $('fecha-hasta')?.value || 'hasta';
+    exportTableExcel('actividad-table', `actividad_rrhh_${desde}_${hasta}.xls`, 'Actividad');
+  };
+  $('filter-persona').addEventListener('input', () => {
+    if (state.activeTab === 'presencias' && state.presenciasLoaded) {
+      state.presenciaDrill = {sector:'', funcion:''};
+      renderPresencias();
+    }
+  });
   $('legajero-search').oninput = renderLegajero;
   $('legajero-sector').onchange = () => { updateLegajeroCargoCombo(); renderLegajero(); };
   $('legajero-cargo').onchange = renderLegajero;

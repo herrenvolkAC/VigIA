@@ -1,0 +1,14 @@
+{
+  "default": {
+    "inicio": "06:00",
+    "fin": "05:59",
+    "descripcion": "Jornada logistica general"
+  },
+  "CD-TRAFICO": {
+    "inicio": "16:00",
+    "fin": "15:59",
+    "lunes_inicio": "22:00",
+    "margen_ingreso_minutos": 30,
+    "descripcion": "Jornada logistica Trafico"
+  }
+}

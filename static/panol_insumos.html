@@ -926,7 +926,11 @@ function renderMyPedidos(){
   $('my-pedidos-count').textContent=myPedidoRows.length;
   const selected=$('pedido-sector')?.selectedOptions?.[0]?.textContent||'Sector seleccionado';
   $('pedido-history-scope').textContent=`Historial de ${selected}`;
-  $('my-pedidos-list').innerHTML=myPedidoRows.map(p=>`<div class="request-item"><div class="status-line"><strong>#${p.id} - ${esc(statusLabel(p.estado))}</strong><span class="state ${p.estado==='PENDIENTE'?'warn':''}">${esc(p.sector_codigo)}</span></div><span>${shortDate(p.fecha_solicitud)} - ${esc(p.observacion_solicitud||'Sin observacion')}</span><span>${(p.items||[]).map(i=>`${esc(i.codigo)} I:${fmt(i.cantidad_insumo_solicitada)} P:${fmt(i.cantidad_produccion_solicitada)}`).join(' | ')}</span></div>`).join('')||'<div class="detail-empty">Sin pedidos anteriores.</div>';
+  $('my-pedidos-list').innerHTML=myPedidoRows.map(p=>{
+    const pending=p.estado==='PENDIENTE';
+    const cancel=pending?`<div class="actions" style="margin-top:8px"><button class="btn danger" type="button" data-cancel-my-pedido="${p.id}">Cancelar pedido</button></div>`:'';
+    return `<div class="request-item"><div class="status-line"><strong>#${p.id} - ${esc(statusLabel(p.estado))}</strong><span class="state ${pending?'warn':''}">${esc(p.sector_codigo)}</span></div><span>${shortDate(p.fecha_solicitud)} - ${esc(p.observacion_solicitud||'Sin observacion')}</span><span>${(p.items||[]).map(i=>`${esc(i.codigo)} I:${fmt(i.cantidad_insumo_solicitada)} P:${fmt(i.cantidad_produccion_solicitada)}`).join(' | ')}</span>${cancel}</div>`;
+  }).join('')||'<div class="detail-empty">Sin pedidos anteriores.</div>';
 }
 function wasteReasonOptions(){return (ctx?.merma_motivos||[]).map(x=>`<option value="${esc(x.codigo)}">${esc(x.descripcion)}</option>`).join('')}
 function wasteArticleOptions(){
@@ -1037,7 +1041,7 @@ async function confirmPedido(id){
   await api(`/panol-insumos/api/pedidos/${id}/confirmar`,{method:'POST',body:JSON.stringify({observacion:$('confirm-obs').value,items})});
   selectedPendingPedido=null;await loadPendingPedidos();await loadPedidoCatalog();await loadMyPedidos();await loadWastes();await loadPedidoReceivedChart();if(canOperate()){await loadStock();await loadProduction();await loadPedidoIndicators();renderDashboardCharts();}setStatus('Pedido confirmado.');
 }
-async function cancelPedido(id){await api(`/panol-insumos/api/pedidos/${id}/cancelar`,{method:'POST',body:JSON.stringify({observacion:$('confirm-obs')?.value||'',items:[]})});selectedPendingPedido=null;await loadPendingPedidos();await loadMyPedidos();await loadWastes();await loadPedidoReceivedChart();await loadPedidoIndicators();setStatus('Pedido cancelado.');}
+async function cancelPedido(id, observacion=''){await api(`/panol-insumos/api/pedidos/${id}/cancelar`,{method:'POST',body:JSON.stringify({observacion:observacion||$('confirm-obs')?.value||'',items:[]})});selectedPendingPedido=null;await loadPendingPedidos();await loadMyPedidos();await loadWastes();await loadPedidoReceivedChart();await loadPedidoIndicators();setStatus('Pedido cancelado.');}
 async function loadIndicators(){const q=indicatorQuery().toString();indicatorData=await api(`/panol-insumos/api/indicadores${q?`?${q}`:''}`)||{}}
 async function loadMovements(){const q=indicatorQuery().toString();const d=await api(`/panol-insumos/api/movimientos${q?`?${q}`:''}`);movementRows=d.items||[];$('movements-body').innerHTML=movementRows.map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.codigo)}</td><td>${esc(r.tipo)}</td><td>${esc(r.origen_codigo||'-')}</td><td>${esc(r.destino_codigo||'-')}</td><td class="right">${fmt(r.cantidad)}</td><td>${esc(r.usuario||'')}</td><td>${esc(r.observacion||'')}</td></tr>`).join('')||'<tr><td colspan="8">Sin movimientos.</td></tr>'}
 function productionIndicatorQuery(){return indicatorQuery().toString()}
@@ -1125,6 +1129,7 @@ $('pedido-usage').onchange=()=>renderPedidoCatalog();
 $('pedido-catalog-body').oninput=ev=>{if(ev.target.matches('[data-pedido-insumo],[data-pedido-produccion]'))syncPedidoQuantities();};
 $('waste-form').onsubmit=e=>saveWaste(e).catch(err=>setStatus(err.message,true));
 $('pedido-sector').onchange=()=>Promise.all([loadMyPedidos(),loadWastes(),loadPedidoReceivedChart()]).catch(e=>setStatus(e.message,true));
+$('my-pedidos-list').onclick=ev=>{const b=ev.target.closest('[data-cancel-my-pedido]');if(!b)return;if(!confirm(`Cancelar pedido #${b.dataset.cancelMyPedido}?`))return;cancelPedido(b.dataset.cancelMyPedido,'Cancelado por el sector solicitante').catch(e=>setStatus(e.message,true));};
 $('user-sector-search').oninput=renderUserSectors;
 $('user-sector-toggle').onclick=()=>{const checks=[...document.querySelectorAll('[data-user-sector-check]')];const mark=checks.some(x=>!x.checked);checks.forEach(x=>x.checked=mark);$('user-sector-check-all').checked=mark;};
 $('user-sector-check-all').onchange=ev=>document.querySelectorAll('[data-user-sector-check]').forEach(x=>x.checked=ev.target.checked);

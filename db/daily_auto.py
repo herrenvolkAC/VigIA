@@ -1059,13 +1059,15 @@ async def save_picking_summary_cache(
         bultos = _row_float(row, "BULTOS_PICKING", _row_float(row, "BULTOS"))
         hs_picking = _row_float(row, "HS_PICKING")
         legajo = str(_row_value(row, "COPECREA") or _row_value(row, "LEGAJO") or "").strip()
+        cuenta_legajo = str(_row_value(row, "CUENTA_LEGAJO") or "SI").strip().upper() != "NO"
         bucket = grouped.setdefault(
             sector_oracle,
             {"bultos": 0.0, "hs_picking": 0.0, "legajos": set()},
         )
         bucket["bultos"] += bultos
-        bucket["hs_picking"] += hs_picking
-        if legajo:
+        if cuenta_legajo:
+            bucket["hs_picking"] += hs_picking
+        if legajo and cuenta_legajo:
             bucket["legajos"].add(legajo)
     valid_rows = [
         {

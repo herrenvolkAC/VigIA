@@ -280,7 +280,19 @@
       <section id="hist-panel-indicadores" class="hidden">
         <section class="analysis-kpis" id="hist-indicator-kpis"></section>
         <article class="chart-panel">
-          <div class="chart-title"><strong>Productividad grupal diaria</strong><span>Por division y filtros seleccionados</span></div>
+          <div class="chart-title">
+            <strong>Productividad grupal diaria</strong>
+            <span>
+              <select id="indicator-group" class="panel-toggle" onchange="setIndicatorGroup(this.value)">
+                <option value="day">Por dia</option>
+                <option value="week">Por semana</option>
+                <option value="month">Por mes</option>
+                <option value="year">Por año</option>
+              </select>
+              <button class="panel-toggle active" id="indicator-mode-hour" type="button" onclick="setIndicatorMode('hora')">Produccion x hora</button>
+              <button class="panel-toggle" id="indicator-mode-day" type="button" onclick="setIndicatorMode('jornada')">Produccion jornada</button>
+            </span>
+          </div>
           <div id="hist-productivity-lines"><div class="empty">Consulta el historico para ver indicadores.</div></div>
         </article>
       </section>
@@ -367,6 +379,8 @@
   let selectedEstrato = 'ALL';
   let historicTab = 'analisis';
   let heatmapMode = 'hora';
+  let indicatorMode = 'hora';
+  let indicatorGroup = 'day';
   let tableSorts = {
     sectorRanking: {key:'productividad_actual', dir:'desc'},
     legajoMain: {key:'cumplimiento_pct', dir:'asc'},
@@ -948,8 +962,8 @@
       let bv;
       if (String(key).startsWith('day:')) {
         const day = key.slice(4);
-        av = a.cells.get(day)?.cumplimiento_pct ?? -1;
-        bv = b.cells.get(day)?.cumplimiento_pct ?? -1;
+        av = a.cells.get(day) ? heatmapDisplayValue(a.cells.get(day)) : -1;
+        bv = b.cells.get(day) ? heatmapDisplayValue(b.cells.get(day)) : -1;
       } else {
         av = a[key] ?? '';
         bv = b[key] ?? '';
@@ -977,16 +991,22 @@
         });
       }
       const item = byLegajo.get(legajo);
-      if (!item.cells.has(day)) item.cells.set(day, {bultos:0, segundos:0, bultos_esperados:0, divisiones:new Set(), sectores:new Set()});
+      if (!item.cells.has(day)) item.cells.set(day, {bultos:0, segundos:0, bultos_esperados:0, divisiones:new Set(), sectores:new Set(), sectorRefs:new Map()});
       const cell = item.cells.get(day);
       const bultos = Number(row.bultos || 0);
       const segundos = Number(row.segundos || 0);
       const esperados = Number(row.bultos_esperados || 0);
+      const refKey = `${row.division || '-'}|${row.sector || '-'}`;
+      if (!cell.sectorRefs.has(refKey)) cell.sectorRefs.set(refKey, {division: row.division || '-', sector: row.sector || '-', bultos:0, segundos:0, bultos_esperados:0});
+      const sectorRef = cell.sectorRefs.get(refKey);
       cell.bultos += bultos;
       cell.segundos += segundos;
       cell.bultos_esperados += esperados;
       cell.divisiones.add(row.division);
       cell.sectores.add(row.sector);
+      sectorRef.bultos += bultos;
+      sectorRef.segundos += segundos;
+      sectorRef.bultos_esperados += esperados;
       item.total.bultos += bultos;
       item.total.segundos += segundos;
       item.total.bultos_esperados += esperados;
@@ -1016,20 +1036,36 @@
     return {days, rows, byDay, summary: finishHistoricItem(totals)};
   }
 
+  function heatmapSectorRefsText(cell) {
+    const refs = [...(cell?.sectorRefs || new Map()).values()];
+    if (!refs.length) return cell?.sectores_lista || '-';
+    return refs
+      .sort((a,b) => `${a.division}|${a.sector}`.localeCompare(`${b.division}|${b.sector}`, 'es'))
+      .map(ref => {
+        const hours = Number(ref.segundos || 0) / 3600;
+        const actual = hours > 0 ? Number(ref.bultos || 0) / hours : 0;
+        const expected = hours > 0 ? Number(ref.bultos_esperados || 0) / hours : 0;
+        return `${ref.division}/${ref.sector}: ${num(ref.bultos)} bultos, ${num(actual)} b/h, esp. ${num(expected)} b/h`;
+      })
+      .join(' | ');
+  }
+
   function cellTitle(row, day, cell) {
     if (!cell) return `${row.legajo} - ${day}: sin actividad`;
+    const jornadaEquivalente = Number(cell.productividad_actual || 0) * 6.5;
     return [
       `${row.legajo} - ${displayNombre(row.nombre)}`,
       day,
-      `Bultos: ${num(cell.bultos)}`,
+      `Produccion jornada real: ${num(cell.bultos)} bultos`,
       `Tiempo: ${num(cell.minutos)} min`,
       `Actual: ${num(cell.productividad_actual)} b/h`,
-      `Jornada 6.5 h: ${num(cell.productividad_actual * 6.5)} bultos`,
-      `Esperado: ${num(cell.productividad_esperada)} b/h`,
-      `Esperado jornada: ${num(cell.productividad_esperada * 6.5)} bultos`,
+      `Equivalente 6.5 h por ritmo: ${num(jornadaEquivalente)} bultos`,
+      `Esperado ponderado: ${num(cell.productividad_esperada)} b/h`,
+      `Esperado en tiempo real: ${num(cell.bultos_esperados)} bultos`,
       `Cumplimiento: ${pct(cell.cumplimiento_pct)}`,
       `Divisiones: ${cell.divisiones_lista || '-'}`,
       `Sectores: ${cell.sectores_lista || '-'}`,
+      `Referencia sector: ${heatmapSectorRefsText(cell)}`,
     ].join('\n');
   }
 
@@ -1041,13 +1077,15 @@
   }
 
   function heatmapDisplayValue(row) {
-    const current = Number(row?.productividad_actual || 0);
-    return heatmapMode === 'jornada' ? current * 6.5 : current;
+    return heatmapMode === 'jornada'
+      ? Number(row?.bultos || 0)
+      : Number(row?.productividad_actual || 0);
   }
 
   function heatmapExpectedValue(row) {
-    const expected = Number(row?.productividad_esperada || 0);
-    return heatmapMode === 'jornada' ? expected * 6.5 : expected;
+    return heatmapMode === 'jornada'
+      ? Number(row?.bultos_esperados || 0)
+      : Number(row?.productividad_esperada || 0);
   }
 
   function renderHistoricHeatmap() {
@@ -1066,8 +1104,8 @@
     }
     const above = heat.rows.filter(row => (row.cumplimiento_pct || 0) >= 95).length;
     const below = heat.rows.length - above;
-    const valueLabel = heatmapMode === 'jornada' ? 'Prom. jornada' : 'Promedio equipo';
-    const expectedLabel = heatmapMode === 'jornada' ? 'Esperado jornada' : 'Esperado ponderado';
+    const valueLabel = heatmapMode === 'jornada' ? 'Produccion real' : 'Promedio equipo';
+    const expectedLabel = heatmapMode === 'jornada' ? 'Esperado t. real' : 'Esperado ponderado';
     $('hist-heatmap-wrap').innerHTML = `
       <div class="heatmap-summary">
         <div class="heatmap-stat"><div class="heatmap-stat-label">${valueLabel}</div><div class="heatmap-stat-value">${num(heatmapDisplayValue(heat.summary))}</div></div>
@@ -1087,7 +1125,7 @@
       <div class="table-wrap">
         <table class="heatmap-table">
           <thead>
-            <tr>${heatmapTh('Legajo', 'legajo', 'hm-fixed hm-legajo')}${heatmapTh('Nombre', 'nombre', 'hm-fixed hm-name')}${heat.days.map(day => heatmapTh(dayLabel(day), `day:${day}`)).join('')}${heatmapTh('Prom.', 'cumplimiento_pct')}</tr>
+            <tr>${heatmapTh('Legajo', 'legajo', 'hm-fixed hm-legajo')}${heatmapTh('Nombre', 'nombre', 'hm-fixed hm-name')}${heat.days.map(day => heatmapTh(dayLabel(day), `day:${day}`)).join('')}${heatmapTh(heatmapMode === 'jornada' ? 'Total' : 'Prom.', heatmapMode === 'jornada' ? 'bultos' : 'cumplimiento_pct')}</tr>
           </thead>
           <tbody>
             ${heat.rows.map(row => `
@@ -1119,15 +1157,71 @@
     return ['#1F7A4D', '#0B5FAE', '#B25F00', '#C8102E', '#5C6773', '#6E56CF'][idx % 6];
   }
 
+  function setIndicatorMode(mode) {
+    indicatorMode = mode === 'jornada' ? 'jornada' : 'hora';
+    $('indicator-mode-hour')?.classList.toggle('active', indicatorMode === 'hora');
+    $('indicator-mode-day')?.classList.toggle('active', indicatorMode === 'jornada');
+    renderHistoricIndicators();
+  }
+
+  function setIndicatorGroup(group) {
+    indicatorGroup = ['day', 'week', 'month', 'year'].includes(group) ? group : 'day';
+    if ($('indicator-group')) $('indicator-group').value = indicatorGroup;
+    renderHistoricIndicators();
+  }
+
+  function indicatorDisplayValue(value) {
+    const current = Number(value || 0);
+    return current;
+  }
+
+  function isoWeekKey(day) {
+    const date = new Date(`${day}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return day || '';
+    const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = utc.getUTCDay() || 7;
+    utc.setUTCDate(utc.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+    const week = Math.ceil((((utc - yearStart) / 86400000) + 1) / 7);
+    return `${utc.getUTCFullYear()}-S${String(week).padStart(2, '0')}`;
+  }
+
+  function indicatorGroupKey(day) {
+    const text = String(day || '');
+    if (indicatorGroup === 'year') return text.slice(0, 4);
+    if (indicatorGroup === 'month') return text.slice(0, 7);
+    if (indicatorGroup === 'week') return isoWeekKey(text);
+    return text;
+  }
+
+  function indicatorGroupLabel(key) {
+    if (indicatorGroup === 'day') return String(key || '').slice(8, 10);
+    if (indicatorGroup === 'month') return String(key || '').slice(5, 7) + '/' + String(key || '').slice(2, 4);
+    return String(key || '');
+  }
+
+  function indicatorGroupTitle(key) {
+    if (indicatorGroup === 'day') return key;
+    if (indicatorGroup === 'week') return `Semana ${key}`;
+    if (indicatorGroup === 'month') return `Mes ${key}`;
+    if (indicatorGroup === 'year') return `Año ${key}`;
+    return key;
+  }
+
+  function indicatorGroupLabelText() {
+    return {day:'Dias', week:'Semanas', month:'Meses', year:'Años'}[indicatorGroup] || 'Periodos';
+  }
+
   function aggregateGroupProductivity() {
     const rows = historicDailyFiltered(true);
     const byKey = new Map();
     rows.forEach(row => {
       const day = row.dia_logistico || '';
+      const period = indicatorGroupKey(day);
       const division = row.division || 'SIN DIVISION';
-      if (!day) return;
-      const key = `${division}|${day}`;
-      if (!byKey.has(key)) byKey.set(key, {division, day, bultos:0, segundos:0});
+      if (!period) return;
+      const key = `${division}|${period}`;
+      if (!byKey.has(key)) byKey.set(key, {division, day: period, bultos:0, segundos:0});
       const item = byKey.get(key);
       item.bultos += Number(row.bultos || 0);
       item.segundos += Number(row.segundos || 0);
@@ -1140,7 +1234,11 @@
       points: days.map(day => {
         const item = byKey.get(`${division}|${day}`);
         const hours = Number(item?.segundos || 0) / 3600;
-        return {day, value: hours ? Number(item.bultos || 0) / hours : null, bultos: Number(item?.bultos || 0), horas: hours};
+        const hourlyValue = hours ? Number(item.bultos || 0) / hours : null;
+        const value = indicatorMode === 'jornada'
+          ? (item ? Number(item.bultos || 0) : null)
+          : hourlyValue;
+        return {day, value: value == null ? null : indicatorDisplayValue(value), rawValue: hourlyValue, bultos: Number(item?.bultos || 0), horas: hours};
       }),
     }));
     return {days, series};
@@ -1148,6 +1246,7 @@
 
   function renderLineChart(data) {
     const w = 1360, h = 270, left = 38, right = 8, top = 18, bottom = 42;
+    const unit = indicatorMode === 'jornada' ? 'bultos jornada' : 'b/h';
     const values = data.series.flatMap(s => s.points.map(p => p.value).filter(v => v != null));
     if (!data.days.length || !values.length) return '<div class="empty">Sin productividad grupal para los filtros seleccionados.</div>';
     const max = Math.max(...values, 1);
@@ -1160,12 +1259,12 @@
     const labels = data.days.map((day, idx) => {
       if (data.days.length > 18 && idx % Math.ceil(data.days.length / 12) !== 0 && idx !== data.days.length - 1) return '';
       const x = xFor(idx);
-      return `<line class="grid" x1="${x}" y1="${h-bottom}" x2="${x}" y2="${h-bottom+4}"></line><text class="axis-label" x="${Math.max(2, Math.min(x - 14, w - 48))}" y="${h-9}">${esc(day.slice(8,10))}</text>`;
+      return `<line class="grid" x1="${x}" y1="${h-bottom}" x2="${x}" y2="${h-bottom+4}"></line><text class="axis-label" x="${Math.max(2, Math.min(x - 22, w - 64))}" y="${h-9}">${esc(indicatorGroupLabel(day))}</text>`;
     }).join('');
     const lines = data.series.map(serie => {
       const pts = serie.points.map((p, idx) => p.value == null ? null : {x:xFor(idx), y:yFor(p.value), ...p}).filter(Boolean);
       const line = pts.length > 1 ? `<polyline points="${pts.map(p => `${p.x},${p.y}`).join(' ')}" stroke="${serie.color}"></polyline>` : '';
-      const dots = pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${serie.color}"><title>${esc(`${serie.division} ${p.day}: ${num(p.value)} b/h`)}</title></circle>`).join('');
+      const dots = pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${serie.color}"><title>${esc(`${serie.division} ${indicatorGroupTitle(p.day)}: ${num(p.value)} ${unit} | ${num(p.bultos)} bultos reales | ${num(p.rawValue)} b/h`)}</title></circle>`).join('');
       return `${line}${dots}`;
     }).join('');
     const legend = `<div class="chart-legend">${data.series.map(s => `<span><i class="legend-dot" style="background:${s.color}"></i>${esc(s.division)}</span>`).join('')}</div>`;
@@ -1182,6 +1281,9 @@
   }
 
   function renderHistoricIndicators() {
+    $('indicator-mode-hour')?.classList.toggle('active', indicatorMode === 'hora');
+    $('indicator-mode-day')?.classList.toggle('active', indicatorMode === 'jornada');
+    if ($('indicator-group')) $('indicator-group').value = indicatorGroup;
     if (!historicDashboard) {
       $('hist-indicator-kpis').innerHTML = '';
       $('hist-productivity-lines').innerHTML = '<div class="empty">Consulta el historico para ver indicadores.</div>';
@@ -1190,11 +1292,13 @@
     const data = aggregateGroupProductivity();
     const values = data.series.flatMap(s => s.points.map(p => p.value).filter(v => v != null));
     const avg = values.length ? values.reduce((a,b) => a + b, 0) / values.length : 0;
+    const metricLabel = indicatorMode === 'jornada' ? 'Prom. bultos' : 'Promedio b/h';
+    const maxLabel = indicatorMode === 'jornada' ? 'Max bultos' : 'Max b/h';
     $('hist-indicator-kpis').innerHTML = `
-      <div class="analysis-kpi"><div class="analysis-kpi-label">Dias</div><div class="analysis-kpi-value">${num(data.days.length)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">${indicatorGroupLabelText()}</div><div class="analysis-kpi-value">${num(data.days.length)}</div></div>
       <div class="analysis-kpi"><div class="analysis-kpi-label">Divisiones</div><div class="analysis-kpi-value">${num(data.series.length)}</div></div>
-      <div class="analysis-kpi"><div class="analysis-kpi-label">Promedio b/h</div><div class="analysis-kpi-value">${num(avg)}</div></div>
-      <div class="analysis-kpi"><div class="analysis-kpi-label">Max b/h</div><div class="analysis-kpi-value">${num(Math.max(0, ...values))}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">${metricLabel}</div><div class="analysis-kpi-value">${num(avg)}</div></div>
+      <div class="analysis-kpi"><div class="analysis-kpi-label">${maxLabel}</div><div class="analysis-kpi-value">${num(Math.max(0, ...values))}</div></div>
       <div class="analysis-kpi"><div class="analysis-kpi-label">Sectores filtro</div><div class="analysis-kpi-value">${selectedMultiValues('hist-sector-options').length || 'Todos'}</div></div>`;
     $('hist-productivity-lines').innerHTML = renderLineChart(data);
   }
