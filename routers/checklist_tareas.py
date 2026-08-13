@@ -1,12 +1,15 @@
 """API del modulo CheckList Tareas."""
 from __future__ import annotations
 
+import io
 import json
 from datetime import date, datetime, timedelta
 from typing import Any, Literal
 
 import aiosqlite
+import xlsxwriter
 from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from db.auth import auth_db
@@ -101,7 +104,9 @@ async def _require_user(request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=403, detail="Dispositivo no aprobado.")
     if not await user_has_module_access(auth, "checklist_tareas"):
         raise HTTPException(status_code=403, detail="Sin acceso a CheckList Tareas.")
-    if auth.get("role") == "admin":
+    role = str(auth.get("role") or "").strip().lower()
+    auth["role"] = role
+    if role == "admin":
         auth["checklist_profile"] = "ADMIN_GLOBAL"
     else:
         async with auth_db() as db:
@@ -114,13 +119,20 @@ async def _require_user(request: Request) -> dict[str, Any]:
                 """,
                 (auth["username"],),
             )
-        auth["checklist_profile"] = (access or {}).get("profile") or "OPERADOR"
+        auth["checklist_profile"] = str((access or {}).get("profile") or "OPERADOR").strip().upper()
     return auth
+
+
+def _can_manage(auth: dict[str, Any]) -> bool:
+    return (
+        str(auth.get("role") or "").strip().lower() == "admin"
+        or str(auth.get("checklist_profile") or "").strip().upper() == "ADMIN_SECTOR"
+    )
 
 
 async def _require_admin(request: Request) -> dict[str, Any]:
     auth = await _require_user(request)
-    if auth.get("role") != "admin" and auth.get("checklist_profile") != "ADMIN_SECTOR":
+    if not _can_manage(auth):
         raise HTTPException(status_code=403, detail="Requiere ADMIN_SECTOR o administrador global.")
     return auth
 
@@ -394,7 +406,8 @@ async def context(request: Request):
         user["shift"] = metadata.get("shift")
     return {
         "user": {"username": auth["username"], "display_name": auth.get("display_name"), "role": auth.get("role")},
-        "is_admin": auth.get("role") == "admin" or auth.get("checklist_profile") == "ADMIN_SECTOR",
+        "is_admin": _can_manage(auth),
+        "permissions": {"manage_catalog": _can_manage(auth)},
         "checklist_profile": auth.get("checklist_profile"),
         "sectors": sectors,
         "users": users,
@@ -834,6 +847,167 @@ async def catalog(request: Request):
     return {"sector": sector, "tasks": tasks, "assignments": assignments}
 
 
+def _export_schedule_text(item: dict[str, Any]) -> str:
+    kind = item.get("schedule_type")
+    if kind == "weekly":
+        try:
+            days = json.loads(item.get("weekdays_json") or "[]")
+        except json.JSONDecodeError:
+            days = []
+        labels = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+        return ", ".join(labels[int(day)] for day in days if 0 <= int(day) < len(labels))
+    if kind == "specific_date":
+        return item.get("specific_date") or ""
+    if kind == "monthly_day":
+        return f"Día {item.get('monthly_day')}"
+    return "Sin frecuencia"
+
+
+@router.get("/catalog/export.xlsx")
+async def export_catalog_xlsx(request: Request):
+    await _require_admin(request)
+    shift_map = await _operator_shift_map()
+    async with checklist_db() as db:
+        sector = await _sector(db)
+        tasks = await _fetch_all(
+            db,
+            """
+            SELECT t.*, SUM(CASE WHEN a.active=1 THEN 1 ELSE 0 END) assignment_count,
+                   COUNT(a.assignment_id) assignment_count_total
+            FROM checklist_task t
+            LEFT JOIN checklist_assignment a ON a.task_id=t.task_id
+            GROUP BY t.task_id ORDER BY t.title
+            """,
+        )
+        assignments = await _fetch_all(
+            db,
+            """
+            SELECT a.*, t.code task_code, t.title task_title,
+                   t.duration_minutes task_duration_minutes,
+                   s.schedule_type, s.weekdays_json, s.specific_date, s.monthly_day
+            FROM checklist_assignment a
+            JOIN checklist_task t ON t.task_id=a.task_id
+            LEFT JOIN checklist_schedule s ON s.assignment_id=a.assignment_id
+            WHERE a.sector_id=?
+            ORDER BY t.title, a.username, a.assignment_id
+            """,
+            (sector["sector_id"],),
+        )
+
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+    workbook.set_properties(
+        {
+            "title": "CheckList Tareas - Catálogo y asignaciones",
+            "subject": f"Sector {sector['name']}",
+            "company": "Coto C.I.C.S.A.",
+            "comments": "Exportado desde VigIA",
+        }
+    )
+    title_format = workbook.add_format(
+        {"bold": True, "font_color": "#FFFFFF", "bg_color": "#0E1620", "font_size": 14}
+    )
+    note_format = workbook.add_format({"font_color": "#5C6773", "italic": True})
+    header_format = workbook.add_format(
+        {"bold": True, "font_color": "#FFFFFF", "bg_color": "#1F7A4D", "border": 0}
+    )
+    inactive_format = workbook.add_format({"font_color": "#8A3038", "bg_color": "#F7D7DA"})
+    wrap_format = workbook.add_format({"text_wrap": True, "valign": "top"})
+
+    task_sheet = workbook.add_worksheet("Tareas")
+    task_sheet.hide_gridlines(2)
+    task_sheet.freeze_panes(3, 0)
+    task_sheet.merge_range("A1:G1", "Maestro de tareas", title_format)
+    task_sheet.merge_range("A2:G2", f"Sector: {sector['name']} · Exportado: {datetime.now().strftime('%d/%m/%Y %H:%M')}", note_format)
+    task_headers = [
+        "Código", "Tarea", "Descripción", "Minutos", "Estado",
+        "Asignaciones activas", "Asignaciones totales",
+    ]
+    task_rows = [
+        [
+            row["code"], row["title"], row.get("description") or "",
+            row.get("duration_minutes"), "Activa" if row["active"] else "Inactiva",
+            int(row.get("assignment_count") or 0), int(row.get("assignment_count_total") or 0),
+        ]
+        for row in tasks
+    ]
+    task_sheet.write_row(2, 0, task_headers, header_format)
+    for row_index, values in enumerate(task_rows, 3):
+        task_sheet.write_row(row_index, 0, values)
+        wrapped_lines = max(
+            1,
+            (len(str(values[1])) + 54) // 55,
+            (len(str(values[2])) + 47) // 48,
+        )
+        task_sheet.set_row(row_index, min(105, max(24, wrapped_lines * 16)))
+    task_sheet.add_table(2, 0, 2 + len(task_rows), len(task_headers) - 1, {
+        "name": "TablaTareas",
+        "style": "Table Style Medium 4",
+        "columns": [{"header": header} for header in task_headers],
+    })
+    task_sheet.set_column("A:A", 14)
+    task_sheet.set_column("B:B", 55, wrap_format)
+    task_sheet.set_column("C:C", 48, wrap_format)
+    task_sheet.set_column("D:D", 11)
+    task_sheet.set_column("E:E", 12)
+    task_sheet.set_column("F:G", 20)
+    task_sheet.conditional_format(3, 4, 2 + len(task_rows), 4, {
+        "type": "text", "criteria": "containing", "value": "Inactiva", "format": inactive_format,
+    })
+
+    assignment_sheet = workbook.add_worksheet("Asignaciones")
+    assignment_sheet.hide_gridlines(2)
+    assignment_sheet.freeze_panes(3, 0)
+    assignment_sheet.merge_range("A1:J1", "Asignaciones de tareas", title_format)
+    assignment_sheet.merge_range("A2:J2", f"Sector: {sector['name']} · Incluye activas e inactivas", note_format)
+    assignment_headers = [
+        "ID asignación", "Código", "Tarea maestra", "Detalle particular", "Usuario",
+        "Turno", "Minutos heredados", "Frecuencia", "Permite atraso", "Estado",
+    ]
+    assignment_rows = [
+        [
+            int(row["assignment_id"]), row["task_code"], row["task_title"],
+            row.get("instructions_override") or "", row["username"],
+            shift_map.get(row["username"]) or "Sin turno", row.get("task_duration_minutes"),
+            _export_schedule_text(row), "Sí" if row.get("allow_delay") else "No",
+            "Activa" if row["active"] else "Inactiva",
+        ]
+        for row in assignments
+    ]
+    assignment_sheet.write_row(2, 0, assignment_headers, header_format)
+    for row_index, values in enumerate(assignment_rows, 3):
+        assignment_sheet.write_row(row_index, 0, values)
+        wrapped_lines = max(
+            1,
+            (len(str(values[2])) + 49) // 50,
+            (len(str(values[3])) + 41) // 42,
+        )
+        assignment_sheet.set_row(row_index, min(105, max(24, wrapped_lines * 16)))
+    assignment_sheet.add_table(2, 0, 2 + len(assignment_rows), len(assignment_headers) - 1, {
+        "name": "TablaAsignaciones",
+        "style": "Table Style Medium 4",
+        "columns": [{"header": header} for header in assignment_headers],
+    })
+    assignment_sheet.set_column("A:B", 15)
+    assignment_sheet.set_column("C:C", 52, wrap_format)
+    assignment_sheet.set_column("D:D", 45, wrap_format)
+    assignment_sheet.set_column("E:F", 16)
+    assignment_sheet.set_column("G:G", 19)
+    assignment_sheet.set_column("H:H", 42)
+    assignment_sheet.set_column("I:J", 15)
+    assignment_sheet.conditional_format(3, 9, 2 + len(assignment_rows), 9, {
+        "type": "text", "criteria": "containing", "value": "Inactiva", "format": inactive_format,
+    })
+    workbook.close()
+    output.seek(0)
+    filename = f"checklist_tareas_{date.today().strftime('%Y%m%d')}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.post("/admin/tasks")
 async def create_task(req: TaskRequest, request: Request):
     auth = await _require_admin(request)
@@ -867,14 +1041,45 @@ async def update_task(task_id: int, req: TaskRequest, request: Request):
         before = await _fetch_one(db, "SELECT * FROM checklist_task WHERE task_id = ?", (task_id,))
         if not before:
             raise HTTPException(status_code=404, detail="Tarea no encontrada.")
+        timestamp = now_iso()
+        assignments_deactivated: list[dict[str, Any]] = []
+        if bool(before["active"]) and not req.active:
+            assignments_deactivated = await _fetch_all(
+                db,
+                "SELECT assignment_id, username, active FROM checklist_assignment WHERE task_id=? AND active=1",
+                (task_id,),
+            )
+            await db.execute(
+                "UPDATE checklist_assignment SET active=0, updated_at=? WHERE task_id=? AND active=1",
+                (timestamp, task_id),
+            )
         await db.execute(
             "UPDATE checklist_task SET title=?, description=?, duration_minutes=?, active=?, updated_at=? WHERE task_id=?",
-            (title, _clean(req.description), req.duration_minutes, int(req.active), now_iso(), task_id),
+            (title, _clean(req.description), req.duration_minutes, int(req.active), timestamp, task_id),
         )
         after = await _fetch_one(db, "SELECT * FROM checklist_task WHERE task_id = ?", (task_id,))
         await _audit(db, sector_id=sector["sector_id"], actor=auth["username"], action="update", entity_type="task", entity_id=task_id, before=before, after=after)
+        if assignments_deactivated:
+            await _audit(
+                db,
+                sector_id=sector["sector_id"],
+                actor=auth["username"],
+                action="deactivate_by_task",
+                entity_type="assignment_batch",
+                entity_id=task_id,
+                before=assignments_deactivated,
+                after={
+                    "task_id": task_id,
+                    "active": 0,
+                    "assignment_ids": [row["assignment_id"] for row in assignments_deactivated],
+                },
+            )
         await db.commit()
-    return {"ok": True, "task": after}
+    return {
+        "ok": True,
+        "task": after,
+        "assignments_deactivated": len(assignments_deactivated),
+    }
 
 
 async def _write_schedule(db: aiosqlite.Connection, assignment_id: int, schedule: ScheduleRequest) -> None:

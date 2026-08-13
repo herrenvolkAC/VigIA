@@ -35,6 +35,7 @@ from db.auth import attach_auth_db, auth_db
 from db.casos import PERFILES, init_cases_db
 from db.schema import DB_PATH
 from routers.auth_local import current_auth
+from utils.usage_log import write_usage_event
 
 router = APIRouter(prefix="/api/casos", tags=["casos"])
 logger = logging.getLogger("vigia.casos")
@@ -45,6 +46,8 @@ except ZoneInfoNotFoundError:
     CASES_TZ = timezone(timedelta(hours=-3))
 ATTACHMENTS_DIR = Path(os.getenv("VIGIA_CASOS_ATTACHMENTS_DIR", Path(__file__).parent.parent / "resources" / "casos_adjuntos"))
 FORMS_ATTACHMENT_ERROR_PREFIX = "No se pudieron adjuntar fotos Forms:"
+SQLITE_BUSY_TIMEOUT_SECONDS = int(os.getenv("VIGIA_SQLITE_BUSY_TIMEOUT_SECONDS", "60") or "60")
+SQLITE_BUSY_TIMEOUT_MS = SQLITE_BUSY_TIMEOUT_SECONDS * 1000
 JAVA_HELPER_SRC = Path(__file__).parent.parent / "scripts" / "OracleProductividadQuery.java"
 JAVA_BUILD_DIR = Path(__file__).parent.parent / ".codex_tmp" / "java_build"
 RACK_PARAM_TABLES = {"rack_zona", "rack_cara", "rack_nivel", "rack_sector", "rack_descripcion", "rack_tipo"}
@@ -197,6 +200,13 @@ async def _fetch_one(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] =
 async def _fetch_all(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
     async with db.execute(sql, args) as cur:
         return [dict(row) for row in await cur.fetchall()]
+
+
+async def _connect_operational_db() -> aiosqlite.Connection:
+    db = await aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS)
+    db.row_factory = aiosqlite.Row
+    await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
+    return db
 
 
 async def _tipo_id(db: aiosqlite.Connection, codigo: str = "REPARACION_RACK") -> int:
@@ -1518,6 +1528,7 @@ async def _attach_forms_files(
                 continue
             content, original, mime = await _resolve_forms_attachment_bytes(item, source_file)
             await _guardar_adjunto_bytes(db, ticket_id, codigo_visible, auth, "FORMS", original, mime, content)
+            await db.commit()
         except Exception as exc:
             failures.append(f"{name}: {exc}")
     current_attachments = await _fetch_all(
@@ -1526,6 +1537,7 @@ async def _attach_forms_files(
         (ticket_id,),
     )
     if not failures:
+        await db.commit()
         await _clear_resolved_forms_attachment_errors(db, ticket_id, payload, current_attachments)
         return failures
     if failures:
@@ -1549,33 +1561,40 @@ async def _import_forms_graph() -> dict[str, Any]:
     token = await asyncio.to_thread(_graph_token, values)
     files = await asyncio.to_thread(_graph_list_forms_files, values, token)
     results = []
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA busy_timeout = 10000")
-        db.row_factory = aiosqlite.Row
-        for item in files:
-            source_file = f"graph://{values['drive_id']}/{values['folder_path']}/{item.get('name')}"
+    for item in files:
+        source_file = f"graph://{values['drive_id']}/{values['folder_path']}/{item.get('name')}"
+        try:
+            text = await asyncio.to_thread(_graph_download_text, values, token, str(item["id"]))
+            payload = json.loads(text)
+        except Exception as exc:
+            payload = {
+                "source": "microsoft_forms",
+                "form": "service_racks",
+                "response_id": str(item.get("id") or item.get("name") or secrets.token_hex(8)),
+                "raw_response": {},
+            }
+            db = await _connect_operational_db()
             try:
-                text = await asyncio.to_thread(_graph_download_text, values, token, str(item["id"]))
-                payload = json.loads(text)
-            except Exception as exc:
-                payload = {
-                    "source": "microsoft_forms",
-                    "form": "service_racks",
-                    "response_id": str(item.get("id") or item.get("name") or secrets.token_hex(8)),
-                    "raw_response": {},
-                }
                 ingreso_id, inserted = await _upsert_forms_payload(db, payload, source_file)
                 await db.execute(
                     "UPDATE ticket_forms_ingreso SET estado_importacion='ERROR_TECNICO', motivo_error=?, updated_at=? WHERE id=?",
                     (f"JSON OneDrive invalido: {exc}", _now(), ingreso_id),
                 )
-                results.append({"file": source_file, "inserted": inserted, "estado": "ERROR_TECNICO", "error": str(exc)})
-                continue
+                await db.commit()
+            finally:
+                await db.close()
+            logger.exception("Forms Service Racks: JSON OneDrive invalido en %s.", source_file)
+            results.append({"file": source_file, "inserted": inserted, "estado": "ERROR_TECNICO", "error": str(exc)})
+            continue
+        db = await _connect_operational_db()
+        try:
             ingreso_id, inserted = await _upsert_forms_payload(db, payload, source_file)
             result = await _process_forms_ingreso(db, ingreso_id)
             result.update({"file": source_file, "inserted": inserted})
-            results.append(result)
-        await db.commit()
+            await db.commit()
+        finally:
+            await db.close()
+        results.append(result)
     return {"ok": True, "source": "graph", "folder": values["folder_path"], "count": len(results), "results": results}
 
 
@@ -1589,34 +1608,43 @@ async def _import_forms_files(raise_missing: bool = True) -> dict[str, Any]:
         return {"ok": True, "folder": str(folder), "count": 0, "results": [], "missing": True}
     files = sorted(folder.glob("*.json"), key=lambda p: p.stat().st_mtime)
     results = []
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA busy_timeout = 10000")
-        db.row_factory = aiosqlite.Row
-        for path in files:
+    for path in files:
+        try:
+            payload = await asyncio.to_thread(_read_forms_json_file, path)
+        except OSError as exc:
+            logger.warning("Forms Service Racks: archivo no disponible %s: %s", path, exc)
+            results.append({"file": str(path), "inserted": False, "estado": "NO_DISPONIBLE", "error": str(exc)})
+            continue
+        except Exception as exc:
+            payload = {
+                "source": "microsoft_forms",
+                "form": "service_racks",
+                "response_id": path.stem,
+                "raw_response": {},
+            }
+            db = await _connect_operational_db()
             try:
-                payload = await asyncio.to_thread(_read_forms_json_file, path)
-            except OSError as exc:
-                results.append({"file": str(path), "inserted": False, "estado": "NO_DISPONIBLE", "error": str(exc)})
-                continue
-            except Exception as exc:
-                payload = {
-                    "source": "microsoft_forms",
-                    "form": "service_racks",
-                    "response_id": path.stem,
-                    "raw_response": {},
-                }
                 ingreso_id, inserted = await _upsert_forms_payload(db, payload, str(path))
                 await db.execute(
                     "UPDATE ticket_forms_ingreso SET estado_importacion='ERROR_TECNICO', motivo_error=?, updated_at=? WHERE id=?",
                     (f"JSON invalido: {exc}", _now(), ingreso_id),
                 )
-                results.append({"file": str(path), "inserted": inserted, "estado": "ERROR_TECNICO", "error": str(exc)})
-                continue
+                await db.commit()
+            finally:
+                await db.close()
+            logger.exception("Forms Service Racks: JSON invalido en %s.", path)
+            results.append({"file": str(path), "inserted": inserted, "estado": "ERROR_TECNICO", "error": str(exc)})
+            continue
+        db = await _connect_operational_db()
+        try:
             ingreso_id, inserted = await _upsert_forms_payload(db, payload, str(path))
+            await db.commit()
             result = await _process_forms_ingreso(db, ingreso_id)
             result.update({"file": str(path), "inserted": inserted})
-            results.append(result)
-        await db.commit()
+            await db.commit()
+        finally:
+            await db.close()
+        results.append(result)
     return {"ok": True, "folder": str(folder), "count": len(results), "results": results}
 
 
@@ -1631,7 +1659,15 @@ async def _forms_import_loop() -> None:
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            logger.warning("No se pudo importar Forms Service Racks: %s", exc)
+            logger.exception("No se pudo importar Forms Service Racks.")
+            write_usage_event(
+                username="sistema",
+                ip="servidor",
+                module="casos",
+                action="forms_import_error",
+                action_text=f"No se pudo importar Forms Service Racks: {exc}",
+                attention=True,
+            )
         await asyncio.sleep(interval)
 
 

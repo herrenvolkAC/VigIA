@@ -1447,8 +1447,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 175.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -1466,9 +1466,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 175.0,
+      "hasta_hora_bultos": 196.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -1486,9 +1486,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 196.0,
+      "hasta_hora_bultos": 223.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -1506,9 +1506,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 223.0,
+      "hasta_hora_bultos": 249.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -1526,9 +1526,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 249.0,
+      "hasta_hora_bultos": 275.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -1546,9 +1546,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 275.0,
+      "hasta_hora_bultos": 319.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -1566,9 +1566,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 319.0,
+      "hasta_hora_bultos": 394.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -1586,9 +1586,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 395.0,
+      "hasta_hora_bultos": 175385.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -1607,8 +1607,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 143.0,
+      "equivalencia": 0.93,
       "unidad_umbral": "sector"
     },
     {
@@ -1626,9 +1626,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 143.0,
+      "hasta_hora_bultos": 160.0,
+      "equivalencia": 0.93,
       "unidad_umbral": "sector"
     },
     {
@@ -1646,9 +1646,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 160.0,
+      "hasta_hora_bultos": 182.0,
+      "equivalencia": 0.93,
       "unidad_umbral": "sector"
     },
     {
@@ -1666,9 +1666,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 182.0,
+      "hasta_hora_bultos": 203.0,
+      "equivalencia": 0.93,
       "unidad_umbral": "sector"
     },
     {
@@ -1686,9 +1686,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 203.0,
+      "hasta_hora_bultos": 224.0,
+      "equivalencia": 0.93,
       "unidad_umbral": "sector"
     },
     {
@@ -1706,9 +1706,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 225.0,
+      "hasta_hora_bultos": 260.0,
+      "equivalencia": 0.93,
       "unidad_umbral": "sector"
     },
     {
@@ -1726,9 +1726,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 260.0,
+      "hasta_hora_bultos": 322.0,
+      "equivalencia": 0.93,
       "unidad_umbral": "sector"
     },
     {
@@ -1746,9 +1746,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 322.0,
+      "hasta_hora_bultos": 143077.0,
+      "equivalencia": 0.93,
       "unidad_umbral": "sector"
     },
     {
@@ -1767,8 +1767,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 124.0,
+      "equivalencia": 0.81,
       "unidad_umbral": "sector"
     },
     {
@@ -1786,9 +1786,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 125.0,
+      "hasta_hora_bultos": 139.0,
+      "equivalencia": 0.81,
       "unidad_umbral": "sector"
     },
     {
@@ -1806,9 +1806,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 140.0,
+      "hasta_hora_bultos": 158.0,
+      "equivalencia": 0.81,
       "unidad_umbral": "sector"
     },
     {
@@ -1826,9 +1826,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 158.0,
+      "hasta_hora_bultos": 177.0,
+      "equivalencia": 0.81,
       "unidad_umbral": "sector"
     },
     {
@@ -1846,9 +1846,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 177.0,
+      "hasta_hora_bultos": 196.0,
+      "equivalencia": 0.81,
       "unidad_umbral": "sector"
     },
     {
@@ -1866,9 +1866,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 196.0,
+      "hasta_hora_bultos": 227.0,
+      "equivalencia": 0.81,
       "unidad_umbral": "sector"
     },
     {
@@ -1886,9 +1886,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 227.0,
+      "hasta_hora_bultos": 280.0,
+      "equivalencia": 0.81,
       "unidad_umbral": "sector"
     },
     {
@@ -1906,9 +1906,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 280.0,
+      "hasta_hora_bultos": 124615.0,
+      "equivalencia": 0.81,
       "unidad_umbral": "sector"
     },
     {
@@ -1928,7 +1928,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -1948,7 +1948,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -1968,7 +1968,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -1988,7 +1988,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2008,7 +2008,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2028,7 +2028,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2048,7 +2048,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2068,7 +2068,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2088,7 +2088,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2108,7 +2108,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2128,7 +2128,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2148,7 +2148,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2168,7 +2168,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2188,7 +2188,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2208,7 +2208,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2228,7 +2228,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2248,7 +2248,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2268,7 +2268,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2288,7 +2288,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2308,7 +2308,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2328,7 +2328,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2348,7 +2348,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2368,7 +2368,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2388,7 +2388,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -2407,8 +2407,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 129.0,
+      "equivalencia": 0.84,
       "unidad_umbral": "sector"
     },
     {
@@ -2426,9 +2426,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 129.0,
+      "hasta_hora_bultos": 145.0,
+      "equivalencia": 0.84,
       "unidad_umbral": "sector"
     },
     {
@@ -2446,9 +2446,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 145.0,
+      "hasta_hora_bultos": 164.0,
+      "equivalencia": 0.84,
       "unidad_umbral": "sector"
     },
     {
@@ -2466,9 +2466,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 164.0,
+      "hasta_hora_bultos": 183.0,
+      "equivalencia": 0.84,
       "unidad_umbral": "sector"
     },
     {
@@ -2486,9 +2486,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 184.0,
+      "hasta_hora_bultos": 203.0,
+      "equivalencia": 0.84,
       "unidad_umbral": "sector"
     },
     {
@@ -2506,9 +2506,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 203.0,
+      "hasta_hora_bultos": 235.0,
+      "equivalencia": 0.84,
       "unidad_umbral": "sector"
     },
     {
@@ -2526,9 +2526,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 235.0,
+      "hasta_hora_bultos": 291.0,
+      "equivalencia": 0.84,
       "unidad_umbral": "sector"
     },
     {
@@ -2546,9 +2546,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 291.0,
+      "hasta_hora_bultos": 129231.0,
+      "equivalencia": 0.84,
       "unidad_umbral": "sector"
     },
     {
@@ -2567,8 +2567,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 131.0,
+      "equivalencia": 0.85,
       "unidad_umbral": "sector"
     },
     {
@@ -2586,9 +2586,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 131.0,
+      "hasta_hora_bultos": 146.0,
+      "equivalencia": 0.85,
       "unidad_umbral": "sector"
     },
     {
@@ -2606,9 +2606,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 146.0,
+      "hasta_hora_bultos": 166.0,
+      "equivalencia": 0.85,
       "unidad_umbral": "sector"
     },
     {
@@ -2626,9 +2626,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 166.0,
+      "hasta_hora_bultos": 186.0,
+      "equivalencia": 0.85,
       "unidad_umbral": "sector"
     },
     {
@@ -2646,9 +2646,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 186.0,
+      "hasta_hora_bultos": 205.0,
+      "equivalencia": 0.85,
       "unidad_umbral": "sector"
     },
     {
@@ -2666,9 +2666,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 205.0,
+      "hasta_hora_bultos": 238.0,
+      "equivalencia": 0.85,
       "unidad_umbral": "sector"
     },
     {
@@ -2686,9 +2686,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 238.0,
+      "hasta_hora_bultos": 294.0,
+      "equivalencia": 0.85,
       "unidad_umbral": "sector"
     },
     {
@@ -2706,9 +2706,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 294.0,
+      "hasta_hora_bultos": 130769.0,
+      "equivalencia": 0.85,
       "unidad_umbral": "sector"
     },
     {
@@ -2727,8 +2727,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 175.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -2746,9 +2746,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 175.0,
+      "hasta_hora_bultos": 196.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -2766,9 +2766,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 196.0,
+      "hasta_hora_bultos": 223.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -2786,9 +2786,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 223.0,
+      "hasta_hora_bultos": 249.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -2806,9 +2806,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 249.0,
+      "hasta_hora_bultos": 275.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -2826,9 +2826,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 275.0,
+      "hasta_hora_bultos": 319.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -2846,9 +2846,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 319.0,
+      "hasta_hora_bultos": 394.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -2866,9 +2866,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 395.0,
+      "hasta_hora_bultos": 175385.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -2887,8 +2887,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 132.0,
+      "equivalencia": 0.86,
       "unidad_umbral": "sector"
     },
     {
@@ -2906,9 +2906,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 132.0,
+      "hasta_hora_bultos": 148.0,
+      "equivalencia": 0.86,
       "unidad_umbral": "sector"
     },
     {
@@ -2926,9 +2926,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 148.0,
+      "hasta_hora_bultos": 168.0,
+      "equivalencia": 0.86,
       "unidad_umbral": "sector"
     },
     {
@@ -2946,9 +2946,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 168.0,
+      "hasta_hora_bultos": 188.0,
+      "equivalencia": 0.86,
       "unidad_umbral": "sector"
     },
     {
@@ -2966,9 +2966,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 188.0,
+      "hasta_hora_bultos": 208.0,
+      "equivalencia": 0.86,
       "unidad_umbral": "sector"
     },
     {
@@ -2986,9 +2986,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 208.0,
+      "hasta_hora_bultos": 241.0,
+      "equivalencia": 0.86,
       "unidad_umbral": "sector"
     },
     {
@@ -3006,9 +3006,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 241.0,
+      "hasta_hora_bultos": 298.0,
+      "equivalencia": 0.86,
       "unidad_umbral": "sector"
     },
     {
@@ -3026,9 +3026,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 298.0,
+      "hasta_hora_bultos": 132308.0,
+      "equivalencia": 0.86,
       "unidad_umbral": "sector"
     },
     {
@@ -3047,8 +3047,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 175.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -3066,9 +3066,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 175.0,
+      "hasta_hora_bultos": 196.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -3086,9 +3086,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 196.0,
+      "hasta_hora_bultos": 223.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -3106,9 +3106,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 223.0,
+      "hasta_hora_bultos": 249.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -3126,9 +3126,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 249.0,
+      "hasta_hora_bultos": 275.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -3146,9 +3146,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 275.0,
+      "hasta_hora_bultos": 319.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -3166,9 +3166,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 319.0,
+      "hasta_hora_bultos": 394.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -3186,9 +3186,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 395.0,
+      "hasta_hora_bultos": 175385.0,
+      "equivalencia": 1.14,
       "unidad_umbral": "sector"
     },
     {
@@ -3207,8 +3207,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 177.0,
+      "equivalencia": 1.15,
       "unidad_umbral": "sector"
     },
     {
@@ -3226,9 +3226,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 177.0,
+      "hasta_hora_bultos": 198.0,
+      "equivalencia": 1.15,
       "unidad_umbral": "sector"
     },
     {
@@ -3246,9 +3246,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 198.0,
+      "hasta_hora_bultos": 225.0,
+      "equivalencia": 1.15,
       "unidad_umbral": "sector"
     },
     {
@@ -3266,9 +3266,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 225.0,
+      "hasta_hora_bultos": 251.0,
+      "equivalencia": 1.15,
       "unidad_umbral": "sector"
     },
     {
@@ -3286,9 +3286,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 251.0,
+      "hasta_hora_bultos": 278.0,
+      "equivalencia": 1.15,
       "unidad_umbral": "sector"
     },
     {
@@ -3306,9 +3306,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 278.0,
+      "hasta_hora_bultos": 322.0,
+      "equivalencia": 1.15,
       "unidad_umbral": "sector"
     },
     {
@@ -3326,9 +3326,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 322.0,
+      "hasta_hora_bultos": 398.0,
+      "equivalencia": 1.15,
       "unidad_umbral": "sector"
     },
     {
@@ -3346,9 +3346,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 398.0,
+      "hasta_hora_bultos": 176923.0,
+      "equivalencia": 1.15,
       "unidad_umbral": "sector"
     },
     {
@@ -3367,8 +3367,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 155.0,
+      "equivalencia": 1.01,
       "unidad_umbral": "sector"
     },
     {
@@ -3386,9 +3386,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 155.0,
+      "hasta_hora_bultos": 174.0,
+      "equivalencia": 1.01,
       "unidad_umbral": "sector"
     },
     {
@@ -3406,9 +3406,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 174.0,
+      "hasta_hora_bultos": 197.0,
+      "equivalencia": 1.01,
       "unidad_umbral": "sector"
     },
     {
@@ -3426,9 +3426,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 197.0,
+      "hasta_hora_bultos": 220.0,
+      "equivalencia": 1.01,
       "unidad_umbral": "sector"
     },
     {
@@ -3446,9 +3446,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 221.0,
+      "hasta_hora_bultos": 244.0,
+      "equivalencia": 1.01,
       "unidad_umbral": "sector"
     },
     {
@@ -3466,9 +3466,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 244.0,
+      "hasta_hora_bultos": 283.0,
+      "equivalencia": 1.01,
       "unidad_umbral": "sector"
     },
     {
@@ -3486,9 +3486,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 283.0,
+      "hasta_hora_bultos": 349.0,
+      "equivalencia": 1.01,
       "unidad_umbral": "sector"
     },
     {
@@ -3506,9 +3506,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 350.0,
+      "hasta_hora_bultos": 155385.0,
+      "equivalencia": 1.01,
       "unidad_umbral": "sector"
     },
     {
@@ -3527,8 +3527,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 174.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -3546,9 +3546,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 174.0,
+      "hasta_hora_bultos": 195.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -3566,9 +3566,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 195.0,
+      "hasta_hora_bultos": 221.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -3586,9 +3586,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 221.0,
+      "hasta_hora_bultos": 247.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -3606,9 +3606,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 247.0,
+      "hasta_hora_bultos": 273.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -3626,9 +3626,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 273.0,
+      "hasta_hora_bultos": 316.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -3646,9 +3646,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 316.0,
+      "hasta_hora_bultos": 391.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -3666,9 +3666,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 391.0,
+      "hasta_hora_bultos": 173846.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -3688,7 +3688,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -3708,7 +3708,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -3728,7 +3728,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -3748,7 +3748,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -3768,7 +3768,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -3788,7 +3788,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -3808,7 +3808,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -3828,7 +3828,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -3847,8 +3847,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 169.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -3866,9 +3866,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 169.0,
+      "hasta_hora_bultos": 189.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -3886,9 +3886,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 190.0,
+      "hasta_hora_bultos": 215.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -3906,9 +3906,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 215.0,
+      "hasta_hora_bultos": 240.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -3926,9 +3926,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 240.0,
+      "hasta_hora_bultos": 266.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -3946,9 +3946,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 266.0,
+      "hasta_hora_bultos": 308.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -3966,9 +3966,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 308.0,
+      "hasta_hora_bultos": 381.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -3986,9 +3986,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 381.0,
+      "hasta_hora_bultos": 169231.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -4007,8 +4007,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 183.0,
+      "equivalencia": 1.19,
       "unidad_umbral": "sector"
     },
     {
@@ -4026,9 +4026,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 183.0,
+      "hasta_hora_bultos": 205.0,
+      "equivalencia": 1.19,
       "unidad_umbral": "sector"
     },
     {
@@ -4046,9 +4046,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 205.0,
+      "hasta_hora_bultos": 232.0,
+      "equivalencia": 1.19,
       "unidad_umbral": "sector"
     },
     {
@@ -4066,9 +4066,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 233.0,
+      "hasta_hora_bultos": 260.0,
+      "equivalencia": 1.19,
       "unidad_umbral": "sector"
     },
     {
@@ -4086,9 +4086,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 260.0,
+      "hasta_hora_bultos": 287.0,
+      "equivalencia": 1.19,
       "unidad_umbral": "sector"
     },
     {
@@ -4106,9 +4106,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 287.0,
+      "hasta_hora_bultos": 333.0,
+      "equivalencia": 1.19,
       "unidad_umbral": "sector"
     },
     {
@@ -4126,9 +4126,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 333.0,
+      "hasta_hora_bultos": 412.0,
+      "equivalencia": 1.19,
       "unidad_umbral": "sector"
     },
     {
@@ -4146,9 +4146,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 412.0,
+      "hasta_hora_bultos": 183077.0,
+      "equivalencia": 1.19,
       "unidad_umbral": "sector"
     },
     {
@@ -4167,8 +4167,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 158.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -4186,9 +4186,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 158.0,
+      "hasta_hora_bultos": 177.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -4206,9 +4206,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 177.0,
+      "hasta_hora_bultos": 201.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -4226,9 +4226,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 201.0,
+      "hasta_hora_bultos": 225.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -4246,9 +4246,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 225.0,
+      "hasta_hora_bultos": 249.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -4266,9 +4266,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 249.0,
+      "hasta_hora_bultos": 288.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -4286,9 +4286,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 288.0,
+      "hasta_hora_bultos": 356.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -4306,9 +4306,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 357.0,
+      "hasta_hora_bultos": 158462.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -4327,8 +4327,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 109.0,
+      "equivalencia": 0.71,
       "unidad_umbral": "sector"
     },
     {
@@ -4346,9 +4346,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 109.0,
+      "hasta_hora_bultos": 122.0,
+      "equivalencia": 0.71,
       "unidad_umbral": "sector"
     },
     {
@@ -4366,9 +4366,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 122.0,
+      "hasta_hora_bultos": 139.0,
+      "equivalencia": 0.71,
       "unidad_umbral": "sector"
     },
     {
@@ -4386,9 +4386,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 139.0,
+      "hasta_hora_bultos": 155.0,
+      "equivalencia": 0.71,
       "unidad_umbral": "sector"
     },
     {
@@ -4406,9 +4406,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 155.0,
+      "hasta_hora_bultos": 171.0,
+      "equivalencia": 0.71,
       "unidad_umbral": "sector"
     },
     {
@@ -4426,9 +4426,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 171.0,
+      "hasta_hora_bultos": 199.0,
+      "equivalencia": 0.71,
       "unidad_umbral": "sector"
     },
     {
@@ -4446,9 +4446,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 199.0,
+      "hasta_hora_bultos": 246.0,
+      "equivalencia": 0.71,
       "unidad_umbral": "sector"
     },
     {
@@ -4466,9 +4466,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 246.0,
+      "hasta_hora_bultos": 109231.0,
+      "equivalencia": 0.71,
       "unidad_umbral": "sector"
     },
     {
@@ -4487,8 +4487,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 148.0,
+      "equivalencia": 0.96,
       "unidad_umbral": "sector"
     },
     {
@@ -4506,9 +4506,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 148.0,
+      "hasta_hora_bultos": 165.0,
+      "equivalencia": 0.96,
       "unidad_umbral": "sector"
     },
     {
@@ -4526,9 +4526,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 165.0,
+      "hasta_hora_bultos": 187.0,
+      "equivalencia": 0.96,
       "unidad_umbral": "sector"
     },
     {
@@ -4546,9 +4546,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 188.0,
+      "hasta_hora_bultos": 210.0,
+      "equivalencia": 0.96,
       "unidad_umbral": "sector"
     },
     {
@@ -4566,9 +4566,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 210.0,
+      "hasta_hora_bultos": 232.0,
+      "equivalencia": 0.96,
       "unidad_umbral": "sector"
     },
     {
@@ -4586,9 +4586,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 232.0,
+      "hasta_hora_bultos": 269.0,
+      "equivalencia": 0.96,
       "unidad_umbral": "sector"
     },
     {
@@ -4606,9 +4606,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 269.0,
+      "hasta_hora_bultos": 332.0,
+      "equivalencia": 0.96,
       "unidad_umbral": "sector"
     },
     {
@@ -4626,9 +4626,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 332.0,
+      "hasta_hora_bultos": 147692.0,
+      "equivalencia": 0.96,
       "unidad_umbral": "sector"
     },
     {
@@ -4647,8 +4647,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 172.0,
+      "equivalencia": 1.12,
       "unidad_umbral": "sector"
     },
     {
@@ -4666,9 +4666,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 172.0,
+      "hasta_hora_bultos": 193.0,
+      "equivalencia": 1.12,
       "unidad_umbral": "sector"
     },
     {
@@ -4686,9 +4686,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 193.0,
+      "hasta_hora_bultos": 219.0,
+      "equivalencia": 1.12,
       "unidad_umbral": "sector"
     },
     {
@@ -4706,9 +4706,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 219.0,
+      "hasta_hora_bultos": 245.0,
+      "equivalencia": 1.12,
       "unidad_umbral": "sector"
     },
     {
@@ -4726,9 +4726,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 245.0,
+      "hasta_hora_bultos": 270.0,
+      "equivalencia": 1.12,
       "unidad_umbral": "sector"
     },
     {
@@ -4746,9 +4746,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 271.0,
+      "hasta_hora_bultos": 313.0,
+      "equivalencia": 1.12,
       "unidad_umbral": "sector"
     },
     {
@@ -4766,9 +4766,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 314.0,
+      "hasta_hora_bultos": 388.0,
+      "equivalencia": 1.12,
       "unidad_umbral": "sector"
     },
     {
@@ -4786,9 +4786,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 388.0,
+      "hasta_hora_bultos": 172308.0,
+      "equivalencia": 1.12,
       "unidad_umbral": "sector"
     },
     {
@@ -4807,8 +4807,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 105.0,
+      "equivalencia": 0.68,
       "unidad_umbral": "sector"
     },
     {
@@ -4826,9 +4826,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 105.0,
+      "hasta_hora_bultos": 117.0,
+      "equivalencia": 0.68,
       "unidad_umbral": "sector"
     },
     {
@@ -4846,9 +4846,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 117.0,
+      "hasta_hora_bultos": 133.0,
+      "equivalencia": 0.68,
       "unidad_umbral": "sector"
     },
     {
@@ -4866,9 +4866,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 133.0,
+      "hasta_hora_bultos": 148.0,
+      "equivalencia": 0.68,
       "unidad_umbral": "sector"
     },
     {
@@ -4886,9 +4886,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 149.0,
+      "hasta_hora_bultos": 164.0,
+      "equivalencia": 0.68,
       "unidad_umbral": "sector"
     },
     {
@@ -4906,9 +4906,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 164.0,
+      "hasta_hora_bultos": 190.0,
+      "equivalencia": 0.68,
       "unidad_umbral": "sector"
     },
     {
@@ -4926,9 +4926,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 190.0,
+      "hasta_hora_bultos": 235.0,
+      "equivalencia": 0.68,
       "unidad_umbral": "sector"
     },
     {
@@ -4946,9 +4946,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 235.0,
+      "hasta_hora_bultos": 104615.0,
+      "equivalencia": 0.68,
       "unidad_umbral": "sector"
     },
     {
@@ -4967,8 +4967,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 174.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -4986,9 +4986,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 174.0,
+      "hasta_hora_bultos": 195.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -5006,9 +5006,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 195.0,
+      "hasta_hora_bultos": 221.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -5026,9 +5026,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 221.0,
+      "hasta_hora_bultos": 247.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -5046,9 +5046,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 247.0,
+      "hasta_hora_bultos": 273.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -5066,9 +5066,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 273.0,
+      "hasta_hora_bultos": 316.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -5086,9 +5086,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 316.0,
+      "hasta_hora_bultos": 391.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -5106,9 +5106,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 391.0,
+      "hasta_hora_bultos": 173846.0,
+      "equivalencia": 1.13,
       "unidad_umbral": "sector"
     },
     {
@@ -5127,8 +5127,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 152.0,
+      "equivalencia": 0.99,
       "unidad_umbral": "sector"
     },
     {
@@ -5146,9 +5146,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 152.0,
+      "hasta_hora_bultos": 170.0,
+      "equivalencia": 0.99,
       "unidad_umbral": "sector"
     },
     {
@@ -5166,9 +5166,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 171.0,
+      "hasta_hora_bultos": 193.0,
+      "equivalencia": 0.99,
       "unidad_umbral": "sector"
     },
     {
@@ -5186,9 +5186,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 193.0,
+      "hasta_hora_bultos": 216.0,
+      "equivalencia": 0.99,
       "unidad_umbral": "sector"
     },
     {
@@ -5206,9 +5206,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 216.0,
+      "hasta_hora_bultos": 239.0,
+      "equivalencia": 0.99,
       "unidad_umbral": "sector"
     },
     {
@@ -5226,9 +5226,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 239.0,
+      "hasta_hora_bultos": 277.0,
+      "equivalencia": 0.99,
       "unidad_umbral": "sector"
     },
     {
@@ -5246,9 +5246,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 277.0,
+      "hasta_hora_bultos": 343.0,
+      "equivalencia": 0.99,
       "unidad_umbral": "sector"
     },
     {
@@ -5266,9 +5266,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 343.0,
+      "hasta_hora_bultos": 152308.0,
+      "equivalencia": 0.99,
       "unidad_umbral": "sector"
     },
     {
@@ -5288,7 +5288,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5308,7 +5308,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5328,7 +5328,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5348,7 +5348,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5368,7 +5368,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5388,7 +5388,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5408,7 +5408,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5428,7 +5428,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5448,7 +5448,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5468,7 +5468,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5488,7 +5488,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5508,7 +5508,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5528,7 +5528,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5548,7 +5548,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5568,7 +5568,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5588,7 +5588,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5608,7 +5608,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5628,7 +5628,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5648,7 +5648,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5668,7 +5668,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5688,7 +5688,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5708,7 +5708,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5728,7 +5728,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5748,7 +5748,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5768,7 +5768,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5788,7 +5788,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5808,7 +5808,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5828,7 +5828,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5848,7 +5848,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5868,7 +5868,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5888,7 +5888,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5908,7 +5908,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5928,7 +5928,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5948,7 +5948,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5968,7 +5968,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -5988,7 +5988,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6008,7 +6008,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 68.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6028,7 +6028,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 68.0,
       "hasta_hora_bultos": 74.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6048,7 +6048,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 74.0,
       "hasta_hora_bultos": 92.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6068,7 +6068,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 92.0,
       "hasta_hora_bultos": 100.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6088,7 +6088,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 100.0,
       "hasta_hora_bultos": 162.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6108,7 +6108,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 162.0,
       "hasta_hora_bultos": 15384.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6128,7 +6128,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 68.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6148,7 +6148,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 68.0,
       "hasta_hora_bultos": 74.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6168,7 +6168,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 74.0,
       "hasta_hora_bultos": 92.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6188,7 +6188,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 92.0,
       "hasta_hora_bultos": 100.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6208,7 +6208,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 100.0,
       "hasta_hora_bultos": 162.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6228,7 +6228,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 162.0,
       "hasta_hora_bultos": 15384.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6248,7 +6248,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6268,7 +6268,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6288,7 +6288,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6308,7 +6308,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6328,7 +6328,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6348,7 +6348,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6368,7 +6368,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6388,7 +6388,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6408,7 +6408,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6428,7 +6428,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6448,7 +6448,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6468,7 +6468,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6488,7 +6488,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 68.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6508,7 +6508,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 68.0,
       "hasta_hora_bultos": 74.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6528,7 +6528,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 74.0,
       "hasta_hora_bultos": 92.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6548,7 +6548,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 92.0,
       "hasta_hora_bultos": 100.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6568,7 +6568,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 100.0,
       "hasta_hora_bultos": 162.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6588,7 +6588,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 162.0,
       "hasta_hora_bultos": 15384.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6608,7 +6608,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6628,7 +6628,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6648,7 +6648,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6668,7 +6668,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6688,7 +6688,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6708,7 +6708,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6728,7 +6728,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6748,7 +6748,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6768,7 +6768,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6788,7 +6788,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6808,7 +6808,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6828,7 +6828,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6848,7 +6848,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6868,7 +6868,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6888,7 +6888,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6908,7 +6908,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6928,7 +6928,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6948,7 +6948,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6968,7 +6968,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 118.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -6988,7 +6988,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 118.0,
       "hasta_hora_bultos": 128.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7008,7 +7008,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 128.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7028,7 +7028,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 169.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7048,7 +7048,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 169.0,
       "hasta_hora_bultos": 231.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7068,7 +7068,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 231.0,
       "hasta_hora_bultos": 1538.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7088,7 +7088,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 68.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7108,7 +7108,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 68.0,
       "hasta_hora_bultos": 74.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7128,7 +7128,7 @@
       "premio_hora": 1016.62,
       "desde_hora_bultos": 74.0,
       "hasta_hora_bultos": 92.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7148,7 +7148,7 @@
       "premio_hora": 1463.9353846153847,
       "desde_hora_bultos": 92.0,
       "hasta_hora_bultos": 100.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7168,7 +7168,7 @@
       "premio_hora": 1630.8584615384616,
       "desde_hora_bultos": 100.0,
       "hasta_hora_bultos": 162.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7188,7 +7188,7 @@
       "premio_hora": 3938.5507692307697,
       "desde_hora_bultos": 162.0,
       "hasta_hora_bultos": 15384.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7207,8 +7207,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 169.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -7226,9 +7226,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 169.0,
+      "hasta_hora_bultos": 189.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -7246,9 +7246,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 190.0,
+      "hasta_hora_bultos": 215.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -7266,9 +7266,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 215.0,
+      "hasta_hora_bultos": 240.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -7286,9 +7286,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 240.0,
+      "hasta_hora_bultos": 266.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -7306,9 +7306,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 266.0,
+      "hasta_hora_bultos": 308.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -7326,9 +7326,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 308.0,
+      "hasta_hora_bultos": 381.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -7346,9 +7346,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 381.0,
+      "hasta_hora_bultos": 169231.0,
+      "equivalencia": 1.1,
       "unidad_umbral": "sector"
     },
     {
@@ -7368,7 +7368,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7388,7 +7388,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7408,7 +7408,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7428,7 +7428,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7448,7 +7448,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7468,7 +7468,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7488,7 +7488,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7508,7 +7508,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.0,
       "unidad_umbral": "sector"
     },
     {
@@ -7528,7 +7528,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -7548,7 +7548,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -7568,7 +7568,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -7588,7 +7588,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -7608,7 +7608,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -7628,7 +7628,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -7648,7 +7648,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -7668,7 +7668,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.03,
       "unidad_umbral": "sector"
     },
     {
@@ -7688,7 +7688,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.02,
       "unidad_umbral": "sector"
     },
     {
@@ -7708,7 +7708,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.02,
       "unidad_umbral": "sector"
     },
     {
@@ -7728,7 +7728,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.02,
       "unidad_umbral": "sector"
     },
     {
@@ -7748,7 +7748,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.02,
       "unidad_umbral": "sector"
     },
     {
@@ -7768,7 +7768,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.02,
       "unidad_umbral": "sector"
     },
     {
@@ -7788,7 +7788,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.02,
       "unidad_umbral": "sector"
     },
     {
@@ -7808,7 +7808,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.02,
       "unidad_umbral": "sector"
     },
     {
@@ -7828,7 +7828,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 1.02,
       "unidad_umbral": "sector"
     },
     {
@@ -7848,7 +7848,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.9,
       "unidad_umbral": "sector"
     },
     {
@@ -7868,7 +7868,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.9,
       "unidad_umbral": "sector"
     },
     {
@@ -7888,7 +7888,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.9,
       "unidad_umbral": "sector"
     },
     {
@@ -7908,7 +7908,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.9,
       "unidad_umbral": "sector"
     },
     {
@@ -7928,7 +7928,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.9,
       "unidad_umbral": "sector"
     },
     {
@@ -7948,7 +7948,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.9,
       "unidad_umbral": "sector"
     },
     {
@@ -7968,7 +7968,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.9,
       "unidad_umbral": "sector"
     },
     {
@@ -7988,7 +7988,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.9,
       "unidad_umbral": "sector"
     },
     {
@@ -8168,7 +8168,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.79,
       "unidad_umbral": "sector"
     },
     {
@@ -8188,7 +8188,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.79,
       "unidad_umbral": "sector"
     },
     {
@@ -8208,7 +8208,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.79,
       "unidad_umbral": "sector"
     },
     {
@@ -8228,7 +8228,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.79,
       "unidad_umbral": "sector"
     },
     {
@@ -8248,7 +8248,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.79,
       "unidad_umbral": "sector"
     },
     {
@@ -8268,7 +8268,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.79,
       "unidad_umbral": "sector"
     },
     {
@@ -8288,7 +8288,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.79,
       "unidad_umbral": "sector"
     },
     {
@@ -8308,7 +8308,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.79,
       "unidad_umbral": "sector"
     },
     {
@@ -8487,8 +8487,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 91.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -8506,9 +8506,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 92.0,
+      "hasta_hora_bultos": 102.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -8526,9 +8526,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 103.0,
+      "hasta_hora_bultos": 116.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -8546,9 +8546,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 116.0,
+      "hasta_hora_bultos": 130.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -8566,9 +8566,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 130.0,
+      "hasta_hora_bultos": 144.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -8586,9 +8586,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 144.0,
+      "hasta_hora_bultos": 167.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -8606,9 +8606,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 167.0,
+      "hasta_hora_bultos": 206.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -8626,9 +8626,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 206.0,
+      "hasta_hora_bultos": 91538.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -8647,8 +8647,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 289.0,
+      "equivalencia": 1.88,
       "unidad_umbral": "sector"
     },
     {
@@ -8666,9 +8666,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 289.0,
+      "hasta_hora_bultos": 324.0,
+      "equivalencia": 1.88,
       "unidad_umbral": "sector"
     },
     {
@@ -8686,9 +8686,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 324.0,
+      "hasta_hora_bultos": 367.0,
+      "equivalencia": 1.88,
       "unidad_umbral": "sector"
     },
     {
@@ -8706,9 +8706,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 367.0,
+      "hasta_hora_bultos": 410.0,
+      "equivalencia": 1.88,
       "unidad_umbral": "sector"
     },
     {
@@ -8726,9 +8726,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 411.0,
+      "hasta_hora_bultos": 454.0,
+      "equivalencia": 1.88,
       "unidad_umbral": "sector"
     },
     {
@@ -8746,9 +8746,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 454.0,
+      "hasta_hora_bultos": 526.0,
+      "equivalencia": 1.88,
       "unidad_umbral": "sector"
     },
     {
@@ -8766,9 +8766,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 526.0,
+      "hasta_hora_bultos": 650.0,
+      "equivalencia": 1.88,
       "unidad_umbral": "sector"
     },
     {
@@ -8786,9 +8786,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 651.0,
+      "hasta_hora_bultos": 289231.0,
+      "equivalencia": 1.88,
       "unidad_umbral": "sector"
     },
     {
@@ -8807,8 +8807,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 51.0,
+      "equivalencia": 0.33,
       "unidad_umbral": "sector"
     },
     {
@@ -8826,9 +8826,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 51.0,
+      "hasta_hora_bultos": 57.0,
+      "equivalencia": 0.33,
       "unidad_umbral": "sector"
     },
     {
@@ -8846,9 +8846,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 57.0,
+      "hasta_hora_bultos": 64.0,
+      "equivalencia": 0.33,
       "unidad_umbral": "sector"
     },
     {
@@ -8866,9 +8866,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 64.0,
+      "hasta_hora_bultos": 72.0,
+      "equivalencia": 0.33,
       "unidad_umbral": "sector"
     },
     {
@@ -8886,9 +8886,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 72.0,
+      "hasta_hora_bultos": 80.0,
+      "equivalencia": 0.33,
       "unidad_umbral": "sector"
     },
     {
@@ -8906,9 +8906,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 80.0,
+      "hasta_hora_bultos": 92.0,
+      "equivalencia": 0.33,
       "unidad_umbral": "sector"
     },
     {
@@ -8926,9 +8926,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 92.0,
+      "hasta_hora_bultos": 114.0,
+      "equivalencia": 0.33,
       "unidad_umbral": "sector"
     },
     {
@@ -8946,9 +8946,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 114.0,
+      "hasta_hora_bultos": 50769.0,
+      "equivalencia": 0.33,
       "unidad_umbral": "sector"
     },
     {
@@ -8968,7 +8968,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.46,
       "unidad_umbral": "sector"
     },
     {
@@ -8988,7 +8988,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.46,
       "unidad_umbral": "sector"
     },
     {
@@ -9008,7 +9008,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.46,
       "unidad_umbral": "sector"
     },
     {
@@ -9028,7 +9028,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.46,
       "unidad_umbral": "sector"
     },
     {
@@ -9048,7 +9048,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.46,
       "unidad_umbral": "sector"
     },
     {
@@ -9068,7 +9068,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.46,
       "unidad_umbral": "sector"
     },
     {
@@ -9088,7 +9088,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.46,
       "unidad_umbral": "sector"
     },
     {
@@ -9108,7 +9108,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.46,
       "unidad_umbral": "sector"
     },
     {
@@ -9127,8 +9127,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 220.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9146,9 +9146,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 220.0,
+      "hasta_hora_bultos": 246.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9166,9 +9166,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 246.0,
+      "hasta_hora_bultos": 279.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9186,9 +9186,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 279.0,
+      "hasta_hora_bultos": 312.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9206,9 +9206,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 312.0,
+      "hasta_hora_bultos": 345.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9226,9 +9226,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 345.0,
+      "hasta_hora_bultos": 400.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9246,9 +9246,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 400.0,
+      "hasta_hora_bultos": 495.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9266,9 +9266,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 495.0,
+      "hasta_hora_bultos": 220000.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9287,8 +9287,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 246.0,
+      "equivalencia": 1.6,
       "unidad_umbral": "sector"
     },
     {
@@ -9306,9 +9306,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 246.0,
+      "hasta_hora_bultos": 275.0,
+      "equivalencia": 1.6,
       "unidad_umbral": "sector"
     },
     {
@@ -9326,9 +9326,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 276.0,
+      "hasta_hora_bultos": 312.0,
+      "equivalencia": 1.6,
       "unidad_umbral": "sector"
     },
     {
@@ -9346,9 +9346,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 313.0,
+      "hasta_hora_bultos": 349.0,
+      "equivalencia": 1.6,
       "unidad_umbral": "sector"
     },
     {
@@ -9366,9 +9366,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 350.0,
+      "hasta_hora_bultos": 386.0,
+      "equivalencia": 1.6,
       "unidad_umbral": "sector"
     },
     {
@@ -9386,9 +9386,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 386.0,
+      "hasta_hora_bultos": 448.0,
+      "equivalencia": 1.6,
       "unidad_umbral": "sector"
     },
     {
@@ -9406,9 +9406,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 448.0,
+      "hasta_hora_bultos": 554.0,
+      "equivalencia": 1.6,
       "unidad_umbral": "sector"
     },
     {
@@ -9426,9 +9426,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 554.0,
+      "hasta_hora_bultos": 246154.0,
+      "equivalencia": 1.6,
       "unidad_umbral": "sector"
     },
     {
@@ -9447,8 +9447,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 252.0,
+      "equivalencia": 1.64,
       "unidad_umbral": "sector"
     },
     {
@@ -9466,9 +9466,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 252.0,
+      "hasta_hora_bultos": 282.0,
+      "equivalencia": 1.64,
       "unidad_umbral": "sector"
     },
     {
@@ -9486,9 +9486,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 283.0,
+      "hasta_hora_bultos": 320.0,
+      "equivalencia": 1.64,
       "unidad_umbral": "sector"
     },
     {
@@ -9506,9 +9506,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 320.0,
+      "hasta_hora_bultos": 358.0,
+      "equivalencia": 1.64,
       "unidad_umbral": "sector"
     },
     {
@@ -9526,9 +9526,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 358.0,
+      "hasta_hora_bultos": 396.0,
+      "equivalencia": 1.64,
       "unidad_umbral": "sector"
     },
     {
@@ -9546,9 +9546,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 396.0,
+      "hasta_hora_bultos": 459.0,
+      "equivalencia": 1.64,
       "unidad_umbral": "sector"
     },
     {
@@ -9566,9 +9566,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 459.0,
+      "hasta_hora_bultos": 567.0,
+      "equivalencia": 1.64,
       "unidad_umbral": "sector"
     },
     {
@@ -9586,9 +9586,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 568.0,
+      "hasta_hora_bultos": 252308.0,
+      "equivalencia": 1.64,
       "unidad_umbral": "sector"
     },
     {
@@ -9608,7 +9608,7 @@
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
       "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.3,
       "unidad_umbral": "sector"
     },
     {
@@ -9628,7 +9628,7 @@
       "premio_hora": 740.2338461538462,
       "desde_hora_bultos": 154.0,
       "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.3,
       "unidad_umbral": "sector"
     },
     {
@@ -9648,7 +9648,7 @@
       "premio_hora": 1016.7892307692308,
       "desde_hora_bultos": 172.0,
       "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.3,
       "unidad_umbral": "sector"
     },
     {
@@ -9668,7 +9668,7 @@
       "premio_hora": 1990.5261538461539,
       "desde_hora_bultos": 195.0,
       "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.3,
       "unidad_umbral": "sector"
     },
     {
@@ -9688,7 +9688,7 @@
       "premio_hora": 2782.8153846153846,
       "desde_hora_bultos": 218.0,
       "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.3,
       "unidad_umbral": "sector"
     },
     {
@@ -9708,7 +9708,7 @@
       "premio_hora": 3901.9815384615385,
       "desde_hora_bultos": 242.0,
       "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.3,
       "unidad_umbral": "sector"
     },
     {
@@ -9728,7 +9728,7 @@
       "premio_hora": 5522.821538461538,
       "desde_hora_bultos": 280.0,
       "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.3,
       "unidad_umbral": "sector"
     },
     {
@@ -9748,7 +9748,7 @@
       "premio_hora": 8013.095384615385,
       "desde_hora_bultos": 346.0,
       "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "equivalencia": 0.3,
       "unidad_umbral": "sector"
     },
     {
@@ -9767,8 +9767,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 91.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -9786,9 +9786,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 92.0,
+      "hasta_hora_bultos": 102.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -9806,9 +9806,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 103.0,
+      "hasta_hora_bultos": 116.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -9826,9 +9826,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 116.0,
+      "hasta_hora_bultos": 130.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -9846,9 +9846,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 130.0,
+      "hasta_hora_bultos": 144.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -9866,9 +9866,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 144.0,
+      "hasta_hora_bultos": 167.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -9886,9 +9886,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 167.0,
+      "hasta_hora_bultos": 206.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -9906,9 +9906,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 206.0,
+      "hasta_hora_bultos": 91538.0,
+      "equivalencia": 0.595,
       "unidad_umbral": "sector"
     },
     {
@@ -9927,8 +9927,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 220.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9946,9 +9946,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 220.0,
+      "hasta_hora_bultos": 246.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9966,9 +9966,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 246.0,
+      "hasta_hora_bultos": 279.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -9986,9 +9986,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 279.0,
+      "hasta_hora_bultos": 312.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -10006,9 +10006,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 312.0,
+      "hasta_hora_bultos": 345.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -10026,9 +10026,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 345.0,
+      "hasta_hora_bultos": 400.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -10046,9 +10046,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 400.0,
+      "hasta_hora_bultos": 495.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -10066,9 +10066,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 495.0,
+      "hasta_hora_bultos": 220000.0,
+      "equivalencia": 1.43,
       "unidad_umbral": "sector"
     },
     {
@@ -10087,8 +10087,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 140.0,
+      "equivalencia": 0.91,
       "unidad_umbral": "sector"
     },
     {
@@ -10106,9 +10106,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 140.0,
+      "hasta_hora_bultos": 157.0,
+      "equivalencia": 0.91,
       "unidad_umbral": "sector"
     },
     {
@@ -10126,9 +10126,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 157.0,
+      "hasta_hora_bultos": 178.0,
+      "equivalencia": 0.91,
       "unidad_umbral": "sector"
     },
     {
@@ -10146,9 +10146,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 178.0,
+      "hasta_hora_bultos": 199.0,
+      "equivalencia": 0.91,
       "unidad_umbral": "sector"
     },
     {
@@ -10166,9 +10166,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 199.0,
+      "hasta_hora_bultos": 220.0,
+      "equivalencia": 0.91,
       "unidad_umbral": "sector"
     },
     {
@@ -10186,9 +10186,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 220.0,
+      "hasta_hora_bultos": 255.0,
+      "equivalencia": 0.91,
       "unidad_umbral": "sector"
     },
     {
@@ -10206,9 +10206,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 255.0,
+      "hasta_hora_bultos": 315.0,
+      "equivalencia": 0.91,
       "unidad_umbral": "sector"
     },
     {
@@ -10226,9 +10226,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 315.0,
+      "hasta_hora_bultos": 140000.0,
+      "equivalencia": 0.91,
       "unidad_umbral": "sector"
     },
     {
@@ -10247,8 +10247,8 @@
       "hasta_hora_equiv": 153.69230769230768,
       "premio_hora": 0.0,
       "desde_hora_bultos": 0.0,
-      "hasta_hora_bultos": 154.0,
-      "equivalencia": 0.0,
+      "hasta_hora_bultos": 212.0,
+      "equivalencia": 1.38,
       "unidad_umbral": "sector"
     },
     {
@@ -10266,9 +10266,9 @@
       "desde_hora_equiv": 153.84615384615384,
       "hasta_hora_equiv": 172.15384615384616,
       "premio_hora": 740.2338461538462,
-      "desde_hora_bultos": 154.0,
-      "hasta_hora_bultos": 172.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 212.0,
+      "hasta_hora_bultos": 238.0,
+      "equivalencia": 1.38,
       "unidad_umbral": "sector"
     },
     {
@@ -10286,9 +10286,9 @@
       "desde_hora_equiv": 172.30769230769232,
       "hasta_hora_equiv": 195.23076923076923,
       "premio_hora": 1016.7892307692308,
-      "desde_hora_bultos": 172.0,
-      "hasta_hora_bultos": 195.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 238.0,
+      "hasta_hora_bultos": 269.0,
+      "equivalencia": 1.38,
       "unidad_umbral": "sector"
     },
     {
@@ -10306,9 +10306,9 @@
       "desde_hora_equiv": 195.3846153846154,
       "hasta_hora_equiv": 218.30769230769232,
       "premio_hora": 1990.5261538461539,
-      "desde_hora_bultos": 195.0,
-      "hasta_hora_bultos": 218.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 270.0,
+      "hasta_hora_bultos": 301.0,
+      "equivalencia": 1.38,
       "unidad_umbral": "sector"
     },
     {
@@ -10326,9 +10326,9 @@
       "desde_hora_equiv": 218.46153846153845,
       "hasta_hora_equiv": 241.3846153846154,
       "premio_hora": 2782.8153846153846,
-      "desde_hora_bultos": 218.0,
-      "hasta_hora_bultos": 241.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 301.0,
+      "hasta_hora_bultos": 333.0,
+      "equivalencia": 1.38,
       "unidad_umbral": "sector"
     },
     {
@@ -10346,9 +10346,9 @@
       "desde_hora_equiv": 241.53846153846155,
       "hasta_hora_equiv": 279.84615384615387,
       "premio_hora": 3901.9815384615385,
-      "desde_hora_bultos": 242.0,
-      "hasta_hora_bultos": 280.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 333.0,
+      "hasta_hora_bultos": 386.0,
+      "equivalencia": 1.38,
       "unidad_umbral": "sector"
     },
     {
@@ -10366,9 +10366,9 @@
       "desde_hora_equiv": 280.0,
       "hasta_hora_equiv": 346.0,
       "premio_hora": 5522.821538461538,
-      "desde_hora_bultos": 280.0,
-      "hasta_hora_bultos": 346.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 386.0,
+      "hasta_hora_bultos": 477.0,
+      "equivalencia": 1.38,
       "unidad_umbral": "sector"
     },
     {
@@ -10386,9 +10386,9 @@
       "desde_hora_equiv": 346.15384615384613,
       "hasta_hora_equiv": 153846.15384615384,
       "premio_hora": 8013.095384615385,
-      "desde_hora_bultos": 346.0,
-      "hasta_hora_bultos": 153846.0,
-      "equivalencia": 0.0,
+      "desde_hora_bultos": 478.0,
+      "hasta_hora_bultos": 212308.0,
+      "equivalencia": 1.38,
       "unidad_umbral": "sector"
     }
   ]

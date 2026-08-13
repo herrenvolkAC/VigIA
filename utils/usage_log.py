@@ -42,6 +42,7 @@ MODULE_LABELS = {
     "checklist_tareas": "CheckList Tareas",
     "reposicion": "Reposicion",
     "recepcion": "Recepcion",
+    "generales": "Herramientas Operativas",
     "sistema": "Sistema",
 }
 
@@ -57,6 +58,9 @@ ACTION_LABELS = {
     "access_denied": "Intento ingresar a {module} sin permiso habilitado",
     "pending_device": "Intento ingresar con dispositivo pendiente de aprobacion",
     "unauthenticated": "Intento ingresar sin iniciar sesion",
+    "server_error": "Error del servidor en {module}. Revisar log tecnico.",
+    "forms_import_error": "No se pudo importar Forms Service Racks. Revisar log tecnico.",
+    "database_locked": "Base de datos ocupada. Reintentar la operacion.",
 }
 
 _last_cleanup_date: str | None = None
@@ -66,6 +70,9 @@ ATTENTION_ACTIONS = {
     "access_denied",
     "pending_device",
     "unauthenticated",
+    "server_error",
+    "forms_import_error",
+    "database_locked",
 }
 
 USAGE_EVENTS_SCHEMA_SQL = """

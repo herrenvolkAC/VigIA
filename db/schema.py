@@ -1144,6 +1144,18 @@ CREATE TABLE IF NOT EXISTS auth_user_app_access (
 );
 """
 
+CREATE_HERRAMIENTAS_FERIADOS = """
+CREATE TABLE IF NOT EXISTS herramientas_feriados (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha TEXT NOT NULL UNIQUE,
+    motivo TEXT NOT NULL,
+    tipo TEXT NOT NULL DEFAULT 'Manual',
+    activo INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
 CREATE_AUTH_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_auth_devices_username ON auth_devices(username, status)",
     "CREATE INDEX IF NOT EXISTS idx_auth_sessions_username ON auth_sessions(username, expires_at)",
@@ -1270,6 +1282,7 @@ async def init_db():
         await db.execute(CREATE_AUTH_SESSIONS)
         await db.execute(CREATE_AUTH_USER_MODULE_SCOPES)
         await db.execute(CREATE_AUTH_USER_APP_ACCESS)
+        await db.execute(CREATE_HERRAMIENTAS_FERIADOS)
         async with db.execute("PRAGMA table_info(picking_analysis_cache_runs)") as cur:
             picking_cache_cols = {row[1] for row in await cur.fetchall()}
         if "resumen_hash" not in picking_cache_cols:

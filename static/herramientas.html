@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VigIA - Herramientas Operativas</title>
+  <style>
+    :root{--bg:#f2f4f1;--panel:#fff;--ink:#0e1620;--soft:#5c6773;--rule:#d4dbd8;--strong:#a9b4ac;--accent:#58636e;--accent-soft:#e8ebed;--red:#c8102e}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,sans-serif}
+    header{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:16px 24px;background:var(--panel);border-bottom:1px solid var(--strong)}
+    .brand{display:flex;align-items:center;gap:14px}.brand img{width:52px}.kicker,label,th,button,.button{font-family:Consolas,"Courier New",monospace;text-transform:uppercase;letter-spacing:.12em}.kicker{font-size:10px;color:var(--soft)}h1{font-size:22px;margin:2px 0 0}
+    main{padding:22px 24px 40px;display:grid;gap:18px}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.button,button{min-height:34px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:8px 12px;text-decoration:none;cursor:pointer;font-size:11px}.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+    .band{background:var(--panel);border:1px solid var(--rule);padding:18px}.band-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}h2{margin:0;font-size:17px}.muted{font-size:12px;color:var(--soft)}
+    .tool-grid{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:18px}.bulk-grid{display:grid;grid-template-columns:minmax(280px,420px) 1fr;gap:14px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.span{grid-column:1/-1}
+    label{display:block;font-size:10px;color:var(--soft);margin-bottom:6px}input,select,textarea{width:100%;min-height:36px;border:1px solid var(--rule);background:var(--panel);padding:7px 9px}textarea{min-height:78px;resize:vertical;font-family:Consolas,"Courier New",monospace}
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px}.kpi{border:1px solid var(--rule);background:#f8faf7;padding:12px}.kpi-label{font:700 10px Consolas,"Courier New",monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--soft)}.kpi-value{font-size:24px;font-weight:700;margin-top:6px}
+    table{width:100%;border-collapse:collapse}th{text-align:left;color:var(--soft);background:#f6f8f5;font-size:10px;padding:10px 8px;border-bottom:1px solid var(--rule)}td{padding:10px 8px;border-bottom:1px solid var(--rule);font-size:13px}tr:nth-child(odd) td{background:#f8faf7}.mono{font-family:Consolas,"Courier New",monospace}.table-wrap{overflow-x:auto}.message{min-height:18px;font-size:12px;color:var(--soft)}
+    .bulk-table input{min-width:128px}.bulk-table input[type=number]{min-width:92px}.bulk-tools{display:flex;align-items:end;justify-content:flex-end;gap:8px;flex-wrap:wrap}.status-ok{color:#176b42}.status-warn{color:#9b5b00}.status-error{color:var(--red)}
+    .pill{display:inline-flex;align-items:center;min-height:22px;border:1px solid var(--rule);padding:3px 8px;font:700 10px Consolas,"Courier New",monospace;text-transform:uppercase;letter-spacing:.08em}.p50{background:#fff7df}.p100{background:#f7d7da;color:var(--red)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}.tab-active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+    .modelo-table input{min-width:130px}.modelo-table input[type=number]{min-width:90px}
+    .flag-yes{color:#168044;font-size:20px;font-weight:700}.status-dot{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle;margin-right:5px}.status-green{background:#168044}.status-red{background:#c8102e}.edit-panel{margin-top:14px;border-top:1px solid var(--rule);padding-top:14px}
+    #modelo-edit-panel{display:none!important}.modal-backdrop{position:fixed;inset:0;background:rgba(14,22,32,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}.modal{background:var(--panel);border:1px solid var(--rule);max-width:900px;width:100%;max-height:90vh;overflow:auto;padding:20px}.modal table{margin-top:14px}
+    #legacy-bulk,#legacy-detalle,#legacy-detail{display:none}
+    @media(max-width:980px){header,.tool-grid,.bulk-grid{grid-template-columns:1fr}.actions{justify-content:flex-start}.kpis{grid-template-columns:1fr 1fr}.bulk-tools{justify-content:flex-start}}
+    @media(max-width:620px){.form-grid,.kpis{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="/resources/APPLogo.png?v=20260416-102647" alt="Logo VigIA">
+      <div><div class="kicker">Herramientas</div><h1>Herramientas Operativas</h1></div>
+    </div>
+    <nav class="actions">
+      <a class="button" href="/selector">Selector</a>
+      <button id="logout-btn">Salir</button>
+    </nav>
+  </header>
+  <main>
+    <div class="tabs"><button id="tab-calculo" class="tab-active" type="button">Cálculo KM</button><button id="tab-feriados" type="button">ABM Feriados</button></div>
+    <div id="panel-calculo">
+    <section id="modelo-panel" class="band">
+      <div class="band-head"><div><h2>Validación desde Excel</h2><div class="muted">Cargue el Excel modelo y consulte las hojas de ruta en F922TRAF/F922TRAF_HIST.</div></div></div>
+      <div class="bulk-grid"><div><label for="modelo-file">Archivo Excel</label><input id="modelo-file" type="file" accept=".xlsx"><div class="message" id="modelo-message"></div></div><div class="bulk-tools"><button id="modelo-consultar" class="primary" type="button">Consultar</button><button id="modelo-recalcular" type="button">Recalcular editados</button><button id="modelo-exportar" type="button">Exportar Excel validado</button></div></div>
+      <details id="modelo-edit-panel-new" class="edit-panel"><summary>Editar viaje seleccionado</summary><div class="muted" id="modelo-edit-title-new"></div><div class="form-grid"><div><label>Fecha viaje</label><input id="edit-fecha-viaje-new" type="date"></div><div><label>Hora viaje</label><input id="edit-hora-viaje-new" type="time"></div><div><label>Legajo Excel</label><input id="edit-excel-legajo-new"></div><div><label>Hoja de ruta</label><input id="edit-hojaruta-new"></div><div><label>KM viaje</label><input id="edit-cantidad-new" type="number" min="0" step="0.01"></div><div><label>Fecha salida</label><input id="edit-fesalida-new" type="datetime-local"></div><div><label>Fecha regreso</label><input id="edit-fevuelta-new" type="datetime-local"></div><div><label>Llegada al local</label><input id="edit-llegada-local-new" type="datetime-local"></div><div><label>Salida del local</label><input id="edit-salida-local-new" type="datetime-local"></div><div><label>Legajo Oracle</label><input id="edit-legajo-new"></div><div><label>Nombre chofer</label><input id="edit-nombre-new"></div><div><label>DNI</label><input id="edit-nrodoc-new"></div><div class="span actions"><button id="modelo-guardar-edicion-new" class="primary" type="button">Guardar edición</button><button id="modelo-cancelar-edicion-new" type="button">Cancelar</button></div></div></details>
+      <div class="table-wrap" style="margin-top:14px"><table class="modelo-table"><thead><tr><th>Fecha viaje Excel</th><th>Hora viaje</th><th>Legajo Excel</th><th>Hoja ruta</th><th>KM viaje</th><th>Fecha salida Oracle</th><th>Fecha regreso Oracle</th><th>Horas totales</th><th>Legajo Oracle</th><th>Nombre chofer</th><th>DNI</th><th>KM al 100</th><th>Pernocte</th><th>Torito</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="modelo-body"><tr><td colspan="16" class="muted">Seleccione el Excel y presione Consultar.</td></tr></tbody></table></div>
+      <div id="modelo-edit-panel" class="edit-panel" style="display:none"><div class="band-head"><div><h2>Editar viaje</h2><div class="muted" id="modelo-edit-title"></div></div></div><div class="form-grid"><div><label>Fecha viaje</label><input id="edit-fecha-viaje" type="date"></div><div><label>Hora viaje</label><input id="edit-hora-viaje" type="time"></div><div><label>Legajo Excel</label><input id="edit-excel-legajo"></div><div><label>Hoja de ruta</label><input id="edit-hojaruta"></div><div><label>KM viaje</label><input id="edit-cantidad" type="number" min="0" step="0.01"></div><div><label>Fecha salida</label><input id="edit-fesalida" type="datetime-local"></div><div><label>Fecha regreso</label><input id="edit-fevuelta" type="datetime-local"></div><div><label>Legajo Oracle</label><input id="edit-legajo"></div><div><label>Nombre chofer</label><input id="edit-nombre"></div><div><label>DNI</label><input id="edit-nrodoc"></div><div class="span actions"><button id="modelo-guardar-edicion" class="primary" type="button">Guardar edición</button><button id="modelo-cancelar-edicion" type="button">Cancelar</button></div></div></div>
+    </section>
+    <section id="legacy-bulk" class="band">
+      <div class="band-head">
+        <div><h2>Hojas de ruta</h2><div class="muted">Pegue los numeros, VigIA busca los datos en Oracle y calcula los KM al 100% por fila.</div></div>
+      </div>
+      <div class="bulk-grid">
+        <div>
+          <label for="hojas-input">Hojas de ruta</label>
+          <textarea id="hojas-input" placeholder="1951372&#10;1951373"></textarea>
+          <div class="message" id="bulk-message"></div>
+        </div>
+        <div class="bulk-tools">
+          <button id="bulk-search" class="primary" type="button">Buscar en Oracle</button>
+          <button id="bulk-recalc" type="button">Recalcular</button>
+          <button id="bulk-export" type="button">Exportar CSV</button>
+          <button id="bulk-clear" type="button">Limpiar</button>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <table class="bulk-table">
+          <thead>
+            <tr>
+              <th>Hoja ruta</th><th>Destino</th><th>KM tramo</th><th>Salida</th><th>Vuelta</th><th>Legajo</th><th>Nombre</th><th>Doc</th><th>Demora suc. h</th><th>% real</th><th>% pago</th><th>KM 100</th><th>Conceptos</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="bulk-body"><tr><td colspan="14" class="muted">Pegue hojas de ruta y busque en Oracle.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section id="legacy-detalle" class="band">
+      <div class="band-head">
+        <div><h2>Prorrateador KM</h2><div class="muted">Calcula la parte del tramo que cae en fin de semana o feriado al 100%.</div></div>
+      </div>
+      <div class="tool-grid">
+        <form id="km-form" class="form-grid">
+          <div class="span"><label for="destino">Destino</label><select id="destino" required></select></div>
+          <div><label for="fecha-inicio">Inicio viaje</label><input id="fecha-inicio" type="datetime-local" required></div>
+          <div><label for="fecha-fin">Fin viaje</label><input id="fecha-fin" type="datetime-local" required></div>
+          <div><label for="km-manual">KM tramo manual</label><input id="km-manual" type="number" min="0" step="0.01" placeholder="Usa mitad del destino"></div>
+          <div><label for="demora-sucursal">Demora sucursal (horas)</label><input id="demora-sucursal" type="number" min="0" step="0.25" value="0"></div>
+          <div><label for="feriados-extra">Feriados extra</label><textarea id="feriados-extra" placeholder="2026-08-17&#10;2026-10-12"></textarea></div>
+          <div class="span actions"><button class="primary" type="submit">Calcular</button><button id="reset-btn" type="button">Limpiar</button></div>
+          <div class="span message" id="message"></div>
+        </form>
+        <div>
+          <div class="kpis">
+            <div class="kpi"><div class="kpi-label">Total KM</div><div class="kpi-value mono" id="k-total">0</div></div>
+            <div class="kpi"><div class="kpi-label">Normal</div><div class="kpi-value mono" id="k-normal">0</div></div>
+            <div class="kpi"><div class="kpi-label">% real 100</div><div class="kpi-value mono" id="k-pct">0</div></div>
+            <div class="kpi"><div class="kpi-label">KM paga 100</div><div class="kpi-value mono" id="k-100">0</div></div>
+          </div>
+          <p class="muted" id="criterio" style="margin-top:12px"></p>
+          <p class="muted" id="conceptos"></p>
+        </div>
+      </div>
+    </section>
+    <section id="legacy-detail" class="band">
+      <div class="band-head"><div><h2>Detalle diario</h2><div class="muted">Base para revisar el criterio antes de formalizar reglas definitivas.</div></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Desde</th><th>Hasta</th><th>Tipo</th><th>Motivo</th><th>Min</th><th>KM 100</th></tr></thead>
+          <tbody id="detail-body"><tr><td colspan="6" class="muted">Complete el formulario para calcular.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    </div>
+    <section id="panel-feriados" class="band" style="display:none">
+      <div class="band-head"><div><h2>ABM de feriados</h2><div class="muted">Alta, modificación y baja de fechas utilizadas por el prorrateador.</div></div></div>
+      <form id="feriado-form" class="form-grid">
+        <input id="feriado-id" type="hidden">
+        <div><label for="feriado-fecha">Fecha</label><input id="feriado-fecha" type="date" required></div>
+        <div><label for="feriado-tipo">Tipo</label><input id="feriado-tipo" value="Manual" required></div>
+        <div class="span"><label for="feriado-motivo">Motivo</label><input id="feriado-motivo" required maxlength="200"></div>
+        <div class="span actions"><button class="primary" type="submit">Guardar</button><button id="feriado-cancelar" type="button">Cancelar</button></div>
+        <div class="span message" id="feriado-message"></div>
+      </form>
+      <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Fecha</th><th>Motivo</th><th>Tipo</th><th>Acciones</th></tr></thead><tbody id="feriados-body"></tbody></table></div>
+    </section>
+  </main>
+  <div id="modelo-modal" class="modal-backdrop" style="display:none"><div class="modal"><div id="modelo-modal-content"></div><div class="actions" style="margin-top:16px"><button id="modelo-modal-close" type="button">Cerrar</button></div></div></div>
+  <script>
+    const $=id=>document.getElementById(id);
+    const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const fmt=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
+    function nowLocal(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
+    function endLocal(){const d=new Date(Date.now()+6*60*60000);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
+    function setMsg(text,error=false){$('message').textContent=text||'';$('message').style.color=error?'var(--red)':'var(--soft)'}
+    function setBulkMsg(text,error=false){$('bulk-message').textContent=text||'';$('bulk-message').style.color=error?'var(--red)':'var(--soft)'}
+    async function api(path,opt={}){const r=await fetch(path,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});if(r.status===401){location.href='/login?next=/herramientas.html';return null}const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||'No se pudo completar la operacion.');return d}
+    function parseDates(text){return (text.match(/\d{4}-\d{2}-\d{2}/g)||[])}
+    function parseHojas(text){return [...new Set((text.match(/\d+/g)||[]).map(v=>String(Number(v))))].filter(v=>v&&v!=='NaN')}
+    function badge(row){return `<span class="pill p100">100%</span>`}
+    function render(data){const t=data.totales||{};$('k-total').textContent=fmt(t.total);$('k-normal').textContent=fmt(t.normal);$('k-pct').textContent=`${fmt(t.porcentaje_real_100)}%`;$('k-100').textContent=fmt(t.extra_100);$('criterio').textContent=data.criterio||'';$('conceptos').textContent=(data.conceptos||[]).map(x=>x.concepto+': '+x.motivo).join(' | ');$('detail-body').innerHTML=(data.detalle||[]).map(row=>`<tr><td class="mono">${esc(row.desde)}</td><td class="mono">${esc(row.hasta)}</td><td>${badge(row)}</td><td>${esc(row.motivo||row.tipo)}</td><td class="mono">${fmt(row.minutos)}</td><td class="mono">${fmt(row.km)}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">El tramo no pisa ventanas al 100%.</td></tr>'}
+    let bulkRows=[];
+    let modeloRows=[];let modeloFile=null;
+    const bytesToBase64=bytes=>{let binary='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(binary)};
+    async function modeloPayload(){if(!modeloFile)throw new Error('Seleccione un archivo Excel.');return {filename:modeloFile.name,content_b64:bytesToBase64(new Uint8Array(await modeloFile.arrayBuffer()))}}
+    function modeloInput(row,field,value,type='text'){return `<input data-model-field="${field}" type="${type}" value="${esc(value??'')}">`}
+    function dateTimeInput(value){return value?String(value).slice(0,16):''}
+    function displayDateTime(value){if(!value)return '';const d=new Date(value);if(Number.isNaN(d.getTime()))return String(value).replace('T',' ');return d.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}
+    function renderModelo(rows){modeloRows=rows||[];$('modelo-body').innerHTML=modeloRows.map((row,i)=>{const valid=String(row.estado||'').includes('Validado');return `<tr data-model-row="${i}"><td>${esc(row.fecha_viaje||'')}</td><td>${esc(row.hora_viaje||'')}</td><td>${esc(row.excel_legajo||'')}</td><td>${esc(row.hojaruta||'')}</td><td class="mono">${fmt(row.cantidad)}</td><td>${esc(displayDateTime(row.fesalida))}</td><td>${esc(displayDateTime(row.fevuelta))}</td><td class="mono">${fmt(row.horas_totales_viaje)} h</td><td>${esc(row.legajo||'')}</td><td>${esc(row.nombre||'')}</td><td>${esc(row.nrodoc||'')}</td><td class="mono">${fmt(row.km_al_100)}</td><td class="mono">${row.pernocte?'<span class="flag-yes">✓</span>':''}</td><td class="mono">${row.torito?'<span class="flag-yes">✓</span>':''}</td><td title="${esc(row.estado||'')}">${valid?'<span class="status-dot status-green"></span>':'<span class="status-dot status-red"></span>'}</td><td><button type="button" onclick="openModeloEdit(${i})">Editar</button> <button type="button" onclick="showModeloDetail(${i})">Detalle</button></td></tr>`}).join('')||'<tr><td colspan="16" class="muted">No hay rutas para mostrar.</td></tr>'}
+    function collectModeloRows(){return modeloRows}
+    let modeloEditIndex=null;
+    function openModeloEdit(index){modeloEditIndex=index;const row=modeloRows[index]||{};$('modelo-edit-title-new').textContent=`Hoja de ruta ${row.hojaruta||''}`;$('edit-fecha-viaje-new').value=row.fecha_viaje||'';$('edit-hora-viaje-new').value=row.hora_viaje||'';$('edit-excel-legajo-new').value=row.excel_legajo||'';$('edit-hojaruta-new').value=row.hojaruta||'';$('edit-cantidad-new').value=row.cantidad??'';$('edit-fesalida-new').value=dateTimeInput(row.fesalida);$('edit-fevuelta-new').value=dateTimeInput(row.fevuelta);$('edit-llegada-local-new').value=dateTimeInput(row.llegada_local);$('edit-salida-local-new').value=dateTimeInput(row.salida_local);$('edit-legajo-new').value=row.legajo||'';$('edit-nombre-new').value=row.nombre||'';$('edit-nrodoc-new').value=row.nrodoc||'';$('modelo-edit-panel-new').open=true}
+    function saveModeloEdit(){if(modeloEditIndex===null)return;const row={...modeloRows[modeloEditIndex],fecha_viaje:$('edit-fecha-viaje-new').value,hora_viaje:$('edit-hora-viaje-new').value,excel_legajo:$('edit-excel-legajo-new').value,hojaruta:$('edit-hojaruta-new').value,cantidad:Number($('edit-cantidad-new').value||0),fesalida:$('edit-fesalida-new').value,fevuelta:$('edit-fevuelta-new').value,llegada_local:$('edit-llegada-local-new').value,salida_local:$('edit-salida-local-new').value,legajo:$('edit-legajo-new').value,nombre:$('edit-nombre-new').value,nrodoc:$('edit-nrodoc-new').value};modeloRows[modeloEditIndex]=row;renderModelo(modeloRows);$('modelo-edit-panel-new').open=false}
+    $('modelo-guardar-edicion-new').onclick=saveModeloEdit;$('modelo-cancelar-edicion-new').onclick=()=>{$('modelo-edit-panel-new').open=false};
+    function showModeloDetail(index){const row=modeloRows[index]||{};const branches=(row.sucursales||[]).map(s=>`<tr><td>${esc(s.sucursal)}</td><td>${esc(displayDateTime(s.llegada_sucursal))}</td><td>${esc(displayDateTime(s.salida_sucursal))}</td><td>${fmt(s.demora_horas)} h</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Sin datos de sucursales.</td></tr>';$('modelo-modal-content').innerHTML=`<h2>Detalle hoja de ruta ${esc(row.hojaruta)}</h2><p>Fecha Excel: ${esc(row.fecha_viaje)} ${esc(row.hora_viaje)} | Legajo Excel: ${esc(row.excel_legajo)} | KM: ${fmt(row.cantidad)}</p><p>Salida viaje: ${esc(displayDateTime(row.fesalida))} | Regreso viaje: ${esc(displayDateTime(row.fevuelta))} | Duración total: ${fmt(row.horas_totales_viaje)} h</p><p>Chofer: ${esc(row.nombre)} | Legajo: ${esc(row.legajo)} | DNI: ${esc(row.nrodoc)}</p><table><thead><tr><th>Sucursal</th><th>Llegada sucursal</th><th>Salida sucursal</th><th>Estadía</th></tr></thead><tbody>${branches}</tbody></table>`;$('modelo-modal').style.display='flex'}
+    $('modelo-modal-close').onclick=()=>{$('modelo-modal').style.display='none'};
+    $('modelo-file').addEventListener('change',async ev=>{modeloFile=ev.target.files?.[0]||null;if(!modeloFile){$('modelo-message').textContent='Seleccione un archivo Excel.';return}try{$('modelo-message').textContent='Leyendo Excel...';const data=await api('/api/herramientas/excel/leer',{method:'POST',body:JSON.stringify(await modeloPayload())});renderModelo(data.rows||[]);$('modelo-message').textContent=`Excel cargado. Hojas: ${data.total||0}. Presione Consultar para validar en Oracle.`}catch(e){$('modelo-message').textContent=e.message;$('modelo-message').style.color='var(--red)'}});
+    $('modelo-consultar').onclick=async()=>{try{$('modelo-message').textContent='Consultando Oracle...';const data=await api('/api/herramientas/excel/consultar',{method:'POST',body:JSON.stringify(await modeloPayload())});renderModelo(data.rows||[]);$('modelo-message').textContent=`Consulta lista. Hojas: ${data.total||0}.`}catch(e){$('modelo-message').textContent=e.message;$('modelo-message').style.color='var(--red)'}};
+    $('modelo-recalcular').onclick=async()=>{try{const data=await api('/api/herramientas/excel/recalcular',{method:'POST',body:JSON.stringify({rows:collectModeloRows()})});renderModelo(data.rows||[]);$('modelo-message').textContent='Recalculo listo.'}catch(e){$('modelo-message').textContent=e.message;$('modelo-message').style.color='var(--red)'}};
+    $('modelo-exportar').onclick=async()=>{try{const rows=collectModeloRows();const payload={...(await modeloPayload()),rows};$('modelo-message').textContent='Generando Excel...';const r=await fetch('/api/herramientas/excel/exportar.xlsx',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.detail||'No se pudo exportar.')}const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='modelo_validado.xlsx';a.click();URL.revokeObjectURL(url);$('modelo-message').textContent='Excel exportado.'}catch(e){$('modelo-message').textContent=e.message;$('modelo-message').style.color='var(--red)'}};
+    function rowStatusClass(row){const text=String(row.estado||'').toLowerCase();if(text.includes('calculado'))return 'status-ok';if(text.includes('no encontrada')||text.includes('faltan'))return 'status-warn';return text.includes('error')?'status-error':''}
+    function toLocalInput(value){return value?String(value).slice(0,16):''}
+    function renderBulk(rows){bulkRows=rows||[];$('bulk-body').innerHTML=bulkRows.map((row,i)=>{const t=row.totales||{};return `<tr data-row="${i}">
+      <td class="mono">${esc(row.hojaruta)}</td>
+      <td>${esc(row.destino)}</td>
+      <td><input data-field="distanciadirecta" type="number" min="0" step="0.01" value="${esc(row.distanciadirecta??'')}"></td>
+      <td><input data-field="fesalida" type="datetime-local" value="${esc(toLocalInput(row.fesalida))}"></td>
+      <td><input data-field="fevuelta" type="datetime-local" value="${esc(toLocalInput(row.fevuelta))}"></td>
+      <td class="mono">${esc(row.legajo)}</td><td>${esc(row.nombre)}</td><td class="mono">${esc(row.nrodoc)}</td>
+      <td><input data-field="demora_sucursal_horas" type="number" min="0" step="0.25" value="${esc(row.demora_sucursal_horas??0)}"></td>
+      <td class="mono">${fmt(t.porcentaje_real_100)}%</td><td class="mono">${fmt(t.porcentaje_a_pagar)}%</td><td class="mono">${fmt(t.extra_100)}</td><td>${esc((row.conceptos||[]).map(x=>x.concepto).join(', '))}</td>
+      <td class="${rowStatusClass(row)}">${esc(row.estado)}</td>
+    </tr>`}).join('')||'<tr><td colspan="14" class="muted">Pegue hojas de ruta y busque en Oracle.</td></tr>'}
+    function collectBulkRows(){return [...$('bulk-body').querySelectorAll('tr[data-row]')].map(tr=>{const i=Number(tr.dataset.row);const base=bulkRows[i]||{};const val=f=>tr.querySelector(`[data-field="${f}"]`)?.value||'';return {...base,distanciadirecta:val('distanciadirecta')===''?null:Number(val('distanciadirecta')),fesalida:val('fesalida')||null,fevuelta:val('fevuelta')||null,demora_sucursal_horas:Number(val('demora_sucursal_horas')||0)}})}
+    async function recalcBulk(){const rows=collectBulkRows();if(!rows.length){setBulkMsg('No hay filas para recalcular.',true);return null}setBulkMsg('Recalculando...');const data=await api('/api/herramientas/km/hojas-ruta/calcular',{method:'POST',body:JSON.stringify({rows})});renderBulk(data.rows||[]);setBulkMsg(`Recalculo listo. Filas: ${data.total||0}.`);return data}
+    async function init(){const data=await api('/api/herramientas/km/destinos');if(!data)return;$('destino').innerHTML=(data.destinos||[]).map(d=>`<option value="${esc(d.id)}" data-km="${esc(d.km)}">${esc(d.nombre)} - ${fmt(d.km)} km total</option>`).join('');$('fecha-inicio').value=nowLocal();$('fecha-fin').value=endLocal()}
+    $('km-form').addEventListener('submit',async ev=>{ev.preventDefault();try{setMsg('Calculando...');const body={destino_id:$('destino').value,fecha_inicio:$('fecha-inicio').value,fecha_fin:$('fecha-fin').value,demora_sucursal_horas:Number($('demora-sucursal').value||0),feriados_extra:parseDates($('feriados-extra').value)};if($('km-manual').value!=='')body.km_override=Number($('km-manual').value);const data=await api('/api/herramientas/km/prorratear',{method:'POST',body:JSON.stringify(body)});render(data);setMsg(`Calculo listo. Dias: ${data.dias}.`)}catch(e){setMsg(e.message,true)}});
+    $('reset-btn').onclick=()=>{$('km-form').reset();$('fecha-inicio').value=nowLocal();$('fecha-fin').value=endLocal();$('detail-body').innerHTML='<tr><td colspan="6" class="muted">Complete el formulario para calcular.</td></tr>';render({totales:{}});setMsg('')};
+    $('hojas-input').addEventListener('paste',()=>setTimeout(()=>{$('hojas-input').value=parseHojas($('hojas-input').value).join('\n')},0));
+    $('bulk-search').onclick=async()=>{try{const hojas=parseHojas($('hojas-input').value);$('hojas-input').value=hojas.join('\n');if(!hojas.length){setBulkMsg('Pegue al menos una hoja de ruta.',true);return}setBulkMsg('Consultando Oracle...');const data=await api('/api/herramientas/km/hojas-ruta/buscar',{method:'POST',body:JSON.stringify({hojas_ruta:hojas})});renderBulk(data.rows||[]);setBulkMsg(`Consulta lista. Encontradas: ${data.encontradas||0} de ${data.total||0}.`)}catch(e){setBulkMsg(e.message,true)}};
+    $('bulk-recalc').onclick=()=>recalcBulk().catch(e=>setBulkMsg(e.message,true));
+    $('bulk-export').onclick=async()=>{try{const rows=collectBulkRows();if(!rows.length){setBulkMsg('No hay filas para exportar.',true);return}setBulkMsg('Preparando CSV...');const r=await fetch('/api/herramientas/km/hojas-ruta/exportar.csv',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows})});if(r.status===401){location.href='/login?next=/herramientas.html';return}if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.detail||'No se pudo exportar.')}const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='prorrateador_km.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);setBulkMsg('CSV generado.')}catch(e){setBulkMsg(e.message,true)}};
+    $('bulk-clear').onclick=()=>{bulkRows=[];$('hojas-input').value='';renderBulk([]);setBulkMsg('')};
+    function renderFeriados(rows){$('feriados-body').innerHTML=(rows||[]).map(f=>`<tr><td class="mono">${esc(f.fecha)}</td><td>${esc(f.motivo)}</td><td>${esc(f.tipo)}</td><td><button type="button" onclick="editFeriado(${f.id},'${esc(f.fecha)}','${esc(f.motivo)}','${esc(f.tipo)}')">Editar</button> <button type="button" onclick="deleteFeriado(${f.id})">Borrar</button></td></tr>`).join('')||'<tr><td colspan="4" class="muted">No hay feriados cargados.</td></tr>'}
+    async function loadFeriados(){const data=await api('/api/herramientas/km/feriados');renderFeriados(data.feriados||[])}
+    function editFeriado(id,fecha,motivo,tipo){$('feriado-id').value=id;$('feriado-fecha').value=fecha;$('feriado-motivo').value=motivo;$('feriado-tipo').value=tipo}
+    async function deleteFeriado(id){if(!confirm('¿Borrar este feriado?'))return;try{await api('/api/herramientas/km/feriados/'+id,{method:'DELETE'});await loadFeriados()}catch(e){$('feriado-message').textContent=e.message}}
+    $('feriado-form').addEventListener('submit',async ev=>{ev.preventDefault();const id=$('feriado-id').value;const body={fecha:$('feriado-fecha').value,motivo:$('feriado-motivo').value,tipo:$('feriado-tipo').value,activo:true};try{await api('/api/herramientas/km/feriados'+(id?'/'+id:''),{method:id?'PUT':'POST',body:JSON.stringify(body)});$('feriado-form').reset();$('feriado-id').value='';await loadFeriados()}catch(e){$('feriado-message').textContent=e.message}});
+    $('feriado-cancelar').onclick=()=>{$('feriado-form').reset();$('feriado-id').value=''};
+    $('tab-calculo').onclick=()=>{$('panel-calculo').style.display='block';$('panel-feriados').style.display='none';$('tab-calculo').classList.add('tab-active');$('tab-feriados').classList.remove('tab-active')};
+    $('tab-feriados').onclick=async()=>{$('panel-calculo').style.display='none';$('panel-feriados').style.display='block';$('tab-feriados').classList.add('tab-active');$('tab-calculo').classList.remove('tab-active');try{await loadFeriados()}catch(e){$('feriado-message').textContent=e.message}};
+    $('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
+    init().catch(e=>setMsg(e.message,true));
+  </script>
+</body>
+</html>

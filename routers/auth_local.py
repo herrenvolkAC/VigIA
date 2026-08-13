@@ -177,7 +177,7 @@ APP_MODULES = [
     {"id": "mapa", "label": "Mapa", "path": "", "available": False},
     {"id": "control_procesos", "label": "Monitor Cargas", "path": "/monitor-cargas"},
     {"id": "trafico", "label": "Trafico", "path": "", "available": False},
-    {"id": "generales", "label": "Generales", "path": "", "available": False},
+    {"id": "generales", "label": "Herramientas Operativas", "path": "/herramientas.html"},
 ]
 APP_MODULE_IDS = {module["id"] for module in APP_MODULES}
 DEFAULT_ENABLED_MODULES: set[str] = set()
@@ -472,7 +472,7 @@ async def ensure_bootstrap_admin() -> None:
 
 
 async def module_access_for_user(username: str, role: str = "user") -> dict[str, bool]:
-    if role == "admin":
+    if str(role or "").strip().lower() == "admin":
         return {module["id"]: True for module in APP_MODULES}
     access = {module["id"]: module["id"] in DEFAULT_ENABLED_MODULES for module in APP_MODULES}
     async with auth_db(attach_operational=True) as db:

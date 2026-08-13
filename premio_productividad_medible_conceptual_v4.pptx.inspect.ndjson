@@ -1,0 +1,283 @@
+{"kind":"deck","id":"pr/s1uwrw","name":"Deck"}
+{"kind":"layout","layoutId":"b4f277b2-ceb1-43c8-9445-166f2d43d78b","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"0dc946c2-cf8d-47de-ac65-e9328659ed18","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/h9jayg","slide":1,"title":"1. La propuesta cambia la granularidad de medición","textShapes":2}
+{"kind":"textbox","id":"sh/gryh4f6l","slide":1,"name":"title","text":"1. La propuesta cambia la granularidad de medición","textPreview":"1. La propuesta cambia la granularidad de medición","textChars":50,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/fqpgva50","slide":1,"name":"body","text":"Finalidad de la propuesta\n\nMedir las operaciones productivas por hora para reconocer mejor lo que ocurre dentro de la jornada.\n\nEl cambio propuesto no busca discutir una nueva curva económica en esta instancia.\nBusca cambiar la granularidad de medición: de jornada completa a tramos horarios.\n\nEn términos prácticos:\n\n• cada hora se evalúa contra la escala que corresponde a la operación y al sector;\n• el premio diario surge de sumar los resultados horarios;\n• los descuentos por TNC y errores se aplican sobre el resultado del día;\n• el premio grupal se activa sólo si el grupo alcanza el objetivo definido.\n\nLa discusión esperada para esta etapa es validar el método, las unidades medidas y las tablas propuestas por sector.","textPreview":"Finalidad de la propuesta |  | Medir las operaciones productivas por hora para reconocer mejor lo que ocurre dentro de la jornada. |  | E...","textChars":727,"textLines":15,"bbox":[64,116,1154,555]}
+{"kind":"notes","id":"nt/h9jayg","slide":1,"text":""}
+{"kind":"slide","id":"sl/3adr14","slide":2,"title":"2. Cada operación se mide con su propia unidad operativa","textShapes":2}
+{"kind":"textbox","id":"sh/fmlkvqpo","slide":2,"name":"title","text":"2. Cada operación se mide con su propia unidad operativa","textPreview":"2. Cada operación se mide con su propia unidad operativa","textChars":56,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/gnu1ovq9","slide":2,"name":"body","text":"Qué mide cada operación\n\nCada operación medible se evalúa por hora según su unidad operativa propia.\n\nOperación               | Unidad de medición propuesta\nPicking                 | bultos preparados por hora\nCarga                   | pallets cargados por hora\nCarreteo                | pallets trasladados por hora\nClark                   | pallets o movimientos equivalentes por hora\nControl CHP + CBF       | huecos controlados por hora\nControl Manual          | huecos controlados por hora\nRecepción NOA           | pallets recibidos/revisados por hora\nRecepción Secos         | pallets recibidos/revisados por hora\nConsolidación           | pallets consolidados por hora\n\nCriterio importante\n\nLa consolidación no se incluye implícitamente dentro de Picking, Carga o Carreteo.\n\n• Picking mide preparación.\n• Carga mide carga.\n• Carreteo mide traslado.\n• Consolidación mide consolidación.\n\nSi una persona realiza más de una operación durante el día, cada hora se mide contra la operación efectivamente realizada.","textPreview":"Qué mide cada operación |  | Cada operación medible se evalúa por hora según su unidad operativa propia. |  | Operación               | U...","textChars":1016,"textLines":25,"bbox":[64,116,1154,555]}
+{"kind":"notes","id":"nt/3adr14","slide":2,"text":""}
+{"kind":"slide","id":"sl/9wwdwp","slide":3,"title":"3. Las fórmulas se resumen en conceptos de pago","textShapes":3}
+{"kind":"textbox","id":"sh/ixo3y18j","slide":3,"name":"title","text":"3. Las fórmulas se resumen en conceptos de pago","textPreview":"3. Las fórmulas se resumen en conceptos de pago","textChars":47,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/5kfmtg7u","slide":3,"name":"left","text":"Pago individual diario = Σ premios horarios - TNC - errores\n\nConcepto:\nCada hora genera, o no, un premio según la producción real de esa hora y la tabla aplicable.\n\nProducción horaria = Σ unidades logísticas procesadas en la hora\n\nConcepto:\nLa unidad logística depende de la operación: bultos, pallets, huecos u otra unidad definida.\n\nCuando una hora tiene más de una operación, sector o TNC validado, se calcula por segmento proporcional de la hora.\n\nSegmento parcial = minutos del segmento / 60","textPreview":"Pago individual diario = Σ premios horarios - TNC - errores |  | Concepto: | Cada hora genera, o no, un premio según la producción real d...","textChars":496,"textLines":13,"bbox":[64,118,552,545]}
+{"kind":"textbox","id":"sh/4z6l0bqp","slide":3,"name":"right","text":"Pago grupal = bolsa grupal × participación individual\n\nConcepto:\nSi el grupo supera el objetivo, se genera una bolsa. Esa bolsa se reparte según la contribución de cada persona a la producción total del grupo.\n\n\nBolsa grupal = premio mínimo horario × cantidad de operarios × factor colchón\n\nConcepto:\nLa bolsa se calcula con una referencia mínima y un factor de resguardo, no como suma directa de todos los premios individuales.\n\n\nPago total diario = pago individual diario + pago grupal individual","textPreview":"Pago grupal = bolsa grupal × participación individual |  | Concepto: | Si el grupo supera el objetivo, se genera una bolsa. Esa bolsa se ...","textChars":498,"textLines":13,"bbox":[672,118,540,545]}
+{"kind":"notes","id":"nt/9wwdwp","slide":3,"text":""}
+{"kind":"slide","id":"sl/vno2i2","slide":4,"title":"4. El premio grupal usa equivalencias sólo para medir el turno","textShapes":2}
+{"kind":"textbox","id":"sh/0bex836l","slide":4,"name":"title","text":"4. El premio grupal usa equivalencias sólo para medir el turno","textPreview":"4. El premio grupal usa equivalencias sólo para medir el turno","textChars":62,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/za5wzy50","slide":4,"name":"body","text":"Premio grupal por operación y turno\n\nLa medición individual se realiza por sector, pero el premio grupal se evalúa por operación y turno.\n\nPara sumar sectores distintos dentro del mismo turno, se usa una unidad común de comparación.\n\nProducción equivalente grupal = Σ producción sector × equivalencia sector\n\nConcepto:\nCada sector mantiene su producción física para el cálculo individual.\nPara el cálculo grupal, esa producción se convierte usando la tabla actual de equivalencias.\n\nAplicación\n\n• La equivalencia se usa sólo para medir el cumplimiento grupal.\n• No modifica el premio individual horario.\n• No cambia la tabla sectorial de pago.\n• Permite comparar sectores con distinta complejidad dentro de una misma operación/turno.\n\nActivación del premio grupal\n\nSi producción equivalente grupal ≥ target equivalente del turno,\nse activa la bolsa grupal.\n\nLa bolsa se distribuye según la participación individual en la producción equivalente del grupo.","textPreview":"Premio grupal por operación y turno |  | La medición individual se realiza por sector, pero el premio grupal se evalúa por operación y tu...","textChars":954,"textLines":25,"bbox":[64,116,1154,555]}
+{"kind":"notes","id":"nt/vno2i2","slide":4,"text":""}
+{"kind":"slide","id":"sl/oce7cm","slide":5,"title":"5. Picking se abre por sector explícito","textShapes":2}
+{"kind":"textbox","id":"sh/sfed03ah","slide":5,"name":"title","text":"5. Picking se abre por sector explícito","textPreview":"5. Picking se abre por sector explícito","textChars":39,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/re5wry9w","slide":5,"name":"body","text":"Criterio para las tablas por sector\n\nPara Picking, la tabla se abre por sector explícito: AL, MU, B1, PI, etc.\n\nCada sector conserva su equivalencia operativa cargada en PV_TIEMPOS_DE_PICKING.\nEsa equivalencia ajusta la cantidad física de bultos/hora requerida para cada tramo.\n\nLectura de una tabla sectorial:\n\n• Desde/h y Hasta/h indican bultos físicos por hora para ese sector.\n• Premio/h indica el pago horario aplicable si la producción cae en ese tramo.\n• Cuando el sector no tiene tiempo normal histórico, se muestra igualmente la tabla si existe equivalencia.\n\nEsto evita tratar a todos los sectores como si tuvieran la misma dificultad operativa.","textPreview":"Criterio para las tablas por sector |  | Para Picking, la tabla se abre por sector explícito: AL, MU, B1, PI, etc. |  | Cada sector conse...","textChars":655,"textLines":14,"bbox":[64,116,1154,555]}
+{"kind":"notes","id":"nt/oce7cm","slide":5,"text":""}
+{"kind":"slide","id":"sl/bklppe","slide":6,"title":"Anexos","textShapes":2}
+{"kind":"textbox","id":"sh/2pwvudsr","slide":6,"name":"section-title","text":"Anexos","textPreview":"Anexos","textChars":6,"textLines":1,"bbox":[86,250,1100,84]}
+{"kind":"textbox","id":"sh/pc7ep8b2","slide":6,"name":"section-subtitle","text":"Tablas de escalas propuestas y fórmulas de referencia","textPreview":"Tablas de escalas propuestas y fórmulas de referencia","textChars":53,"textLines":1,"bbox":[90,340,1000,48]}
+{"kind":"notes","id":"nt/bklppe","slide":6,"text":""}
+{"kind":"slide","id":"sl/cab0gz","slide":7,"title":"Fórmulas de referencia","textShapes":3}
+{"kind":"textbox","id":"sh/jmlc7i5g","slide":7,"name":"title","text":"Fórmulas de referencia","textPreview":"Fórmulas de referencia","textChars":22,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/4nudgnml","slide":7,"name":"left","text":"Pago individual diario = Σ premios horarios - TNC - errores\n\nProducción horaria = Σ unidades logísticas procesadas en la hora\n\nSegmento parcial = minutos del segmento / 60\n\nTarget proporcional del segmento = target horario × segmento parcial\n\nPremio proporcional del segmento = premio horario × segmento parcial","textPreview":"Pago individual diario = Σ premios horarios - TNC - errores |  | Producción horaria = Σ unidades logísticas procesadas en la hora |  | Se...","textChars":311,"textLines":9,"bbox":[64,126,552,520]}
+{"kind":"textbox","id":"sh/5o3u9sn6","slide":7,"name":"right","text":"Pago grupal = bolsa grupal × participación individual\n\nBolsa grupal = premio mínimo horario × cantidad de operarios × factor colchón\n\nPago total diario = pago individual diario + pago grupal individual\n\nProducción equivalente grupal = Σ producción sector × equivalencia sector\n\nActivación grupal: producción equivalente grupal ≥ target equivalente del turno\n\nParticipación individual grupal =\nproducción equivalente individual / producción equivalente grupal\n\nDistribución grupal =\nbolsa grupal × participación individual grupal","textPreview":"Pago grupal = bolsa grupal × participación individual |  | Bolsa grupal = premio mínimo horario × cantidad de operarios × factor colchón ...","textChars":528,"textLines":15,"bbox":[672,126,540,520]}
+{"kind":"notes","id":"nt/cab0gz","slide":7,"text":""}
+{"kind":"slide","id":"sl/7ab9az","slide":8,"title":"8. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/cna14f61","slide":8,"name":"title","text":"8. Picking — tablas sectoriales explícitas","textPreview":"8. Picking — tablas sectoriales explícitas","textChars":42,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/bm10vapg","slide":8,"name":"Sector AL-title","text":"Sector AL","textPreview":"Sector AL","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/alsj2pov","slide":8,"name":"Sector AL-subtitle","text":"Base SECOS + NOA | Eq 1,00 | TN 19,9 seg","textPreview":"Base SECOS + NOA | Eq 1,00 | TN 19,9 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/kbu18z6x","slide":8,"name":"Sector A2-title","text":"Sector A2","textPreview":"Sector A2","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/zqlkzups","slide":8,"name":"Sector A2-subtitle","text":"Base SECOS + NOA | Eq 1,14 | TN 22,7 seg","textPreview":"Base SECOS + NOA | Eq 1,14 | TN 22,7 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/9gn2547u","slide":8,"name":"Sector A3-title","text":"Sector A3","textPreview":"Sector A3","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/8fu1cz69","slide":8,"name":"Sector A3-subtitle","text":"Base SECOS + NOA | Eq 0,93 | TN 18,5 seg","textPreview":"Base SECOS + NOA | Eq 0,93 | TN 18,5 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/8buxcny9","slide":8,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/7alg3iho","slide":8,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/18ja5on2","slide":8,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/7ab9az","slide":8,"text":""}
+{"kind":"slide","id":"sl/eoawl0","slide":9,"title":"9. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/etcf6xgr","slide":9,"name":"title","text":"9. Picking — tablas sectoriales explícitas","textPreview":"9. Picking — tablas sectoriales explícitas","textChars":42,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/1g3yhczi","slide":9,"name":"Sector A4-title","text":"Sector A4","textPreview":"Sector A4","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/gvux87yx","slide":9,"name":"Sector A4-subtitle","text":"Base SECOS + NOA | Eq 0,81 | TN 16,1 seg","textPreview":"Base SECOS + NOA | Eq 0,81 | TN 16,1 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/2hcfahg3","slide":9,"name":"Sector AS-title","text":"Sector AS","textPreview":"Sector AS","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/pknylwze","slide":9,"name":"Sector AS-subtitle","text":"Base SECOS + NOA | Eq 1,00 | sin TN histórico","textPreview":"Base SECOS + NOA | Eq 1,00 | sin TN histórico","textChars":45,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/jm1w7ih4","slide":9,"name":"Sector B1-title","text":"Sector B1","textPreview":"Sector B1","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/ilsfydgj","slide":9,"name":"Sector B1-subtitle","text":"Base SECOS + NOA | Eq 1,00 | sin TN histórico","textPreview":"Base SECOS + NOA | Eq 1,00 | sin TN histórico","textChars":45,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/qhgrux07","slide":9,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/d4rq5cjy","slide":9,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/j6lkjyd8","slide":9,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/eoawl0","slide":9,"text":""}
+{"kind":"slide","id":"sl/trzxp8","slide":10,"title":"10. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/etoveho7","slide":10,"name":"title","text":"10. Picking — tablas sectoriales explícitas","textPreview":"10. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/1wze9wny","slide":10,"name":"Sector B2-title","text":"Sector B2","textPreview":"Sector B2","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/0v6dgr6d","slide":10,"name":"Sector B2-subtitle","text":"Base SECOS + NOA | Eq 0,84 | TN 16,7 seg","textPreview":"Base SECOS + NOA | Eq 0,84 | TN 16,7 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/mx8fi1o3","slide":10,"name":"Sector B3-title","text":"Sector B3","textPreview":"Sector B3","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/90zedwnu","slide":10,"name":"Sector B3-subtitle","text":"Base SECOS + NOA | Eq 0,85 | TN 16,9 seg","textPreview":"Base SECOS + NOA | Eq 0,85 | TN 16,9 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/b2hwf650","slide":10,"name":"Sector BE-title","text":"Sector BE","textPreview":"Sector BE","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/a18fm1of","slide":10,"name":"Sector BE-subtitle","text":"Base SECOS + NOA | Eq 1,14 | TN 22,6 seg","textPreview":"Base SECOS + NOA | Eq 1,14 | TN 22,6 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/qhwv29s7","slide":10,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/dk7uxori","slide":10,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/zmlofux8","slide":10,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/trzxp8","slide":10,"text":""}
+{"kind":"slide","id":"sl/nii43x","slide":11,"title":"11. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/j6xwvmdw","slide":11,"name":"title","text":"11. Picking — tablas sectoriales explícitas","textPreview":"11. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/k76doruh","slide":11,"name":"Sector CA-title","text":"Sector CA","textPreview":"Sector CA","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/58fexwvm","slide":11,"name":"Sector CA-subtitle","text":"Base SECOS + NOA | Eq 0,86 | TN 17,0 seg","textPreview":"Base SECOS + NOA | Eq 0,86 | TN 17,0 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/7axwzmts","slide":11,"name":"Sector CH-title","text":"Sector CH","textPreview":"Sector CH","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/sv6xsrud","slide":11,"name":"Sector CH-subtitle","text":"Base SECOS + NOA | Eq 1,14 | TN 22,7 seg","textPreview":"Base SECOS + NOA | Eq 1,14 | TN 22,7 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/ux8fu1cj","slide":11,"name":"Sector CP-title","text":"Sector CP","textPreview":"Sector CP","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/fyhw36t4","slide":11,"name":"Sector CP-subtitle","text":"Base SECOS + NOA | Eq 1,15 | sin TN histórico","textPreview":"Base SECOS + NOA | Eq 1,15 | sin TN histórico","textChars":45,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/n2x87qxw","slide":11,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/o3qp0veh","slide":11,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/ozqtovi9","slide":11,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/nii43x","slide":11,"text":""}
+{"kind":"slide","id":"sl/1gj906","slide":12,"title":"12. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/jil8fmt4","slide":12,"name":"title","text":"12. Picking — tablas sectoriales explícitas","textPreview":"12. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/kjup8rup","slide":12,"name":"Sector HA-title","text":"Sector HA","textPreview":"Sector HA","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/5k3qhwba","slide":12,"name":"Sector HA-subtitle","text":"Base SECOS + NOA | Eq 1,01 | sin TN histórico","textPreview":"Base SECOS + NOA | Eq 1,01 | sin TN histórico","textChars":45,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/7m58j6tg","slide":12,"name":"Sector IN-title","text":"Sector IN","textPreview":"Sector IN","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/snepcru1","slide":12,"name":"Sector IN-subtitle","text":"Base SECOS + NOA | Eq 1,13 | TN 22,4 seg","textPreview":"Base SECOS + NOA | Eq 1,13 | TN 22,4 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/u9w7e1cr","slide":12,"name":"Sector KC-title","text":"Sector KC","textPreview":"Sector KC","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/fa58n6tc","slide":12,"name":"Sector KC-subtitle","text":"Base SECOS + NOA | Eq 1,00 | TN 19,9 seg","textPreview":"Base SECOS + NOA | Eq 1,00 | TN 19,9 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/vqdg3i5s","slide":12,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/wrmxcnmd","slide":12,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/wfatsz61","slide":12,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/1gj906","slide":12,"text":""}
+{"kind":"slide","id":"sl/dl73yr","slide":13,"title":"13. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/tcnydwvq","slide":13,"name":"title","text":"13. Picking — tablas sectoriales explícitas","textPreview":"13. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/6pcz21wf","slide":13,"name":"Sector KN-title","text":"Sector KN","textPreview":"Sector KN","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/7algb6d0","slide":13,"name":"Sector KN-subtitle","text":"Base SECOS + NOA | Eq 1,10 | TN 19,9 seg","textPreview":"Base SECOS + NOA | Eq 1,10 | TN 19,9 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/5o3y9wfu","slide":13,"name":"Sector KT-title","text":"Sector KT","textPreview":"Sector KT","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/ilcfyhw3","slide":13,"name":"Sector KT-subtitle","text":"Base SECOS + NOA | Eq 1,19 | sin TN histórico","textPreview":"Base SECOS + NOA | Eq 1,19 | sin TN histórico","textChars":45,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/4jyhcved","slide":13,"name":"Sector NA-title","text":"Sector NA","textPreview":"Sector NA","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/pk7y5gvy","slide":13,"name":"Sector NA-subtitle","text":"Base SECOS + NOA | Eq 1,03 | TN 20,5 seg","textPreview":"Base SECOS + NOA | Eq 1,03 | TN 20,5 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/hkv2hs3i","slide":13,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/uxkjmxkr","slide":13,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/2tkzy9c7","slide":13,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/dl73yr","slide":13,"text":""}
+{"kind":"slide","id":"sl/1yay4e","slide":14,"title":"14. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/jmt4zypg","slide":14,"name":"title","text":"14. Picking — tablas sectoriales explícitas","textPreview":"14. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/kn25sj61","slide":14,"name":"Sector NP-title","text":"Sector NP","textPreview":"Sector NP","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/lobm1o7m","slide":14,"name":"Sector NP-subtitle","text":"Base SECOS + NOA | Eq 0,71 | TN 14,1 seg","textPreview":"Base SECOS + NOA | Eq 0,71 | TN 14,1 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/7qd43y5c","slide":14,"name":"Sector OF-title","text":"Sector OF","textPreview":"Sector OF","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/8rm5w36x","slide":14,"name":"Sector OF-subtitle","text":"Base SECOS + NOA | Eq 0,96 | TN 19,1 seg","textPreview":"Base SECOS + NOA | Eq 0,96 | TN 19,1 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/mt03i9on","slide":14,"name":"Sector P1-title","text":"Sector P1","textPreview":"Sector P1","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/nu94rep8","slide":14,"name":"Sector P1-subtitle","text":"Base SECOS + NOA | Eq 1,12 | TN 22,3 seg","textPreview":"Base SECOS + NOA | Eq 1,12 | TN 22,3 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/va5cf2l4","slide":14,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/gbed8nmp","slide":14,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/4zqd07ml","slide":14,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/1yay4e","slide":14,"text":""}
+{"kind":"slide","id":"sl/66y3tv","slide":15,"title":"15. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/0n2hkri1","slide":15,"name":"title","text":"15. Picking — tablas sectoriales explícitas","textPreview":"15. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/zmt0b6hg","slide":15,"name":"Sector P3-title","text":"Sector P3","textPreview":"Sector P3","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/elkzi10b","slide":15,"name":"Sector P3-subtitle","text":"Base SECOS + NOA | Eq 0,68 | TN 13,6 seg","textPreview":"Base SECOS + NOA | Eq 0,68 | TN 13,6 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/cj2hgri5","slide":15,"name":"Sector PE-title","text":"Sector PE","textPreview":"Sector PE","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/rit07mhk","slide":15,"name":"Sector PE-subtitle","text":"Base SECOS + NOA | Eq 1,13 | TN 22,5 seg","textPreview":"Base SECOS + NOA | Eq 1,13 | TN 22,5 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/pgby5cze","slide":15,"name":"Sector SF-title","text":"Sector SF","textPreview":"Sector SF","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/4fihc7it","slide":15,"name":"Sector SF-subtitle","text":"Base SECOS + NOA | Eq 0,99 | TN 19,6 seg","textPreview":"Base SECOS + NOA | Eq 0,99 | TN 19,6 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/072hova5","slide":15,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/zmtgvatk","slide":15,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/pcfip4fa","slide":15,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/66y3tv","slide":15,"text":""}
+{"kind":"slide","id":"sl/g4n7ms","slide":16,"title":"16. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/y54z250f","slide":16,"name":"title","text":"16. Picking — tablas sectoriales explícitas","textPreview":"16. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/l8vyx0j6","slide":16,"name":"Sector AM-title","text":"Sector AM","textPreview":"Sector AM","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/k7mh4fil","slide":16,"name":"Sector AM-subtitle","text":"Base SECOS + NOA | Eq 1,10 | TN 21,9 seg","textPreview":"Base SECOS + NOA | Eq 1,10 | TN 21,9 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/ahkzyl0j","slide":16,"name":"Sector B5-title","text":"Sector B5","textPreview":"Sector B5","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/x4vyt0ju","slide":16,"name":"Sector B5-subtitle","text":"Base SECOS + NOA | Eq 1,00 | TN 19,9 seg","textPreview":"Base SECOS + NOA | Eq 1,00 | TN 19,9 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/vex03u18","slide":16,"name":"Sector CU-title","text":"Sector CU","textPreview":"Sector CU","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/udozap0n","slide":16,"name":"Sector CU-subtitle","text":"Base SECOS + NOA | Eq 1,03 | TN 20,5 seg","textPreview":"Base SECOS + NOA | Eq 1,03 | TN 20,5 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/mt8zep83","slide":16,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/9wzip47e","slide":16,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/3itsrih4","slide":16,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/g4n7ms","slide":16,"text":""}
+{"kind":"slide","id":"sl/6fd49g","slide":17,"title":"17. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/6xwn2hkn","slide":17,"name":"title","text":"17. Picking — tablas sectoriales explícitas","textPreview":"17. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/t0n6dcje","slide":17,"name":"Sector EC-title","text":"Sector EC","textPreview":"Sector EC","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/8ze5472t","slide":17,"name":"Sector EC-subtitle","text":"Base SECOS + NOA | Eq 1,02 | TN 19,2 seg","textPreview":"Base SECOS + NOA | Eq 1,02 | TN 19,2 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/u1wn6hkz","slide":17,"name":"Sector EP-title","text":"Sector EP","textPreview":"Sector EP","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/h476hwja","slide":17,"name":"Sector EP-subtitle","text":"Base SECOS + NOA | Eq 0,90 | TN 18,0 seg","textPreview":"Base SECOS + NOA | Eq 0,90 | TN 18,0 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/36poj61g","slide":17,"name":"Sector JC-title","text":"Sector JC","textPreview":"Sector JC","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/i5gna1kv","slide":17,"name":"Sector JC-subtitle","text":"Base SECOS + NOA | Eq 0,79 | TN 15,7 seg","textPreview":"Base SECOS + NOA | Eq 0,79 | TN 15,7 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/ip4na5c3","slide":17,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/5sfmlkbe","slide":17,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/nu5o3edc","slide":17,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/6fd49g","slide":17,"text":""}
+{"kind":"slide","id":"sl/rqhgkl","slide":18,"title":"18. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/byl036pw","slide":18,"name":"title","text":"18. Picking — tablas sectoriales explícitas","textPreview":"18. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/czu1wbqh","slide":18,"name":"Sector LB-title","text":"Sector LB","textPreview":"Sector LB","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/x0ni5g7m","slide":18,"name":"Sector LB-subtitle","text":"Base SECOS + NOA | Eq 0,60 | TN 11,8 seg","textPreview":"Base SECOS + NOA | Eq 0,60 | TN 11,8 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/zm507qps","slide":18,"name":"Sector MU-title","text":"Sector MU","textPreview":"Sector MU","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/kne10vqd","slide":18,"name":"Sector MU-subtitle","text":"Base SECOS + NOA | Eq 1,88 | TN 37,4 seg","textPreview":"Base SECOS + NOA | Eq 1,88 | TN 37,4 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/epsjmh83","slide":18,"name":"Sector N1-title","text":"Sector N1","textPreview":"Sector N1","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/fq10vmpo","slide":18,"name":"Sector N1-subtitle","text":"Base SECOS + NOA | Eq 0,33 | TN 6,6 seg","textPreview":"Base SECOS + NOA | Eq 0,33 | TN 6,6 seg","textChars":39,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/ji9kbupk","slide":18,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/43i14z6p","slide":18,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/0j6t4ryp","slide":18,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/rqhgkl","slide":18,"text":""}
+{"kind":"slide","id":"sl/jfj5em","slide":19,"title":"19. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/nip0fexw","slide":19,"name":"title","text":"19. Picking — tablas sectoriales explícitas","textPreview":"19. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/8jy18jeh","slide":19,"name":"Sector N2-title","text":"Sector N2","textPreview":"Sector N2","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/9k7ih4f2","slide":19,"name":"Sector N2-subtitle","text":"Base SECOS + NOA | Eq 0,46 | TN 9,1 seg","textPreview":"Base SECOS + NOA | Eq 0,46 | TN 9,1 seg","textChars":39,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/ze50bux0","slide":19,"name":"Sector NS-title","text":"Sector NS","textPreview":"Sector NS","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/0fe14zyl","slide":19,"name":"Sector NS-subtitle","text":"Base SECOS + NOA | Eq 1,43 | TN 28,3 seg","textPreview":"Base SECOS + NOA | Eq 1,43 | TN 28,3 seg","textChars":40,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/i90jetwj","slide":19,"name":"Sector NT-title","text":"Sector NT","textPreview":"Sector NT","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/ja90nyx4","slide":19,"name":"Sector NT-subtitle","text":"Base SECOS + NOA | Eq 1,60 | TN 31,1 seg","textPreview":"Base SECOS + NOA | Eq 1,60 | TN 31,1 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/byh87u9s","slide":19,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/czq90zqd","slide":19,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/c3ix0nid","slide":19,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/jfj5em","slide":19,"text":""}
+{"kind":"slide","id":"sl/e44hsc","slide":20,"title":"20. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/jyxobepw","slide":20,"name":"title","text":"20. Picking — tablas sectoriales explícitas","textPreview":"20. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/kz6pkj61","slide":20,"name":"Sector PI-title","text":"Sector PI","textPreview":"Sector PI","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/50zqd47m","slide":20,"name":"Sector PI-subtitle","text":"Base SECOS + NOA | Eq 1,64 | TN 32,6 seg","textPreview":"Base SECOS + NOA | Eq 1,64 | TN 32,6 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/vuxo7upk","slide":20,"name":"Sector PT-title","text":"Sector PT","textPreview":"Sector PT","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/wv6pgz65","slide":20,"name":"Sector PT-subtitle","text":"Base SECOS + NOA | Eq 0,30 | TN 5,9 seg","textPreview":"Base SECOS + NOA | Eq 0,30 | TN 5,9 seg","textChars":39,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/ep87qtoj","slide":20,"name":"Sector TV-title","text":"Sector TV","textPreview":"Sector TV","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/fqh8jy5o","slide":20,"name":"Sector TV-subtitle","text":"Base SECOS + NOA | Eq 0,60 | TN 11,8 seg","textPreview":"Base SECOS + NOA | Eq 0,60 | TN 11,8 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/jaxovmhw","slide":20,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/kb6porih","slide":20,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/krmd8f61","slide":20,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/e44hsc","slide":20,"text":""}
+{"kind":"slide","id":"sl/hm3385","slide":21,"title":"21. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/4z6d43qt","slide":21,"name":"title","text":"21. Picking — tablas sectoriales explícitas","textPreview":"21. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/3yxwbyp8","slide":21,"name":"Sector VA-title","text":"Sector VA","textPreview":"Sector VA","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/ix4v2d83","slide":21,"name":"Sector VA-subtitle","text":"Base SECOS + NOA | Eq 1,43 | TN 28,3 seg","textPreview":"Base SECOS + NOA | Eq 1,43 | TN 28,3 seg","textChars":40,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/s36d8nq5","slide":21,"name":"Sector VN-title","text":"Sector VN","textPreview":"Sector VN","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/r2xwfipk","slide":21,"name":"Sector VN-subtitle","text":"Base SECOS + NOA | Eq 0,91 | sin TN histórico","textPreview":"Base SECOS + NOA | Eq 0,91 | sin TN histórico","textChars":45,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/tsve5or6","slide":21,"name":"Sector VT-title","text":"Sector VT","textPreview":"Sector VT","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/87mdwjql","slide":21,"name":"Sector VT-subtitle","text":"Base SECOS + NOA | Eq 1,38 | TN 27,3 seg","textPreview":"Base SECOS + NOA | Eq 1,38 | TN 27,3 seg","textChars":40,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/kfah4vmt","slide":21,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/ze10va58","slide":21,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/5cv61gvq","slide":21,"name":"","rows":9,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/hm3385","slide":21,"text":""}
+{"kind":"slide","id":"sl/9a9x40","slide":22,"title":"22. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/rahc3mt0","slide":22,"name":"title","text":"22. Picking — tablas sectoriales explícitas","textPreview":"22. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/cbqdwrul","slide":22,"name":"Sector FB-title","text":"Sector FB","textPreview":"Sector FB","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/dczu5wbq","slide":22,"name":"Sector FB-subtitle","text":"Base CAMARA 06 | Eq 1,00 | TN 15,9 seg","textPreview":"Base CAMARA 06 | Eq 1,00 | TN 15,9 seg","textChars":38,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/3mhczmto","slide":22,"name":"Sector BA-title","text":"Sector BA","textPreview":"Sector BA","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/47qtsru9","slide":22,"name":"Sector BA-subtitle","text":"Base CAMARA 06 | Eq 1,00 | sin TN histórico","textPreview":"Base CAMARA 06 | Eq 1,00 | sin TN histórico","textChars":43,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/uhobmxc7","slide":22,"name":"Sector F1-title","text":"Sector F1","textPreview":"Sector F1","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/fixcv2ts","slide":22,"name":"Sector F1-subtitle","text":"Base CAMARA 06 | Eq 1,00 | TN 19,6 seg","textPreview":"Base CAMARA 06 | Eq 1,00 | TN 19,6 seg","textChars":38,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/7qpkridc","slide":22,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/8ryl0nex","slide":22,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/8vulojip","slide":22,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/9a9x40","slide":22,"text":""}
+{"kind":"slide","id":"sl/8t18zw","slide":23,"title":"23. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/wfy9szud","slide":23,"name":"title","text":"23. Picking — tablas sectoriales explícitas","textPreview":"23. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/bep8zuds","slide":23,"name":"Sector F2-title","text":"Sector F2","textPreview":"Sector F2","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/atg7qpcn","slide":23,"name":"Sector F2-subtitle","text":"Base CAMARA 06 | Eq 1,00 | TN 15,3 seg","textPreview":"Base CAMARA 06 | Eq 1,00 | TN 15,3 seg","textChars":38,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/kji9wjup","slide":23,"name":"Sector FC-title","text":"Sector FC","textPreview":"Sector FC","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/ji983et4","slide":23,"name":"Sector FC-subtitle","text":"Base CAMARA 06 | Eq 1,00 | TN 19,3 seg","textPreview":"Base CAMARA 06 | Eq 1,00 | TN 19,3 seg","textChars":38,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/tobq9ob6","slide":23,"name":"Sector VE-title","text":"Sector VE","textPreview":"Sector VE","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/sn290jul","slide":23,"name":"Sector VE-subtitle","text":"Base CAMARA 06 | Eq 1,00 | sin TN histórico","textPreview":"Base CAMARA 06 | Eq 1,00 | sin TN histórico","textChars":43,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/gb6dsfuh","slide":23,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/faxczatw","slide":23,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/p8rmx0fy","slide":23,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/8t18zw","slide":23,"text":""}
+{"kind":"slide","id":"sl/bnw2x1","slide":24,"title":"24. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/472do7ql","slide":24,"name":"title","text":"24. Picking — tablas sectoriales explícitas","textPreview":"24. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/j6twv290","slide":24,"name":"Sector CF-title","text":"Sector CF","textPreview":"Sector CF","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/i5kvmx8f","slide":24,"name":"Sector CF-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 26,9 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 26,9 seg","textChars":42,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/w32dknqp","slide":24,"name":"Sector CO-title","text":"Sector CO","textPreview":"Sector CO","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/v2twr294","slide":24,"name":"Sector CO-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 18,7 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 18,7 seg","textChars":42,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/10ve5w7e","slide":24,"name":"Sector F4-title","text":"Sector F4","textPreview":"Sector F4","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/gzmdwrqt","slide":24,"name":"Sector F4-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 14,1 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 14,1 seg","textChars":42,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/gz6p0j65","slide":24,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/vyxorepk","slide":24,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/xgzq1w3e","slide":24,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/bnw2x1","slide":24,"text":""}
+{"kind":"slide","id":"sl/5sjtus","slide":25,"title":"25. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/k3et4jed","slide":25,"name":"title","text":"25. Picking — tablas sectoriales explícitas","textPreview":"25. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/j25cveds","slide":25,"name":"Sector FQ-title","text":"Sector FQ","textPreview":"Sector FQ","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/y1wb29w7","slide":25,"name":"Sector FQ-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 19,2 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 19,2 seg","textChars":42,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/wzet0zeh","slide":25,"name":"Sector HE-title","text":"Sector HE","textPreview":"Sector HE","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/by5crudw","slide":25,"name":"Sector HE-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 10,6 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 10,6 seg","textChars":42,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/9w3up4vq","slide":25,"name":"Sector HU-title","text":"Sector HU","textPreview":"Sector HU","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/obutwze5","slide":25,"name":"Sector HU-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 17,3 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 17,3 seg","textChars":42,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/wzatsjmd","slide":25,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/vy1sze5s","slide":25,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/d4bm9w7q","slide":25,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/5sjtus","slide":25,"text":""}
+{"kind":"slide","id":"sl/mmooc9","slide":26,"title":"26. Picking — tablas sectoriales explícitas","textShapes":7}
+{"kind":"textbox","id":"sh/61gnm5wn","slide":26,"name":"title","text":"26. Picking — tablas sectoriales explícitas","textPreview":"26. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/t476xkvy","slide":26,"name":"Sector KR-title","text":"Sector KR","textPreview":"Sector KR","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/s3y5ofed","slide":26,"name":"Sector KR-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | sin TN histórico","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | sin TN histórico","textChars":47,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"textbox","id":"sh/ixwni5wb","slide":26,"name":"Sector MO-title","text":"Sector MO","textPreview":"Sector MO","textChars":9,"textLines":1,"bbox":[450,122,346,24]}
+{"kind":"textbox","id":"sh/5076t0v2","slide":26,"name":"Sector MO-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 0,4 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 0,4 seg","textChars":41,"textLines":1,"bbox":[450,145,346,20]}
+{"kind":"textbox","id":"sh/3u9onud0","slide":26,"name":"Sector P4-title","text":"Sector P4","textPreview":"Sector P4","textChars":9,"textLines":1,"bbox":[836,122,346,24]}
+{"kind":"textbox","id":"sh/2t0nupwf","slide":26,"name":"Sector P4-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 25,0 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 25,0 seg","textChars":42,"textLines":1,"bbox":[836,145,346,20]}
+{"kind":"table","id":"tb/ydsjqdof","slide":26,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"table","id":"tb/lgj218nq","slide":26,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[450,170,346,340]}
+{"kind":"table","id":"tb/bulojal4","slide":26,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[836,170,346,340]}
+{"kind":"notes","id":"nt/mmooc9","slide":26,"text":""}
+{"kind":"slide","id":"sl/8njvri","slide":27,"title":"27. Picking — tablas sectoriales explícitas","textShapes":3}
+{"kind":"textbox","id":"sh/fud0zix4","slide":27,"name":"title","text":"27. Picking — tablas sectoriales explícitas","textPreview":"27. Picking — tablas sectoriales explícitas","textChars":43,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/gvm1snyp","slide":27,"name":"Sector PA-title","text":"Sector PA","textPreview":"Sector PA","textChars":9,"textLines":1,"bbox":[64,122,346,24]}
+{"kind":"textbox","id":"sh/1wvi1sfa","slide":27,"name":"Sector PA-subtitle","text":"Base OTRAS CAMARAS | Eq 1,00 | TN 13,4 seg","textPreview":"Base OTRAS CAMARAS | Eq 1,00 | TN 13,4 seg","textChars":42,"textLines":1,"bbox":[64,145,346,20]}
+{"kind":"table","id":"tb/zet4zmpk","slide":27,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,170,346,340]}
+{"kind":"notes","id":"nt/8njvri","slide":27,"text":""}
+{"kind":"slide","id":"sl/bd7us0","slide":28,"title":"28. Tablas de escalas y premios — operaciones no Picking","textShapes":8}
+{"kind":"textbox","id":"sh/pgjux0ni","slide":28,"name":"title","text":"28. Tablas de escalas y premios — operaciones no Picking","textPreview":"28. Tablas de escalas y premios — operaciones no Picking","textChars":56,"textLines":1,"bbox":[54,36,1172,58]}
+{"kind":"textbox","id":"sh/2t8b2lo7","slide":28,"name":"Carga — Secos/No Alimentarios-title","text":"Carga — Secos/No Alimentarios","textPreview":"Carga — Secos/No Alimentarios","textChars":29,"textLines":1,"bbox":[64,116,342,24]}
+{"kind":"textbox","id":"sh/grqt0b61","slide":28,"name":"Carreteo — General-title","text":"Carreteo — General","textPreview":"Carreteo — General","textChars":18,"textLines":1,"bbox":[466,116,342,24]}
+{"kind":"textbox","id":"sh/ep8bylov","slide":28,"name":"Clark — Secos + NOA-title","text":"Clark — Secos + NOA","textPreview":"Clark — Secos + NOA","textChars":19,"textLines":1,"bbox":[868,116,342,24]}
+{"kind":"textbox","id":"sh/0nutcfm5","slide":28,"name":"Control CHP + CBF — Secos + NOA-title","text":"Control CHP + CBF — Secos + NOA","textPreview":"Control CHP + CBF — Secos + NOA","textChars":31,"textLines":1,"bbox":[64,365,342,24]}
+{"kind":"textbox","id":"sh/54bqt4rq","slide":28,"name":"Recepción NOA-title","text":"Recepción NOA","textPreview":"Recepción NOA","textChars":13,"textLines":1,"bbox":[466,365,342,24]}
+{"kind":"textbox","id":"sh/32t8ru9k","slide":28,"name":"Recepción Secos-title","text":"Recepción Secos","textPreview":"Recepción Secos","textChars":15,"textLines":1,"bbox":[868,365,342,24]}
+{"kind":"textbox","id":"sh/h0b6pkre","slide":28,"name":"flat-note","text":"Escalas planas vigentes: Carga Refrigerados/Cámaras $453/h; Control Manual $544/h.","textPreview":"Escalas planas vigentes: Carga Refrigerados/Cámaras $453/h; Control Manual $544/h.","textChars":82,"textLines":1,"bbox":[64,628,1140,24]}
+{"kind":"table","id":"tb/qxozehgz","slide":28,"name":"","rows":8,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,146,342,170]}
+{"kind":"table","id":"tb/0n6hkby1","slide":28,"name":"","rows":8,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[466,146,342,170]}
+{"kind":"table","id":"tb/elozi1gv","slide":28,"name":"","rows":7,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[868,146,342,156]}
+{"kind":"table","id":"tb/wrmh87yx","slide":28,"name":"","rows":8,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[64,395,342,170]}
+{"kind":"table","id":"tb/rmp4zapo","slide":28,"name":"","rows":6,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[466,395,342,142]}
+{"kind":"table","id":"tb/d87m107e","slide":28,"name":"","rows":6,"cols":4,"preview":"Nivel | Desde/h | Hasta/h | Premio/h","bbox":[868,395,342,142]}
+{"kind":"notes","id":"nt/bd7us0","slide":28,"text":""}

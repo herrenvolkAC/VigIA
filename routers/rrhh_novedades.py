@@ -34,6 +34,7 @@ from pydantic import BaseModel
 from db.schema import DB_PATH
 from db.auth import attach_auth_db, auth_db
 from routers.auth_local import current_auth
+from utils.usage_log import write_usage_event
 
 try:
     from openpyxl import load_workbook
@@ -48,6 +49,8 @@ except Exception:  # pragma: no cover
 
 router = APIRouter(prefix="/api/rrhh", tags=["rrhh-novedades"])
 logger = logging.getLogger("vigia.rrhh_novedades")
+SQLITE_BUSY_TIMEOUT_SECONDS = int(os.getenv("VIGIA_SQLITE_BUSY_TIMEOUT_SECONDS", "60") or "60")
+SQLITE_BUSY_TIMEOUT_MS = SQLITE_BUSY_TIMEOUT_SECONDS * 1000
 
 SOURCE_ROOT = Path(__file__).parent.parent / "Docs" / "Panel_Choferes" / "PROCESADOS"
 DEFAULT_RRHH_IMPORT_LOG_DIR = Path(__file__).parent.parent / "logs" / "rrhh_importaciones"
@@ -3261,81 +3264,97 @@ async def _ensure_consolidated_temp(
 async def list_legajero_funciones(request: Request):
     auth = await _require_auth(request)
     today = date.today().isoformat()
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("PRAGMA busy_timeout = 10000")
-        db.row_factory = aiosqlite.Row
-        await attach_auth_db(db)
-        await db.execute(
-            """
-            INSERT OR IGNORE INTO rrhh_funciones_catalogo (descripcion, created_by)
-            SELECT DISTINCT TRIM(l.desc_funcion), 'legajero'
-            FROM rrhh_legajero l
-            WHERE l.batch_id = (
-                SELECT batch_id FROM rrhh_import_batches
-                WHERE status = 'complete'
-                ORDER BY imported_at DESC, batch_id DESC LIMIT 1
-            )
-              AND TRIM(COALESCE(l.desc_funcion, '')) <> ''
-            """
+    try:
+        async with aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS) as db:
+            await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
+            db.row_factory = aiosqlite.Row
+            await attach_auth_db(db)
+            async with db.execute(
+                """
+                SELECT p.legajo, p.nombre, p.desc_unidad_organizativa unidad,
+                       p.desc_sector_generico sector, p.desc_funcion funcion_legajero
+                FROM rrhh_legajero p
+                WHERE p.batch_id = (
+                    SELECT batch_id FROM rrhh_import_batches
+                    WHERE status = 'complete'
+                    ORDER BY imported_at DESC, batch_id DESC LIMIT 1
+                )
+                ORDER BY p.nombre COLLATE NOCASE, p.legajo
+                """
+            ) as cur:
+                rows = [dict(row) for row in await cur.fetchall()]
+            async with db.execute(
+                """
+                SELECT d.legajo, d.detalle_id, d.lote_id, l.funcion_descripcion,
+                       l.fecha_inicio, l.fecha_fin, l.motivo, l.created_by,
+                       COALESCE(NULLIF(TRIM(u.display_name), ''), l.created_by) created_by_display,
+                       l.created_at
+                FROM rrhh_funcion_cambio_detalle d
+                JOIN rrhh_funcion_cambio_lotes l ON l.lote_id = d.lote_id
+                LEFT JOIN authdb.auth_users u ON u.username = l.created_by
+                WHERE d.estado = 'activo'
+                  AND l.cancelled_at IS NULL
+                  AND (l.fecha_fin IS NULL OR l.fecha_fin >= ?)
+                ORDER BY d.legajo, l.fecha_inicio, d.detalle_id
+                """,
+                (today,),
+            ) as cur:
+                temporales_rows = [dict(row) for row in await cur.fetchall()]
+            async with db.execute(
+                """
+                SELECT MIN(funcion_id) funcion_id, descripcion
+                FROM (
+                    SELECT funcion_id, descripcion
+                    FROM rrhh_funciones_catalogo
+                    WHERE active = 1
+                    UNION ALL
+                    SELECT NULL funcion_id, TRIM(l.desc_funcion) descripcion
+                    FROM rrhh_legajero l
+                    WHERE l.batch_id = (
+                        SELECT batch_id FROM rrhh_import_batches
+                        WHERE status = 'complete'
+                        ORDER BY imported_at DESC, batch_id DESC LIMIT 1
+                    )
+                      AND TRIM(COALESCE(l.desc_funcion, '')) <> ''
+                )
+                GROUP BY descripcion
+                ORDER BY descripcion COLLATE NOCASE
+                """
+            ) as cur:
+                funciones = [dict(row) for row in await cur.fetchall()]
+            async with db.execute(
+                """
+                SELECT l.lote_id, l.funcion_descripcion funcion, l.fecha_inicio, l.fecha_fin,
+                       l.motivo, l.cantidad_legajos, l.created_by,
+                       COALESCE(NULLIF(TRIM(u.display_name), ''), l.created_by) created_by_display,
+                       l.created_at,
+                       l.cancelled_by, l.cancelled_at, l.cancel_reason,
+                       SUM(CASE WHEN d.estado = 'activo' THEN 1 ELSE 0 END) activos
+                FROM rrhh_funcion_cambio_lotes l
+                LEFT JOIN rrhh_funcion_cambio_detalle d ON d.lote_id = l.lote_id
+                LEFT JOIN authdb.auth_users u ON u.username = l.created_by
+                GROUP BY l.lote_id
+                ORDER BY l.created_at DESC, l.lote_id DESC
+                LIMIT 100
+                """
+            ) as cur:
+                lotes = [dict(row) for row in await cur.fetchall()]
+    except sqlite3.OperationalError as exc:
+        if "database is locked" not in str(exc).lower():
+            raise
+        logger.exception("Base SQLite ocupada al consultar legajero-funciones.")
+        write_usage_event(
+            username=auth.get("username"),
+            ip=request.client.host if request.client else "",
+            module="novedades_cd",
+            action="database_locked",
+            action_text="Base ocupada al consultar funciones del legajero.",
+            attention=True,
         )
-        await db.commit()
-        async with db.execute(
-            """
-            SELECT p.legajo, p.nombre, p.desc_unidad_organizativa unidad,
-                   p.desc_sector_generico sector, p.desc_funcion funcion_legajero
-            FROM rrhh_legajero p
-            WHERE p.batch_id = (
-                SELECT batch_id FROM rrhh_import_batches
-                WHERE status = 'complete'
-                ORDER BY imported_at DESC, batch_id DESC LIMIT 1
-            )
-            ORDER BY p.nombre COLLATE NOCASE, p.legajo
-            """
-        ) as cur:
-            rows = [dict(row) for row in await cur.fetchall()]
-        async with db.execute(
-            """
-            SELECT d.legajo, d.detalle_id, d.lote_id, l.funcion_descripcion,
-                   l.fecha_inicio, l.fecha_fin, l.motivo, l.created_by,
-                   COALESCE(NULLIF(TRIM(u.display_name), ''), l.created_by) created_by_display,
-                   l.created_at
-            FROM rrhh_funcion_cambio_detalle d
-            JOIN rrhh_funcion_cambio_lotes l ON l.lote_id = d.lote_id
-            LEFT JOIN authdb.auth_users u ON u.username = l.created_by
-            WHERE d.estado = 'activo'
-              AND l.cancelled_at IS NULL
-              AND (l.fecha_fin IS NULL OR l.fecha_fin >= ?)
-            ORDER BY d.legajo, l.fecha_inicio, d.detalle_id
-            """,
-            (today,),
-        ) as cur:
-            temporales_rows = [dict(row) for row in await cur.fetchall()]
-        async with db.execute(
-            """
-            SELECT funcion_id, descripcion
-            FROM rrhh_funciones_catalogo
-            WHERE active = 1
-            ORDER BY descripcion COLLATE NOCASE
-            """
-        ) as cur:
-            funciones = [dict(row) for row in await cur.fetchall()]
-        async with db.execute(
-            """
-            SELECT l.lote_id, l.funcion_descripcion funcion, l.fecha_inicio, l.fecha_fin,
-                   l.motivo, l.cantidad_legajos, l.created_by,
-                   COALESCE(NULLIF(TRIM(u.display_name), ''), l.created_by) created_by_display,
-                   l.created_at,
-                   l.cancelled_by, l.cancelled_at, l.cancel_reason,
-                   SUM(CASE WHEN d.estado = 'activo' THEN 1 ELSE 0 END) activos
-            FROM rrhh_funcion_cambio_lotes l
-            LEFT JOIN rrhh_funcion_cambio_detalle d ON d.lote_id = l.lote_id
-            LEFT JOIN authdb.auth_users u ON u.username = l.created_by
-            GROUP BY l.lote_id
-            ORDER BY l.created_at DESC, l.lote_id DESC
-            LIMIT 100
-            """
-        ) as cur:
-            lotes = [dict(row) for row in await cur.fetchall()]
+        raise HTTPException(
+            status_code=503,
+            detail="La base esta ocupada procesando informacion. Reintente en unos segundos.",
+        ) from exc
     temporales_by_legajo: dict[str, list[dict[str, Any]]] = {}
     for temporal in temporales_rows:
         estado = "programada" if str(temporal.get("fecha_inicio") or "") > today else "vigente"

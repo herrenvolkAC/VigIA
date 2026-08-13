@@ -135,6 +135,15 @@ class WasteRequest(BaseModel):
     observacion: str
 
 
+class ReprintRequest(BaseModel):
+    sector_id: int
+    articulo_id: int
+    uso: str
+    identificador: str
+    cantidad: float
+    observacion: str = ""
+
+
 class InventoryLine(BaseModel):
     articulo_id: int
     stock_fisico: float
@@ -1072,6 +1081,72 @@ async def my_supply_orders(request: Request, sector_id: int | None = Query(None)
         return {"items": await _pedido_rows(db, "WHERE p.usuario_solicita = ?", (auth.get("username"),), 150)}
 
 
+@router.get("/pedidos/reimpresiones")
+async def list_reprint_orders(request: Request, sector_id: int | None = Query(None)):
+    auth = await _require_panol_access(request)
+    async with panol_db() as db:
+        checked_sector_id = await _validate_request_sector(db, auth, sector_id)
+        where = []
+        args: list[Any] = []
+        if checked_sector_id:
+            where.append("r.sector_id = ?")
+            args.append(checked_sector_id)
+        elif auth.get("panol_request_only"):
+            raise HTTPException(status_code=403, detail="Tu usuario no tiene sector asignado en Panol. Solicita la asignacion a ADO.")
+        clause = "WHERE " + " AND ".join(where) if where else ""
+        rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT r.*, u.codigo AS sector_codigo, a.codigo, a.descripcion
+            FROM pedidos_reimpresiones r
+            JOIN ubicaciones u ON u.id = r.sector_id
+            JOIN articulos a ON a.id = r.articulo_id
+            {clause}
+            ORDER BY r.fecha_solicitud DESC, r.id DESC
+            LIMIT 150
+            """,
+            tuple(args),
+        )
+    return {"items": rows}
+
+
+@router.post("/pedidos/reimpresiones")
+async def create_reprint_order(req: ReprintRequest, request: Request):
+    auth = await _require_panol_access(request)
+    cantidad = float(req.cantidad or 0)
+    if cantidad <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad debe ser mayor a cero.")
+    uso = _clean(req.uso)
+    identificador = _clean(req.identificador)
+    if not uso:
+        raise HTTPException(status_code=400, detail="Selecciona un uso.")
+    if not identificador:
+        raise HTTPException(status_code=400, detail="Ingresa el ID de pallet.")
+    now = _now()
+    async with panol_db() as db:
+        sector_id = await _validate_request_sector(db, auth, int(req.sector_id))
+        article = await _fetch_one(
+            db,
+            "SELECT id, uso FROM articulos WHERE id = ? AND activo = 1",
+            (int(req.articulo_id),),
+        )
+        if not article:
+            raise HTTPException(status_code=404, detail="Articulo no encontrado o inactivo.")
+        valid_usages = {value.upper() for value in _usage_options(article.get("uso"))}
+        if uso.upper() not in valid_usages:
+            raise HTTPException(status_code=400, detail="El uso no corresponde al PLU seleccionado.")
+        await db.execute(
+            """
+            INSERT INTO pedidos_reimpresiones
+                (sector_id, articulo_id, uso, identificador, cantidad, estado, observacion, usuario_solicita, fecha_solicitud)
+            VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?, ?, ?)
+            """,
+            (sector_id, int(req.articulo_id), uso, identificador, cantidad, _clean(req.observacion), auth.get("username"), now),
+        )
+        await db.commit()
+    return {"ok": True, "estado": "PENDIENTE", "fecha_solicitud": now}
+
+
 @router.get("/pedidos/recibido-dia")
 async def supply_order_received_by_day(
     request: Request,
@@ -1330,6 +1405,7 @@ async def supply_order_indicators(
     fecha_desde: str = Query(""),
     fecha_hasta: str = Query(""),
     articulo_id: int | None = Query(None),
+    sector_id: int | None = Query(None),
 ):
     await _require_panol_operator(request)
     where = []
@@ -1343,6 +1419,9 @@ async def supply_order_indicators(
     if articulo_id:
         where.append("i.articulo_id = ?")
         args.append(articulo_id)
+    if sector_id:
+        where.append("p.sector_id = ?")
+        args.append(sector_id)
     clause = "WHERE " + " AND ".join(where) if where else ""
     waste_where = []
     waste_args: list[Any] = []
@@ -1355,6 +1434,9 @@ async def supply_order_indicators(
     if articulo_id:
         waste_where.append("m.articulo_id = ?")
         waste_args.append(articulo_id)
+    if sector_id:
+        waste_where.append("m.sector_id = ?")
+        waste_args.append(sector_id)
     waste_clause = "WHERE " + " AND ".join(waste_where) if waste_where else ""
     order_cost = _cost_at_sql("i.articulo_id", "COALESCE(p.fecha_confirmacion, p.fecha_solicitud)")
     waste_cost = _cost_at_sql("m.articulo_id", "m.fecha_hora")
@@ -1424,14 +1506,14 @@ async def supply_order_indicators(
         by_plu = await _fetch_rows(
             db,
             f"""
-            SELECT a.codigo, a.descripcion,
+            SELECT a.codigo, a.descripcion, a.uso,
                    COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad,
                    COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor
             FROM pedidos_insumos p
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
             JOIN articulos a ON a.id = i.articulo_id
             {clause}
-            GROUP BY a.codigo, a.descripcion
+            GROUP BY a.codigo, a.descripcion, a.uso
             ORDER BY cantidad DESC, a.codigo
             LIMIT 12
             """,
@@ -1440,14 +1522,14 @@ async def supply_order_indicators(
         waste_by_plu = await _fetch_rows(
             db,
             f"""
-            SELECT a.codigo, a.descripcion,
+            SELECT a.codigo, a.descripcion, a.uso,
                    COALESCE(SUM(m.cantidad), 0) AS cantidad,
                    COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor,
                    COUNT(*) AS registros
             FROM mermas_insumos m
             JOIN articulos a ON a.id = m.articulo_id
             {waste_clause}
-            GROUP BY a.codigo, a.descripcion
+            GROUP BY a.codigo, a.descripcion, a.uso
             ORDER BY cantidad DESC, a.codigo
             LIMIT 12
             """,
@@ -1695,6 +1777,7 @@ async def reset_operational_data(req: OperationalResetRequest, request: Request)
         raise HTTPException(status_code=403, detail="Clave de depuracion invalida.")
     tables = [
         "mermas_insumos",
+        "pedidos_reimpresiones",
         "pedidos_insumos_items",
         "pedidos_insumos",
         "movimientos",
@@ -1856,6 +1939,7 @@ async def list_production_movements(
     articulo_id: int | None = Query(None),
     tipo: str = Query(""),
     destino_id: int | None = Query(None),
+    sector_id: int | None = Query(None),
     turno: str = Query(""),
 ):
     await _require_panol_operator(request)
@@ -1873,9 +1957,10 @@ async def list_production_movements(
     if tipo:
         where.append("pm.tipo = ?")
         args.append(_norm_code(tipo))
-    if destino_id:
+    target_destino_id = destino_id or sector_id
+    if target_destino_id:
         where.append("pm.ubicacion_destino_id = ?")
-        args.append(destino_id)
+        args.append(target_destino_id)
     if turno:
         where.append("pm.turno = ?")
         args.append(_norm_code(turno))
@@ -1950,6 +2035,7 @@ async def production_indicators(
     fecha_desde: str = Query(""),
     fecha_hasta: str = Query(""),
     articulo_id: int | None = Query(None),
+    sector_id: int | None = Query(None),
 ):
     await _require_panol_operator(request)
     where = []
@@ -1963,6 +2049,9 @@ async def production_indicators(
     if articulo_id:
         where.append("articulo_id = ?")
         args.append(articulo_id)
+    if sector_id:
+        where.append("ubicacion_destino_id = ?")
+        args.append(sector_id)
     clause = "AND " + " AND ".join(where) if where else ""
     pm_clause = clause.replace("fecha_hora", "pm.fecha_hora")
     async with panol_db() as db:
@@ -1982,14 +2071,30 @@ async def production_indicators(
         by_sector_plu = await _fetch_rows(
             db,
             f"""
-            SELECT u.codigo AS sector, a.codigo, a.descripcion, COALESCE(SUM(pm.cantidad), 0) AS cantidad
+            SELECT u.codigo AS sector, a.codigo, a.descripcion, a.uso, COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
             JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
             JOIN articulos a ON a.id = pm.articulo_id
             WHERE pm.tipo = 'ENTREGA'
               {pm_clause}
-            GROUP BY u.codigo, a.codigo, a.descripcion
+            GROUP BY u.codigo, a.codigo, a.descripcion, a.uso
             ORDER BY cantidad DESC, u.codigo, a.codigo
+            LIMIT 200
+            """,
+            tuple(args),
+        )
+        by_usage = await _fetch_rows(
+            db,
+            f"""
+            SELECT COALESCE(NULLIF(a.uso, ''), 'Sin uso') AS uso, a.codigo, a.descripcion,
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0) AS producido,
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS entregado
+            FROM produccion_movimientos pm
+            JOIN articulos a ON a.id = pm.articulo_id
+            WHERE 1 = 1
+              {pm_clause}
+            GROUP BY a.uso, a.codigo, a.descripcion
+            ORDER BY producido DESC, entregado DESC, a.codigo
             LIMIT 200
             """,
             tuple(args),
@@ -2000,6 +2105,7 @@ async def production_indicators(
         "articulo_id": articulo_id,
         "entregas_por_sector": by_sector,
         "entregas_por_sector_plu": by_sector_plu,
+        "produccion_por_uso": by_usage,
     }
 
 
@@ -2009,6 +2115,7 @@ async def export_production_indicators(
     fecha_desde: str = Query(""),
     fecha_hasta: str = Query(""),
     articulo_id: int | None = Query(None),
+    sector_id: int | None = Query(None),
 ):
     await _require_panol_operator(request)
     where = []
@@ -2022,6 +2129,9 @@ async def export_production_indicators(
     if articulo_id:
         where.append("pm.articulo_id = ?")
         args.append(articulo_id)
+    if sector_id:
+        where.append("pm.ubicacion_destino_id = ?")
+        args.append(sector_id)
     clause = "AND " + " AND ".join(where) if where else ""
     async with panol_db() as db:
         summary = await _fetch_rows(

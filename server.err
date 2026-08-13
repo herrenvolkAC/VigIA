@@ -1,0 +1,15 @@
+INFO:     Started server process [32472]
+INFO:     Waiting for application startup.
+12:53:42 [INFO] vigia — Inicializando VigIA v2.0...
+12:53:43 [INFO] vigia.rrhh_novedades — Monitor RRHH deshabilitado.
+12:53:43 [INFO] vigia.casos — Monitor Forms Service Racks iniciado. Origen: local. Carpeta: C:\VigIA\ServiceRack\In
+12:53:43 [INFO] vigia — Proveedor IA configurado: claude
+12:53:43 [INFO] vigia.historia_legajo — Scheduler Historia actividad diaria iniciado.
+12:53:43 [INFO] vigia.panol_insumos — [panol-stock-cd] Scheduler iniciado. Hora diaria: 07:00.
+12:53:43 [INFO] vigia.rrhh_novedades — Scheduler RRHH Oracle iniciado. Hora diaria: 07:00.
+12:53:43 [INFO] vigia.db_backup — [db-backup] Scheduler iniciado. Hora diaria: 02:00.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:9999 (Press CTRL+C to quit)
+12:53:43 [INFO] vigia.panol_insumos — [panol-stock-cd] Stock CD ya sincronizado para 2026-08-05.
+12:53:43 [INFO] vigia.rendimiento_online — [rendimiento-historico] Scheduler iniciado. Hora diaria: 06:30.
+12:53:43 [INFO] vigia.gestion_operativa — [daily-auto] Scheduler iniciado. Proxima ejecucion diaria a las 07:35.

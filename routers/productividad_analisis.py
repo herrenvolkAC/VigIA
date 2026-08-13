@@ -8,6 +8,7 @@ Consulta movimientos de Picking bajo demanda y genera:
 - lectura IA cacheada sobre el resumen agregado
 """
 import asyncio
+import base64
 import hashlib
 import io
 import json
@@ -2673,6 +2674,13 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     ):
         query_key = "gestion_productividad_picking"
     elif (
+        "PV_ETAPA_CAB_HIST" in normalized_query
+        and "PRODUCCION_EQUIV_POR_SECTOR" in normalized_query
+        and "PV_DIA_LABORAL" in normalized_query
+        and "PV_GRUPO_PRODUCTIVO_DET" in normalized_query
+    ):
+        query_key = "raw_sql_env"
+    elif (
         "CNPEDIDO AS PEDIDO" in normalized_query
         and "UPPER(A.CDESCRIP) AS OPERACION" in normalized_query
         and "A.QCANTIDA AS CANTIDAD" not in normalized_query
@@ -2716,12 +2724,23 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     if query_key in {"historia_productividad_legajo", "historia_tnc_legajo", "historia_actividad_operaciones"}:
         command.append(str(legajo or ""))
 
+    env = os.environ.copy()
+    if query_key == "raw_sql_env":
+        raw_query = query.replace(":fecha_desde", "?").replace(":fecha_hasta", "?")
+        env["VIGIA_ORACLE_SQL_B64"] = base64.b64encode(raw_query.encode("utf-8")).decode("ascii")
+        bind_values = [fecha_desde, fecha_hasta]
+        env["VIGIA_ORACLE_BINDS_B64"] = ",".join(
+            base64.b64encode(str(value).encode("utf-8")).decode("ascii")
+            for value in bind_values
+        )
+
     result = subprocess.run(
         command,
         capture_output=True,
         text=True,
         check=False,
         timeout=int(os.getenv("PRODUCTIVE_DB_JDBC_TIMEOUT_SECONDS", "300")),
+        env=env,
     )
     if result.returncode != 0:
         raise RuntimeError(

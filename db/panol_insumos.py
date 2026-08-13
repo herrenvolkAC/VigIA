@@ -207,6 +207,26 @@ CREATE TABLE IF NOT EXISTS usuarios_sectores_panol (
 );
 """
 
+CREATE_REIMPRESIONES = """
+CREATE TABLE IF NOT EXISTS pedidos_reimpresiones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sector_id INTEGER NOT NULL,
+    articulo_id INTEGER NOT NULL,
+    uso TEXT NOT NULL,
+    identificador TEXT NOT NULL,
+    cantidad REAL NOT NULL,
+    estado TEXT NOT NULL DEFAULT 'PENDIENTE',
+    observacion TEXT,
+    usuario_solicita TEXT,
+    fecha_solicitud TEXT,
+    usuario_resuelve TEXT,
+    fecha_resolucion TEXT,
+    observacion_resolucion TEXT,
+    FOREIGN KEY (sector_id) REFERENCES ubicaciones(id),
+    FOREIGN KEY (articulo_id) REFERENCES articulos(id)
+);
+"""
+
 INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_articulos_codigo ON articulos(codigo)",
     "CREATE INDEX IF NOT EXISTS idx_articulos_costos_articulo_fecha ON articulos_costos(articulo_id, fecha_desde, fecha_hasta)",
@@ -228,6 +248,9 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_mermas_pedido ON mermas_insumos(pedido_id)",
     "CREATE INDEX IF NOT EXISTS idx_usuarios_sectores_panol_user ON usuarios_sectores_panol(username, activo)",
     "CREATE UNIQUE INDEX IF NOT EXISTS ux_usuarios_sectores_panol_user_activo ON usuarios_sectores_panol(username) WHERE activo = 1",
+    "CREATE INDEX IF NOT EXISTS idx_reimpresiones_sector_fecha ON pedidos_reimpresiones(sector_id, fecha_solicitud)",
+    "CREATE INDEX IF NOT EXISTS idx_reimpresiones_articulo_fecha ON pedidos_reimpresiones(articulo_id, fecha_solicitud)",
+    "CREATE INDEX IF NOT EXISTS idx_reimpresiones_estado_fecha ON pedidos_reimpresiones(estado, fecha_solicitud)",
 ]
 
 
@@ -250,6 +273,7 @@ async def init_panol_db() -> None:
             CREATE_PEDIDOS_INSUMOS_ITEMS,
             CREATE_MERMAS_INSUMOS,
             CREATE_USUARIOS_SECTORES,
+            CREATE_REIMPRESIONES,
         ):
             await db.execute(stmt)
         for stmt in INDEXES:

@@ -34,6 +34,7 @@ from routers.productividad_analisis import router as productividad_analisis_rout
 from routers.plantel_operativo import router as plantel_operativo_router
 from routers.gestion_operativa import router as gestion_operativa_router
 from routers.gestion_operativa import start_daily_auto_scheduler, stop_daily_auto_scheduler
+from routers.herramientas import router as herramientas_router
 from routers.casos import router as casos_router, start_forms_import_monitor, stop_forms_import_monitor
 from routers.historia_legajo import (
     router as historia_legajo_router,
@@ -66,7 +67,7 @@ from routers.rendimiento_online import (
 from routers.monitor_cargas import router as monitor_cargas_router
 from routers.websocket import router as websocket_router
 from utils.db_backup import start_db_backup_scheduler, stop_db_backup_scheduler
-from utils.usage_log import cleanup_old_usage_logs, ensure_usage_events_schema, request_action, write_usage_log
+from utils.usage_log import cleanup_old_usage_logs, ensure_usage_events_schema, request_action, write_usage_event, write_usage_log
 
 # ── Configuración ─────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
@@ -150,6 +151,7 @@ app.include_router(operarios_router)
 app.include_router(productividad_analisis_router)
 app.include_router(plantel_operativo_router)
 app.include_router(gestion_operativa_router)
+app.include_router(herramientas_router)
 app.include_router(casos_router)
 app.include_router(historia_legajo_router)
 app.include_router(rrhh_novedades_router)
@@ -197,6 +199,8 @@ PROTECTED_PAGE_PATHS = {
     "/monitor-cargas.html",
     "/checklist-tareas",
     "/checklist-tareas.html",
+    "/herramientas",
+    "/herramientas.html",
 }
 PROTECTED_API_PREFIXES = (
     "/api/productividad/tnc",
@@ -212,6 +216,7 @@ PROTECTED_API_PREFIXES = (
     "/api/rendimiento-online",
     "/api/monitor-cargas",
     "/api/checklist-tareas",
+    "/api/herramientas",
 )
 ADMIN_PAGE_PATHS = {
     "/admin/dispositivos",
@@ -260,6 +265,8 @@ PAGE_MODULES = {
     "/monitor-cargas.html": "control_procesos",
     "/checklist-tareas": "checklist_tareas",
     "/checklist-tareas.html": "checklist_tareas",
+    "/herramientas": "generales",
+    "/herramientas.html": "generales",
     "/reposicion": "reposicion",
     "/reposicion.html": "reposicion",
     "/recepcion": "recepcion",
@@ -280,6 +287,7 @@ API_MODULE_PREFIXES = (
     ("/api/rendimiento-online", "rendimiento_online"),
     ("/api/monitor-cargas", "control_procesos"),
     ("/api/checklist-tareas", "checklist_tareas"),
+    ("/api/herramientas", "generales"),
 )
 
 
@@ -328,7 +336,31 @@ async def auth_gate(request: Request, call_next):
             return JSONResponse({"detail": "No tenes acceso habilitado a este modulo."}, status_code=403)
         return RedirectResponse(f"/selector?denied={quote(module)}", status_code=303)
 
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception:
+        username = auth.get("username")
+        module_for_log = module or ("admin" if is_admin_page else "sistema")
+        logger.exception(
+            "Error no controlado en request: usuario=%s ip=%s metodo=%s path=%s modulo=%s",
+            username,
+            request.client.host if request.client else "",
+            request.method,
+            path,
+            module_for_log,
+        )
+        try:
+            write_usage_log(request, username, module_for_log, "server_error", status_code=500)
+        except Exception:
+            write_usage_event(
+                username=username,
+                ip=request.client.host if request.client else "",
+                module=module_for_log,
+                action="server_error",
+                action_text="Error del servidor. No se pudo guardar el detalle en la base de auditoria.",
+                attention=True,
+            )
+        raise
     if response.status_code < 400:
         write_usage_log(
             request,
@@ -476,6 +508,14 @@ async def page_monitor_cargas():
 async def page_checklist_tareas():
     return FileResponse(
         STATIC_DIR / "checklist_tareas.html",
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
+
+@app.get("/herramientas.html", include_in_schema=False)
+@app.get("/herramientas",      include_in_schema=False)
+async def page_herramientas():
+    return FileResponse(
+        STATIC_DIR / "herramientas.html",
         headers={"Cache-Control": "no-store, max-age=0"},
     )
 

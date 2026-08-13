@@ -23,6 +23,8 @@ node_modules/
 *.bak
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
 vigia.db
 pick_real.csv
 daily_powerbi.csv

@@ -1,0 +1,2 @@
+{"batch_id": 48, "batch_key": "oracle_actividad_20260728", "modo_importacion": "oracle_auto", "fecha_operativa": "2026-07-28", "legajero_activo": 1438, "oracle_rows": 2526, "oracle_legajos_match": 1263, "actividad": 1263, "actividad_actualizada": 0, "actividad_sin_oracle": 175}
+{"batch_id": 49, "batch_key": "oracle_actividad_20260729", "modo_importacion": "oracle_auto", "fecha_operativa": "2026-07-29", "legajero_activo": 1438, "oracle_rows": 2520, "oracle_legajos_match": 1263, "actividad": 1263, "actividad_actualizada": 0, "actividad_sin_oracle": 175}

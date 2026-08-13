@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS rend_hist_legajo_sector (
     run_id                      INTEGER NOT NULL REFERENCES rend_hist_runs(id) ON DELETE CASCADE,
     operacion                   TEXT NOT NULL,
     dia_logistico               TEXT NOT NULL,
+    division_id                 INTEGER,
+    grupo_productivo            TEXT,
     division                    TEXT NOT NULL,
     sector                      TEXT NOT NULL,
     legajo                      TEXT NOT NULL,
@@ -52,6 +54,13 @@ CREATE TABLE IF NOT EXISTS rend_hist_legajo_sector (
     bultos                      REAL DEFAULT 0,
     segundos                    REAL DEFAULT 0,
     horas                       REAL DEFAULT 0,
+    etapas                      INTEGER DEFAULT 0,
+    metros                      REAL DEFAULT 0,
+    posiciones_visitadas        REAL DEFAULT 0,
+    produccion_equiv_sector     REAL DEFAULT 0,
+    produccion_equiv_traslado   REAL DEFAULT 0,
+    produccion_equiv_consolidacion REAL DEFAULT 0,
+    produccion_equiv_total      REAL DEFAULT 0,
     operaciones                 INTEGER DEFAULT 0,
     operaciones_abiertas        INTEGER DEFAULT 0,
     productividad_actual        REAL DEFAULT 0,
@@ -75,6 +84,18 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_rend_hist_legajo_sector ON rend_hist_legajo_sector(division, sector, estado)",
 ]
 
+OPTIONAL_LEGAJO_SECTOR_COLUMNS = [
+    ("division_id", "INTEGER"),
+    ("grupo_productivo", "TEXT"),
+    ("etapas", "INTEGER DEFAULT 0"),
+    ("metros", "REAL DEFAULT 0"),
+    ("posiciones_visitadas", "REAL DEFAULT 0"),
+    ("produccion_equiv_sector", "REAL DEFAULT 0"),
+    ("produccion_equiv_traslado", "REAL DEFAULT 0"),
+    ("produccion_equiv_consolidacion", "REAL DEFAULT 0"),
+    ("produccion_equiv_total", "REAL DEFAULT 0"),
+]
+
 
 async def init_rendimiento_historico_db() -> None:
     REND_HIST_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -82,6 +103,11 @@ async def init_rendimiento_historico_db() -> None:
         await db.execute("PRAGMA foreign_keys = ON")
         await db.execute(CREATE_RUNS)
         await db.execute(CREATE_LEGAJO_SECTOR)
+        async with db.execute("PRAGMA table_info(rend_hist_legajo_sector)") as cur:
+            existing_columns = {str(row[1]) for row in await cur.fetchall()}
+        for column, definition in OPTIONAL_LEGAJO_SECTOR_COLUMNS:
+            if column not in existing_columns:
+                await db.execute(f"ALTER TABLE rend_hist_legajo_sector ADD COLUMN {column} {definition}")
         for stmt in INDEXES:
             await db.execute(stmt)
         await db.commit()
@@ -151,18 +177,25 @@ async def save_day_cache(
         await db.executemany(
             """
             INSERT INTO rend_hist_legajo_sector (
-                run_id, operacion, dia_logistico, division, sector, legajo, nombre,
-                bultos, segundos, horas, operaciones, operaciones_abiertas,
+                run_id, operacion, dia_logistico, division_id, grupo_productivo, division, sector, legajo, nombre,
+                bultos, segundos, horas, etapas, metros, posiciones_visitadas,
+                produccion_equiv_sector, produccion_equiv_traslado, produccion_equiv_consolidacion,
+                produccion_equiv_total, operaciones, operaciones_abiertas,
                 productividad_actual, productividad_esperada, productividad_esperada_turno,
                 bultos_esperados, cumplimiento_pct, estado, primer_movimiento, ultimo_movimiento,
                 en_maestro, requiere_maestro
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
-                    run_id, operacion, dia_logistico, row.get("division"), row.get("sector"),
+                    run_id, operacion, dia_logistico, row.get("division_id"), row.get("grupo_productivo"),
+                    row.get("division"), row.get("sector"),
                     row.get("legajo"), row.get("nombre"), row.get("bultos"), row.get("segundos"),
-                    row.get("horas"), row.get("operaciones"), row.get("operaciones_abiertas"),
+                    row.get("horas"), row.get("etapas") or row.get("operaciones") or 0,
+                    row.get("metros") or 0, row.get("posiciones_visitadas") or 0,
+                    row.get("produccion_equiv_sector") or 0, row.get("produccion_equiv_traslado") or 0,
+                    row.get("produccion_equiv_consolidacion") or 0, row.get("produccion_equiv_total") or 0,
+                    row.get("operaciones"), row.get("operaciones_abiertas"),
                     row.get("productividad_actual"), row.get("productividad_esperada"),
                     row.get("productividad_esperada_turno"), row.get("bultos_esperados"),
                     row.get("cumplimiento_pct"), row.get("estado"), row.get("primer_movimiento"),
@@ -302,6 +335,13 @@ async def get_analysis(
             "estrato": row.get("estrato"),
             "bultos": 0.0,
             "segundos": 0.0,
+            "etapas": 0,
+            "metros": 0.0,
+            "posiciones_visitadas": 0.0,
+            "produccion_equiv_sector": 0.0,
+            "produccion_equiv_traslado": 0.0,
+            "produccion_equiv_consolidacion": 0.0,
+            "produccion_equiv_total": 0.0,
             "operaciones": 0,
             "bultos_esperados": 0.0,
             "divisiones": set(),
@@ -314,6 +354,13 @@ async def get_analysis(
         })
         leg["bultos"] += float(row.get("bultos") or 0)
         leg["segundos"] += float(row.get("segundos") or 0)
+        leg["etapas"] += int(row.get("etapas") or 0)
+        leg["metros"] += float(row.get("metros") or 0)
+        leg["posiciones_visitadas"] += float(row.get("posiciones_visitadas") or 0)
+        leg["produccion_equiv_sector"] += float(row.get("produccion_equiv_sector") or 0)
+        leg["produccion_equiv_traslado"] += float(row.get("produccion_equiv_traslado") or 0)
+        leg["produccion_equiv_consolidacion"] += float(row.get("produccion_equiv_consolidacion") or 0)
+        leg["produccion_equiv_total"] += float(row.get("produccion_equiv_total") or 0)
         leg["operaciones"] += int(row.get("operaciones") or 0)
         leg["bultos_esperados"] += float(row.get("bultos_esperados") or 0)
         leg["divisiones"].add(row.get("division"))
@@ -342,6 +389,13 @@ async def get_analysis(
             "sector": row.get("sector"),
             "bultos": 0.0,
             "segundos": 0.0,
+            "etapas": 0,
+            "metros": 0.0,
+            "posiciones_visitadas": 0.0,
+            "produccion_equiv_sector": 0.0,
+            "produccion_equiv_traslado": 0.0,
+            "produccion_equiv_consolidacion": 0.0,
+            "produccion_equiv_total": 0.0,
             "operaciones": 0,
             "bultos_esperados": 0.0,
             "dias": set(),
@@ -349,6 +403,13 @@ async def get_analysis(
         })
         det["bultos"] += float(row.get("bultos") or 0)
         det["segundos"] += float(row.get("segundos") or 0)
+        det["etapas"] += int(row.get("etapas") or 0)
+        det["metros"] += float(row.get("metros") or 0)
+        det["posiciones_visitadas"] += float(row.get("posiciones_visitadas") or 0)
+        det["produccion_equiv_sector"] += float(row.get("produccion_equiv_sector") or 0)
+        det["produccion_equiv_traslado"] += float(row.get("produccion_equiv_traslado") or 0)
+        det["produccion_equiv_consolidacion"] += float(row.get("produccion_equiv_consolidacion") or 0)
+        det["produccion_equiv_total"] += float(row.get("produccion_equiv_total") or 0)
         det["operaciones"] += int(row.get("operaciones") or 0)
         det["bultos_esperados"] += float(row.get("bultos_esperados") or 0)
         det["dias"].add(row.get("dia_logistico"))
@@ -370,6 +431,17 @@ async def get_analysis(
         out["bultos"] = round(item["bultos"], 2)
         out["segundos"] = round(item["segundos"], 1)
         out["bultos_esperados"] = round(item["bultos_esperados"], 2)
+        out["etapas"] = int(item.get("etapas") or item.get("operaciones") or 0)
+        out["metros"] = round(float(item.get("metros") or 0), 2)
+        out["posiciones_visitadas"] = round(float(item.get("posiciones_visitadas") or 0), 2)
+        out["produccion_equiv_sector"] = round(float(item.get("produccion_equiv_sector") or 0), 2)
+        out["produccion_equiv_traslado"] = round(float(item.get("produccion_equiv_traslado") or 0), 2)
+        out["produccion_equiv_consolidacion"] = round(float(item.get("produccion_equiv_consolidacion") or 0), 2)
+        out["produccion_equiv_total"] = round(float(item.get("produccion_equiv_total") or 0), 2)
+        out["metros_por_bulto"] = round(out["metros"] / out["bultos"], 3) if out["bultos"] else 0.0
+        out["bultos_por_etapa"] = round(out["bultos"] / out["etapas"], 3) if out["etapas"] else 0.0
+        out["metros_por_etapa"] = round(out["metros"] / out["etapas"], 3) if out["etapas"] else 0.0
+        out["minutos_por_etapa"] = round((item["segundos"] / 60) / out["etapas"], 3) if out["etapas"] else 0.0
         for key in ("divisiones", "sectores", "dias"):
             if isinstance(out.get(key), set):
                 out[f"{key}_count"] = len(out[key])
@@ -387,6 +459,9 @@ async def get_analysis(
         "horas": round(sum(row["segundos"] for row in legajos) / 3600, 2),
         "sectores": len({(row.get("division"), row.get("sector")) for row in enriched}),
         "dias": len({row.get("dia_logistico") for row in enriched}),
+        "metros": round(sum(float(row.get("metros") or 0) for row in enriched), 2),
+        "etapas": sum(int(row.get("etapas") or 0) for row in enriched),
+        "posiciones_visitadas": round(sum(float(row.get("posiciones_visitadas") or 0) for row in enriched), 2),
     }
     resumen["productividad_actual"] = round(resumen["bultos"] / resumen["horas"], 2) if resumen["horas"] else 0.0
 

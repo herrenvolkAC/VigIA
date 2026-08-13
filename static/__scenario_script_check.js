@@ -1,462 +1,4 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="/resources/APPLogo.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <title>VigIA - Analisis Premio Productividad</title>
-  <style>
-    :root{--bg:#F2F4F1;--panel:#FFFFFF;--ink:#0E1620;--ink-soft:#5C6773;--rule:#D4DBD8;--rule-strong:#A9B4AC;--green:#1F7A4D;--green-soft:#E5F3E9;--amber:#B25F00;--amber-soft:#FBE7C8;--red:#C8102E;--red-soft:#F7D7DA;--blue:#0B5FAE}
-    *{box-sizing:border-box}
-    html{background:var(--bg)}
-    body{margin:0;min-height:100vh;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;background-color:var(--bg);background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);background-size:24px 24px}
-    button,input,select{font:inherit;color:inherit}button{min-height:32px;cursor:pointer;border-radius:0}
-    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:1px}
-    .paper-app{width:100%;min-height:100vh;margin:0;padding:0 16px 22px}.mono{font-family:'IBM Plex Mono',monospace}.label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft)}
-    .paper-header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 16px;background:var(--panel);border:1px solid var(--rule);border-bottom:1px solid var(--rule-strong)}
-    .brand-block{display:flex;align-items:center;gap:14px;min-width:0}.brand-logo{width:86px;height:44px;object-fit:contain}.brand-rule{width:1px;height:28px;background:var(--rule)}.kicker{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
-    h1{font-size:20px;line-height:1.05;font-weight:600;margin:0}.amp{color:var(--red)}.header-right{display:flex;align-items:center;gap:12px}.user-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:5px 10px}.user-value{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--green);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .paper-link,.logout-btn,.secondary-cta{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none}.paper-link:hover,.secondary-cta:hover{color:var(--blue);border-color:var(--blue)}.logout-btn:hover{color:var(--red);border-color:var(--red)}.row-link{min-height:22px;padding:2px 6px;color:var(--blue);border-color:#B8D2E8}
-    .paper-tabs{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule);overflow:auto}.tab-list{display:flex}.tab-btn{background:transparent;border:0;color:var(--ink-soft);padding:13px 14px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;min-width:118px;white-space:nowrap}.tab-btn.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}
-    .filters{display:grid;grid-template-columns:150px 150px 140px 170px 130px 1fr;gap:10px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.filters.study-mode{grid-template-columns:150px 150px 130px 1fr}.case-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px;min-width:0}.case-cell strong{display:block;margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input,.paper-select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}.primary-cta{height:34px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}.primary-cta:disabled,.secondary-cta:disabled{opacity:.55;cursor:default}
-    .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
-    .paper-panel{display:none}.paper-panel.active{display:block}.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}.kpi-number{font-family:'IBM Plex Mono',monospace;font-size:28px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}.kpi-foot{font-size:11px;color:var(--ink-soft)}.group-params{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0 10px}.group-param{border-left:3px solid var(--green);background:var(--panel);border-top:1px solid var(--rule);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:9px 12px;min-width:220px}.group-param strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.group-margin-control{display:flex;align-items:center;gap:6px;margin-top:5px}.group-margin-control input{width:86px;height:34px;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;padding:0 8px}.group-margin-control span{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600}.group-bonus-grid{display:grid;gap:12px;margin-top:10px}.group-kpi-row{display:grid;grid-template-columns:120px repeat(4,minmax(0,1fr));gap:12px;align-items:stretch}.group-row-title{display:flex;align-items:center;background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--blue);padding:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}.group-head-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}.group-table-tools{display:grid;grid-template-columns:220px 160px 140px auto 1fr;gap:10px;align-items:end;margin-bottom:10px}.group-filter-totals{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px}.group-total-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:8px 9px}.group-total-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:14px}.fixed-grid{width:100%;border-collapse:collapse}.fixed-grid th,.fixed-grid td{border-bottom:1px solid var(--rule);padding:8px 9px;text-align:left}.fixed-grid th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);background:#F6F8F5}.fixed-grid input{width:160px;height:32px;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;padding:0 8px}
-    .dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.chart-panel,.text-panel{background:var(--panel);border:1px solid var(--rule);min-height:280px;padding:12px;display:flex;flex-direction:column;min-width:0}.text-panel{min-height:0}.chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
-    .bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(112px,1fr) minmax(120px,2fr) 82px;gap:8px;align-items:center;font-size:12px}.bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:14px;background:#EAEEEB;position:relative}.bar-fill{height:100%;background:var(--green);min-width:2px}.bar-fill.blue{background:var(--blue)}.bar-fill.amber{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-value{font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--ink-soft)}
-    .evolution-panel{min-height:320px;margin-top:14px}.evolution-wrap{overflow:auto}.line-chart{width:100%;min-width:900px;height:250px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart polyline{fill:none;stroke-width:2.2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart polyline.red{stroke:var(--red)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart circle.red{fill:var(--red)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--green)}.legend-dot.blue{background:var(--blue)}.legend-dot.amber{background:var(--amber)}.legend-dot.red{background:var(--red)}
-    .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);margin-top:12px}.paper-table th{position:sticky;top:0;z-index:3;background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 10px;box-shadow:0 1px 0 var(--rule)}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--blue);background:#EEF4F0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 10px;font-size:12px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}.table-wrap{overflow:auto;max-height:540px}.pill{display:inline-block;padding:3px 6px;border:1px solid #C8E2D0;background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px}.pill.warn{border-color:#E1BF76;background:var(--amber-soft);color:#6F4300}.pill.bad{border-color:#E8A0AA;background:var(--red-soft);color:var(--red)}
-    .tool-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.summary-filters{display:grid;grid-template-columns:minmax(300px,1.2fr) 170px 150px minmax(260px,1.2fr);gap:10px;align-items:start;margin-top:12px;padding:10px 12px;background:var(--panel);border:1px solid var(--rule)}.summary-filter-info{justify-self:end;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.study-check-box{border:1px solid var(--rule);background:#F8FAF7;padding:9px;min-width:0}.study-check-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px}.study-check-title{display:flex;align-items:center;gap:8px;min-width:0}.study-check-summary{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green);background:var(--green-soft);border:1px solid #C8E2D0;padding:3px 6px;white-space:nowrap}.study-check-list{height:132px;overflow:auto;border-top:1px solid var(--rule);padding-top:6px;background:var(--panel)}#estudio-f-sector.study-check-list{height:253px}.study-check-item{display:flex;align-items:center;gap:8px;padding:4px 6px;font-family:'IBM Plex Mono',monospace;font-size:12px}.study-check-item input{width:14px;height:14px;min-height:14px}.link-btn{border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;min-height:26px}.link-btn:disabled{opacity:.45;cursor:default}.mini-filters{display:none!important}.hidden{display:none!important}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}.notes{display:grid;gap:8px;margin:0;padding:0;list-style:none}.notes li{border-left:3px solid var(--green);background:#F8FAF7;padding:10px 12px;font-size:13px;line-height:1.45}.warn-list li{border-left-color:var(--amber)}
-    .executive-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.premium-pie-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.operator-overlap{grid-column:1/-1}.operator-pie-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.premium-pie-row>.executive-wide{grid-column:1/-1}.executive-wide{grid-column:1/-1}.insight-chart{width:100%;min-height:260px}.insight-svg{display:block;width:100%;height:280px}.insight-svg .axis{stroke:var(--rule-strong);stroke-width:1}.insight-svg .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.insight-svg .bar-actual{fill:var(--green)}.insight-svg .bar-hours{fill:var(--red)}.insight-svg .bar-neutral{fill:var(--blue)}.insight-svg .bar-extra{fill:var(--amber)}.insight-svg .dot-hours{fill:var(--red);opacity:.72}.insight-svg .dot-actual{fill:var(--green);opacity:.72}.insight-svg .axis-label,.insight-svg .value-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.insight-svg .value-label{fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}.pie-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.pie-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px}.pie-cell.no{border-left-color:var(--red)}.pie-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.winner-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.winner-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:9px 10px}.winner-cell.bad{border-left-color:var(--red)}.winner-cell.neutral{border-left-color:var(--blue)}.winner-cell.amber{border-left-color:var(--amber)}.winner-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.case-card-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}.case-card{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--red);padding:10px;min-width:0;cursor:pointer;text-align:left}.case-card:hover{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}.case-card.ok{border-left-color:var(--green)}.case-card.ok:hover{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}.case-card-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.case-card strong{font-family:'IBM Plex Mono',monospace;font-size:13px}.case-card .mini-bars{display:grid;gap:6px;margin-top:8px}.case-card .mini-row{display:grid;grid-template-columns:82px 1fr 76px;gap:6px;align-items:center;font-size:11px}.case-card .mini-track{height:10px;background:#EAEEEB}.case-card .mini-fill{height:100%;background:var(--green)}.case-card .mini-fill.bad{background:var(--red)}.case-action{margin-top:10px;width:100%;justify-content:center}.data-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.data-panel{background:var(--panel);border:1px solid var(--rule);padding:12px}.data-panel .table-wrap{max-height:460px}
-    .legajo-period-wrap{max-height:330px}.legajo-detail-wrap{max-height:360px}.legajo-select-table tbody tr{cursor:pointer}.legajo-select-table tbody tr.active{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-soft)!important}#tabla-evaluacion-pago-actual tbody tr{cursor:pointer}#tabla-evaluacion-pago-actual tbody tr.active{outline:2px solid var(--blue);outline-offset:-2px;background:#DDEBFF!important;color:#073B73}#tabla-evaluacion-detalle tbody tr{cursor:pointer}#tabla-evaluacion-detalle tbody tr.active{outline:2px solid var(--amber);outline-offset:-2px;background:#FFF0C2!important;color:#6B4300}#tabla-calculo-pago-grupal-sectores tbody tr{cursor:pointer}#tabla-calculo-pago-grupal-sectores tbody tr.active{outline:2px solid var(--blue);outline-offset:-2px;background:#DDEBFF!important;color:#073B73}
-    .problem-layout{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}.problem-chart{width:100%;height:340px;border-left:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong);padding:8px 8px 2px;overflow:hidden}.problem-line-chart{display:block;width:100%;height:100%;overflow:visible}.problem-line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.problem-line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.problem-line-chart .standard-bg{fill:#DDEEE3;opacity:.82}.problem-line-chart .extra-bg{fill:#F4DDE0;opacity:.82}.problem-line-chart .turno-cut{stroke:var(--ink-soft);stroke-width:1.5;stroke-dasharray:5 4;opacity:.85}.problem-line-chart .hour-band{fill:var(--amber-soft);stroke:#E1BF76;stroke-width:1;opacity:.55}.problem-line-chart .hour-band-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:#6F4300;letter-spacing:0;text-transform:none;paint-order:stroke;stroke:var(--panel);stroke-width:3px;stroke-linejoin:round}.problem-line-chart .line-main{fill:none;stroke:var(--blue);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.problem-line-chart .line-posterior{fill:none;stroke:var(--red);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.problem-line-chart .line-objetivo{stroke:var(--green);stroke-width:2.5;stroke-dasharray:8 5}.problem-line-chart .point{stroke:var(--panel);stroke-width:3}.problem-line-chart .point.pre{fill:var(--green)}.problem-line-chart .point.pico{fill:var(--blue)}.problem-line-chart .point.posterior{fill:var(--amber)}.problem-line-chart .point.caida,.problem-line-chart .point.extra{fill:var(--red)}.problem-line-chart .prod-bar{stroke:var(--panel);stroke-width:1.5;opacity:.72}.problem-line-chart .prod-bar.standard{fill:var(--blue)}.problem-line-chart .prod-bar.extra{fill:var(--red)}.problem-line-chart .transfer-segment{fill:var(--amber);stroke:#6F4300;stroke-width:.8;opacity:.9}.problem-line-chart .transfer-segment.from-standard{fill:#E8A23A;stroke:#6F4300;stroke-dasharray:3 2}.problem-line-chart .transfer-segment.animating{animation:move-extra .9s cubic-bezier(.2,.72,.24,1) both}.problem-line-chart .leftover-extra{fill:var(--red);opacity:.45;stroke:var(--red);stroke-width:1}.problem-line-chart .source-used{fill:#FFFFFF;stroke:#0B5FAE;stroke-width:1;stroke-dasharray:3 2;opacity:.52}.problem-line-chart .target-cap{stroke:var(--green);stroke-width:2;stroke-dasharray:3 3}.problem-line-chart .label{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--ink);letter-spacing:0;text-transform:none}.problem-line-chart .axis-label,.problem-line-chart .legend-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft);letter-spacing:0;text-transform:none}@keyframes move-extra{from{transform:translate(var(--from-x),var(--from-y));opacity:.35}70%{opacity:.95}to{transform:translate(0,0);opacity:.9}}.detalle-anim-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:2px 0 8px}.detalle-anim-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.detalle-anim-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.04em}.problem-selected{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.problem-note{font-size:13px;line-height:1.45;color:var(--ink-soft);margin:0}.problem-modebar,.problem-viewbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 0}.problem-viewbar{margin-top:8px}.problem-view-btn{min-height:30px;border:1px solid var(--rule);background:var(--panel);padding:5px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.problem-view-btn.active{border-color:var(--green);background:var(--green-soft);color:var(--green);font-weight:600}.problem-table tbody tr{cursor:pointer}.problem-table tbody tr.active{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-soft)}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(14,22,32,.38);display:none;align-items:center;justify-content:center;padding:22px;z-index:20}.modal-backdrop.active{display:flex}.modal-panel{width:min(1500px,96vw);max-height:90vh;background:var(--panel);border:1px solid var(--rule-strong);box-shadow:0 18px 60px rgba(14,22,32,.22);display:flex;flex-direction:column}.modal-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--rule);background:#F6F8F5}.modal-body{padding:12px;overflow:auto}.modal-summary{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px;margin-bottom:10px}.summary-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:8px 9px;min-width:0}.summary-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.detalle-chart{height:360px;margin:4px 0 12px}.detalle-chart .problem-line-chart{height:310px}.modal-body .table-wrap{max-height:42vh}.icon-btn{min-width:34px;height:34px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace}
-    @media(max-width:1200px){.filters{grid-template-columns:1fr 1fr 1fr}.dashboard-grid,.problem-layout,.executive-grid,.premium-pie-row,.operator-pie-grid{grid-template-columns:1fr}.case-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-row{grid-template-columns:repeat(2,1fr)}.group-kpi-row,.group-table-tools{grid-template-columns:1fr}.group-filter-totals{grid-template-columns:repeat(2,minmax(0,1fr))}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}.summary-filters,.mini-filters{grid-template-columns:1fr 1fr}.summary-filter-info{justify-self:start}}
-    .legacy-tabs{display:none}.primary-tabs{display:block}.primary-tabs .tab-list{overflow:auto}.primary-tabs .audit-tabs{border-top:1px solid var(--rule);padding-top:6px}.primary-tabs .audit-tabs summary{cursor:pointer;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 2px 8px}.primary-tabs .audit-tabs[open] summary{color:var(--ink)}.primary-tabs .audit-tabs .tab-list{padding-bottom:4px}.primary-tabs .audit-tabs .tab-btn{font-size:9px;min-width:auto;padding:8px 11px 9px}.primary-tabs .audit-tabs .tab-btn.active{border-top-color:var(--amber)}
-    @media(max-width:700px){.paper-app{padding:0 12px 18px}.filters,.kpi-row,.summary-filters,.mini-filters,.case-card-grid{grid-template-columns:1fr}.tab-btn{min-width:112px;padding-left:10px;padding-right:10px}.kpi-number{font-size:24px}}
-    .premio-scale-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.premio-sector-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.premio-sector-card{background:var(--panel);border:1px solid var(--rule);padding:12px;min-width:0}.premio-sector-card .chart-title{margin-bottom:6px}.premio-sector-card .table-wrap{max-height:360px}.premio-source-note{margin-top:10px;padding:10px 12px;border-left:3px solid var(--green);background:#F8FAF7;color:var(--ink-soft);font-size:12px}.premio-source-note.warn{border-left-color:var(--amber);background:var(--amber-soft);color:#6F4300}
-    .problem-line-chart .equiv-extra-segment{fill:#7C3AED;stroke:#4C1D95;stroke-width:1;opacity:.88}.problem-line-chart .equiv-extra-segment.animating-equivalence{animation:equiv-in .95s cubic-bezier(.2,.72,.24,1) both}@keyframes equiv-in{from{transform:translate(-90px,55px);opacity:.05}65%{opacity:.95}to{transform:translate(0,0);opacity:.88}}#tabla-calculo-pago-grupal-detalle tbody tr,#tabla-calculo-pago-grupal-legajos tbody tr{cursor:pointer}#tabla-calculo-pago-grupal-detalle tbody tr.active{outline:2px solid var(--amber);outline-offset:-2px;background:#FFF0C2!important;color:#6B4300}#tabla-calculo-pago-grupal-legajos tbody tr.active{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-soft)!important;color:#14532D}
-    @media(max-width:1200px){.premio-sector-grid,.premio-scale-grid{grid-template-columns:1fr}}
-    .kpi-row-5{grid-template-columns:repeat(5,minmax(0,1fr))}.kpi-row-secondary{grid-template-columns:repeat(5,minmax(0,1fr))}.scenario-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:10px}
-    @media(max-width:1200px){.kpi-row-5{grid-template-columns:repeat(3,minmax(0,1fr))}}
-    @media(max-width:900px){.scenario-chart-grid{grid-template-columns:1fr}}@media(max-width:700px){.kpi-row-5,.kpi-row-secondary{grid-template-columns:1fr}}
-    #tabla-evaluacion-pago-actual th{font-size:8px;padding:6px 7px;white-space:nowrap;letter-spacing:.08em}
-    #tabla-evaluacion-pago-actual td{font-size:10px;padding:6px 7px;white-space:nowrap;line-height:1.1}
-    .scenario-chart{display:grid;gap:8px;margin-top:10px}.scenario-bar-row{display:grid;grid-template-columns:180px 1fr 130px;gap:8px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px}.scenario-bar-track{height:18px;background:#EEF2EE;border:1px solid var(--rule);overflow:hidden}.scenario-bar-fill{height:100%;background:var(--blue)}.scenario-bar-value{text-align:right;white-space:nowrap}.scenario-bell{width:100%;height:auto;min-height:260px;background:#F8FAF7;border:1px solid var(--rule)}.scenario-bell .axis{stroke:var(--rule-strong);stroke-width:1}.scenario-bell .grid{stroke:var(--rule);stroke-width:1}.scenario-bell .area{fill:var(--blue);opacity:.16}.scenario-bell .line{fill:none;stroke:var(--blue);stroke-width:3}.scenario-bell .point{fill:var(--blue);stroke:var(--panel);stroke-width:2}.scenario-bell text{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.absence-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,360px);gap:20px;align-items:start;margin-top:10px}.absence-chart{display:grid;grid-template-columns:190px 1fr;gap:18px;align-items:center}.absence-config{border-left:1px solid var(--rule);padding-left:16px}.absence-check-list{display:grid;gap:6px;margin-top:9px;max-height:260px;overflow:auto}.absence-check-item{display:flex;gap:8px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px}.absence-check-item input{accent-color:var(--green)}.absence-pie{width:170px;height:170px;border-radius:50%;border:1px solid var(--rule-strong);justify-self:center}.absence-legend{display:grid;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:10px}.absence-legend-row{display:grid;grid-template-columns:12px 1fr auto;gap:7px;align-items:center}.absence-dot{width:11px;height:11px;display:block}.scenario-chart-note{color:var(--ink-soft);font-size:11px;margin-top:5px}.scenario-empty{color:var(--ink-soft);padding:12px;border-left:3px solid var(--amber);background:var(--amber-soft)}
-    @media(max-width:700px){.scenario-bar-row{grid-template-columns:125px 1fr 95px}.absence-layout,.absence-chart{grid-template-columns:1fr}.absence-config{border-left:0;border-top:1px solid var(--rule);padding:12px 0 0}}
-    .scenario-editor-grid{display:grid;grid-template-columns:1fr 1.3fr auto;gap:10px;align-items:end;margin:10px 0}.scenario-editor-wrap{max-height:360px}.scenario-editor-input{width:110px;height:30px;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;padding:0 7px}.scenario-results-panel{border-top:3px solid var(--blue)}
-  </style>
-</head>
-<body>
-<div class="paper-app">
-  <header class="paper-header">
-    <div class="brand-block">
-      <img class="brand-logo" src="/resources/CotoLogo.svg" alt="Coto">
-      <div class="brand-rule"></div>
-      <div>
-        <div class="kicker">Auditoria desde cache</div>
-        <h1>Analisis Premio <span class="amp">Productividad</span></h1>
-      </div>
-    </div>
-    <div></div>
-    <div class="header-right">
-      <a class="paper-link" href="/selector.html">Selector</a>
-      <button class="paper-link" id="exportar-resumen-pdf" type="button">PDF Resumen</button>
-      <div class="user-chip"><div><div class="label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div></div>
-      <button class="logout-btn" id="logout-btn">Salir</button>
-    </div>
-  </header>
-
-  <div class="paper-tabs primary-tabs">
-    <div class="tab-list">
-      <button class="tab-btn active" data-tab="tabla-premios">Tabla Premios</button>
-      <button class="tab-btn" data-tab="evaluacion-picking">Evaluación Picking</button>
-      <button class="tab-btn" data-tab="calculo-pago-grupal">Cálculo Pago Grupal</button>
-      <button class="tab-btn" data-tab="propuesta-autonoma">Premio individual</button>
-    </div>
-    <details class="audit-tabs">
-      <summary>Histórico / Auditoría — versiones previas conservadas</summary>
-      <div class="tab-list">
-        <button class="tab-btn" data-tab="resumen">Resumen ejecutivo</button>
-        <button class="tab-btn" data-tab="grupal">Premio grupal anterior</button>
-        <button class="tab-btn" data-tab="grupal-legajos">Comparativo legajos</button>
-        <button class="tab-btn hidden" data-tab="estudio">Estudio</button>
-        <button class="tab-btn" data-tab="detalle">Datos</button>
-        <button class="tab-btn" data-tab="cache">Metodología/cache</button>
-        <button class="tab-btn" data-tab="punto0">Punto 0 / congelado</button>
-      </div>
-    </details>
-  </div>
-  <div class="paper-tabs legacy-tabs">
-    <div class="tab-list">
-      <button class="tab-btn active" data-tab="resumen">Resumen ejecutivo</button>
-      <button class="tab-btn" data-tab="grupal">Premio grupal</button>
-      <button class="tab-btn" data-tab="grupal-legajos">Comparativo legajos</button>
-      <button class="tab-btn" data-tab="tabla-premios">Tabla Premios</button>
-      <button class="tab-btn" data-tab="evaluacion-picking">Evaluación Picking</button>
-      <button class="tab-btn" data-tab="calculo-pago-grupal">CÃ¡lculo Pago Grupal</button>
-      <button class="tab-btn hidden" data-tab="estudio" id="tab-estudio-legacy">Estudio</button>
-      <button class="tab-btn" data-tab="propuesta-autonoma">Premio individual</button>
-      <button class="tab-btn" data-tab="detalle">Datos</button>
-      <button class="tab-btn" data-tab="cache">Metodologia/cache</button>
-    </div>
-  </div>
-
-  <section class="filters" id="main-filters">
-    <div class="field"><label class="label" for="rango-desde">Fecha desde</label><input class="paper-input" type="date" id="rango-desde"></div>
-    <div class="field"><label class="label" for="rango-hasta">Fecha hasta</label><input class="paper-input" type="date" id="rango-hasta"></div>
-    <div class="field scenario-filter"><label class="label" for="operacion-select">Operacion</label><select class="paper-select" id="operacion-select"><option value="PICKING">PICKING</option><option value="CLARK">CLARK</option><option value="CARGA">CARGA</option><option value="CARRETEO">CARRETEO</option><option value="CONTROL DE PROCESOS CHP + CBF">CONTROL DE PROCESOS CHP + CBF</option></select></div>
-    <div class="field scenario-filter"><label class="label" for="almacen-select">Division</label><select class="paper-select" id="almacen-select"><option value="TODOS">TODOS</option><option value="SECOS + NOA">SECOS + NOA</option><option value="CAMARA 06">CAMARA 06</option><option value="OTRAS CAMARAS">OTRAS CAMARAS</option><option value="AREA SECOS Y NO ALIMENTOS">AREA SECOS Y NO ALIMENTOS</option><option value="AREA REFRIGERADOS">AREA REFRIGERADOS</option></select></div>
-    <button class="primary-cta" id="consultar-rango">Consultar</button>
-    <div class="case-cell"><div class="label" id="scope-label">Ciclo diario</div><strong id="scope-text">Incluye ambos extremos - 06:00 a 06:00 - siempre desde cache</strong></div>
-  </section>
-  <div class="status" id="status">Cargando rango desde cache...</div>
-
-  <section class="paper-panel" id="panel-resumen">
-    <section class="kpi-row" id="kpis-resumen"></section>
-    <section class="premium-pie-row">
-      <article class="chart-panel">
-        <div class="chart-title"><strong>Cobran premio actual</strong><span>jornadas x legajo con extras</span></div>
-        <div class="insight-chart" id="chart-premio-actual-pie"></div>
-      </article>
-      <article class="chart-panel">
-        <div class="chart-title"><strong>Cobrarian por horas</strong><span>jornadas x legajo con extras</span></div>
-        <div class="insight-chart" id="chart-premio-horas-pie"></div>
-      </article>
-      <article class="text-panel operator-overlap" id="operarios-premio-resumen"></article>
-      <article class="chart-panel executive-wide">
-        <div class="chart-title"><strong>Casos testigo</strong><span>actual jornada vs horas con extras</span></div>
-        <div id="case-cards-resumen"></div>
-      </article>
-    </section>
-    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Lectura critica</strong><span>por reglas del rango</span></div><ul class="notes" id="interpretacion"></ul></article>
-    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Sugerencias</strong><span>controles para el metodo horario</span></div><ul class="notes warn-list" id="sugerencias"></ul></article>
-  </section>
-
-  <section class="paper-panel" id="panel-grupal">
-    <div class="group-head-actions">
-      <div></div>
-      <button class="secondary-cta" id="editar-fijos-grupal" type="button">Editar fijos diarios</button>
-    </div>
-    <section class="group-params" id="grupal-parametros"></section>
-    <section class="group-bonus-grid" id="kpis-grupal"></section>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Simulacion por legajo y dia</strong><span>premio individual + reparto grupal</span></div>
-      <section class="group-table-tools">
-        <div class="field"><label class="label" for="grupal-f-almacen">Division</label><select class="paper-select" id="grupal-f-almacen"></select></div>
-        <div class="field"><label class="label" for="grupal-f-fecha">Fecha</label><input class="paper-input" type="date" id="grupal-f-fecha"></div>
-        <div class="field"><label class="label" for="grupal-f-legajo">Legajo</label><input class="paper-input" id="grupal-f-legajo" inputmode="numeric" placeholder="Todos"></div>
-        <button class="secondary-cta" id="exportar-grupal-excel" type="button">Exportar Excel</button>
-        <div class="group-filter-totals" id="grupal-filter-totals"></div>
-      </section>
-      <div class="table-wrap"><table class="paper-table" id="tabla-premio-grupal"></table></div>
-    </article>
-  </section>
-
-  <section class="paper-panel" id="panel-grupal-legajos">
-    <section class="kpi-row" id="kpis-grupal-legajos"></section>
-    <section class="data-grid">
-      <article class="chart-panel">
-        <div class="chart-title"><strong>Impacto por legajo</strong><span>más / menos / igual</span></div>
-        <div class="insight-chart" id="chart-grupal-legajos-impacto"></div>
-      </article>
-      <article class="data-panel">
-        <div class="chart-title"><strong>Pago mensual por legajo</strong><span>método actual vs método nuevo</span></div>
-        <div class="table-wrap legajo-period-wrap"><table class="paper-table legajo-select-table" id="tabla-grupal-legajos-periodo"></table></div>
-      </article>
-      <article class="data-panel">
-        <div class="chart-title"><strong>Detalle diario del legajo</strong><span id="grupal-legajo-detalle-title">selecciona un legajo</span></div>
-        <div class="table-wrap legajo-detail-wrap"><table class="paper-table" id="tabla-grupal-legajo-detalle"></table></div>
-      </article>
-    </section>
-  </section>
-
-  <section class="paper-panel active" id="panel-tabla-premios">
-    <section class="kpi-row" id="kpis-tabla-premios"></section>
-    <div id="tabla-premios-foto"></div>
-    <section class="premio-scale-grid">
-      <article class="data-panel">
-        <div class="chart-title"><strong>Escala actual de Picking</strong><span>jornada completa · foto local</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-premios-jornada"></table></div>
-      </article>
-      <article class="data-panel">
-        <div class="chart-title"><strong>Escala horaria</strong><span>/6.5 · derivada de la foto</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-premios-hora"></table></div>
-      </article>
-    </section>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Grilla comparativa de premios por sector · Picking</strong><span>una fila por sector y nivel de escala</span></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-premios-sector-consolidada"></table></div>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Escalas internas por sector</strong><span>una tabla independiente por sector</span></div>
-      <div class="premio-sector-grid" id="tabla-premios-sectores"></div>
-    </article>
-  </section>
-
-  <section class="paper-panel" id="panel-evaluacion-picking">
-    <section class="kpi-row kpi-row-5" id="kpis-evaluacion-picking"></section>
-    <section class="kpi-row kpi-row-secondary" id="kpis-evaluacion-picking-equivalencias"></section>
-    <div class="eval-nav" style="margin:8px 0 10px">
-      <label class="label" for="evaluacion-f-legajo">Filtrar legajo</label>
-      <input class="paper-input" id="evaluacion-f-legajo" inputmode="numeric" placeholder="Todos" style="max-width:180px">
-      <button class="secondary-cta hidden" id="evaluacion-clear-filtro-legajo" type="button">Quitar filtro</button>
-      <button class="secondary-cta" id="evaluacion-precargar" type="button">Precargar desde Oracle</button>
-      <span class="muted">filtro local sobre los datos cargados</span>
-    </div>
-    <article class="data-panel" style="margin-top:12px" id="panel-evaluacion-visual">
-      <div class="chart-title"><strong>Comparación rápida</strong><span><button type="button" class="problem-view-btn" id="evaluacion-visual-toggle">Mostrar</button> actual vs método nuevo · multiplicadores incluidos</span></div>
-      <div id="evaluacion-visual-body" class="hidden">
-        <div id="evaluacion-resumen-visual"></div>
-        <div id="evaluacion-diario-visual"></div>
-      </div>
-    </article>
-    <article class="data-panel hidden" id="panel-evaluacion-dias">
-      <div class="eval-nav"><button class="secondary-cta hidden" id="evaluacion-clear-dia" type="button">Ver todos los dÃ­as</button></div>
-      <div class="chart-title"><strong>Evaluación de actividad Picking</strong><span id="evaluacion-picking-meta">bultos reales · cache local</span></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-evaluacion-dias"></table></div>
-    </article>
-    <section class="data-grid">
-      <article class="data-panel">
-        <div class="eval-nav"><button class="secondary-cta hidden" id="evaluacion-clear-legajo" type="button">Ver todos</button><span id="evaluacion-legajos-count">todos</span></div>
-        <div class="chart-title"><strong>Legajos por día</strong><span>seleccionar para ver detalle horario</span></div>
-        <div class="table-wrap legajo-period-wrap"><table class="paper-table legajo-select-table" id="tabla-evaluacion-legajos"></table></div>
-      </article>
-      <article class="data-panel hidden"><table id="tabla-evaluacion-sectores"></table></article>
-    </section>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Pago actual</strong><span id="evaluacion-pago-actual-title">seleccionar un legajo y día</span></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-evaluacion-pago-actual"></table></div>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Detalle horario del legajo</strong><span id="evaluacion-detalle-title">seleccionar un legajo</span></div>
-      <div class="problem-viewbar" style="margin-top:0"><button type="button" class="problem-view-btn active" id="evaluacion-detalle-tab-grilla">Grilla</button><button type="button" class="problem-view-btn" id="evaluacion-detalle-tab-grafico">Vista gráfica</button></div>
-      <div id="evaluacion-detalle-vista-grilla"><div class="table-wrap legajo-detail-wrap"><table class="paper-table" id="tabla-evaluacion-detalle"></table></div></div>
-      <div id="evaluacion-detalle-vista-grafico" class="hidden"><div id="evaluacion-detalle-chart" class="problem-chart detalle-chart"></div></div>
-      <div class="chart-title" style="margin-top:12px"><strong>Detalle por sector de la hora</strong><span id="evaluacion-sector-hora-title">seleccionar una hora</span></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-evaluacion-detalle-sectores"></table></div>
-    </article>
-  </section>
-
-  <section class="paper-panel" id="panel-propuesta-autonoma">
-    <section class="kpi-row kpi-row-5" id="kpis-propuesta-autonoma"></section>
-    <section class="kpi-row kpi-row-5" id="kpis-propuesta-resumen"></section>
-    <article class="data-panel" style="margin-top:12px;border-left:3px solid var(--amber)">
-      <div class="chart-title"><strong>Parámetros del escenario</strong><span>se recalcula sobre los datos cacheados</span></div>
-      <div class="filters" style="margin-top:10px;padding:0;background:transparent;border:0">
-        <div class="field"><label class="label" for="escenario-aumento-tabla">Aumento tabla de premios (%)</label><input class="paper-input" id="escenario-aumento-tabla" type="number" min="0" step="1" value="0"></div>
-        <div class="field"><label class="label" for="escenario-bolsa-grupal">Bolsa premio grupal ($)</label><input class="paper-input" id="escenario-bolsa-grupal" type="number" min="0" step="100000" value="10000000"></div>
-        <div class="field"><label class="label" for="escenario-bolsa-adicional">Bolsa adicionales individuales ($)</label><input class="paper-input" id="escenario-bolsa-adicional" type="number" min="0" step="100000" value="0"></div>
-      </div>
-      <p style="margin:9px 0 0;color:var(--ink-soft)"><strong>Aviso:</strong> el porcentaje aplicado es un <strong>aumento monetario sobre premios calculados</strong>. Mantiene los niveles, rangos y reglas de la tabla; no recalcula la selección del nivel.</p>
-      <p style="margin:8px 0 0;color:var(--ink-soft)">El aumento modifica únicamente la productividad individual. Las bolsas se distribuyen por separado; si adicionales queda en $0, el pago final se muestra como productividad ajustada + grupal. El escenario se recalcula automáticamente al modificar cualquier valor.</p>
-    </article>
-    <article class="data-panel scenario-version-panel" style="margin-top:12px;border-left:3px solid var(--blue)">
-      <div class="chart-title"><strong>Escenarios sectoriales versionados</strong><span>la base original no se modifica</span></div>
-      <p style="margin:8px 0;color:var(--ink-soft)">Definí un ajuste por sector y simulá el impacto sobre el pago individual. El resultado queda guardado como escenario separado y puede publicarse sin reemplazar la tabla base.</p>
-      <div class="scenario-editor-grid">
-        <div class="field"><label class="label" for="scenario-name">Nombre del escenario</label><input class="paper-input" id="scenario-name" value="Propuesta +30% sectores críticos"></div>
-        <div class="field"><label class="label" for="scenario-description">Descripción</label><input class="paper-input" id="scenario-description" value="Ajuste sectorial preservando la escala base"></div>
-        <button class="primary-cta" id="scenario-simulate" type="button">Simular escenario</button>
-      </div>
-      <div class="table-wrap scenario-editor-wrap"><table class="paper-table" id="tabla-scenario-sectores"></table></div>
-      <div class="tool-row"><button class="secondary-cta" id="scenario-load-default" type="button">Cargar propuesta +30%</button><button class="secondary-cta" id="scenario-clear" type="button">Limpiar ajustes</button><select class="paper-select" id="scenario-saved-select"><option value="">Sin escenarios guardados</option></select><button class="secondary-cta" id="scenario-load-saved" type="button">Cargar guardado</button><span class="scenario-chart-note" id="scenario-status">Sin escenario simulado.</span></div>
-    </article>
-    <section class="kpi-row kpi-row-5" id="kpis-scenario"></section>
-    <article class="data-panel scenario-results-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Impacto del escenario</strong><span>actual vs base vs ajustado</span></div>
-      <div class="scenario-chart-grid"><div id="grafico-scenario-totales" class="scenario-chart"></div><div id="grafico-scenario-sectores" class="scenario-chart"></div></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-scenario-resultados"></table></div>
-    </article>
-    <article class="data-panel" style="margin-top:12px;border-left:3px solid var(--green)">
-      <div class="chart-title"><strong>Modelo normalizado de pago</strong><span>tres componentes independientes</span></div>
-      <p style="margin:10px 0 0;color:var(--ink-soft)"><strong>Productividad por hora y sector:</strong> pago base sin presupuesto global. <strong>Incentivo individual:</strong> bolsa fija de $10.000.000. <strong>Premio grupal:</strong> bolsa fija de $10.000.000. El grupal por bultos y el grupal por horas son alternativas de la misma bolsa, no pagos acumulables.</p>
-      <p style="margin:8px 0 0;color:var(--ink-soft)">El pago actual y su diferencia se muestran únicamente para auditoría. No intervienen en la determinación de ninguna bolsa ni del pago final.</p>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Cómo se entiende este premio</strong><span>modelo autónomo de prueba · no usa el sistema viejo</span></div>
-      <div class="case-card-grid" style="margin-top:10px">
-        <article class="case-card"><div class="label">Productividad base</div><strong>Pago individual</strong><p>Es el pago por bultos y ritmo según la escala del sector. No se vuelve a premiar por segunda vez en este adicional.</p></article>
-        <article class="case-card"><div class="label">Constancia</div><strong>Regularidad semanal</strong><p>Cuenta las semanas con actividad. En producción se reemplaza por días programados trabajados; no mide nuevamente los bultos.</p></article>
-        <article class="case-card"><div class="label">Calidad</div><strong>Trabajo correcto</strong><p>Controla exceso de TNC, errores, reclamos y reprocesos. La calidad habilita o reduce el premio.</p></article>
-        <article class="case-card"><div class="label">Grupal</div><strong>Adicional del equipo</strong><p>Es otra bolsa, separada del individual. Bultos y horas son dos alternativas y no se suman.</p></article>
-      </div>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Propuesta de montos</strong><span>presupuesto independiente para esta prueba</span></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-propuesta-autonoma-montos"></table></div>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Impacto del pago final</strong><span>productividad + adicional individual + premio grupal</span></div>
-      <div class="scenario-chart-grid">
-        <div><div class="chart-title"><strong>Escenario por bultos</strong><span>pago final vs actual</span></div><div id="grafico-impacto-pago-bultos" class="scenario-chart"></div></div>
-        <div><div class="chart-title"><strong>Escenario por horas</strong><span>pago final vs actual</span></div><div id="grafico-impacto-pago-horas" class="scenario-chart"></div></div>
-      </div>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Detalle por legajo</strong><span>seleccionar la alternativa de premio grupal</span></div>
-      <div class="problem-viewbar" style="margin-top:8px">
-        <button type="button" class="problem-view-btn active" id="propuesta-tab-bultos">Pago por bultos</button>
-        <button type="button" class="problem-view-btn" id="propuesta-tab-horas">Pago por horas</button>
-      </div>
-      <div class="table-wrap legajo-period-wrap hidden"><table class="paper-table" id="tabla-propuesta-autonoma-legajos"></table></div>
-      <div class="table-wrap legajo-period-wrap"><table class="paper-table" id="tabla-propuesta-autonoma-legajos-bultos"></table></div>
-      <div class="table-wrap legajo-period-wrap hidden"><table class="paper-table" id="tabla-propuesta-autonoma-legajos-horas"></table></div>
-    </article>
-  </section>
-
-  <section class="paper-panel" id="panel-calculo-pago-grupal">
-    <section class="kpi-row" id="kpis-calculo-pago-grupal"></section>
-    <article class="data-panel" style="margin-top:12px;border-left:3px solid var(--amber)">
-      <div class="chart-title"><strong>Bolsa del escenario grupal</strong><span>parámetro de simulación</span></div>
-      <div class="field" style="max-width:280px;margin-top:10px"><label class="label" for="escenario-bolsa-grupal-grupo">Bolsa premio grupal ($)</label><input class="paper-input" id="escenario-bolsa-grupal-grupo" type="number" min="0" step="100000" value="10000000"></div>
-      <p style="margin:8px 0 0;color:var(--ink-soft)">La bolsa ingresada se utiliza para escalar la propuesta. El gráfico de ausencias describe la composición de los registros del cálculo grupal.</p>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Tipos de ausencia</strong><span>distribución de registros del cálculo grupal</span></div>
-      <div class="absence-layout">
-        <div id="grafico-ausencias-grupal" class="absence-chart"></div>
-        <div class="absence-config">
-          <div class="label">Ausencias no computables para el target</div>
-          <div id="lista-ausencias-configurables" class="absence-check-list"></div>
-          <button class="secondary-cta" id="recalcular-ausencias-grupal" type="button" style="margin-top:10px">Recalcular escenario</button>
-          <div id="ausencias-config-status" class="scenario-chart-note">La selección pendiente no modifica el cálculo hasta presionar el botón.</div>
-        </div>
-      </div>
-    </article>
-    <article class="data-panel">
-      <div class="chart-title"><strong>Sectores del legajero</strong><span id="calculo-pago-grupal-meta">seleccionar un sector</span></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-calculo-pago-grupal-sectores"></table></div>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong id="calculo-pago-grupal-detalle-title">Detalle diario del sector</strong><span id="calculo-pago-grupal-detalle-status">seleccionar una fila para filtrar los legajos</span><button class="secondary-cta hidden" id="calculo-pago-grupal-clear-date" type="button">Ver todas las fechas</button></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-calculo-pago-grupal-detalle"></table></div>
-    </article>
-    <article class="data-panel" style="margin-top:12px">
-      <div class="chart-title"><strong id="calculo-pago-grupal-legajos-title">Detalle de legajos</strong><span>fecha y sector seleccionados</span></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-calculo-pago-grupal-legajos"></table></div>
-    </article>
-  </section>
-
-  <section class="paper-panel" id="panel-punto0">
-    <div class="group-head-actions">
-      <div>
-        <div class="chart-title"><strong>Modelo actual congelado</strong><span>pago individual + distribución grupal por bultos y horas</span></div>
-      </div>
-      <button class="secondary-cta" id="punto0-recalcular" type="button">Recalcular / publicar Punto 0</button>
-    </div>
-    <section class="kpi-row" id="kpis-punto0"></section>
-    <article class="data-panel">
-      <div class="chart-title"><strong>Resultado congelado por legajo y día</strong><span id="punto0-meta">seleccionar el rango y cargar</span></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-punto0"></table></div>
-    </article>
-  </section>
-
-  <section class="paper-panel" id="panel-estudio">
-    <section class="kpi-row" id="kpis-estudio"></section>
-    <section class="summary-filters">
-      <div class="study-check-box">
-        <div class="study-check-head"><div class="study-check-title"><span class="label">Sector RRHH</span><span class="study-check-summary" id="estudio-summary-sector">Todos</span></div><div class="check-actions"><button class="link-btn" data-estudio-select-all="sector">Marcar todos</button><button class="link-btn" data-estudio-clear="sector">Limpiar</button></div></div>
-        <div class="study-check-list" id="estudio-f-sector"></div>
-      </div>
-      <div class="field"><label class="label" for="estudio-f-estado">Estado premio</label><select class="paper-select" id="estudio-f-estado"><option value="">Todos</option><option value="Cobra premio">Cobra premio</option><option value="Actividad sin premio">Actividad sin premio</option><option value="Cobra sin actividad medida">Cobra sin actividad medida</option><option value="Sin actividad/premio">Sin actividad/premio</option></select></div>
-      <div class="field"><label class="label" for="estudio-f-tipo">Tipo cobro</label><select class="paper-select" id="estudio-f-tipo"><option value="">Todos</option><option value="Medible">Medible</option><option value="No medible">No medible</option><option value="Mixto">Mixto</option><option value="Sin premio">Sin premio</option></select></div>
-      <div class="field"><label class="label" for="estudio-f-texto">Buscar</label><input class="paper-input" id="estudio-f-texto" placeholder="Legajo, nombre, operacion"></div>
-    </section>
-    <section class="data-grid">
-      <article class="data-panel">
-        <div class="chart-title"><strong>Universo RRHH activo vs premio</strong><span id="estudio-meta">Oracle Productiv</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-estudio-legajos"></table></div>
-      </article>
-      <article class="data-panel">
-        <div class="chart-title"><strong>Resumen por sector</strong><span>RRHH activo</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-estudio-sector"></table></div>
-      </article>
-      <article class="data-panel">
-        <div class="chart-title"><strong>Resumen por operacion cobrada</strong><span>Oracle Productiv</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-estudio-operacion"></table></div>
-      </article>
-      <article class="data-panel">
-        <div class="chart-title"><strong>Legajos asociados a operacion cobrada</strong><span id="estudio-operacion-detalle-title">click en una operacion</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-estudio-operacion-legajos"></table></div>
-      </article>
-      <article class="data-panel">
-        <div class="chart-title"><strong>Legajos con premio en Productiv pero no activos en RRHH</strong><span>control de universo</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-estudio-fuera-rrhh"></table></div>
-      </article>
-    </section>
-  </section>
-
-  <section class="paper-panel" id="panel-detalle">
-    <section class="summary-filters">
-      <div class="field"><label class="label" for="detalle-f-fecha">Fecha</label><input class="paper-input" type="date" id="detalle-f-fecha"></div>
-      <div class="field"><label class="label" for="detalle-f-legajo">Legajo</label><input class="paper-input" id="detalle-f-legajo" inputmode="numeric" placeholder="Todos"></div>
-      <button class="secondary-cta" id="limpiar-detalle-filtros">Limpiar</button>
-      <div class="summary-filter-info" id="detalle-filter-info">Sin filtros</div>
-    </section>
-    <section class="data-grid">
-      <article class="data-panel">
-        <div class="chart-title"><strong>Resumen por legajo/dia</strong><span>cache diario</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-datos-resumen"></table></div>
-      </article>
-      <article class="data-panel">
-        <div class="chart-title"><strong>Detalle horario</strong><span>cache por hora</span></div>
-        <div class="table-wrap"><table class="paper-table" id="tabla-detalle-cache"></table></div>
-      </article>
-    </section>
-  </section>
-
-  <section class="paper-panel" id="panel-cache">
-    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Metodologia</strong><span>reglas de simulacion</span></div><ul class="notes warn-list" id="validaciones"></ul></article>
-    <article class="text-panel" style="margin-top:12px"><div class="chart-title"><strong>Estado del cache</strong><span>SQLite/procesos</span></div><div id="cache-info"></div></article>
-  </section>
-</div>
-
-<div class="modal-backdrop" id="fijos-grupal-modal" role="dialog" aria-modal="true" aria-labelledby="fijos-grupal-title">
-  <section class="modal-panel" style="width:min(760px,94vw)">
-    <header class="modal-head">
-      <div>
-        <div class="label">Premio grupal</div>
-        <strong id="fijos-grupal-title">Editar fijos diarios por operacion y division</strong>
-      </div>
-      <button class="icon-btn" id="cerrar-fijos-grupal" title="Cerrar">X</button>
-    </header>
-    <div class="modal-body">
-      <table class="fixed-grid">
-        <thead><tr><th>Division</th><th>$ fijo diario</th></tr></thead>
-        <tbody id="fijos-grupal-body"></tbody>
-      </table>
-      <div class="tool-row">
-        <button class="primary-cta" id="aplicar-fijos-grupal" type="button">Aplicar</button>
-        <button class="secondary-cta" id="restaurar-fijos-grupal" type="button">Restaurar defaults</button>
-      </div>
-    </div>
-  </section>
-</div>
-
-<div class="modal-backdrop" id="detalle-modal" role="dialog" aria-modal="true" aria-labelledby="detalle-title">
-  <section class="modal-panel">
-    <header class="modal-head">
-      <div>
-        <div class="label" id="detalle-status">Detalle por hora</div>
-        <strong id="detalle-title">Detalle por legajo</strong>
-      </div>
-      <div class="tool-row" style="margin-top:0">
-        <button class="secondary-cta" id="exportar-detalle-pdf" type="button">PDF Detalle</button>
-        <button class="icon-btn" id="cerrar-detalle" title="Cerrar">X</button>
-      </div>
-    </header>
-    <div class="modal-body">
-      <div class="modal-summary" id="detalle-summary"></div>
-      <div class="problem-chart detalle-chart" id="detalle-legajo-chart"></div>
-      <div class="table-wrap"><table class="paper-table" id="tabla-detalle-legajo"></table></div>
-    </div>
-  </section>
-</div>
-
-<script>
+﻿
   const $ = id => document.getElementById(id);
   const GROUP_OPERATIONS = ['PICKING', 'CLARK', 'CARGA', 'CARRETEO', 'CONTROL DE PROCESOS CHP + CBF'];
   const GROUP_FIXED_BY_DIVISION_DEFAULTS = {
@@ -575,11 +117,11 @@
     $('main-filters').classList.toggle('study-mode', isStudy);
     ['rango-desde','rango-hasta'].forEach(id => $(id)?.closest('.field')?.classList.toggle('hidden', isTablaPremios));
     document.querySelectorAll('.scenario-filter').forEach(el => el.classList.toggle('hidden', isStudy || isTablaPremios || isEvaluacionPicking || isCalculoPagoGrupal || isPropuestaAutonoma || isPunto0));
-    $('scope-label').textContent = isStudy ? 'Estudio transversal' : isTablaPremios ? 'Foto de escalas' : isEvaluacionPicking ? 'Evaluación local' : 'Ciclo diario';
+    $('scope-label').textContent = isStudy ? 'Estudio transversal' : isTablaPremios ? 'Foto de escalas' : isEvaluacionPicking ? 'EvaluaciÃ³n local' : 'Ciclo diario';
     $('scope-text').textContent = isStudy
       ? 'Rango calendario contra Oracle Productiv. No aplica operacion, division ni escenario horario.'
       : isTablaPremios ? 'Escala vigente capturada localmente. Los cambios Oracle se informan y no reemplazan la foto.'
-      : isEvaluacionPicking ? 'Bultos reales por hora y sector. Se consulta Oracle sólo para días aún no cargados.'
+      : isEvaluacionPicking ? 'Bultos reales por hora y sector. Se consulta Oracle sÃ³lo para dÃ­as aÃºn no cargados.'
       : 'Incluye ambos extremos - 06:00 a 06:00 - siempre desde cache';
   }
   async function setupDefaultCachedDate(){
@@ -618,7 +160,7 @@
     const qtyDias = Math.max(1, Number(dias || 1));
     const bultosDia = qtyBultos / qtyDias;
     const prod = qtyLegajos ? bultosDia / qtyLegajos : 0;
-    return `${unidadProductiva()}/dia ${fmt(bultosDia)} · Legajos ${fmt(qtyLegajos)} · Productividad ${fmt(prod)}`;
+    return `${unidadProductiva()}/dia ${fmt(bultosDia)} Â· Legajos ${fmt(qtyLegajos)} Â· Productividad ${fmt(prod)}`;
   }
   function bars(id, rows, key='valor', label='grupo'){
     const max = Math.max(...(rows || []).map(r => Math.abs(Number(r[key] || 0))), 1);
@@ -719,7 +261,7 @@
     const sorted = sortedRows(id, cols, rows);
     const data = options.maxRows ? sorted.slice(0, options.maxRows) : sorted;
     $(id).innerHTML = `<thead><tr>${cols.map(c => {
-      const mark = sort?.key === c.key ? (sort.dir === 'asc' ? ' ↑' : ' ↓') : '';
+      const mark = sort?.key === c.key ? (sort.dir === 'asc' ? ' â†‘' : ' â†“') : '';
       return `<th class="sortable" data-key="${esc(c.key)}" style="${c.w ? `width:${c.w}` : ''}" title="Ordenar por ${esc(c.label)}">${esc(c.label)}${mark}</th>`;
     }).join('')}</tr></thead><tbody>${data.map(row => `<tr>${cols.map(c => {
       const raw = row[c.key]; const shown = c.format ? c.format(raw, row) : c.money ? money(raw) : c.num ? fmt(raw) : c.bool ? (raw ? '<span class="pill warn">Si</span>' : '<span class="pill">No</span>') : esc(raw);
@@ -875,7 +417,7 @@
       return;
     }
     const rows = filteredEstudioRows().filter(row => estudioOperacionMatches(row, selected)).map(row => estudioOperacionValues(row, selected));
-    $('estudio-operacion-detalle-title').textContent = `${selected.operacion} · ${selected.tipo_premio || 'Premio'} · ${fmt(rows.length)} legajos`;
+    $('estudio-operacion-detalle-title').textContent = `${selected.operacion} Â· ${selected.tipo_premio || 'Premio'} Â· ${fmt(rows.length)} legajos`;
     table('tabla-estudio-operacion-legajos', [
       {key:'legajo', label:'Legajo', w:'82px', mono:true},
       {key:'nombre', label:'Nombre', w:'210px'},
@@ -910,7 +452,7 @@
       kpi('Fuera RRHH activo', fmt(k.premio_fuera_rrhh_activo), `${money(k.premio_fuera_rrhh_total)} con premio/actividad fuera del universo.`, k.premio_fuera_rrhh_activo ? 'bad' : 'ok'),
     ].join('');
     const meta = data.meta || {};
-    $('estudio-meta').textContent = `${meta.fecha_desde || state.fechaDesde} a ${meta.fecha_hasta || state.fechaHasta} · ${fmt(rows.length)} legajos visibles`;
+    $('estudio-meta').textContent = `${meta.fecha_desde || state.fechaDesde} a ${meta.fecha_hasta || state.fechaHasta} Â· ${fmt(rows.length)} legajos visibles`;
     table('tabla-estudio-legajos', [
       {key:'legajo', label:'Legajo', w:'82px', mono:true},
       {key:'nombre', label:'Nombre', w:'210px'},
@@ -982,7 +524,7 @@
       kpi('Escalas jornada', fmt(foto.scale_rows || (data.escalas_jornada || []).length), 'filas almacenadas localmente'),
       kpi('Sectores', fmt(foto.sector_rows || (data.sectores || []).length), 'configurados en PV_TIEMPOS_DE_PICKING'),
     ].join('');
-    $('tabla-premios-foto').innerHTML = `<div class="premio-source-note ${changed ? 'warn' : ''}">${changed ? 'Se detectaron cambios en Oracle. La foto local se conserva y no fue recalculada.' : 'La escala fue capturada como foto local. Mientras no se fuerce una nueva versión, las tablas se leen desde SQLite.'} ${foto.archivo_local ? `Archivo: ${esc(foto.archivo_local)}` : ''}</div>`;
+    $('tabla-premios-foto').innerHTML = `<div class="premio-source-note ${changed ? 'warn' : ''}">${changed ? 'Se detectaron cambios en Oracle. La foto local se conserva y no fue recalculada.' : 'La escala fue capturada como foto local. Mientras no se fuerce una nueva versiÃ³n, las tablas se leen desde SQLite.'} ${foto.archivo_local ? `Archivo: ${esc(foto.archivo_local)}` : ''}</div>`;
     const jornadaCols = [
       {key:'grupo_productivo',label:'Grupo',w:'180px'}, {key:'nivel',label:'Nivel',num:true,w:'70px'},
       {key:'desde',label:'Desde jornada',num:true}, {key:'hasta',label:'Hasta jornada',num:true},
@@ -1003,15 +545,15 @@
       const id = `tabla-premio-sector-${index}`;
       const method = sector.metodo_de_calculo || 'SIN CONFIG';
       const note = method === 'ESPECIFICO' ? 'Escala propia del sector; intervienen posiciones/setup.' : 'Escala propia del sector.';
-      return `<article class="premio-sector-card"><div class="chart-title"><strong>${esc(`D${sector.division} · Sector ${sector.sector}`)}</strong><span>${esc(`${sector.grupo_productivo || 'SIN GRUPO'} · ${method}`)}</span></div><div class="premio-source-note">${esc(note)}</div><div class="table-wrap"><table class="paper-table" id="${id}"></table></div></article>`;
+      return `<article class="premio-sector-card"><div class="chart-title"><strong>${esc(`D${sector.division} Â· Sector ${sector.sector}`)}</strong><span>${esc(`${sector.grupo_productivo || 'SIN GRUPO'} Â· ${method}`)}</span></div><div class="premio-source-note">${esc(note)}</div><div class="table-wrap"><table class="paper-table" id="${id}"></table></div></article>`;
     }).join('') || '<div class="premio-source-note warn">No hay sectores configurados.</div>';
     (data.sectores || []).forEach((sector, index) => table(`tabla-premio-sector-${index}`, sectorCols, sector.filas || []));
     const sectorRows=(data.sectores || []).flatMap(sector=>(sector.filas || []).map(row=>({...row,division:sector.division,sector:sector.sector,grupo_productivo:sector.grupo_productivo,metodo_de_calculo:sector.metodo_de_calculo})));
     table('tabla-premios-sector-consolidada',[
-      {key:'division',label:'División',num:true},
+      {key:'division',label:'DivisiÃ³n',num:true},
       {key:'sector',label:'Sector',mono:true},
       {key:'grupo_productivo',label:'Grupo productivo'},
-      {key:'metodo_de_calculo',label:'Método'},
+      {key:'metodo_de_calculo',label:'MÃ©todo'},
       {key:'nivel',label:'Nivel',num:true},
       {key:'desde_hora_sector',label:'Desde bultos',num:true},
       {key:'hasta_hora_sector',label:'Hasta bultos',num:true},
@@ -1061,20 +603,20 @@
     $('tabla-evaluacion-detalle-sectores').innerHTML = '<tbody><tr><td>Selecciona una hora para ver sus sectores.</td></tr></tbody>';
     table('tabla-evaluacion-detalle', [
       {key:'fecha_base',label:'Fecha',mono:true}, {key:'legajo',label:'Legajo',mono:true}, {key:'hora',label:'Hora',num:true}, {key:'sectores_hora',label:'Sectores',num:true}, {key:'bultos_hora',label:'Bultos + equiv. distribuida',format:value => fmt(value)}, {key:'excedente_distribuido',label:'Excedente distribuido',format:value => fmt(value)}, {key:'nivel_real',label:'Nivel cobrado'}, {key:'desde_real',label:'Desde cobrado',num:true}, {key:'hasta_real',label:'Hasta cobrado',num:true}, {key:'nivel_escala',label:'Nivel nuevo'}, {key:'factor_multiplicador',label:'Factor'},
-      {key:'premio_hora_aplicado_total',label:'Método nuevo',money:true},
+      {key:'premio_hora_aplicado_total',label:'MÃ©todo nuevo',money:true},
     ], hours);
     const selectedHourKey = state.evaluacionPickingHourSelected || '';
     const orderedHours = sortedRows('tabla-evaluacion-detalle', [{key:'fecha_base'},{key:'legajo'},{key:'hora',num:true},{key:'sectores_hora',num:true},{key:'bultos_hora',num:true},{key:'excedente_distribuido',num:true},{key:'nivel_real'},{key:'desde_real',num:true},{key:'hasta_real',num:true},{key:'nivel_escala'},{key:'factor_multiplicador'},{key:'premio_hora_aplicado_total',money:true}], hours);
     $('tabla-evaluacion-detalle').querySelectorAll('tbody tr').forEach((tr,index) => { const row = orderedHours[index]; tr.classList.toggle('active', `${row?.fecha_base}|${row?.legajo}|${row?.hora}` === selectedHourKey); });
-    $('tabla-evaluacion-detalle').querySelectorAll('tbody tr').forEach((tr,index) => { tr.onclick = event => { event.stopPropagation(); const row = orderedHours[index]; if (!row) return; state.evaluacionPickingHourSelected = `${row.fecha_base}|${row.legajo}|${row.hora}`; $('tabla-evaluacion-detalle').querySelectorAll('tbody tr.active').forEach(item => item.classList.remove('active')); tr.classList.add('active'); const sectors = rows.filter(item => String(item.fecha_base) === String(row.fecha_base) && String(item.legajo) === String(row.legajo) && Number(item.hora) === Number(row.hora)); $('evaluacion-sector-hora-title').textContent = `hora ${row.hora} · ${row.fecha_base} · legajo ${row.legajo}`; table('tabla-evaluacion-detalle-sectores', [{key:'sector',label:'Sector'},{key:'funciones',label:'Funciones'},{key:'segundos_sector',label:'Minutos',num:true,format:value => fmt(Number(value || 0) / 60)},{key:'bultos_reales',label:'Bultos',num:true},{key:'premio_aplicado',label:'Método nuevo',money:true},{key:'premio_real_asignado',label:'Pago real asignado',money:true},{key:'diferencia',label:'Diferencia',format:value => value == null ? 'N/D' : signedMoney2(value)},{key:'nivel',label:'Nivel',num:true}], sectors); }; });
-    $('tabla-evaluacion-detalle').onclick = event => { const tr = event.target.closest('tbody tr'); if (!tr) return; const index = Array.from(tr.parentElement.children).indexOf(tr); const row = orderedHours[index]; if (row) { state.evaluacionPickingHourSelected = `${row.fecha_base}|${row.legajo}|${row.hora}`; $('tabla-evaluacion-detalle').querySelectorAll('tbody tr.active').forEach(item => item.classList.remove('active')); tr.classList.add('active'); const sectors = rows.filter(item => String(item.fecha_base) === String(row.fecha_base) && String(item.legajo) === String(row.legajo) && Number(item.hora) === Number(row.hora)); $('evaluacion-sector-hora-title').textContent = `hora ${row.hora} · ${row.fecha_base} · legajo ${row.legajo}`; table('tabla-evaluacion-detalle-sectores', [{key:'sector',label:'Sector'},{key:'funciones',label:'Funciones'},{key:'segundos_sector',label:'Minutos',num:true,format:value => fmt(Number(value || 0) / 60)},{key:'bultos_reales',label:'Bultos',num:true},{key:'premio_aplicado',label:'Método nuevo',money:true},{key:'premio_real_asignado',label:'Pago real asignado',money:true},{key:'diferencia',label:'Diferencia',format:value => value == null ? 'N/D' : signedMoney2(value)},{key:'nivel',label:'Nivel',num:true}], sectors); } };
+    $('tabla-evaluacion-detalle').querySelectorAll('tbody tr').forEach((tr,index) => { tr.onclick = event => { event.stopPropagation(); const row = orderedHours[index]; if (!row) return; state.evaluacionPickingHourSelected = `${row.fecha_base}|${row.legajo}|${row.hora}`; $('tabla-evaluacion-detalle').querySelectorAll('tbody tr.active').forEach(item => item.classList.remove('active')); tr.classList.add('active'); const sectors = rows.filter(item => String(item.fecha_base) === String(row.fecha_base) && String(item.legajo) === String(row.legajo) && Number(item.hora) === Number(row.hora)); $('evaluacion-sector-hora-title').textContent = `hora ${row.hora} Â· ${row.fecha_base} Â· legajo ${row.legajo}`; table('tabla-evaluacion-detalle-sectores', [{key:'sector',label:'Sector'},{key:'funciones',label:'Funciones'},{key:'segundos_sector',label:'Minutos',num:true,format:value => fmt(Number(value || 0) / 60)},{key:'bultos_reales',label:'Bultos',num:true},{key:'premio_aplicado',label:'MÃ©todo nuevo',money:true},{key:'premio_real_asignado',label:'Pago real asignado',money:true},{key:'diferencia',label:'Diferencia',format:value => value == null ? 'N/D' : signedMoney2(value)},{key:'nivel',label:'Nivel',num:true}], sectors); }; });
+    $('tabla-evaluacion-detalle').onclick = event => { const tr = event.target.closest('tbody tr'); if (!tr) return; const index = Array.from(tr.parentElement.children).indexOf(tr); const row = orderedHours[index]; if (row) { state.evaluacionPickingHourSelected = `${row.fecha_base}|${row.legajo}|${row.hora}`; $('tabla-evaluacion-detalle').querySelectorAll('tbody tr.active').forEach(item => item.classList.remove('active')); tr.classList.add('active'); const sectors = rows.filter(item => String(item.fecha_base) === String(row.fecha_base) && String(item.legajo) === String(row.legajo) && Number(item.hora) === Number(row.hora)); $('evaluacion-sector-hora-title').textContent = `hora ${row.hora} Â· ${row.fecha_base} Â· legajo ${row.legajo}`; table('tabla-evaluacion-detalle-sectores', [{key:'sector',label:'Sector'},{key:'funciones',label:'Funciones'},{key:'segundos_sector',label:'Minutos',num:true,format:value => fmt(Number(value || 0) / 60)},{key:'bultos_reales',label:'Bultos',num:true},{key:'premio_aplicado',label:'MÃ©todo nuevo',money:true},{key:'premio_real_asignado',label:'Pago real asignado',money:true},{key:'diferencia',label:'Diferencia',format:value => value == null ? 'N/D' : signedMoney2(value)},{key:'nivel',label:'Nivel',num:true}], sectors); } };
     const umbrales = hours.map(row => Number(row.desde_real || 0) / 8).filter(value => Number.isFinite(value) && value > 0);
     const umbralCompensacion = umbrales.length ? Math.min(...umbrales) : 0;
     renderDetalleLegajoChart(hours.map(row => {
       const bultos = Number(row.bultos_reales_hora || 0);
       return {hora:row.hora, bultos, equivalencia_extra:Number(row.excedente_distribuido || 0), bultos_hora_min:umbralCompensacion, bultos_hora_max:0, escala_actual_desde:row.desde_real == null ? null : Number(row.desde_real) / 8, escala_actual_hasta:row.hasta_real == null ? null : Number(row.hasta_real) / 8, escala_actual_nivel:row.nivel_real, premio_x_hora:row.premio_hora_aplicado_total, bultos_modulo:0, prod_modulo:umbralCompensacion * 8, es_hora_estandar:umbralCompensacion <= 0 || (bultos + Number(row.excedente_distribuido || 0)) <= umbralCompensacion, modo_compensacion:true};
     }), false, null, 'evaluacion-detalle-chart');
-    $('evaluacion-detalle-chart').querySelectorAll('.prod-bar').forEach((bar,index) => { bar.style.cursor = 'pointer'; bar.onclick = () => { const row = hours[index]; if (!row) return; state.evaluacionPickingHourSelected = `${row.fecha_base}|${row.legajo}|${row.hora}`; $('tabla-evaluacion-detalle').querySelectorAll('tbody tr.active').forEach(item => item.classList.remove('active')); const tableRows = [...$('tabla-evaluacion-detalle').querySelectorAll('tbody tr')]; const selectedTr = tableRows.find((tr, i) => orderedHours[i] && `${orderedHours[i].fecha_base}|${orderedHours[i].legajo}|${orderedHours[i].hora}` === state.evaluacionPickingHourSelected); selectedTr?.classList.add('active'); const sectors = rows.filter(item => String(item.fecha_base) === String(row.fecha_base) && String(item.legajo) === String(row.legajo) && Number(item.hora) === Number(row.hora)); $('evaluacion-sector-hora-title').textContent = `hora ${row.hora} · ${row.fecha_base} · legajo ${row.legajo}`; table('tabla-evaluacion-detalle-sectores', [{key:'sector',label:'Sector'},{key:'funciones',label:'Funciones'},{key:'segundos_sector',label:'Minutos',num:true,format:value => fmt(Number(value || 0) / 60)},{key:'bultos_reales',label:'Bultos',num:true},{key:'premio_aplicado',label:'Método nuevo',money:true},{key:'premio_real_asignado',label:'Pago real asignado',money:true},{key:'diferencia',label:'Diferencia',format:value => value == null ? 'N/D' : signedMoney2(value)},{key:'nivel',label:'Nivel',num:true}], sectors); }; });
+    $('evaluacion-detalle-chart').querySelectorAll('.prod-bar').forEach((bar,index) => { bar.style.cursor = 'pointer'; bar.onclick = () => { const row = hours[index]; if (!row) return; state.evaluacionPickingHourSelected = `${row.fecha_base}|${row.legajo}|${row.hora}`; $('tabla-evaluacion-detalle').querySelectorAll('tbody tr.active').forEach(item => item.classList.remove('active')); const tableRows = [...$('tabla-evaluacion-detalle').querySelectorAll('tbody tr')]; const selectedTr = tableRows.find((tr, i) => orderedHours[i] && `${orderedHours[i].fecha_base}|${orderedHours[i].legajo}|${orderedHours[i].hora}` === state.evaluacionPickingHourSelected); selectedTr?.classList.add('active'); const sectors = rows.filter(item => String(item.fecha_base) === String(row.fecha_base) && String(item.legajo) === String(row.legajo) && Number(item.hora) === Number(row.hora)); $('evaluacion-sector-hora-title').textContent = `hora ${row.hora} Â· ${row.fecha_base} Â· legajo ${row.legajo}`; table('tabla-evaluacion-detalle-sectores', [{key:'sector',label:'Sector'},{key:'funciones',label:'Funciones'},{key:'segundos_sector',label:'Minutos',num:true,format:value => fmt(Number(value || 0) / 60)},{key:'bultos_reales',label:'Bultos',num:true},{key:'premio_aplicado',label:'MÃ©todo nuevo',money:true},{key:'premio_real_asignado',label:'Pago real asignado',money:true},{key:'diferencia',label:'Diferencia',format:value => value == null ? 'N/D' : signedMoney2(value)},{key:'nivel',label:'Nivel',num:true}], sectors); }; });
   }
 
   function renderEvaluacionPickingDetalle(data){
@@ -1086,10 +628,10 @@
     if (selectedDay) detail = detail.filter(item => String(item.fecha_base || '').slice(0,10) === selectedDay);
     if (selectedLegajo) detail = detail.filter(item => String(item.legajo || '') === String(selectedLegajo));
     $('evaluacion-detalle-title').textContent = selectedLegajo
-      ? `legajo ${selectedLegajo} · ${selectedDay}`
-      : selectedDay ? `todos los legajos · ${selectedDay}` : 'seleccionar un día';
+      ? `legajo ${selectedLegajo} Â· ${selectedDay}`
+      : selectedDay ? `todos los legajos Â· ${selectedDay}` : 'seleccionar un dÃ­a';
     if (!selectedDay) {
-      $('tabla-evaluacion-detalle').innerHTML = '<tbody><tr><td>Selecciona un registro de Evaluación de actividad Picking.</td></tr></tbody>';
+      $('tabla-evaluacion-detalle').innerHTML = '<tbody><tr><td>Selecciona un registro de EvaluaciÃ³n de actividad Picking.</td></tr></tbody>';
       return;
     }
     const pagoReal = (value) => value === null || value === undefined ? 'N/D' : money(value);
@@ -1099,7 +641,7 @@
       {key:'peso_sector',label:'Peso',num:true,format:value => `${fmt(Number(value || 0) * 100)} %`},
       {key:'bultos_reales',label:'Bultos reales',num:true}, {key:'ritmo_bultos_hora',label:'Ritmo hora',num:true},
       {key:'nivel',label:'Nivel',num:true}, {key:'desde_bultos',label:'Desde',num:true}, {key:'hasta_bultos',label:'Hasta',num:true},
-      {key:'premio_hora',label:'Premio hora',money:true}, {key:'premio_aplicado',label:'Método nuevo',money:true}, {key:'premio_real_asignado',label:'Pago real',format:pagoReal},
+      {key:'premio_hora',label:'Premio hora',money:true}, {key:'premio_aplicado',label:'MÃ©todo nuevo',money:true}, {key:'premio_real_asignado',label:'Pago real',format:pagoReal},
       {key:'diferencia',label:'Diferencia',format:value => value === null || value === undefined ? 'N/D' : signedMoney2(value)}, {key:'estado',label:'Estado'},
     ];
     table('tabla-evaluacion-detalle', detailCols, detail);
@@ -1147,27 +689,27 @@
     const selectedDay = state.evaluacionPickingDaySelected || '';
     const pagosDisponibles = Number(meta.legajos_pago_real_disponible || 0) > 0;
     const pagoRealLabel = pagosDisponibles ? money(k.premio_real) : 'N/D';
-    const pagoRealFoot = pagosDisponibles ? `cache local · ${fmt(meta.legajos_pago_real_disponible)} legajos` : 'Sin pagos reales cargados en cache local';
+    const pagoRealFoot = pagosDisponibles ? `cache local Â· ${fmt(meta.legajos_pago_real_disponible)} legajos` : 'Sin pagos reales cargados en cache local';
     const bultosRealesTotal = filteredRows.reduce((sum, row) => sum + Number(row.bultos_reales || 0), 0);
     const equivalentesTotal = filteredRows.reduce((sum, row) => sum + Number(row.equivalencia_sector || 0) + Number(row.equivalencia_traslado || 0) + Number(row.equivalencia_consolidacion || 0), 0);
     const diasConMultiplicador = new Set(filteredLegajoRows.filter(row => Number(row.factor_multiplicador || 1) > 1).map(row => String(row.fecha || '').slice(0,10))).size;
     $('kpis-evaluacion-picking').innerHTML = [
-      kpi('Legajos distintos', fmt(k.legajos), 'personas únicas en el rango'),
+      kpi('Legajos distintos', fmt(k.legajos), 'personas Ãºnicas en el rango'),
       kpi('Pago real', pagoRealLabel, pagoRealFoot, pagosDisponibles ? '' : 'warn'),
       kpi('Pago final bultos', money(k.pago_final_bultos), 'individual + bolsa grupal por bultos', 'ok'),
       kpi('Pago final horas', money(k.pago_final_horas), 'individual + bolsa grupal por horas', 'ok'),
       kpi('Bolsa grupal', money(k.bolsa_grupal || meta.bolsa_grupal || 0), 'adicional a distribuir', 'warn'),
-      kpi('Método nuevo', money(k.premio_nuevo), 'escala sectorial por hora', 'ok'),
-      kpi('Brecha', signedMoney2(Number(k.premio_nuevo || 0) - Number(k.premio_real || 0)), 'método nuevo menos pago actual', Number(k.premio_nuevo || 0) >= Number(k.premio_real || 0) ? 'ok' : 'bad'),
+      kpi('MÃ©todo nuevo', money(k.premio_nuevo), 'escala sectorial por hora', 'ok'),
+      kpi('Brecha', signedMoney2(Number(k.premio_nuevo || 0) - Number(k.premio_real || 0)), 'mÃ©todo nuevo menos pago actual', Number(k.premio_nuevo || 0) >= Number(k.premio_real || 0) ? 'ok' : 'bad'),
       kpi('Nuevo / actual', Number(k.premio_real || 0) > 0 ? `${fmt(Number(k.premio_nuevo || 0) * 100 / Number(k.premio_real || 0))} %` : 'N/D', 'incluye multiplicadores detectados', Number(k.premio_real || 0) > 0 && Number(k.premio_nuevo || 0) >= Number(k.premio_real || 0) ? 'ok' : 'warn'),
     ].join('');
-    $('evaluacion-picking-meta').textContent = `${meta.fecha_desde || ''} a ${meta.fecha_hasta || ''} · ${fmt(meta.dias_cache || 0)} días cache · ${fmt(meta.dias_oracle || 0)} días actividad · ${fmt(meta.dias_pago_oracle || 0)} días pago real`;
+    $('evaluacion-picking-meta').textContent = `${meta.fecha_desde || ''} a ${meta.fecha_hasta || ''} Â· ${fmt(meta.dias_cache || 0)} dÃ­as cache Â· ${fmt(meta.dias_oracle || 0)} dÃ­as actividad Â· ${fmt(meta.dias_pago_oracle || 0)} dÃ­as pago real`;
     $('kpis-evaluacion-picking-equivalencias').innerHTML = [
-      kpi('Bultos reales', fmt(bultosRealesTotal), 'producción física del rango'),
-      kpi('Bultos equivalentes', fmt(equivalentesTotal), 'base por la que se pagó el método actual', 'warn'),
+      kpi('Bultos reales', fmt(bultosRealesTotal), 'producciÃ³n fÃ­sica del rango'),
+      kpi('Bultos equivalentes', fmt(equivalentesTotal), 'base por la que se pagÃ³ el mÃ©todo actual', 'warn'),
       kpi('Equivalencias / conversiones', fmt(Math.max(0, equivalentesTotal - bultosRealesTotal)), 'diferencia entre real y equivalente'),
-      kpi('% incluido de más', bultosRealesTotal > 0 ? `${fmt((equivalentesTotal - bultosRealesTotal) * 100 / bultosRealesTotal)} %` : 'N/D', 'equivalencias sobre bultos reales', 'warn'),
-      kpi('Días con multiplicador', fmt(diasConMultiplicador), 'premios con factor adicional', diasConMultiplicador ? 'warn' : 'ok'),
+      kpi('% incluido de mÃ¡s', bultosRealesTotal > 0 ? `${fmt((equivalentesTotal - bultosRealesTotal) * 100 / bultosRealesTotal)} %` : 'N/D', 'equivalencias sobre bultos reales', 'warn'),
+      kpi('DÃ­as con multiplicador', fmt(diasConMultiplicador), 'premios con factor adicional', diasConMultiplicador ? 'warn' : 'ok'),
     ].join('');
     const filtroInput = $('evaluacion-f-legajo');
     if (filtroInput && filtroInput.value !== String(state.evaluacionPickingLegajoFilter || '')) filtroInput.value = String(state.evaluacionPickingLegajoFilter || '');
@@ -1189,18 +731,18 @@
       return {...row, diferencia: row.premio_real === null || row.premio_real === undefined ? null : nuevo - actual, diferencia_final_bultos: row.premio_real === null || row.premio_real === undefined ? null : Number(row.pago_final_bultos || 0) - actual, diferencia_final_horas: row.premio_real === null || row.premio_real === undefined ? null : Number(row.pago_final_horas || 0) - actual, porcentaje_nuevo: actual > 0 ? nuevo * 100 / actual : null, factor_multiplicador: factors.length === 1 ? factors[0] : null, factor_label: factors.length === 1 ? `${factors[0]}x` : 'Mixto'};
     });
     const maxPagoDia = Math.max(1, ...days.map(row => Number(row.premio_real || 0)));
-    $('evaluacion-resumen-visual').innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px"><div style="border-left:3px solid var(--blue);background:#F8FAF7;padding:9px">Pago actual<strong style="display:block;font-size:18px;margin-top:4px">${esc(money(k.premio_real))}</strong></div><div style="border-left:3px solid var(--green);background:#F8FAF7;padding:9px">Método nuevo<strong style="display:block;font-size:18px;margin-top:4px">${esc(money(k.premio_nuevo))}</strong></div><div style="border-left:3px solid var(--amber);background:#F8FAF7;padding:9px">Nuevo / actual<strong style="display:block;font-size:18px;margin-top:4px">${Number(k.premio_real || 0) > 0 ? `${fmt(Number(k.premio_nuevo || 0) * 100 / Number(k.premio_real || 0))} %` : 'N/D'}</strong></div></div>`;
-    $('evaluacion-diario-visual').innerHTML = `<div style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.08em;text-transform:uppercase">Comparación diaria · azul actual · verde nuevo</div>${days.map(row => { const actual = Number(row.premio_real || 0); const nuevo = Number(row.premio || 0); const widthActual = actual * 100 / maxPagoDia; const widthNuevo = nuevo * 100 / maxPagoDia; const alert = row.factor_multiplicador && row.factor_multiplicador > 1 ? 'border:1px solid var(--amber);' : ''; return `<div style="display:grid;grid-template-columns:82px 1fr 170px;gap:8px;align-items:center;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;${alert}"><span>${esc(row.fecha)}</span><span style="height:16px;background:#EEF2EE;display:block;position:relative"><i style="display:block;position:absolute;left:0;top:0;height:7px;width:${widthActual}%;background:var(--blue)"></i><i style="display:block;position:absolute;left:0;bottom:0;height:7px;width:${widthNuevo}%;background:var(--green)"></i></span><span style="white-space:nowrap;color:var(--ink-soft)">${esc(row.factor_label)} · ${row.porcentaje_nuevo == null ? 'N/D' : `${fmt(row.porcentaje_nuevo)} %`}</span></div>`; }).join('')}`;
-    /* tabla renderizada una sola vez con la definición final de columnas */
+    $('evaluacion-resumen-visual').innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px"><div style="border-left:3px solid var(--blue);background:#F8FAF7;padding:9px">Pago actual<strong style="display:block;font-size:18px;margin-top:4px">${esc(money(k.premio_real))}</strong></div><div style="border-left:3px solid var(--green);background:#F8FAF7;padding:9px">MÃ©todo nuevo<strong style="display:block;font-size:18px;margin-top:4px">${esc(money(k.premio_nuevo))}</strong></div><div style="border-left:3px solid var(--amber);background:#F8FAF7;padding:9px">Nuevo / actual<strong style="display:block;font-size:18px;margin-top:4px">${Number(k.premio_real || 0) > 0 ? `${fmt(Number(k.premio_nuevo || 0) * 100 / Number(k.premio_real || 0))} %` : 'N/D'}</strong></div></div>`;
+    $('evaluacion-diario-visual').innerHTML = `<div style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.08em;text-transform:uppercase">ComparaciÃ³n diaria Â· azul actual Â· verde nuevo</div>${days.map(row => { const actual = Number(row.premio_real || 0); const nuevo = Number(row.premio || 0); const widthActual = actual * 100 / maxPagoDia; const widthNuevo = nuevo * 100 / maxPagoDia; const alert = row.factor_multiplicador && row.factor_multiplicador > 1 ? 'border:1px solid var(--amber);' : ''; return `<div style="display:grid;grid-template-columns:82px 1fr 170px;gap:8px;align-items:center;margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;${alert}"><span>${esc(row.fecha)}</span><span style="height:16px;background:#EEF2EE;display:block;position:relative"><i style="display:block;position:absolute;left:0;top:0;height:7px;width:${widthActual}%;background:var(--blue)"></i><i style="display:block;position:absolute;left:0;bottom:0;height:7px;width:${widthNuevo}%;background:var(--green)"></i></span><span style="white-space:nowrap;color:var(--ink-soft)">${esc(row.factor_label)} Â· ${row.porcentaje_nuevo == null ? 'N/D' : `${fmt(row.porcentaje_nuevo)} %`}</span></div>`; }).join('')}`;
+    /* tabla renderizada una sola vez con la definiciÃ³n final de columnas */
     if (false) table('tabla-evaluacion-dias', [
       {key:'fecha',label:'Fecha',mono:true}, {key:'legajos',label:'Legajos',num:true},
-      {key:'premio_real',label:'Pago real',format:pagoReal}, {key:'premio',label:'Método nuevo individual',money:true}, {key:'pago_final_bultos',label:'Pago final + grupal bultos',money:true}, {key:'diferencia_final_bultos',label:'Diferencia final bultos',format:difference}, {key:'pago_final_horas',label:'Pago final + grupal horas',money:true}, {key:'diferencia_final_horas',label:'Diferencia final horas',format:difference}, {key:'adicional_grupal_bultos',label:'Adic. grupal bultos',money:true}, {key:'adicional_grupal_horas',label:'Adic. grupal horas',money:true},
+      {key:'premio_real',label:'Pago real',format:pagoReal}, {key:'premio',label:'MÃ©todo nuevo individual',money:true}, {key:'pago_final_bultos',label:'Pago final + grupal bultos',money:true}, {key:'diferencia_final_bultos',label:'Diferencia final bultos',format:difference}, {key:'pago_final_horas',label:'Pago final + grupal horas',money:true}, {key:'diferencia_final_horas',label:'Diferencia final horas',format:difference}, {key:'adicional_grupal_bultos',label:'Adic. grupal bultos',money:true}, {key:'adicional_grupal_horas',label:'Adic. grupal horas',money:true},
       {key:'diferencia',label:'Diferencia individual',format:difference}, {key:'diferencia_final_bultos',label:'Diferencia final bultos',format:difference}, {key:'diferencia_final_horas',label:'Diferencia final horas',format:difference}, {key:'factor_label',label:'Factor'}, {key:'porcentaje_nuevo',label:'Nuevo / actual',format:value => value == null ? 'N/D' : `${fmt(value)} %`},
     ], data.resumen_dias || []);
-    bindEvaluacionHeaders('tabla-evaluacion-dias', [{key:'fecha',label:'Fecha'}, {key:'legajos',label:'Legajos',num:true}, {key:'premio_real',label:'Pago real',money:true}, {key:'premio',label:'Método nuevo',money:true}, {key:'diferencia',label:'Diferencia'}, {key:'factor_label',label:'Factor'}, {key:'porcentaje_nuevo',label:'Nuevo / actual',num:true}], days);
+    bindEvaluacionHeaders('tabla-evaluacion-dias', [{key:'fecha',label:'Fecha'}, {key:'legajos',label:'Legajos',num:true}, {key:'premio_real',label:'Pago real',money:true}, {key:'premio',label:'MÃ©todo nuevo',money:true}, {key:'diferencia',label:'Diferencia'}, {key:'factor_label',label:'Factor'}, {key:'porcentaje_nuevo',label:'Nuevo / actual',num:true}], days);
     table('tabla-evaluacion-dias', [
       {key:'fecha',label:'Fecha',mono:true}, {key:'legajos',label:'Legajos',num:true},
-      {key:'premio_real',label:'Pago real',format:pagoReal}, {key:'premio',label:'MÃ©todo nuevo individual',money:true}, {key:'adicional_grupal_bultos',label:'Adic. grupal bultos',money:true}, {key:'pago_final_bultos',label:'Pago final bultos',money:true}, {key:'adicional_grupal_horas',label:'Adic. grupal horas',money:true}, {key:'pago_final_horas',label:'Pago final horas',money:true},
+      {key:'premio_real',label:'Pago real',format:pagoReal}, {key:'premio',label:'MÃƒÂ©todo nuevo individual',money:true}, {key:'adicional_grupal_bultos',label:'Adic. grupal bultos',money:true}, {key:'pago_final_bultos',label:'Pago final bultos',money:true}, {key:'adicional_grupal_horas',label:'Adic. grupal horas',money:true}, {key:'pago_final_horas',label:'Pago final horas',money:true},
       {key:'diferencia',label:'Diferencia',format:difference}, {key:'factor_label',label:'Factor'}, {key:'porcentaje_nuevo',label:'Nuevo / actual',format:value => value == null ? 'N/D' : `${fmt(value)} %`},
     ], days);
     const diasCols = [
@@ -1225,8 +767,8 @@
     $('evaluacion-clear-dia').onclick = () => { state.evaluacionPickingDaySelected = ''; state.evaluacionPickingSelected = ''; renderEvaluacionPicking(); };
     $('evaluacion-clear-dia').classList.toggle('hidden', !selectedDay);
     const legajoCols = [
-      {key:'legajo',label:'Legajo',mono:true}, {key:'fechas',label:'Días',num:true}, {key:'bultos_reales',label:'Bultos reales',num:true}, {key:'bultos_equivalentes',label:'Bultos equivalentes',num:true}, {key:'porcentaje_equivalencias',label:'% equiv. de más',format:value => value == null ? 'N/D' : `${fmt(value)} %`},
-      {key:'premio_real',label:'Pago real',format:pagoReal}, {key:'premio',label:'Método nuevo',money:true},
+      {key:'legajo',label:'Legajo',mono:true}, {key:'fechas',label:'DÃ­as',num:true}, {key:'bultos_reales',label:'Bultos reales',num:true}, {key:'bultos_equivalentes',label:'Bultos equivalentes',num:true}, {key:'porcentaje_equivalencias',label:'% equiv. de mÃ¡s',format:value => value == null ? 'N/D' : `${fmt(value)} %`},
+      {key:'premio_real',label:'Pago real',format:pagoReal}, {key:'premio',label:'MÃ©todo nuevo',money:true},
       {key:'adicional_grupal_bultos',label:'Grupal bultos',money:true}, {key:'pago_final_bultos',label:'Final bultos',money:true}, {key:'diferencia_final_bultos',label:'Dif. bultos vs actual',format:signedMoney2},
       {key:'adicional_grupal_horas',label:'Grupal horas',money:true}, {key:'pago_final_horas',label:'Final horas',money:true}, {key:'diferencia_final_horas',label:'Dif. horas vs actual',format:signedMoney2},
     ];
@@ -1250,12 +792,12 @@
     const pagoActualRows = selectedLegajo ? allLegajos.filter(row => String(row.legajo) === String(selectedLegajo)) : [];
     const pagoComparacionRows = pagoActualRows.map(row => { const totalEquivalentes = Number(row.total_equivalentes || 0) || Number(row.bultos_actuales || 0); const finalBultos=Number(row.pago_final_bultos_dia || 0); const finalHoras=Number(row.pago_final_horas_dia || 0); return {...row, bultos_actuales:Number(row.bultos_actuales || 0), equivalencia_sector:Number(row.equivalencia_sector || 0), equivalencia_traslado:Number(row.equivalencia_traslado || 0), equivalencia_consolidacion:Number(row.equivalencia_consolidacion || 0), total_equivalentes:totalEquivalentes, adicionales_equivalentes:totalEquivalentes - Number(row.bultos_actuales || 0), excedente_escala:Number(row.desde_actual || 0) > 0 ? totalEquivalentes - Number(row.desde_actual || 0) : null, bultos_nuevo:Number(row.bultos_reales || 0), premio_nuevo:Number(row.premio || 0), adicional_grupal_bultos:Number(row.adicional_grupal_bultos_dia || 0), adicional_grupal_horas:Number(row.adicional_grupal_horas_dia || 0), pago_final_bultos:finalBultos, pago_final_horas:finalHoras, diferencia_final_bultos:finalBultos-Number(row.premio_real || 0), diferencia_final_horas:finalHoras-Number(row.premio_real || 0), diferencia_pago:Number(row.premio || 0) - Number(row.premio_real || 0)}; });
     const pagoPanel = $('tabla-evaluacion-pago-actual').closest('.data-panel');
-    if (pagoPanel) pagoPanel.querySelector('.chart-title strong').textContent = 'Comparación de Pagos';
+    if (pagoPanel) pagoPanel.querySelector('.chart-title strong').textContent = 'ComparaciÃ³n de Pagos';
     $('evaluacion-pago-actual-title').textContent = selectedLegajo ? `legajo ${selectedLegajo}` : 'seleccionar un legajo';
     table('tabla-evaluacion-pago-actual', [
-      {key:'fecha',label:'Fecha',mono:true}, {key:'bultos_actuales',label:'Bultos actuales',format:value => fmt(value)}, {key:'nivel_actual',label:'Nivel actual',num:true}, {key:'premio_real',label:'Pago actual',money:true}, {key:'bultos_nuevo',label:'Bultos nuevo',format:value => fmt(value)}, {key:'premio_nuevo',label:'Método nuevo',money:true}, {key:'diferencia_pago',label:'Diferencia',format:value => signedMoney2(value)},
+      {key:'fecha',label:'Fecha',mono:true}, {key:'bultos_actuales',label:'Bultos actuales',format:value => fmt(value)}, {key:'nivel_actual',label:'Nivel actual',num:true}, {key:'premio_real',label:'Pago actual',money:true}, {key:'bultos_nuevo',label:'Bultos nuevo',format:value => fmt(value)}, {key:'premio_nuevo',label:'MÃ©todo nuevo',money:true}, {key:'diferencia_pago',label:'Diferencia',format:value => signedMoney2(value)},
     ], pagoComparacionRows);
-    const pagoComparacionCols = [{key:'fecha',label:'Fecha',mono:true},{key:'bultos_actuales',label:'Bultos reales',format:value=>fmt(value)},{key:'equivalencia_sector',label:'Equiv. sector',format:value=>fmt(value)},{key:'equivalencia_traslado',label:'Equiv. traslado',format:value=>fmt(value)},{key:'equivalencia_consolidacion',label:'Equiv. consolidación',format:value=>fmt(value)},{key:'total_equivalentes',label:'Total liquidado',format:value=>fmt(value)},{key:'nivel_actual',label:'Nivel actual',num:true},{key:'excedente_escala',label:'Excedente escala',format:value=>value==null?'N/D':fmt(value)},{key:'factor_multiplicador',label:'Factor'},{key:'premio_real',label:'Pago actual',money:true},{key:'bultos_nuevo',label:'Bultos nuevo',format:value=>fmt(value)},{key:'premio_nuevo',label:'Método nuevo',money:true},{key:'diferencia_pago',label:'Diferencia',format:value=>signedMoney2(value)}];
+    const pagoComparacionCols = [{key:'fecha',label:'Fecha',mono:true},{key:'bultos_actuales',label:'Bultos reales',format:value=>fmt(value)},{key:'equivalencia_sector',label:'Equiv. sector',format:value=>fmt(value)},{key:'equivalencia_traslado',label:'Equiv. traslado',format:value=>fmt(value)},{key:'equivalencia_consolidacion',label:'Equiv. consolidaciÃ³n',format:value=>fmt(value)},{key:'total_equivalentes',label:'Total liquidado',format:value=>fmt(value)},{key:'nivel_actual',label:'Nivel actual',num:true},{key:'excedente_escala',label:'Excedente escala',format:value=>value==null?'N/D':fmt(value)},{key:'factor_multiplicador',label:'Factor'},{key:'premio_real',label:'Pago actual',money:true},{key:'bultos_nuevo',label:'Bultos nuevo',format:value=>fmt(value)},{key:'premio_nuevo',label:'MÃ©todo nuevo',money:true},{key:'diferencia_pago',label:'Diferencia',format:value=>signedMoney2(value)}];
     pagoComparacionCols.splice(pagoComparacionCols.length - 1, 0,
       {key:'adicional_grupal_bultos',label:'Adic. grupal bultos',money:true}, {key:'pago_final_bultos',label:'Pago final bultos',money:true},
       {key:'diferencia_final_bultos',label:'Dif. final bultos',format:value=>signedMoney2(value)}, {key:'adicional_grupal_horas',label:'Adic. grupal horas',money:true}, {key:'pago_final_horas',label:'Pago final horas',money:true}, {key:'diferencia_final_horas',label:'Dif. final horas',format:value=>signedMoney2(value)}
@@ -1274,7 +816,7 @@
         const row = rows[index];
         state.evaluacionPickingSelected = String(row.legajo);
         state.evaluacionPickingDaySelected = '';
-        $('evaluacion-detalle-title').textContent = `legajo ${row.legajo} · ${row.fecha}`;
+        $('evaluacion-detalle-title').textContent = `legajo ${row.legajo} Â· ${row.fecha}`;
         const detail = (data.rows || []).filter(item => String(item.fecha_base || '').slice(0,10) === row.fecha && String(item.legajo || '') === String(row.legajo || ''));
         table('tabla-evaluacion-detalle', [
           {key:'hora',label:'Hora',num:true}, {key:'sector',label:'Sector'}, {key:'funciones',label:'Funciones'},
@@ -1282,7 +824,7 @@
           {key:'peso_sector',label:'Peso',num:true,format:value => `${fmt(Number(value || 0) * 100)} %`},
           {key:'bultos_reales',label:'Bultos reales',num:true}, {key:'ritmo_bultos_hora',label:'Ritmo hora',num:true},
           {key:'nivel',label:'Nivel',num:true}, {key:'desde_bultos',label:'Desde',num:true}, {key:'hasta_bultos',label:'Hasta',num:true},
-          {key:'premio_hora',label:'Premio hora',money:true}, {key:'premio_aplicado',label:'MÃ©todo nuevo',money:true}, {key:'premio_real_asignado',label:'Pago real',format:pagoReal}, {key:'diferencia',label:'Diferencia',format:(value) => value === null || value === undefined ? 'N/D' : signedMoney2(value)}, {key:'estado',label:'Estado'},
+          {key:'premio_hora',label:'Premio hora',money:true}, {key:'premio_aplicado',label:'MÃƒÂ©todo nuevo',money:true}, {key:'premio_real_asignado',label:'Pago real',format:pagoReal}, {key:'diferencia',label:'Diferencia',format:(value) => value === null || value === undefined ? 'N/D' : signedMoney2(value)}, {key:'estado',label:'Estado'},
         ], detail);
         renderEvaluacionPicking();
       };
@@ -1296,7 +838,7 @@
     };
     renderEvaluacionPickingDetalleAgrupado(data);
     if ($('tabla-evaluacion-sectores')) table('tabla-evaluacion-sectores', [
-      {key:'division',label:'División',num:true}, {key:'sector',label:'Sector'}, {key:'legajos',label:'Legajos',num:true},
+      {key:'division',label:'DivisiÃ³n',num:true}, {key:'sector',label:'Sector'}, {key:'legajos',label:'Legajos',num:true},
       {key:'horas',label:'Horas',num:true}, {key:'bultos_reales',label:'Bultos reales',num:true}, {key:'premio',label:'Premio',money:true},
     ], data.resumen_sectores || []);
   }
@@ -1310,7 +852,7 @@
       state.fechaDesde = $('rango-desde').value;
       state.fechaHasta = $('rango-hasta').value;
       if (!state.fechaDesde || !state.fechaHasta) throw new Error('Indica fecha desde y fecha hasta.');
-      setStatus('Consultando EvaluaciÃ³n Picking...');
+      setStatus('Consultando EvaluaciÃƒÂ³n Picking...');
       state.evaluacionPicking = await api('/api/analisis-premio-productividad/punto0/evaluacion?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta}));
       renderEvaluacionPicking();
       return true;
@@ -1329,17 +871,17 @@
     const sectores = data.sectores || [];
     renderAusenciaConfig(data);
     const selected = state.calculoPagoGrupalSectorSelected || '';
-    $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotación desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nómina activa'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'días evaluados')].join('');
-    $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotación desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nómina activa'), kpi('Bolsa grupal', money(data.meta?.bolsa_grupal || 0), 'pago actual menos método nuevo', 'warn'), kpi('Días habilitados', fmt(data.meta?.dias_habilitados || 0), 'cumplimiento >= 90%'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'días evaluados')].join('');
-    $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotación desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nómina activa'), kpi('Bolsa escenario', money(state.escenarioBolsaGrupal || 0), 'parámetro de simulación', 'warn'), kpi('Días habilitados', fmt(data.meta?.dias_habilitados || 0), 'cumplimiento >= 90%'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'días evaluados')].join('');
+    $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotaciÃ³n desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nÃ³mina activa'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'dÃ­as evaluados')].join('');
+    $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotaciÃ³n desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nÃ³mina activa'), kpi('Bolsa grupal', money(data.meta?.bolsa_grupal || 0), 'pago actual menos mÃ©todo nuevo', 'warn'), kpi('DÃ­as habilitados', fmt(data.meta?.dias_habilitados || 0), 'cumplimiento >= 90%'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'dÃ­as evaluados')].join('');
+    $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotaciÃ³n desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nÃ³mina activa'), kpi('Bolsa escenario', money(state.escenarioBolsaGrupal || 0), 'parÃ¡metro de simulaciÃ³n', 'warn'), kpi('DÃ­as habilitados', fmt(data.meta?.dias_habilitados || 0), 'cumplimiento >= 90%'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'dÃ­as evaluados')].join('');
     $('calculo-pago-grupal-meta').textContent = selected ? `sector seleccionado: ${selected}` : 'seleccionar un sector';
-    const sectorCols = [{key:'sector',label:'Sector',mono:true},{key:'legajos_totales',label:'Legajos',num:true},{key:'dias',label:'Días evaluados',num:true},{key:'dias_con_premio',label:'Días habilitados (≥90%)',num:true},{key:'porcentaje_dias_con_premio',label:'% días habilitados',format:value=>`${fmt(value)} %`}];
+    const sectorCols = [{key:'sector',label:'Sector',mono:true},{key:'legajos_totales',label:'Legajos',num:true},{key:'dias',label:'DÃ­as evaluados',num:true},{key:'dias_con_premio',label:'DÃ­as habilitados (â‰¥90%)',num:true},{key:'porcentaje_dias_con_premio',label:'% dÃ­as habilitados',format:value=>`${fmt(value)} %`}];
     table('tabla-calculo-pago-grupal-sectores', sectorCols, sectores);
     const ordered = sortedRows('tabla-calculo-pago-grupal-sectores', sectorCols, sectores);
     $('tabla-calculo-pago-grupal-sectores').querySelectorAll('tbody tr').forEach((tr,index)=>{ const row=ordered[index]; tr.classList.toggle('active', row?.sector === selected); tr.onclick=event=>{event.stopPropagation(); const next=row?.sector || ''; state.calculoPagoGrupalSectorSelected=next === selected ? '' : next; state.calculoPagoGrupalSelectedDate=''; state.calculoPagoGrupalLegajoSelected=''; renderCalculoPagoGrupal();}; });
     const detail=(data.detalle||[]).filter(row=>!selected || row.sector===selected);
-    $('calculo-pago-grupal-detalle-title').textContent=selected ? `Detalle diario · ${selected}` : 'Detalle diario del sector';
-    const detailCols=[{key:'sector',label:'Sector',mono:true},{key:'fecha',label:'Fecha',mono:true},{key:'dotacion_activa',label:'NÃ³mina activa',num:true},{key:'ausencias_no_computables',label:'Ausencias excluidas',num:true},{key:'legajos_totales',label:'Target',num:true},{key:'legajos_con_premio',label:'Legajos con premio',num:true},{key:'cumplimiento',label:'Cumplimiento',format:value=>`${fmt(value)} %`}];
+    $('calculo-pago-grupal-detalle-title').textContent=selected ? `Detalle diario Â· ${selected}` : 'Detalle diario del sector';
+    const detailCols=[{key:'sector',label:'Sector',mono:true},{key:'fecha',label:'Fecha',mono:true},{key:'dotacion_activa',label:'NÃƒÂ³mina activa',num:true},{key:'ausencias_no_computables',label:'Ausencias excluidas',num:true},{key:'legajos_totales',label:'Target',num:true},{key:'legajos_con_premio',label:'Legajos con premio',num:true},{key:'cumplimiento',label:'Cumplimiento',format:value=>`${fmt(value)} %`}];
     table('tabla-calculo-pago-grupal-detalle',detailCols,detail);
     const detailRows=sortedRows('tabla-calculo-pago-grupal-detalle',detailCols,detail);
     const detailTable=$('tabla-calculo-pago-grupal-detalle');
@@ -1360,7 +902,7 @@
       renderCalculoPagoGrupal();
     };
     const selectedDetail=detailRows.find(row=>String(row.fecha||'')===String(state.calculoPagoGrupalSelectedDate||''));
-    $('calculo-pago-grupal-detalle-status').textContent=selectedDetail ? `Fecha ${selectedDetail.fecha} · target ${fmt(selectedDetail.legajos_totales)} · premio ${fmt(selectedDetail.legajos_con_premio)} · cumplimiento ${fmt(selectedDetail.cumplimiento)} %` : 'seleccionar una fila para filtrar los legajos';
+    $('calculo-pago-grupal-detalle-status').textContent=selectedDetail ? `Fecha ${selectedDetail.fecha} Â· target ${fmt(selectedDetail.legajos_totales)} Â· premio ${fmt(selectedDetail.legajos_con_premio)} Â· cumplimiento ${fmt(selectedDetail.cumplimiento)} %` : 'seleccionar una fila para filtrar los legajos';
     $('calculo-pago-grupal-clear-date').classList.toggle('hidden',!state.calculoPagoGrupalSelectedDate);
     $('calculo-pago-grupal-clear-date').onclick=()=>{state.calculoPagoGrupalSelectedDate='';state.calculoPagoGrupalLegajoSelected='';renderCalculoPagoGrupal();};
     const legajoDetail = (data.detalle_legajos || []).filter(row => (!selected || row.sector === selected) && (!state.calculoPagoGrupalSelectedDate || row.fecha === state.calculoPagoGrupalSelectedDate));
@@ -1369,7 +911,7 @@
       const distribucion = distribucionDiaria.get(`${String(row.fecha || '').slice(0,10)}|${String(row.legajo)}`) || {};
       return {...row, adicional_bultos:Number(distribucion.adicional_bultos || 0), adicional_horas:Number(distribucion.adicional_horas || 0)};
     });
-    $('calculo-pago-grupal-legajos-title').textContent = selected && state.calculoPagoGrupalSelectedDate ? `Legajos · ${selected} · ${state.calculoPagoGrupalSelectedDate}` : 'Detalle de legajos';
+    $('calculo-pago-grupal-legajos-title').textContent = selected && state.calculoPagoGrupalSelectedDate ? `Legajos Â· ${selected} Â· ${state.calculoPagoGrupalSelectedDate}` : 'Detalle de legajos';
     const legajoCols=[{key:'sector',label:'Sector',mono:true},{key:'fecha',label:'Fecha',mono:true},{key:'legajo',label:'Legajo',mono:true},{key:'incluido_target',label:'Incluido en target',format:value=>value?'Incluido':'No incluido'},{key:'bultos',label:'Bultos',format:value=>fmt(value)},{key:'premio_nuevo',label:'Premio nuevo',money:true},{key:'adicional_bultos',label:'Adic. proporcional bultos',money:true},{key:'adicional_horas',label:'Adic. proporcional horas',money:true},{key:'motivo_ausencia',label:'Motivo ausencia'}];
     table('tabla-calculo-pago-grupal-legajos', legajoCols, legajoDetailConDistribucion);
     const orderedLegajos=sortedRows('tabla-calculo-pago-grupal-legajos',legajoCols,legajoDetailConDistribucion);
@@ -1386,10 +928,10 @@
     }
     const list=$('lista-ausencias-configurables'); if (!list) return;
     list.innerHTML=state.ausenciaCatalogo.length ? state.ausenciaCatalogo.map(raw=>{const key=ausenciaOptionKey(raw);const upper=raw.toUpperCase();const checked=state.ausenciaScenarioPending.includes(key) || state.ausenciaScenarioPending.includes(upper) || state.ausenciasNoComputables.some(item=>item && (upper.includes(item) || item.includes(upper)));const label=raw || 'Sin motivo informado';return `<label class="absence-check-item"><input type="checkbox" data-ausencia-key="${esc(key)}" ${checked?'checked':''}> <span>${esc(label)}</span></label>`;}).join('') : '<div class="scenario-chart-note">No se detectaron ausencias configurables.</div>';
-    list.querySelectorAll('input[data-ausencia-key]').forEach(input=>input.onchange=()=>{state.ausenciaScenarioPending=[...list.querySelectorAll('input:checked')].map(item=>item.dataset.ausenciaKey);$('ausencias-config-status').textContent='Cambios pendientes. Presioná “Recalcular escenario” para aplicarlos.';});
+    list.querySelectorAll('input[data-ausencia-key]').forEach(input=>input.onchange=()=>{state.ausenciaScenarioPending=[...list.querySelectorAll('input:checked')].map(item=>item.dataset.ausenciaKey);$('ausencias-config-status').textContent='Cambios pendientes. PresionÃ¡ â€œRecalcular escenarioâ€ para aplicarlos.';});
     $('recalcular-ausencias-grupal').onclick=async()=>{
       const button=$('recalcular-ausencias-grupal');button.disabled=true;button.textContent='Recalculando...';state.ausenciasNoComputables=[...state.ausenciaScenarioPending];state.tabLoadKeys.calculoPagoGrupal='';
-      try { await loadCalculoPagoGrupal();$('ausencias-config-status').textContent='Escenario recalculado. El target y los días habilitados reflejan la selección.'; }
+      try { await loadCalculoPagoGrupal();$('ausencias-config-status').textContent='Escenario recalculado. El target y los dÃ­as habilitados reflejan la selecciÃ³n.'; }
       catch(error){if (!isAbortError(error)) {$('ausencias-config-status').textContent=error.message;setStatus(error.message,true);}}
       finally {button.disabled=false;button.textContent='Recalcular escenario';}
     };
@@ -1403,7 +945,7 @@
     if (!items.length){chart.innerHTML='<div class="scenario-empty">No hay registros de ausencia en el rango seleccionado.</div>';return;}
     const total=items.reduce((sum,item)=>sum+item[1],0); const colors=['#1769AA','#2E8B57','#D08A00','#B5413A','#7C3AED','#008B8B','#6B7280','#C2410C']; let cursor=0;
     const stops=items.map((item,index)=>{const start=cursor;cursor+=item[1]*100/total;return `${colors[index%colors.length]} ${start}% ${cursor}%`;}).join(',');
-    chart.innerHTML=`<div class="absence-pie" style="background:conic-gradient(${stops})" role="img" aria-label="Distribución de tipos de ausencia"></div><div><div class="absence-legend">${items.map((item,index)=>`<div class="absence-legend-row"><span class="absence-dot" style="background:${colors[index%colors.length]}"></span><span>${esc(item[0])}</span><strong>${fmt(item[1])} (${fmt(item[1]*100/total)}%)</strong></div>`).join('')}</div><div class="scenario-chart-note">Distribución por registros de la grilla de legajos. Total: ${fmt(total)}.</div></div>`;
+    chart.innerHTML=`<div class="absence-pie" style="background:conic-gradient(${stops})" role="img" aria-label="DistribuciÃ³n de tipos de ausencia"></div><div><div class="absence-legend">${items.map((item,index)=>`<div class="absence-legend-row"><span class="absence-dot" style="background:${colors[index%colors.length]}"></span><span>${esc(item[0])}</span><strong>${fmt(item[1])} (${fmt(item[1]*100/total)}%)</strong></div>`).join('')}</div><div class="scenario-chart-note">DistribuciÃ³n por registros de la grilla de legajos. Total: ${fmt(total)}.</div></div>`;
   }
 
   async function loadCalculoPagoGrupal(){
@@ -1446,10 +988,10 @@
     state.propuestaRows=proposalRows;
     renderPropuestaResumen(proposalRows);
     const legajosConPenalizacion=[...byLegajo.values()].filter(item=>item.penalizacion_tnc>0 || item.penalizacion_error>0).length;
-    $('kpis-propuesta-autonoma').innerHTML=[kpi('Presupuesto individual',money(individualBudget),'Bolsa autónoma mensual para constancia individual.','ok'),kpi('Valor por semana',money(pointValue),`${fmt(totalPoints)} puntos observados en ${fmt(byLegajo.size)} legajos.`),kpi('Presupuesto grupal',money(groupBudget),'Bultos y horas son alternativas.','ok'),kpi('Semanas del rango',fmt(weeks.length),'En producción se usarán semanas operativas cerradas.'),kpi('Calidad Oracle',`${fmt(legajosConPenalizacion)} legajos`, 'TNC y errores integrados; en esta prueba informan y todavía no descuentan.',legajosConPenalizacion?'warn':'ok')].join('');
-    table('tabla-propuesta-autonoma-montos',[{key:'semanas',label:'Semanas con actividad',num:true},{key:'interpretacion',label:'Qué significa'},{key:'adicional',label:'Adicional individual',money:true},{key:'calidad',label:'Condición de calidad'}],Array.from({length:weeks.length+1},(_,index)=>({semanas:index,interpretacion:index===0?'Sin actividad en el rango':index===weeks.length?'Constancia completa del rango':'Actividad sostenida durante el período',adicional:index*pointValue,calidad:index===0?'No aplica':'Debe estar habilitada'})));
-    proposalRows.forEach(item=>{const source=byLegajo.get(item.legajo)||{}; item.penalizacion_tnc=Number(source.penalizacion_tnc||0); item.penalizacion_error=Number(source.penalizacion_error||0); item.calidad=(item.penalizacion_tnc>0 || item.penalizacion_error>0)?'Revisar penalización':'Sin penalizaciones';});
-    table('tabla-propuesta-autonoma-legajos',[{key:'legajo',label:'Legajo',mono:true},{key:'semanas',label:'Semanas',num:true},{key:'constancia',label:'Constancia'},{key:'calidad',label:'Calidad'},{key:'penalizacion_tnc',label:'Exceso TNC',money:true},{key:'penalizacion_error',label:'Errores',money:true},{key:'premio_base',label:'Individual base',money:true},{key:'adicional_individual',label:'Adic. individual',money:true},{key:'grupal_bultos',label:'Adic. grupal bultos',money:true},{key:'final_bultos',label:'Final bultos',money:true},{key:'grupal_horas',label:'Adic. grupal horas',money:true},{key:'final_horas',label:'Final horas',money:true},{key:'dias',label:'Días',num:true},{key:'bultos',label:'Bultos',num:true}],proposalRows);
+    $('kpis-propuesta-autonoma').innerHTML=[kpi('Presupuesto individual',money(individualBudget),'Bolsa autÃ³noma mensual para constancia individual.','ok'),kpi('Valor por semana',money(pointValue),`${fmt(totalPoints)} puntos observados en ${fmt(byLegajo.size)} legajos.`),kpi('Presupuesto grupal',money(groupBudget),'Bultos y horas son alternativas.','ok'),kpi('Semanas del rango',fmt(weeks.length),'En producciÃ³n se usarÃ¡n semanas operativas cerradas.'),kpi('Calidad Oracle',`${fmt(legajosConPenalizacion)} legajos`, 'TNC y errores integrados; en esta prueba informan y todavÃ­a no descuentan.',legajosConPenalizacion?'warn':'ok')].join('');
+    table('tabla-propuesta-autonoma-montos',[{key:'semanas',label:'Semanas con actividad',num:true},{key:'interpretacion',label:'QuÃ© significa'},{key:'adicional',label:'Adicional individual',money:true},{key:'calidad',label:'CondiciÃ³n de calidad'}],Array.from({length:weeks.length+1},(_,index)=>({semanas:index,interpretacion:index===0?'Sin actividad en el rango':index===weeks.length?'Constancia completa del rango':'Actividad sostenida durante el perÃ­odo',adicional:index*pointValue,calidad:index===0?'No aplica':'Debe estar habilitada'})));
+    proposalRows.forEach(item=>{const source=byLegajo.get(item.legajo)||{}; item.penalizacion_tnc=Number(source.penalizacion_tnc||0); item.penalizacion_error=Number(source.penalizacion_error||0); item.calidad=(item.penalizacion_tnc>0 || item.penalizacion_error>0)?'Revisar penalizaciÃ³n':'Sin penalizaciones';});
+    table('tabla-propuesta-autonoma-legajos',[{key:'legajo',label:'Legajo',mono:true},{key:'semanas',label:'Semanas',num:true},{key:'constancia',label:'Constancia'},{key:'calidad',label:'Calidad'},{key:'penalizacion_tnc',label:'Exceso TNC',money:true},{key:'penalizacion_error',label:'Errores',money:true},{key:'premio_base',label:'Individual base',money:true},{key:'adicional_individual',label:'Adic. individual',money:true},{key:'grupal_bultos',label:'Adic. grupal bultos',money:true},{key:'final_bultos',label:'Final bultos',money:true},{key:'grupal_horas',label:'Adic. grupal horas',money:true},{key:'final_horas',label:'Final horas',money:true},{key:'dias',label:'DÃ­as',num:true},{key:'bultos',label:'Bultos',num:true}],proposalRows);
     table('tabla-propuesta-autonoma-legajos',[{key:'legajo',label:'Legajo',mono:true},{key:'semanas',label:'Semanas',num:true},{key:'constancia',label:'Constancia'},{key:'calidad',label:'Calidad'},{key:'penalizacion_tnc',label:'Exceso TNC',money:true},{key:'penalizacion_error',label:'Errores',money:true},{key:'pago_actual',label:'Pago actual',money:true},{key:'premio_base',label:'Individual base',money:true},{key:'adicional_individual',label:'Adic. individual',money:true},{key:'grupal_bultos',label:'Premio grupal bultos',money:true},{key:'final_bultos',label:'Pago final bultos',money:true},{key:'diferencia_bultos',label:'Dif. bultos vs actual',format:value=>signedMoney2(value)},{key:'grupal_horas',label:'Premio grupal horas',money:true},{key:'final_horas',label:'Pago final horas',money:true},{key:'diferencia_horas',label:'Dif. horas vs actual',format:value=>signedMoney2(value)},{key:'dias',label:'Dias',num:true},{key:'bultos',label:'Bultos',num:true}],proposalRows);
     renderPropuestaScenarioExtras(proposalRows, increasePct, individualBudget, groupBudget);
   }
@@ -1458,7 +1000,7 @@
     const actual=proposalRows.reduce((sum,row)=>sum+(row.pago_actual==null?0:Number(row.pago_actual||0)),0);
     const nuevoBultos=proposalRows.reduce((sum,row)=>sum+Number(row.final_bultos||0),0); const nuevoHoras=proposalRows.reduce((sum,row)=>sum+Number(row.final_horas||0),0);
     const diferenciaBultos=nuevoBultos-actual; const diferenciaHoras=nuevoHoras-actual;
-    $('kpis-propuesta-resumen').innerHTML=[kpi('Total pago actual',money(actual),'referencia acumulada del rango'),kpi('Total nuevo · bultos',money(nuevoBultos),'incluye premio grupal por bultos','ok'),kpi('Diferencia · bultos',signedMoney2(diferenciaBultos),diferenciaBultos>=0?'sobre el actual':'debajo del actual',diferenciaBultos>=0?'ok':'warn'),kpi('Total nuevo · horas',money(nuevoHoras),'incluye premio grupal por horas','ok'),kpi('Diferencia · horas',signedMoney2(diferenciaHoras),diferenciaHoras>=0?'sobre el actual':'debajo del actual',diferenciaHoras>=0?'ok':'warn')].join('');
+    $('kpis-propuesta-resumen').innerHTML=[kpi('Total pago actual',money(actual),'referencia acumulada del rango'),kpi('Total nuevo Â· bultos',money(nuevoBultos),'incluye premio grupal por bultos','ok'),kpi('Diferencia Â· bultos',signedMoney2(diferenciaBultos),diferenciaBultos>=0?'sobre el actual':'debajo del actual',diferenciaBultos>=0?'ok':'warn'),kpi('Total nuevo Â· horas',money(nuevoHoras),'incluye premio grupal por horas','ok'),kpi('Diferencia Â· horas',signedMoney2(diferenciaHoras),diferenciaHoras>=0?'sobre el actual':'debajo del actual',diferenciaHoras>=0?'ok':'warn')].join('');
   }
 
   function renderImpactBell(id, rows, totalKey, mode){
@@ -1494,7 +1036,7 @@
     const maxCount=Math.max(1,...counts.map(item=>item.count));
     const total=proposalRows.length;
     const chart=$('grafico-segmentos-pago-individual');
-    if (chart) chart.innerHTML=counts.map(item=>`<div class="scenario-bar-row"><span>${esc(item.label)}</span><span class="scenario-bar-track"><span class="scenario-bar-fill" style="width:${item.count*100/maxCount}%"></span></span><span class="scenario-bar-value">${fmt(item.count)} personas (${total?fmt(item.count*100/total):'0'}%)</span></div>`).join('')+`<div class="scenario-chart-note">Comparación del pago individual nuevo (tabla ajustada + adicional, si corresponde) contra el pago actual.</div>`;
+    if (chart) chart.innerHTML=counts.map(item=>`<div class="scenario-bar-row"><span>${esc(item.label)}</span><span class="scenario-bar-track"><span class="scenario-bar-fill" style="width:${item.count*100/maxCount}%"></span></span><span class="scenario-bar-value">${fmt(item.count)} personas (${total?fmt(item.count*100/total):'0'}%)</span></div>`).join('')+`<div class="scenario-chart-note">ComparaciÃ³n del pago individual nuevo (tabla ajustada + adicional, si corresponde) contra el pago actual.</div>`;
     const bellBins=Array.from({length:11},(_,index)=>({label:`${index*10}%`,count:0}));
     let bellWithoutReference=0;
     proposalRows.forEach(row=>{const actual=row.pago_actual==null?null:Number(row.pago_actual);if (!(actual>0)){bellWithoutReference+=1;return;}const individual=Number(row.premio_base||0)+Number(row.adicional_individual||0);const reduction=Math.max(0,Math.min(100,(1-individual/actual)*100));const index=reduction>=100?10:Math.floor(reduction/10);bellBins[index].count+=1;});
@@ -1506,7 +1048,7 @@
       const linePath=points.map((point,index)=>`${index?'L':'M'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
       const areaPath=`M ${points[0].x.toFixed(1)} ${baseY} ${points.map(point=>`L ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ')} L ${points[points.length-1].x.toFixed(1)} ${baseY} Z`;
       const grid=Array.from({length:5},(_,index)=>{const y=top+index*plotH/4;const value=Math.round(bellMax*(1-index/4));return `<line class="grid" x1="${left}" x2="${width-right}" y1="${y}" y2="${y}"></line><text x="${left-8}" y="${y+4}" text-anchor="end">${fmt(value)}</text>`;}).join('');
-      chart.innerHTML=`<svg class="scenario-bell" viewBox="0 0 ${width} ${height}" role="img" aria-label="Distribución de legajos por porcentaje de premio individual cobrado de menos"><text x="${width/2}" y="${height-8}" text-anchor="middle">Porcentaje de premio individual cobrado de menos</text><text x="14" y="${height/2}" text-anchor="middle" transform="rotate(-90 14 ${height/2})">Cantidad de legajos</text>${grid}<line class="axis" x1="${left}" x2="${width-right}" y1="${baseY}" y2="${baseY}"></line><path class="area" d="${areaPath}"></path><path class="line" d="${linePath}"></path>${points.map(point=>`<circle class="point" cx="${point.x}" cy="${point.y}" r="4"><title>${point.label}: ${fmt(point.count)} legajos</title></circle><text x="${point.x}" y="${baseY+18}" text-anchor="middle">${point.label}</text>`).join('')}</svg><div class="scenario-chart-note">Se compara el pago individual nuevo —tabla ajustada + adicional, si corresponde— contra el pago actual. Legajos con pago actual cero o sin referencia: ${fmt(bellWithoutReference)}. Total graficado: ${fmt(bellTotal)}.</div>`;
+      chart.innerHTML=`<svg class="scenario-bell" viewBox="0 0 ${width} ${height}" role="img" aria-label="DistribuciÃ³n de legajos por porcentaje de premio individual cobrado de menos"><text x="${width/2}" y="${height-8}" text-anchor="middle">Porcentaje de premio individual cobrado de menos</text><text x="14" y="${height/2}" text-anchor="middle" transform="rotate(-90 14 ${height/2})">Cantidad de legajos</text>${grid}<line class="axis" x1="${left}" x2="${width-right}" y1="${baseY}" y2="${baseY}"></line><path class="area" d="${areaPath}"></path><path class="line" d="${linePath}"></path>${points.map(point=>`<circle class="point" cx="${point.x}" cy="${point.y}" r="4"><title>${point.label}: ${fmt(point.count)} legajos</title></circle><text x="${point.x}" y="${baseY+18}" text-anchor="middle">${point.label}</text>`).join('')}</svg><div class="scenario-chart-note">Se compara el pago individual nuevo â€”tabla ajustada + adicional, si correspondeâ€” contra el pago actual. Legajos con pago actual cero o sin referencia: ${fmt(bellWithoutReference)}. Total graficado: ${fmt(bellTotal)}.</div>`;
     }
     renderImpactBell('grafico-impacto-pago-bultos',proposalRows,'final_bultos','bultos');
     renderImpactBell('grafico-impacto-pago-horas',proposalRows,'final_horas','horas');
@@ -1863,7 +1405,7 @@
     const divisor = 6.5;
     const margin = groupMarginRatio();
     const turnos = [
-      {key:'1', label:'Turno mañana'},
+      {key:'1', label:'Turno maÃ±ana'},
       {key:'2', label:'Turno tarde'},
       {key:'3', label:'Turno noche'},
     ];
@@ -2116,10 +1658,10 @@
       {key:'nombre', label:'Nombre', w:'180px'},
       {key:'almacenes', label:'Divisiones', w:'190px'},
       {key:'jornadas', label:'Jornadas', num:true, w:'95px'},
-      {key:'premio_actual', label:'$ Método actual', money:true, w:'145px'},
+      {key:'premio_actual', label:'$ MÃ©todo actual', money:true, w:'145px'},
       {key:'premio_horas_65', label:'$ Individual /6.5', money:true, w:'155px'},
       {key:'monto_fijo_objetivo_grupal', label:'$ Premio grupal', money:true, w:'150px'},
-      {key:'total_a_cobrar', label:'$ Método nuevo', money:true, w:'150px'},
+      {key:'total_a_cobrar', label:'$ MÃ©todo nuevo', money:true, w:'150px'},
       {key:'diferencia', label:'$ Diferencia', money:true, w:'135px'},
     ];
   }
@@ -2127,10 +1669,10 @@
     return [
       {key:'fecha', label:'Fecha', mono:true, w:'105px'},
       {key:'almacen', label:'Division', w:'180px'},
-      {key:'premio_actual', label:'$ Método actual', money:true, w:'140px'},
+      {key:'premio_actual', label:'$ MÃ©todo actual', money:true, w:'140px'},
       {key:'premio_horas_65', label:'$ Individual /6.5', money:true, w:'140px'},
       {key:'monto_fijo_objetivo_grupal', label:'$ Grupal', money:true, w:'130px'},
-      {key:'total_a_cobrar', label:'$ Método nuevo', money:true, w:'150px'},
+      {key:'total_a_cobrar', label:'$ MÃ©todo nuevo', money:true, w:'150px'},
       {key:'diferencia', label:'$ Diferencia', money:true, w:'130px'},
       {key:'bultos', label:unidadProductiva(), num:true, w:'95px'},
       {key:'bultos_target', label:'Target dia', num:true, w:'115px'},
@@ -2185,9 +1727,9 @@
     const total = (rows || []).length;
     if (!total) { $('chart-grupal-legajos-impacto').innerHTML = svgEmpty(); return; }
     const items = [
-      {key:'mas', label:'Cobraría más', value:rows.filter(row => Number(row.diferencia || 0) > .01).length, color:'var(--green)', cls:''},
-      {key:'menos', label:'Cobraría menos', value:rows.filter(row => Number(row.diferencia || 0) < -.01).length, color:'var(--red)', cls:'bad'},
-      {key:'igual', label:'Cobraría igual', value:rows.filter(row => Math.abs(Number(row.diferencia || 0)) <= .01).length, color:'var(--blue)', cls:'neutral'},
+      {key:'mas', label:'CobrarÃ­a mÃ¡s', value:rows.filter(row => Number(row.diferencia || 0) > .01).length, color:'var(--green)', cls:''},
+      {key:'menos', label:'CobrarÃ­a menos', value:rows.filter(row => Number(row.diferencia || 0) < -.01).length, color:'var(--red)', cls:'bad'},
+      {key:'igual', label:'CobrarÃ­a igual', value:rows.filter(row => Math.abs(Number(row.diferencia || 0)) <= .01).length, color:'var(--blue)', cls:'neutral'},
     ];
     const cx = 150, cy = 118, r = 78;
     let angle = -Math.PI / 2;
@@ -2229,8 +1771,8 @@
     const diferencia = totalNuevo - totalActual;
     $('kpis-grupal-legajos').innerHTML = [
       kpi('Legajos', fmt(rows.length), `${state.fechaDesde} a ${state.fechaHasta}`),
-      kpi('Método actual', money(totalActual), 'Suma pagada en el período'),
-      kpi('Método nuevo', money(totalNuevo), `Diferencia ${signedMoney(diferencia)}`, diferencia > .01 ? 'warn' : diferencia < -.01 ? 'ok' : ''),
+      kpi('MÃ©todo actual', money(totalActual), 'Suma pagada en el perÃ­odo'),
+      kpi('MÃ©todo nuevo', money(totalNuevo), `Diferencia ${signedMoney(diferencia)}`, diferencia > .01 ? 'warn' : diferencia < -.01 ? 'ok' : ''),
     ].join('');
     renderGroupLegajoImpactPie(rows);
     if (!rows.some(row => row.legajo === state.groupLegajoSelected)) {
@@ -2367,7 +1909,7 @@
       if (state.activeTab === 'evaluacion-picking') {
         await loadEvaluacionPicking();
         state.hasConsulted = true;
-        setStatus('Evaluación Picking actualizada; los días completos se leen desde cache local.');
+        setStatus('EvaluaciÃ³n Picking actualizada; los dÃ­as completos se leen desde cache local.');
         return true;
       }
       if (state.activeTab === 'punto0') {
@@ -2378,15 +1920,15 @@
       if (state.activeTab === 'propuesta-autonoma') {
         await loadTab('propuesta-autonoma');
         state.hasConsulted = true;
-        setStatus('Propuesta autónoma actualizada desde cache local.');
+        setStatus('Propuesta autÃ³noma actualizada desde cache local.');
         return true;
       }
       if (state.activeTab === 'calculo-pago-grupal') {
-        // Esta solapa trabaja sobre la evaluación cacheada y no debe disparar
+        // Esta solapa trabaja sobre la evaluaciÃ³n cacheada y no debe disparar
         // la precarga general ni quedar esperando faltantes de Oracle.
         await loadCalculoPagoGrupal();
         state.hasConsulted = true;
-        setStatus('Cálculo Pago Grupal actualizado desde cache local.');
+        setStatus('CÃ¡lculo Pago Grupal actualizado desde cache local.');
         return true;
       }
       const cobertura = await api('/api/analisis-premio-productividad/cache-cobertura?' + qs({fecha_desde:state.fechaDesde, fecha_hasta:state.fechaHasta, ...combo}));
@@ -2429,7 +1971,7 @@
         estados.push(...detalleDia);
         const estadoDia = detalleDia[0]?.estado || 'cache';
         const rowsDia = detalleDia[0]?.rows || 0;
-        const opsDia = (detalleDia[0]?.operaciones || []).map(x => `${x.operacion}:${fmt(x.rows || 0)}`).join(' · ');
+        const opsDia = (detalleDia[0]?.operaciones || []).map(x => `${x.operacion}:${fmt(x.rows || 0)}`).join(' Â· ');
         setStatus(`${day} listo desde ${estadoDia === 'oracle' ? 'Oracle' : 'cache'} (${fmt(rowsDia)} registros${opsDia ? `; ${opsDia}` : ''}).`);
       }
       setStatus('Leyendo rango completo desde cache SQLite...');
@@ -2583,7 +2125,7 @@
     const bandWidth = Math.max(18, step * .58);
     const bgSegments = [];
     if (modoCompensacion) {
-      bgSegments.push({start:left, end:w - right, es_extra:false, label:'Distribución horaria'});
+      bgSegments.push({start:left, end:w - right, es_extra:false, label:'DistribuciÃ³n horaria'});
     } else points.forEach((p, idx) => {
       const start = idx === 0 ? left : (points[idx - 1].x + p.x) / 2;
       const end = idx === points.length - 1 ? w - right : (p.x + points[idx + 1].x) / 2;
@@ -2756,7 +2298,7 @@
       : '<li>Todos los candidatos priorizados tuvieron detalle horario disponible o fueron enriquecidos desde Oracle.</li>';
     const totalCandidatos = Number(data.kpis?.candidatos || 0);
     if (!totalCandidatos) {
-      setStatus(`Sin candidatos para problematica en ${state.fechaDesde} a ${state.fechaHasta} (${state.operacion} / ${state.almacen}). Probá otro rango con premios mayores al umbral.`, true);
+      setStatus(`Sin candidatos para problematica en ${state.fechaDesde} a ${state.fechaHasta} (${state.operacion} / ${state.almacen}). ProbÃ¡ otro rango con premios mayores al umbral.`, true);
     }
   }
   function finalCols(){
@@ -3053,7 +2595,7 @@
     const totalEquivalente = points.reduce((sum, p) => sum + Number(p.bultos_equilibrio ?? p.bultos ?? 0), 0);
     const residualEquivalente = objetivo > 0 ? totalEquivalente - objetivo * points.length : 0;
     const transferNote = objetivo > 0
-      ? `${fmt(totalRaw)} bultos reales + ${fmt(totalEquivalente - totalRaw)} excedentes equiv. distribuidos (${fmt((totalEquivalente - totalRaw) / Math.max(1, points.length))}/hora) = ${fmt(totalEquivalente)} equivalentes · ${fmt(totalAsignadoStandard)} reasignados · remanente ${fmt(residualEquivalente)}`
+      ? `${fmt(totalRaw)} bultos reales + ${fmt(totalEquivalente - totalRaw)} excedentes equiv. distribuidos (${fmt((totalEquivalente - totalRaw) / Math.max(1, points.length))}/hora) = ${fmt(totalEquivalente)} equivalentes Â· ${fmt(totalAsignadoStandard)} reasignados Â· remanente ${fmt(residualEquivalente)}`
       : 'No hay umbral horario para equilibrar';
     if (!chartTarget) return;
     chartTarget.innerHTML = `
@@ -3075,7 +2617,7 @@
         <line class="axis" x1="${left}" y1="${h - bottom}" x2="${w - right}" y2="${h - bottom}"></line>
         <text class="axis-label" x="${left - 8}" y="${top + 4}" text-anchor="end">${fmt(maxVal)}</text>
         <text class="axis-label" x="${left - 8}" y="${yMid + 4}" text-anchor="end">${fmt(maxVal / 2)}</text>
-        ${escalaActualHasta > escalaActualDesde ? `<rect class="hour-band" x="${left}" y="${yFor(escalaActualHasta)}" width="${plotW}" height="${Math.max(3, yFor(escalaActualDesde) - yFor(escalaActualHasta))}"><title>Escala cobrada de jornada /6,5: nivel ${escalaActualNivel || 'N/D'} · ${fmt(escalaActualDesde)} a ${fmt(escalaActualHasta)} bultos por hora</title></rect><text class="hour-band-label" x="${left + 6}" y="${Math.max(top + 14, yFor(escalaActualHasta) + 14)}">Escala cobrada /6,5 · nivel ${esc(escalaActualNivel || 'N/D')} · ${fmt(escalaActualDesde)}-${fmt(escalaActualHasta)}</text>` : ''}
+        ${escalaActualHasta > escalaActualDesde ? `<rect class="hour-band" x="${left}" y="${yFor(escalaActualHasta)}" width="${plotW}" height="${Math.max(3, yFor(escalaActualDesde) - yFor(escalaActualHasta))}"><title>Escala cobrada de jornada /6,5: nivel ${escalaActualNivel || 'N/D'} Â· ${fmt(escalaActualDesde)} a ${fmt(escalaActualHasta)} bultos por hora</title></rect><text class="hour-band-label" x="${left + 6}" y="${Math.max(top + 14, yFor(escalaActualHasta) + 14)}">Escala cobrada /6,5 Â· nivel ${esc(escalaActualNivel || 'N/D')} Â· ${fmt(escalaActualDesde)}-${fmt(escalaActualHasta)}</text>` : ''}
         ${points.map(p => {
           const total = Number(p.bultos_equilibrio ?? (p.bultos + p.equivalencia_extra));
           const yTop = yFor(total);
@@ -3136,7 +2678,7 @@
         <text class="legend-label" x="${left}" y="14">${modoCompensacion ? 'Azul: bultos + equivalencia - Naranja: reasignado durante el equilibrio - Verde: umbral horario' : 'Azul: bultos + equivalencia - Naranja: reasignado - Verde: objetivo horario'}</text>
       </svg>`;
     $('animar-detalle-extra').onclick = () => renderDetalleLegajoChart(rows || [], true, null, targetId);
-    $('exportar-detalle-gif').onclick = () => targetId === 'detalle-legajo-chart' ? exportarDetalleGif().catch(e => setStatus(e.message, true)) : setStatus('La exportación GIF está disponible desde Datos.', true);
+    $('exportar-detalle-gif').onclick = () => targetId === 'detalle-legajo-chart' ? exportarDetalleGif().catch(e => setStatus(e.message, true)) : setStatus('La exportaciÃ³n GIF estÃ¡ disponible desde Datos.', true);
     $('reset-detalle-extra').onclick = () => renderDetalleLegajoChart(rows || [], false, null, targetId);
   }
   const detalleGifSvgStyle = `
@@ -3193,7 +2735,7 @@
   }
   async function exportarDetalleGif(){
     const rows = state.detalleChartRows || [];
-    if (!rows.length) throw new Error('Abrí un detalle de legajo antes de exportar.');
+    if (!rows.length) throw new Error('AbrÃ­ un detalle de legajo antes de exportar.');
     const btn = $('exportar-detalle-gif');
     btn.disabled = true;
     btn.textContent = 'Generando...';
@@ -3255,7 +2797,7 @@
       renderDetalleLegajoChart(detalleRows);
       table('tabla-detalle-legajo', detalleLegajoCols(), detalleRows);
       const m = data.meta || {}; const k = data.kpis || {};
-      $('detalle-status').textContent = `${esc(m.fecha)} · ${esc(m.origen)} · hora ${esc(m.escenario_horario || '/6.5')} · ${fmt(k.horas)} horas · ${fmt(k.bultos)} ${unidadProductivaLower()}`;
+      $('detalle-status').textContent = `${esc(m.fecha)} Â· ${esc(m.origen)} Â· hora ${esc(m.escenario_horario || '/6.5')} Â· ${fmt(k.horas)} horas Â· ${fmt(k.bultos)} ${unidadProductivaLower()}`;
       setStatus(`Detalle ${legajo} cargado desde ${m.origen === 'oracle' ? 'Oracle y cacheado' : 'cache'}.`);
     } finally {
       setBusy(false);
@@ -3285,7 +2827,7 @@
     const visibleDetalle = Math.min(detailRows.length, 1000);
     const fecha = $('detalle-f-fecha').value;
     const legajo = $('detalle-f-legajo').value.trim();
-    const filtros = [fecha ? `fecha ${fecha}` : '', legajo ? `legajo ${legajo}` : ''].filter(Boolean).join(' · ');
+    const filtros = [fecha ? `fecha ${fecha}` : '', legajo ? `legajo ${legajo}` : ''].filter(Boolean).join(' Â· ');
     $('detalle-filter-info').textContent = filtros
       ? `Mostrando ${fmt(visibleResumen)}/${fmt(totalResumen)} resumen y ${fmt(visibleDetalle)}/${fmt(totalDetalle)} detalle - ${filtros}`
       : `Mostrando hasta ${fmt(visibleResumen)} resumen y ${fmt(visibleDetalle)}/${fmt(totalDetalle)} detalle`;
@@ -3312,8 +2854,8 @@
       <tr><th>Rango</th><td>${esc(data.fecha_desde)} a ${esc(data.fecha_hasta)}</td></tr>
       <tr><th>Operacion / Division</th><td>${esc(data.operacion || state.operacion)} / ${esc(data.almacen || state.almacen)}</td></tr>
       <tr><th>Estado</th><td><span class="pill ${coverage.dias_faltantes ? 'warn' : ''}">${coverage.dias_faltantes ? 'INCOMPLETO' : 'OK'}</span></td></tr>
-      <tr><th>Cobertura diaria</th><td>${fmt(coverage.dias_cache || 0)} / ${fmt(coverage.dias || 0)} dias cacheados${coverage.faltantes?.length ? ` · faltantes: ${esc(coverage.faltantes.join(', '))}` : ''}</td></tr>
-      <tr><th>Versiones</th><td>Dia: <span class="mono">${esc(versions.dia)}</span> · Detalle: <span class="mono">${esc(versions.detalle)}</span></td></tr>
+      <tr><th>Cobertura diaria</th><td>${fmt(coverage.dias_cache || 0)} / ${fmt(coverage.dias || 0)} dias cacheados${coverage.faltantes?.length ? ` Â· faltantes: ${esc(coverage.faltantes.join(', '))}` : ''}</td></tr>
+      <tr><th>Versiones</th><td>Dia: <span class="mono">${esc(versions.dia)}</span> Â· Detalle: <span class="mono">${esc(versions.detalle)}</span></td></tr>
       <tr><th>Base SQLite</th><td class="mono">${esc(data.db_path || '')}</td></tr>
       ${Object.entries(c).map(([k,v]) => `<tr><th>${esc(k)}</th><td class="mono">${esc(v)}</td></tr>`).join('')}
     </tbody></table>`;
@@ -3456,8 +2998,8 @@
   function renderPunto0(){
     const data = state.punto0;
     if (!data) {
-      $('kpis-punto0').innerHTML = kpi('Punto 0', 'No calculado', 'Presioná recalcular para publicar el rango.', 'warn');
-      $('tabla-punto0').innerHTML = '<tbody><tr><td>El rango todavía no tiene una corrida congelada.</td></tr></tbody>';
+      $('kpis-punto0').innerHTML = kpi('Punto 0', 'No calculado', 'PresionÃ¡ recalcular para publicar el rango.', 'warn');
+      $('tabla-punto0').innerHTML = '<tbody><tr><td>El rango todavÃ­a no tiene una corrida congelada.</td></tr></tbody>';
       return;
     }
     const m = data.meta || {};
@@ -3465,10 +3007,10 @@
       kpi('Estado', m.status || 'PUBLISHED', `${data.run_id || ''}`, 'ok'),
       kpi('Pago actual', money(m.pago_actual_total), 'referencia oficial cacheada'),
       kpi('Premio individual', money(m.premio_individual_total), 'escala sectorial vigente', 'ok'),
-      kpi('Bolsa grupal', money(m.bolsa_grupal), 'distribución por bultos y horas', 'warn'),
+      kpi('Bolsa grupal', money(m.bolsa_grupal), 'distribuciÃ³n por bultos y horas', 'warn'),
       kpi('Filas', fmt(m.rows ?? m.rows_count ?? 0), `${fmt(m.legajos ?? m.legajos_count ?? 0)} legajos`),
     ].join('');
-    $('punto0-meta').textContent = `${m.fecha_desde || state.fechaDesde} a ${m.fecha_hasta || state.fechaHasta} · snapshot ${m.snapshot_id || '-'} · validación ${Math.abs(Number(m.actual_diff || 0)) <= .05 ? 'OK' : 'REVISAR'}`;
+    $('punto0-meta').textContent = `${m.fecha_desde || state.fechaDesde} a ${m.fecha_hasta || state.fechaHasta} Â· snapshot ${m.snapshot_id || '-'} Â· validaciÃ³n ${Math.abs(Number(m.actual_diff || 0)) <= .05 ? 'OK' : 'REVISAR'}`;
     table('tabla-punto0', [
       {key:'fecha_base',label:'Fecha',mono:true}, {key:'legajo',label:'Legajo',mono:true}, {key:'sector',label:'Sector'}, {key:'turno',label:'Turno'},
       {key:'bultos_reales',label:'Bultos reales',num:true}, {key:'horas',label:'Horas',num:true}, {key:'premio_actual',label:'Pago actual',money:true},
@@ -3483,8 +3025,8 @@
       renderPunto0();
     } catch (e) {
       state.punto0 = null; renderPunto0();
-      if (!String(e.message || '').includes('todavía no fue calculado')) throw e;
-      setStatus('El Punto 0 no está calculado para este rango. Podés publicarlo con el botón de la solapa.', true);
+      if (!String(e.message || '').includes('todavÃ­a no fue calculado')) throw e;
+      setStatus('El Punto 0 no estÃ¡ calculado para este rango. PodÃ©s publicarlo con el botÃ³n de la solapa.', true);
     }
   }
   async function recalcularPunto0(){
@@ -3508,7 +3050,7 @@
     const target=$('tabla-scenario-sectores'); if(!target) return;
     const rows=state.scenarioSectors||[];
     target.innerHTML=`<thead><tr><th>Sector</th><th>Grupo productivo</th><th>Aumento premio %</th><th>Ajuste umbral %</th><th>Uso</th></tr></thead><tbody>${rows.map((row,index)=>`<tr><td class="mono">${esc(row.sector)}</td><td>${esc(row.grupo||'-')}</td><td><input class="scenario-editor-input" data-scenario-index="${index}" data-scenario-field="premio_pct" type="number" min="-100" max="300" step="5" value="${Number(row.premio_pct||0)}"></td><td><input class="scenario-editor-input" data-scenario-index="${index}" data-scenario-field="umbral_pct" type="number" min="-90" max="90" step="5" value="${Number(row.umbral_pct||0)}"></td><td>${row.premio_pct||row.umbral_pct ? '<span class="pill warn">Ajustado</span>' : '<span class="pill">Base</span>'}</td></tr>`).join('')||'<tr><td colspan="5">Cargando sectores...</td></tr>'}</tbody>`;
-    target.querySelectorAll('[data-scenario-index]').forEach(input=>input.onchange=()=>{const item=state.scenarioSectors[Number(input.dataset.scenarioIndex)]; if(item) { item[input.dataset.scenarioField]=Number(input.value||0); renderScenarioEditor(); }});
+    target.querySelectorAll('[data-scenario-index]').forEach(input=>input.oninput=()=>{const item=state.scenarioSectors[Number(input.dataset.scenarioIndex)]; if(item) item[input.dataset.scenarioField]=Number(input.value||0); renderScenarioEditor();});
   }
   function loadDefaultScenarioSectors(){
     const critical=new Set(['B1','AM','PI','N1','VA']);
@@ -3525,17 +3067,14 @@
     state.scenarioResult=result; const s=result?.scenario; if(!s){$('kpis-scenario').innerHTML=''; $('tabla-scenario-resultados').innerHTML=''; return;}
     $('kpis-scenario').innerHTML=[kpi('Actual',money(s.total_actual),'referencia congelada'),kpi('Base nueva',money(s.total_base),'sin ajuste sectorial'),kpi('Escenario',money(s.total_escenario),'resultado simulado',s.diferencia_pct>=0?'ok':'warn'),kpi('Diferencia',signedMoney2(s.diferencia),`${fmt(s.diferencia_pct)} vs actual`,s.diferencia_pct>=0?'ok':'warn'),kpi('Legajos',fmt(s.legajos),'resultado individual')].join('');
     table('tabla-scenario-resultados',[{key:'legajo',label:'Legajo',mono:true},{key:'sector',label:'Sector'},{key:'pago_actual',label:'Actual',money:true},{key:'pago_base',label:'Base nueva',money:true},{key:'pago_escenario',label:'Escenario',money:true},{key:'diferencia',label:'Diferencia',format:value=>signedMoney2(value)},{key:'diferencia_pct',label:'Dif. %',format:value=>value==null?'-':`${fmt(value)}%`}],result.rows||[],{maxRows:500});
-    renderScenarioCharts(result); $('scenario-status').textContent=`${s.nombre} · ${s.estado} · ${fmt(s.diferencia_pct)}% vs actual.`;
+    renderScenarioCharts(result); $('scenario-status').textContent=`${s.nombre} Â· ${s.estado} Â· ${fmt(s.diferencia_pct)}% vs actual.`;
     const actions=$('scenario-status').parentElement; let publish=$('scenario-publish'); if(!publish){publish=document.createElement('button'); publish.id='scenario-publish'; publish.className='secondary-cta'; publish.textContent='Publicar escenario'; actions.insertBefore(publish,actions.lastElementChild); } publish.disabled=s.estado==='PUBLICADO'; publish.onclick=async()=>{await api(`/api/analisis-premio-productividad/escenarios/${encodeURIComponent(s.scenario_id)}/publicar`,{method:'POST'}); s.estado='PUBLICADO'; renderScenarioResult(result);};
   }
   async function loadScenarioModule(){
     if(!state.tablaPremios) state.tablaPremios=await api('/api/analisis-premio-productividad/tabla-premios');
     if(!state.scenarioSectors.length) loadDefaultScenarioSectors(); else renderScenarioEditor();
-    const list=await api('/api/analisis-premio-productividad/escenarios?' + qs({fecha_desde:state.fechaDesde,fecha_hasta:state.fechaHasta}));
-    const select=$('scenario-saved-select'); if(select) select.innerHTML=(list.escenarios?.length ? list.escenarios.map(item=>`<option value="${esc(item.scenario_id)}">${esc(item.nombre)} · ${esc(item.estado)} · ${esc(item.created_at||'')}</option>`).join('') : '<option value="">Sin escenarios guardados</option>');
-    if(!state.scenarioResult) { const latest=list.escenarios?.[0]; if(latest) { state.scenarioResult=await api(`/api/analisis-premio-productividad/escenarios/${encodeURIComponent(latest.scenario_id)}`); renderScenarioResult(state.scenarioResult); } }
+    if(!state.scenarioResult) { const list=await api('/api/analisis-premio-productividad/escenarios?' + qs({fecha_desde:state.fechaDesde,fecha_hasta:state.fechaHasta})); const latest=list.escenarios?.[0]; if(latest) { state.scenarioResult=await api(`/api/analisis-premio-productividad/escenarios/${encodeURIComponent(latest.scenario_id)}`); renderScenarioResult(state.scenarioResult); } }
   }
-  async function loadSavedScenario(){ const id=$('scenario-saved-select')?.value; if(!id) return; const result=await api(`/api/analisis-premio-productividad/escenarios/${encodeURIComponent(id)}`); state.scenarioResult=result; const config=result.scenario?.config||{}; const bySector=new Map((config.sectores||[]).map(row=>[String(row.sector||'').trim(),row])); state.scenarioSectors=(state.scenarioSectors||[]).map(row=>({...row,...(bySector.get(row.sector)||{}),sector:row.sector,grupo:row.grupo||''})); $('scenario-name').value=result.scenario?.nombre||''; $('scenario-description').value=result.scenario?.descripcion||''; renderScenarioEditor(); renderScenarioResult(result); }
   async function simulateScenario(){
     if(state.scenarioLoading) return; state.scenarioLoading=true; $('scenario-simulate').disabled=true; $('scenario-status').textContent='Simulando sobre Punto 0 y cache local...';
     try { const payload={fecha_desde:$('rango-desde').value,fecha_hasta:$('rango-hasta').value,nombre:$('scenario-name').value||'Escenario sectorial',descripcion:$('scenario-description').value||'',sectores:(state.scenarioSectors||[]).filter(row=>Number(row.premio_pct||0)||Number(row.umbral_pct||0)).map(row=>({sector:row.sector,premio_pct:Number(row.premio_pct||0),umbral_pct:Number(row.umbral_pct||0)}))}; const result=await api('/api/analisis-premio-productividad/escenarios/simular',{method:'POST',body:JSON.stringify(payload)}); renderScenarioResult(result); } finally { state.scenarioLoading=false; $('scenario-simulate').disabled=false; }
@@ -3548,7 +3087,7 @@
     }
     if (tab === 'evaluacion-picking') {
       if (!state.evaluacionPicking) {
-        setStatus('Evaluación Picking lista. Presioná Consultar para cargarla manualmente.');
+        setStatus('EvaluaciÃ³n Picking lista. PresionÃ¡ Consultar para cargarla manualmente.');
       } else {
         renderEvaluacionPicking();
       }
@@ -3564,10 +3103,10 @@
     }
     if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0'].includes(tab)) {
       state.activeTab = tab;
-      setStatus('Sin consulta ejecutada. Ajustá los filtros y presioná Consultar para cargar datos.');
+      setStatus('Sin consulta ejecutada. AjustÃ¡ los filtros y presionÃ¡ Consultar para cargar datos.');
       return;
     }
-    state.activeTab = tab; setStatus(tab === 'tabla-premios' ? 'Tomando/leyendo foto local de escalas...' : tab === 'evaluacion-picking' ? 'Cargando evaluación por legajo, hora y sector...' : 'Leyendo desde SQLite/cache...');
+    state.activeTab = tab; setStatus(tab === 'tabla-premios' ? 'Tomando/leyendo foto local de escalas...' : tab === 'evaluacion-picking' ? 'Cargando evaluaciÃ³n por legajo, hora y sector...' : 'Leyendo desde SQLite/cache...');
     if (tab === 'tabla-premios') await loadTablaPremios();
     if (tab === 'evaluacion-picking') await loadEvaluacionPicking();
     if (tab === 'calculo-pago-grupal') await loadCalculoPagoGrupal();
@@ -3578,7 +3117,7 @@
     if (tab === 'detalle') await loadDetalle();
     if (tab === 'cache') await loadCache();
     if (state.activeTab !== tab) return;
-    setStatus(tab === 'tabla-premios' ? 'Tabla Premios actualizada desde la foto local.' : tab === 'evaluacion-picking' ? 'Evaluación Picking actualizada desde cache local.' : 'Datos actualizados desde cache SQLite.');
+    setStatus(tab === 'tabla-premios' ? 'Tabla Premios actualizada desde la foto local.' : tab === 'evaluacion-picking' ? 'EvaluaciÃ³n Picking actualizada desde cache local.' : 'Datos actualizados desde cache SQLite.');
   }
   function activate(tab){
     if (state.loading) return;
@@ -3589,27 +3128,27 @@
     state.activeTab = tab;
     updateGlobalFiltersForTab(tab);
     if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0'].includes(tab)) {
-      setStatus('Sin consulta ejecutada. Ajustá los filtros y presioná Consultar para cargar datos.');
+      setStatus('Sin consulta ejecutada. AjustÃ¡ los filtros y presionÃ¡ Consultar para cargar datos.');
       return;
     }
     loadTab(tab).then(()=>{if (navigationGeneration!==state.tabNavigationGeneration || state.activeTab!==tab) return;}).catch(e => { if (!isAbortError(e)) setStatus(e.message, true); });
   }
   async function init(){
     setupDateLimits();
-    document.querySelector('.tab-btn[data-tab="calculo-pago-grupal"]')?.replaceChildren(document.createTextNode('Cálculo Pago Grupal'));
+    document.querySelector('.tab-btn[data-tab="calculo-pago-grupal"]')?.replaceChildren(document.createTextNode('CÃ¡lculo Pago Grupal'));
     const me = await api('/api/auth/me'); $('user-label').textContent = me.display_name || me.username;
     const estudioMeta = await api('/api/analisis-premio-productividad/estudio/meta').catch(() => ({enabled:false}));
     state.estudioEnabled = Boolean(estudioMeta.enabled);
     document.querySelectorAll('.tab-btn[data-tab="estudio"]').forEach(btn => btn.classList.toggle('hidden', !state.estudioEnabled));
     await setupDefaultCachedDate();
     updateGlobalFiltersForTab('tabla-premios');
-    setStatus('Listo. No se ejecutó ninguna consulta automática; presioná Consultar para cargar datos.');
+    setStatus('Listo. No se ejecutÃ³ ninguna consulta automÃ¡tica; presionÃ¡ Consultar para cargar datos.');
   }
   document.querySelectorAll('.tab-btn').forEach(btn => btn.onclick = () => activate(btn.dataset.tab));
   async function onComboChange(){
     syncCombo();
     clearLoadedData();
-    setStatus('Filtros modificados. Presioná Consultar para ejecutar la carga.');
+    setStatus('Filtros modificados. PresionÃ¡ Consultar para ejecutar la carga.');
   }
   $('operacion-select').onchange = () => onComboChange().catch(e => setStatus(e.message, true));
   $('almacen-select').onchange = () => onComboChange().catch(e => setStatus(e.message, true));
@@ -3619,7 +3158,6 @@
   $('punto0-recalcular').onclick = () => recalcularPunto0().catch(e => setStatus(e.message, true));
   $('scenario-simulate').onclick = () => simulateScenario().catch(e => { $('scenario-status').textContent=e.message; setStatus(e.message, true); });
   $('scenario-load-default').onclick = () => loadDefaultScenarioSectors();
-  $('scenario-load-saved').onclick = () => loadSavedScenario().catch(e => { $('scenario-status').textContent=e.message; setStatus(e.message, true); });
   $('scenario-clear').onclick = () => { state.scenarioSectors=(state.scenarioSectors||[]).map(row=>({...row,premio_pct:0,umbral_pct:0})); renderScenarioEditor(); $('scenario-status').textContent='Ajustes limpiados. La tabla base queda sin modificaciones.'; };
   $('evaluacion-f-legajo').oninput = () => { state.evaluacionPickingLegajoFilter = $('evaluacion-f-legajo').value || ''; state.evaluacionPickingSelected = ''; state.evaluacionPickingDaySelected = ''; state.evaluacionPickingHourSelected = ''; renderEvaluacionPicking(); };
   $('evaluacion-clear-filtro-legajo').onclick = () => { state.evaluacionPickingLegajoFilter = ''; $('evaluacion-f-legajo').value = ''; state.evaluacionPickingSelected = ''; state.evaluacionPickingDaySelected = ''; state.evaluacionPickingHourSelected = ''; renderEvaluacionPicking(); };
@@ -3631,9 +3169,9 @@
     $('evaluacion-precargar').disabled = true;
     $('evaluacion-precargar').textContent = 'Precargando...';
     try {
-      setStatus('Precargando Evaluación Picking desde Oracle y guardando en SQLite...');
+      setStatus('Precargando EvaluaciÃ³n Picking desde Oracle y guardando en SQLite...');
       await api('/api/analisis-premio-productividad/precargar-evaluacion-picking?' + qs({fecha_desde:desde, fecha_hasta:hasta}), {method:'POST'});
-      setStatus('Precarga finalizada. Las próximas consultas de Evaluación Picking serán locales.');
+      setStatus('Precarga finalizada. Las prÃ³ximas consultas de EvaluaciÃ³n Picking serÃ¡n locales.');
       state.evaluacionPickingLoading = false;
       await loadEvaluacionPicking();
     } catch (e) { setStatus(e.message, true); }
@@ -3722,6 +3260,4 @@
   document.addEventListener('keydown', event => { if (event.key === 'Escape') { cerrarDetalle(); cerrarFijosGrupal(); } });
   $('logout-btn').onclick = async () => { await fetch('/api/auth/logout', {method:'POST', credentials:'same-origin'}); location.href='/login'; };
   init().catch(e => setStatus(e.message, true));
-</script>
-</body>
-</html>
+

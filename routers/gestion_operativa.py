@@ -88,7 +88,7 @@ DAILY_AUTO_SCHEDULE_GRACE_MINUTES = 10
 DAILY_AUTO_FORCE_USERS = {"acucci"}
 DAILY_AUTO_CLARK_QUERY_VERSION = "clark_raw_pallet_cuenta_v4"
 DAILY_AUTO_PICKING_QUERY_VERSION = "picking_raw_antiguedad_legajo_v6"
-DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_raw_cache_v1"
+DAILY_AUTO_RECEPCION_QUERY_VERSION = "recepcion_raw_funcion_v2"
 DAILY_AUTO_DESPACHO_RAW_QUERY_VERSION = "despacho_raw_f922traf_hojaruta_funcion_distinct_v5"
 DAILY_AUTO_DESPACHO_QUERY_VERSION = "despacho_raw_cache_funcion_distinct_v4"
 DAILY_AUTO_PLANIFICACION_QUERY_VERSION = "planificacion_unificada_v1"
@@ -1826,7 +1826,7 @@ def _build_recepcion_rows_from_productividad_raw(
     if not start or not end:
         raise ValueError("Ventana Daily invalida para calcular Recepcion desde cache crudo.")
 
-    grouped: dict[str, dict[str, set[str]]] = {}
+    grouped: dict[str, dict[str, Any]] = {}
     for row in raw_rows:
         ts = _parse_dt(row.get("FCREAREG") or row.get("fecha"))
         if not ts or ts < start or ts >= end:
@@ -1839,13 +1839,22 @@ def _build_recepcion_rows_from_productividad_raw(
         almacen = str(row.get("ALMACEN") or "").strip().upper()
         if almacen not in {"NOA", "SECOS", "REFRIGERADOS"}:
             continue
-        bucket = grouped.setdefault(almacen, {"pallets": set(), "legajos": set()})
+        bucket = grouped.setdefault(almacen, {"pallets": set(), "legajos": set(), "legajos_detalle": {}})
         pallet = str(row.get("CNUPALET") or "").strip()
         legajo = _norm_legajo(row.get("COPECREA") or row.get("LEGAJO") or row.get("legajo"))
+        funcion = str(row.get("DESC_FUNCION") or row.get("desc_funcion") or "").strip()
+        cuenta = _recepcion_cuenta_legajo(row)
         if pallet:
             bucket["pallets"].add(pallet)
-        if legajo:
+        if legajo and cuenta["cuenta_legajo"] == "SI":
             bucket["legajos"].add(legajo)
+        if legajo:
+            bucket["legajos_detalle"][legajo] = {
+                "legajo": legajo,
+                "desc_funcion": funcion,
+                "cuenta_legajo": cuenta["cuenta_legajo"],
+                "motivo_no_cuenta": cuenta["motivo_no_cuenta"],
+            }
 
     return [
         {
@@ -1853,6 +1862,7 @@ def _build_recepcion_rows_from_productividad_raw(
             "PALLETS": float(len(values["pallets"])),
             "LEGAJOS": float(len(values["legajos"])),
             "PRODUCCION": round(len(values["pallets"]) / len(values["legajos"]), 2) if values["legajos"] else 0.0,
+            "LEGAJOS_DETALLE": sorted(values["legajos_detalle"].values(), key=lambda item: item["legajo"]),
         }
         for almacen, values in grouped.items()
     ]
@@ -3830,6 +3840,10 @@ def _clark_cuenta_movimiento(row: dict[str, Any]) -> dict[str, str]:
     return {"cuenta": "NO", "motivo_no_cuenta": "Pallet vacio o cero"}
 
 
+def _recepcion_cuenta_legajo(row: dict[str, Any]) -> dict[str, str]:
+    return {"cuenta_legajo": "SI", "motivo_no_cuenta": ""}
+
+
 def _parse_wf_fec_ing(value: Any) -> datetime | None:
     text = str(value or "").strip()
     if not text:
@@ -4075,22 +4089,29 @@ async def _build_daily_raw_detail_payload(
             )
         if not aggregate_refri_picking and almacen_calc != almacen_target:
             continue
-        detail_rows.append(
-            _daily_raw_detail_row(
-                row,
-                ts=ts,
-                legajo=legajo,
-                almacen_calc=almacen_calc,
-                prev_ts=prev,
-                daily_start=(cache_start or start) if mode["process"] == "PICKING" else None,
-                cuenta_movimiento=_clark_cuenta_movimiento(row) if mode["process"] in {"CLARK", "SPC"} else None,
-            )
+        detail = _daily_raw_detail_row(
+            row,
+            ts=ts,
+            legajo=legajo,
+            almacen_calc=almacen_calc,
+            prev_ts=prev,
+            daily_start=(cache_start or start) if mode["process"] == "PICKING" else None,
+            cuenta_movimiento=_clark_cuenta_movimiento(row) if mode["process"] in {"CLARK", "SPC"} else None,
         )
+        if mode["process"] == "RECEPCION":
+            cuenta_recepcion = _recepcion_cuenta_legajo(row)
+            detail.update(
+                {
+                    "cuenta_legajo": cuenta_recepcion["cuenta_legajo"],
+                    "motivo_no_cuenta": cuenta_recepcion["motivo_no_cuenta"],
+                }
+            )
+        detail_rows.append(detail)
 
     columns = [
         {"key": "fecha", "label": "Fecha"},
         {"key": "legajo", "label": "Legajo"},
-        *([{"key": "desc_funcion", "label": "Funcion"}] if mode["process"] == "PICKING" else []),
+        *([{"key": "desc_funcion", "label": "Funcion"}] if mode["process"] in {"PICKING", "RECEPCION"} else []),
         *(
             [
                 {"key": "fec_ing", "label": "Fec ing"},
@@ -4099,6 +4120,14 @@ async def _build_daily_raw_detail_payload(
                 {"key": "motivo_no_cuenta", "label": "Motivo no cuenta"},
             ]
             if mode["process"] == "PICKING"
+            else []
+        ),
+        *(
+            [
+                {"key": "cuenta_legajo", "label": "Cuenta legajo"},
+                {"key": "motivo_no_cuenta", "label": "Motivo no cuenta"},
+            ]
+            if mode["process"] == "RECEPCION"
             else []
         ),
         {"key": "operacion", "label": "Operacion"},

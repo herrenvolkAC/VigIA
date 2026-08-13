@@ -31,7 +31,7 @@ router = APIRouter(prefix="/api/rendimiento-online", tags=["rendimiento-online"]
 BASE_DIR = Path(__file__).resolve().parent.parent
 STANDARD_PATH = BASE_DIR / "datos" / "productividad_estandar_sector.json"
 logger = logging.getLogger("vigia.rendimiento_online")
-HISTORICO_QUERY_VERSION = "rend_online_picking_legajo_sector_v2"
+HISTORICO_QUERY_VERSION = "rend_online_picking_etapas_v1"
 HISTORICO_SCHEDULE_TIME = time(6, 30)
 HISTORICO_BACKFILL_DAYS = 62
 _historico_scheduler_task: asyncio.Task | None = None
@@ -110,6 +110,68 @@ WHERE B.descripcion = 'PICKING'
 ORDER BY C.descripcion, A.nivel
 """
 
+QUERY_RENDIMIENTO_HISTORICO_ETAPAS = """
+WITH ETAPA_SOURCE AS (
+    SELECT
+        A.ID, A.ID_PV_DIA_LABORAL, A.LEGAJO, A.FYHINI, A.FYHFIN,
+        A.COD_FUNCION, A.DESC_FUNCION, A.DURACION_EN_SEGUNDOS,
+        A.PRODUCTIVA, A.DISTANCIA_EN_METROS, A.PRODUCCION_REAL,
+        A.PRODUCCION_EQUIV_POR_SECTOR, A.PRODUCCION_EQUIV_POR_TRASLADO,
+        A.PROD_EQUIVAL_POR_CONSOLIDACION, A.POSICIONES_VISITADAS,
+        A.DIVISION, A.SECTOR
+    FROM PV_ETAPA_CAB A
+    UNION ALL
+    SELECT
+        A.ID, A.ID_PV_DIA_LABORAL, A.LEGAJO, A.FYHINI, A.FYHFIN,
+        A.COD_FUNCION, A.DESC_FUNCION, A.DURACION_EN_SEGUNDOS,
+        A.PRODUCTIVA, A.DISTANCIA_EN_METROS, A.PRODUCCION_REAL,
+        A.PRODUCCION_EQUIV_POR_SECTOR, A.PRODUCCION_EQUIV_POR_TRASLADO,
+        A.PROD_EQUIVAL_POR_CONSOLIDACION, A.POSICIONES_VISITADAS,
+        A.DIVISION, A.SECTOR
+    FROM PV_ETAPA_CAB_HIST A
+),
+PICKING_FUNCIONES AS (
+    SELECT DISTINCT F.CODIGO AS COD_FUNCION
+    FROM PV_FUNCION F
+    JOIN PV_GRUPO_DE_FUNCIONES_DET GD ON GD.ID_PV_FUNCION = F.ID
+    JOIN PV_GRUPO_DE_FUNCIONES_CAB GC ON GC.ID = GD.ID_PV_GRUPO_DE_FUNCIONES_CAB
+    WHERE UPPER(TRIM(GC.DESCRIPCION)) = 'PICKING'
+       OR GD.ID_PV_GRUPO_DE_FUNCIONES_CAB = 1
+)
+SELECT
+    D.FECHA,
+    A.LEGAJO,
+    MAX(L.NOMBRE) AS NOMBRE,
+    A.DIVISION AS DIVISION_ID,
+    A.SECTOR,
+    MAX(GPC.DESCRIPCION) AS GRUPO_PRODUCTIVO,
+    MIN(A.FYHINI) AS PRIMER_MOVIMIENTO,
+    MAX(A.FYHFIN) AS ULTIMO_MOVIMIENTO,
+    COUNT(*) AS ETAPAS,
+    SUM(NVL(A.PRODUCCION_REAL, 0)) AS BULTOS,
+    SUM(NVL(A.DURACION_EN_SEGUNDOS, 0)) AS SEGUNDOS,
+    SUM(NVL(A.DISTANCIA_EN_METROS, 0)) AS METROS,
+    SUM(NVL(A.POSICIONES_VISITADAS, 0)) AS POSICIONES_VISITADAS,
+    SUM(NVL(A.PRODUCCION_EQUIV_POR_SECTOR, 0)) AS PRODUCCION_EQUIV_SECTOR,
+    SUM(NVL(A.PRODUCCION_EQUIV_POR_TRASLADO, 0)) AS PRODUCCION_EQUIV_TRASLADO,
+    SUM(NVL(A.PROD_EQUIVAL_POR_CONSOLIDACION, 0)) AS PRODUCCION_EQUIV_CONSOLIDACION
+FROM PV_DIA_LABORAL D
+JOIN ETAPA_SOURCE A ON A.ID_PV_DIA_LABORAL = D.ID
+JOIN PICKING_FUNCIONES PF ON PF.COD_FUNCION = A.COD_FUNCION
+LEFT JOIN PV_LEGAJO L ON L.LEGAJO = A.LEGAJO
+LEFT JOIN PV_GRUPO_PRODUCTIVO_DET GPD
+  ON GPD.ID_DE_DIVISION = A.DIVISION
+ AND TRIM(GPD.ID_DE_SECTOR) = TRIM(A.SECTOR)
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB GPC ON GPC.ID = GPD.ID_DE_GRUPO_PRODUCTIVO
+WHERE D.FECHA BETWEEN TO_NUMBER(TO_CHAR(TO_DATE(:fecha_desde, 'YYYY-MM-DD'), 'YYYYMMDD'))
+                  AND TO_NUMBER(TO_CHAR(TO_DATE(:fecha_hasta, 'YYYY-MM-DD'), 'YYYYMMDD'))
+  AND A.FYHINI IS NOT NULL
+  AND A.FYHFIN IS NOT NULL
+  AND A.FYHFIN > A.FYHINI
+GROUP BY D.FECHA, A.LEGAJO, A.DIVISION, A.SECTOR
+ORDER BY D.FECHA, A.LEGAJO, A.DIVISION, A.SECTOR
+"""
+
 TURNOS = {
     "manana": ("Manana", time(6, 0), time(14, 0)),
     "tarde": ("Tarde", time(14, 0), time(22, 0)),
@@ -182,8 +244,10 @@ def _normalize_division(
         return "SIN MAPEAR"
     if "VARIOS NO ALIMENTOS" in text or text == "NOA":
         return "NOA"
-    if "SECTOR SECOS" in text or text == "SECOS" or text == "SECOS + NOA":
+    if "AREA SECOS" in text or "SECTOR SECOS" in text or text == "SECOS" or text == "SECOS + NOA":
         return "SECOS"
+    if "AREA REFRIGERADOS" in text:
+        return "REFRIGERADOS"
     if (
         text.startswith("CAMARA")
         or "REFRIG" in text
@@ -195,6 +259,20 @@ def _normalize_division(
     ):
         return "REFRIGERADOS"
     return text
+
+
+def _division_from_productive_id(value: Any) -> str:
+    try:
+        division_id = int(float(value))
+    except (TypeError, ValueError):
+        return ""
+    if division_id == 1:
+        return "SECOS"
+    if division_id in {2, 4}:
+        return "REFRIGERADOS"
+    if division_id == 6:
+        return "NOA"
+    return ""
 
 
 def _parse_dt(value: Any) -> datetime | None:
@@ -657,6 +735,14 @@ def query_rendimiento_online_rows(fecha_desde: str, fecha_hasta: str) -> list[di
     )
 
 
+def query_rendimiento_historico_etapas(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_RENDIMIENTO_HISTORICO_ETAPAS,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
 def build_rendimiento_online_operations(rows: list[dict[str, Any]], cutoff: datetime) -> list[dict[str, Any]]:
     standards = _standard_map()
     return _build_operations(rows, cutoff, _division_by_sector(standards))
@@ -664,6 +750,73 @@ def build_rendimiento_online_operations(rows: list[dict[str, Any]], cutoff: date
 
 def _query_rows(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return query_rendimiento_online_rows(fecha_desde, fecha_hasta)
+
+
+def _date_from_oracle_number(value: Any) -> str:
+    text = str(value or "").strip()
+    if len(text) >= 8 and text[:8].isdigit():
+        return f"{text[:4]}-{text[4:6]}-{text[6:8]}"
+    return text
+
+
+def _historico_rows_from_etapas(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    standards = _standard_map()
+    sector_divisions = _division_by_sector(standards)
+    standard_keys = set(standards.keys())
+    result = []
+    for row in rows:
+        sector = _normalize_sector(row.get("SECTOR")) or "SIN SECTOR"
+        grupo = str(row.get("GRUPO_PRODUCTIVO") or "").strip()
+        division = _normalize_division(grupo, sector, sector_divisions)
+        if division == "SIN MAPEAR":
+            division = _division_from_productive_id(row.get("DIVISION_ID")) or division
+        legajo = _norm(row.get("LEGAJO"))
+        if not legajo:
+            continue
+        bultos = float(row.get("BULTOS") or 0)
+        if sector == "SIN SECTOR" and bultos <= 0:
+            continue
+        segundos = float(row.get("SEGUNDOS") or 0)
+        horas = segundos / 3600 if segundos > 0 else 0.0
+        expected = float(standards.get((division, sector), {}).get("productividad_x_hora") or 0)
+        actual = bultos / horas if horas > 0 else 0.0
+        estado, cumplimiento = _status(actual, expected)
+        eq_sector = float(row.get("PRODUCCION_EQUIV_SECTOR") or 0)
+        eq_traslado = float(row.get("PRODUCCION_EQUIV_TRASLADO") or 0)
+        eq_consolidacion = float(row.get("PRODUCCION_EQUIV_CONSOLIDACION") or 0)
+        en_maestro = (division, sector) in standard_keys
+        result.append({
+            "dia_logistico": _date_from_oracle_number(row.get("FECHA")),
+            "division_id": int(float(row.get("DIVISION_ID") or 0)) if row.get("DIVISION_ID") is not None else None,
+            "grupo_productivo": grupo,
+            "division": division,
+            "sector": sector,
+            "legajo": legajo,
+            "nombre": str(row.get("NOMBRE") or "").strip(),
+            "bultos": round(bultos, 2),
+            "segundos": round(segundos, 1),
+            "horas": round(horas, 4),
+            "etapas": int(row.get("ETAPAS") or 0),
+            "metros": round(float(row.get("METROS") or 0), 2),
+            "posiciones_visitadas": round(float(row.get("POSICIONES_VISITADAS") or 0), 2),
+            "produccion_equiv_sector": round(eq_sector, 2),
+            "produccion_equiv_traslado": round(eq_traslado, 2),
+            "produccion_equiv_consolidacion": round(eq_consolidacion, 2),
+            "produccion_equiv_total": round(eq_sector + eq_traslado + eq_consolidacion, 2),
+            "operaciones": int(row.get("ETAPAS") or 0),
+            "operaciones_abiertas": 0,
+            "productividad_actual": round(actual, 2),
+            "productividad_esperada": round(expected, 2),
+            "productividad_esperada_turno": round(expected * 6.5, 2),
+            "bultos_esperados": round(expected * horas, 2) if expected > 0 else 0.0,
+            "cumplimiento_pct": round(cumplimiento, 1) if cumplimiento is not None and math.isfinite(cumplimiento) else None,
+            "estado": estado,
+            "primer_movimiento": _fmt_dt(_parse_dt(row.get("PRIMER_MOVIMIENTO"))),
+            "ultimo_movimiento": _fmt_dt(_parse_dt(row.get("ULTIMO_MOVIMIENTO"))),
+            "en_maestro": en_maestro,
+            "requiere_maestro": not en_maestro,
+        })
+    return result
 
 
 def _standards_diagnostics(summary: dict[str, Any], standards: dict[tuple[str, str], dict[str, Any]]) -> dict[str, Any]:
@@ -754,24 +907,26 @@ async def _cache_closed_day(day: dict[str, Any], *, force: bool = False, trigger
         return {"dia_logistico": day["dia_logistico"], "status": "skipped"}
     started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     try:
-        rows = await asyncio.to_thread(query_rendimiento_online_rows, day["fecha_desde"], day["fecha_hasta"])
-        standards = _standard_map()
-        operations = _build_operations(rows, _parse_dt(day["fecha_hasta"]) or datetime.now(), _division_by_sector(standards))
-        summary = _summarize(operations, standards)
+        rows = await asyncio.to_thread(
+            query_rendimiento_historico_etapas,
+            day["dia_logistico"],
+            day["dia_logistico"],
+        )
+        legajos = _historico_rows_from_etapas(rows)
         saved = await save_day_cache(
             operacion=operacion,
             dia_logistico=day["dia_logistico"],
             fecha_desde=day["fecha_desde"],
             fecha_hasta=day["fecha_hasta"],
-            movimientos=len(rows),
-            operaciones=len(operations),
+            movimientos=sum(int(row.get("etapas") or 0) for row in legajos),
+            operaciones=sum(int(row.get("operaciones") or 0) for row in legajos),
             query_version=HISTORICO_QUERY_VERSION,
-            legajos=summary["legajos"],
+            legajos=legajos,
             started_at=started,
         )
         logger.info(
-            "[rendimiento-historico] Cache %s dia=%s movimientos=%s operaciones=%s trigger=%s",
-            operacion, day["dia_logistico"], len(rows), len(operations), trigger,
+            "[rendimiento-historico] Cache %s dia=%s etapas=%s filas=%s trigger=%s",
+            operacion, day["dia_logistico"], saved.get("movimientos"), len(legajos), trigger,
         )
         return saved
     except Exception as exc:
@@ -1081,6 +1236,24 @@ async def get_historico_analisis(
         operacion=op,
         fecha_desde=fecha_desde or default_from,
         fecha_hasta=fecha_hasta or default_to,
+    )
+
+
+@router.post("/historico/cache/backfill")
+async def post_historico_cache_backfill(
+    request: Request,
+    days: int = Query(HISTORICO_BACKFILL_DAYS, ge=1, le=93),
+    force: bool = Query(False),
+):
+    auth = await current_auth(request)
+    if not auth or auth.get("device_status") != "approved":
+        raise HTTPException(status_code=401, detail="No autenticado.")
+    if (auth.get("role") or "") not in PREMIOS_ALLOWED_ROLES:
+        raise HTTPException(status_code=403, detail="Requiere perfil admin o RRHH.")
+    return await run_rendimiento_historico_backfill(
+        force=force,
+        trigger=f"manual:{auth.get('username') or auth.get('display_name') or 'usuario'}",
+        days=days,
     )
 
 
