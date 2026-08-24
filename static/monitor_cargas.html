@@ -91,10 +91,13 @@
       letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);
     }
     .filters{
-      display:grid;grid-template-columns:minmax(220px,1.4fr) minmax(180px,.7fr) auto;
+      display:grid;grid-template-columns:minmax(220px,1.4fr) minmax(180px,.7fr) auto auto auto;
       gap:10px;align-items:end;margin-top:10px;padding:11px 12px;background:var(--panel);border:1px solid var(--rule);
     }
     .field{display:grid;gap:5px}
+    .auto-control,.loads-control{height:34px;display:flex;align-items:center;gap:8px;padding:0 10px;border:1px solid var(--rule);background:#FBFCFA;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+    .auto-control input[type="checkbox"],.loads-control input[type="checkbox"]{width:15px;height:15px;accent-color:var(--green)}
+    .refresh-minutes{width:50px;height:25px;border:1px solid var(--rule);background:#fff;padding:2px 5px;font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:center}
     .paper-input,.paper-select{
       width:100%;height:34px;border:1px solid var(--rule);border-radius:2px;background:#FBFCFA;
       padding:0 10px;font-size:12px;
@@ -284,6 +287,16 @@
         <option value="OTROS">Otros</option>
       </select>
     </div>
+    <label class="loads-control" for="show-all-loads" title="Desmarcado: muestra sólo cargas iniciadas con bultos efectivos">
+      <input id="show-all-loads" type="checkbox">
+      Mostrar todas las cargas
+    </label>
+    <label class="auto-control" for="auto-refresh">
+      <input id="auto-refresh" type="checkbox" checked>
+      Refresh automático
+      <input class="refresh-minutes" id="refresh-minutes" type="number" min="1" max="120" step="1" value="1" aria-label="Minutos entre refresh">
+      min
+    </label>
     <button class="refresh-btn" id="refresh-btn">Actualizar</button>
   </section>
 
@@ -322,6 +335,7 @@
 <script>
   const $ = id => document.getElementById(id);
   const state = { payload:null, loading:false, expanded:new Set(), lastLoadedAt:0 };
+  let refreshTimer = null;
   const BASE_TARGET_BULTOS = 1100;
   const BASE_CAPACITY_PALLETS = 16;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -441,7 +455,9 @@
     const trips = state.payload?.viajes || [];
     const query = $('search-input').value.trim().toLowerCase();
     const division = $('division-select').value;
+    const showAll = $('show-all-loads').checked;
     return trips.filter(trip => {
+      if (!showAll && Number(trip.bultos || 0) <= 0) return false;
       if (division && trip.division !== division) return false;
       if (!query) return true;
       return [trip.anden,trip.viaje,trip.hoja_ruta,trip.matricula,trip.camion,trip.cargador]
@@ -610,8 +626,28 @@
     return true;
   }
 
+  function refreshIntervalMs() {
+    const minutes = Math.min(120, Math.max(1, Number($('refresh-minutes').value) || 1));
+    $('refresh-minutes').value = minutes;
+    return minutes * 60 * 1000;
+  }
+
+  function scheduleAutoRefresh() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = null;
+    if ($('auto-refresh').checked) {
+      refreshTimer = setInterval(() => loadData(), refreshIntervalMs());
+    }
+  }
+
   $('search-input').addEventListener('input', renderAll);
   $('division-select').addEventListener('change', renderAll);
+  $('show-all-loads').addEventListener('change', renderAll);
+  $('auto-refresh').addEventListener('change', scheduleAutoRefresh);
+  $('refresh-minutes').addEventListener('change', scheduleAutoRefresh);
+  $('refresh-minutes').addEventListener('input', () => {
+    if ($('auto-refresh').checked) scheduleAutoRefresh();
+  });
   $('refresh-btn').addEventListener('click', () => loadData(true));
   $('logout-btn').addEventListener('click', async () => {
     sessionStorage.removeItem('vigia_session');
@@ -619,7 +655,10 @@
     location.replace('/login');
   });
   (async function init() {
-    if (await initAuth()) await loadData();
+    if (await initAuth()) {
+      await loadData();
+      scheduleAutoRefresh();
+    }
   })();
 </script>
 </body>
