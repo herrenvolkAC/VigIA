@@ -16,6 +16,8 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from db.auth import auth_db
+from db.casos import CASES_DB_PATH
+from db.checklist_tareas import release_checklist_user_assignments
 from utils.usage_log import ensure_usage_events_schema, write_usage_log
 
 router = APIRouter(prefix="/api/auth", tags=["auth-local"])
@@ -173,7 +175,7 @@ APP_MODULES = [
     {"id": "plantel_optimo", "label": "Plantel Optimo", "path": "/plantel-optimo.html"},
     {"id": "rendimiento_online", "label": "Rendimiento Online", "path": "/rendimiento-online.html"},
     {"id": "checklist_tareas", "label": "CheckList Tareas", "path": "/checklist-tareas"},
-    {"id": "recepcion", "label": "Recepcion", "path": "/recepcion.html", "available": False},
+    {"id": "recepcion", "label": "Recepcion", "path": "/recepcion.html"},
     {"id": "mapa", "label": "Mapa", "path": "", "available": False},
     {"id": "control_procesos", "label": "Monitor Cargas", "path": "/monitor-cargas"},
     {"id": "trafico", "label": "Trafico", "path": "", "available": False},
@@ -495,19 +497,18 @@ async def module_access_for_user(username: str, role: str = "user") -> dict[str,
             scopes = [row[0] for row in await cur.fetchall()]
         if scopes:
             access["novedades_cd"] = any(scope != "sin_acceso" for scope in scopes)
-        try:
-            async with db.execute(
-                """
-                SELECT activo FROM ticket_usuario_perfil
-                WHERE username = ? AND tipo_codigo = 'REPARACION_RACK'
-                """,
-                (username,),
-            ) as cur:
-                row = await cur.fetchone()
-            if row is not None:
-                access["casos"] = bool(row[0])
-        except sqlite3.OperationalError:
-            pass
+    try:
+        row = await _fetch_cases_row(
+            """
+            SELECT activo FROM ticket_usuario_perfil
+            WHERE username = ? AND tipo_codigo = 'REPARACION_RACK'
+            """,
+            (username,),
+        )
+        if row is not None:
+            access["casos"] = bool(row["activo"])
+    except sqlite3.OperationalError:
+        pass
     return access
 
 
@@ -720,6 +721,17 @@ async def _fetch_rows(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] 
         return [dict(row) for row in await cur.fetchall()]
 
 
+async def _fetch_cases_rows(sql: str, args: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        return await _fetch_rows(db, sql, args)
+
+
+async def _fetch_cases_row(sql: str, args: tuple[Any, ...] = ()) -> dict[str, Any] | None:
+    rows = await _fetch_cases_rows(sql, args)
+    return rows[0] if rows else None
+
+
 @router.get("/admin/devices")
 async def list_devices(request: Request):
     await _require_admin(request)
@@ -927,19 +939,17 @@ async def list_rrhh_sectors(request: Request):
     return {"sectors": rows}
 
 
-async def _case_profiles(db: aiosqlite.Connection) -> list[str]:
+async def _case_profiles() -> list[str]:
     try:
-        rows = []
-        async with db.execute(
+        rows = await _fetch_cases_rows(
             """
             SELECT DISTINCT perfil
             FROM ticket_permiso_perfil
             WHERE activo = 1
             ORDER BY perfil
             """
-        ) as cur:
-            rows = [row[0] for row in await cur.fetchall() if row[0]]
-        return sorted({*CASOS_FALLBACK_PROFILES, *rows})
+        )
+        return sorted({*CASOS_FALLBACK_PROFILES, *(row["perfil"] for row in rows if row.get("perfil"))})
     except sqlite3.OperationalError:
         return CASOS_FALLBACK_PROFILES
 
@@ -1009,7 +1019,6 @@ async def _set_rrhh_scope_db(db: aiosqlite.Connection, username: str, scope: str
 
 
 async def _set_cases_access_db(
-    db: aiosqlite.Connection,
     *,
     username: str,
     enabled: bool,
@@ -1017,7 +1026,8 @@ async def _set_cases_access_db(
     sector: str,
     email: str,
 ) -> None:
-    await db.execute(
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
+        await db.execute(
         """
         INSERT INTO ticket_usuario_perfil (username, tipo_codigo, perfil, sector, correo, activo, updated_at)
         VALUES (?, 'REPARACION_RACK', ?, ?, ?, ?, ?)
@@ -1028,8 +1038,9 @@ async def _set_cases_access_db(
             activo=excluded.activo,
             updated_at=excluded.updated_at
         """,
-        (username, profile, sector or None, email or None, 1 if enabled else 0, _now()),
-    )
+            (username, profile, sector or None, email or None, 1 if enabled else 0, _now()),
+        )
+        await db.commit()
 
 
 async def _grant_initial_module_access(
@@ -1052,7 +1063,6 @@ async def _grant_initial_module_access(
         )
     elif module == "casos":
         await _set_cases_access_db(
-            db,
             username=username,
             enabled=True,
             profile="OPERACION",
@@ -1122,7 +1132,7 @@ async def access_context(request: Request):
                 """,
             )
         ]
-        casos_profiles = await _case_profiles(db)
+        casos_profiles = await _case_profiles()
         access_rows = await _fetch_rows(db, "SELECT * FROM auth_user_app_access")
         rrhh_rows = await _fetch_rows(
             db,
@@ -1133,13 +1143,12 @@ async def access_context(request: Request):
             """,
         )
         try:
-            casos_rows = await _fetch_rows(
-                db,
+            casos_rows = await _fetch_cases_rows(
                 """
                 SELECT username, perfil, sector, correo, activo
                 FROM ticket_usuario_perfil
                 WHERE tipo_codigo = 'REPARACION_RACK'
-                """,
+                """
             )
         except sqlite3.OperationalError:
             casos_rows = []
@@ -1222,10 +1231,11 @@ async def access_context(request: Request):
 
 @router.post("/admin/users/access")
 async def set_user_access(req: UserAccessRequest, request: Request):
-    await _require_admin(request)
+    auth = await _require_admin(request)
     await ensure_auth_access_schema()
     username = _normalize_username(req.username)
     module = (req.module or "").strip().lower()
+    release_result = {"assignments_released": 0, "delegations_deactivated": 0}
     if module not in APP_MODULE_IDS:
         raise HTTPException(status_code=400, detail="Modulo no soportado.")
     async with auth_db(attach_operational=True) as db:
@@ -1254,13 +1264,12 @@ async def set_user_access(req: UserAccessRequest, request: Request):
             )
         elif module == "casos":
             profile = (req.profile or "OPERACION").strip().upper()
-            profiles = await _case_profiles(db)
+            profiles = await _case_profiles()
             if profile not in profiles:
                 raise HTTPException(status_code=400, detail="Perfil de casos invalido.")
             sector = _clean_text(req.sector)
             email = (req.email or "").strip()
             await _set_cases_access_db(
-                db,
                 username=username,
                 enabled=req.enabled,
                 profile=profile,
@@ -1285,6 +1294,10 @@ async def set_user_access(req: UserAccessRequest, request: Request):
             shift = _clean_text(req.shift)
             if shift not in {"", "Mañana", "Tarde", "Noche"}:
                 raise HTTPException(status_code=400, detail="Turno de CheckList Tareas invalido.")
+            if not req.enabled:
+                release_result = await release_checklist_user_assignments(
+                    username, actor_username=auth["username"]
+                )
             await _upsert_app_access(
                 db,
                 username=username,
@@ -1314,7 +1327,7 @@ async def set_user_access(req: UserAccessRequest, request: Request):
                 email=email,
             )
         await db.commit()
-    return {"ok": True}
+    return {"ok": True, **release_result}
 
 
 @router.post("/admin/db/ensure-access-schema")
@@ -1591,9 +1604,10 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
     }
 
 
-async def _set_user_active(req: UserActionRequest, request: Request, active: int) -> dict[str, bool]:
-    await _require_admin(request)
+async def _set_user_active(req: UserActionRequest, request: Request, active: int) -> dict[str, Any]:
+    auth = await _require_admin(request)
     username = _normalize_username(req.username)
+    release_result = {"assignments_released": 0, "delegations_deactivated": 0}
     if active == 0:
         async with auth_db() as db:
             db.row_factory = aiosqlite.Row
@@ -1609,6 +1623,9 @@ async def _set_user_active(req: UserActionRequest, request: Request, active: int
                     remaining_admins = (await cur.fetchone())[0]
                 if remaining_admins == 0:
                     raise HTTPException(status_code=400, detail="No se puede desactivar el ultimo admin activo.")
+            release_result = await release_checklist_user_assignments(
+                username, actor_username=auth["username"]
+            )
             await db.execute(
                 "UPDATE auth_users SET active = 0, updated_at = ? WHERE username = ?",
                 (_now(), username),
@@ -1622,7 +1639,7 @@ async def _set_user_active(req: UserActionRequest, request: Request, active: int
                 (_now(), username),
             )
             await db.commit()
-    return {"ok": True}
+    return {"ok": True, **release_result}
 
 
 @router.post("/admin/users/deactivate")

@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS rend_hist_legajo_sector (
     segundos                    REAL DEFAULT 0,
     horas                       REAL DEFAULT 0,
     etapas                      INTEGER DEFAULT 0,
+    lineas_detalle              INTEGER DEFAULT 0,
+    bultos_detalle              REAL DEFAULT 0,
     metros                      REAL DEFAULT 0,
     posiciones_visitadas        REAL DEFAULT 0,
     produccion_equiv_sector     REAL DEFAULT 0,
@@ -88,6 +90,8 @@ OPTIONAL_LEGAJO_SECTOR_COLUMNS = [
     ("division_id", "INTEGER"),
     ("grupo_productivo", "TEXT"),
     ("etapas", "INTEGER DEFAULT 0"),
+    ("lineas_detalle", "INTEGER DEFAULT 0"),
+    ("bultos_detalle", "REAL DEFAULT 0"),
     ("metros", "REAL DEFAULT 0"),
     ("posiciones_visitadas", "REAL DEFAULT 0"),
     ("produccion_equiv_sector", "REAL DEFAULT 0"),
@@ -178,13 +182,14 @@ async def save_day_cache(
             """
             INSERT INTO rend_hist_legajo_sector (
                 run_id, operacion, dia_logistico, division_id, grupo_productivo, division, sector, legajo, nombre,
-                bultos, segundos, horas, etapas, metros, posiciones_visitadas,
+                bultos, segundos, horas, etapas, lineas_detalle, bultos_detalle,
+                metros, posiciones_visitadas,
                 produccion_equiv_sector, produccion_equiv_traslado, produccion_equiv_consolidacion,
                 produccion_equiv_total, operaciones, operaciones_abiertas,
                 productividad_actual, productividad_esperada, productividad_esperada_turno,
                 bultos_esperados, cumplimiento_pct, estado, primer_movimiento, ultimo_movimiento,
                 en_maestro, requiere_maestro
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -192,6 +197,7 @@ async def save_day_cache(
                     row.get("division"), row.get("sector"),
                     row.get("legajo"), row.get("nombre"), row.get("bultos"), row.get("segundos"),
                     row.get("horas"), row.get("etapas") or row.get("operaciones") or 0,
+                    row.get("lineas_detalle") or 0, row.get("bultos_detalle") or 0,
                     row.get("metros") or 0, row.get("posiciones_visitadas") or 0,
                     row.get("produccion_equiv_sector") or 0, row.get("produccion_equiv_traslado") or 0,
                     row.get("produccion_equiv_consolidacion") or 0, row.get("produccion_equiv_total") or 0,
@@ -336,6 +342,8 @@ async def get_analysis(
             "bultos": 0.0,
             "segundos": 0.0,
             "etapas": 0,
+            "lineas_detalle": 0,
+            "bultos_detalle": 0.0,
             "metros": 0.0,
             "posiciones_visitadas": 0.0,
             "produccion_equiv_sector": 0.0,
@@ -355,6 +363,8 @@ async def get_analysis(
         leg["bultos"] += float(row.get("bultos") or 0)
         leg["segundos"] += float(row.get("segundos") or 0)
         leg["etapas"] += int(row.get("etapas") or 0)
+        leg["lineas_detalle"] += int(row.get("lineas_detalle") or 0)
+        leg["bultos_detalle"] += float(row.get("bultos_detalle") or 0)
         leg["metros"] += float(row.get("metros") or 0)
         leg["posiciones_visitadas"] += float(row.get("posiciones_visitadas") or 0)
         leg["produccion_equiv_sector"] += float(row.get("produccion_equiv_sector") or 0)
@@ -390,6 +400,8 @@ async def get_analysis(
             "bultos": 0.0,
             "segundos": 0.0,
             "etapas": 0,
+            "lineas_detalle": 0,
+            "bultos_detalle": 0.0,
             "metros": 0.0,
             "posiciones_visitadas": 0.0,
             "produccion_equiv_sector": 0.0,
@@ -404,6 +416,8 @@ async def get_analysis(
         det["bultos"] += float(row.get("bultos") or 0)
         det["segundos"] += float(row.get("segundos") or 0)
         det["etapas"] += int(row.get("etapas") or 0)
+        det["lineas_detalle"] += int(row.get("lineas_detalle") or 0)
+        det["bultos_detalle"] += float(row.get("bultos_detalle") or 0)
         det["metros"] += float(row.get("metros") or 0)
         det["posiciones_visitadas"] += float(row.get("posiciones_visitadas") or 0)
         det["produccion_equiv_sector"] += float(row.get("produccion_equiv_sector") or 0)
@@ -432,6 +446,8 @@ async def get_analysis(
         out["segundos"] = round(item["segundos"], 1)
         out["bultos_esperados"] = round(item["bultos_esperados"], 2)
         out["etapas"] = int(item.get("etapas") or item.get("operaciones") or 0)
+        out["lineas_detalle"] = int(item.get("lineas_detalle") or 0)
+        out["bultos_detalle"] = round(float(item.get("bultos_detalle") or 0), 2)
         out["metros"] = round(float(item.get("metros") or 0), 2)
         out["posiciones_visitadas"] = round(float(item.get("posiciones_visitadas") or 0), 2)
         out["produccion_equiv_sector"] = round(float(item.get("produccion_equiv_sector") or 0), 2)
@@ -439,6 +455,7 @@ async def get_analysis(
         out["produccion_equiv_consolidacion"] = round(float(item.get("produccion_equiv_consolidacion") or 0), 2)
         out["produccion_equiv_total"] = round(float(item.get("produccion_equiv_total") or 0), 2)
         out["metros_por_bulto"] = round(out["metros"] / out["bultos"], 3) if out["bultos"] else 0.0
+        out["bultos_por_linea"] = round(out["bultos_detalle"] / out["lineas_detalle"], 3) if out["lineas_detalle"] else 0.0
         out["bultos_por_etapa"] = round(out["bultos"] / out["etapas"], 3) if out["etapas"] else 0.0
         out["metros_por_etapa"] = round(out["metros"] / out["etapas"], 3) if out["etapas"] else 0.0
         out["minutos_por_etapa"] = round((item["segundos"] / 60) / out["etapas"], 3) if out["etapas"] else 0.0
@@ -461,6 +478,8 @@ async def get_analysis(
         "dias": len({row.get("dia_logistico") for row in enriched}),
         "metros": round(sum(float(row.get("metros") or 0) for row in enriched), 2),
         "etapas": sum(int(row.get("etapas") or 0) for row in enriched),
+        "lineas_detalle": sum(int(row.get("lineas_detalle") or 0) for row in enriched),
+        "bultos_detalle": round(sum(float(row.get("bultos_detalle") or 0) for row in enriched), 2),
         "posiciones_visitadas": round(sum(float(row.get("posiciones_visitadas") or 0) for row in enriched), 2),
     }
     resumen["productividad_actual"] = round(resumen["bultos"] / resumen["horas"], 2) if resumen["horas"] else 0.0

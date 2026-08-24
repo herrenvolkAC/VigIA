@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS checklist_assignment (
     legacy_id INTEGER,
     task_id INTEGER NOT NULL REFERENCES checklist_task(task_id),
     sector_id INTEGER NOT NULL REFERENCES checklist_sector(sector_id),
-    username TEXT NOT NULL,
+    username TEXT,
     shift TEXT,
     duration_minutes INTEGER,
     allow_delay INTEGER NOT NULL DEFAULT 0,
@@ -152,6 +152,190 @@ def now_iso() -> str:
 
 def date_today() -> str:
     return date.today().isoformat()
+
+
+async def _allow_unassigned_assignments(db: aiosqlite.Connection) -> None:
+    """Migra instalaciones existentes para admitir asignaciones sin responsable."""
+    async with db.execute("PRAGMA table_info(checklist_assignment)") as cur:
+        columns = {row[1]: row for row in await cur.fetchall()}
+    username_column = columns.get("username")
+    if not username_column or not int(username_column[3]):
+        return
+
+    await db.commit()
+    await db.execute("PRAGMA foreign_keys = OFF")
+    try:
+        await db.executescript(
+            """
+            BEGIN IMMEDIATE;
+            CREATE TABLE checklist_assignment_new (
+                assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seed_key TEXT UNIQUE,
+                legacy_id INTEGER,
+                task_id INTEGER NOT NULL REFERENCES checklist_task(task_id),
+                sector_id INTEGER NOT NULL REFERENCES checklist_sector(sector_id),
+                username TEXT,
+                shift TEXT,
+                duration_minutes INTEGER,
+                allow_delay INTEGER NOT NULL DEFAULT 0,
+                instructions_override TEXT,
+                starts_on TEXT,
+                active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            INSERT INTO checklist_assignment_new
+                (assignment_id, seed_key, legacy_id, task_id, sector_id, username, shift,
+                 duration_minutes, allow_delay, instructions_override, starts_on, active,
+                 created_at, updated_at)
+            SELECT assignment_id, seed_key, legacy_id, task_id, sector_id, username, shift,
+                   duration_minutes, allow_delay, instructions_override, starts_on, active,
+                   created_at, updated_at
+            FROM checklist_assignment;
+            DROP TABLE checklist_assignment;
+            ALTER TABLE checklist_assignment_new RENAME TO checklist_assignment;
+            CREATE INDEX idx_checklist_assignment_sector_active
+                ON checklist_assignment(sector_id, active, username);
+            COMMIT;
+            """
+        )
+    finally:
+        await db.execute("PRAGMA foreign_keys = ON")
+    async with db.execute("PRAGMA foreign_key_check") as cur:
+        violations = await cur.fetchall()
+    if violations:
+        raise RuntimeError(
+            f"La migracion de responsables de CheckList dejo referencias invalidas: {violations}"
+        )
+
+
+async def release_checklist_user_assignments(
+    username: str, *, actor_username: str
+) -> dict[str, Any]:
+    """Deja vacantes las asignaciones activas y cierra delegaciones del usuario."""
+    value = str(username or "").strip().lower()
+    actor = str(actor_username or "system").strip().lower() or "system"
+    timestamp = now_iso()
+    previous_shift: str | None = None
+    async with auth_db() as auth_connection:
+        async with auth_connection.execute(
+            """
+            SELECT metadata_json FROM auth_user_app_access
+            WHERE username = ? AND module = 'checklist_tareas'
+            """,
+            (value,),
+        ) as cur:
+            access_row = await cur.fetchone()
+        if access_row:
+            try:
+                metadata = json.loads(access_row[0] or "{}")
+            except json.JSONDecodeError:
+                metadata = {}
+            if metadata.get("shift") in {"Mañana", "Tarde", "Noche"}:
+                previous_shift = metadata["shift"]
+    async with checklist_db() as db:
+        async with db.execute(
+            """
+            SELECT assignment_id, task_id, sector_id, username, active
+            FROM checklist_assignment
+            WHERE username = ? AND active = 1
+            ORDER BY assignment_id
+            """,
+            (value,),
+        ) as cur:
+            assignments = [dict(row) for row in await cur.fetchall()]
+        assignment_ids = [int(row["assignment_id"]) for row in assignments]
+
+        if assignment_ids:
+            placeholders = ",".join("?" for _ in assignment_ids)
+            await db.execute(
+                f"""
+                UPDATE checklist_occurrence
+                SET responsible_username = COALESCE(responsible_username, ?),
+                    shift = COALESCE(shift, ?)
+                WHERE assignment_id IN ({placeholders})
+                  AND status IN ('completed', 'not_applicable')
+                """,
+                (value, previous_shift, *assignment_ids),
+            )
+            await db.execute(
+                f"""
+                UPDATE checklist_occurrence
+                SET responsible_username = NULL, shift = NULL,
+                    updated_by = ?, updated_at = ?, version = version + 1
+                WHERE assignment_id IN ({placeholders}) AND status = 'pending'
+                """,
+                (actor, timestamp, *assignment_ids),
+            )
+            await db.execute(
+                f"""
+                UPDATE checklist_assignment
+                SET username = NULL, updated_at = ?
+                WHERE assignment_id IN ({placeholders})
+                """,
+                (timestamp, *assignment_ids),
+            )
+
+        async with db.execute(
+            """
+            SELECT * FROM checklist_delegation
+            WHERE active = 1 AND (from_username = ? OR to_username = ?)
+            ORDER BY delegation_id
+            """,
+            (value, value),
+        ) as cur:
+            delegations = [dict(row) for row in await cur.fetchall()]
+        delegation_ids = [int(row["delegation_id"]) for row in delegations]
+        if delegation_ids:
+            placeholders = ",".join("?" for _ in delegation_ids)
+            await db.execute(
+                f"""
+                UPDATE checklist_delegation
+                SET active = 0, updated_by = ?, updated_at = ?
+                WHERE delegation_id IN ({placeholders})
+                """,
+                (actor, timestamp, *delegation_ids),
+            )
+
+        sector_ids = sorted(
+            {
+                int(row["sector_id"])
+                for row in [*assignments, *delegations]
+                if row.get("sector_id") is not None
+            }
+        )
+        if assignments or delegations:
+            await db.execute(
+                """
+                INSERT INTO checklist_audit
+                    (sector_id, actor_username, action, entity_type, entity_id,
+                     before_json, after_json, created_at)
+                VALUES (?, ?, 'release_user', 'user_assignments', ?, ?, ?, ?)
+                """,
+                (
+                    sector_ids[0] if len(sector_ids) == 1 else None,
+                    actor,
+                    value,
+                    json.dumps(
+                        {"assignments": assignments, "delegations": delegations},
+                        ensure_ascii=False,
+                    ),
+                    json.dumps(
+                        {
+                            "username": None,
+                            "assignment_ids": assignment_ids,
+                            "delegation_ids_deactivated": delegation_ids,
+                        },
+                        ensure_ascii=False,
+                    ),
+                    timestamp,
+                ),
+            )
+        await db.commit()
+    return {
+        "assignments_released": len(assignment_ids),
+        "delegations_deactivated": len(delegation_ids),
+    }
 
 
 def _load_seed() -> dict[str, Any] | None:
@@ -386,6 +570,7 @@ async def init_checklist_tareas_db(*, force_seed: bool = False) -> dict[str, Any
         await db.execute("PRAGMA journal_mode = WAL")
         await db.execute("PRAGMA foreign_keys = ON")
         await db.executescript(SCHEMA)
+        await _allow_unassigned_assignments(db)
         async with db.execute("PRAGMA table_info(checklist_assignment)") as cur:
             assignment_columns = {row[1] for row in await cur.fetchall()}
         if "starts_on" not in assignment_columns:

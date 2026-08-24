@@ -1,0 +1,2689 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/ofy9wn61",
+    "id": "ofy9wn61",
+    "slide": 3,
+    "layoutId": "/ppt/slideLayouts/slideLayout1.xml",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#FFFFFF",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "fontScheme": {
+      "name": "Office",
+      "majorFont": {
+        "latinTypeface": "Calibri Light",
+        "eastAsianTypeface": "Calibri Light",
+        "complexScriptTypeface": "Calibri Light"
+      },
+      "minorFont": {
+        "latinTypeface": "Calibri",
+        "eastAsianTypeface": "Calibri",
+        "complexScriptTypeface": "Calibri"
+      }
+    },
+    "typefaces": [
+      "Aptos",
+      "Calibri",
+      "Calibri Light"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "/ppt/slideLayouts/slideLayout1.xml",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "/ppt/slideMasters/slideMaster1.xml",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ja54na9g",
+      "id": "18",
+      "name": "kicker",
+      "bbox": [
+        64,
+        28,
+        500,
+        20
+      ],
+      "geometry": "rect",
+      "text": "CONDICIÓN DE IMPLEMENTACIÓN",
+      "textPreview": "CONDICIÓN DE IMPLEMENTACIÓN",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "CONDICIÓN DE IMPLEMENTACIÓN"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "CONDICIÓN DE IMPLEMENTACIÓN",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "CONDICIÓN DE IMPLEMENTACIÓN",
+              "fontSize": 10,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cza94vmx",
+      "id": "2",
+      "name": "title",
+      "bbox": [
+        64,
+        52,
+        1120,
+        44
+      ],
+      "geometry": "rect",
+      "text": "El premio grupal requiere alinear nómina y actividad real",
+      "textPreview": "El premio grupal requiere alinear nómina y actividad real",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El premio grupal requiere alinear nómina y actividad real"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El premio grupal requiere alinear nómina y actividad real",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El premio grupal requiere alinear nómina y actividad real",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/d0jax03i",
+      "id": "3",
+      "name": "accent-rule",
+      "bbox": [
+        54,
+        94,
+        104,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#047857",
+      "lineColor": "#047857",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/298ryl4v",
+      "id": "4",
+      "name": "content-panel",
+      "bbox": [
+        64,
+        130,
+        1172,
+        556
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/3ah8rqlg",
+      "id": "5",
+      "name": "s-title-0",
+      "bbox": [
+        104,
+        165,
+        420,
+        24
+      ],
+      "geometry": "rect",
+      "text": "NÓMINA TEÓRICA",
+      "textPreview": "NÓMINA TEÓRICA",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "NÓMINA TEÓRICA"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "NÓMINA TEÓRICA",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "NÓMINA TEÓRICA",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/obq90bml",
+      "id": "6",
+      "name": "s-formula-0",
+      "bbox": [
+        104,
+        197,
+        430,
+        28
+      ],
+      "geometry": "rect",
+      "text": "≈143 legajos / día",
+      "textPreview": "≈143 legajos / día",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "≈143 legajos / día"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "≈143 legajos / día",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "≈143 legajos / día",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/pcjqtg36",
+      "id": "7",
+      "name": "s-body-0",
+      "bbox": [
+        560,
+        193,
+        590,
+        55
+      ],
+      "geometry": "rect",
+      "text": "Promedio de legajos-jornada asignados a Picking en julio. Esta nómina alimenta el denominador del objetivo grupal.",
+      "textPreview": "Promedio de legajos-jornada asignados a Picking en julio. Esta nómina alimenta el denominador del objetivo grupal.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Promedio de legajos-jornada asignados a Picking en julio. Esta nómina alimenta el denominador del objetivo"
+          },
+          {
+            "index": 2,
+            "text": "grupal."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Promedio de legajos-jornada asignados a Picking en julio. Esta nómina alimenta el denominador del objetivo grupal.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Promedio de legajos-jornada asignados a Picking en julio. Esta nómina alimenta el denominador del objetivo grupal.",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/m5cra54z",
+      "id": "8",
+      "name": "s-title-1",
+      "bbox": [
+        104,
+        261,
+        420,
+        24
+      ],
+      "geometry": "rect",
+      "text": "ACTIVIDAD REAL",
+      "textPreview": "ACTIVIDAD REAL",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "ACTIVIDAD REAL"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "ACTIVIDAD REAL",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "ACTIVIDAD REAL",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/n6ls3alk",
+      "id": "9",
+      "name": "s-formula-1",
+      "bbox": [
+        104,
+        293,
+        430,
+        28
+      ],
+      "geometry": "rect",
+      "text": "5–6 legajos / día sin bultos",
+      "textPreview": "5–6 legajos / día sin bultos",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "5–6 legajos / día sin bultos"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "5–6 legajos / día sin bultos",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "5–6 legajos / día sin bultos",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/n2l4fq98",
+      "id": "10",
+      "name": "s-body-1",
+      "bbox": [
+        560,
+        289,
+        590,
+        55
+      ],
+      "geometry": "rect",
+      "text": "3,6% de las jornadas-legajo no registra bultos de Picking y sí registra otra actividad productiva medida.",
+      "textPreview": "3,6% de las jornadas-legajo no registra bultos de Picking y sí registra otra actividad productiva medida.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "3,6% de las jornadas-legajo no registra bultos de Picking y sí registra otra actividad productiva medida."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "3,6% de las jornadas-legajo no registra bultos de Picking y sí registra otra actividad productiva medida.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "3,6% de las jornadas-legajo no registra bultos de Picking y sí registra otra actividad productiva medida.",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/m1c3mlsn",
+      "id": "11",
+      "name": "s-title-2",
+      "bbox": [
+        104,
+        357,
+        420,
+        24
+      ],
+      "geometry": "rect",
+      "text": "EFECTO SOBRE EL GRUPO",
+      "textPreview": "EFECTO SOBRE EL GRUPO",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "EFECTO SOBRE EL GRUPO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "EFECTO SOBRE EL GRUPO",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "EFECTO SOBRE EL GRUPO",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/943mhgre",
+      "id": "12",
+      "name": "s-formula-2",
+      "bbox": [
+        104,
+        389,
+        430,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Denominador alto\nNumerador incompleto",
+      "textPreview": "Denominador alto | Numerador incompleto",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Denominador alto"
+          },
+          {
+            "index": 2,
+            "text": "Numerador incompleto"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Denominador alto",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Denominador alto",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "Numerador incompleto",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Numerador incompleto",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/83ulovat",
+      "id": "13",
+      "name": "s-body-2",
+      "bbox": [
+        560,
+        385,
+        590,
+        55
+      ],
+      "geometry": "rect",
+      "text": "La persona permanece en la nómina de Picking, pero no suma bultos allí. El cumplimiento grupal queda subestimado y el premio no se activa.",
+      "textPreview": "La persona permanece en la nómina de Picking, pero no suma bultos allí. El cumplimiento grupal queda subestimado y el premio no se activa.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "La persona permanece en la nómina de Picking, pero no suma bultos allí. El cumplimiento grupal queda"
+          },
+          {
+            "index": 2,
+            "text": "subestimado y el premio no se activa."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "La persona permanece en la nómina de Picking, pero no suma bultos allí. El cumplimiento grupal queda subestimado y el premio no se activa.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La persona permanece en la nómina de Picking, pero no suma bultos allí. El cumplimiento grupal queda subestimado y el premio no se activa.",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/v6l4jq94",
+      "id": "14",
+      "name": "simple-box",
+      "bbox": [
+        104,
+        476,
+        1040,
+        42
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#F8FAFC",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/a5c3ql8z",
+      "id": "15",
+      "name": "simple",
+      "bbox": [
+        124,
+        488,
+        1000,
+        20
+      ],
+      "geometry": "rect",
+      "text": "Conclusión: el premio grupal es viable cuando la nómina activa refleje la tarea efectivamente realizada por cada legajo.",
+      "textPreview": "Conclusión: el premio grupal es viable cuando la nómina activa refleje la tarea efectivamente realizada por cada legajo.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Conclusión: el premio grupal es viable cuando la nómina activa refleje la tarea efectivamente realizada por cada legajo."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Conclusión: el premio grupal es viable cuando la nómina activa refleje la tarea efectivamente realizada por cada legajo.",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Conclusión: el premio grupal es viable cuando la nómina activa refleje la tarea efectivamente realizada por cada legajo.",
+              "fontSize": 12,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/x8nml0ra",
+      "id": "16",
+      "name": "refs-title",
+      "bbox": [
+        104,
+        560,
+        220,
+        22
+      ],
+      "geometry": "rect",
+      "text": "EVIDENCIA DEL CACHÉ",
+      "textPreview": "EVIDENCIA DEL CACHÉ",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "EVIDENCIA DEL CACHÉ"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "EVIDENCIA DEL CACHÉ",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "EVIDENCIA DEL CACHÉ",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/w7ulsvqp",
+      "id": "17",
+      "name": "refs",
+      "bbox": [
+        104,
+        588,
+        1040,
+        56
+      ],
+      "geometry": "rect",
+      "text": "Julio 2026 · 4.433 jornadas-legajo Picking · 170 sin productividad Picking · 160 con otra operación medida · 94,1% de los casos sin Picking tiene otra actividad",
+      "textPreview": "Julio 2026 · 4.433 jornadas-legajo Picking · 170 sin productividad Picking · 160 con otra operación medida · 94,1% de los casos sin Picki...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Julio 2026 · 4.433 jornadas-legajo Picking · 170 sin productividad Picking · 160 con otra operación medida · 94,1% de los casos sin Picking tiene otra actividad"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Julio 2026 · 4.433 jornadas-legajo Picking · 170 sin productividad Picking · 160 con otra operación medida · 94,1% de los casos sin Picking tiene otra actividad",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Julio 2026 · 4.433 jornadas-legajo Picking · 170 sin productividad Picking · 160 con otra operación medida · 94,1% de los casos sin Picking tiene otra actividad",
+              "fontSize": 12,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/i9w3u58v",
+      "id": "19",
+      "name": "visual-cover",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "geometry": "rect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#FFFFFF",
+      "lineWidth": 0
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/e10f2twf",
+      "id": "20",
+      "name": "kicker",
+      "bbox": [
+        64,
+        36,
+        520,
+        18
+      ],
+      "geometry": "rect",
+      "text": "PREMIO GRUPAL",
+      "textPreview": "PREMIO GRUPAL",
+      "resolvedFontSize": 11,
+      "resolvedTextStyle": {
+        "fontSize": 11,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "PREMIO GRUPAL"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "PREMIO GRUPAL",
+          "resolvedTextStyle": {
+            "fontSize": 11,
+            "color": "#00A37A",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "PREMIO GRUPAL",
+              "fontSize": 11,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/f29gbyx0",
+      "id": "21",
+      "name": "title",
+      "bbox": [
+        64,
+        62,
+        1080,
+        50
+      ],
+      "geometry": "rect",
+      "text": "El premio se pierde por dos causas distintas",
+      "textPreview": "El premio se pierde por dos causas distintas",
+      "resolvedFontSize": 31,
+      "resolvedTextStyle": {
+        "fontSize": 31,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El premio se pierde por dos causas distintas"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El premio se pierde por dos causas distintas",
+          "resolvedTextStyle": {
+            "fontSize": 31,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El premio se pierde por dos causas distintas",
+              "fontSize": 31,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 21,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/03ix43e5",
+      "id": "22",
+      "bbox": [
+        64,
+        120,
+        92,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 22,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/14ryd8fq",
+      "id": "23",
+      "name": "subtitle",
+      "bbox": [
+        64,
+        142,
+        1100,
+        30
+      ],
+      "geometry": "rect",
+      "text": "La nómina teórica no coincide con la actividad que alcanza premio",
+      "textPreview": "La nómina teórica no coincide con la actividad que alcanza premio",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "La nómina teórica no coincide con la actividad que alcanza premio"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "La nómina teórica no coincide con la actividad que alcanza premio",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La nómina teórica no coincide con la actividad que alcanza premio",
+              "fontSize": 15,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 23,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/6d0fytg3",
+      "id": "24",
+      "bbox": [
+        64,
+        220,
+        340,
+        270
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#F4F7FA",
+      "lineColor": "#F4F7FA",
+      "lineWidth": 1
+    },
+    {
+      "order": 24,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/re9g7yxo",
+      "id": "25",
+      "bbox": [
+        88,
+        244,
+        34,
+        34
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 25,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/sfix03y9",
+      "id": "26",
+      "bbox": [
+        88,
+        251,
+        34,
+        20
+      ],
+      "geometry": "rect",
+      "text": "1",
+      "textPreview": "1",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "center",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "1"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "1",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "1",
+              "fontSize": 15,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 26,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/tgry9ofu",
+      "id": "27",
+      "bbox": [
+        88,
+        298,
+        292,
+        22
+      ],
+      "geometry": "rect",
+      "text": "NÓMINA TEÓRICA",
+      "textPreview": "NÓMINA TEÓRICA",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "NÓMINA TEÓRICA"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "NÓMINA TEÓRICA",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#52657E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "NÓMINA TEÓRICA",
+              "fontSize": 13,
+              "color": "#52657E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 27,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/a9kfadwn",
+      "id": "28",
+      "bbox": [
+        88,
+        328,
+        292,
+        45
+      ],
+      "geometry": "rect",
+      "text": "≈143 / día",
+      "textPreview": "≈143 / día",
+      "resolvedFontSize": 27,
+      "resolvedTextStyle": {
+        "fontSize": 27,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "≈143 / día"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "≈143 / día",
+          "resolvedTextStyle": {
+            "fontSize": 27,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "≈143 / día",
+              "fontSize": 27,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 28,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/batgjixs",
+      "id": "29",
+      "bbox": [
+        88,
+        384,
+        292,
+        72
+      ],
+      "geometry": "rect",
+      "text": "Legajos asignados a Picking\nque alimentan el denominador\ndel objetivo grupal.",
+      "textPreview": "Legajos asignados a Picking | que alimentan el denominador | del objetivo grupal.",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 3,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Legajos asignados a Picking"
+          },
+          {
+            "index": 2,
+            "text": "que alimentan el denominador"
+          },
+          {
+            "index": 3,
+            "text": "del objetivo grupal."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Legajos asignados a Picking",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Legajos asignados a Picking",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "que alimentan el denominador",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "que alimentan el denominador",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "del objetivo grupal.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "del objetivo grupal.",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 29,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/l4fi9cza",
+      "id": "30",
+      "bbox": [
+        470,
+        220,
+        340,
+        270
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#F4F7FA",
+      "lineColor": "#F4F7FA",
+      "lineWidth": 1
+    },
+    {
+      "order": 30,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/k3m1g7yp",
+      "id": "31",
+      "bbox": [
+        494,
+        244,
+        34,
+        34
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 31,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/z2d07mh4",
+      "id": "32",
+      "bbox": [
+        494,
+        251,
+        34,
+        20
+      ],
+      "geometry": "rect",
+      "text": "2",
+      "textPreview": "2",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "center",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "2"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "2",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "2",
+              "fontSize": 15,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 32,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/y14jehgj",
+      "id": "33",
+      "bbox": [
+        494,
+        298,
+        292,
+        22
+      ],
+      "geometry": "rect",
+      "text": "SIN BULTOS EFECTIVOS",
+      "textPreview": "SIN BULTOS EFECTIVOS",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "SIN BULTOS EFECTIVOS"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "SIN BULTOS EFECTIVOS",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#52657E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "SIN BULTOS EFECTIVOS",
+              "fontSize": 13,
+              "color": "#52657E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 33,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/x0vi5czy",
+      "id": "34",
+      "bbox": [
+        494,
+        328,
+        292,
+        45
+      ],
+      "geometry": "rect",
+      "text": "5–6 / día",
+      "textPreview": "5–6 / día",
+      "resolvedFontSize": 27,
+      "resolvedTextStyle": {
+        "fontSize": 27,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "5–6 / día"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "5–6 / día",
+          "resolvedTextStyle": {
+            "fontSize": 27,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "5–6 / día",
+              "fontSize": 27,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 34,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/czmhc7id",
+      "id": "35",
+      "bbox": [
+        494,
+        384,
+        292,
+        72
+      ],
+      "geometry": "rect",
+      "text": "179 jornadas-legajo · 4,0%\nNo aportan bultos de Picking\nal numerador.",
+      "textPreview": "179 jornadas-legajo · 4,0% | No aportan bultos de Picking | al numerador.",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 3,
+        "lines": [
+          {
+            "index": 1,
+            "text": "179 jornadas-legajo · 4,0%"
+          },
+          {
+            "index": 2,
+            "text": "No aportan bultos de Picking"
+          },
+          {
+            "index": 3,
+            "text": "al numerador."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "179 jornadas-legajo · 4,0%",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "179 jornadas-legajo · 4,0%",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "No aportan bultos de Picking",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "No aportan bultos de Picking",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "al numerador.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "al numerador.",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 35,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/byd032h8",
+      "id": "36",
+      "bbox": [
+        876,
+        220,
+        340,
+        270
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFF0D5",
+      "lineColor": "#FFF0D5",
+      "lineWidth": 1
+    },
+    {
+      "order": 36,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ax4zax0n",
+      "id": "37",
+      "bbox": [
+        900,
+        244,
+        34,
+        34
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 37,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hwzihwzi",
+      "id": "38",
+      "bbox": [
+        900,
+        251,
+        34,
+        20
+      ],
+      "geometry": "rect",
+      "text": "3",
+      "textPreview": "3",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "center",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "3"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "3",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "3",
+              "fontSize": 15,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 38,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wv61obyx",
+      "id": "39",
+      "bbox": [
+        900,
+        298,
+        292,
+        22
+      ],
+      "geometry": "rect",
+      "text": "BULTOS SIN PREMIO",
+      "textPreview": "BULTOS SIN PREMIO",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "BULTOS SIN PREMIO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "BULTOS SIN PREMIO",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#52657E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "BULTOS SIN PREMIO",
+              "fontSize": 13,
+              "color": "#52657E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 39,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/4nuhs7uh",
+      "id": "40",
+      "bbox": [
+        900,
+        328,
+        292,
+        45
+      ],
+      "geometry": "rect",
+      "text": "4–5 / día",
+      "textPreview": "4–5 / día",
+      "resolvedFontSize": 27,
+      "resolvedTextStyle": {
+        "fontSize": 27,
+        "typeface": "Calibri",
+        "color": "#C9444E",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "4–5 / día"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "4–5 / día",
+          "resolvedTextStyle": {
+            "fontSize": 27,
+            "color": "#C9444E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "4–5 / día",
+              "fontSize": 27,
+              "color": "#C9444E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 40,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/po3ilcvm",
+      "id": "41",
+      "bbox": [
+        900,
+        384,
+        292,
+        72
+      ],
+      "geometry": "rect",
+      "text": "145 jornadas-legajo · 3,3%\nSí tienen bultos, pero no\nalcanzan el mínimo individual.",
+      "textPreview": "145 jornadas-legajo · 3,3% | Sí tienen bultos, pero no | alcanzan el mínimo individual.",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 3,
+        "lines": [
+          {
+            "index": 1,
+            "text": "145 jornadas-legajo · 3,3%"
+          },
+          {
+            "index": 2,
+            "text": "Sí tienen bultos, pero no"
+          },
+          {
+            "index": 3,
+            "text": "alcanzan el mínimo individual."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "145 jornadas-legajo · 3,3%",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "145 jornadas-legajo · 3,3%",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "Sí tienen bultos, pero no",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Sí tienen bultos, pero no",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "alcanzan el mínimo individual.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "alcanzan el mínimo individual.",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 41,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/21szqxcb",
+      "id": "42",
+      "bbox": [
+        420,
+        326,
+        40,
+        38
+      ],
+      "geometry": "rect",
+      "text": "→",
+      "textPreview": "→",
+      "resolvedFontSize": 30,
+      "resolvedTextStyle": {
+        "fontSize": 30,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "center",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "→"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "→",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "color": "#00A37A",
+            "bold": true,
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "→",
+              "fontSize": 30,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 42,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/32l0j2dw",
+      "id": "43",
+      "bbox": [
+        826,
+        326,
+        40,
+        38
+      ],
+      "geometry": "rect",
+      "text": "→",
+      "textPreview": "→",
+      "resolvedFontSize": 30,
+      "resolvedTextStyle": {
+        "fontSize": 30,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "center",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "→"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "→",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "color": "#00A37A",
+            "bold": true,
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "→",
+              "fontSize": 30,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 43,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cruhwrud",
+      "id": "44",
+      "bbox": [
+        64,
+        535,
+        1152,
+        90
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#0B1630",
+      "lineColor": "#0B1630",
+      "lineWidth": 0
+    },
+    {
+      "order": 44,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ds3ipcvy",
+      "id": "45",
+      "bbox": [
+        92,
+        559,
+        175,
+        18
+      ],
+      "geometry": "rect",
+      "text": "EVIDENCIA JULIO",
+      "textPreview": "EVIDENCIA JULIO",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "EVIDENCIA JULIO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "EVIDENCIA JULIO",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#00A37A",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "EVIDENCIA JULIO",
+              "fontSize": 12,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 45,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qpczuhc7",
+      "id": "46",
+      "bbox": [
+        275,
+        548,
+        120,
+        40
+      ],
+      "geometry": "rect",
+      "text": "7,3%",
+      "textPreview": "7,3%",
+      "resolvedFontSize": 28,
+      "resolvedTextStyle": {
+        "fontSize": 28,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "7,3%"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "7,3%",
+          "resolvedTextStyle": {
+            "fontSize": 28,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "7,3%",
+              "fontSize": 28,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 46,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/rql0nmds",
+      "id": "47",
+      "bbox": [
+        398,
+        556,
+        740,
+        28
+      ],
+      "geometry": "rect",
+      "text": "de las jornadas-legajo no obtiene premio individual (≈10–11 por día)",
+      "textPreview": "de las jornadas-legajo no obtiene premio individual (≈10–11 por día)",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#DCE7F3",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "de las jornadas-legajo no obtiene premio individual (≈10–11 por día)"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "de las jornadas-legajo no obtiene premio individual (≈10–11 por día)",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#DCE7F3"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "de las jornadas-legajo no obtiene premio individual (≈10–11 por día)",
+              "fontSize": 15,
+              "color": "#DCE7F3"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 47,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0ve10ru9",
+      "id": "48",
+      "bbox": [
+        64,
+        660,
+        95,
+        18
+      ],
+      "geometry": "rect",
+      "text": "Conclusión",
+      "textPreview": "Conclusión",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Conclusión"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Conclusión",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#00A37A",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Conclusión",
+              "fontSize": 12,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 48,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/1wnitwvu",
+      "id": "49",
+      "bbox": [
+        170,
+        656,
+        980,
+        22
+      ],
+      "geometry": "rect",
+      "text": "El umbral exige 90% de cumplidores: si una división/día supera 10% sin premio, el adicional no se habilita.",
+      "textPreview": "El umbral exige 90% de cumplidores: si una división/día supera 10% sin premio, el adicional no se habilita.",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El umbral exige 90% de cumplidores: si una división/día supera 10% sin premio, el adicional no se habilita."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El umbral exige 90% de cumplidores: si una división/día supera 10% sin premio, el adicional no se habilita.",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El umbral exige 90% de cumplidores: si una división/día supera 10% sin premio, el adicional no se habilita.",
+              "fontSize": 15,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

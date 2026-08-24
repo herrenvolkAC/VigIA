@@ -66,7 +66,7 @@ class ScheduleRequest(BaseModel):
 
 class AssignmentRequest(BaseModel):
     task_id: int
-    username: str
+    username: str | None = None
     allow_delay: bool = False
     instructions_override: str = ""
     active: bool = True
@@ -83,6 +83,11 @@ class DelegationRequest(BaseModel):
     date_from: str
     date_to: str
     assignments: list[DelegationAssignmentRequest] = Field(default_factory=list, min_length=1)
+
+
+class PendingResetRequest(BaseModel):
+    starts_on: str
+    include_eventual: bool = True
 
 
 def _iso_date(value: str, field: str = "fecha") -> str:
@@ -283,7 +288,10 @@ def _delegated_to(
     by_assignment: dict[int, str],
     legacy_by_user: dict[str, str],
 ) -> str | None:
-    return by_assignment.get(int(assignment["assignment_id"])) or legacy_by_user.get(assignment["username"])
+    username = assignment.get("username")
+    return by_assignment.get(int(assignment["assignment_id"])) or (
+        legacy_by_user.get(username) if username else None
+    )
 
 
 def _board_item(
@@ -295,6 +303,14 @@ def _board_item(
     today: str,
 ) -> dict[str, Any]:
     occurrence = occurrence or {}
+    current_responsible = delegated_to or assignment.get("username")
+    stored_status = occurrence.get("status") or "pending"
+    historical_responsible = occurrence.get("responsible_username")
+    responsible = (
+        historical_responsible
+        if stored_status in {"completed", "not_applicable"} and historical_responsible
+        else current_responsible
+    )
     row = {
         "occurrence_id": occurrence.get("occurrence_id"),
         "assignment_id": assignment["assignment_id"],
@@ -304,17 +320,17 @@ def _board_item(
         "canonical_title": assignment["task_title"],
         "scheduled_date": scheduled_date,
         "effective_date": occurrence.get("effective_date") or scheduled_date,
-        "stored_status": occurrence.get("status") or "pending",
+        "stored_status": stored_status,
         "note": occurrence.get("note") or "",
         "completed_by": occurrence.get("completed_by"),
         "completed_at": occurrence.get("completed_at"),
         "updated_by": occurrence.get("updated_by"),
         "updated_at": occurrence.get("updated_at"),
         "version": occurrence.get("version", 0),
-        "assigned_username": assignment["username"],
-        "responsible_username": delegated_to or assignment["username"],
+        "assigned_username": assignment.get("username") or historical_responsible,
+        "responsible_username": responsible,
         "delegated": bool(delegated_to),
-        "shift": shift_map.get(delegated_to or assignment["username"]),
+        "shift": occurrence.get("shift") or shift_map.get(responsible),
         "duration_minutes": assignment.get("task_duration_minutes"),
         "allow_delay": bool(assignment.get("allow_delay")),
         "eventual": False,
@@ -370,9 +386,15 @@ def _consolidate_delegated_items(rows: list[dict[str, Any]]) -> list[dict[str, A
             primary["stored_status"] = "pending"
         primary["coverage"] = coverage
         primary["coverage_count"] = len(coverage)
-        primary["assigned_usernames"] = sorted({row["assigned_username"] for row in members})
+        primary["assigned_usernames"] = sorted(
+            {row["assigned_username"] for row in members if row.get("assigned_username")}
+        )
         primary["delegated_from_usernames"] = sorted(
-            {row["assigned_username"] for row in members if row.get("delegated")}
+            {
+                row["assigned_username"]
+                for row in members
+                if row.get("delegated") and row.get("assigned_username")
+            }
         )
         primary["delegated"] = bool(primary["delegated_from_usernames"])
         result.append(primary)
@@ -390,6 +412,7 @@ async def context(request: Request):
             """
             SELECT u.username, u.display_name, u.role,
                    COALESCE(a.profile, CASE WHEN u.role = 'admin' THEN 'ADMIN' ELSE '' END) profile,
+                   CASE WHEN a.access_id IS NOT NULL THEN 1 ELSE 0 END assignable,
                    a.metadata_json
             FROM auth_users u
             LEFT JOIN auth_user_app_access a
@@ -449,18 +472,19 @@ async def board(
         items: list[dict[str, Any]] = []
         for assignment in assignments:
             occurrence = by_key.get((assignment["assignment_id"], target_iso))
-            if _is_due(assignment, target):
-                if not occurrence or occurrence["effective_date"] == target_iso:
-                    items.append(
-                        _board_item(
-                            assignment,
-                            target_iso,
-                            occurrence,
-                            _delegated_to(assignment, target_assignment_delegations, target_legacy_delegations),
-                            shift_map,
-                            today,
-                        )
+            if (
+                occurrence and occurrence["effective_date"] == target_iso
+            ) or (not occurrence and _is_due(assignment, target)):
+                items.append(
+                    _board_item(
+                        assignment,
+                        target_iso,
+                        occurrence,
+                        _delegated_to(assignment, target_assignment_delegations, target_legacy_delegations),
+                        shift_map,
+                        today,
                     )
+                )
             for moved in occurrences:
                 if (
                     moved["assignment_id"] == assignment["assignment_id"]
@@ -604,18 +628,24 @@ async def _apply_occurrence_action(
             """
             INSERT INTO checklist_occurrence
                 (assignment_id, sector_id, scheduled_date, effective_date, status, note,
-                 completed_by, completed_at, updated_by, updated_at, version, allow_delay)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+                 completed_by, completed_at, updated_by, updated_at, version, allow_delay,
+                 responsible_username)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
             ON CONFLICT(assignment_id, scheduled_date) DO UPDATE SET
                 effective_date=excluded.effective_date, status=excluded.status, note=excluded.note,
                 completed_by=excluded.completed_by, completed_at=excluded.completed_at,
                 updated_by=excluded.updated_by, updated_at=excluded.updated_at,
+                responsible_username=CASE
+                    WHEN excluded.status IN ('completed', 'not_applicable')
+                    THEN excluded.responsible_username
+                    ELSE checklist_occurrence.responsible_username
+                END,
                 version=checklist_occurrence.version + 1
             """,
             (
                 assignment_id, assignment["sector_id"], scheduled, effective, status,
                 _clean(req.note), completed_by, completed_at, auth["username"], timestamp,
-                int(assignment["allow_delay"]),
+                int(assignment["allow_delay"]), assignment.get("username"),
             ),
         )
         after = await _fetch_one(
@@ -708,14 +738,10 @@ async def update_occurrence_group(
 async def create_eventual(req: EventualRequest, request: Request):
     auth = await _require_user(request)
     title = _clean(req.title)
-    username = _clean(req.username).lower()
+    username = await _validate_optional_assignee(req.username)
     if not title or not username:
         raise HTTPException(status_code=400, detail="Tarea y responsable son obligatorios.")
     target = _iso_date(req.date)
-    async with auth_db() as adb:
-        user = await _fetch_one(adb, "SELECT username FROM auth_users WHERE username = ? AND active = 1", (username,))
-    if not user:
-        raise HTTPException(status_code=400, detail="Responsable inexistente o inactivo.")
     shift_map = await _operator_shift_map()
     async with checklist_db() as db:
         sector = await _sector(db)
@@ -842,7 +868,7 @@ async def catalog(request: Request):
         )
     for item in assignments:
         item["weekdays"] = json.loads(item.pop("weekdays_json") or "[]")
-        item["shift"] = shift_map.get(item["username"])
+        item["shift"] = shift_map.get(item.get("username"))
         item["duration_minutes"] = item["task_duration_minutes"]
     return {"sector": sector, "tasks": tasks, "assignments": assignments}
 
@@ -967,8 +993,8 @@ async def export_catalog_xlsx(request: Request):
     assignment_rows = [
         [
             int(row["assignment_id"]), row["task_code"], row["task_title"],
-            row.get("instructions_override") or "", row["username"],
-            shift_map.get(row["username"]) or "Sin turno", row.get("task_duration_minutes"),
+            row.get("instructions_override") or "", row.get("username") or "Sin responsable",
+            shift_map.get(row.get("username")) or "Sin turno", row.get("task_duration_minutes"),
             _export_schedule_text(row), "Sí" if row.get("allow_delay") else "No",
             "Activa" if row["active"] else "Inactiva",
         ]
@@ -1117,10 +1143,35 @@ async def _validate_active_user(username: str) -> str:
     return value
 
 
+async def _validate_optional_assignee(username: str | None) -> str | None:
+    value = _clean(username).lower()
+    if not value:
+        return None
+    async with auth_db() as db:
+        row = await _fetch_one(
+            db,
+            """
+            SELECT u.username
+            FROM auth_users u
+            JOIN auth_user_app_access a
+              ON a.username = u.username
+             AND a.module = 'checklist_tareas' AND a.enabled = 1
+            WHERE u.username = ? AND u.active = 1
+            """,
+            (value,),
+        )
+    if not row:
+        raise HTTPException(
+            status_code=400,
+            detail="El responsable no esta habilitado para CheckList Tareas.",
+        )
+    return value
+
+
 @router.post("/admin/assignments")
 async def create_assignment(req: AssignmentRequest, request: Request):
     auth = await _require_admin(request)
-    username = await _validate_active_user(req.username)
+    username = await _validate_optional_assignee(req.username)
     async with checklist_db() as db:
         sector = await _sector(db)
         task = await _fetch_one(db, "SELECT task_id FROM checklist_task WHERE task_id = ?", (req.task_id,))
@@ -1150,7 +1201,7 @@ async def create_assignment(req: AssignmentRequest, request: Request):
 @router.put("/admin/assignments/{assignment_id}")
 async def update_assignment(assignment_id: int, req: AssignmentRequest, request: Request):
     auth = await _require_admin(request)
-    username = await _validate_active_user(req.username)
+    username = await _validate_optional_assignee(req.username)
     async with checklist_db() as db:
         before = await _assignment(db, assignment_id)
         task = await _fetch_one(db, "SELECT task_id FROM checklist_task WHERE task_id = ?", (req.task_id,))
@@ -1301,6 +1352,130 @@ async def deactivate_delegation(delegation_id: int, request: Request):
         await _audit(db, sector_id=before["sector_id"], actor=auth["username"], action="deactivate", entity_type="delegation", entity_id=delegation_id, before=before, after=after)
         await db.commit()
     return {"ok": True}
+
+
+async def _pending_reset_scope(
+    db: aiosqlite.Connection,
+    *,
+    sector_id: int,
+    starts_on: str,
+    include_eventual: bool,
+) -> dict[str, Any]:
+    pending = await _fetch_all(
+        db,
+        """
+        SELECT * FROM checklist_occurrence
+        WHERE sector_id = ? AND status = 'pending'
+          AND (assignment_id IS NOT NULL OR ? = 1)
+        ORDER BY occurrence_id
+        """,
+        (sector_id, int(include_eventual)),
+    )
+    assignments = await _fetch_all(
+        db,
+        """
+        SELECT assignment_id, task_id, username, starts_on, active
+        FROM checklist_assignment
+        WHERE sector_id = ? AND (starts_on IS NULL OR starts_on < ?)
+        ORDER BY assignment_id
+        """,
+        (sector_id, starts_on),
+    )
+    preserved = await _fetch_one(
+        db,
+        """
+        SELECT COUNT(*) preserved_count
+        FROM checklist_occurrence
+        WHERE sector_id = ? AND status IN ('completed', 'not_applicable')
+        """,
+        (sector_id,),
+    )
+    return {
+        "pending": pending,
+        "assignments": assignments,
+        "scheduled_pending": len([row for row in pending if row.get("assignment_id") is not None]),
+        "eventual_pending": len([row for row in pending if row.get("assignment_id") is None]),
+        "historical_preserved": int((preserved or {}).get("preserved_count") or 0),
+    }
+
+
+@router.get("/admin/reset-pending/preview")
+async def preview_pending_reset(
+    request: Request,
+    starts_on: str = Query(...),
+    include_eventual: bool = Query(default=True),
+):
+    await _require_admin(request)
+    cutoff = _iso_date(starts_on, "Fecha de reinicio")
+    async with checklist_db() as db:
+        sector = await _sector(db)
+        scope = await _pending_reset_scope(
+            db,
+            sector_id=int(sector["sector_id"]),
+            starts_on=cutoff,
+            include_eventual=include_eventual,
+        )
+    return {
+        "starts_on": cutoff,
+        "assignments_rebased": len(scope["assignments"]),
+        "scheduled_pending": scope["scheduled_pending"],
+        "eventual_pending": scope["eventual_pending"],
+        "historical_preserved": scope["historical_preserved"],
+    }
+
+
+@router.post("/admin/reset-pending")
+async def reset_pending(req: PendingResetRequest, request: Request):
+    auth = await _require_admin(request)
+    cutoff = _iso_date(req.starts_on, "Fecha de reinicio")
+    timestamp = now_iso()
+    async with checklist_db() as db:
+        sector = await _sector(db)
+        sector_id = int(sector["sector_id"])
+        scope = await _pending_reset_scope(
+            db,
+            sector_id=sector_id,
+            starts_on=cutoff,
+            include_eventual=req.include_eventual,
+        )
+        await db.execute(
+            """
+            DELETE FROM checklist_occurrence
+            WHERE sector_id = ? AND status = 'pending'
+              AND (assignment_id IS NOT NULL OR ? = 1)
+            """,
+            (sector_id, int(req.include_eventual)),
+        )
+        await db.execute(
+            """
+            UPDATE checklist_assignment
+            SET starts_on = ?, updated_at = ?
+            WHERE sector_id = ? AND (starts_on IS NULL OR starts_on < ?)
+            """,
+            (cutoff, timestamp, sector_id, cutoff),
+        )
+        result = {
+            "starts_on": cutoff,
+            "assignments_rebased": len(scope["assignments"]),
+            "scheduled_pending_removed": scope["scheduled_pending"],
+            "eventual_pending_removed": scope["eventual_pending"],
+            "historical_preserved": scope["historical_preserved"],
+        }
+        await _audit(
+            db,
+            sector_id=sector_id,
+            actor=auth["username"],
+            action="reset_pending",
+            entity_type="sector",
+            entity_id=sector["code"],
+            before={
+                "pending_occurrences": scope["pending"],
+                "assignments": scope["assignments"],
+            },
+            after=result,
+        )
+        await db.commit()
+    return {"ok": True, **result}
 
 
 @router.get("/admin/audit")

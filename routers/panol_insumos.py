@@ -144,6 +144,10 @@ class ReprintRequest(BaseModel):
     observacion: str = ""
 
 
+class ReprintCloseRequest(BaseModel):
+    observacion: str = ""
+
+
 class InventoryLine(BaseModel):
     articulo_id: int
     stock_fisico: float
@@ -1147,6 +1151,42 @@ async def create_reprint_order(req: ReprintRequest, request: Request):
     return {"ok": True, "estado": "PENDIENTE", "fecha_solicitud": now}
 
 
+@router.post("/pedidos/reimpresiones/{reprint_id}/resolver")
+async def resolve_reprint_order(reprint_id: int, req: ReprintCloseRequest, request: Request):
+    auth = await _require_panol_operator(request)
+    async with panol_db() as db:
+        cur = await db.execute(
+            """
+            UPDATE pedidos_reimpresiones
+            SET estado = 'RESUELTO', usuario_resuelve = ?, fecha_resolucion = ?, observacion_resolucion = ?
+            WHERE id = ? AND estado = 'PENDIENTE'
+            """,
+            (auth.get("username"), _now(), _clean(req.observacion), reprint_id),
+        )
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Reimpresion pendiente no encontrada.")
+        await db.commit()
+    return {"ok": True, "reimpresion_id": reprint_id, "estado": "RESUELTO"}
+
+
+@router.post("/pedidos/reimpresiones/{reprint_id}/cancelar")
+async def cancel_reprint_order(reprint_id: int, req: ReprintCloseRequest, request: Request):
+    auth = await _require_panol_operator(request)
+    async with panol_db() as db:
+        cur = await db.execute(
+            """
+            UPDATE pedidos_reimpresiones
+            SET estado = 'CANCELADO', usuario_resuelve = ?, fecha_resolucion = ?, observacion_resolucion = ?
+            WHERE id = ? AND estado = 'PENDIENTE'
+            """,
+            (auth.get("username"), _now(), _clean(req.observacion), reprint_id),
+        )
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Reimpresion pendiente no encontrada.")
+        await db.commit()
+    return {"ok": True, "reimpresion_id": reprint_id, "estado": "CANCELADO"}
+
+
 @router.get("/pedidos/recibido-dia")
 async def supply_order_received_by_day(
     request: Request,
@@ -1396,7 +1436,19 @@ async def pending_supply_orders(request: Request):
     await _require_panol_operator(request)
     async with panol_db() as db:
         items = await _pedido_rows(db, "WHERE p.estado = 'PENDIENTE'", (), 150)
-    return {"items": items, "pending_count": len(items)}
+        reprints = await _fetch_rows(
+            db,
+            """
+            SELECT r.*, u.codigo AS sector_codigo, a.codigo, a.descripcion
+            FROM pedidos_reimpresiones r
+            JOIN ubicaciones u ON u.id = r.sector_id
+            JOIN articulos a ON a.id = r.articulo_id
+            WHERE r.estado = 'PENDIENTE'
+            ORDER BY r.fecha_solicitud DESC, r.id DESC
+            LIMIT 150
+            """,
+        )
+    return {"items": items, "reimpresiones": reprints, "pending_count": len(items) + len(reprints)}
 
 
 @router.get("/pedidos/indicadores")

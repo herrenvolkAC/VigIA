@@ -557,7 +557,7 @@
 </div>
 
 <script>
-let ctx=null, articles=[], stockRows=[], movementRows=[], indicatorData={}, productionStockRows=[], productionMovementRows=[], productionIndicatorData={}, pedidoIndicatorData={}, requestCatalogRows=[], myPedidoRows=[], pendingPedidoRows=[], pedidoReceivedRows=[], wasteRows=[], reprintRows=[], userSectorRows=[], selectedPendingPedido=null, pedidoQuantities={};
+let ctx=null, articles=[], stockRows=[], movementRows=[], indicatorData={}, productionStockRows=[], productionMovementRows=[], productionIndicatorData={}, pedidoIndicatorData={}, requestCatalogRows=[], myPedidoRows=[], pendingPedidoRows=[], pendingReprintRows=[], pedidoReceivedRows=[], wasteRows=[], reprintRows=[], userSectorRows=[], selectedPendingPedido=null, selectedPendingReprint=null, pedidoQuantities={};
 const $=id=>document.getElementById(id);
 function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function num(v){const n=Number(v||0);return Number.isFinite(n)?n:0}
@@ -1040,9 +1040,12 @@ async function assignUserSector(){
 }
 function renderPendingPedidos(){
   const badge=$('pending-badge');
-  badge.textContent=pendingPedidoRows.length;
-  badge.classList.toggle('hidden',pendingPedidoRows.length<=0);
-  $('pending-pedidos-list').innerHTML=pendingPedidoRows.map(p=>`<button class="request-item ${selectedPendingPedido?.id===p.id?'active':''}" data-open-pedido="${p.id}"><strong>#${p.id} - ${esc(p.sector_codigo)}</strong><span>${shortDate(p.fecha_solicitud)} - ${esc(p.usuario_solicita||'')}</span><span>${(p.items||[]).length} PLUs - ${esc(p.observacion_solicitud||'Sin observacion')}</span></button>`).join('')||'<div class="detail-empty">No hay pedidos pendientes.</div>';
+  const total=pendingPedidoRows.length+pendingReprintRows.length;
+  badge.textContent=total;
+  badge.classList.toggle('hidden',total<=0);
+  const pedidos=pendingPedidoRows.map(p=>`<button class="request-item ${selectedPendingPedido?.id===p.id?'active':''}" data-open-pedido="${p.id}"><strong>Pedido #${p.id} - ${esc(p.sector_codigo)}</strong><span>${shortDate(p.fecha_solicitud)} - ${esc(p.usuario_solicita||'')}</span><span>${(p.items||[]).length} PLUs - ${esc(p.observacion_solicitud||'Sin observacion')}</span></button>`);
+  const reprints=pendingReprintRows.map(r=>`<button class="request-item ${selectedPendingReprint?.id===r.id?'active':''}" data-open-reprint="${r.id}"><div class="status-line"><strong>Reimpresion #${esc(r.id)} - ${esc(r.sector_codigo)}</strong><span class="state warn">Reimpresion</span></div><span>${shortDate(r.fecha_solicitud)} - ${esc(r.usuario_solicita||'')}</span><span>${esc(r.uso)} - Pallet ${esc(r.identificador)} - Cant. ${fmt(r.cantidad)}</span></button>`);
+  $('pending-pedidos-list').innerHTML=[...reprints,...pedidos].join('')||'<div class="detail-empty">No hay pedidos pendientes.</div>';
 }
 function renderPendingDetail(p){
   if(!p){$('pending-detail').innerHTML='<div class="detail-empty">Selecciona un pedido pendiente.</div>';return;}
@@ -1059,12 +1062,18 @@ function renderPendingDetail(p){
   $('confirm-pedido').onclick=()=>confirmPedido(p.id).catch(e=>setStatus(e.message,true));
   $('cancel-pedido').onclick=()=>cancelPedido(p.id).catch(e=>setStatus(e.message,true));
 }
+function renderPendingReprintDetail(r){
+  if(!r){$('pending-detail').innerHTML='<div class="detail-empty">Selecciona un pedido pendiente.</div>';return;}
+  $('pending-detail').innerHTML=`<div class="request-head"><div><strong>Reimpresion #${esc(r.id)}</strong><div class="muted">${esc(r.sector_codigo)} - ${shortDate(r.fecha_solicitud)} - ${esc(r.usuario_solicita||'')}</div></div><span class="state warn">Pendiente</span></div><div class="request-body"><div class="table-wrap"><table><thead><tr><th>Tipo de uso</th><th>ID pallet</th><th>PLU</th><th>Descripcion</th><th class="right">Cantidad</th></tr></thead><tbody><tr><td>${esc(r.uso)}</td><td>${esc(r.identificador)}</td><td>${esc(r.codigo)}</td><td>${esc(r.descripcion||'')}</td><td class="right">${fmt(r.cantidad)}</td></tr></tbody></table></div><div class="field" style="margin-top:12px"><label class="label">Observacion cierre</label><textarea id="reprint-close-obs"></textarea></div><div class="actions" style="margin-top:12px"><button class="btn primary" id="resolve-reprint">Resolver reimpresion</button><button class="btn danger" id="cancel-reprint">Cancelar reimpresion</button></div></div>`;
+  $('resolve-reprint').onclick=()=>closeReprint(r.id,'resolver').catch(e=>setStatus(e.message,true));
+  $('cancel-reprint').onclick=()=>{if(!confirm(`Cancelar reimpresion #${r.id}?`))return;closeReprint(r.id,'cancelar').catch(e=>setStatus(e.message,true));};
+}
 async function loadPedidoCatalog(){const d=await api('/panol-insumos/api/pedidos/catalogo')||{};requestCatalogRows=d.items||[];$('received-plu').innerHTML=optionList(requestCatalogRows,'Todos');if($('reprint-usage'))$('reprint-usage').innerHTML=usageSelectOptions();renderPedidoCatalog();}
 async function loadMyPedidos(){const sector=$('pedido-sector')?.value;if(!sector){myPedidoRows=[];renderMyPedidos();renderWasteControls();return;}const d=await api(`/panol-insumos/api/pedidos/mios?sector_id=${encodeURIComponent(sector)}`)||{};myPedidoRows=d.items||[];renderMyPedidos();renderWasteControls();}
 async function loadPedidoReceivedChart(){const sector=$('pedido-sector')?.value;if(!sector){pedidoReceivedRows=[];$('chart-sector-received').innerHTML=emptyChart('Selecciona un sector');$('received-chart-total').textContent='0';return;}const p=new URLSearchParams({sector_id:sector,tipo:$('received-type').value||'insumo'});if($('received-date-from').value)p.set('fecha_desde',$('received-date-from').value);if($('received-date-to').value)p.set('fecha_hasta',$('received-date-to').value);if($('received-plu').value)p.set('articulo_id',$('received-plu').value);const d=await api(`/panol-insumos/api/pedidos/recibido-dia?${p}`)||{};pedidoReceivedRows=d.items||[];$('received-chart-total').textContent=fmt(pedidoReceivedRows.reduce((sum,r)=>sum+num(r.cantidad),0));$('chart-sector-received').innerHTML=renderReceivedLine(pedidoReceivedRows);}
 async function loadWastes(){const sector=$('pedido-sector')?.value;if(!sector){wasteRows=[];renderWasteList();return;}const p=new URLSearchParams({sector_id:sector});const d=await api(`/panol-insumos/api/pedidos/mermas?${p}`)||{};wasteRows=d.items||[];renderWasteList();}
 async function loadReprints(){const sector=$('pedido-sector')?.value;if(!sector){reprintRows=[];renderReprints();return;}const p=new URLSearchParams({sector_id:sector});const d=await api(`/panol-insumos/api/pedidos/reimpresiones?${p}`)||{};reprintRows=d.items||[];renderReprints();}
-async function loadPendingPedidos(){if(!canOperate())return;const d=await api('/panol-insumos/api/pedidos/pendientes')||{};pendingPedidoRows=d.items||[];if(selectedPendingPedido&&!pendingPedidoRows.some(p=>p.id===selectedPendingPedido.id))selectedPendingPedido=null;renderPendingPedidos();renderPendingDetail(selectedPendingPedido);}
+async function loadPendingPedidos(){if(!canOperate())return;const d=await api('/panol-insumos/api/pedidos/pendientes')||{};pendingPedidoRows=d.items||[];pendingReprintRows=d.reimpresiones||[];if(selectedPendingPedido&&!pendingPedidoRows.some(p=>p.id===selectedPendingPedido.id))selectedPendingPedido=null;if(selectedPendingReprint&&!pendingReprintRows.some(r=>r.id===selectedPendingReprint.id))selectedPendingReprint=null;renderPendingPedidos();selectedPendingReprint?renderPendingReprintDetail(selectedPendingReprint):renderPendingDetail(selectedPendingPedido);}
 async function loadPedidoIndicators(){if(!canOperate())return;const q=indicatorQuery().toString();pedidoIndicatorData=await api(`/panol-insumos/api/pedidos/indicadores${q?`?${q}`:''}`)||{};renderPedidoIndicators();}
 async function savePedido(ev){
   ev.preventDefault();
@@ -1106,7 +1115,16 @@ async function saveReprint(ev){
   $('reprint-qty').value='';
   $('reprint-obs').value='';
   await loadReprints();
+  await loadPendingPedidos();
   setStatus('Pedido de reimpresion registrado.');
+}
+async function closeReprint(id, action){
+  const obs=$('reprint-close-obs')?.value||'';
+  await api(`/panol-insumos/api/pedidos/reimpresiones/${id}/${action}`,{method:'POST',body:JSON.stringify({observacion:obs})});
+  selectedPendingReprint=null;
+  await loadPendingPedidos();
+  await loadReprints();
+  setStatus(action==='resolver'?'Reimpresion resuelta.':'Reimpresion cancelada.');
 }
 async function confirmPedido(id){
   const origin=Number($('confirm-origin').value);
@@ -1211,7 +1229,7 @@ $('user-sector-check-all').onchange=ev=>document.querySelectorAll('[data-user-se
 $('assign-user-sector').onclick=()=>assignUserSector().catch(e=>setStatus(e.message,true));
 $('refresh-received-chart').onclick=()=>loadPedidoReceivedChart().catch(e=>setStatus(e.message,true));
 $('refresh-pending').onclick=()=>loadPendingPedidos().catch(e=>setStatus(e.message,true));
-$('pending-pedidos-list').onclick=ev=>{const b=ev.target.closest('[data-open-pedido]');if(!b)return;selectedPendingPedido=pendingPedidoRows.find(p=>String(p.id)===String(b.dataset.openPedido));renderPendingPedidos();renderPendingDetail(selectedPendingPedido)};
+$('pending-pedidos-list').onclick=ev=>{const rp=ev.target.closest('[data-open-reprint]');if(rp){selectedPendingPedido=null;selectedPendingReprint=pendingReprintRows.find(r=>String(r.id)===String(rp.dataset.openReprint));renderPendingPedidos();renderPendingReprintDetail(selectedPendingReprint);return;}const b=ev.target.closest('[data-open-pedido]');if(!b)return;selectedPendingReprint=null;selectedPendingPedido=pendingPedidoRows.find(p=>String(p.id)===String(b.dataset.openPedido));renderPendingPedidos();renderPendingDetail(selectedPendingPedido)};
 (async()=>{try{initSortableTables();setStatus('Validando sesion y permisos...');await loadContext();setStatus('Cargando pedidos...');await loadPedidoCatalog();await loadMyPedidos();await loadWastes();await loadReprints();await loadPedidoReceivedChart();await loadPendingPedidos();if(ctx?.user?.can_full){setStatus('Cargando usuarios solicitantes...');await loadUserSectors();}if(canOperate()){setStatus('Cargando articulos...');await loadArticles();setStatus('Calculando stock...');await loadStock();setStatus('Cargando indicadores...');await loadIndicators();setStatus('Cargando movimientos...');await loadMovements();setStatus('Cargando produccion...');await loadProduction();setStatus('Cargando pedidos...');await loadPedidoIndicators();setStatus('Cargando inventarios...');await loadInventoryHistory();renderDashboardCharts();}initSortableTables();setStatus('Listo.')}catch(e){setStatus(e.message,true)}})();
 </script>
 </body>

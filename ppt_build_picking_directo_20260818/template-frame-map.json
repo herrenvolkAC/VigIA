@@ -1,0 +1,68 @@
+{
+  "sourceDeck": "C:/Users/207189/Documents/Codex/2026-07-30/este-ser-a-el-prompt-que/outputs/ProductividadNueva_v2.0.pptx",
+  "outputSlides": [
+    {
+      "outputSlide": 1,
+      "sourceSlide": 5,
+      "reuseMode": "duplicate-slide",
+      "narrativeRole": "Resultado global de Picking en julio",
+      "editTargets": [
+        {"sourceElementId": "sh/tcfel0vu", "action": "replace", "role": "section-label"},
+        {"sourceElementId": "sh/dgbulwnm", "action": "replace", "role": "title"},
+        {"sourceElementId": "sh/yhkbe1o7", "action": "replace", "role": "card1-heading"},
+        {"sourceElementId": "sh/l4bupwny", "action": "replace", "role": "card1-body"},
+        {"sourceElementId": "sh/m5kbi1oj", "action": "replace", "role": "card2-heading"},
+        {"sourceElementId": "sh/w32dkbuh", "action": "replace", "role": "card2-body"},
+        {"sourceElementId": "sh/v2twb6dw", "action": "replace", "role": "card3-heading"},
+        {"sourceElementId": "sh/k7mxovud", "action": "replace", "role": "card3-body"},
+        {"sourceElementId": "sh/j6dwfqds", "action": "replace", "role": "footer-summary"},
+        {"sourceElementId": "sh/sb6xsvu9", "action": "replace", "role": "footer-summary-2"},
+        {"sourceElementId": "sh/hgrmpwj2", "action": "replace", "role": "footer-summary-3"}
+      ]
+    },
+    {
+      "outputSlide": 2,
+      "sourceSlide": 7,
+      "reuseMode": "duplicate-slide",
+      "narrativeRole": "Calibración sectorial medida",
+      "editTargets": [
+        {"sourceElementId": "sh/f2d0b6lc", "action": "replace", "role": "section-label"},
+        {"sourceElementId": "sh/cb2tkvap", "action": "replace", "role": "title"},
+        {"sourceElementId": "sh/zedcfa9g", "action": "replace", "role": "step1-heading"},
+        {"sourceElementId": "sh/kzmdova1", "action": "replace", "role": "step1-subheading"},
+        {"sourceElementId": "sh/l0vuh0rm", "action": "replace", "role": "step1-body"},
+        {"sourceElementId": "sh/eh0ba1sr", "action": "replace", "role": "step2-heading"},
+        {"sourceElementId": "sh/fi9c369c", "action": "replace", "role": "step2-subheading"},
+        {"sourceElementId": "sh/baxkjqlk", "action": "replace", "role": "step2-body"},
+        {"sourceElementId": "sh/a9ojq5kz", "action": "replace", "role": "step3-heading"},
+        {"sourceElementId": "sh/xcz2l03q", "action": "replace", "role": "step3-subheading"},
+        {"sourceElementId": "sh/cbq1sv25", "action": "replace", "role": "step3-body"},
+        {"sourceElementId": "sh/25ojml43", "action": "replace", "role": "callout"},
+        {"sourceElementId": "sh/p8fih03e", "action": "replace", "role": "references-heading"},
+        {"sourceElementId": "sh/o761ov2t", "action": "replace", "role": "references-body"}
+      ]
+    },
+    {
+      "outputSlide": 3,
+      "sourceSlide": 8,
+      "reuseMode": "duplicate-slide",
+      "narrativeRole": "Condición para habilitar el premio grupal",
+      "editTargets": [
+        {"sourceElementId": "sh/kfixwbe1", "action": "replace", "role": "section-label"},
+        {"sourceElementId": "sh/18byd4zy", "action": "replace", "role": "title"},
+        {"sourceElementId": "sh/6h0fypgb", "action": "replace", "role": "step1-heading"},
+        {"sourceElementId": "sh/tkby9kzm", "action": "replace", "role": "step1-subheading"},
+        {"sourceElementId": "sh/sjix0zy1", "action": "replace", "role": "step1-body"},
+        {"sourceElementId": "sh/je9g3ahk", "action": "replace", "role": "step2-heading"},
+        {"sourceElementId": "sh/id0fu50z", "action": "replace", "role": "step2-subheading"},
+        {"sourceElementId": "sh/o7ydoret", "action": "replace", "role": "step2-body"},
+        {"sourceElementId": "sh/98rehwve", "action": "replace", "role": "step3-heading"},
+        {"sourceElementId": "sh/m5gvmhwn", "action": "replace", "role": "step3-subheading"},
+        {"sourceElementId": "sh/n6pwfmd8", "action": "replace", "role": "step3-body"},
+        {"sourceElementId": "sh/1k7edwv2", "action": "replace", "role": "callout"},
+        {"sourceElementId": "sh/ehgvihwr", "action": "replace", "role": "references-heading"},
+        {"sourceElementId": "sh/zipwbmdc", "action": "replace", "role": "references-body"}
+      ]
+    }
+  ]
+}

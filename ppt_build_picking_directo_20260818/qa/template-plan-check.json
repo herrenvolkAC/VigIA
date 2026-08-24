@@ -1,0 +1,10 @@
+{
+  "status": "pass",
+  "checkedAt": "2026-08-18T18:25:23.953Z",
+  "workspace": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818",
+  "mapPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-frame-map.json",
+  "inspectPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\template-inspect.ndjson",
+  "sourceSlideCount": 34,
+  "issueCount": 0,
+  "issues": []
+}

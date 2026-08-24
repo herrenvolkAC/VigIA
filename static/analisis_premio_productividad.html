@@ -25,6 +25,7 @@
     .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
     .paper-panel{display:none}.paper-panel.active{display:block}.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.kpi-cell{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi-cell.ok{border-top-color:var(--green)}.kpi-cell.warn{border-top-color:var(--amber)}.kpi-cell.bad{border-top-color:var(--red)}.kpi-number{font-family:'IBM Plex Mono',monospace;font-size:28px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi-cell.ok .kpi-number{color:var(--green)}.kpi-cell.warn .kpi-number{color:var(--amber)}.kpi-cell.bad .kpi-number{color:var(--red)}.kpi-foot{font-size:11px;color:var(--ink-soft)}.group-params{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0 10px}.group-param{border-left:3px solid var(--green);background:var(--panel);border-top:1px solid var(--rule);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:9px 12px;min-width:220px}.group-param strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:18px}.group-margin-control{display:flex;align-items:center;gap:6px;margin-top:5px}.group-margin-control input{width:86px;height:34px;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;padding:0 8px}.group-margin-control span{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600}.group-bonus-grid{display:grid;gap:12px;margin-top:10px}.group-kpi-row{display:grid;grid-template-columns:120px repeat(4,minmax(0,1fr));gap:12px;align-items:stretch}.group-row-title{display:flex;align-items:center;background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--blue);padding:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}.group-head-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}.group-table-tools{display:grid;grid-template-columns:220px 160px 140px auto 1fr;gap:10px;align-items:end;margin-bottom:10px}.group-filter-totals{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px}.group-total-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:8px 9px}.group-total-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:14px}.fixed-grid{width:100%;border-collapse:collapse}.fixed-grid th,.fixed-grid td{border-bottom:1px solid var(--rule);padding:8px 9px;text-align:left}.fixed-grid th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);background:#F6F8F5}.fixed-grid input{width:160px;height:32px;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;padding:0 8px}
     .dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.chart-panel,.text-panel{background:var(--panel);border:1px solid var(--rule);min-height:280px;padding:12px;display:flex;flex-direction:column;min-width:0}.text-panel{min-height:0}.chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+    .tendencia-controls{display:grid;grid-template-columns:180px 260px 1fr;gap:12px;align-items:end;margin:12px 0}.tendencia-series{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;align-items:center}.tendencia-series label{border:1px solid var(--rule);background:var(--panel);padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;white-space:nowrap}.tendencia-series input{accent-color:var(--green);margin-right:5px}.tendencia-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tendencia-grid .executive-wide{grid-column:1/-1}.chart-with-insight{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:12px;align-items:stretch}.chart-with-insight.executive-wide{grid-column:1/-1}.tendencia-insight{border-top:3px solid var(--blue);background:var(--panel);padding:12px 14px;font-size:12px;line-height:1.45;color:var(--ink)}.tendencia-insight h4{margin:0 0 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--blue)}.tendencia-insight p{margin:0 0 8px}.tendencia-insight ul{margin:0 0 8px;padding-left:17px}.tendencia-insight li{margin:0 0 5px}.tendencia-insight .insight-caveat{border-top:1px solid var(--rule);padding-top:8px;color:var(--ink-soft);font-size:11px}.tendencia-chart{width:100%;height:270px}.tendencia-chart svg{width:100%;height:270px;display:block}.tendencia-chart .grid{stroke:var(--rule);stroke-width:1}.tendencia-chart .axis{stroke:var(--rule-strong);stroke-width:1}.tendencia-chart .line{fill:none;stroke-width:2.5}.tendencia-chart .dot{stroke:var(--panel);stroke-width:2}.tendencia-chart text{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.tendencia-chart .value{fill:var(--ink);font-size:9px}.tendencia-chart-note{font-size:11px;color:var(--ink-soft);margin-top:5px}.tendencia-empty{padding:30px 10px;color:var(--ink-soft);border-left:3px solid var(--amber);background:var(--amber-soft)}
     .bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(112px,1fr) minmax(120px,2fr) 82px;gap:8px;align-items:center;font-size:12px}.bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:14px;background:#EAEEEB;position:relative}.bar-fill{height:100%;background:var(--green);min-width:2px}.bar-fill.blue{background:var(--blue)}.bar-fill.amber{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-value{font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--ink-soft)}
     .evolution-panel{min-height:320px;margin-top:14px}.evolution-wrap{overflow:auto}.line-chart{width:100%;min-width:900px;height:250px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart polyline{fill:none;stroke-width:2.2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart polyline.red{stroke:var(--red)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart circle.red{fill:var(--red)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--green)}.legend-dot.blue{background:var(--blue)}.legend-dot.amber{background:var(--amber)}.legend-dot.red{background:var(--red)}
     .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);margin-top:12px}.paper-table th{position:sticky;top:0;z-index:3;background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 10px;box-shadow:0 1px 0 var(--rule)}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--blue);background:#EEF4F0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 10px;font-size:12px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}.table-wrap{overflow:auto;max-height:540px}.pill{display:inline-block;padding:3px 6px;border:1px solid #C8E2D0;background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px}.pill.warn{border-color:#E1BF76;background:var(--amber-soft);color:#6F4300}.pill.bad{border-color:#E8A0AA;background:var(--red-soft);color:var(--red)}
@@ -35,7 +36,7 @@
     .modal-backdrop{position:fixed;inset:0;background:rgba(14,22,32,.38);display:none;align-items:center;justify-content:center;padding:22px;z-index:20}.modal-backdrop.active{display:flex}.modal-panel{width:min(1500px,96vw);max-height:90vh;background:var(--panel);border:1px solid var(--rule-strong);box-shadow:0 18px 60px rgba(14,22,32,.22);display:flex;flex-direction:column}.modal-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--rule);background:#F6F8F5}.modal-body{padding:12px;overflow:auto}.modal-summary{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:8px;margin-bottom:10px}.summary-cell{border-left:3px solid var(--green);background:#F8FAF7;padding:8px 9px;min-width:0}.summary-cell strong{display:block;margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.detalle-chart{height:360px;margin:4px 0 12px}.detalle-chart .problem-line-chart{height:310px}.modal-body .table-wrap{max-height:42vh}.icon-btn{min-width:34px;height:34px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace}
     @media(max-width:1200px){.filters{grid-template-columns:1fr 1fr 1fr}.dashboard-grid,.problem-layout,.executive-grid,.premium-pie-row,.operator-pie-grid{grid-template-columns:1fr}.case-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-row{grid-template-columns:repeat(2,1fr)}.group-kpi-row,.group-table-tools{grid-template-columns:1fr}.group-filter-totals{grid-template-columns:repeat(2,minmax(0,1fr))}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}.summary-filters,.mini-filters{grid-template-columns:1fr 1fr}.summary-filter-info{justify-self:start}}
     .legacy-tabs{display:none}.primary-tabs{display:block}.primary-tabs .tab-list{overflow:auto}.primary-tabs .audit-tabs{border-top:1px solid var(--rule);padding-top:6px}.primary-tabs .audit-tabs summary{cursor:pointer;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 2px 8px}.primary-tabs .audit-tabs[open] summary{color:var(--ink)}.primary-tabs .audit-tabs .tab-list{padding-bottom:4px}.primary-tabs .audit-tabs .tab-btn{font-size:9px;min-width:auto;padding:8px 11px 9px}.primary-tabs .audit-tabs .tab-btn.active{border-top-color:var(--amber)}
-    @media(max-width:700px){.paper-app{padding:0 12px 18px}.filters,.kpi-row,.summary-filters,.mini-filters,.case-card-grid{grid-template-columns:1fr}.tab-btn{min-width:112px;padding-left:10px;padding-right:10px}.kpi-number{font-size:24px}}
+    @media(max-width:700px){.paper-app{padding:0 12px 18px}.filters,.kpi-row,.summary-filters,.mini-filters,.case-card-grid{grid-template-columns:1fr}.tab-btn{min-width:112px;padding-left:10px;padding-right:10px}.kpi-number{font-size:24px}.chart-with-insight{grid-template-columns:1fr}}
     .premio-scale-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.premio-sector-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.premio-sector-card{background:var(--panel);border:1px solid var(--rule);padding:12px;min-width:0}.premio-sector-card .chart-title{margin-bottom:6px}.premio-sector-card .table-wrap{max-height:360px}.premio-source-note{margin-top:10px;padding:10px 12px;border-left:3px solid var(--green);background:#F8FAF7;color:var(--ink-soft);font-size:12px}.premio-source-note.warn{border-left-color:var(--amber);background:var(--amber-soft);color:#6F4300}
     .problem-line-chart .equiv-extra-segment{fill:#7C3AED;stroke:#4C1D95;stroke-width:1;opacity:.88}.problem-line-chart .equiv-extra-segment.animating-equivalence{animation:equiv-in .95s cubic-bezier(.2,.72,.24,1) both}@keyframes equiv-in{from{transform:translate(-90px,55px);opacity:.05}65%{opacity:.95}to{transform:translate(0,0);opacity:.88}}#tabla-calculo-pago-grupal-detalle tbody tr,#tabla-calculo-pago-grupal-legajos tbody tr{cursor:pointer}#tabla-calculo-pago-grupal-detalle tbody tr.active{outline:2px solid var(--amber);outline-offset:-2px;background:#FFF0C2!important;color:#6B4300}#tabla-calculo-pago-grupal-legajos tbody tr.active{outline:2px solid var(--green);outline-offset:-2px;background:var(--green-soft)!important;color:#14532D}
     @media(max-width:1200px){.premio-sector-grid,.premio-scale-grid{grid-template-columns:1fr}}
@@ -46,7 +47,8 @@
     #tabla-evaluacion-pago-actual td{font-size:10px;padding:6px 7px;white-space:nowrap;line-height:1.1}
     .scenario-chart{display:grid;gap:8px;margin-top:10px}.scenario-bar-row{display:grid;grid-template-columns:180px 1fr 130px;gap:8px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px}.scenario-bar-track{height:18px;background:#EEF2EE;border:1px solid var(--rule);overflow:hidden}.scenario-bar-fill{height:100%;background:var(--blue)}.scenario-bar-value{text-align:right;white-space:nowrap}.scenario-bell{width:100%;height:auto;min-height:260px;background:#F8FAF7;border:1px solid var(--rule)}.scenario-bell .axis{stroke:var(--rule-strong);stroke-width:1}.scenario-bell .grid{stroke:var(--rule);stroke-width:1}.scenario-bell .area{fill:var(--blue);opacity:.16}.scenario-bell .line{fill:none;stroke:var(--blue);stroke-width:3}.scenario-bell .point{fill:var(--blue);stroke:var(--panel);stroke-width:2}.scenario-bell text{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.absence-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,360px);gap:20px;align-items:start;margin-top:10px}.absence-chart{display:grid;grid-template-columns:190px 1fr;gap:18px;align-items:center}.absence-config{border-left:1px solid var(--rule);padding-left:16px}.absence-check-list{display:grid;gap:6px;margin-top:9px;max-height:260px;overflow:auto}.absence-check-item{display:flex;gap:8px;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px}.absence-check-item input{accent-color:var(--green)}.absence-pie{width:170px;height:170px;border-radius:50%;border:1px solid var(--rule-strong);justify-self:center}.absence-legend{display:grid;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:10px}.absence-legend-row{display:grid;grid-template-columns:12px 1fr auto;gap:7px;align-items:center}.absence-dot{width:11px;height:11px;display:block}.scenario-chart-note{color:var(--ink-soft);font-size:11px;margin-top:5px}.scenario-empty{color:var(--ink-soft);padding:12px;border-left:3px solid var(--amber);background:var(--amber-soft)}
     @media(max-width:700px){.scenario-bar-row{grid-template-columns:125px 1fr 95px}.absence-layout,.absence-chart{grid-template-columns:1fr}.absence-config{border-left:0;border-top:1px solid var(--rule);padding:12px 0 0}}
-    .scenario-editor-grid{display:grid;grid-template-columns:1fr 1.3fr auto;gap:10px;align-items:end;margin:10px 0}.scenario-editor-wrap{max-height:360px}.scenario-editor-input{width:110px;height:30px;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;padding:0 7px}.scenario-results-panel{border-top:3px solid var(--blue)}
+    .scenario-editor-grid{display:grid;grid-template-columns:1fr 1.3fr auto;gap:10px;align-items:end;margin:10px 0}.scenario-editor-wrap{max-height:360px}.scenario-editor-input{width:110px;height:30px;border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;padding:0 7px}.scenario-results-panel{border-top:3px solid var(--blue)}.scenario-version-panel .field:has(#scenario-description){display:none}.scenario-howto{margin:8px 0;color:var(--ink-soft)}
+    .scenario-sector-chips{display:flex;flex-wrap:wrap;gap:4px;min-width:240px}.scenario-sector-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--rule);padding:3px 5px;background:#F8FAF7;font-family:'IBM Plex Mono',monospace;font-size:9px;white-space:nowrap}.scenario-sector-chip i{display:inline-block;height:4px;background:var(--blue);min-width:4px}.scenario-sector-chip strong{font-weight:600}
   </style>
 </head>
 <body>
@@ -75,6 +77,8 @@
       <button class="tab-btn" data-tab="evaluacion-picking">Evaluación Picking</button>
       <button class="tab-btn" data-tab="calculo-pago-grupal">Cálculo Pago Grupal</button>
       <button class="tab-btn" data-tab="propuesta-autonoma">Premio individual</button>
+      <button class="tab-btn" data-tab="analisis-operaciones">Análisis general</button>
+      <button class="tab-btn" data-tab="tendencia-operativa">Tendencia</button>
     </div>
     <details class="audit-tabs">
       <summary>Histórico / Auditoría — versiones previas conservadas</summary>
@@ -99,6 +103,8 @@
       <button class="tab-btn" data-tab="calculo-pago-grupal">CÃ¡lculo Pago Grupal</button>
       <button class="tab-btn hidden" data-tab="estudio" id="tab-estudio-legacy">Estudio</button>
       <button class="tab-btn" data-tab="propuesta-autonoma">Premio individual</button>
+      <button class="tab-btn" data-tab="analisis-operaciones">Análisis general</button>
+      <button class="tab-btn" data-tab="tendencia-operativa">Tendencia</button>
       <button class="tab-btn" data-tab="detalle">Datos</button>
       <button class="tab-btn" data-tab="cache">Metodologia/cache</button>
     </div>
@@ -254,19 +260,21 @@
       <p style="margin:8px 0 0;color:var(--ink-soft)">El aumento modifica únicamente la productividad individual. Las bolsas se distribuyen por separado; si adicionales queda en $0, el pago final se muestra como productividad ajustada + grupal. El escenario se recalcula automáticamente al modificar cualquier valor.</p>
     </article>
     <article class="data-panel scenario-version-panel" style="margin-top:12px;border-left:3px solid var(--blue)">
-      <div class="chart-title"><strong>Escenarios sectoriales versionados</strong><span>la base original no se modifica</span></div>
+      <div class="chart-title"><strong>Probar una mejora por sector</strong><span>no modifica el cálculo actual</span></div>
+      <p class="scenario-howto"><strong>1.</strong> Elegí una propuesta. <strong>2.</strong> Presioná calcular. <strong>3.</strong> Revisá el impacto por legajo.</p>
       <p style="margin:8px 0;color:var(--ink-soft)">Definí un ajuste por sector y simulá el impacto sobre el pago individual. El resultado queda guardado como escenario separado y puede publicarse sin reemplazar la tabla base.</p>
       <div class="scenario-editor-grid">
+        <div class="field"><label class="label" for="scenario-preset">Propuesta</label><select class="paper-select" id="scenario-preset"><option value="critical30">+30% en sectores seleccionados</option><option value="base">Sin ajuste sectorial</option><option value="custom">Ajuste personalizado</option></select></div>
         <div class="field"><label class="label" for="scenario-name">Nombre del escenario</label><input class="paper-input" id="scenario-name" value="Propuesta +30% sectores críticos"></div>
         <div class="field"><label class="label" for="scenario-description">Descripción</label><input class="paper-input" id="scenario-description" value="Ajuste sectorial preservando la escala base"></div>
-        <button class="primary-cta" id="scenario-simulate" type="button">Simular escenario</button>
+        <button class="primary-cta" id="scenario-simulate" type="button">Calcular y guardar</button>
       </div>
       <div class="table-wrap scenario-editor-wrap"><table class="paper-table" id="tabla-scenario-sectores"></table></div>
-      <div class="tool-row"><button class="secondary-cta" id="scenario-load-default" type="button">Cargar propuesta +30%</button><button class="secondary-cta" id="scenario-clear" type="button">Limpiar ajustes</button><select class="paper-select" id="scenario-saved-select"><option value="">Sin escenarios guardados</option></select><button class="secondary-cta" id="scenario-load-saved" type="button">Cargar guardado</button><span class="scenario-chart-note" id="scenario-status">Sin escenario simulado.</span></div>
+      <div class="tool-row"><button class="secondary-cta" id="scenario-load-default" type="button">Cargar propuesta +30%</button><button class="secondary-cta" id="scenario-clear" type="button">Limpiar ajustes</button><button class="secondary-cta" id="scenario-recalc-group" type="button">Recalcular grupal con el monto ingresado</button><select class="paper-select" id="scenario-saved-select"><option value="">Sin escenarios guardados</option></select><button class="secondary-cta" id="scenario-load-saved" type="button">Cargar guardado</button><span class="scenario-chart-note" id="scenario-status">Sin escenario simulado.</span></div>
     </article>
     <section class="kpi-row kpi-row-5" id="kpis-scenario"></section>
     <article class="data-panel scenario-results-panel" style="margin-top:12px">
-      <div class="chart-title"><strong>Impacto del escenario</strong><span>actual vs base vs ajustado</span></div>
+      <div class="chart-title"><strong>Comparación del pago individual</strong><span>sin ajuste vs con ajuste</span></div>
       <div class="scenario-chart-grid"><div id="grafico-scenario-totales" class="scenario-chart"></div><div id="grafico-scenario-sectores" class="scenario-chart"></div></div>
       <div class="table-wrap"><table class="paper-table" id="tabla-scenario-resultados"></table></div>
     </article>
@@ -352,6 +360,48 @@
       <div class="chart-title"><strong>Resultado congelado por legajo y día</strong><span id="punto0-meta">seleccionar el rango y cargar</span></div>
       <div class="table-wrap"><table class="paper-table" id="tabla-punto0"></table></div>
     </article>
+  </section>
+
+  <section class="paper-panel" id="panel-analisis-operaciones">
+    <div class="group-head-actions">
+      <div><div class="chart-title"><strong>Pagos de julio · todas las funciones</strong><span>caché Oracle · unidad logística efectiva · horas reloj</span></div></div>
+      <button class="primary-cta" id="analisis-operaciones-recalcular" type="button">Recalcular y guardar julio</button>
+    </div>
+    <p class="muted" style="margin:10px 0">El pago actual proviene de la liquidación. El nuevo método calcula por la unidad logística real registrada en <strong>PV_ETAPA_CAB/DET</strong>, sin conversiones. Los casos sin escala o con más de una unidad/grupo quedan identificados como no comparables.</p>
+    <div class="problem-viewbar" style="margin-top:10px"><button type="button" class="problem-view-btn active" id="analisis-tab-medibles">Medibles</button><button type="button" class="problem-view-btn" id="analisis-tab-no-medibles">No medibles</button></div>
+    <p id="analisis-operaciones-view-note" class="scenario-chart-note">Medibles: se comparan únicamente registros con producción efectiva y escala aplicable.</p>
+    <section class="kpi-row kpi-row-5" id="kpis-analisis-operaciones"></section>
+    <section class="data-grid">
+      <article class="chart-panel"><div class="chart-title"><strong>Diferencia global por función</strong><span>nuevo método − actual</span></div><div id="chart-analisis-operaciones" class="insight-chart"></div></article>
+      <article class="chart-panel"><div class="chart-title"><strong>Motivos de diferencia</strong><span>trazabilidad del cálculo</span></div><div id="chart-analisis-motivos" class="insight-chart"></div></article>
+    </section>
+    <article class="data-panel" style="margin-top:12px"><div class="chart-title"><strong>Funciones con pago y escala ajustada</strong><span>el porcentaje se puede parametrizar por función, UL y sector</span></div><div class="table-wrap"><table class="paper-table" id="tabla-analisis-operaciones"></table></div></article>
+    <article class="data-panel" style="margin-top:12px"><div class="chart-title"><strong>Detalle de escalas</strong><span>base vs ajuste aplicado</span></div><div class="table-wrap"><table class="paper-table" id="tabla-analisis-escalas"></table></div></article>
+    <article class="data-panel" style="margin-top:12px"><div class="chart-title"><strong>Impacto individual</strong><span id="analisis-operaciones-detalle-title">todas las funciones</span></div><div class="table-wrap"><table class="paper-table" id="tabla-analisis-operaciones-legajos"></table></div></article>
+    <article class="data-panel" style="margin-top:12px"><div class="chart-title"><strong>Detalle de cálculo</strong><span>producción real, horas, escala y motivo</span></div><div class="table-wrap"><table class="paper-table" id="tabla-analisis-operaciones-detalle"></table></div></article>
+  </section>
+
+  <section class="paper-panel" id="panel-tendencia-operativa">
+    <div class="group-head-actions">
+      <div><div class="chart-title"><strong>Diagnóstico temporal de productividad</strong><span>Oracle · agrupado por mes</span></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="primary-cta" id="tendencia-consultar" type="button">Consultar tendencia</button><button class="secondary-cta" id="tendencia-exportar-pdf" type="button">Exportar PDF</button></div>
+    </div>
+    <p class="muted" style="margin:10px 0">Permite superponer conceptos de escala distinta sin mezclar unidades: dotación, jornadas, producción real, producción convertida, conversión y premio positivo.</p>
+    <section class="kpi-row kpi-row-5" id="kpis-tendencia-operativa"></section>
+    <section class="tendencia-controls">
+      <div class="field"><label class="label" for="tendencia-operacion">Operación</label><select class="paper-select" id="tendencia-operacion"><option value="CARGA">CARGA</option><option value="CARRETEO">CARRETEO</option></select></div>
+      <div class="field"><label class="label" for="tendencia-grupo">Grupo productivo</label><select class="paper-select" id="tendencia-grupo"><option value="0">Todos</option><option value="19">Área secos y no alimentos (19)</option><option value="21">Secos + NOA (21)</option><option value="18">Cámara 06 (18)</option><option value="41">Otras cámaras (41)</option></select></div>
+      <div class="field"><label class="label">Series visibles</label><div id="tendencia-series" class="tendencia-series"></div></div>
+    </section>
+    <section class="tendencia-grid">
+      <article class="chart-with-insight"><div class="chart-panel"><div class="chart-title"><strong>Universo y carga por persona</strong><span>escala propia</span></div><div id="chart-tendencia-universo"></div></div><aside class="tendencia-insight" id="insight-tendencia-universo"></aside></article>
+      <article class="chart-with-insight"><div class="chart-panel"><div class="chart-title"><strong>Producción real y convertida</strong><span>escala propia</span></div><div id="chart-tendencia-produccion"></div></div><aside class="tendencia-insight" id="insight-tendencia-produccion"></aside></article>
+      <article class="chart-with-insight executive-wide"><div class="chart-panel"><div class="chart-title"><strong>Conversión relativa y acceso a premio</strong><span>equivalentes sobre producción real · %</span></div><div id="chart-tendencia-conversion"></div></div><aside class="tendencia-insight" id="insight-tendencia-conversion"></aside></article>
+      <article class="chart-with-insight executive-wide"><div class="chart-panel"><div class="chart-title"><strong>Consolidación: bultos alcanzados vs equivalentes generados</strong><span>comparación mensual</span></div><div id="chart-tendencia-consolidacion"></div></div><aside class="tendencia-insight" id="insight-tendencia-consolidacion"></aside></article>
+      <article class="chart-with-insight"><div class="chart-panel"><div class="chart-title"><strong>Continuidad mensual del premio por legajo</strong><span>% de jornadas con premio</span></div><div id="chart-tendencia-continuidad"></div></div><aside class="tendencia-insight" id="insight-tendencia-continuidad"></aside></article>
+      <article class="chart-with-insight"><div class="chart-panel"><div class="chart-title"><strong>Legajos que alcanzan cada nivel</strong><span>cantidad acumulada por mes</span></div><div id="chart-tendencia-niveles"></div></div><aside class="tendencia-insight" id="insight-tendencia-niveles"></aside></article>
+    </section>
+    <article class="data-panel" style="margin-top:12px"><div class="chart-title"><strong>Datos mensuales</strong><span>clic en encabezados para ordenar</span></div><div class="table-wrap"><table class="paper-table" id="tabla-tendencia-operativa"></table></div></article>
   </section>
 
   <section class="paper-panel" id="panel-estudio">
@@ -471,7 +521,7 @@
       Object.entries(GROUP_FIXED_BY_DIVISION_DEFAULTS).map(([division, value]) => [`${operacion}|${division}`, value])
     )
   );
-  const state = {activeTab:'tabla-premios', propuestaAutonomaView:'bultos', escenarioAumentoTabla:0, escenarioBolsaGrupal:10000000, escenarioBolsaAdicional:0, scenarioSectors:[], scenarioResult:null, scenarioLoading:false, hasConsulted:false, loading:false, evaluacionPickingLoading:false, calculoPagoGrupalLoading:false, punto0Loading:false, loadError:'', fechaDesde:'', fechaHasta:'', operacion:'PICKING', almacen:'TODOS', loadGeneration:0, tabLoadKeys:{}, tabPromises:{}, tabAbortControllers:{}, tabNavigationGeneration:0, ausenciaCatalogo:[], ausenciasNoComputables:['VACAC','FRANCO'], ausenciaScenarioPending:[], resumenRows:[], detalleResumenRows:[], detalleRows:[], detalleGridRows:[], detalleGridTotal:0, groupFixedDaily:{...GROUP_FIXED_DEFAULTS}, groupMarginPct:90, groupBonusRows:[], groupFilters:{almacen:'TODOS', fecha:'', legajo:''}, groupLegajoSelected:'', estudio:null, estudioFilters:{sector:[], estado:'', tipo:'', texto:''}, estudioOperacionSelected:null, estudioEnabled:false, tablaPremios:null, evaluacionPicking:null, evaluacionPickingLegajoFilter:'', evaluacionPickingSelected:'', evaluacionPickingDaySelected:'', evaluacionPickingHourSelected:'', calculoPagoGrupal:null, punto0:null, calculoPagoGrupalSectorSelected:'', calculoPagoGrupalSelectedDate:'', calculoPagoGrupalLegajoSelected:'', sorts:{}, explicacion:null};
+  const state = {activeTab:'tabla-premios', propuestaAutonomaView:'bultos', escenarioAumentoTabla:0, escenarioBolsaGrupal:10000000, escenarioBolsaAdicional:0, scenarioSectors:[], scenarioResult:null, scenarioLoading:false, hasConsulted:false, loading:false, evaluacionPickingLoading:false, calculoPagoGrupalLoading:false, punto0Loading:false, loadError:'', fechaDesde:'', fechaHasta:'', operacion:'PICKING', almacen:'TODOS', loadGeneration:0, tabLoadKeys:{}, tabPromises:{}, tabAbortControllers:{}, tabNavigationGeneration:0, ausenciaCatalogo:[], ausenciasNoComputables:['VACAC','FRANCO'], ausenciaScenarioPending:[], resumenRows:[], detalleResumenRows:[], detalleRows:[], detalleGridRows:[], detalleGridTotal:0, groupFixedDaily:{...GROUP_FIXED_DEFAULTS}, groupMarginPct:90, groupBonusRows:[], groupFilters:{almacen:'TODOS', fecha:'', legajo:''}, groupLegajoSelected:'', estudio:null, estudioFilters:{sector:[], estado:'', tipo:'', texto:''}, estudioOperacionSelected:null, estudioEnabled:false, tablaPremios:null, evaluacionPicking:null, evaluacionPickingLegajoFilter:'', evaluacionPickingSelected:'', evaluacionPickingDaySelected:'', evaluacionPickingHourSelected:'', calculoPagoGrupal:null, punto0:null, operacionesGeneral:null, operacionesGeneralSelected:'', operacionesGeneralView:'medibles', tendenciaOperativa:null, tendenciaSeries:new Set(['legajos','prod_real','eq_total','pct_eq_sobre_real','pct_eq_sector_sobre_real','pct_eq_traslado_sobre_real','pct_eq_consol_sobre_real','pct_premio']), operacionesGeneralAdjustments:{'PICKING|BULTO|B1':30,'PICKING|BULTO|AM':30,'PICKING|BULTO|PI':30,'PICKING|BULTO|N1':30,'PICKING|BULTO|VA':30}, calculoPagoGrupalSectorSelected:'', calculoPagoGrupalSelectedDate:'', calculoPagoGrupalLegajoSelected:'', sorts:{}, explicacion:null};
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmt = value => new Intl.NumberFormat('es-AR', {maximumFractionDigits:2}).format(Number(value || 0));
   const money = value => '$ ' + fmt(value);
@@ -558,6 +608,7 @@
     state.ausenciaScenarioPending = [];
     state.ausenciasNoComputables = ['VACAC','FRANCO'];
     state.punto0 = null;
+    state.operacionesGeneral = null;
     state.evaluacionPickingSelected = '';
     state.evaluacionPickingDaySelected = '';
   }
@@ -572,14 +623,19 @@
     const isCalculoPagoGrupal = tab === 'calculo-pago-grupal';
     const isPropuestaAutonoma = tab === 'propuesta-autonoma';
     const isPunto0 = tab === 'punto0';
+    const isAnalisisOperaciones = tab === 'analisis-operaciones';
+    const isTendencia = tab === 'tendencia-operativa';
+    $('main-filters').classList.toggle('hidden', isTendencia);
     $('main-filters').classList.toggle('study-mode', isStudy);
     ['rango-desde','rango-hasta'].forEach(id => $(id)?.closest('.field')?.classList.toggle('hidden', isTablaPremios));
-    document.querySelectorAll('.scenario-filter').forEach(el => el.classList.toggle('hidden', isStudy || isTablaPremios || isEvaluacionPicking || isCalculoPagoGrupal || isPropuestaAutonoma || isPunto0));
-    $('scope-label').textContent = isStudy ? 'Estudio transversal' : isTablaPremios ? 'Foto de escalas' : isEvaluacionPicking ? 'Evaluación local' : 'Ciclo diario';
+    document.querySelectorAll('.scenario-filter').forEach(el => el.classList.toggle('hidden', isStudy || isTablaPremios || isEvaluacionPicking || isCalculoPagoGrupal || isPropuestaAutonoma || isPunto0 || isAnalisisOperaciones || isTendencia));
+    $('scope-label').textContent = isStudy ? 'Estudio transversal' : isTablaPremios ? 'Foto de escalas' : isEvaluacionPicking ? 'Evaluación local' : isAnalisisOperaciones ? 'Análisis general' : 'Ciclo diario';
     $('scope-text').textContent = isStudy
       ? 'Rango calendario contra Oracle Productiv. No aplica operacion, division ni escenario horario.'
       : isTablaPremios ? 'Escala vigente capturada localmente. Los cambios Oracle se informan y no reemplazan la foto.'
       : isEvaluacionPicking ? 'Bultos reales por hora y sector. Se consulta Oracle sólo para días aún no cargados.'
+      : isAnalisisOperaciones ? 'Julio: caché de pagos actuales y simulación por unidad logística efectiva.'
+      : isTendencia ? 'Serie mensual desde enero de 2024. Consulta separada de liquidación y producción.'
       : 'Incluye ambos extremos - 06:00 a 06:00 - siempre desde cache';
   }
   async function setupDefaultCachedDate(){
@@ -1328,7 +1384,13 @@
     bindScenarioInput('escenario-bolsa-grupal-grupo','escenarioBolsaGrupal');
     const sectores = data.sectores || [];
     renderAusenciaConfig(data);
-    const selected = state.calculoPagoGrupalSectorSelected || '';
+    let selected = state.calculoPagoGrupalSectorSelected || '';
+    if (selected && !sectores.some(row => String(row.sector || '') === String(selected))) {
+      state.calculoPagoGrupalSectorSelected = '';
+      state.calculoPagoGrupalSelectedDate = '';
+      state.calculoPagoGrupalLegajoSelected = '';
+      selected = '';
+    }
     $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotación desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nómina activa'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'días evaluados')].join('');
     $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotación desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nómina activa'), kpi('Bolsa grupal', money(data.meta?.bolsa_grupal || 0), 'pago actual menos método nuevo', 'warn'), kpi('Días habilitados', fmt(data.meta?.dias_habilitados || 0), 'cumplimiento >= 90%'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'días evaluados')].join('');
     $('kpis-calculo-pago-grupal').innerHTML = [kpi('Sectores', fmt(sectores.length), 'dotación desde legajero'), kpi('Legajos', fmt(data.meta?.dotacion_legajos || 0), 'nómina activa'), kpi('Bolsa escenario', money(state.escenarioBolsaGrupal || 0), 'parámetro de simulación', 'warn'), kpi('Días habilitados', fmt(data.meta?.dias_habilitados || 0), 'cumplimiento >= 90%'), kpi('Rango', `${data.meta?.fecha_desde || ''} a ${data.meta?.fecha_hasta || ''}`, 'días evaluados')].join('');
@@ -1336,7 +1398,7 @@
     const sectorCols = [{key:'sector',label:'Sector',mono:true},{key:'legajos_totales',label:'Legajos',num:true},{key:'dias',label:'Días evaluados',num:true},{key:'dias_con_premio',label:'Días habilitados (≥90%)',num:true},{key:'porcentaje_dias_con_premio',label:'% días habilitados',format:value=>`${fmt(value)} %`}];
     table('tabla-calculo-pago-grupal-sectores', sectorCols, sectores);
     const ordered = sortedRows('tabla-calculo-pago-grupal-sectores', sectorCols, sectores);
-    $('tabla-calculo-pago-grupal-sectores').querySelectorAll('tbody tr').forEach((tr,index)=>{ const row=ordered[index]; tr.classList.toggle('active', row?.sector === selected); tr.onclick=event=>{event.stopPropagation(); const next=row?.sector || ''; state.calculoPagoGrupalSectorSelected=next === selected ? '' : next; state.calculoPagoGrupalSelectedDate=''; state.calculoPagoGrupalLegajoSelected=''; renderCalculoPagoGrupal();}; });
+    $('tabla-calculo-pago-grupal-sectores').querySelectorAll('tbody tr').forEach((tr,index)=>{ const row=ordered[index]; tr.classList.toggle('active', row?.sector === selected); tr.onclick=event=>{event.stopPropagation(); if(!row?.sector) return; const next=String(row.sector); state.calculoPagoGrupalSectorSelected=next === String(selected) ? '' : next; state.calculoPagoGrupalSelectedDate=''; state.calculoPagoGrupalLegajoSelected=''; renderCalculoPagoGrupal();}; });
     const detail=(data.detalle||[]).filter(row=>!selected || row.sector===selected);
     $('calculo-pago-grupal-detalle-title').textContent=selected ? `Detalle diario · ${selected}` : 'Detalle diario del sector';
     const detailCols=[{key:'sector',label:'Sector',mono:true},{key:'fecha',label:'Fecha',mono:true},{key:'dotacion_activa',label:'NÃ³mina activa',num:true},{key:'ausencias_no_computables',label:'Ausencias excluidas',num:true},{key:'legajos_totales',label:'Target',num:true},{key:'legajos_con_premio',label:'Legajos con premio',num:true},{key:'cumplimiento',label:'Cumplimiento',format:value=>`${fmt(value)} %`}];
@@ -1354,7 +1416,7 @@
       event.stopPropagation();
       const index=Array.from(tr.parentElement.children).indexOf(tr);
       const currentRows=sortedRows('tabla-calculo-pago-grupal-detalle',detailCols,detail);
-      const next=currentRows[index]?.fecha||'';
+      const next=currentRows[index]?.fecha||tr.dataset.fecha||'';
       state.calculoPagoGrupalSelectedDate=next===state.calculoPagoGrupalSelectedDate?'':next;
       state.calculoPagoGrupalLegajoSelected='';
       renderCalculoPagoGrupal();
@@ -1370,7 +1432,7 @@
       return {...row, adicional_bultos:Number(distribucion.adicional_bultos || 0), adicional_horas:Number(distribucion.adicional_horas || 0)};
     });
     $('calculo-pago-grupal-legajos-title').textContent = selected && state.calculoPagoGrupalSelectedDate ? `Legajos · ${selected} · ${state.calculoPagoGrupalSelectedDate}` : 'Detalle de legajos';
-    const legajoCols=[{key:'sector',label:'Sector',mono:true},{key:'fecha',label:'Fecha',mono:true},{key:'legajo',label:'Legajo',mono:true},{key:'incluido_target',label:'Incluido en target',format:value=>value?'Incluido':'No incluido'},{key:'bultos',label:'Bultos',format:value=>fmt(value)},{key:'premio_nuevo',label:'Premio nuevo',money:true},{key:'adicional_bultos',label:'Adic. proporcional bultos',money:true},{key:'adicional_horas',label:'Adic. proporcional horas',money:true},{key:'motivo_ausencia',label:'Motivo ausencia'}];
+    const legajoCols=[{key:'sector',label:'División del legajero',mono:true},{key:'fecha',label:'Fecha',mono:true},{key:'legajo',label:'Legajo',mono:true},{key:'incluido_target',label:'Incluido en target',format:value=>value?'Incluido':'No incluido'},{key:'bultos',label:'Bultos reales',format:value=>fmt(value)},{key:'premio_nuevo',label:'Premio nuevo',money:true},{key:'adicional_bultos',label:'Adic. proporcional bultos',money:true},{key:'adicional_horas',label:'Adic. proporcional horas',money:true},{key:'motivo_ausencia',label:'Motivo ausencia'},{key:'evidencia_productiv',label:'Evidencia Productiv'}];
     table('tabla-calculo-pago-grupal-legajos', legajoCols, legajoDetailConDistribucion);
     const orderedLegajos=sortedRows('tabla-calculo-pago-grupal-legajos',legajoCols,legajoDetailConDistribucion);
     $('tabla-calculo-pago-grupal-legajos').querySelectorAll('tbody tr').forEach((tr,index)=>{const row=orderedLegajos[index];const key=row?`${row.sector}|${row.fecha}|${row.legajo}`:'';tr.classList.toggle('active',key===state.calculoPagoGrupalLegajoSelected);tr.onclick=event=>{event.stopPropagation();state.calculoPagoGrupalLegajoSelected=key===state.calculoPagoGrupalLegajoSelected?'':key;renderCalculoPagoGrupal();};});
@@ -3363,11 +3425,16 @@
       .detalle-chart{height:auto!important;min-height:310px!important;overflow:visible!important}
       .detalle-chart .problem-line-chart{height:auto!important}
       .table-wrap,.modal-body .table-wrap{max-height:none!important;overflow:visible!important}
+      .chart-with-insight{grid-template-columns:minmax(0,1fr) 270px!important;break-inside:avoid!important;margin:0 0 10px!important}
+      .tendencia-grid{display:block!important}
+      .tendencia-insight{font-size:10px!important;line-height:1.35!important}
+      .tendencia-chart,.tendencia-chart svg{height:230px!important}
       .paper-table{font-size:10px!important;page-break-inside:auto!important}
       .paper-table tr{break-inside:avoid!important}
       .paper-table th,.paper-table td{padding:5px 6px!important}
       .print-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5C6773;margin:0 0 8px}
       ${mode === 'detalle' ? '.paper-table{table-layout:auto!important}.problem-chart{border-left:0!important;border-bottom:0!important}' : ''}
+      ${mode === 'tendencia' ? '.paper-header{margin-bottom:6px!important}.tendencia-grid{margin-top:8px!important}' : ''}
     `;
     win.document.open();
     win.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(title)}</title><style>${baseStyle}</style><style>${printStyle}</style></head><body>${contentHtml}</body></html>`);
@@ -3409,6 +3476,22 @@
     wrapper.append(panel);
     const title = $('detalle-title').textContent || 'Detalle por legajo';
     printHtmlDocument(`Analisis Premio Productividad - ${title}`, wrapper.outerHTML, 'detalle');
+  }
+  function exportarTendenciaPdf(){
+    if (!(state.tendenciaOperativa?.rows || []).length) {
+      setStatus('Consultá la tendencia antes de exportar el PDF.', true);
+      return;
+    }
+    const wrapper = document.createElement('div'); wrapper.className = 'paper-app';
+    const header = document.querySelector('.paper-header').cloneNode(true);
+    const panel = $('panel-tendencia-operativa').cloneNode(true); panel.classList.add('active');
+    panel.querySelector('.tendencia-controls')?.remove();
+    removePrintControls(header); removePrintControls(panel);
+    const meta = document.createElement('div'); meta.className = 'print-meta';
+    const params = state.tendenciaOperativa.meta || {};
+    meta.textContent = `Exportado ${new Date().toLocaleString('es-AR')} - Rango ${params.fecha_desde || '2024-01-01'} a ${params.fecha_hasta || maxQueryDate()} - ${params.operacion || $('tendencia-operacion').value} / Grupo ${params.grupo_productivo || $('tendencia-grupo').value || 'Todos'}`;
+    wrapper.append(header, meta, panel);
+    printHtmlDocument('Analisis Premio Productividad - Tendencia', wrapper.outerHTML, 'tendencia');
   }
   function renderFijosGrupalModal(){
     const almacenes = Object.keys(GROUP_FIXED_BY_DIVISION_DEFAULTS);
@@ -3501,31 +3584,52 @@
     }
   }
   function scenarioSectorNames(){
-    const source=state.tablaPremios||{}; const rows=source.escalas_sector_hora||[]; const names=[...new Set(rows.map(row=>String(row.sector||'').trim()).filter(Boolean))];
+    const source=state.tablaPremios||{}; const rows=source.sectores||[]; const names=[...new Set(rows.map(row=>String(row.sector||'').trim()).filter(Boolean))];
     return names.sort((a,b)=>a.localeCompare(b,'es'));
   }
   function renderScenarioEditor(){
     const target=$('tabla-scenario-sectores'); if(!target) return;
     const rows=state.scenarioSectors||[];
-    target.innerHTML=`<thead><tr><th>Sector</th><th>Grupo productivo</th><th>Aumento premio %</th><th>Ajuste umbral %</th><th>Uso</th></tr></thead><tbody>${rows.map((row,index)=>`<tr><td class="mono">${esc(row.sector)}</td><td>${esc(row.grupo||'-')}</td><td><input class="scenario-editor-input" data-scenario-index="${index}" data-scenario-field="premio_pct" type="number" min="-100" max="300" step="5" value="${Number(row.premio_pct||0)}"></td><td><input class="scenario-editor-input" data-scenario-index="${index}" data-scenario-field="umbral_pct" type="number" min="-90" max="90" step="5" value="${Number(row.umbral_pct||0)}"></td><td>${row.premio_pct||row.umbral_pct ? '<span class="pill warn">Ajustado</span>' : '<span class="pill">Base</span>'}</td></tr>`).join('')||'<tr><td colspan="5">Cargando sectores...</td></tr>'}</tbody>`;
+    target.innerHTML=`<thead><tr><th>Sector</th><th>Grupo productivo</th><th>Aumento premio %</th><th>Ajuste umbral %</th><th>Uso</th></tr></thead><tbody>${rows.map((row,index)=>`<tr><td class="mono">${esc(row.sector)}</td><td>${esc(row.grupo||'-')}</td><td><input class="scenario-editor-input" data-scenario-index="${index}" data-scenario-field="premio_pct" type="number" min="-100" max="300" step="5" value="${Number(row.premio_pct||0)}"></td><td><input class="scenario-editor-input" data-scenario-index="${index}" data-scenario-field="umbral_pct" type="number" min="-90" max="90" step="5" value="${Number(row.umbral_pct||0)}"></td><td>${row.premio_pct||row.umbral_pct ? '<span class="pill warn">Ajustado</span>' : '<span class="pill">Base</span>'}</td></tr>`).join('')||'<tr><td colspan="5">No se encontraron sectores en la tabla de premios.</td></tr>'}</tbody>`;
     target.querySelectorAll('[data-scenario-index]').forEach(input=>input.onchange=()=>{const item=state.scenarioSectors[Number(input.dataset.scenarioIndex)]; if(item) { item[input.dataset.scenarioField]=Number(input.value||0); renderScenarioEditor(); }});
   }
   function loadDefaultScenarioSectors(){
     const critical=new Set(['B1','AM','PI','N1','VA']);
     state.scenarioSectors=scenarioSectorNames().map(sector=>{const meta=(state.tablaPremios?.sectores||[]).find(row=>String(row.sector||'').trim()===sector)||{}; return {sector,grupo:meta.grupo_productivo||'',premio_pct:critical.has(sector)?30:0,umbral_pct:0};});
-    renderScenarioEditor(); $('scenario-status').textContent='Propuesta cargada: +30% en B1, AM, PI, N1 y VA.';
+    renderScenarioEditor(); if($('scenario-preset')) $('scenario-preset').value='critical30'; $('scenario-status').textContent='Propuesta cargada: +30% en B1, AM, PI, N1 y VA.';
+  }
+  function applyScenarioPreset(value){
+    if(value==='critical30') loadDefaultScenarioSectors();
+    if(value==='base') { state.scenarioSectors=(state.scenarioSectors||[]).map(row=>({...row,premio_pct:0,umbral_pct:0})); renderScenarioEditor(); $('scenario-status').textContent='Sin ajuste sectorial: se muestra la base nueva.'; }
+    if(value==='custom') $('scenario-status').textContent='Editá los sectores desde “Modificar sectores manualmente”.';
   }
   function renderScenarioCharts(result){
-    const s=result?.scenario||{}; const totals=[{label:'Actual',value:Number(s.total_actual||0)},{label:'Base nueva',value:Number(s.total_base||0)},{label:'Escenario',value:Number(s.total_escenario||0)}];
+    const s=result?.scenario||{}; const totals=[{label:'Pago actual',value:Number(s.total_actual||0)},{label:'Sin ajuste',value:Number(s.total_base||0)},{label:'Con ajuste',value:Number(s.total_escenario||0)}];
     bars('grafico-scenario-totales',totals,'value','label');
-    const grouped=new Map(); (result?.rows||[]).forEach(row=>{const item=grouped.get(row.sector)||{label:row.sector,value:0}; item.value+=Number(row.diferencia||0); grouped.set(row.sector,item);});
+    const grouped=new Map(); (result?.rows||[]).forEach(row=>{const item=grouped.get(row.sector)||{label:row.sector,value:0}; item.value+=Number(row.impacto_ajuste ?? (Number(row.pago_escenario||0)-Number(row.pago_base||0))); grouped.set(row.sector,item);});
     bars('grafico-scenario-sectores',[...grouped.values()].sort((a,b)=>Math.abs(b.value)-Math.abs(a.value)),'value','label');
+  }
+  function scenarioSectorsVisual(value){
+    const parts=String(value||'').split(' · ').map(part=>{const match=part.match(/^(.+?)\s+\((\d+)d\)$/); return match?{sector:match[1],days:Number(match[2])}:{sector:part,days:0};}).filter(item=>item.sector);
+    const max=Math.max(1,...parts.map(item=>item.days));
+    return `<div class="scenario-sector-chips">${parts.map(item=>`<span class="scenario-sector-chip" title="${esc(item.sector)}: ${item.days} días"><strong>${esc(item.sector)}</strong><i style="width:${Math.max(8,item.days/max*34)}px"></i><span>${item.days}d</span></span>`).join('')}</div>`;
+  }
+  function recalculateScenarioGroup(){
+    const result=state.scenarioResult; if(!result?.scenario) { $('scenario-status').textContent='Primero calculá o cargá un escenario.'; return; }
+    const desired=Math.max(0,Number($('escenario-bolsa-grupal')?.value||0));
+    const source=(state.calculoPagoGrupal?.distribucion_legajos||[]); const sourceMap=new Map(source.map(row=>[String(row.legajo),row]));
+    const sourceB=source.reduce((sum,row)=>sum+Number(row.adicional_bultos||0),0); const sourceH=source.reduce((sum,row)=>sum+Number(row.adicional_horas||0),0);
+    const rows=(result.rows||[]).map(row=>{const original=sourceMap.get(String(row.legajo))||row; const b=sourceB?desired*Number(original.adicional_bultos||0)/sourceB:0; const h=sourceH?desired*Number(original.adicional_horas||0)/sourceH:0; return {...row,grupal_bultos:b,grupal_horas:h};});
+    const totalB=rows.reduce((sum,row)=>sum+Number(row.grupal_bultos||0),0); const totalH=rows.reduce((sum,row)=>sum+Number(row.grupal_horas||0),0); const s={...result.scenario,total_grupal_bultos:totalB,total_grupal_horas:totalH};
+    state.scenarioResult={...result,scenario:s,rows}; renderScenarioResult(state.scenarioResult); $('scenario-status').textContent=`Grupal recalculado con ${money(desired)}. Bultos y horas son alternativas.`;
   }
   function renderScenarioResult(result){
     state.scenarioResult=result; const s=result?.scenario; if(!s){$('kpis-scenario').innerHTML=''; $('tabla-scenario-resultados').innerHTML=''; return;}
-    $('kpis-scenario').innerHTML=[kpi('Actual',money(s.total_actual),'referencia congelada'),kpi('Base nueva',money(s.total_base),'sin ajuste sectorial'),kpi('Escenario',money(s.total_escenario),'resultado simulado',s.diferencia_pct>=0?'ok':'warn'),kpi('Diferencia',signedMoney2(s.diferencia),`${fmt(s.diferencia_pct)} vs actual`,s.diferencia_pct>=0?'ok':'warn'),kpi('Legajos',fmt(s.legajos),'resultado individual')].join('');
-    table('tabla-scenario-resultados',[{key:'legajo',label:'Legajo',mono:true},{key:'sector',label:'Sector'},{key:'pago_actual',label:'Actual',money:true},{key:'pago_base',label:'Base nueva',money:true},{key:'pago_escenario',label:'Escenario',money:true},{key:'diferencia',label:'Diferencia',format:value=>signedMoney2(value)},{key:'diferencia_pct',label:'Dif. %',format:value=>value==null?'-':`${fmt(value)}%`}],result.rows||[],{maxRows:500});
-    renderScenarioCharts(result); $('scenario-status').textContent=`${s.nombre} · ${s.estado} · ${fmt(s.diferencia_pct)}% vs actual.`;
+    const rows=(result.rows||[]).map(row=>({...row,sectores_visual:scenarioSectorsVisual(row.sectores),total_bultos:Number(row.pago_escenario||0)+Number(row.grupal_bultos||0),total_horas:Number(row.pago_escenario||0)+Number(row.grupal_horas||0),dif_total_bultos:Number(row.pago_escenario||0)+Number(row.grupal_bultos||0)-Number(row.pago_actual||0),dif_total_horas:Number(row.pago_escenario||0)+Number(row.grupal_horas||0)-Number(row.pago_actual||0),impacto_ajuste:Number(row.pago_escenario||0)-Number(row.pago_base||0),impacto_ajuste_pct:Number(row.pago_base||0)?(Number(row.pago_escenario||0)-Number(row.pago_base||0))*100/Number(row.pago_base||0):null,dif_base_actual:Number(row.pago_base||0)-Number(row.pago_actual||0),dif_escenario_actual:Number(row.pago_escenario||0)-Number(row.pago_actual||0)}));
+    const ajusteTotal=Number(s.total_escenario||0)-Number(s.total_base||0), ajustePct=Number(s.total_base||0)?ajusteTotal*100/Number(s.total_base||0):null;
+    $('kpis-scenario').innerHTML=[kpi('Sin ajuste',money(s.total_base),'pago individual nuevo'),kpi('Con ajuste',money(s.total_escenario),'pago individual simulado',s.total_escenario>=s.total_base?'ok':'warn'),kpi('Total bultos',money(Number(s.total_escenario||0)+Number(s.total_grupal_bultos||0)),'individual + grupal bultos','ok'),kpi('Total horas',money(Number(s.total_escenario||0)+Number(s.total_grupal_horas||0)),'individual + grupal horas','ok'),kpi('Vs pago actual',signedMoney2(s.diferencia),`${fmt(s.diferencia_pct)}% · individual`,s.diferencia_pct>=0?'ok':'warn')].join('');
+    table('tabla-scenario-resultados',[{key:'legajo',label:'Legajo',mono:true},{key:'sectores_visual',label:'Sectores trabajados',format:value=>value},{key:'pago_base',label:'Individual sin ajuste',money:true},{key:'pago_escenario',label:'Individual con ajuste',money:true},{key:'grupal_bultos',label:'Grupal bultos',money:true},{key:'total_bultos',label:'Total bultos',money:true},{key:'dif_total_bultos',label:'Total bultos vs actual',format:value=>signedMoney2(value)},{key:'grupal_horas',label:'Grupal horas',money:true},{key:'total_horas',label:'Total horas',money:true},{key:'dif_total_horas',label:'Total horas vs actual',format:value=>signedMoney2(value)},{key:'pago_actual',label:'Pago actual · referencia',money:true}],rows,{maxRows:500});
+    renderScenarioCharts({...result,rows}); $('scenario-status').textContent=`${s.nombre} · ${s.estado} · impacto del ajuste: ${signedMoney2(ajusteTotal)} (${fmt(ajustePct)}%).`;
     const actions=$('scenario-status').parentElement; let publish=$('scenario-publish'); if(!publish){publish=document.createElement('button'); publish.id='scenario-publish'; publish.className='secondary-cta'; publish.textContent='Publicar escenario'; actions.insertBefore(publish,actions.lastElementChild); } publish.disabled=s.estado==='PUBLICADO'; publish.onclick=async()=>{await api(`/api/analisis-premio-productividad/escenarios/${encodeURIComponent(s.scenario_id)}/publicar`,{method:'POST'}); s.estado='PUBLICADO'; renderScenarioResult(result);};
   }
   async function loadScenarioModule(){
@@ -3533,12 +3637,129 @@
     if(!state.scenarioSectors.length) loadDefaultScenarioSectors(); else renderScenarioEditor();
     const list=await api('/api/analisis-premio-productividad/escenarios?' + qs({fecha_desde:state.fechaDesde,fecha_hasta:state.fechaHasta}));
     const select=$('scenario-saved-select'); if(select) select.innerHTML=(list.escenarios?.length ? list.escenarios.map(item=>`<option value="${esc(item.scenario_id)}">${esc(item.nombre)} · ${esc(item.estado)} · ${esc(item.created_at||'')}</option>`).join('') : '<option value="">Sin escenarios guardados</option>');
-    if(!state.scenarioResult) { const latest=list.escenarios?.[0]; if(latest) { state.scenarioResult=await api(`/api/analisis-premio-productividad/escenarios/${encodeURIComponent(latest.scenario_id)}`); renderScenarioResult(state.scenarioResult); } }
+    if(!state.scenarioResult) { $('scenario-status').textContent=list.escenarios?.length ? 'Hay escenarios guardados. Elegí uno y presioná “Ver guardado”, o calculá una nueva propuesta.' : 'Elegí una propuesta y presioná “Calcular y guardar”.'; }
   }
-  async function loadSavedScenario(){ const id=$('scenario-saved-select')?.value; if(!id) return; const result=await api(`/api/analisis-premio-productividad/escenarios/${encodeURIComponent(id)}`); state.scenarioResult=result; const config=result.scenario?.config||{}; const bySector=new Map((config.sectores||[]).map(row=>[String(row.sector||'').trim(),row])); state.scenarioSectors=(state.scenarioSectors||[]).map(row=>({...row,...(bySector.get(row.sector)||{}),sector:row.sector,grupo:row.grupo||''})); $('scenario-name').value=result.scenario?.nombre||''; $('scenario-description').value=result.scenario?.descripcion||''; renderScenarioEditor(); renderScenarioResult(result); }
+  async function loadSavedScenario(){ const id=$('scenario-saved-select')?.value; if(!id) return; const result=await api(`/api/analisis-premio-productividad/escenarios/${encodeURIComponent(id)}`); state.scenarioResult=result; const config=result.scenario?.config||{}; const bySector=new Map((config.sectores||[]).map(row=>[String(row.sector||'').trim(),row])); state.scenarioSectors=(state.scenarioSectors||[]).map(row=>({...row,...(bySector.get(row.sector)||{}),sector:row.sector,grupo:row.grupo||''})); $('scenario-name').value=result.scenario?.nombre||''; $('scenario-description').value=result.scenario?.descripcion||''; if($('scenario-preset')) $('scenario-preset').value='custom'; renderScenarioEditor(); renderScenarioResult(result); }
   async function simulateScenario(){
     if(state.scenarioLoading) return; state.scenarioLoading=true; $('scenario-simulate').disabled=true; $('scenario-status').textContent='Simulando sobre Punto 0 y cache local...';
     try { const payload={fecha_desde:$('rango-desde').value,fecha_hasta:$('rango-hasta').value,nombre:$('scenario-name').value||'Escenario sectorial',descripcion:$('scenario-description').value||'',sectores:(state.scenarioSectors||[]).filter(row=>Number(row.premio_pct||0)||Number(row.umbral_pct||0)).map(row=>({sector:row.sector,premio_pct:Number(row.premio_pct||0),umbral_pct:Number(row.umbral_pct||0)}))}; const result=await api('/api/analisis-premio-productividad/escenarios/simular',{method:'POST',body:JSON.stringify(payload)}); renderScenarioResult(result); } finally { state.scenarioLoading=false; $('scenario-simulate').disabled=false; }
+  }
+  function generalAdjustmentKey(row){ return `${row.operacion||''}|${row.id_unidad_logistica||''}|${row.sector||''}`; }
+  function generalAdjustment(row){ return Number(state.operacionesGeneralAdjustments[generalAdjustmentKey(row)] || 0); }
+  function motivoCategory(text){
+    const value=String(text||'').toLowerCase();
+    if(value.includes('sin detalle')) return 'Sin detalle efectivo';
+    if(value.includes('sin medic')) return 'Sin medición efectiva';
+    if(value.includes('sin tabla')) return 'Sin escala aplicable';
+    if(value.includes('más de una')||value.includes('más de un')) return 'Múltiples unidades/grupos';
+    if(value.includes('tnc')) return 'Penalización TNC';
+    if(value.includes('error')) return 'Penalización por error';
+    return 'Comparable';
+  }
+  function renderAnalisisOperaciones(data){
+    const k=data?.kpis||{}; const noMedibles=state.operacionesGeneralView==='no-medibles';
+    $('analisis-tab-medibles').classList.toggle('active',!noMedibles); $('analisis-tab-no-medibles').classList.toggle('active',noMedibles);
+    $('analisis-operaciones-view-note').textContent=noMedibles ? 'No medibles: se muestran con pago actual y motivo, sin inventar un nuevo pago.' : 'Medibles: se comparan únicamente registros con producción efectiva y escala aplicable. El +30% es editable por función, UL y sector.';
+    $('kpis-analisis-operaciones').innerHTML=[
+      kpi(noMedibles?'Pago actual no medible':'Pago actual medible',money2(noMedibles?k.pago_actual-(k.pago_actual_comparable||0):k.pago_actual_comparable||0),noMedibles?'universo excluido de comparación':'filas con medición + escala'),
+      kpi(noMedibles?'Nuevo método':'Nuevo método base',noMedibles?'N/D':money2(k.pago_nuevo_comparable||0),noMedibles?'no corresponde calcularlo':'UL efectiva + horas reloj','ok'),
+      kpi('Diferencia base',noMedibles?'N/D':signedMoney2(k.diferencia_comparable||0),noMedibles?'revisar motivo':`${fmt(k.diferencia_comparable_pct||0)}% vs actual`,(k.diferencia_comparable||0)<0?'warn':'ok'),
+      kpi('Legajos',fmt(k.legajos||0),`${fmt(k.comparables||0)} filas comparables`),
+      kpi('No comparables',fmt(k.no_comparables||0),'sin escala, medición o universo único','warn')
+    ].join('');
+    const categoryMap={}; (data.motivos||[]).forEach(row=>{const cat=motivoCategory(row.motivo); const item=categoryMap[cat]||{label:cat,value:0}; item.value+=Number(row.filas||0); categoryMap[cat]=item;});
+    const reasonRows=Object.values(categoryMap).sort((a,b)=>b.value-a.value).slice(0,8);
+    const functionRows=(data.funciones||[]).map(row=>({...row,label:`${row.operacion} · ${row.id_unidad_logistica||'?'}${row.sector?' · '+row.sector:''}`,value:Number(row.diferencia||0),money:true}));
+    svgBars('chart-analisis-operaciones',functionRows.filter(row=>!noMedibles ? row.comparables>0 : row.comparables===0),{label:'Diferencia por función',money:true,limit:12});
+    svgBars('chart-analisis-motivos',reasonRows,{label:'Motivos agrupados',limit:8,left:185});
+    const visibleFunctions=(data.funciones||[]).filter(row=>!noMedibles ? row.comparables>0 : row.comparables===0).map(row=>{const pct=generalAdjustment(row); const adjusted=Math.max(0,Number(row.pago_nuevo_bruto||0)*(1+pct/100)-Number(row.penalizaciones||0)); return {...row,ajuste_pct:pct,pago_nuevo_ajustado:adjusted,diferencia_ajustada:adjusted-Number(row.pago_actual||0),diferencia_ajustada_pct:row.pago_actual?((adjusted-row.pago_actual)/row.pago_actual*100):null,label:`${row.operacion} · ${row.id_unidad_logistica||'?'}${row.sector?' · '+row.sector:''}`};});
+    const functionCols=[
+      {key:'operacion',label:'Función'}, {key:'id_unidad_logistica',label:'UL'}, {key:'sector',label:'Sector'}, {key:'pago_actual',label:'Actual',money:true}, {key:'pago_nuevo',label:'Nuevo base',format:v=>noMedibles?'N/D':money2(v)}, {key:'ajuste_pct',label:'Ajuste %',format:(v,row)=>`<input class="scenario-editor-input general-adjustment-input" data-general-key="${esc(generalAdjustmentKey(row))}" type="number" min="0" max="300" step="5" value="${Number(v||0)}">`}, {key:'pago_nuevo_ajustado',label:'Nuevo ajustado',format:v=>noMedibles?'N/D':money2(v)}, {key:'diferencia_ajustada',label:'Dif. ajustada',format:v=>noMedibles?'N/D':signedMoney2(v)}, {key:'comparables',label:'Comp.',num:true}, {key:'no_comparables',label:'No comp.',num:true}
+    ];
+    table('tabla-analisis-operaciones',functionCols,visibleFunctions,{maxRows:1000});
+    $('tabla-analisis-operaciones').querySelectorAll('.general-adjustment-input').forEach(input=>input.onchange=()=>{state.operacionesGeneralAdjustments[input.dataset.generalKey]=Number(input.value||0); renderAnalisisOperaciones(data);});
+    $('tabla-analisis-operaciones').querySelectorAll('tbody tr').forEach((tr,index)=>tr.onclick=event=>{if(event.target.closest('input')) return; const row=sortedRows('tabla-analisis-operaciones',functionCols,visibleFunctions)[index]; state.operacionesGeneralSelected=generalAdjustmentKey(row); renderAnalisisOperaciones(data); loadAnalisisOperacionDetalle(row).catch(e=>setStatus(e.message,true));});
+    const selected=state.operacionesGeneralSelected; const legajoRows=(data.legajos||[]).filter(row=>!selected || (data.detalle||[]).some(detail=>generalAdjustmentKey(detail)===selected && String(detail.legajo)===String(row.legajo)));
+    $('analisis-operaciones-detalle-title').textContent=selected||'todas las funciones';
+    table('tabla-analisis-operaciones-legajos',[{key:'legajo',label:'Legajo'}, {key:'pago_actual',label:'Actual',money:true}, {key:'pago_nuevo',label:'Nuevo base',format:v=>noMedibles?'N/D':money2(v)}, {key:'diferencia',label:'Diferencia',format:v=>noMedibles?'N/D':signedMoney2(v)}, {key:'diferencia_pct',label:'%',format:v=>noMedibles?'N/D':(v==null?'—':`${fmt(v)}%`)}, {key:'funciones',label:'Funciones',num:true}, {key:'no_comparables',label:'No comp.',num:true}],legajoRows,{maxRows:500});
+    const detailRows=(selected?(data.detalle||[]).filter(row=>generalAdjustmentKey(row)===selected):(data.detalle||[])).filter(row=>noMedibles ? row.comparabilidad!=='COMPARABLE' : row.comparabilidad==='COMPARABLE');
+    table('tabla-analisis-operaciones-detalle',[{key:'fecha_base',label:'Fecha'}, {key:'legajo',label:'Legajo'}, {key:'hora',label:'Hora',num:true}, {key:'operacion',label:'Función'}, {key:'id_unidad_logistica',label:'UL'}, {key:'sector',label:'Sector'}, {key:'produccion_efectiva',label:'UL efectivas',num:true}, {key:'horas_efectivas',label:'Horas',format:v=>fmt(v)}, {key:'produccion_hora',label:'UL/h',format:v=>fmt(v)}, {key:'pago_actual',label:'Actual jornada',money:true}, {key:'pago_nuevo',label:'Nuevo hora',format:v=>noMedibles?'N/D':money2(v)}, {key:'nivel_nuevo',label:'Nivel',num:true}, {key:'premio_hora_nuevo',label:'Premio/h',money:true}, {key:'comparabilidad',label:'Estado'}, {key:'motivo',label:'Motivo'}],detailRows,{maxRows:1000});
+    const scaleRows=[...new Map((data.detalle||[]).filter(row=>row.comparabilidad==='COMPARABLE' && row.nivel_nuevo!=null).map(row=>{const pct=generalAdjustment(row); return [generalAdjustmentKey(row)+'|'+row.nivel_nuevo,{operacion:row.operacion,unidad:row.id_unidad_logistica,sector:row.sector||'—',nivel:row.nivel_nuevo,desde:row.desde_nuevo,hasta:row.hasta_nuevo,premio:row.premio_hora_nuevo,ajuste:pct,premio_ajustado:Number(row.premio_hora_nuevo||0)*(1+pct/100)}];})).values()];
+    table('tabla-analisis-escalas',[{key:'operacion',label:'Función'}, {key:'unidad',label:'UL'}, {key:'sector',label:'Sector'}, {key:'nivel',label:'Nivel',num:true}, {key:'desde',label:'Desde UL/h',format:v=>fmt(v)}, {key:'hasta',label:'Hasta UL/h',format:v=>fmt(v)}, {key:'premio',label:'Premio/h base',money:true}, {key:'ajuste',label:'Ajuste %',format:v=>`${fmt(v)}%`}, {key:'premio_ajustado',label:'Premio/h ajustado',money:true}],scaleRows,{maxRows:500});
+  }
+  async function loadAnalisisOperaciones(){
+    const data=await api('/api/analisis-premio-productividad/operaciones/general/tablero?'+qs({fecha_desde:state.fechaDesde,fecha_hasta:state.fechaHasta,operacion:'',id_unidad_logistica:'',legajo:''}));
+    state.operacionesGeneral=data; renderAnalisisOperaciones(data);
+    if(!data.meta?.cache_disponible) setStatus('No hay caché general para julio. Presioná “Recalcular y guardar julio”.');
+  }
+  async function loadAnalisisOperacionDetalle(row){
+    const data=await api('/api/analisis-premio-productividad/operaciones/general/detalle?'+qs({fecha_desde:state.fechaDesde,fecha_hasta:state.fechaHasta,operacion:row.operacion,id_unidad_logistica:row.id_unidad_logistica||'',sector:row.sector||'',limit:5000}));
+    if(state.operacionesGeneral) { state.operacionesGeneral={...state.operacionesGeneral,detalle:data.detalle||[]}; renderAnalisisOperaciones(state.operacionesGeneral); }
+  }
+  const TENDENCIA_SERIES = {
+    legajos:{label:'Legajos',color:'#0B5FAE',group:'universo'}, jornadas:{label:'Jornadas',color:'#1F7A4D',group:'universo'}, jornadas_x_legajo:{label:'Jornadas/legajo',color:'#B25F00',group:'universo'},
+    prod_real:{label:'Producción real',color:'#0B5FAE',group:'produccion'}, eq_total:{label:'Convertida total',color:'#7C3AED',group:'produccion'}, eq_sector:{label:'Equiv. sector',color:'#1F7A4D',group:'produccion'}, eq_consol:{label:'Equiv. consolidación',color:'#B25F00',group:'produccion'},
+    pct_eq_sobre_real:{label:'Convertida total / real %',color:'#7C3AED',group:'conversion'}, pct_eq_sector_sobre_real:{label:'Sector / real %',color:'#1F7A4D',group:'conversion'}, pct_eq_traslado_sobre_real:{label:'Traslado / real %',color:'#D89B00',group:'conversion'}, pct_eq_consol_sobre_real:{label:'Consolidación / real %',color:'#B25F00',group:'conversion'}, pct_premio:{label:'Premio positivo %',color:'#C8102E',group:'conversion'}, nivel_prom:{label:'Nivel promedio',color:'#0B5FAE',group:'conversion'}
+  };
+  const TENDENCIA_CONTINUIDAD = [
+    {key:'leg_cont_0',label:'0%',color:'#C8102E'}, {key:'leg_cont_1_24',label:'1–24%',color:'#B25F00'}, {key:'leg_cont_25_49',label:'25–49%',color:'#D89B00'},
+    {key:'leg_cont_50_74',label:'50–74%',color:'#1F7A4D'}, {key:'leg_cont_75_100',label:'75–100%',color:'#0B5FAE'}
+  ];
+  const TENDENCIA_NIVELES = [1,2,3,4,5].map(level=>({key:`leg_nivel_${level}`,label:`Nivel ${level}`,color:['#0B5FAE','#1F7A4D','#7C3AED','#B25F00','#C8102E'][level-1]}));
+  const TENDENCIA_CONSOL = [{key:'bultos_reales_consol',label:'Bultos reales alcanzados',color:'#0B5FAE'},{key:'eq_consol_etapa',label:'Equivalentes adicionales',color:'#B25F00'}];
+  function tendenciaSvg(id, rows, keys, options={}){
+    const el=$(id); if(!el) return; if(!rows.length || !keys.length){el.innerHTML='<div class="tendencia-empty">Seleccioná al menos una serie y consultá el rango.</div>';return;}
+    const w=900,h=270,left=58,right=18,top=18,bottom=42,plotW=w-left-right,plotH=h-top-bottom; const max=Math.max(1,...keys.flatMap(k=>rows.map(r=>Number(r[k]||0)))); const x=i=>left+(rows.length===1?plotW/2:i*plotW/(rows.length-1)); const y=v=>top+plotH-(Number(v||0)/max)*plotH; const ticks=[0,max/2,max]; const tickIdx=[0,Math.floor((rows.length-1)/2),rows.length-1];
+    const lines=keys.map(key=>{const def=TENDENCIA_SERIES[key]||TENDENCIA_NIVELES.find(item=>item.key===key)||TENDENCIA_CONSOL.find(item=>item.key===key);return `<polyline class="line" stroke="${def.color}" points="${rows.map((r,i)=>`${x(i)},${y(r[key])}`).join(' ')}"></polyline>${rows.map((r,i)=>`<circle class="dot" fill="${def.color}" cx="${x(i)}" cy="${y(r[key])}" r="3"><title>${esc(r.mes)} · ${esc(def.label)}: ${fmt(r[key])}</title></circle>`).join('')}`}).join('');
+    const ref=options.reference; const refLine=ref?.value!=null?`<line class="axis" stroke-dasharray="5 4" x1="${left}" y1="${y(ref.value)}" x2="${w-right}" y2="${y(ref.value)}"></line><text x="${left+6}" y="${Math.max(top+12,y(ref.value)-5)}">${esc(ref.label||'Referencia')}: ${fmt(ref.value)}%</text>`:'';
+    el.innerHTML=`<div class="tendencia-chart"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Tendencia operativa">${ticks.map(v=>`<line class="grid" x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}"></line><text x="4" y="${y(v)+4}">${fmt(v)}</text>`).join('')}<line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line><line class="axis" x1="${left}" y1="${h-bottom}" x2="${w-right}" y2="${h-bottom}"></line>${tickIdx.map(i=>`<text x="${Math.max(left,Math.min(x(i)-25,w-right-45))}" y="${h-10}">${esc(String(rows[i].mes))}</text>`).join('')}${refLine}${lines}</svg></div><div class="chart-legend">${keys.map(key=>{const def=TENDENCIA_SERIES[key]||TENDENCIA_NIVELES.find(item=>item.key===key)||TENDENCIA_CONSOL.find(item=>item.key===key);return `<span><i class="legend-dot" style="background:${def.color}"></i>${esc(def.label)}</span>`;}).join('')}</div>`;
+  }
+  function tendenciaContinuidadSvg(id, rows){
+    const el=$(id); if(!el) return; if(!rows.length){el.innerHTML='<div class="tendencia-empty">Consultá la tendencia para ver la continuidad mensual.</div>';return;}
+    const w=900,h=270,left=58,right=18,top=18,bottom=42,plotW=w-left-right,plotH=h-top-bottom,barW=Math.max(4,Math.min(22,plotW/rows.length*.68));
+    const x=i=>left+(rows.length===1?plotW/2:i*plotW/(rows.length-1)); const y=p=>top+plotH-(Number(p||0)/100)*plotH;
+    const bars=rows.map((row,i)=>{let cursor=0; const total=Math.max(1,Number(row.legajos||0)); return TENDENCIA_CONTINUIDAD.map(def=>{const value=Number(row[def.key]||0), pct=value*100/total, y0=y(cursor+pct), height=Math.max(0,y(cursor)-y(cursor+pct)); cursor+=pct; return `<rect x="${x(i)-barW/2}" y="${y0}" width="${barW}" height="${height}" fill="${def.color}"><title>${esc(row.mes)} · ${esc(def.label)}: ${fmt(value)} legajos (${fmt(pct)}%)</title></rect>`;}).join('');}).join('');
+    const ticks=[0,50,100],tickIdx=[0,Math.floor((rows.length-1)/2),rows.length-1];
+    el.innerHTML=`<div class="tendencia-chart"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Distribución mensual de continuidad del premio por legajo">${ticks.map(v=>`<line class="grid" x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}"></line><text x="4" y="${y(v)+4}">${v}%</text>`).join('')}<line class="axis" x1="${left}" y1="${top}" x2="${left}" y2="${h-bottom}"></line><line class="axis" x1="${left}" y1="${h-bottom}" x2="${w-right}" y2="${h-bottom}"></line>${tickIdx.map(i=>`<text x="${Math.max(left,Math.min(x(i)-25,w-right-45))}" y="${h-10}">${esc(String(rows[i].mes))}</text>`).join('')}${bars}</svg></div><div class="chart-legend">${TENDENCIA_CONTINUIDAD.map(def=>`<span><i class="legend-dot" style="background:${def.color}"></i>${esc(def.label)}</span>`).join('')}</div>`;
+  }
+  function tendenciaInsightColor(label,color){return `<span style="color:${color};font-weight:600">${esc(label)}</span>`;}
+  function renderConsolidacionInsight(rows){
+    const target=$('insight-tendencia-consolidacion'); if(!target || !rows.length) return;
+    const baseline=rows.filter(row=>String(row.mes||'')<='202406'); const ref=baseline.length?baseline:rows.slice(0,6); const avg=key=>ref.reduce((sum,row)=>sum+Number(row[key]||0),0)/Math.max(1,ref.length); const last=rows.at(-1); const bBase=avg('bultos_reales_consol'), eBase=avg('eq_consol_etapa'), bNow=Number(last.bultos_reales_consol||0), eNow=Number(last.eq_consol_etapa||0); const bPct=bBase?((bNow-bBase)/bBase*100):0, ePct=eBase?((eNow-eBase)/eBase*100):0; let conclusion=''; if(Math.abs(bPct)<5 && ePct<-5) conclusion='Los bultos alcanzados se mantienen relativamente estables, pero generan menos equivalentes adicionales: el deterioro está en el rendimiento de la conversión.'; else if(bPct<-5 && Math.abs(ePct)<5) conclusion='La conversión por bulto se mantiene, pero se alcanzan menos bultos con consolidación.'; else if(bPct<-5 && ePct<-5) conclusion='Se observa un efecto combinado: se alcanzan menos bultos y, además, esos bultos generan menos equivalentes.'; else conclusion='La evolución no muestra todavía una separación concluyente entre cantidad alcanzada y rendimiento de conversión.';
+    target.innerHTML=`<h4>Lectura gerencial</h4><ul><li>${tendenciaInsightColor('Línea azul — bultos reales alcanzados','#0B5FAE')}: ${fmt(bNow)} en el último mes versus ${fmt(bBase)} de promedio inicial (${bPct>=0?'+':''}${fmt(bPct)}%).</li><li>${tendenciaInsightColor('Línea marrón — equivalentes adicionales','#B25F00')}: ${fmt(eNow)} versus ${fmt(eBase)} (${ePct>=0?'+':''}${fmt(ePct)}%).</li></ul><p><strong>${conclusion}</strong></p><p class="insight-caveat">Los bultos provienen de QCANTIDA en PV_ETAPA_DET y las equivalencias de PRODUCCION_EQUIVALENTE, vinculadas a cada acción de PV_ETAPA_CAB. La base es el promedio enero–junio de 2024.</p>`;
+  }
+  function renderTendenciaInsights(rows){
+    if(!rows.length) return;
+    const firstRows=rows.filter(row=>String(row.mes||'')<='202406'); const first=firstRows.length?firstRows:rows.slice(0,6); const avg=key=>first.reduce((sum,row)=>sum+Number(row[key]||0),0)/Math.max(1,first.length); const last=rows.at(-1); const peak=rows.reduce((best,row)=>Number(row.pct_eq_sobre_real||0)>Number(best.pct_eq_sobre_real||0)?row:best,rows[0]);
+    const baseConv=avg('pct_eq_sobre_real'), currentConv=Number(last.pct_eq_sobre_real||0), deltaConv=currentConv-baseConv;
+    const components=[['Consolidación','pct_eq_consol_sobre_real','#B25F00'],['Sector','pct_eq_sector_sobre_real','#1F7A4D'],['Traslado','pct_eq_traslado_sobre_real','#D89B00']].map(([label,key,color])=>({label,key,color,delta:Number(last[key]||0)-avg(key)})); const driver=components.reduce((a,b)=>b.delta<a.delta?b:a,components[0]);
+    $('insight-tendencia-conversion').innerHTML=`<h4>Lectura gerencial</h4><ul><li>La conversión total, ${tendenciaInsightColor('línea violeta','#7C3AED')}, promedió <strong>${fmt(baseConv)}%</strong> entre enero y junio de 2024.</li><li>Alcanzó <strong>${fmt(peak.pct_eq_sobre_real)}%</strong> en <strong>${esc(String(peak.mes))}</strong> y actualmente está en <strong>${fmt(currentConv)}%</strong> (${deltaConv>=0?'+':''}${fmt(deltaConv)} puntos vs. la base).</li><li>El principal descenso aparece en ${tendenciaInsightColor(`${driver.label.toLowerCase()} · ${driver.label==='Consolidación'?'línea marrón':driver.label==='Sector'?'línea verde':'línea amarilla'}`,driver.color)}, con una variación de <strong>${driver.delta>=0?'+':''}${fmt(driver.delta)} puntos</strong> frente a la base.</li><li>La línea roja —premio positivo— pasa de <strong>${fmt(avg('pct_premio'))}%</strong> a <strong>${fmt(last.pct_premio)}%</strong>, en coincidencia temporal con la menor conversión.</li></ul><p class="insight-caveat">La línea roja mide jornadas con premio, no personas. La conversión menor sugiere un perjuicio sobre el acceso a las escalas; el efecto individual se valida con continuidad y niveles alcanzados.</p>`;
+    const prodDelta=Number(last.prod_real||0)-Number(first[0]?.prod_real||0), eqDelta=Number(last.eq_total||0)-Number(first[0]?.eq_total||0);
+    $('insight-tendencia-produccion').innerHTML=`<h4>Lectura gerencial</h4><p>La producción real pasó de <strong>${fmt(first[0]?.prod_real)} </strong>a <strong>${fmt(last.prod_real)}</strong>, mientras la convertida pasó de <strong>${fmt(first[0]?.eq_total)}</strong> a <strong>${fmt(last.eq_total)}</strong>.</p><p>La comparación debe hacerse junto con la conversión relativa: producir más no garantiza generar más equivalentes por bulto si el factor convertido/real cae.</p><p class="insight-caveat">Este gráfico muestra volumen absoluto; la explicación del perjuicio está en la relación porcentual del gráfico de conversión.</p>`;
+    const contTotal=key=>rows.reduce((sum,row)=>sum+Number(row[key]||0),0); const currentTotal=Math.max(1,Number(last.legajos||0)); const baseTotal=Math.max(1,Number(first[0]?.legajos||0)); const sustainedNow=Number(last.leg_cont_50_74||0)+Number(last.leg_cont_75_100||0); const sustainedBase=Number(first[0]?.leg_cont_50_74||0)+Number(first[0]?.leg_cont_75_100||0);
+    $('insight-tendencia-continuidad').innerHTML=`<h4>Lectura gerencial</h4><p>En el último mes, <strong>${fmt(sustainedNow*100/currentTotal)}%</strong> de los legajos tuvo premio en al menos la mitad de sus jornadas, contra <strong>${fmt(sustainedBase*100/baseTotal)}%</strong> en el primer mes de la serie.</p><p>La distribución permite separar a quienes nunca llegan de quienes llegan de manera ocasional o sostenida.</p><p class="insight-caveat">Un legajo se clasifica por la proporción mensual de jornadas con premio, no por haber llegado una sola vez.</p>`;
+    const levels=TENDENCIA_NIVELES.map(def=>({label:def.label,key:def.key,color:def.color,base:Number(first[0]?.[def.key]||0),current:Number(last[def.key]||0)})); const topLevel=levels.reduce((best,item)=>item.current>0?item:best,levels[0]);
+    $('insight-tendencia-niveles').innerHTML=`<h4>Lectura gerencial</h4><p>El gráfico muestra cuántos legajos alcanzaron cada nivel al menos una vez durante cada mes. Las líneas son acumuladas: quien alcanza nivel 3 también cuenta en nivel 1 y 2.</p><p>El foco es observar si las líneas de niveles superiores pierden personas y si la población se concentra en niveles bajos o deja de alcanzar el nivel 1.</p><p class="insight-caveat">Para una conclusión económica se debe cruzar el nivel alcanzado con la continuidad mensual y la conversión relativa.</p>`;
+    const legDelta=Number(last.legajos||0)-Number(first[0]?.legajos||0), jornadaPerLegajo=Number(last.jornadas_x_legajo||0);
+    $('insight-tendencia-universo').innerHTML=`<h4>Lectura gerencial</h4><p>El último mes contiene <strong>${fmt(last.legajos)}</strong> legajos y <strong>${fmt(last.jornadas)}</strong> jornadas, con <strong>${fmt(jornadaPerLegajo)}</strong> jornadas por legajo.</p><p>La dotación mensual ${legDelta<=0?'no aumentó; se redujo en '+fmt(Math.abs(legDelta))+' legajos respecto del primer mes':'aumentó en '+fmt(legDelta)+' legajos respecto del primer mes'}.</p><p class="insight-caveat">La hipótesis de dilución por mayor dotación debe contrastarse con el resto de los meses y no solo con el último.</p>`;
+  }
+  function renderTendencia(data){
+    const rows=data?.rows||[]; const selected=state.tendenciaSeries; const defs=Object.entries(TENDENCIA_SERIES).filter(([key])=>selected.has(key));
+    $('tendencia-series').innerHTML=Object.entries(TENDENCIA_SERIES).map(([key,def])=>`<label><input type="checkbox" data-tendencia-key="${key}" ${selected.has(key)?'checked':''}>${esc(def.label)}</label>`).join('');
+    $('tendencia-series').querySelectorAll('input').forEach(input=>input.onchange=()=>{input.checked?selected.add(input.dataset.tendenciaKey):selected.delete(input.dataset.tendenciaKey); renderTendencia(data);});
+    tendenciaSvg('chart-tendencia-universo',rows,defs.filter(([,d])=>d.group==='universo').map(([key])=>key)); tendenciaSvg('chart-tendencia-produccion',rows,defs.filter(([,d])=>d.group==='produccion').map(([key])=>key)); const conversionKeys=defs.filter(([,d])=>d.group==='conversion').map(([key])=>key); const baselineRows=rows.filter(row=>String(row.mes||'')<='202406' && row.pct_eq_sobre_real!=null); const conversionBaseline=baselineRows.length?baselineRows.reduce((sum,row)=>sum+Number(row.pct_eq_sobre_real||0),0)/baselineRows.length:null; tendenciaSvg('chart-tendencia-conversion',rows,conversionKeys,{reference:conversionBaseline!=null?{value:conversionBaseline,label:'Prom. ene-jun 2024'}:null}); tendenciaSvg('chart-tendencia-consolidacion',rows,TENDENCIA_CONSOL.map(def=>def.key)); tendenciaContinuidadSvg('chart-tendencia-continuidad',rows); tendenciaSvg('chart-tendencia-niveles',rows,TENDENCIA_NIVELES.map(def=>def.key)); renderTendenciaInsights(rows); renderConsolidacionInsight(rows);
+    const last=rows.at(-1)||{}; $('kpis-tendencia-operativa').innerHTML=[kpi('Legajos',fmt(last.legajos),'último mes disponible'),kpi('Jornadas',fmt(last.jornadas),'último mes disponible'),kpi('Producción real',fmt(last.prod_real),'liquidación'),kpi('Convertida / real',`${fmt(last.pct_eq_sobre_real)}%`,'total de puntos equivalentes','ok'),kpi('Premio positivo',`${fmt(last.pct_premio)}%`,'jornadas con A_PAGAR_TOTAL > 0',last.pct_premio<40?'warn':'ok')].join('');
+    table('tabla-tendencia-operativa',[{key:'mes',label:'Mes'},{key:'legajos',label:'Legajos',num:true},{key:'jornadas',label:'Jornadas',num:true},{key:'jornadas_x_legajo',label:'Jorn./legajo',num:true},{key:'prod_real',label:'Real',num:true},{key:'eq_total',label:'Convertida',num:true},{key:'pct_eq_sobre_real',label:'Conv./real %',num:true},{key:'pct_premio',label:'Premio positivo %',num:true},{key:'nivel_prom',label:'Nivel prom.',num:true}],rows,{maxRows:500});
+  }
+  async function loadTendenciaOperativa(){
+    const params={fecha_desde:'2024-01-01',fecha_hasta:maxQueryDate(),operacion:$('tendencia-operacion').value||'CARGA',grupo_productivo:Number($('tendencia-grupo').value||0)};
+    $('chart-tendencia-universo').innerHTML='<div class="tendencia-empty">Consultando Oracle y separando liquidación de producción...</div>';
+    const data=await api('/api/analisis-premio-productividad/tendencia-operativa?'+qs(params)); state.tendenciaOperativa=data; renderTendencia(data); setStatus(`Tendencia cargada: ${data.rows?.length||0} meses desde ${params.fecha_desde}.`);
+  }
+  async function recalcularAnalisisOperaciones(){
+    const button=$('analisis-operaciones-recalcular'); if(button.disabled) return; button.disabled=true; button.textContent='Recalculando...';
+    try { setStatus('Consultando pagos, mediciones efectivas y escalas de julio en Oracle...'); await api('/api/analisis-premio-productividad/operaciones/general/recalcular',{method:'POST',body:JSON.stringify({fecha_desde:state.fechaDesde,fecha_hasta:state.fechaHasta,force:true})}); state.operacionesGeneralSelected=''; await loadAnalisisOperaciones(); setStatus('Análisis general de julio recalculado y guardado en caché.'); }
+    finally { button.disabled=false; button.textContent='Recalcular y guardar julio'; }
   }
   async function loadTab(tab=state.activeTab){
     updateGlobalFiltersForTab(tab);
@@ -3562,7 +3783,16 @@
       await loadScenarioModule();
       return;
     }
-    if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0'].includes(tab)) {
+    if (tab === 'analisis-operaciones') {
+      await loadAnalisisOperaciones();
+      return;
+    }
+    if (tab === 'tendencia-operativa') {
+      if (!state.tendenciaOperativa) setStatus('Elegí “Consultar tendencia” para consultar la serie mensual desde Oracle.');
+      else renderTendencia(state.tendenciaOperativa);
+      return;
+    }
+    if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0','analisis-operaciones','tendencia-operativa'].includes(tab)) {
       state.activeTab = tab;
       setStatus('Sin consulta ejecutada. Ajustá los filtros y presioná Consultar para cargar datos.');
       return;
@@ -3588,7 +3818,7 @@
     $(`panel-${tab}`).classList.add('active');
     state.activeTab = tab;
     updateGlobalFiltersForTab(tab);
-    if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0'].includes(tab)) {
+    if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0','analisis-operaciones','tendencia-operativa'].includes(tab)) {
       setStatus('Sin consulta ejecutada. Ajustá los filtros y presioná Consultar para cargar datos.');
       return;
     }
@@ -3617,10 +3847,16 @@
   $('rango-hasta').onchange = () => onComboChange().catch(e => setStatus(e.message, true));
   $('consultar-rango').onclick = () => consultarRango(false).catch(e => setStatus(e.message, true));
   $('punto0-recalcular').onclick = () => recalcularPunto0().catch(e => setStatus(e.message, true));
+  $('analisis-operaciones-recalcular').onclick = () => recalcularAnalisisOperaciones().catch(e => setStatus(e.message, true));
+  $('tendencia-consultar').onclick = () => loadTendenciaOperativa().catch(e => setStatus(e.message, true));
+  $('analisis-tab-medibles').onclick = () => { state.operacionesGeneralView='medibles'; state.operacionesGeneralSelected=''; if(state.operacionesGeneral) renderAnalisisOperaciones(state.operacionesGeneral); };
+  $('analisis-tab-no-medibles').onclick = () => { state.operacionesGeneralView='no-medibles'; state.operacionesGeneralSelected=''; if(state.operacionesGeneral) renderAnalisisOperaciones(state.operacionesGeneral); };
   $('scenario-simulate').onclick = () => simulateScenario().catch(e => { $('scenario-status').textContent=e.message; setStatus(e.message, true); });
+  $('scenario-recalc-group').onclick = () => recalculateScenarioGroup();
+  $('scenario-preset').onchange = () => applyScenarioPreset($('scenario-preset').value);
   $('scenario-load-default').onclick = () => loadDefaultScenarioSectors();
   $('scenario-load-saved').onclick = () => loadSavedScenario().catch(e => { $('scenario-status').textContent=e.message; setStatus(e.message, true); });
-  $('scenario-clear').onclick = () => { state.scenarioSectors=(state.scenarioSectors||[]).map(row=>({...row,premio_pct:0,umbral_pct:0})); renderScenarioEditor(); $('scenario-status').textContent='Ajustes limpiados. La tabla base queda sin modificaciones.'; };
+  $('scenario-clear').onclick = () => { state.scenarioSectors=(state.scenarioSectors||[]).map(row=>({...row,premio_pct:0,umbral_pct:0})); renderScenarioEditor(); if($('scenario-preset')) $('scenario-preset').value='base'; $('scenario-status').textContent='Sin ajustes. Se simulará la base nueva.'; };
   $('evaluacion-f-legajo').oninput = () => { state.evaluacionPickingLegajoFilter = $('evaluacion-f-legajo').value || ''; state.evaluacionPickingSelected = ''; state.evaluacionPickingDaySelected = ''; state.evaluacionPickingHourSelected = ''; renderEvaluacionPicking(); };
   $('evaluacion-clear-filtro-legajo').onclick = () => { state.evaluacionPickingLegajoFilter = ''; $('evaluacion-f-legajo').value = ''; state.evaluacionPickingSelected = ''; state.evaluacionPickingDaySelected = ''; state.evaluacionPickingHourSelected = ''; renderEvaluacionPicking(); };
   $('evaluacion-precargar').onclick = async () => {
@@ -3695,6 +3931,9 @@
   };
   $('exportar-detalle-pdf').onclick = () => {
     try { exportarDetallePdf(); } catch (e) { setStatus(e.message, true); }
+  };
+  $('tendencia-exportar-pdf').onclick = () => {
+    try { exportarTendenciaPdf(); } catch (e) { setStatus(e.message, true); }
   };
   $('editar-fijos-grupal').onclick = abrirFijosGrupal;
   $('cerrar-fijos-grupal').onclick = cerrarFijosGrupal;

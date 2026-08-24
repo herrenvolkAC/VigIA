@@ -2728,7 +2728,12 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
     if query_key == "raw_sql_env":
         raw_query = query.replace(":fecha_desde", "?").replace(":fecha_hasta", "?")
         env["VIGIA_ORACLE_SQL_B64"] = base64.b64encode(raw_query.encode("utf-8")).decode("ascii")
-        bind_values = [fecha_desde, fecha_hasta]
+        bind_values = []
+        for char_idx, char in enumerate(raw_query):
+            if char == "?":
+                previous = raw_query[:char_idx]
+                desde_count = previous.count("TO_DATE(?")
+                bind_values.append(fecha_desde if len(bind_values) % 2 == 0 else fecha_hasta)
         env["VIGIA_ORACLE_BINDS_B64"] = ",".join(
             base64.b64encode(str(value).encode("utf-8")).decode("ascii")
             for value in bind_values

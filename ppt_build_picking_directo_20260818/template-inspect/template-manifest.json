@@ -1,0 +1,302 @@
+{
+  "sourcePptx": "C:\\Users\\207189\\Documents\\Codex\\2026-07-30\\este-ser-a-el-prompt-que\\outputs\\ProductividadNueva_v2.0.pptx",
+  "workspace": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818",
+  "outDir": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect",
+  "generatedAt": "2026-08-18T18:20:56.054Z",
+  "slideCount": 34,
+  "slideArtifacts": [
+    {
+      "slide": 1,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-01.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-01.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-01.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-01.layout.json"
+    },
+    {
+      "slide": 2,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-02.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-02.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-02.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-02.layout.json"
+    },
+    {
+      "slide": 3,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-03.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-03.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-03.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-03.layout.json"
+    },
+    {
+      "slide": 4,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-04.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-04.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-04.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-04.layout.json"
+    },
+    {
+      "slide": 5,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-05.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-05.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-05.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-05.layout.json"
+    },
+    {
+      "slide": 6,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-06.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-06.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-06.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-06.layout.json"
+    },
+    {
+      "slide": 7,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-07.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-07.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-07.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-07.layout.json"
+    },
+    {
+      "slide": 8,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-08.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-08.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-08.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-08.layout.json"
+    },
+    {
+      "slide": 9,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-09.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-09.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-09.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-09.layout.json"
+    },
+    {
+      "slide": 10,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-10.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-10.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-10.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-10.layout.json"
+    },
+    {
+      "slide": 11,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-11.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-11.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-11.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-11.layout.json"
+    },
+    {
+      "slide": 12,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-12.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-12.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-12.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-12.layout.json"
+    },
+    {
+      "slide": 13,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-13.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-13.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-13.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-13.layout.json"
+    },
+    {
+      "slide": 14,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-14.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-14.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-14.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-14.layout.json"
+    },
+    {
+      "slide": 15,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-15.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-15.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-15.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-15.layout.json"
+    },
+    {
+      "slide": 16,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-16.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-16.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-16.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-16.layout.json"
+    },
+    {
+      "slide": 17,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-17.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-17.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-17.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-17.layout.json"
+    },
+    {
+      "slide": 18,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-18.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-18.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-18.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-18.layout.json"
+    },
+    {
+      "slide": 19,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-19.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-19.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-19.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-19.layout.json"
+    },
+    {
+      "slide": 20,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-20.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-20.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-20.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-20.layout.json"
+    },
+    {
+      "slide": 21,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-21.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-21.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-21.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-21.layout.json"
+    },
+    {
+      "slide": 22,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-22.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-22.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-22.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-22.layout.json"
+    },
+    {
+      "slide": 23,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-23.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-23.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-23.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-23.layout.json"
+    },
+    {
+      "slide": 24,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-24.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-24.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-24.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-24.layout.json"
+    },
+    {
+      "slide": 25,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-25.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-25.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-25.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-25.layout.json"
+    },
+    {
+      "slide": 26,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-26.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-26.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-26.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-26.layout.json"
+    },
+    {
+      "slide": 27,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-27.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-27.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-27.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-27.layout.json"
+    },
+    {
+      "slide": 28,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-28.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-28.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-28.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-28.layout.json"
+    },
+    {
+      "slide": 29,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-29.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-29.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-29.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-29.layout.json"
+    },
+    {
+      "slide": 30,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-30.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-30.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-30.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-30.layout.json"
+    },
+    {
+      "slide": 31,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-31.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-31.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-31.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-31.layout.json"
+    },
+    {
+      "slide": 32,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-32.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-32.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-32.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-32.layout.json"
+    },
+    {
+      "slide": 33,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-33.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-33.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-33.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-33.layout.json"
+    },
+    {
+      "slide": 34,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\source-slides\\source-slide-34.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-34.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\layouts\\source-slide-34.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-34.layout.json"
+    }
+  ],
+  "inspectPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\template-inspect.ndjson",
+  "inspectRelativePath": "template-inspect/template-inspect.ndjson",
+  "inspectTruncated": true,
+  "inspectMetadata": {
+    "revision": "qwvaw6",
+    "target": {
+      "id": "pr/vvhimr"
+    },
+    "kind": {
+      "requested": "slide,textbox,shape,image,table,chart",
+      "tokens": [
+        "slide",
+        "textbox",
+        "shape",
+        "image",
+        "table",
+        "chart"
+      ]
+    },
+    "include": {
+      "tokens": []
+    },
+    "exclude": {
+      "tokens": []
+    },
+    "notices": []
+  },
+  "extractedMedia": [
+    {
+      "entry": "ppt/media/image2.png",
+      "path": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\assets\\ppt\\media\\image2.png",
+      "relativePath": "template-inspect/assets/ppt/media/image2.png",
+      "bytes": 3141
+    },
+    {
+      "entry": "ppt/media/image1.jpeg",
+      "path": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-inspect\\assets\\ppt\\media\\image1.jpeg",
+      "relativePath": "template-inspect/assets/ppt/media/image1.jpeg",
+      "bytes": 808649
+    }
+  ],
+  "fonts": [
+    "+mj-lt",
+    "+mn-lt",
+    "Aptos",
+    "Aptos Display",
+    "Calibri",
+    "Calibri Light"
+  ],
+  "packageParts": {
+    "mediaCount": 2,
+    "slideXmlCount": 34,
+    "chartCount": 0,
+    "tableSlideCount": 23
+  }
+}

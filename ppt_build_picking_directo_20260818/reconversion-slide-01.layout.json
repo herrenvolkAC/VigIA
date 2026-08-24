@@ -1,0 +1,2462 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/y90nupkv",
+    "id": "y90nupkv",
+    "slide": 1,
+    "layoutId": "/ppt/slideLayouts/slideLayout1.xml",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#0B1630",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "fontScheme": {
+      "name": "Office",
+      "majorFont": {
+        "latinTypeface": "Calibri Light",
+        "eastAsianTypeface": "Calibri Light",
+        "complexScriptTypeface": "Calibri Light"
+      },
+      "minorFont": {
+        "latinTypeface": "Calibri",
+        "eastAsianTypeface": "Calibri",
+        "complexScriptTypeface": "Calibri"
+      }
+    },
+    "typefaces": [
+      "Aptos",
+      "Calibri",
+      "Calibri Light"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "/ppt/slideLayouts/slideLayout1.xml",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "/ppt/slideMasters/slideMaster1.xml",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/dgzetcfa",
+      "id": "19",
+      "name": "kicker",
+      "bbox": [
+        64,
+        28,
+        500,
+        20
+      ],
+      "geometry": "rect",
+      "text": "RESULTADO MEDIDO",
+      "textPreview": "RESULTADO MEDIDO",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "RESULTADO MEDIDO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "RESULTADO MEDIDO",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "RESULTADO MEDIDO",
+              "fontSize": 10,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/547294r6",
+      "id": "2",
+      "name": "title",
+      "bbox": [
+        64,
+        47.73,
+        1120,
+        44
+      ],
+      "geometry": "rect",
+      "text": "Picking | El cálculo directo queda cercano al pago actual",
+      "textPreview": "Picking | El cálculo directo queda cercano al pago actual",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Picking | El cálculo directo queda cercano al pago actual"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Picking | El cálculo directo queda cercano al pago actual",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Picking | El cálculo directo queda cercano al pago actual",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/k3yl0zql",
+      "id": "3",
+      "name": "accent-rule",
+      "bbox": [
+        54,
+        94,
+        104,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#047857",
+      "lineColor": "#047857",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/7qp4be9c",
+      "id": "4",
+      "name": "content-panel",
+      "bbox": [
+        80,
+        160,
+        350,
+        330
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/65g3298r",
+      "id": "5",
+      "name": "card-title-0",
+      "bbox": [
+        104,
+        185,
+        300,
+        24
+      ],
+      "geometry": "rect",
+      "text": "PAGO ACTUAL · JULIO",
+      "textPreview": "PAGO ACTUAL · JULIO",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "PAGO ACTUAL · JULIO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "PAGO ACTUAL · JULIO",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "PAGO ACTUAL · JULIO",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ts7md4r2",
+      "id": "6",
+      "name": "card-body-0",
+      "bbox": [
+        104,
+        230,
+        300,
+        190
+      ],
+      "geometry": "rect",
+      "text": "$48,42 M\n\nReferencia liquidada de julio.\n\nBultos reales\nHora reloj",
+      "textPreview": "$48,42 M |  | Referencia liquidada de julio. |  | Bultos reales | Hora reloj",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 7,
+        "lines": [
+          {
+            "index": 1,
+            "text": "$48,42 M"
+          },
+          {
+            "index": 2,
+            "text": ""
+          },
+          {
+            "index": 3,
+            "text": "Referencia liquidada de"
+          },
+          {
+            "index": 4,
+            "text": "julio."
+          },
+          {
+            "index": 5,
+            "text": ""
+          },
+          {
+            "index": 6,
+            "text": "Bultos reales"
+          },
+          {
+            "index": 7,
+            "text": "Hora reloj"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "$48,42 M",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "$48,42 M",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "Referencia liquidada de julio.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Referencia liquidada de julio."
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "Bultos reales",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Bultos reales",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 6,
+          "text": "Hora reloj",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Hora reloj"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/sryl4zqx",
+      "id": "7",
+      "name": "card-label-0",
+      "bbox": [
+        104,
+        440,
+        260,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Método vigente",
+      "textPreview": "Método vigente",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Método vigente"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Método vigente",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Método vigente",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fu94fe98",
+      "id": "8",
+      "name": "content-panel",
+      "bbox": [
+        465,
+        160,
+        350,
+        330
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#FF0000",
+      "lineWidth": 8
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/utg3698n",
+      "id": "9",
+      "name": "card-title-1",
+      "bbox": [
+        489,
+        185,
+        300,
+        24
+      ],
+      "geometry": "rect",
+      "text": "NUEVO DIRECTO",
+      "textPreview": "NUEVO DIRECTO",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "NUEVO DIRECTO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "NUEVO DIRECTO",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "NUEVO DIRECTO",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wn6dc7eh",
+      "id": "10",
+      "name": "card-body-1",
+      "bbox": [
+        489,
+        230,
+        300,
+        190
+      ],
+      "geometry": "rect",
+      "text": "$49,01 M\n\nCálculo por bultos reales,\nsin ajustes sectoriales.\n\nMisma base horaria",
+      "textPreview": "$49,01 M |  | Cálculo por bultos reales, | sin ajustes sectoriales. |  | Misma base horaria",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 6,
+        "lines": [
+          {
+            "index": 1,
+            "text": "$49,01 M"
+          },
+          {
+            "index": 2,
+            "text": ""
+          },
+          {
+            "index": 3,
+            "text": "Cálculo por bultos reales,"
+          },
+          {
+            "index": 4,
+            "text": "sin ajustes sectoriales."
+          },
+          {
+            "index": 5,
+            "text": ""
+          },
+          {
+            "index": 6,
+            "text": "Misma base horaria"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "$49,01 M",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "$49,01 M",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "Cálculo por bultos reales,",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cálculo por bultos reales,"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "sin ajustes sectoriales.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "sin ajustes sectoriales.",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 6,
+          "text": "Misma base horaria",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Misma base horaria"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hofulsf2",
+      "id": "11",
+      "name": "card-label-1",
+      "bbox": [
+        489,
+        440,
+        260,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Sin calibración",
+      "textPreview": "Sin calibración",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Sin calibración"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Sin calibración",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Sin calibración",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ul4vaxgb",
+      "id": "12",
+      "name": "content-panel",
+      "bbox": [
+        850,
+        160,
+        350,
+        330
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/vmdcj2xw",
+      "id": "13",
+      "name": "card-title-2",
+      "bbox": [
+        874,
+        185,
+        300,
+        24
+      ],
+      "geometry": "rect",
+      "text": "DIFERENCIA GLOBAL",
+      "textPreview": "DIFERENCIA GLOBAL",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "DIFERENCIA GLOBAL"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "DIFERENCIA GLOBAL",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "DIFERENCIA GLOBAL",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/4r6dg7et",
+      "id": "14",
+      "name": "card-body-2",
+      "bbox": [
+        874,
+        230,
+        300,
+        190
+      ],
+      "geometry": "rect",
+      "text": "+$0,58 M\n\n+1,2% sobre el pago actual.\n\nResultado global similar\nImpacto redistribuido internamente",
+      "textPreview": "+$0,58 M |  | +1,2% sobre el pago actual. |  | Resultado global similar | Impacto redistribuido internamente",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 7,
+        "lines": [
+          {
+            "index": 1,
+            "text": "+$0,58 M"
+          },
+          {
+            "index": 2,
+            "text": ""
+          },
+          {
+            "index": 3,
+            "text": "+1,2% sobre el pago actual."
+          },
+          {
+            "index": 4,
+            "text": ""
+          },
+          {
+            "index": 5,
+            "text": "Resultado global similar"
+          },
+          {
+            "index": 6,
+            "text": "Impacto redistribuido"
+          },
+          {
+            "index": 7,
+            "text": "internamente"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "+$0,58 M",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "+$0,58 M",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "+1,2% sobre el pago actual.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "+1,2% sobre el pago actual."
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "Resultado global similar",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Resultado global similar",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 6,
+          "text": "Impacto redistribuido internamente",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Impacto redistribuido internamente"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/5sfepcfe",
+      "id": "15",
+      "name": "card-label-2",
+      "bbox": [
+        874,
+        440,
+        260,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Lectura gerencial",
+      "textPreview": "Lectura gerencial",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Lectura gerencial"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Lectura gerencial",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Lectura gerencial",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ipovexwn",
+      "id": "16",
+      "name": "footer-separator",
+      "bbox": [
+        104,
+        520,
+        1040,
+        1
+      ],
+      "geometry": "rect",
+      "fillColor": "#CBD5E1",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/3qxwn2x8",
+      "id": "17",
+      "name": "footer",
+      "bbox": [
+        104,
+        585.13,
+        1040,
+        34
+      ],
+      "geometry": "rect",
+      "text": "El nuevo método no cambia la unidad: paga bultos reales por hora reloj.",
+      "textPreview": "El nuevo método no cambia la unidad: paga bultos reales por hora reloj.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El nuevo método no cambia la unidad: paga bultos reales por hora reloj."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El nuevo método no cambia la unidad: paga bultos reales por hora reloj.",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El nuevo método no cambia la unidad: paga bultos reales por hora reloj.",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/sfqdkrep",
+      "id": "18",
+      "name": "footer2",
+      "bbox": [
+        104,
+        625.13,
+        1040,
+        30
+      ],
+      "geometry": "rect",
+      "text": "La diferencia global es acotada; la revisión necesaria está en la distribución por sector y legajo.",
+      "textPreview": "La diferencia global es acotada; la revisión necesaria está en la distribución por sector y legajo.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "La diferencia global es acotada; la revisión necesaria está en la distribución por sector y legajo."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "La diferencia global es acotada; la revisión necesaria está en la distribución por sector y legajo.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La diferencia global es acotada; la revisión necesaria está en la distribución por sector y legajo.",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/1cvuxc7e",
+      "id": "20",
+      "name": "footer2",
+      "bbox": [
+        106,
+        545,
+        1040,
+        30
+      ],
+      "geometry": "rect",
+      "text": "Base comparada: Picking · julio 2026",
+      "textPreview": "Base comparada: Picking · julio 2026",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Base comparada: Picking · julio 2026"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Base comparada: Picking · julio 2026",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Base comparada: Picking · julio 2026",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0bmd476t",
+      "id": "21",
+      "name": "visual-cover",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "geometry": "rect",
+      "fillColor": "#0B1630",
+      "lineColor": "#0B1630",
+      "lineWidth": 0
+    },
+    {
+      "order": 21,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/zadcv2p8",
+      "id": "22",
+      "name": "kicker",
+      "bbox": [
+        64,
+        36,
+        520,
+        18
+      ],
+      "geometry": "rect",
+      "text": "ESCENARIO PICKING · JULIO 2026",
+      "textPreview": "ESCENARIO PICKING · JULIO 2026",
+      "resolvedFontSize": 11,
+      "resolvedTextStyle": {
+        "fontSize": 11,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "ESCENARIO PICKING · JULIO 2026"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "ESCENARIO PICKING · JULIO 2026",
+          "resolvedTextStyle": {
+            "fontSize": 11,
+            "color": "#00A37A",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "ESCENARIO PICKING · JULIO 2026",
+              "fontSize": 11,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 22,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/e94v2hon",
+      "id": "23",
+      "name": "title",
+      "bbox": [
+        64,
+        62,
+        1080,
+        50
+      ],
+      "geometry": "rect",
+      "text": "El nuevo individual queda 25,8% por debajo del actual",
+      "textPreview": "El nuevo individual queda 25,8% por debajo del actual",
+      "resolvedFontSize": 31,
+      "resolvedTextStyle": {
+        "fontSize": 31,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El nuevo individual queda 25,8% por debajo del actual"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El nuevo individual queda 25,8% por debajo del actual",
+          "resolvedTextStyle": {
+            "fontSize": 31,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El nuevo individual queda 25,8% por debajo del actual",
+              "fontSize": 31,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 23,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/90ve1w7q",
+      "id": "24",
+      "bbox": [
+        64,
+        120,
+        92,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 24,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ozmd8r65",
+      "id": "25",
+      "name": "subtitle",
+      "bbox": [
+        64,
+        142,
+        1100,
+        30
+      ],
+      "geometry": "rect",
+      "text": "Bultos reales · hora reloj · sin premio grupal",
+      "textPreview": "Bultos reales · hora reloj · sin premio grupal",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#B9C8DC",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Bultos reales · hora reloj · sin premio grupal"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Bultos reales · hora reloj · sin premio grupal",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#B9C8DC"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Bultos reales · hora reloj · sin premio grupal",
+              "fontSize": 15,
+              "color": "#B9C8DC"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 25,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/nydczmpk",
+      "id": "26",
+      "name": "card-PAGO ACTUAL",
+      "bbox": [
+        64,
+        220,
+        350,
+        220
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#D8E1EA",
+      "lineWidth": 1
+    },
+    {
+      "order": 26,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/mx4v6hoz",
+      "id": "27",
+      "bbox": [
+        64,
+        220,
+        8,
+        220
+      ],
+      "geometry": "rect",
+      "fillColor": "#F2A33A",
+      "lineWidth": 0
+    },
+    {
+      "order": 27,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/p4bu5s76",
+      "id": "28",
+      "name": "PAGO ACTUAL-label",
+      "bbox": [
+        92,
+        242,
+        300,
+        20
+      ],
+      "geometry": "rect",
+      "text": "PAGO ACTUAL",
+      "textPreview": "PAGO ACTUAL",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "PAGO ACTUAL"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "PAGO ACTUAL",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#52657E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "PAGO ACTUAL",
+              "fontSize": 12,
+              "color": "#52657E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 28,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/432dwn6l",
+      "id": "29",
+      "name": "PAGO ACTUAL-value",
+      "bbox": [
+        92,
+        277,
+        300,
+        50
+      ],
+      "geometry": "rect",
+      "text": "$50,89 M",
+      "textPreview": "$50,89 M",
+      "resolvedFontSize": 32,
+      "resolvedTextStyle": {
+        "fontSize": 32,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "$50,89 M"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "$50,89 M",
+          "resolvedTextStyle": {
+            "fontSize": 32,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "$50,89 M",
+              "fontSize": 32,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 29,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/uxgjq907",
+      "id": "30",
+      "name": "PAGO ACTUAL-detail",
+      "bbox": [
+        92,
+        338,
+        300,
+        64
+      ],
+      "geometry": "rect",
+      "text": "Monto liquidado en julio\nBase de comparación",
+      "textPreview": "Monto liquidado en julio | Base de comparación",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Monto liquidado en julio"
+          },
+          {
+            "index": 2,
+            "text": "Base de comparación"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Monto liquidado en julio",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Monto liquidado en julio",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "Base de comparación",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Base de comparación",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 30,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/vyp0je1s",
+      "id": "31",
+      "name": "card-NUEVO DIRECTO",
+      "bbox": [
+        465,
+        220,
+        350,
+        220
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#153D72",
+      "lineColor": "#153D72",
+      "lineWidth": 1
+    },
+    {
+      "order": 31,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wzy1szid",
+      "id": "32",
+      "bbox": [
+        465,
+        220,
+        8,
+        220
+      ],
+      "geometry": "rect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 32,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/h072l4jy",
+      "id": "33",
+      "name": "NUEVO DIRECTO-label",
+      "bbox": [
+        493,
+        242,
+        300,
+        20
+      ],
+      "geometry": "rect",
+      "text": "NUEVO DIRECTO",
+      "textPreview": "NUEVO DIRECTO",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#C9D8EA",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "NUEVO DIRECTO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "NUEVO DIRECTO",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#C9D8EA",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "NUEVO DIRECTO",
+              "fontSize": 12,
+              "color": "#C9D8EA",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 33,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/i1gje90j",
+      "id": "34",
+      "name": "NUEVO DIRECTO-value",
+      "bbox": [
+        493,
+        277,
+        300,
+        50
+      ],
+      "geometry": "rect",
+      "text": "$37,77 M",
+      "textPreview": "$37,77 M",
+      "resolvedFontSize": 32,
+      "resolvedTextStyle": {
+        "fontSize": 32,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "$37,77 M"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "$37,77 M",
+          "resolvedTextStyle": {
+            "fontSize": 32,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "$37,77 M",
+              "fontSize": 32,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 34,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/j2pkne14",
+      "id": "35",
+      "name": "NUEVO DIRECTO-detail",
+      "bbox": [
+        493,
+        338,
+        300,
+        64
+      ],
+      "geometry": "rect",
+      "text": "Cálculo directo por bultos\nSin calibración sectorial",
+      "textPreview": "Cálculo directo por bultos | Sin calibración sectorial",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#DCE7F3",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cálculo directo por bultos"
+          },
+          {
+            "index": 2,
+            "text": "Sin calibración sectorial"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cálculo directo por bultos",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#DCE7F3"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cálculo directo por bultos",
+              "fontSize": 14,
+              "color": "#DCE7F3"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "Sin calibración sectorial",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#DCE7F3"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Sin calibración sectorial",
+              "fontSize": 14,
+              "color": "#DCE7F3"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 35,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/43y1gji9",
+      "id": "36",
+      "name": "card-DIFERENCIA",
+      "bbox": [
+        866,
+        220,
+        350,
+        220
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#D8E1EA",
+      "lineWidth": 1
+    },
+    {
+      "order": 36,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/54r2poju",
+      "id": "37",
+      "bbox": [
+        866,
+        220,
+        8,
+        220
+      ],
+      "geometry": "rect",
+      "fillColor": "#F2A33A",
+      "lineWidth": 0
+    },
+    {
+      "order": 37,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/y5wjip0z",
+      "id": "38",
+      "name": "DIFERENCIA-label",
+      "bbox": [
+        894,
+        242,
+        300,
+        20
+      ],
+      "geometry": "rect",
+      "text": "DIFERENCIA",
+      "textPreview": "DIFERENCIA",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "DIFERENCIA"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "DIFERENCIA",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#52657E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "DIFERENCIA",
+              "fontSize": 12,
+              "color": "#52657E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 38,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/z650ba1k",
+      "id": "39",
+      "name": "DIFERENCIA-value",
+      "bbox": [
+        894,
+        277,
+        300,
+        50
+      ],
+      "geometry": "rect",
+      "text": "-$13,12 M",
+      "textPreview": "-$13,12 M",
+      "resolvedFontSize": 32,
+      "resolvedTextStyle": {
+        "fontSize": 32,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "-$13,12 M"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "-$13,12 M",
+          "resolvedTextStyle": {
+            "fontSize": 32,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "-$13,12 M",
+              "fontSize": 32,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 39,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/z2xgf6to",
+      "id": "40",
+      "name": "DIFERENCIA-detail",
+      "bbox": [
+        894,
+        338,
+        300,
+        64
+      ],
+      "geometry": "rect",
+      "text": "-25,8% frente al pago actual\nSin premio grupal",
+      "textPreview": "-25,8% frente al pago actual | Sin premio grupal",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "-25,8% frente al pago actual"
+          },
+          {
+            "index": 2,
+            "text": "Sin premio grupal"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "-25,8% frente al pago actual",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "-25,8% frente al pago actual",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "Sin premio grupal",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Sin premio grupal",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 40,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/e1oz61c3",
+      "id": "41",
+      "bbox": [
+        64,
+        488,
+        168,
+        30
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#DDF4EC",
+      "lineWidth": 0
+    },
+    {
+      "order": 41,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/14fyhgbe",
+      "id": "42",
+      "bbox": [
+        64,
+        494,
+        168,
+        18
+      ],
+      "geometry": "rect",
+      "text": "LECTURA GERENCIAL",
+      "textPreview": "LECTURA GERENCIAL",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "center",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "LECTURA GERENCIAL"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "LECTURA GERENCIAL",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#00A37A",
+            "bold": true,
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "LECTURA GERENCIAL",
+              "fontSize": 12,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 42,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/036h8but",
+      "id": "43",
+      "bbox": [
+        64,
+        535,
+        1080,
+        42
+      ],
+      "geometry": "rect",
+      "text": "La brecha individual es de $13,12 M antes de cualquier premio grupal.",
+      "textPreview": "La brecha individual es de $13,12 M antes de cualquier premio grupal.",
+      "resolvedFontSize": 22,
+      "resolvedTextStyle": {
+        "fontSize": 22,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "La brecha individual es de $13,12 M antes de cualquier premio grupal."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "La brecha individual es de $13,12 M antes de cualquier premio grupal.",
+          "resolvedTextStyle": {
+            "fontSize": 22,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La brecha individual es de $13,12 M antes de cualquier premio grupal.",
+              "fontSize": 22,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 43,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/nqxgjqtk",
+      "id": "44",
+      "bbox": [
+        64,
+        615,
+        1000,
+        24
+      ],
+      "geometry": "rect",
+      "text": "La unidad de pago se mantiene: producción efectiva registrada y horas reloj.",
+      "textPreview": "La unidad de pago se mantiene: producción efectiva registrada y horas reloj.",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#B9C8DC",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "La unidad de pago se mantiene: producción efectiva registrada y horas reloj."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "La unidad de pago se mantiene: producción efectiva registrada y horas reloj.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#B9C8DC"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La unidad de pago se mantiene: producción efectiva registrada y horas reloj.",
+              "fontSize": 14,
+              "color": "#B9C8DC"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 44,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/mpozalcz",
+      "id": "45",
+      "bbox": [
+        1010,
+        665,
+        210,
+        18
+      ],
+      "geometry": "rect",
+      "text": "Fuente: caché de productividad · Picking · julio 2026",
+      "textPreview": "Fuente: caché de productividad · Picking · julio 2026",
+      "resolvedFontSize": 10,
+      "resolvedTextStyle": {
+        "fontSize": 10,
+        "typeface": "Calibri",
+        "color": "#8DA3BE",
+        "alignment": "right",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Fuente: caché de productividad · Picking · julio"
+          },
+          {
+            "index": 2,
+            "text": "2026"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Fuente: caché de productividad · Picking · julio 2026",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "color": "#8DA3BE",
+            "alignment": "right"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Fuente: caché de productividad · Picking · julio 2026",
+              "fontSize": 10,
+              "color": "#8DA3BE"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

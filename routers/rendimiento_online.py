@@ -31,7 +31,7 @@ router = APIRouter(prefix="/api/rendimiento-online", tags=["rendimiento-online"]
 BASE_DIR = Path(__file__).resolve().parent.parent
 STANDARD_PATH = BASE_DIR / "datos" / "productividad_estandar_sector.json"
 logger = logging.getLogger("vigia.rendimiento_online")
-HISTORICO_QUERY_VERSION = "rend_online_picking_etapas_v1"
+HISTORICO_QUERY_VERSION = "rend_online_picking_etapas_det_v2"
 HISTORICO_SCHEDULE_TIME = time(6, 30)
 HISTORICO_BACKFILL_DAYS = 62
 _historico_scheduler_task: asyncio.Task | None = None
@@ -113,6 +113,7 @@ ORDER BY C.descripcion, A.nivel
 QUERY_RENDIMIENTO_HISTORICO_ETAPAS = """
 WITH ETAPA_SOURCE AS (
     SELECT
+        'CAB' AS SOURCE_TABLE,
         A.ID, A.ID_PV_DIA_LABORAL, A.LEGAJO, A.FYHINI, A.FYHFIN,
         A.COD_FUNCION, A.DESC_FUNCION, A.DURACION_EN_SEGUNDOS,
         A.PRODUCTIVA, A.DISTANCIA_EN_METROS, A.PRODUCCION_REAL,
@@ -122,6 +123,7 @@ WITH ETAPA_SOURCE AS (
     FROM PV_ETAPA_CAB A
     UNION ALL
     SELECT
+        'HIST' AS SOURCE_TABLE,
         A.ID, A.ID_PV_DIA_LABORAL, A.LEGAJO, A.FYHINI, A.FYHFIN,
         A.COD_FUNCION, A.DESC_FUNCION, A.DURACION_EN_SEGUNDOS,
         A.PRODUCTIVA, A.DISTANCIA_EN_METROS, A.PRODUCCION_REAL,
@@ -129,6 +131,37 @@ WITH ETAPA_SOURCE AS (
         A.PROD_EQUIVAL_POR_CONSOLIDACION, A.POSICIONES_VISITADAS,
         A.DIVISION, A.SECTOR
     FROM PV_ETAPA_CAB_HIST A
+),
+DETALLE_SOURCE AS (
+    SELECT
+        'CAB' AS SOURCE_TABLE,
+        ID_ETAPA_CAB,
+        ID_PV_DIA_LABORAL,
+        COUNT(*) AS LINEAS_DETALLE,
+        SUM(NVL(QCANTIDA, 0)) AS BULTOS_DETALLE
+    FROM PV_ETAPA_DET
+    WHERE ID_PV_DIA_LABORAL IN (
+        SELECT ID
+        FROM PV_DIA_LABORAL
+        WHERE FECHA BETWEEN TO_NUMBER(TO_CHAR(TO_DATE(:fecha_desde, 'YYYY-MM-DD'), 'YYYYMMDD'))
+                        AND TO_NUMBER(TO_CHAR(TO_DATE(:fecha_hasta, 'YYYY-MM-DD'), 'YYYYMMDD'))
+    )
+    GROUP BY ID_ETAPA_CAB, ID_PV_DIA_LABORAL
+    UNION ALL
+    SELECT
+        'HIST' AS SOURCE_TABLE,
+        ID_ETAPA_CAB,
+        ID_PV_DIA_LABORAL,
+        COUNT(*) AS LINEAS_DETALLE,
+        SUM(NVL(QCANTIDA, 0)) AS BULTOS_DETALLE
+    FROM PV_ETAPA_DET_HIST
+    WHERE ID_PV_DIA_LABORAL IN (
+        SELECT ID
+        FROM PV_DIA_LABORAL
+        WHERE FECHA BETWEEN TO_NUMBER(TO_CHAR(TO_DATE(:fecha_desde, 'YYYY-MM-DD'), 'YYYYMMDD'))
+                        AND TO_NUMBER(TO_CHAR(TO_DATE(:fecha_hasta, 'YYYY-MM-DD'), 'YYYYMMDD'))
+    )
+    GROUP BY ID_ETAPA_CAB, ID_PV_DIA_LABORAL
 ),
 PICKING_FUNCIONES AS (
     SELECT DISTINCT F.CODIGO AS COD_FUNCION
@@ -148,6 +181,8 @@ SELECT
     MIN(A.FYHINI) AS PRIMER_MOVIMIENTO,
     MAX(A.FYHFIN) AS ULTIMO_MOVIMIENTO,
     COUNT(*) AS ETAPAS,
+    SUM(NVL(DET.LINEAS_DETALLE, 0)) AS LINEAS_DETALLE,
+    SUM(NVL(DET.BULTOS_DETALLE, 0)) AS BULTOS_DETALLE,
     SUM(NVL(A.PRODUCCION_REAL, 0)) AS BULTOS,
     SUM(NVL(A.DURACION_EN_SEGUNDOS, 0)) AS SEGUNDOS,
     SUM(NVL(A.DISTANCIA_EN_METROS, 0)) AS METROS,
@@ -158,6 +193,10 @@ SELECT
 FROM PV_DIA_LABORAL D
 JOIN ETAPA_SOURCE A ON A.ID_PV_DIA_LABORAL = D.ID
 JOIN PICKING_FUNCIONES PF ON PF.COD_FUNCION = A.COD_FUNCION
+LEFT JOIN DETALLE_SOURCE DET
+  ON DET.SOURCE_TABLE = A.SOURCE_TABLE
+ AND DET.ID_ETAPA_CAB = A.ID
+ AND DET.ID_PV_DIA_LABORAL = A.ID_PV_DIA_LABORAL
 LEFT JOIN PV_LEGAJO L ON L.LEGAJO = A.LEGAJO
 LEFT JOIN PV_GRUPO_PRODUCTIVO_DET GPD
   ON GPD.ID_DE_DIVISION = A.DIVISION
@@ -784,6 +823,8 @@ def _historico_rows_from_etapas(rows: list[dict[str, Any]]) -> list[dict[str, An
         eq_sector = float(row.get("PRODUCCION_EQUIV_SECTOR") or 0)
         eq_traslado = float(row.get("PRODUCCION_EQUIV_TRASLADO") or 0)
         eq_consolidacion = float(row.get("PRODUCCION_EQUIV_CONSOLIDACION") or 0)
+        lineas_detalle = int(row.get("LINEAS_DETALLE") or 0)
+        bultos_detalle = float(row.get("BULTOS_DETALLE") or 0)
         en_maestro = (division, sector) in standard_keys
         result.append({
             "dia_logistico": _date_from_oracle_number(row.get("FECHA")),
@@ -797,6 +838,9 @@ def _historico_rows_from_etapas(rows: list[dict[str, Any]]) -> list[dict[str, An
             "segundos": round(segundos, 1),
             "horas": round(horas, 4),
             "etapas": int(row.get("ETAPAS") or 0),
+            "lineas_detalle": lineas_detalle,
+            "bultos_detalle": round(bultos_detalle, 2),
+            "bultos_por_linea": round(bultos_detalle / lineas_detalle, 3) if lineas_detalle else 0.0,
             "metros": round(float(row.get("METROS") or 0), 2),
             "posiciones_visitadas": round(float(row.get("POSICIONES_VISITADAS") or 0), 2),
             "produccion_equiv_sector": round(eq_sector, 2),
@@ -895,6 +939,29 @@ def _closed_logistic_days(now: datetime, days: int = HISTORICO_BACKFILL_DAYS) ->
     return result
 
 
+def _closed_logistic_days_between(fecha_desde: str, fecha_hasta: str, now: datetime) -> list[dict[str, Any]]:
+    try:
+        start_date = datetime.strptime(fecha_desde[:10], "%Y-%m-%d").date()
+        end_date = datetime.strptime(fecha_hasta[:10], "%Y-%m-%d").date()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Rango de fechas invalido.") from exc
+    last_closed = _logistic_date(now).date() - timedelta(days=1)
+    end_date = min(end_date, last_closed)
+    if start_date > end_date:
+        return []
+    result = []
+    cursor = end_date
+    while cursor >= start_date:
+        next_day = cursor + timedelta(days=1)
+        result.append({
+            "dia_logistico": cursor.strftime("%Y-%m-%d"),
+            "fecha_desde": datetime.combine(cursor, time(6, 0)).strftime("%Y-%m-%d %H:%M:%S"),
+            "fecha_hasta": datetime.combine(next_day, time(6, 0)).strftime("%Y-%m-%d %H:%M:%S"),
+        })
+        cursor -= timedelta(days=1)
+    return result
+
+
 async def _cache_closed_day(day: dict[str, Any], *, force: bool = False, trigger: str = "manual") -> dict[str, Any]:
     operacion = "PICKING"
     existing = await get_historic_run(operacion, day["dia_logistico"])
@@ -948,10 +1015,16 @@ async def _cache_closed_day(day: dict[str, Any], *, force: bool = False, trigger
 
 
 async def run_rendimiento_historico_backfill(
-    *, force: bool = False, trigger: str = "manual", days: int = HISTORICO_BACKFILL_DAYS
+    *, force: bool = False, trigger: str = "manual", days: int = HISTORICO_BACKFILL_DAYS,
+    fecha_desde: str = "", fecha_hasta: str = "",
 ) -> dict[str, Any]:
     await init_rendimiento_historico_db()
-    closed_days = _closed_logistic_days(datetime.now(), days)
+    now = datetime.now()
+    closed_days = (
+        _closed_logistic_days_between(fecha_desde, fecha_hasta, now)
+        if fecha_desde and fecha_hasta
+        else _closed_logistic_days(now, days)
+    )
     results = []
     for day in closed_days:
         results.append(await _cache_closed_day(day, force=force, trigger=trigger))
@@ -1244,6 +1317,8 @@ async def post_historico_cache_backfill(
     request: Request,
     days: int = Query(HISTORICO_BACKFILL_DAYS, ge=1, le=93),
     force: bool = Query(False),
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
 ):
     auth = await current_auth(request)
     if not auth or auth.get("device_status") != "approved":
@@ -1254,6 +1329,8 @@ async def post_historico_cache_backfill(
         force=force,
         trigger=f"manual:{auth.get('username') or auth.get('display_name') or 'usuario'}",
         days=days,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
     )
 
 

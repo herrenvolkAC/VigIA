@@ -1,0 +1,1549 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/ofy9wn61",
+    "id": "ofy9wn61",
+    "slide": 3,
+    "layoutId": "/ppt/slideLayouts/slideLayout1.xml",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#FFFFFF",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "fontScheme": {
+      "name": "Office",
+      "majorFont": {
+        "latinTypeface": "Calibri Light",
+        "eastAsianTypeface": "Calibri Light",
+        "complexScriptTypeface": "Calibri Light"
+      },
+      "minorFont": {
+        "latinTypeface": "Calibri",
+        "eastAsianTypeface": "Calibri",
+        "complexScriptTypeface": "Calibri"
+      }
+    },
+    "typefaces": [
+      "Aptos",
+      "Calibri",
+      "Calibri Light"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "/ppt/slideLayouts/slideLayout1.xml",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "/ppt/slideMasters/slideMaster1.xml",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/x8nml0ra",
+      "id": "16",
+      "name": "kicker",
+      "bbox": [
+        64,
+        28,
+        500,
+        20
+      ],
+      "geometry": "rect",
+      "text": "ANEXO",
+      "textPreview": "ANEXO",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "ANEXO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "ANEXO",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "ANEXO",
+              "fontSize": 10,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cza94vmx",
+      "id": "2",
+      "name": "title",
+      "bbox": [
+        64,
+        52,
+        1120,
+        44
+      ],
+      "geometry": "rect",
+      "text": "Cálculo del Premio Individual",
+      "textPreview": "Cálculo del Premio Individual",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cálculo del Premio Individual"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cálculo del Premio Individual",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cálculo del Premio Individual",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/d0jax03i",
+      "id": "3",
+      "name": "accent-rule",
+      "bbox": [
+        54,
+        94,
+        104,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#047857",
+      "lineColor": "#047857",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/298ryl4v",
+      "id": "4",
+      "name": "content-panel",
+      "bbox": [
+        64,
+        130,
+        1172,
+        556
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/3ah8rqlg",
+      "id": "5",
+      "name": "section-1-title",
+      "bbox": [
+        104,
+        168,
+        980,
+        24
+      ],
+      "geometry": "rect",
+      "text": "1. Producción Horaria (Ph)",
+      "textPreview": "1. Producción Horaria (Ph)",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "1. Producción Horaria (Ph)"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "1. Producción Horaria (Ph)",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "1. Producción Horaria (Ph)",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/obq90bml",
+      "id": "6",
+      "name": "section-1-formula",
+      "bbox": [
+        104,
+        202,
+        380,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Ph = Σ Producción − EC",
+      "textPreview": "Ph = Σ Producción − EC",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Ph = Σ Producción − EC"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Ph = Σ Producción − EC",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Ph = Σ Producción − EC",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/pcjqtg36",
+      "id": "7",
+      "name": "section-1-text",
+      "bbox": [
+        515,
+        200,
+        650,
+        58
+      ],
+      "geometry": "rect",
+      "text": "Se mide sobre horas reloj reales. La unidad depende de la operación: UL, bultos, pallets, huecos, etc. Cambios de operación, sector o TNC válido se descuentan de los minutos trabajados. Se aplican descuentos por errores de preparación.",
+      "textPreview": "Se mide sobre horas reloj reales. La unidad depende de la operación: UL, bultos, pallets, huecos, etc. Cambios de operación, sector o TNC...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 3,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Se mide sobre horas reloj reales. La unidad depende de la operación: UL, bultos, pallets,"
+          },
+          {
+            "index": 2,
+            "text": "huecos, etc. Cambios de operación, sector o TNC válido se descuentan de los minutos"
+          },
+          {
+            "index": 3,
+            "text": "trabajados. Se aplican descuentos por errores de preparación."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Se mide sobre horas reloj reales. La unidad depende de la operación: UL, bultos, pallets, huecos, etc. Cambios de operación, sector o TNC válido se descuentan de los minutos trabajados. Se aplican descuentos por errores de preparación.",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Se ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 2,
+              "text": "mide",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 3,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 4,
+              "text": "sobre",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 5,
+              "text": " horas ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 6,
+              "text": "reloj",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 7,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 8,
+              "text": "reales",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 9,
+              "text": ". La ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 10,
+              "text": "unidad",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 11,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 12,
+              "text": "depende",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 13,
+              "text": " de la ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 14,
+              "text": "operación",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 15,
+              "text": ": UL, ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 16,
+              "text": "bultos",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 17,
+              "text": ", pallets, ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 18,
+              "text": "huecos",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 19,
+              "text": ", etc. ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 20,
+              "text": "Cambios",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 21,
+              "text": " de ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 22,
+              "text": "operación",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 23,
+              "text": ", sector o TNC ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 24,
+              "text": "válido",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 25,
+              "text": " se ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 26,
+              "text": "descuentan de los",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 27,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 28,
+              "text": "minutos",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 29,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 30,
+              "text": "trabajados",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 31,
+              "text": ". Se ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 32,
+              "text": "aplican",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 33,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 34,
+              "text": "descuentos",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 35,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 36,
+              "text": "por",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 37,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 38,
+              "text": "errores",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 39,
+              "text": " de ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 40,
+              "text": "preparación",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 41,
+              "text": ".",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/m5cra54z",
+      "id": "8",
+      "name": "section-2-title",
+      "bbox": [
+        104,
+        286,
+        980,
+        24
+      ],
+      "geometry": "rect",
+      "text": "2. Premio Horario (Pp)",
+      "textPreview": "2. Premio Horario (Pp)",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "2. Premio Horario (Pp)"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "2. Premio Horario (Pp)",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "2. Premio Horario (Pp)",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/n6ls3alk",
+      "id": "9",
+      "name": "section-2-formula",
+      "bbox": [
+        104,
+        320,
+        380,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Pp = Ph vs Tabla",
+      "textPreview": "Pp = Ph vs Tabla",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Pp = Ph vs Tabla"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Pp = Ph vs Tabla",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Pp = Ph vs Tabla",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/n2l4fq98",
+      "id": "10",
+      "name": "section-2-text",
+      "bbox": [
+        515,
+        318,
+        650,
+        58
+      ],
+      "geometry": "rect",
+      "text": "La Producción Horaria se interpola con la tabla de Operación / División / Sector. Si el período es menor a una hora, el premio se calcula proporcionalmente según el tiempo efectivamente trabajado.",
+      "textPreview": "La Producción Horaria se interpola con la tabla de Operación / División / Sector. Si el período es menor a una hora, el premio se calcula...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 3,
+        "lines": [
+          {
+            "index": 1,
+            "text": "La Producción Horaria se interpola con la tabla de Operación / División / Sector. Si el"
+          },
+          {
+            "index": 2,
+            "text": "período es menor a una hora, el premio se calcula proporcionalmente según el tiempo"
+          },
+          {
+            "index": 3,
+            "text": "efectivamente trabajado."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "La Producción Horaria se interpola con la tabla de Operación / División / Sector. Si el período es menor a una hora, el premio se calcula proporcionalmente según el tiempo efectivamente trabajado.",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 2,
+              "text": "Producción",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 3,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 4,
+              "text": "Horaria",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 5,
+              "text": " se ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 6,
+              "text": "interpola",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 7,
+              "text": " con la ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 8,
+              "text": "tabla",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 9,
+              "text": " de ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 10,
+              "text": "Operación",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 11,
+              "text": " / División / Sector. Si ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 12,
+              "text": "el",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 13,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 14,
+              "text": "período",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 15,
+              "text": " es ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 16,
+              "text": "menor",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 17,
+              "text": " a ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 18,
+              "text": "una",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 19,
+              "text": " hora, ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 20,
+              "text": "el",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 21,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 22,
+              "text": "premio",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 23,
+              "text": " se ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 24,
+              "text": "calcula",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 25,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 26,
+              "text": "proporcionalmente",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 27,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 28,
+              "text": "según",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 29,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 30,
+              "text": "el",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 31,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 32,
+              "text": "tiempo",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 33,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 34,
+              "text": "efectivamente",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 35,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 36,
+              "text": "trabajado",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 37,
+              "text": ".",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/m1c3mlsn",
+      "id": "11",
+      "name": "section-3-title",
+      "bbox": [
+        104,
+        404,
+        980,
+        24
+      ],
+      "geometry": "rect",
+      "text": "3. Pago Individual Diario (PID)",
+      "textPreview": "3. Pago Individual Diario (PID)",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "3. Pago Individual Diario (PID)"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "3. Pago Individual Diario (PID)",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "3. Pago Individual Diario (PID)",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/943mhgre",
+      "id": "12",
+      "name": "section-3-formula",
+      "bbox": [
+        104,
+        438,
+        380,
+        28
+      ],
+      "geometry": "rect",
+      "text": "PID = Σ Pp",
+      "textPreview": "PID = Σ Pp",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "PID = Σ Pp"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "PID = Σ Pp",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "PID = Σ Pp",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/83ulovat",
+      "id": "13",
+      "name": "section-3-text",
+      "bbox": [
+        515,
+        436,
+        650,
+        58
+      ],
+      "geometry": "rect",
+      "text": "El Pago Individual Diario es la suma de todos los premios horarios obtenidos durante la jornada.",
+      "textPreview": "El Pago Individual Diario es la suma de todos los premios horarios obtenidos durante la jornada.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El Pago Individual Diario es la suma de todos los premios horarios obtenidos durante la"
+          },
+          {
+            "index": 2,
+            "text": "jornada."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El Pago Individual Diario es la suma de todos los premios horarios obtenidos durante la jornada.",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El Pago Individual Diario es la suma de todos los premios horarios obtenidos durante la jornada.",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/v6l4jq94",
+      "id": "14",
+      "name": "refs-title",
+      "bbox": [
+        104,
+        552,
+        220,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Referencias",
+      "textPreview": "Referencias",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Referencias"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Referencias",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Referencias",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/a5c3ql8z",
+      "id": "15",
+      "name": "refs",
+      "bbox": [
+        104,
+        580,
+        1040,
+        78
+      ],
+      "geometry": "rect",
+      "text": "Ph → Producción Horaria    UL → Unidad de medida    EC → Errores Computables    Pp → Premio Horario    PID → Pago Individual Diario",
+      "textPreview": "Ph → Producción Horaria    UL → Unidad de medida    EC → Errores Computables    Pp → Premio Horario    PID → Pago Individual Diario",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Ph → Producción Horaria    UL → Unidad de medida    EC → Errores Computables    Pp → Premio Horario    PID → Pago Individual Diario"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Ph → Producción Horaria    UL → Unidad de medida    EC → Errores Computables    Pp → Premio Horario    PID → Pago Individual Diario",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Ph → Producción Horaria    UL → Unidad de medida    EC → Errores Computables    Pp → Premio Horario    PID → Pago Individual Diario",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/w7ulsvqp",
+      "id": "17",
+      "name": "TextBox 16",
+      "bbox": [
+        64,
+        100.88,
+        1189.33,
+        40
+      ],
+      "geometry": "rect",
+      "text": "El premio individual surge del desempeño horario de cada colaborador, evaluado contra la tabla correspondiente a la operación efectivamente realizada.",
+      "textPreview": "El premio individual surge del desempeño horario de cada colaborador, evaluado contra la tabla correspondiente a la operación efectivamen...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "wrap": "none",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El premio individual surge del desempeño horario de cada colaborador, evaluado contra la tabla correspondiente a la operación efectivamente realizada."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El premio individual surge del desempeño horario de cada colaborador, evaluado contra la tabla correspondiente a la operación efectivamente realizada.",
+          "resolvedTextStyle": {
+            "fontSize": 18.67,
+            "italic": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El premio individual surge del desempeño horario de cada colaborador, evaluado contra la tabla correspondiente a la operación efectivamente realizada.",
+              "fontSize": 18.67,
+              "italic": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    }
+  ],
+  "composeRuns": []
+}

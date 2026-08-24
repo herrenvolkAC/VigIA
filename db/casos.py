@@ -7,7 +7,10 @@ from __future__ import annotations
 import aiosqlite
 
 from db.auth import attach_auth_db
-from db.schema import DB_PATH
+from db.paths import ROOT_DIR, resolve_db_path
+
+
+CASES_DB_PATH = resolve_db_path("VIGIA_CASOS_DB_PATH", "vigia_casos.db", ROOT_DIR)
 
 
 CREATE_TICKET_TIPO = """
@@ -355,7 +358,8 @@ PERFILES = ["OPERACION", "ACTIVACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "M
 
 
 async def init_cases_db() -> None:
-    async with aiosqlite.connect(DB_PATH) as db:
+    CASES_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         await attach_auth_db(db)
         for statement in [

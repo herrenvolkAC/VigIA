@@ -51,7 +51,7 @@ if errorlevel 1 (
 
 REM Instalar dependencias si faltan
 echo  Verificando dependencias...
-"%PYTHON_EXE%" -c "import aiosqlite, fastapi, openpyxl, oracledb, uvicorn, xlrd" >nul 2>&1
+"%PYTHON_EXE%" -c "import aiosqlite, fastapi, openpyxl, oracledb, uvicorn, xlrd, multipart" >nul 2>&1
 if errorlevel 1 (
     echo  Instalando dependencias en entorno local de VigIA...
     if exist offline_packages (

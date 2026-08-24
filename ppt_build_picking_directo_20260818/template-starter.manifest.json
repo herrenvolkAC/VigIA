@@ -1,0 +1,45 @@
+{
+  "sourcePptx": "C:\\Users\\207189\\Documents\\Codex\\2026-07-30\\este-ser-a-el-prompt-que\\outputs\\ProductividadNueva_v2.0.pptx",
+  "mapPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-frame-map.json",
+  "output": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter.pptx",
+  "outputBytes": 22668,
+  "sourceSlideCount": 34,
+  "slideCount": 3,
+  "previewDir": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-preview",
+  "layoutDir": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-layout",
+  "slides": [
+    {
+      "outputSlide": 1,
+      "sourceSlide": 5,
+      "narrativeRole": "Resultado global de Picking en julio",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 11,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-preview\\starter-slide-01.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-01.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-layout\\starter-slide-01.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-01.layout.json"
+    },
+    {
+      "outputSlide": 2,
+      "sourceSlide": 7,
+      "narrativeRole": "Calibración sectorial medida",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 14,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-preview\\starter-slide-02.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-02.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-layout\\starter-slide-02.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-02.layout.json"
+    },
+    {
+      "outputSlide": 3,
+      "sourceSlide": 8,
+      "narrativeRole": "Condición para habilitar el premio grupal",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 14,
+      "previewPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-preview\\starter-slide-03.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-03.png",
+      "layoutPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-layout\\starter-slide-03.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-03.layout.json"
+    }
+  ]
+}

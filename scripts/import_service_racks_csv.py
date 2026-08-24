@@ -19,8 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from db.casos import init_cases_db  # noqa: E402
-from db.schema import DB_PATH  # noqa: E402
+from db.casos import CASES_DB_PATH, init_cases_db  # noqa: E402
 from routers.casos import (  # noqa: E402
     _as_list,
     _attach_forms_files,
@@ -642,7 +641,7 @@ async def import_csv(args: argparse.Namespace) -> int:
         writer.writeheader()
         writer.writerows(report_rows)
 
-    print(json.dumps({"db": str(DB_PATH), "csv": str(path), "report": str(report_path), "dry_run": args.dry_run, **counters}, ensure_ascii=False, indent=2))
+    print(json.dumps({"db": str(CASES_DB_PATH), "csv": str(path), "report": str(report_path), "dry_run": args.dry_run, **counters}, ensure_ascii=False, indent=2))
     return 0 if counters["errors"] == 0 else 2
 
 

@@ -1,0 +1,2013 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/i107q5of",
+    "id": "i107q5of",
+    "slide": 5,
+    "layoutId": "/ppt/slideLayouts/slideLayout1.xml",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#FFFFFF",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "fontScheme": {
+      "name": "Office",
+      "majorFont": {
+        "latinTypeface": "Calibri Light",
+        "eastAsianTypeface": "Calibri Light",
+        "complexScriptTypeface": "Calibri Light"
+      },
+      "minorFont": {
+        "latinTypeface": "Calibri",
+        "eastAsianTypeface": "Calibri",
+        "complexScriptTypeface": "Calibri"
+      }
+    },
+    "typefaces": [
+      "Aptos",
+      "Calibri",
+      "Calibri Light"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "/ppt/slideLayouts/slideLayout1.xml",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "/ppt/slideMasters/slideMaster1.xml",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/tcfel0vu",
+      "id": "19",
+      "name": "kicker",
+      "bbox": [
+        64,
+        28,
+        500,
+        20
+      ],
+      "geometry": "rect",
+      "text": "MODELO",
+      "textPreview": "MODELO",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "MODELO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "MODELO",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "MODELO",
+              "fontSize": 10,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/dgbulwnm",
+      "id": "2",
+      "name": "title",
+      "bbox": [
+        64,
+        47.73,
+        1120,
+        44
+      ],
+      "geometry": "rect",
+      "text": "Alternativas para el Premio Grupal",
+      "textPreview": "Alternativas para el Premio Grupal",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Alternativas para el Premio Grupal"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Alternativas para el Premio Grupal",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Alternativas",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": " para ",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "el",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 4,
+              "text": " Premio ",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 5,
+              "text": "Grupal",
+              "fontSize": 32,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true,
+              "italic": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cf2tcr61",
+      "id": "3",
+      "name": "accent-rule",
+      "bbox": [
+        54,
+        94,
+        104,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#047857",
+      "lineColor": "#047857",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/z2tcnm5s",
+      "id": "4",
+      "name": "content-panel",
+      "bbox": [
+        80,
+        160,
+        350,
+        330
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/yhkbe1o7",
+      "id": "5",
+      "name": "card-title-0",
+      "bbox": [
+        104,
+        185,
+        300,
+        24
+      ],
+      "geometry": "rect",
+      "text": "Producción",
+      "textPreview": "Producción",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Producción"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Producción",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Producción",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/l4bupwny",
+      "id": "6",
+      "name": "card-body-0",
+      "bbox": [
+        104,
+        230,
+        300,
+        190
+      ],
+      "geometry": "rect",
+      "text": "Mira\nLa participación productiva del colaborador.\n\nSe paga si\nEl turno alcanza el mínimo requerido colectivo.\n\nSe reparte\nSegún la participación en la producción del grupo.",
+      "textPreview": "Mira | La participación productiva del colaborador. |  | Se paga si | El turno alcanza el mínimo requerido colectivo. |  | Se reparte | S...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 10,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Mira"
+          },
+          {
+            "index": 2,
+            "text": "La participación productiva del colaborador."
+          },
+          {
+            "index": 3,
+            "text": ""
+          },
+          {
+            "index": 4,
+            "text": "Se paga si"
+          },
+          {
+            "index": 5,
+            "text": "El turno alcanza el mínimo requerido colectivo"
+          },
+          {
+            "index": 6,
+            "text": "."
+          },
+          {
+            "index": 7,
+            "text": ""
+          },
+          {
+            "index": 8,
+            "text": "Se reparte"
+          },
+          {
+            "index": 9,
+            "text": "Según la participación en la producción del"
+          },
+          {
+            "index": 10,
+            "text": "grupo."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Mira",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Mira",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "La participación productiva del colaborador.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 2,
+              "text": "participación",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 3,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 4,
+              "text": "productiva",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 5,
+              "text": " del ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 6,
+              "text": "colaborador",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 7,
+              "text": ".",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "Se paga si",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Se ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 2,
+              "text": "paga",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 3,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 4,
+              "text": "si",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "El turno alcanza el mínimo requerido colectivo.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 2,
+              "text": "turno",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 3,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 4,
+              "text": "alcanza",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 5,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 6,
+              "text": "el",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 7,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 8,
+              "text": "mínimo",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 9,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 10,
+              "text": "requerido",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 11,
+              "text": " colectivo",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 12,
+              "text": ".",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 7,
+          "text": "Se reparte",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Se ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 2,
+              "text": "reparte",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 8,
+          "text": "Según la participación en la producción del grupo.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Según",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 2,
+              "text": " la ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 3,
+              "text": "participación",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 4,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 5,
+              "text": "en",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 6,
+              "text": " la ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 7,
+              "text": "producción",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 8,
+              "text": " del ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 9,
+              "text": "grupo",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 10,
+              "text": ".",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/032tgr6d",
+      "id": "7",
+      "name": "card-label-0",
+      "bbox": [
+        104,
+        440,
+        260,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Opción A",
+      "textPreview": "Opción A",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Opción A"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Opción A",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Opción A",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/n6dcr65o",
+      "id": "8",
+      "name": "content-panel",
+      "bbox": [
+        465,
+        160,
+        350,
+        330
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#FF0000",
+      "lineWidth": 8
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/m5kbi1oj",
+      "id": "9",
+      "name": "card-title-1",
+      "bbox": [
+        489,
+        185,
+        300,
+        24
+      ],
+      "geometry": "rect",
+      "text": "Cumplimiento",
+      "textPreview": "Cumplimiento",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cumplimiento"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cumplimiento",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cumplimiento",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/w32dkbuh",
+      "id": "10",
+      "name": "card-body-1",
+      "bbox": [
+        489,
+        230,
+        300,
+        190
+      ],
+      "geometry": "rect",
+      "text": "Mira\nCuántos colaboradores generan Premio Individual.\n\nSe paga si\nEl grupo alcanza el porcentaje requerido.\n\nSe reparte\nSegún las horas trabajadas.",
+      "textPreview": "Mira | Cuántos colaboradores generan Premio Individual. |  | Se paga si | El grupo alcanza el porcentaje requerido. |  | Se reparte | Seg...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 9,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Mira"
+          },
+          {
+            "index": 2,
+            "text": "Cuántos colaboradores generan Premio"
+          },
+          {
+            "index": 3,
+            "text": "Individual."
+          },
+          {
+            "index": 4,
+            "text": ""
+          },
+          {
+            "index": 5,
+            "text": "Se paga si"
+          },
+          {
+            "index": 6,
+            "text": "El grupo alcanza el porcentaje requerido."
+          },
+          {
+            "index": 7,
+            "text": ""
+          },
+          {
+            "index": 8,
+            "text": "Se reparte"
+          },
+          {
+            "index": 9,
+            "text": "Según las horas trabajadas."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Mira",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Mira",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "Cuántos colaboradores generan Premio Individual.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cuántos colaboradores generan Premio Individual.",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "Se paga si",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Se paga si",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "El grupo alcanza el porcentaje requerido.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El grupo alcanza el porcentaje requerido.",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 7,
+          "text": "Se reparte",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Se reparte",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 8,
+          "text": "Según las horas trabajadas.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Según las horas trabajadas.",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/x4vedgvm",
+      "id": "11",
+      "name": "card-label-1",
+      "bbox": [
+        489,
+        440,
+        260,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Opción B",
+      "textPreview": "Opción B",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Opción B"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Opción B",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Opción B",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ahkvi1cb",
+      "id": "12",
+      "name": "content-panel",
+      "bbox": [
+        850,
+        160,
+        350,
+        330
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/v2twb6dw",
+      "id": "13",
+      "name": "card-title-2",
+      "bbox": [
+        874,
+        185,
+        300,
+        24
+      ],
+      "geometry": "rect",
+      "text": "Planificación",
+      "textPreview": "Planificación",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Planificación"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Planificación",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Planificación",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/k7mxovud",
+      "id": "14",
+      "name": "card-body-2",
+      "bbox": [
+        874,
+        230,
+        300,
+        190
+      ],
+      "geometry": "rect",
+      "text": "Mira\nEl cumplimiento del plan del turno.\n\nSe paga si\nEl flujo aplicable cumple la planificación esperada.\n\nSe reparte\nSegún las horas trabajadas.",
+      "textPreview": "Mira | El cumplimiento del plan del turno. |  | Se paga si | El flujo aplicable cumple la planificación esperada. |  | Se reparte | Según...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 9,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Mira"
+          },
+          {
+            "index": 2,
+            "text": "El cumplimiento del plan del turno."
+          },
+          {
+            "index": 3,
+            "text": ""
+          },
+          {
+            "index": 4,
+            "text": "Se paga si"
+          },
+          {
+            "index": 5,
+            "text": "El flujo aplicable cumple la planificación"
+          },
+          {
+            "index": 6,
+            "text": "esperada."
+          },
+          {
+            "index": 7,
+            "text": ""
+          },
+          {
+            "index": 8,
+            "text": "Se reparte"
+          },
+          {
+            "index": 9,
+            "text": "Según las horas trabajadas."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Mira",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Mira",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "El cumplimiento del plan del turno.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El cumplimiento del plan del turno.",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "Se paga si",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Se paga si",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "El flujo aplicable cumple la planificación esperada.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El flujo aplicable cumple la planificación esperada.",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 7,
+          "text": "Se reparte",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Se reparte",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 8,
+          "text": "Según las horas trabajadas.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Según las horas trabajadas.",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/58vehgvy",
+      "id": "15",
+      "name": "card-label-2",
+      "bbox": [
+        874,
+        440,
+        260,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Opción C",
+      "textPreview": "Opción C",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Opción C"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Opción C",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Opción C",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/i54fmlc7",
+      "id": "16",
+      "name": "footer-separator",
+      "bbox": [
+        104,
+        520,
+        1040,
+        1
+      ],
+      "geometry": "rect",
+      "fillColor": "#CBD5E1",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/j6dwfqds",
+      "id": "17",
+      "name": "footer",
+      "bbox": [
+        104,
+        585.13,
+        1040,
+        34
+      ],
+      "geometry": "rect",
+      "text": "Las tres opciones usan el mismo Premio Grupal. Cambian la condición de activación y el criterio de distribución.",
+      "textPreview": "Las tres opciones usan el mismo Premio Grupal. Cambian la condición de activación y el criterio de distribución.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Las tres opciones usan el mismo Premio Grupal. Cambian la condición de activación y el criterio de distribución."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Las tres opciones usan el mismo Premio Grupal. Cambian la condición de activación y el criterio de distribución.",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Las ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": "tres",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 4,
+              "text": "opciones",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 5,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 6,
+              "text": "usan",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 7,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 8,
+              "text": "el",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 9,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 10,
+              "text": "mismo",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 11,
+              "text": " Premio ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 12,
+              "text": "Grupal",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 13,
+              "text": ". ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 14,
+              "text": "Cambian",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 15,
+              "text": " la ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 16,
+              "text": "condición",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 17,
+              "text": " de ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 18,
+              "text": "activación",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 19,
+              "text": " y ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 20,
+              "text": "el",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 21,
+              "text": " ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 22,
+              "text": "criterio",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 23,
+              "text": " de ",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 24,
+              "text": "distribución",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            },
+            {
+              "index": 25,
+              "text": ".",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/sb6xsvu9",
+      "id": "18",
+      "name": "footer2",
+      "bbox": [
+        104,
+        625.13,
+        1040,
+        30
+      ],
+      "geometry": "rect",
+      "text": "El Premio Grupal se calcula por operación/sector/turno y luego se distribuye según la alternativa seleccionada.",
+      "textPreview": "El Premio Grupal se calcula por operación/sector/turno y luego se distribuye según la alternativa seleccionada.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El Premio Grupal se calcula por operación/sector/turno y luego se distribuye según la alternativa seleccionada."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El Premio Grupal se calcula por operación/sector/turno y luego se distribuye según la alternativa seleccionada.",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El Premio ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 2,
+              "text": "Grupal",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 3,
+              "text": " se ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 4,
+              "text": "calcula",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 5,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 6,
+              "text": "por",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 7,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 8,
+              "text": "operación",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 9,
+              "text": "/sector/",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 10,
+              "text": "turno",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 11,
+              "text": " y luego se ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 12,
+              "text": "distribuye",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 13,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 14,
+              "text": "según",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 15,
+              "text": " la ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 16,
+              "text": "alternativa",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 17,
+              "text": " ",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 18,
+              "text": "seleccionada",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            },
+            {
+              "index": 19,
+              "text": ".",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hgrmpwj2",
+      "id": "20",
+      "name": "footer2",
+      "bbox": [
+        106,
+        545,
+        1040,
+        30
+      ],
+      "geometry": "rect",
+      "text": "El método de calculo de pago se puede realizar por: A: Participación productiva. B: Participación en horas. C: Si alcanzó en target en base a las horas trabajadas",
+      "textPreview": "El método de calculo de pago se puede realizar por: A: Participación productiva. B: Participación en horas. C: Si alcanzó en target en ba...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El método de calculo de pago se puede realizar por: A: Participación productiva. B: Participación en horas. C: Si alcanzó en target en base a las horas trabajadas"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El método de calculo de pago se puede realizar por: A: Participación productiva. B: Participación en horas. C: Si alcanzó en target en base a las horas trabajadas",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El método de calculo de pago se puede realizar por: A: Participación productiva. B: Participación en horas. C: Si alcanzó en target en base a las horas trabajadas",
+              "fontSize": 14,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

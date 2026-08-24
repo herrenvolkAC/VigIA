@@ -30,21 +30,22 @@ import aiosqlite
 from fastapi import APIRouter, Body, HTTPException, Query, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
+import xlsxwriter
 
 from db.auth import attach_auth_db, auth_db
-from db.casos import PERFILES, init_cases_db
-from db.schema import DB_PATH
+from db.casos import CASES_DB_PATH, PERFILES, init_cases_db
 from routers.auth_local import current_auth
 from utils.usage_log import write_usage_event
 
 router = APIRouter(prefix="/api/casos", tags=["casos"])
 logger = logging.getLogger("vigia.casos")
 
+APP_ROOT = Path(__file__).resolve().parent.parent
 try:
     CASES_TZ = ZoneInfo(os.getenv("VIGIA_CASES_TIMEZONE", "America/Buenos_Aires"))
 except ZoneInfoNotFoundError:
     CASES_TZ = timezone(timedelta(hours=-3))
-ATTACHMENTS_DIR = Path(os.getenv("VIGIA_CASOS_ATTACHMENTS_DIR", Path(__file__).parent.parent / "resources" / "casos_adjuntos"))
+ATTACHMENTS_DIR = Path(os.getenv("VIGIA_CASOS_ATTACHMENTS_DIR", APP_ROOT / "resources" / "casos_adjuntos"))
 FORMS_ATTACHMENT_ERROR_PREFIX = "No se pudieron adjuntar fotos Forms:"
 SQLITE_BUSY_TIMEOUT_SECONDS = int(os.getenv("VIGIA_SQLITE_BUSY_TIMEOUT_SECONDS", "60") or "60")
 SQLITE_BUSY_TIMEOUT_MS = SQLITE_BUSY_TIMEOUT_SECONDS * 1000
@@ -132,7 +133,7 @@ def _normalize_username(value: str) -> str:
 
 async def _case_profile(auth: dict[str, Any], tipo_codigo: str = "REPARACION_RACK") -> str:
     username = _normalize_username(auth.get("username") or "")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         row = await _fetch_one(
             db,
@@ -147,6 +148,23 @@ async def _case_profile(auth: dict[str, Any], tipo_codigo: str = "REPARACION_RAC
         )
     if row and row.get("perfil"):
         return str(row["perfil"]).upper()
+    try:
+        async with auth_db(attach_operational=False) as db:
+            row = await _fetch_one(
+                db,
+                """
+                SELECT profile
+                FROM auth_user_app_access
+                WHERE username = ? AND module = 'casos' AND enabled = 1
+                ORDER BY updated_at DESC, access_id DESC
+                LIMIT 1
+                """,
+                (username,),
+            )
+        if row and row.get("profile"):
+            return str(row["profile"]).upper()
+    except Exception:
+        pass
     if str(auth.get("role") or "").lower() == "admin":
         return "ADMIN"
     return ""
@@ -154,7 +172,7 @@ async def _case_profile(auth: dict[str, Any], tipo_codigo: str = "REPARACION_RAC
 
 async def _case_assignment(auth: dict[str, Any], tipo_codigo: str = "REPARACION_RACK") -> dict[str, str]:
     username = _normalize_username(auth.get("username") or "")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         row = await _fetch_one(
             db,
@@ -169,6 +187,23 @@ async def _case_assignment(auth: dict[str, Any], tipo_codigo: str = "REPARACION_
         )
     if row:
         return {"perfil": str(row.get("perfil") or "").upper(), "sector": row.get("sector") or ""}
+    try:
+        async with auth_db(attach_operational=False) as db:
+            row = await _fetch_one(
+                db,
+                """
+                SELECT profile, sector
+                FROM auth_user_app_access
+                WHERE username = ? AND module = 'casos' AND enabled = 1
+                ORDER BY updated_at DESC, access_id DESC
+                LIMIT 1
+                """,
+                (username,),
+            )
+        if row and row.get("profile"):
+            return {"perfil": str(row.get("profile") or "").upper(), "sector": row.get("sector") or ""}
+    except Exception:
+        pass
     if str(auth.get("role") or "").lower() == "admin":
         return {"perfil": "ADMIN", "sector": "ADMIN"}
     return {"perfil": "", "sector": ""}
@@ -202,8 +237,30 @@ async def _fetch_all(db: aiosqlite.Connection, sql: str, args: tuple[Any, ...] =
         return [dict(row) for row in await cur.fetchall()]
 
 
+def _attachment_storage_value(path: Path) -> str:
+    return path.name
+
+
+def _resolve_attachment_path(stored_path: Any, stored_name: Any = "") -> Path:
+    raw = str(stored_path or stored_name or "").strip()
+    if not raw:
+        return ATTACHMENTS_DIR / str(stored_name or "")
+    path = Path(raw)
+    candidates: list[Path] = []
+    if path.is_absolute():
+        candidates.append(path)
+    else:
+        candidates.extend([ATTACHMENTS_DIR / path, APP_ROOT / path])
+    if path.name:
+        candidates.append(ATTACHMENTS_DIR / path.name)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0] if candidates else path
+
+
 async def _connect_operational_db() -> aiosqlite.Connection:
-    db = await aiosqlite.connect(DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS)
+    db = await aiosqlite.connect(CASES_DB_PATH, timeout=SQLITE_BUSY_TIMEOUT_SECONDS)
     db.row_factory = aiosqlite.Row
     await db.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
     return db
@@ -365,7 +422,7 @@ async def _guardar_adjunto(
             (ticket_id, fecha, usuario_id, nombre_original, nombre_archivo, ruta_archivo, tipo_mime, activo)
         VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         """,
-        (ticket_id, _now(), auth["username"], original, filename, str(path), mime),
+        (ticket_id, _now(), auth["username"], original, filename, _attachment_storage_value(path), mime),
     )
     await _historial(db, ticket_id, auth, perfil, "AGREGA_ADJUNTO", original)
     return {"nombre_original": original, "nombre_archivo": filename, "tipo_mime": mime}
@@ -395,7 +452,7 @@ async def _guardar_adjunto_bytes(
             (ticket_id, fecha, usuario_id, nombre_original, nombre_archivo, ruta_archivo, tipo_mime, activo)
         VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         """,
-        (ticket_id, _now(), auth["username"], original, filename, str(path), mime),
+        (ticket_id, _now(), auth["username"], original, filename, _attachment_storage_value(path), mime),
     )
     await _historial(db, ticket_id, auth, perfil, "AGREGA_ADJUNTO_FORMS", original)
     return {"nombre_original": original, "nombre_archivo": filename, "tipo_mime": mime}
@@ -826,7 +883,7 @@ async def _ticket_row(db: aiosqlite.Connection, ticket_id: int) -> dict[str, Any
 async def config(request: Request):
     auth, perfil = await _require_auth(request)
     assignment = await _case_assignment(auth)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         tipos = await _fetch_all(db, "SELECT * FROM ticket_tipo WHERE activo = 1 ORDER BY nombre")
         criticidades = await _fetch_all(db, "SELECT * FROM ticket_criticidad WHERE activo = 1 ORDER BY tipo_id, sla_horas")
@@ -848,7 +905,7 @@ async def config(request: Request):
 async def admin_init_db(request: Request):
     await _require_admin(request)
     await init_cases_db()
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         tables = [
             "ticket_tipo",
@@ -880,7 +937,7 @@ async def admin_init_db(request: Request):
     return {
         "ok": True,
         "message": "Gestion de Casos inicializada desde backend.",
-        "db_path": str(DB_PATH),
+        "db_path": str(CASES_DB_PATH),
         "counts": counts,
         "ticket_rack_detalle_columns": [row["name"] for row in rack_detail_columns],
     }
@@ -890,7 +947,7 @@ async def admin_init_db(request: Request):
 async def listar_usuarios_perfiles(request: Request, tipo_codigo: str = "REPARACION_RACK"):
     await _require_admin(request)
     tipo_codigo = tipo_codigo.strip().upper() or "REPARACION_RACK"
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         await attach_auth_db(db)
         usuarios = await _fetch_all(
@@ -938,7 +995,7 @@ async def guardar_usuario_perfil(req: UsuarioPerfilCasoRequest, request: Request
         async with db.execute("SELECT 1 FROM auth_users WHERE username = ?", (username,)) as cur:
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Usuario no encontrado.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         async with db.execute("SELECT 1 FROM ticket_tipo WHERE codigo = ?", (tipo_codigo,)) as cur:
             if await cur.fetchone() is None:
                 raise HTTPException(status_code=404, detail="Tipo de caso no encontrado.")
@@ -1712,7 +1769,7 @@ async def listar_forms_ingresos(request: Request, estado: str = "", limit: int =
         where.append("estado_importacion = ?")
         args.append(estado.strip().upper())
     sql_where = f"WHERE {' AND '.join(where)}" if where else ""
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         rows = await _fetch_all(
             db,
@@ -1732,7 +1789,7 @@ async def listar_forms_ingresos(request: Request, estado: str = "", limit: int =
 @router.post("/forms/ingresos/{ingreso_id}/reintentar")
 async def reintentar_forms_ingreso(ingreso_id: int, request: Request):
     await _require_auth(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         db.row_factory = aiosqlite.Row
         try:
@@ -1752,7 +1809,7 @@ async def reintentar_forms_ingreso(ingreso_id: int, request: Request):
 @router.post("/forms/ingresos/{ingreso_id}/reclamar")
 async def reclamar_forms_ingreso(ingreso_id: int, req: FormsReclamoRequest, request: Request):
     auth, _ = await _require_auth(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         await db.execute(
             """
             UPDATE ticket_forms_ingreso
@@ -1775,7 +1832,7 @@ async def crear_rack(req: RackNuevoRequest, request: Request):
         raise HTTPException(status_code=400, detail="Selecciona al menos un nivel afectado.")
     if not req.fotografias:
         raise HTTPException(status_code=400, detail="Al menos una fotografia es obligatoria.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         db.row_factory = aiosqlite.Row
         tipo_id = await _tipo_id(db)
@@ -1892,7 +1949,7 @@ async def listar(
     vencidos_sla: bool = False,
 ):
     auth, perfil = await _require_auth(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         where = ["t.activo = 1"]
         args: list[Any] = []
@@ -1962,6 +2019,7 @@ async def listar(
             SELECT t.id, t.codigo_visible, tt.nombre tipo, t.fecha_creacion, e.codigo estado_codigo, e.nombre estado, e.es_final,
                    c.nombre criticidad, c.codigo criticidad_codigo, c.color criticidad_color,
                    t.titulo, t.sector_creacion_id sector, t.perfil_asignado, t.sector_asignado, t.usuario_creacion_id creado_por,
+                   d.service_externo_id,
                    t.fecha_ultima_actualizacion, t.sla_vencimiento
             FROM ticket t
             JOIN ticket_tipo tt ON tt.id = t.tipo_id
@@ -1979,9 +2037,7 @@ async def listar(
     return {"items": rows, "count": len(rows), "perfil": perfil}
 
 
-@router.get("/control-ubicaciones")
-async def control_ubicaciones(request: Request, limit: int = Query(500, ge=50, le=5000)):
-    await _require_auth(request)
+async def _control_ubicaciones_payload(limit: int = 500) -> dict[str, Any]:
     oracle_error = ""
     try:
         wms_rows = await asyncio.to_thread(_query_rack_oracle_inutilizadas_jdbc)
@@ -1989,7 +2045,7 @@ async def control_ubicaciones(request: Request, limit: int = Query(500, ge=50, l
         wms_rows = []
         oracle_error = str(exc)
 
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         service_rows = await _active_service_locations(db)
 
@@ -2047,10 +2103,86 @@ async def control_ubicaciones(request: Request, limit: int = Query(500, ge=50, l
     }
 
 
+@router.get("/control-ubicaciones")
+async def control_ubicaciones(request: Request, limit: int = Query(500, ge=50, le=5000)):
+    await _require_auth(request)
+    return await _control_ubicaciones_payload(limit)
+
+
+def _safe_excel_filename(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", value).strip("_") or "vigia_export.xlsx"
+
+
+def _write_xlsx_sheet(workbook: xlsxwriter.Workbook, name: str, columns: list[tuple[str, str]], rows: list[dict[str, Any]]) -> None:
+    sheet = workbook.add_worksheet(name[:31])
+    title_format = workbook.add_format({"bold": True, "font_color": "#FFFFFF", "bg_color": "#0E1620", "font_size": 13})
+    header_format = workbook.add_format({"bold": True, "font_color": "#FFFFFF", "bg_color": "#1F7A4D", "border": 0})
+    wrap_format = workbook.add_format({"text_wrap": True, "valign": "top"})
+    sheet.merge_range(0, 0, 0, max(0, len(columns) - 1), name, title_format)
+    for col, (_, label) in enumerate(columns):
+        sheet.write(2, col, label, header_format)
+    for row_idx, row in enumerate(rows, start=3):
+        for col_idx, (key, _) in enumerate(columns):
+            sheet.write(row_idx, col_idx, row.get(key, ""), wrap_format)
+    sheet.freeze_panes(3, 0)
+    sheet.autofilter(2, 0, max(2, len(rows) + 2), max(0, len(columns) - 1))
+    for col_idx, (key, label) in enumerate(columns):
+        width = max(len(label), *(len(str(row.get(key, "") or "")) for row in rows[:500])) + 2
+        sheet.set_column(col_idx, col_idx, min(max(width, 10), 42))
+
+
+@router.get("/control-ubicaciones/export.xlsx")
+async def export_control_ubicaciones_xlsx(
+    request: Request,
+    tipo: str = Query(..., pattern="^(wms-sin-service|services-sin-wms)$"),
+    limit: int = Query(5000, ge=50, le=5000),
+):
+    await _require_auth(request)
+    data = await _control_ubicaciones_payload(limit)
+    if tipo == "wms-sin-service":
+        title = "Ubicaciones WMS sin service activo"
+        filename = "control_ubicaciones_wms_sin_service.xlsx"
+        rows = data.get("wms_without_service") or []
+        columns = [
+            ("posicion", "Posicion"),
+            ("czonalma", "Zona"),
+            ("cpasillo", "Pasillo/Cara"),
+            ("chuecopa", "Ubic/Nivel"),
+            ("fcreareg", "Fecha WMS"),
+            ("usuacrea", "Usuario"),
+            ("movimien", "Movimiento"),
+            ("observac", "Observacion"),
+        ]
+    else:
+        title = "Services activos sin ubicacion inutilizada WMS"
+        filename = "control_ubicaciones_services_sin_wms.xlsx"
+        rows = data.get("services_without_wms") or []
+        columns = [
+            ("posicion", "Posicion"),
+            ("codigo_visible", "Ticket"),
+            ("estado", "Estado"),
+            ("titulo", "Titulo"),
+            ("fecha_creacion", "Fecha creacion"),
+            ("fecha_ultima_actualizacion", "Ultima actualizacion"),
+            ("ticket_id", "Ticket ID"),
+        ]
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+    workbook.set_properties({"title": title, "company": "Coto C.I.C.S.A.", "comments": "Exportado desde VigIA"})
+    _write_xlsx_sheet(workbook, title, columns, rows)
+    workbook.close()
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{_safe_excel_filename(filename)}"'},
+    )
+
+
 @router.get("/dashboard")
 async def dashboard(request: Request):
     auth, perfil = await _require_auth(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         base = await _fetch_one(
             db,
@@ -2156,7 +2288,7 @@ async def detalle(ticket_id: int, request: Request):
     _, perfil = await _require_auth(request)
     rack_stock: list[dict[str, Any]] = []
     rack_stock_error = ""
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         ticket = await _ticket_row(db, ticket_id)
         rack = None
@@ -2231,7 +2363,7 @@ async def comentar(ticket_id: int, req: ComentarioRequest, request: Request):
     comentario = req.comentario.strip()
     if not comentario:
         raise HTTPException(status_code=400, detail="Comentario obligatorio.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         ticket = await _ticket_row(db, ticket_id)
         permiso = await _permiso(db, int(ticket["tipo_id"]), perfil)
@@ -2248,7 +2380,7 @@ async def comentar(ticket_id: int, req: ComentarioRequest, request: Request):
 @router.post("/ticket/{ticket_id}/adjuntos")
 async def adjuntar(ticket_id: int, req: AdjuntoRequest, request: Request):
     auth, perfil = await _require_auth(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         ticket = await _ticket_row(db, ticket_id)
         permiso = await _permiso(db, int(ticket["tipo_id"]), perfil)
@@ -2263,18 +2395,19 @@ async def adjuntar(ticket_id: int, req: AdjuntoRequest, request: Request):
 @router.get("/adjuntos/{adjunto_id}/download")
 async def descargar_adjunto(adjunto_id: int, request: Request):
     await _require_auth(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         adj = await _fetch_one(db, "SELECT * FROM ticket_adjunto WHERE id=? AND activo=1", (adjunto_id,))
-    if not adj or not Path(adj["ruta_archivo"]).exists():
+    file_path = _resolve_attachment_path(adj.get("ruta_archivo") if adj else "", adj.get("nombre_archivo") if adj else "")
+    if not adj or not file_path.exists():
         raise HTTPException(status_code=404, detail="Adjunto no encontrado.")
-    return FileResponse(adj["ruta_archivo"], filename=adj["nombre_original"], media_type=adj.get("tipo_mime") or "application/octet-stream")
+    return FileResponse(str(file_path), filename=adj["nombre_original"], media_type=adj.get("tipo_mime") or "application/octet-stream")
 
 
 @router.post("/ticket/{ticket_id}/estado")
 async def cambiar_estado(ticket_id: int, req: CambioEstadoRequest, request: Request):
     auth, perfil = await _require_auth(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         ticket = await _ticket_row(db, ticket_id)
         transicion = await _fetch_one(
@@ -2335,7 +2468,7 @@ async def listar_parametros(tabla: str, request: Request):
     await _require_auth(request)
     if tabla not in RACK_PARAM_TABLES:
         raise HTTPException(status_code=400, detail="Tabla de parametros invalida.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         rows = await _fetch_all(db, f"SELECT * FROM {tabla} ORDER BY activo DESC, orden, nombre")
     return {"items": rows}
@@ -2348,7 +2481,7 @@ async def guardar_parametro(tabla: str, req: ParametroRequest, request: Request)
         raise HTTPException(status_code=403, detail="Solo ADMIN puede administrar parametros.")
     if tabla not in RACK_PARAM_TABLES:
         raise HTTPException(status_code=400, detail="Tabla de parametros invalida.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         if req.id:
             await db.execute(
                 f"UPDATE {tabla} SET codigo=?, nombre=?, orden=?, activo=? WHERE id=?",
@@ -2375,7 +2508,7 @@ async def listar_parametros_comunes(tabla: str, request: Request):
         order = "tipo_id, sla_horas, id"
     elif tabla == "ticket_estado_transicion":
         order = "tipo_id, estado_origen_id, id"
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         rows = await _fetch_all(db, f"SELECT * FROM {tabla} ORDER BY {order}")
     return {"items": rows, "columns": ["id", *sorted(COMMON_PARAM_COLUMNS[tabla])]}
@@ -2393,7 +2526,7 @@ async def guardar_parametro_comun(tabla: str, request: Request, payload: dict[st
     values = {k: payload[k] for k in allowed if k in payload}
     if not values:
         raise HTTPException(status_code=400, detail="No hay campos validos para guardar.")
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         if item_id:
             assignments = ", ".join(f"{column}=?" for column in values)
             await db.execute(f"UPDATE {tabla} SET {assignments} WHERE id=?", (*values.values(), item_id))
@@ -2408,7 +2541,7 @@ async def guardar_parametro_comun(tabla: str, request: Request, payload: dict[st
 @router.get("/export/csv")
 async def export_csv(request: Request, tipo_id: int | None = Query(None)):
     await _require_auth(request)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         where = "WHERE t.activo = 1"
         args: tuple[Any, ...] = ()

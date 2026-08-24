@@ -42,7 +42,10 @@ CASO_MODELO_DIA_QUERY_VERSION = "premio_hora_v12_limites_piso"
 CASO_MODELO_DETALLE_QUERY_VERSION = "premio_hora_v11_equilibrio"
 EVALUACION_PICKING_QUERY_VERSION = "evaluacion_picking_real_sector_v6_escala_sectorial_multiplicativa"
 EVALUACION_PICKING_PAYMENT_QUERY_VERSION = "evaluacion_picking_pago_real_picking_v10_calidad_tnc_error"
-PUNTO0_FORMULA_VERSION = "punto0_modelo_actual_individual_grupal_bultos_horas_v1"
+OPERACION_EVIDENCIA_QUERY_VERSION = "productiv_operaciones_dia_v1"
+OPERACIONES_GENERAL_QUERY_VERSION = "operaciones_general_ul_real_horas_v1"
+OPERACIONES_GENERAL_HORA_QUERY_VERSION = "operaciones_general_hora_ul_real_v6_clark_no_nivel_cero"
+PUNTO0_FORMULA_VERSION = "punto0_modelo_actual_individual_grupal_bultos_horas_v2_division_legajero_reales"
 DEFAULT_OPERACION = "PICKING"
 DEFAULT_ALMACEN = "TODOS"
 OPERACIONES_PREMIO_PRODUCTIVIDAD = {
@@ -320,6 +323,157 @@ SELECT
 FROM BASE
 GROUP BY LEGAJO, FECHA, OPERACION, UNIDAD_MEDIDA, TIPO_PREMIO, DIVISION
 ORDER BY PREMIO_ACTUAL_TOTAL DESC, LEGAJO, FECHA, TIPO_PREMIO, OPERACION, DIVISION
+"""
+
+CONSULTA_PP_OPERACIONES_GENERAL = """
+/* PP_OPERACIONES_GENERAL_UL_REAL_HORAS */
+WITH PARAMS AS (
+    SELECT
+        TO_NUMBER(TO_CHAR(TO_DATE(:fecha_desde, 'YYYY/MM/DD'), 'YYYYMMDD')) AS FECHA_DESDE,
+        TO_NUMBER(TO_CHAR(TO_DATE(:fecha_hasta, 'YYYY/MM/DD'), 'YYYYMMDD')) AS FECHA_HASTA
+    FROM DUAL
+), LIQ AS (
+    SELECT
+        A.FECHA,
+        A.ID AS ID_PV_DIA_LABORAL,
+        A.LEGAJO,
+        B.ID_PV_GRUPO_DE_FUNCIONES AS ID_GRUPO_FUNCIONES,
+        G.DESCRIPCION AS OPERACION,
+        COUNT(DISTINCT B.ID_PV_UNIDAD_DE_PRODUCCION) AS UNIDADES_LOGISTICAS,
+        MIN(B.ID_PV_UNIDAD_DE_PRODUCCION) AS ID_UNIDAD_LOGISTICA,
+        COUNT(DISTINCT NVL(B.ID_PV_GRUPO_PRODUCTIVO, 0)) AS GRUPOS_PRODUCTIVOS,
+        MIN(NVL(B.ID_PV_GRUPO_PRODUCTIVO, 0)) AS ID_GRUPO_PRODUCTIVO,
+        MAX(NVL(P.DESCRIPCION, 'TODOS')) AS GRUPO_PRODUCTIVO,
+        SUM(NVL(B.A_PAGAR_TOTAL, 0)) AS PAGO_ACTUAL,
+        SUM(NVL(B.PENALIZACION_EXCESO_TNC, 0)) AS PENALIZACION_TNC,
+        SUM(NVL(B.PENALIZACION_POR_ERROR, 0)) AS PENALIZACION_ERROR,
+        MAX(NVL(B.OBJETIVO_NIVEL_ALCANZADO, 0)) AS NIVEL_ACTUAL
+    FROM PARAMS X
+    JOIN PV_DIA_LABORAL A ON A.FECHA BETWEEN X.FECHA_DESDE AND X.FECHA_HASTA
+    JOIN PV_LIQUIDAC_DIA_DET1 B ON B.ID_PV_DIA_LABORAL = A.ID
+    JOIN PV_GRUPO_DE_FUNCIONES_CAB G ON G.ID = B.ID_PV_GRUPO_DE_FUNCIONES
+    LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB P ON P.ID = B.ID_PV_GRUPO_PRODUCTIVO
+    GROUP BY A.FECHA, A.ID, A.LEGAJO, B.ID_PV_GRUPO_DE_FUNCIONES, G.DESCRIPCION
+), ETAPA AS (
+    SELECT
+        A.ID_PV_DIA_LABORAL,
+        A.LEGAJO,
+        C.ID_PV_GRUPO_DE_FUNCIONES_CAB AS ID_GRUPO_FUNCIONES,
+        SUM(CASE WHEN EXISTS (SELECT 1 FROM PV_ETAPA_DET DX WHERE DX.ID_ETAPA_CAB=A.ID)
+                 THEN (SELECT SUM(NVL(DX.QCANTIDA,0)) FROM PV_ETAPA_DET DX WHERE DX.ID_ETAPA_CAB=A.ID)
+                 ELSE NVL(A.PRODUCCION_REAL,0) END) AS PRODUCCION_EFECTIVA,
+        SUM(NVL(A.DURACION_EN_SEGUNDOS,0)) AS SEGUNDOS_EFECTIVOS,
+        SUM((SELECT COUNT(*) FROM PV_ETAPA_DET DX WHERE DX.ID_ETAPA_CAB=A.ID)) AS LINEAS_DETALLE,
+        COUNT(*) AS ETAPAS,
+        MAX(A.DIVISION) AS DIVISION,
+        MAX(A.SECTOR) AS SECTOR,
+        COUNT(DISTINCT A.DIVISION) AS DIVISIONES,
+        COUNT(DISTINCT A.SECTOR) AS SECTORES
+    FROM PARAMS X
+    JOIN PV_DIA_LABORAL Z ON Z.FECHA BETWEEN X.FECHA_DESDE AND X.FECHA_HASTA
+    JOIN PV_ETAPA_CAB A ON A.ID_PV_DIA_LABORAL = Z.ID
+    JOIN PV_FUNCION F ON F.CODIGO = A.COD_FUNCION
+    JOIN PV_GRUPO_DE_FUNCIONES_DET C ON C.ID_PV_FUNCION = F.ID
+    WHERE A.FYHINI IS NOT NULL AND A.FYHFIN IS NOT NULL AND A.FYHFIN > A.FYHINI
+    GROUP BY A.ID_PV_DIA_LABORAL, A.LEGAJO, C.ID_PV_GRUPO_DE_FUNCIONES_CAB
+)
+SELECT
+    L.FECHA,
+    L.ID_PV_DIA_LABORAL,
+    L.LEGAJO,
+    L.ID_GRUPO_FUNCIONES,
+    L.OPERACION,
+    L.UNIDADES_LOGISTICAS,
+    L.ID_UNIDAD_LOGISTICA,
+    L.GRUPOS_PRODUCTIVOS,
+    L.ID_GRUPO_PRODUCTIVO,
+    L.GRUPO_PRODUCTIVO,
+    L.PAGO_ACTUAL,
+    L.PENALIZACION_TNC,
+    L.PENALIZACION_ERROR,
+    L.NIVEL_ACTUAL,
+    NVL(E.PRODUCCION_EFECTIVA, 0) AS PRODUCCION_EFECTIVA,
+    NVL(E.SEGUNDOS_EFECTIVOS, 0) AS SEGUNDOS_EFECTIVOS,
+    NVL(E.LINEAS_DETALLE, 0) AS LINEAS_DETALLE,
+    NVL(E.ETAPAS, 0) AS ETAPAS,
+    E.DIVISION,
+    E.SECTOR,
+    NVL(E.DIVISIONES, 0) AS DIVISIONES,
+    NVL(E.SECTORES, 0) AS SECTORES
+FROM LIQ L
+LEFT JOIN ETAPA E
+  ON E.ID_PV_DIA_LABORAL = L.ID_PV_DIA_LABORAL
+ AND E.LEGAJO = L.LEGAJO
+ AND E.ID_GRUPO_FUNCIONES = L.ID_GRUPO_FUNCIONES
+ORDER BY L.FECHA, L.OPERACION, L.LEGAJO
+"""
+
+CONSULTA_PP_ESCALAS_GENERAL = """
+/* PP_ESCALAS_GENERAL */
+SELECT
+    D.DESCRIPCION AS OPERACION,
+    D.ID AS ID_GRUPO_FUNCIONES,
+    D.ID_DE_UNIDAD_DE_PRODUCCION AS ID_UNIDAD_LOGISTICA,
+    NVL(F.ID, 0) AS ID_GRUPO_PRODUCTIVO,
+    NVL(F.DESCRIPCION, 'TODOS') AS GRUPO_PRODUCTIVO,
+    E.NIVEL,
+    E.DESDE / 8 AS DESDE_X_HORA,
+    E.HASTA / 8 AS HASTA_X_HORA,
+    E.PREMIO / 8 AS PREMIO_X_HORA
+FROM PV_ESCALA_DE_PREMIOS E
+JOIN PV_GRUPO_DE_FUNCIONES_CAB D ON D.ID = E.ID_DE_GRUPO_DE_FUNCIONES
+LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB F ON F.ID = E.ID_DE_GRUPO_PRODUCTIVO
+ORDER BY D.DESCRIPCION, ID_UNIDAD_LOGISTICA, ID_GRUPO_PRODUCTIVO, E.NIVEL
+"""
+
+CONSULTA_PP_OPERACIONES_GENERAL_HORA = """
+/* PP_OPERACIONES_GENERAL_HORA_UL_REAL */
+WITH PARAMS AS (
+    SELECT TO_NUMBER(TO_CHAR(TO_DATE(:fecha_desde, 'YYYY/MM/DD'), 'YYYYMMDD')) FECHA_DESDE,
+           TO_NUMBER(TO_CHAR(TO_DATE(:fecha_hasta, 'YYYY/MM/DD'), 'YYYYMMDD')) FECHA_HASTA FROM DUAL
+), LIQ AS (
+    SELECT A.FECHA,A.ID ID_PV_DIA_LABORAL,A.LEGAJO,B.ID_PV_GRUPO_DE_FUNCIONES ID_GRUPO_FUNCIONES,
+           G.DESCRIPCION OPERACION,COUNT(DISTINCT B.ID_PV_UNIDAD_DE_PRODUCCION) UNIDADES_LOGISTICAS,
+           MIN(B.ID_PV_UNIDAD_DE_PRODUCCION) ID_UNIDAD_LOGISTICA,
+           COUNT(DISTINCT NVL(B.ID_PV_GRUPO_PRODUCTIVO,0)) GRUPOS_PRODUCTIVOS,
+           MIN(NVL(B.ID_PV_GRUPO_PRODUCTIVO,0)) ID_GRUPO_PRODUCTIVO,
+           MAX(NVL(P.DESCRIPCION,'TODOS')) GRUPO_PRODUCTIVO,
+           SUM(NVL(B.A_PAGAR_TOTAL,0)) PAGO_ACTUAL,
+           SUM(NVL(B.PENALIZACION_EXCESO_TNC,0)) PENALIZACION_TNC,
+           SUM(NVL(B.PENALIZACION_POR_ERROR,0)) PENALIZACION_ERROR
+    FROM PARAMS X JOIN PV_DIA_LABORAL A ON A.FECHA BETWEEN X.FECHA_DESDE AND X.FECHA_HASTA
+    JOIN PV_LIQUIDAC_DIA_DET1 B ON B.ID_PV_DIA_LABORAL=A.ID
+    JOIN PV_GRUPO_DE_FUNCIONES_CAB G ON G.ID=B.ID_PV_GRUPO_DE_FUNCIONES
+    LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB P ON P.ID=B.ID_PV_GRUPO_PRODUCTIVO
+    GROUP BY A.FECHA,A.ID,A.LEGAJO,B.ID_PV_GRUPO_DE_FUNCIONES,G.DESCRIPCION
+), ETAPA AS (
+    SELECT L.FECHA,L.ID_PV_DIA_LABORAL,L.LEGAJO,L.ID_GRUPO_FUNCIONES,L.OPERACION,
+           L.UNIDADES_LOGISTICAS,L.ID_UNIDAD_LOGISTICA,L.GRUPOS_PRODUCTIVOS,
+           CASE WHEN L.OPERACION='CLARK' THEN NVL(GP.ID_DE_GRUPO_PRODUCTIVO,L.ID_GRUPO_PRODUCTIVO) ELSE L.ID_GRUPO_PRODUCTIVO END ID_GRUPO_PRODUCTIVO,
+           CASE WHEN L.OPERACION='CLARK' THEN NVL(GP_DESC.DESCRIPCION,L.GRUPO_PRODUCTIVO) ELSE L.GRUPO_PRODUCTIVO END GRUPO_PRODUCTIVO,
+           TO_NUMBER(TO_CHAR(A.FYHFIN,'HH24')) HORA, A.DIVISION,
+           CASE WHEN COUNT(DISTINCT NVL(A.SECTOR,'#SIN_SECTOR')) = 1 THEN MAX(A.SECTOR) ELSE 'VARIOS' END SECTOR,
+           SUM(CASE WHEN L.OPERACION='CLARK' THEN NVL(A.PRODUCCION_REAL,0)
+                    WHEN EXISTS (SELECT 1 FROM PV_ETAPA_DET DX WHERE DX.ID_ETAPA_CAB=A.ID)
+                    THEN (SELECT SUM(NVL(DX.QCANTIDA,0)) FROM PV_ETAPA_DET DX WHERE DX.ID_ETAPA_CAB=A.ID)
+                    ELSE NVL(A.PRODUCCION_REAL,0) END) PRODUCCION_EFECTIVA,
+           SUM(NVL(A.DURACION_EN_SEGUNDOS,0)) SEGUNDOS_EFECTIVOS,
+           SUM((SELECT COUNT(*) FROM PV_ETAPA_DET DX WHERE DX.ID_ETAPA_CAB=A.ID)) LINEAS_DETALLE,
+           COUNT(*) ETAPAS,L.PAGO_ACTUAL,L.PENALIZACION_TNC,L.PENALIZACION_ERROR
+    FROM PARAMS X JOIN PV_DIA_LABORAL Z ON Z.FECHA BETWEEN X.FECHA_DESDE AND X.FECHA_HASTA
+    JOIN PV_ETAPA_CAB A ON A.ID_PV_DIA_LABORAL=Z.ID
+    JOIN PV_FUNCION F ON F.CODIGO=A.COD_FUNCION
+    JOIN PV_GRUPO_DE_FUNCIONES_DET C ON C.ID_PV_FUNCION=F.ID
+    JOIN LIQ L ON L.ID_PV_DIA_LABORAL=A.ID_PV_DIA_LABORAL AND L.LEGAJO=A.LEGAJO AND L.ID_GRUPO_FUNCIONES=C.ID_PV_GRUPO_DE_FUNCIONES_CAB
+    LEFT JOIN PV_GRUPO_PRODUCTIVO_DET GP ON L.OPERACION='CLARK' AND A.DIVISION=GP.ID_DE_DIVISION AND A.SECTOR=GP.ID_DE_SECTOR
+    LEFT JOIN PV_GRUPO_PRODUCTIVO_CAB GP_DESC ON GP_DESC.ID=GP.ID_DE_GRUPO_PRODUCTIVO
+    WHERE A.FYHINI IS NOT NULL AND A.FYHFIN IS NOT NULL AND A.FYHFIN>A.FYHINI
+    GROUP BY L.FECHA,L.ID_PV_DIA_LABORAL,L.LEGAJO,L.ID_GRUPO_FUNCIONES,L.OPERACION,L.UNIDADES_LOGISTICAS,L.ID_UNIDAD_LOGISTICA,L.GRUPOS_PRODUCTIVOS,
+             CASE WHEN L.OPERACION='CLARK' THEN NVL(GP.ID_DE_GRUPO_PRODUCTIVO,L.ID_GRUPO_PRODUCTIVO) ELSE L.ID_GRUPO_PRODUCTIVO END,
+             CASE WHEN L.OPERACION='CLARK' THEN NVL(GP_DESC.DESCRIPCION,L.GRUPO_PRODUCTIVO) ELSE L.GRUPO_PRODUCTIVO END,
+             TO_NUMBER(TO_CHAR(A.FYHFIN,'HH24')),A.DIVISION,L.PAGO_ACTUAL,L.PENALIZACION_TNC,L.PENALIZACION_ERROR
+)
+SELECT * FROM ETAPA ORDER BY FECHA,OPERACION,LEGAJO,HORA
 """
 
 CONSULTA_PP_ETAPAS_HORA = """
@@ -1230,6 +1384,81 @@ CREATE TABLE IF NOT EXISTS pp_caso_modelo_carga (
 CREATE INDEX IF NOT EXISTS idx_pp_caso_dia ON pp_caso_modelo_dia(fecha_base, operacion, almacen, query_version);
 CREATE INDEX IF NOT EXISTS idx_pp_caso_detalle ON pp_caso_modelo_detalle(fecha_base, operacion, almacen, legajo, query_version);
 CREATE INDEX IF NOT EXISTS idx_pp_caso_carga ON pp_caso_modelo_carga(fecha_base, operacion, query_version);
+CREATE TABLE IF NOT EXISTS pp_operacion_evidencia_dia (
+    fecha_base DATE NOT NULL,
+    legajo TEXT NOT NULL,
+    operacion TEXT NOT NULL,
+    unidad_medida TEXT NOT NULL DEFAULT '',
+    tipo_premio TEXT NOT NULL DEFAULT '',
+    division_oracle TEXT NOT NULL DEFAULT '',
+    productividad REAL NOT NULL DEFAULT 0,
+    pago_actual REAL NOT NULL DEFAULT 0,
+    jornadas_con_actividad INTEGER NOT NULL DEFAULT 0,
+    jornadas_premio_sin_actividad INTEGER NOT NULL DEFAULT 0,
+    query_version TEXT NOT NULL,
+    loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (fecha_base, legajo, operacion, unidad_medida, query_version)
+);
+CREATE INDEX IF NOT EXISTS idx_pp_operacion_evidencia_legajo ON pp_operacion_evidencia_dia(fecha_base, legajo);
+CREATE TABLE IF NOT EXISTS pp_operaciones_general_dia (
+    fecha_base DATE NOT NULL,
+    id_pv_dia_laboral INTEGER NOT NULL,
+    legajo TEXT NOT NULL,
+    id_grupo_funciones INTEGER NOT NULL,
+    operacion TEXT NOT NULL,
+    unidades_logisticas INTEGER NOT NULL DEFAULT 0,
+    id_unidad_logistica TEXT NOT NULL DEFAULT '',
+    grupos_productivos INTEGER NOT NULL DEFAULT 0,
+    id_grupo_productivo INTEGER NOT NULL DEFAULT 0,
+    grupo_productivo TEXT NOT NULL DEFAULT 'TODOS',
+    division TEXT NOT NULL DEFAULT '',
+    sector TEXT NOT NULL DEFAULT '',
+    divisiones INTEGER NOT NULL DEFAULT 0,
+    sectores INTEGER NOT NULL DEFAULT 0,
+    produccion_efectiva REAL NOT NULL DEFAULT 0,
+    segundos_efectivos REAL NOT NULL DEFAULT 0,
+    horas_efectivas REAL NOT NULL DEFAULT 0,
+    produccion_hora REAL NOT NULL DEFAULT 0,
+    lineas_detalle INTEGER NOT NULL DEFAULT 0,
+    etapas INTEGER NOT NULL DEFAULT 0,
+    pago_actual REAL NOT NULL DEFAULT 0,
+    penalizacion_tnc REAL NOT NULL DEFAULT 0,
+    penalizacion_error REAL NOT NULL DEFAULT 0,
+    nivel_actual INTEGER,
+    nivel_nuevo INTEGER,
+    desde_nuevo REAL,
+    hasta_nuevo REAL,
+    premio_hora_nuevo REAL NOT NULL DEFAULT 0,
+    pago_nuevo_bruto REAL NOT NULL DEFAULT 0,
+    pago_nuevo REAL NOT NULL DEFAULT 0,
+    diferencia REAL NOT NULL DEFAULT 0,
+    diferencia_pct REAL,
+    comparabilidad TEXT NOT NULL DEFAULT '',
+    motivo TEXT NOT NULL DEFAULT '',
+    query_version TEXT NOT NULL,
+    loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (fecha_base, id_pv_dia_laboral, legajo, id_grupo_funciones, query_version)
+);
+CREATE TABLE IF NOT EXISTS pp_operaciones_general_hora (
+    fecha_base DATE NOT NULL, id_pv_dia_laboral INTEGER NOT NULL, legajo TEXT NOT NULL,
+    id_grupo_funciones INTEGER NOT NULL, operacion TEXT NOT NULL, hora INTEGER NOT NULL,
+    id_unidad_logistica TEXT NOT NULL DEFAULT '', grupo_productivo TEXT NOT NULL DEFAULT 'TODOS',
+    unidades_logisticas INTEGER NOT NULL DEFAULT 0, grupos_productivos INTEGER NOT NULL DEFAULT 0,
+    division TEXT NOT NULL DEFAULT '', sector TEXT NOT NULL DEFAULT '',
+    produccion_efectiva REAL NOT NULL DEFAULT 0, segundos_efectivos REAL NOT NULL DEFAULT 0,
+    horas_efectivas REAL NOT NULL DEFAULT 0, produccion_hora REAL NOT NULL DEFAULT 0,
+    lineas_detalle INTEGER NOT NULL DEFAULT 0, etapas INTEGER NOT NULL DEFAULT 0,
+    pago_actual_dia REAL NOT NULL DEFAULT 0, pago_actual_asignado REAL NOT NULL DEFAULT 0,
+    penalizacion_tnc REAL NOT NULL DEFAULT 0, penalizacion_error REAL NOT NULL DEFAULT 0,
+    nivel_nuevo INTEGER, desde_nuevo REAL, hasta_nuevo REAL, premio_hora_nuevo REAL NOT NULL DEFAULT 0,
+    pago_nuevo_bruto REAL NOT NULL DEFAULT 0, pago_nuevo REAL NOT NULL DEFAULT 0,
+    diferencia REAL NOT NULL DEFAULT 0, comparabilidad TEXT NOT NULL DEFAULT '', motivo TEXT NOT NULL DEFAULT '',
+    query_version TEXT NOT NULL, loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (fecha_base,id_pv_dia_laboral,legajo,id_grupo_funciones,hora,id_unidad_logistica,grupo_productivo,division,sector,query_version)
+);
+CREATE INDEX IF NOT EXISTS idx_pp_operaciones_general_hora ON pp_operaciones_general_hora(fecha_base,operacion,legajo,hora,query_version);
+CREATE INDEX IF NOT EXISTS idx_pp_operaciones_general_op ON pp_operaciones_general_dia(fecha_base, operacion, id_unidad_logistica, query_version);
+CREATE INDEX IF NOT EXISTS idx_pp_operaciones_general_legajo ON pp_operaciones_general_dia(fecha_base, legajo, query_version);
 CREATE TABLE IF NOT EXISTS pp_premio_foto_meta (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     snapshot_id TEXT NOT NULL,
@@ -1419,6 +1648,8 @@ CREATE TABLE IF NOT EXISTS pp_evaluacion_picking_pago (
         total_actual REAL NOT NULL DEFAULT 0,
         total_base REAL NOT NULL DEFAULT 0,
         total_escenario REAL NOT NULL DEFAULT 0,
+        total_grupal_bultos REAL NOT NULL DEFAULT 0,
+        total_grupal_horas REAL NOT NULL DEFAULT 0,
         legajos INTEGER NOT NULL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         published_at DATETIME
@@ -1428,9 +1659,12 @@ CREATE TABLE IF NOT EXISTS pp_evaluacion_picking_pago (
         scenario_id TEXT NOT NULL,
         legajo TEXT NOT NULL,
         sector TEXT NOT NULL DEFAULT '',
+        sectores TEXT NOT NULL DEFAULT '',
         pago_actual REAL NOT NULL DEFAULT 0,
         pago_base REAL NOT NULL DEFAULT 0,
         pago_escenario REAL NOT NULL DEFAULT 0,
+        grupal_bultos REAL NOT NULL DEFAULT 0,
+        grupal_horas REAL NOT NULL DEFAULT 0,
         diferencia REAL NOT NULL DEFAULT 0,
         diferencia_pct REAL,
         PRIMARY KEY (scenario_id, legajo),
@@ -1464,6 +1698,12 @@ class ExplicacionPremioRequest(BaseModel):
 
 
 class Punto0Request(BaseModel):
+    fecha_desde: str
+    fecha_hasta: str
+    force: bool = False
+
+
+class OperacionesGeneralRequest(BaseModel):
     fecha_desde: str
     fecha_hasta: str
     force: bool = False
@@ -1827,8 +2067,38 @@ async def init_premio_productividad_db() -> None:
     PREMIO_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     async with aiosqlite.connect(PREMIO_DB_PATH) as db:
         await db.executescript(SCHEMA_SQL)
+        await _migrate_general_hora_key(db)
         await _ensure_columns(db)
+        await _backfill_scenario_sectors(db)
         await db.commit()
+
+
+async def _migrate_general_hora_key(db: aiosqlite.Connection) -> None:
+    """Corrige la clave del caché horario para no colapsar sectores/grupos en una misma hora."""
+    async with db.execute("PRAGMA table_info(pp_operaciones_general_hora)") as cur:
+        info = await cur.fetchall()
+    pk_names = {row[1] for row in info if row[5]}
+    required = {"id_unidad_logistica", "grupo_productivo", "division", "sector"}
+    if not info or required.issubset(pk_names):
+        return
+    await db.execute("ALTER TABLE pp_operaciones_general_hora RENAME TO pp_operaciones_general_hora_legacy")
+    await db.execute("""CREATE TABLE pp_operaciones_general_hora (
+        fecha_base DATE NOT NULL, id_pv_dia_laboral INTEGER NOT NULL, legajo TEXT NOT NULL,
+        id_grupo_funciones INTEGER NOT NULL, operacion TEXT NOT NULL, hora INTEGER NOT NULL,
+        id_unidad_logistica TEXT NOT NULL DEFAULT '', grupo_productivo TEXT NOT NULL DEFAULT 'TODOS',
+        unidades_logisticas INTEGER NOT NULL DEFAULT 0, grupos_productivos INTEGER NOT NULL DEFAULT 0,
+        division TEXT NOT NULL DEFAULT '', sector TEXT NOT NULL DEFAULT '', produccion_efectiva REAL NOT NULL DEFAULT 0,
+        segundos_efectivos REAL NOT NULL DEFAULT 0, horas_efectivas REAL NOT NULL DEFAULT 0, produccion_hora REAL NOT NULL DEFAULT 0,
+        lineas_detalle INTEGER NOT NULL DEFAULT 0, etapas INTEGER NOT NULL DEFAULT 0, pago_actual_dia REAL NOT NULL DEFAULT 0,
+        pago_actual_asignado REAL NOT NULL DEFAULT 0, penalizacion_tnc REAL NOT NULL DEFAULT 0, penalizacion_error REAL NOT NULL DEFAULT 0,
+        nivel_nuevo INTEGER, desde_nuevo REAL, hasta_nuevo REAL, premio_hora_nuevo REAL NOT NULL DEFAULT 0,
+        pago_nuevo_bruto REAL NOT NULL DEFAULT 0, pago_nuevo REAL NOT NULL DEFAULT 0, diferencia REAL NOT NULL DEFAULT 0,
+        comparabilidad TEXT NOT NULL DEFAULT '', motivo TEXT NOT NULL DEFAULT '', query_version TEXT NOT NULL,
+        loaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (fecha_base,id_pv_dia_laboral,legajo,id_grupo_funciones,hora,id_unidad_logistica,grupo_productivo,division,sector,query_version)
+    )""")
+    await db.execute("CREATE INDEX IF NOT EXISTS idx_pp_operaciones_general_hora ON pp_operaciones_general_hora(fecha_base,operacion,legajo,hora,query_version)")
+    await db.execute("DROP TABLE pp_operaciones_general_hora_legacy")
 
 
 async def _ensure_columns(db: aiosqlite.Connection) -> None:
@@ -1882,6 +2152,15 @@ async def _ensure_columns(db: aiosqlite.Connection) -> None:
             ("equivalencia_consolidacion", "REAL NOT NULL DEFAULT 0"),
             ("total_equivalentes", "REAL NOT NULL DEFAULT 0"),
         ],
+        "pp_premio_scenario_result": [
+            ("sectores", "TEXT NOT NULL DEFAULT ''"),
+            ("grupal_bultos", "REAL NOT NULL DEFAULT 0"),
+            ("grupal_horas", "REAL NOT NULL DEFAULT 0"),
+        ],
+        "pp_premio_scenario": [
+            ("total_grupal_bultos", "REAL NOT NULL DEFAULT 0"),
+            ("total_grupal_horas", "REAL NOT NULL DEFAULT 0"),
+        ],
     }
     for table, columns in additions.items():
         async with db.execute(f"PRAGMA table_info({table})") as cur:
@@ -1891,9 +2170,220 @@ async def _ensure_columns(db: aiosqlite.Connection) -> None:
                 await db.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
 
 
+async def _backfill_scenario_sectors(db: aiosqlite.Connection) -> None:
+    """Completa el detalle multi-sector de escenarios creados antes de esta columna."""
+    db.row_factory = aiosqlite.Row
+    scenarios = await _fetch_rows(db, "SELECT scenario_id, run_id FROM pp_premio_scenario")
+    for scenario in scenarios:
+        rows = await _fetch_rows(db, """SELECT legajo, sector, COUNT(*) AS dias
+            FROM pp_punto0_legajo_dia WHERE run_id=? GROUP BY legajo, sector ORDER BY legajo, sector""", (scenario.get("run_id"),))
+        by_legajo: dict[str, list[str]] = defaultdict(list)
+        for row in rows:
+            by_legajo[_clean(row.get("legajo"))].append(f"{_upper(row.get('sector'))} ({int(_num(row.get('dias')))}d)")
+        for legajo, sectors in by_legajo.items():
+            await db.execute("UPDATE pp_premio_scenario_result SET sectores=? WHERE scenario_id=? AND legajo=? AND (sectores='' OR sectores IS NULL)", (" · ".join(sectors), scenario.get("scenario_id"), legajo))
+
+
 def _snapshot_row(row: dict[str, Any]) -> dict[str, Any]:
     """Normaliza una fila Oracle para hash estable y persistencia local."""
     return {str(key).lower(): value for key, value in row.items()}
+
+
+async def _refresh_operacion_evidencia_cache(fecha_desde: str, fecha_hasta: str) -> int:
+    """Guarda evidencia informativa de Productiv; no interviene en ningún cálculo."""
+    raw = await asyncio.to_thread(_query_oracle, CONSULTA_PP_ESTUDIO_PREMIOS_ORACLE, {
+        "fecha_desde": _to_date(fecha_desde).strftime("%Y/%m/%d"),
+        "fecha_hasta": _to_date(fecha_hasta).strftime("%Y/%m/%d"),
+    })
+    grouped: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for raw_row in raw:
+        row = _snapshot_row(raw_row)
+        fecha = str(row.get("fecha") or "")[:10]
+        if len(fecha) != 10:
+            value = str(row.get("fecha") or "")
+            fecha = f"{value[:4]}-{value[4:6]}-{value[6:8]}" if len(value) >= 8 else ""
+        legajo = _clean(row.get("legajo")); operacion = _clean(row.get("operacion")) or "SIN OPERACION"
+        unidad = _clean(row.get("unidad_medida")); key = (fecha, legajo, operacion, unidad)
+        item = grouped.setdefault(key, {"fecha_base": fecha, "legajo": legajo, "operacion": operacion, "unidad_medida": unidad, "tipo_premio": _clean(row.get("tipo_premio")), "division_oracle": _clean(row.get("division")), "productividad": 0.0, "pago_actual": 0.0, "jornadas_con_actividad": 0, "jornadas_premio_sin_actividad": 0})
+        item["productividad"] += _num(row.get("productividad_total")); item["pago_actual"] += _num(row.get("premio_actual_total")); item["jornadas_con_actividad"] += int(_num(row.get("jornadas_con_actividad"))); item["jornadas_premio_sin_actividad"] += int(_num(row.get("jornadas_premio_sin_actividad")))
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        await db.execute("DELETE FROM pp_operacion_evidencia_dia WHERE fecha_base BETWEEN ? AND ? AND query_version=?", (fecha_desde, fecha_hasta, OPERACION_EVIDENCIA_QUERY_VERSION))
+        await db.executemany("""INSERT INTO pp_operacion_evidencia_dia(fecha_base,legajo,operacion,unidad_medida,tipo_premio,division_oracle,productividad,pago_actual,jornadas_con_actividad,jornadas_premio_sin_actividad,query_version,loaded_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""", [(r["fecha_base"],r["legajo"],r["operacion"],r["unidad_medida"],r["tipo_premio"],r["division_oracle"],round(r["productividad"],3),round(r["pago_actual"],2),r["jornadas_con_actividad"],r["jornadas_premio_sin_actividad"],OPERACION_EVIDENCIA_QUERY_VERSION,_now()) for r in grouped.values() if r["fecha_base"]])
+        await db.commit()
+    return len(grouped)
+
+
+def _general_scale_index(rows: list[dict[str, Any]]) -> dict[tuple[str, str, int], list[dict[str, Any]]]:
+    index: dict[tuple[str, str, int], list[dict[str, Any]]] = defaultdict(list)
+    for raw in rows:
+        row = _snapshot_row(raw)
+        key = (_upper(row.get("operacion")), _clean(row.get("id_unidad_logistica")), int(_num(row.get("id_grupo_productivo"))))
+        index[key].append(row)
+    for values in index.values():
+        values.sort(key=lambda item: (_num(item.get("desde_x_hora")), _num(item.get("nivel"))))
+    return index
+
+
+def _find_general_scale(index: dict[tuple[str, str, int], list[dict[str, Any]]], row: dict[str, Any]) -> dict[str, Any] | None:
+    operation = _upper(row.get("operacion"))
+    unit = _clean(row.get("id_unidad_logistica"))
+    group = int(_num(row.get("id_grupo_productivo")))
+    candidates = index.get((operation, unit, group), [])
+    if not candidates and group:
+        candidates = index.get((operation, unit, 0), [])
+    rate = _num(row.get("produccion_por_hora"))
+    for item in candidates:
+        low = _num(item.get("desde_x_hora")); high = _num(item.get("hasta_x_hora"))
+        # CLARK follows the Oracle scale join: the lower bound is inclusive.
+        # Keep the prior strict boundary behavior for the other operations so
+        # this correction remains isolated from Picking.
+        lower_match = rate >= low if operation == "CLARK" else rate > low
+        if lower_match and rate <= high:
+            return item
+    return None
+
+
+def _general_reason(row: dict[str, Any], scale: dict[str, Any] | None) -> str:
+    reasons: list[str] = []
+    if _num(row.get("segundos_efectivos")) <= 0 or _num(row.get("produccion_efectiva")) <= 0:
+        reasons.append("Sin medición efectiva en PV_ETAPA_CAB/DET")
+    if int(_num(row.get("lineas_detalle"))) <= 0:
+        reasons.append("Sin detalle efectivo en PV_ETAPA_DET")
+    if int(_num(row.get("unidades_logisticas"))) != 1:
+        reasons.append("Más de una unidad logística en la liquidación")
+    if int(_num(row.get("grupos_productivos"))) != 1:
+        reasons.append("Más de un grupo productivo en la liquidación")
+    if scale is None and _num(row.get("segundos_efectivos")) > 0:
+        reasons.append("Sin tabla aplicable para función + unidad logística")
+    if _num(row.get("penalizacion_tnc")) > 0:
+        reasons.append("Penalización por exceso de TNC")
+    if _num(row.get("penalizacion_error")) > 0:
+        reasons.append("Penalización por error")
+    if not reasons:
+        return "Comparable: producción real por hora reloj"
+    return " · ".join(reasons)
+
+
+def _build_general_rows(raw_rows: list[dict[str, Any]], scale_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    scale_index = _general_scale_index(scale_rows)
+    result: list[dict[str, Any]] = []
+    for raw in raw_rows:
+        source = _snapshot_row(raw)
+        seconds = _num(source.get("segundos_efectivos")); hours = seconds / 3600 if seconds > 0 else 0
+        production = _num(source.get("produccion_efectiva")); rate = production / hours if hours > 0 else 0
+        source.update({"horas_efectivas": hours, "produccion_por_hora": rate})
+        scale = _find_general_scale(scale_index, source)
+        gross = _num(scale.get("premio_x_hora")) * hours if scale else 0
+        penalty = _num(source.get("penalizacion_tnc")) + _num(source.get("penalizacion_error"))
+        net = max(0, gross - penalty)
+        current = _num(source.get("pago_actual"))
+        source.update({
+            "nivel_nuevo": int(_num(scale.get("nivel"))) if scale else None,
+            "desde_x_hora": _num(scale.get("desde_x_hora")) if scale else None,
+            "hasta_x_hora": _num(scale.get("hasta_x_hora")) if scale else None,
+            "premio_x_hora": _num(scale.get("premio_x_hora")) if scale else 0,
+            "pago_nuevo_bruto": gross,
+            "pago_nuevo": net,
+            "diferencia": net - current,
+            "diferencia_pct": ((net - current) / current * 100) if current else None,
+        })
+        source["comparabilidad"] = "COMPARABLE" if scale and hours > 0 and production > 0 and int(_num(source.get("lineas_detalle"))) > 0 and int(_num(source.get("unidades_logisticas"))) == 1 and int(_num(source.get("grupos_productivos"))) == 1 else "NO COMPARABLE"
+        source["motivo"] = _general_reason(source, scale)
+        result.append(source)
+    return result
+
+
+async def _load_operaciones_general_cache(fecha_desde: str, fecha_hasta: str, force: bool = False) -> dict[str, Any]:
+    days = _date_range_inclusive(fecha_desde, fecha_hasta)
+    expected = (days[0].isoformat(), days[-1].isoformat())
+    scale_rows = await asyncio.to_thread(_query_oracle, CONSULTA_PP_ESCALAS_GENERAL, {})
+    raw_rows: list[dict[str, Any]] = []
+    # PV_ETAPA_CAB contiene un volumen muy alto. La partición semanal evita
+    # que Oracle cancele la precarga mensual y permite reanudar por bloques.
+    block_start = days[0]
+    while block_start <= days[-1]:
+        block_end = min(block_start, days[-1])
+        block_rows = await asyncio.to_thread(_query_oracle, CONSULTA_PP_OPERACIONES_GENERAL, {"fecha_desde": block_start.strftime("%Y/%m/%d"), "fecha_hasta": block_end.strftime("%Y/%m/%d")})
+        raw_rows.extend(block_rows)
+        block_start = block_end + timedelta(days=1)
+    rows = _build_general_rows(raw_rows, scale_rows)
+    loaded = _now()
+    values = []
+    for row in rows:
+        fecha_cache = str(_oracle_value(row.get("fecha")) or "")[:10]
+        if len(fecha_cache) == 8 and fecha_cache.isdigit():
+            fecha_cache = f"{fecha_cache[:4]}-{fecha_cache[4:6]}-{fecha_cache[6:8]}"
+        values.append((
+            fecha_cache, int(_num(row.get("id_pv_dia_laboral"))),
+            _clean(row.get("legajo")), int(_num(row.get("id_grupo_funciones"))), _clean(row.get("operacion")),
+            int(_num(row.get("unidades_logisticas"))), _clean(row.get("id_unidad_logistica")), int(_num(row.get("grupos_productivos"))),
+            int(_num(row.get("id_grupo_productivo"))), _clean(row.get("grupo_productivo")), _clean(row.get("division")), _clean(row.get("sector")),
+            int(_num(row.get("divisiones"))), int(_num(row.get("sectores"))), _num(row.get("produccion_efectiva")), _num(row.get("segundos_efectivos")),
+            _num(row.get("horas_efectivas")), _num(row.get("produccion_por_hora")), int(_num(row.get("lineas_detalle"))), int(_num(row.get("etapas"))),
+            _num(row.get("pago_actual")), _num(row.get("penalizacion_tnc")), _num(row.get("penalizacion_error")),
+            int(_num(row.get("nivel_actual"))) if row.get("nivel_actual") is not None else None, row.get("nivel_nuevo"),
+            row.get("desde_x_hora"), row.get("hasta_x_hora"), row.get("premio_x_hora"), row.get("pago_nuevo_bruto"), row.get("pago_nuevo"),
+            row.get("diferencia"), row.get("diferencia_pct"), row.get("comparabilidad"), row.get("motivo"), OPERACIONES_GENERAL_QUERY_VERSION, loaded,
+        ))
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        if force:
+            await db.execute("DELETE FROM pp_operaciones_general_dia WHERE fecha_base BETWEEN ? AND ? AND query_version=?", (expected[0], expected[1], OPERACIONES_GENERAL_QUERY_VERSION))
+        await db.executemany("""INSERT OR REPLACE INTO pp_operaciones_general_dia
+            (fecha_base,id_pv_dia_laboral,legajo,id_grupo_funciones,operacion,unidades_logisticas,id_unidad_logistica,grupos_productivos,id_grupo_productivo,grupo_productivo,division,sector,divisiones,sectores,produccion_efectiva,segundos_efectivos,horas_efectivas,produccion_hora,lineas_detalle,etapas,pago_actual,penalizacion_tnc,penalizacion_error,nivel_actual,nivel_nuevo,desde_nuevo,hasta_nuevo,premio_hora_nuevo,pago_nuevo_bruto,pago_nuevo,diferencia,diferencia_pct,comparabilidad,motivo,query_version,loaded_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            values)
+        await db.commit()
+    return {"fecha_desde": expected[0], "fecha_hasta": expected[1], "rows": len(rows), "operaciones": len({_upper(row.get("operacion")) for row in rows}), "legajos": len({_clean(row.get("legajo")) for row in rows}), "comparables": sum(1 for row in rows if row.get("comparabilidad") == "COMPARABLE"), "no_comparables": sum(1 for row in rows if row.get("comparabilidad") != "COMPARABLE"), "query_version": OPERACIONES_GENERAL_QUERY_VERSION, "loaded_at": loaded}
+
+
+def _build_general_hour_rows(raw_rows: list[dict[str, Any]], scale_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    index = _general_scale_index(scale_rows)
+    result = []
+    for raw in raw_rows:
+        row = _snapshot_row(raw)
+        seconds = _num(row.get("segundos_efectivos")); hours = seconds / 3600 if seconds > 0 else 0
+        production = _num(row.get("produccion_efectiva"))
+        is_clark = _upper(row.get("operacion")) == "CLARK"
+        # CLARK is matched against the total production of the clock-hour
+        # segment, as in the Oracle scale divided by 8. Other operations keep
+        # the duration-weighted hourly productivity.
+        rate = production if is_clark else (production / hours if hours > 0 else 0)
+        row["horas_efectivas"] = hours; row["produccion_por_hora"] = rate
+        scale = _find_general_scale(index, row)
+        clark_paid_scale = is_clark and scale and production > 0 and int(_num(scale.get("nivel"))) > 0 and _num(scale.get("premio_x_hora")) > 0
+        gross = _num(scale.get("premio_x_hora")) if clark_paid_scale else (_num(scale.get("premio_x_hora")) * hours if scale and not is_clark else 0)
+        penalty = _num(row.get("penalizacion_tnc")) + _num(row.get("penalizacion_error"))
+        net = max(0, gross - penalty)
+        current = _num(row.get("pago_actual"))
+        row.update({"nivel_nuevo": int(_num(scale.get("nivel"))) if scale else None, "desde_nuevo": _num(scale.get("desde_x_hora")) if scale else None, "hasta_nuevo": _num(scale.get("hasta_x_hora")) if scale else None, "premio_hora_nuevo": _num(scale.get("premio_x_hora")) if scale else 0, "pago_nuevo_bruto": gross, "pago_nuevo": net, "diferencia": net-current, "comparabilidad": "COMPARABLE" if scale and hours>0 and production>0 and int(_num(row.get("lineas_detalle")))>0 and int(_num(row.get("unidades_logisticas")))==1 and int(_num(row.get("grupos_productivos")))==1 else "NO COMPARABLE"})
+        row["motivo"] = _general_reason(row, scale)
+        result.append(row)
+    return result
+
+
+async def _load_operaciones_general_hora_cache(fecha_desde: str, fecha_hasta: str, force: bool = False) -> dict[str, Any]:
+    days = _date_range_inclusive(fecha_desde, fecha_hasta); expected = (days[0].isoformat(), days[-1].isoformat())
+    scale_rows = await asyncio.to_thread(_query_oracle, CONSULTA_PP_ESCALAS_GENERAL, {})
+    raw_rows = []
+    for day in days:
+        raw_rows.extend(await asyncio.to_thread(_query_oracle, CONSULTA_PP_OPERACIONES_GENERAL_HORA, {"fecha_desde": day.strftime("%Y/%m/%d"), "fecha_hasta": day.strftime("%Y/%m/%d")}))
+    rows = _build_general_hour_rows(raw_rows, scale_rows)
+    # El pago actual se imputa una sola vez por jornada/legajo/función para
+    # que la suma horaria pueda compararse contra la liquidación sin duplicarla.
+    seen = set(); loaded = _now(); values = []
+    for row in rows:
+        fecha = str(_oracle_value(row.get("fecha")) or "")[:10]
+        if len(fecha)==8 and fecha.isdigit(): fecha=f"{fecha[:4]}-{fecha[4:6]}-{fecha[6:8]}"
+        key = (fecha, int(_num(row.get("id_pv_dia_laboral"))), _clean(row.get("legajo")), int(_num(row.get("id_grupo_funciones"))))
+        assigned = _num(row.get("pago_actual")) if key not in seen else 0.0; seen.add(key)
+        values.append((fecha,key[1],key[2],key[3],_clean(row.get("operacion")),int(_num(row.get("hora"))),_clean(row.get("id_unidad_logistica")),_clean(row.get("grupo_productivo")),int(_num(row.get("unidades_logisticas"))),int(_num(row.get("grupos_productivos"))),_clean(row.get("division")),_clean(row.get("sector")),_num(row.get("produccion_efectiva")),_num(row.get("segundos_efectivos")),_num(row.get("horas_efectivas")),_num(row.get("produccion_por_hora")),int(_num(row.get("lineas_detalle"))),int(_num(row.get("etapas"))),_num(row.get("pago_actual")),assigned,_num(row.get("penalizacion_tnc")),_num(row.get("penalizacion_error")),row.get("nivel_nuevo"),row.get("desde_nuevo"),row.get("hasta_nuevo"),row.get("premio_hora_nuevo"),row.get("pago_nuevo_bruto"),row.get("pago_nuevo"),_num(row.get("pago_nuevo"))-assigned,row.get("comparabilidad"),row.get("motivo"),OPERACIONES_GENERAL_HORA_QUERY_VERSION,loaded))
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        if force: await db.execute("DELETE FROM pp_operaciones_general_hora WHERE fecha_base BETWEEN ? AND ? AND query_version=?", (expected[0],expected[1],OPERACIONES_GENERAL_HORA_QUERY_VERSION))
+        await db.executemany("""INSERT OR REPLACE INTO pp_operaciones_general_hora
+        (fecha_base,id_pv_dia_laboral,legajo,id_grupo_funciones,operacion,hora,id_unidad_logistica,grupo_productivo,unidades_logisticas,grupos_productivos,division,sector,produccion_efectiva,segundos_efectivos,horas_efectivas,produccion_hora,lineas_detalle,etapas,pago_actual_dia,pago_actual_asignado,penalizacion_tnc,penalizacion_error,nivel_nuevo,desde_nuevo,hasta_nuevo,premio_hora_nuevo,pago_nuevo_bruto,pago_nuevo,diferencia,comparabilidad,motivo,query_version,loaded_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", values)
+        await db.commit()
+    return {"fecha_desde":expected[0],"fecha_hasta":expected[1],"rows":len(rows),"operaciones":len({_upper(r.get("operacion")) for r in rows}),"legajos":len({_clean(r.get("legajo")) for r in rows}),"comparables":sum(1 for r in rows if r.get("comparabilidad")=="COMPARABLE"),"no_comparables":sum(1 for r in rows if r.get("comparabilidad")!="COMPARABLE"),"query_version":OPERACIONES_GENERAL_HORA_QUERY_VERSION,"loaded_at":loaded}
 
 
 def _round_bultos(value: Any) -> int:
@@ -4054,6 +4544,201 @@ def _caso_modelo_payload(
     }
 
 
+@router.post("/operaciones/general/recalcular")
+async def recalcular_operaciones_general(payload: OperacionesGeneralRequest):
+    await init_premio_productividad_db()
+    try:
+        diario = await _load_operaciones_general_cache(payload.fecha_desde, payload.fecha_hasta, force=payload.force)
+        horario = await _load_operaciones_general_hora_cache(payload.fecha_desde, payload.fecha_hasta, force=payload.force)
+        return {"ok": True, "meta": {"diario": diario, "horario": horario}}
+    except Exception as exc:
+        logger.exception("Error recalculando análisis general de operaciones")
+        raise HTTPException(status_code=500, detail=f"No se pudo recalcular el análisis general: {exc}") from exc
+
+
+@router.get("/operaciones/general/tablero")
+async def tablero_operaciones_general(
+    fecha_desde: str = Query(...),
+    fecha_hasta: str = Query(...),
+    operacion: str = Query(""),
+    id_unidad_logistica: str = Query(""),
+    legajo: str = Query(""),
+):
+    await init_premio_productividad_db()
+    days = _date_range_inclusive(fecha_desde, fecha_hasta)
+    filters = [days[0].isoformat(), days[-1].isoformat(), OPERACIONES_GENERAL_HORA_QUERY_VERSION]
+    where = "fecha_base BETWEEN ? AND ? AND query_version=?"
+    if operacion:
+        where += " AND UPPER(operacion)=UPPER(?)"; filters.append(operacion)
+    if id_unidad_logistica:
+        where += " AND CAST(id_unidad_logistica AS TEXT)=?"; filters.append(id_unidad_logistica)
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_rows(db, f"SELECT *, pago_actual_asignado AS pago_actual FROM pp_operaciones_general_hora WHERE {where} ORDER BY fecha_base, operacion, legajo, hora", tuple(filters))
+    if legajo:
+        rows = [row for row in rows if _clean(row.get("legajo")) == _clean(legajo)]
+    current = sum(_num(row.get("pago_actual")) for row in rows)
+    new = sum(_num(row.get("pago_nuevo")) for row in rows)
+    comparable = [row for row in rows if row.get("comparabilidad") == "COMPARABLE"]
+    current_comparable = sum(_num(row.get("pago_actual")) for row in comparable)
+    new_comparable = sum(_num(row.get("pago_nuevo")) for row in comparable)
+    functions: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in rows:
+        key = (_clean(row.get("operacion")), _clean(row.get("id_unidad_logistica")), _clean(row.get("sector")))
+        item = functions.setdefault(key, {"operacion": key[0], "id_unidad_logistica": key[1], "sector": key[2], "pago_actual": 0, "pago_nuevo": 0, "pago_nuevo_bruto": 0, "penalizaciones": 0, "diferencia": 0, "legajos": set(), "filas": 0, "comparables": 0, "no_comparables": 0})
+        item["pago_actual"] += _num(row.get("pago_actual")); item["pago_nuevo"] += _num(row.get("pago_nuevo")); item["pago_nuevo_bruto"] += _num(row.get("pago_nuevo_bruto")); item["penalizaciones"] += _num(row.get("penalizacion_tnc")) + _num(row.get("penalizacion_error")); item["diferencia"] += _num(row.get("diferencia")); item["legajos"].add(_clean(row.get("legajo"))); item["filas"] += 1
+        item["comparables"] += row.get("comparabilidad") == "COMPARABLE"; item["no_comparables"] += row.get("comparabilidad") != "COMPARABLE"
+    function_rows = []
+    for item in functions.values():
+        item["legajos"] = len(item["legajos"]); item["diferencia_pct"] = item["diferencia"] / item["pago_actual"] * 100 if item["pago_actual"] else None
+        function_rows.append(item)
+    legajos: dict[str, dict[str, Any]] = {}
+    motivos: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        key = _clean(row.get("legajo")); item = legajos.setdefault(key, {"legajo": key, "pago_actual": 0, "pago_nuevo": 0, "diferencia": 0, "filas": 0, "funciones": set(), "no_comparables": 0})
+        item["pago_actual"] += _num(row.get("pago_actual")); item["pago_nuevo"] += _num(row.get("pago_nuevo")); item["diferencia"] += _num(row.get("diferencia")); item["filas"] += 1; item["funciones"].add(_clean(row.get("operacion"))); item["no_comparables"] += row.get("comparabilidad") != "COMPARABLE"
+        reason = _clean(row.get("motivo")) or "Sin motivo informado"; m = motivos.setdefault(reason, {"motivo": reason, "filas": 0, "diferencia": 0}); m["filas"] += 1; m["diferencia"] += _num(row.get("diferencia"))
+    for item in legajos.values():
+        item["funciones"] = len(item["funciones"]); item["diferencia_pct"] = item["diferencia"] / item["pago_actual"] * 100 if item["pago_actual"] else None
+    return {"meta": {"fecha_desde": days[0].isoformat(), "fecha_hasta": days[-1].isoformat(), "query_version": OPERACIONES_GENERAL_HORA_QUERY_VERSION, "filas": len(rows), "cache_disponible": bool(rows)}, "kpis": {"pago_actual": current, "pago_nuevo": new, "diferencia": new-current, "diferencia_pct": (new-current)/current*100 if current else None, "pago_actual_comparable": current_comparable, "pago_nuevo_comparable": new_comparable, "diferencia_comparable": new_comparable-current_comparable, "diferencia_comparable_pct": (new_comparable-current_comparable)/current_comparable*100 if current_comparable else None, "filas": len(rows), "legajos": len(legajos), "funciones": len(function_rows), "comparables": len(comparable), "no_comparables": len(rows)-len(comparable)}, "funciones": sorted(function_rows, key=lambda row: row["diferencia"]), "legajos": sorted(legajos.values(), key=lambda row: row["diferencia"]), "motivos": sorted(motivos.values(), key=lambda row: abs(row["diferencia"]), reverse=True), "detalle": rows[:1000]}
+
+
+@router.get("/tendencia-operativa")
+async def tendencia_operativa(
+    fecha_desde: str = Query("2024-01-01"),
+    fecha_hasta: str = Query(""),
+    operacion: str = Query("CARGA"),
+    grupo_productivo: int = Query(0, ge=0, le=9999),
+):
+    """Serie mensual para auditar volumen, dotación y conversión sin mezclar granos de detalle."""
+    try:
+        start_date = date.fromisoformat(fecha_desde)
+        end_date = date.fromisoformat(fecha_hasta or date.today().isoformat())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Las fechas deben tener formato YYYY-MM-DD.") from exc
+    if end_date < start_date:
+        raise HTTPException(status_code=400, detail="La fecha hasta no puede ser anterior a la fecha desde.")
+    if (end_date - start_date).days > 1100:
+        raise HTTPException(status_code=400, detail="El rango maximo permitido para tendencia es de 1100 dias.")
+    days = [start_date, end_date]
+    operation_key = _clean(operacion).upper()
+    function_id = OPERACION_GRUPO_FUNCIONES_ID.get(operation_key)
+    if not function_id:
+        raise HTTPException(status_code=400, detail=f"Operacion no soportada para tendencia: {operacion}")
+    start_int = int(days[0].strftime("%Y%m%d")); end_int = int(days[-1].strftime("%Y%m%d"))
+    group_filter = f" AND B.ID_PV_GRUPO_PRODUCTIVO = {int(grupo_productivo)}" if grupo_productivo else ""
+    etapa_group_join = f" JOIN PV_GRUPO_PRODUCTIVO_DET GP ON GP.ID_DE_DIVISION = E.DIVISION AND TRIM(GP.ID_DE_SECTOR) = TRIM(E.SECTOR) AND GP.ID_DE_GRUPO_PRODUCTIVO = {int(grupo_productivo)}" if grupo_productivo else ""
+    sql = f"""
+    WITH CONSOL_ETAPA AS (
+        SELECT TRUNC(Z.FECHA / 100) AS MES,
+               SUM(NVL(D.QCANTIDA,0)) AS BULTOS_REALES_CONSOL,
+               SUM(NVL(D.PRODUCCION_EQUIVALENTE,0)) AS EQ_CONSOL_ETAPA,
+               COUNT(DISTINCT E.ID) AS ACCIONES_CONSOL
+        FROM PV_DIA_LABORAL Z
+        JOIN PV_ETAPA_CAB E ON E.ID_PV_DIA_LABORAL = Z.ID
+        JOIN PV_ETAPA_DET D ON D.ID_ETAPA_CAB = E.ID
+        JOIN PV_CONSOLIDACION_ACCION CA ON INSTR(CA.DESCRIPCION, E.COD_FUNCION) > 0
+        JOIN PV_FUNCION F ON F.CODIGO = E.COD_FUNCION
+        JOIN PV_GRUPO_DE_FUNCIONES_DET FD ON FD.ID_PV_FUNCION = F.ID
+        {etapa_group_join}
+        WHERE Z.FECHA BETWEEN {start_int} AND {end_int}
+          AND FD.ID_PV_GRUPO_DE_FUNCIONES_CAB = {int(function_id)}
+        GROUP BY TRUNC(Z.FECHA / 100)
+    ), LEG_MES AS (
+        SELECT TRUNC(A.FECHA / 100) AS MES,
+               A.LEGAJO,
+               COUNT(*) AS JORNADAS,
+               SUM(CASE WHEN NVL(B.A_PAGAR_TOTAL,0) > 0 THEN 1 ELSE 0 END) AS JORNADAS_PREMIO,
+               SUM(NVL(B.OBJETIVO_NIVEL_ALCANZADO,0)) AS NIVEL_SUM,
+               MAX(NVL(B.OBJETIVO_NIVEL_ALCANZADO,0)) AS NIVEL_MAX
+        FROM PV_DIA_LABORAL A
+        JOIN PV_LIQUIDAC_DIA_DET1 B ON B.ID_PV_DIA_LABORAL = A.ID
+        WHERE A.FECHA BETWEEN {start_int} AND {end_int}
+          AND B.ID_PV_GRUPO_DE_FUNCIONES = {int(function_id)}{group_filter}
+        GROUP BY TRUNC(A.FECHA / 100), A.LEGAJO
+    ), LIQ AS (
+        SELECT MES,
+               COUNT(*) AS LEGAJOS,
+               SUM(JORNADAS) AS JORNADAS,
+               SUM(JORNADAS_PREMIO) AS JORNADAS_PREMIO,
+               SUM(NIVEL_SUM) AS NIVEL_SUM,
+               SUM(CASE WHEN JORNADAS_PREMIO = 0 THEN 1 ELSE 0 END) AS LEG_CONT_0,
+               SUM(CASE WHEN 100 * JORNADAS_PREMIO / NULLIF(JORNADAS,0) BETWEEN 0.01 AND 24.99 THEN 1 ELSE 0 END) AS LEG_CONT_1_24,
+               SUM(CASE WHEN 100 * JORNADAS_PREMIO / NULLIF(JORNADAS,0) BETWEEN 25 AND 49.99 THEN 1 ELSE 0 END) AS LEG_CONT_25_49,
+               SUM(CASE WHEN 100 * JORNADAS_PREMIO / NULLIF(JORNADAS,0) BETWEEN 50 AND 74.99 THEN 1 ELSE 0 END) AS LEG_CONT_50_74,
+               SUM(CASE WHEN 100 * JORNADAS_PREMIO / NULLIF(JORNADAS,0) >= 75 THEN 1 ELSE 0 END) AS LEG_CONT_75_100,
+               SUM(CASE WHEN NIVEL_MAX >= 1 THEN 1 ELSE 0 END) AS LEG_NIVEL_1,
+               SUM(CASE WHEN NIVEL_MAX >= 2 THEN 1 ELSE 0 END) AS LEG_NIVEL_2,
+               SUM(CASE WHEN NIVEL_MAX >= 3 THEN 1 ELSE 0 END) AS LEG_NIVEL_3,
+               SUM(CASE WHEN NIVEL_MAX >= 4 THEN 1 ELSE 0 END) AS LEG_NIVEL_4,
+               SUM(CASE WHEN NIVEL_MAX >= 5 THEN 1 ELSE 0 END) AS LEG_NIVEL_5
+        FROM LEG_MES
+        GROUP BY MES
+    ), PROD AS (
+        SELECT TRUNC(A.FECHA / 100) AS MES,
+               SUM(NVL(B.PROD_REAL,0)) AS PROD_REAL,
+               SUM(NVL(B.PROD_EQUIVAL_POR_SECTOR,0)) AS EQ_SECTOR,
+               SUM(NVL(B.PROD_EQUIVAL_POR_TRASLADO,0)) AS EQ_TRASLADO,
+               SUM(NVL(B.PROD_EQUIVAL_POR_CONSOLIDACION,0)) AS EQ_CONSOL,
+               SUM(NVL(B.TOTAL_DE_PUNTOS_EQUIVALENTES,0)) AS EQ_TOTAL
+        FROM PV_DIA_LABORAL A
+        JOIN PV_LIQUIDAC_DIA_DET2 B ON B.ID_PV_DIA_LABORAL = A.ID
+        WHERE A.FECHA BETWEEN {start_int} AND {end_int}
+          AND B.ID_PV_GRUPO_DE_FUNCIONES = {int(function_id)}{group_filter}
+        GROUP BY TRUNC(A.FECHA / 100)
+    )
+    SELECT L.MES, L.LEGAJOS, L.JORNADAS,
+           ROUND(L.JORNADAS / NULLIF(L.LEGAJOS,0), 2) AS JORNADAS_X_LEGAJO,
+           L.JORNADAS_PREMIO,
+           ROUND(100 * L.JORNADAS_PREMIO / NULLIF(L.JORNADAS,0), 2) AS PCT_PREMIO,
+           ROUND(L.NIVEL_SUM / NULLIF(L.JORNADAS,0), 2) AS NIVEL_PROM,
+           L.LEG_CONT_0, L.LEG_CONT_1_24, L.LEG_CONT_25_49, L.LEG_CONT_50_74, L.LEG_CONT_75_100,
+           L.LEG_NIVEL_1, L.LEG_NIVEL_2, L.LEG_NIVEL_3, L.LEG_NIVEL_4, L.LEG_NIVEL_5,
+           ROUND(NVL(P.PROD_REAL,0), 1) AS PROD_REAL,
+           ROUND(NVL(P.EQ_SECTOR,0), 1) AS EQ_SECTOR,
+           ROUND(NVL(P.EQ_TRASLADO,0), 1) AS EQ_TRASLADO,
+           ROUND(NVL(P.EQ_CONSOL,0), 1) AS EQ_CONSOL,
+           ROUND(NVL(P.EQ_TOTAL,0), 1) AS EQ_TOTAL,
+           ROUND(NVL(E.BULTOS_REALES_CONSOL,0), 1) AS BULTOS_REALES_CONSOL,
+           ROUND(NVL(E.EQ_CONSOL_ETAPA,0), 1) AS EQ_CONSOL_ETAPA,
+           NVL(E.ACCIONES_CONSOL,0) AS ACCIONES_CONSOL,
+           ROUND(100 * NVL(P.EQ_TOTAL,0) / NULLIF(P.PROD_REAL,0), 2) AS PCT_EQ_SOBRE_REAL,
+           ROUND(100 * NVL(P.EQ_SECTOR,0) / NULLIF(P.PROD_REAL,0), 2) AS PCT_EQ_SECTOR_SOBRE_REAL,
+           ROUND(100 * NVL(P.EQ_TRASLADO,0) / NULLIF(P.PROD_REAL,0), 2) AS PCT_EQ_TRASLADO_SOBRE_REAL,
+           ROUND(100 * NVL(P.EQ_CONSOL,0) / NULLIF(P.PROD_REAL,0), 2) AS PCT_EQ_CONSOL_SOBRE_REAL,
+           ROUND(100 * (NVL(P.EQ_TOTAL,0) - NVL(P.PROD_REAL,0)) / NULLIF(P.PROD_REAL,0), 2) AS PCT_ADICIONAL_CONVERSION
+    FROM LIQ L LEFT JOIN PROD P ON P.MES = L.MES
+    LEFT JOIN CONSOL_ETAPA E ON E.MES = L.MES
+    ORDER BY L.MES
+    """
+    raw_rows = await asyncio.to_thread(_query_oracle, sql, {})
+    rows = [{str(key).lower(): value for key, value in row.items()} for row in raw_rows]
+    return {"meta": {"fecha_desde": days[0].isoformat(), "fecha_hasta": days[-1].isoformat(), "operacion": operation_key, "grupo_productivo": grupo_productivo, "filas": len(rows), "origen": "oracle_productiva"}, "rows": rows}
+
+
+@router.get("/operaciones/general/detalle")
+async def detalle_operacion_general(
+    fecha_desde: str = Query(...),
+    fecha_hasta: str = Query(...),
+    operacion: str = Query(...),
+    id_unidad_logistica: str = Query(""),
+    sector: str = Query(""),
+    limit: int = Query(5000, ge=1, le=20000),
+):
+    await init_premio_productividad_db()
+    days = _date_range_inclusive(fecha_desde, fecha_hasta)
+    where = "fecha_base BETWEEN ? AND ? AND query_version=? AND UPPER(operacion)=UPPER(?)"
+    args: list[Any] = [days[0].isoformat(), days[-1].isoformat(), OPERACIONES_GENERAL_HORA_QUERY_VERSION, operacion]
+    if id_unidad_logistica:
+        where += " AND CAST(id_unidad_logistica AS TEXT)=?"; args.append(id_unidad_logistica)
+    if sector:
+        where += " AND COALESCE(sector,'')=?"; args.append(sector)
+    async with aiosqlite.connect(PREMIO_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_rows(db, f"SELECT *, pago_actual_asignado AS pago_actual FROM pp_operaciones_general_hora WHERE {where} ORDER BY fecha_base, legajo, hora LIMIT ?", tuple(args + [limit]))
+    return {"meta": {"filas": len(rows), "fecha_desde": days[0].isoformat(), "fecha_hasta": days[-1].isoformat()}, "detalle": rows}
+
+
 @router.get("/evaluacion-picking")
 async def evaluacion_picking(
     fecha_desde: str = Query(...),
@@ -4157,15 +4842,22 @@ async def precargar_evaluacion_picking(
 
 @router.get("/calculo-pago-grupal")
 async def calculo_pago_grupal(fecha_desde: str = Query(...), fecha_hasta: str = Query(...), motivos_no_computables: str = Query("")):
+    await init_premio_productividad_db()
+    try:
+        await _refresh_operacion_evidencia_cache(fecha_desde, fecha_hasta)
+    except Exception as exc:
+        logger.warning("No se pudo actualizar evidencia Productiv: %s", exc)
     rows, meta = await _load_evaluation_range(fecha_desde, fecha_hasta, allow_oracle=False)
     dotacion = [item for item in await _rrhh_activos_rows() if "ARMADOR" in str(item.get("desc_funcion") or "").upper()]
-    sector_by_legajo = {str(item.get("legajo") or "").strip(): (item.get("desc_sector_generico") or item.get("sector_generico") or "SIN_SECTOR").strip() or "SIN_SECTOR" for item in dotacion}
-    total_by_sector: dict[str, set[str]] = defaultdict(set)
+    # division_personal contiene el agrupador SAP "LOG" para toda la dotación;
+    # la división operativa del legajero es la unidad organizativa descriptiva.
+    division_by_legajo = {str(item.get("legajo") or "").strip(): str(item.get("desc_unidad_organizativa") or item.get("unidad_organizativa") or "SIN_DIVISION").strip() or "SIN_DIVISION" for item in dotacion}
+    total_by_division: dict[str, set[str]] = defaultdict(set)
     for item in dotacion:
         legajo = str(item.get("legajo") or "").strip()
         if legajo:
-            total_by_sector[sector_by_legajo.get(legajo, "SIN_SECTOR")].add(legajo)
-    premio_by_day_sector: dict[tuple[str, str], set[str]] = defaultdict(set)
+            total_by_division[division_by_legajo.get(legajo, "SIN_DIVISION")].add(legajo)
+    premio_by_day_division: dict[tuple[str, str], set[str]] = defaultdict(set)
     actividad_by_key: dict[tuple[str, str], dict[str, Any]] = {}
     for row in rows:
         key = (str(row.get("fecha_base") or "")[:10], str(row.get("legajo") or "").strip())
@@ -4173,18 +4865,19 @@ async def calculo_pago_grupal(fecha_desde: str = Query(...), fecha_hasta: str = 
         item["bultos"] += _num(row.get("bultos_reales")); item["premio"] += _num(row.get("premio_aplicado"))
         if _num(row.get("premio_aplicado")) > 0:
             day = str(row.get("fecha_base") or "")[:10]
-            sector = sector_by_legajo.get(str(row.get("legajo") or "").strip(), "SIN_SECTOR")
-            premio_by_day_sector[(day, sector)].add(str(row.get("legajo") or "").strip())
+            division = division_by_legajo.get(str(row.get("legajo") or "").strip(), "SIN_DIVISION")
+            premio_by_day_division[(day, division)].add(str(row.get("legajo") or "").strip())
     days = [day.isoformat() for day in _date_range_inclusive(fecha_desde, fecha_hasta)]
     sectores = []
     detalle = []
-    for sector, legajos in sorted(total_by_sector.items()):
+    for division, legajos in sorted(total_by_division.items()):
         for day in days:
-            con_premio = len(premio_by_day_sector.get((day, sector), set()) & legajos)
+            con_premio = len(premio_by_day_division.get((day, division), set()) & legajos)
             total = len(legajos)
-            detalle.append({"sector": sector, "fecha": day, "legajos_totales": total, "legajos_con_premio": con_premio, "cumplimiento": round((con_premio / total) * 100, 2) if total else 0})
+            detalle.append({"division": division, "sector": division, "fecha": day, "legajos_totales": total, "legajos_con_premio": con_premio, "cumplimiento": round((con_premio / total) * 100, 2) if total else 0})
         sectores.append({
-            "sector": sector,
+            "division": division,
+            "sector": division,
             "legajos_totales": len(legajos),
             "dias": len(days),
             "dias_con_premio": 0,
@@ -4194,12 +4887,23 @@ async def calculo_pago_grupal(fecha_desde: str = Query(...), fecha_hasta: str = 
         db.row_factory = aiosqlite.Row
         novedades = await _fetch_rows(db, "SELECT legajo, fecha, motivo, aus_pres_codigo, ausentismo_clasificacion FROM rrhh_actividad_diaria WHERE fecha BETWEEN ? AND ?", (days[0], days[-1])) if days else []
     nov_by_key = {(str(row.get("fecha") or "")[:10], str(row.get("legajo") or "").strip()): (row.get("motivo") or row.get("ausentismo_clasificacion") or row.get("aus_pres_codigo") or "") for row in novedades}
+    async with aiosqlite.connect(PREMIO_DB_PATH) as evidence_db:
+        evidence_db.row_factory = aiosqlite.Row
+        evidence_rows = await _fetch_rows(evidence_db, "SELECT * FROM pp_operacion_evidencia_dia WHERE fecha_base BETWEEN ? AND ? AND query_version=? ORDER BY fecha_base,legajo,operacion", (days[0], days[-1], OPERACION_EVIDENCIA_QUERY_VERSION)) if days else []
+    evidence_by_key: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for evidence in evidence_rows:
+        evidence_by_key[(str(evidence.get("fecha_base") or "")[:10], _clean(evidence.get("legajo")))].append(evidence)
+    def evidence_label(day: str, legajo: str) -> str:
+        items = evidence_by_key.get((day, legajo), [])
+        if not items:
+            return "Sin evidencia Productiv"
+        return " | ".join(f"{item.get('operacion')} · {item.get('tipo_premio') or 'sin tipo'} · prod {round(_num(item.get('productividad')), 2)} · pago ${round(_num(item.get('pago_actual')), 2)}" for item in items)
     detalle_legajos = []
-    for sector, legajos in sorted(total_by_sector.items()):
+    for division, legajos in sorted(total_by_division.items()):
         for day in days:
             for legajo in sorted(legajos):
                 activity = actividad_by_key.get((day, legajo), {})
-                detalle_legajos.append({"sector": sector, "fecha": day, "legajo": legajo, "bultos": round(_num(activity.get("bultos")), 3), "premio_nuevo": round(_num(activity.get("premio")), 2), "motivo_ausencia": nov_by_key.get((day, legajo), "")})
+                detalle_legajos.append({"division": division, "sector": division, "fecha": day, "legajo": legajo, "bultos": round(_num(activity.get("bultos")), 3), "premio_nuevo": round(_num(activity.get("premio")), 2), "motivo_ausencia": nov_by_key.get((day, legajo), ""), "evidencia_productiv": evidence_label(day, legajo), "tiene_otra_operacion": any('PICKING' not in str(item.get('operacion') or '').upper() for item in evidence_by_key.get((day, legajo), []))})
     try:
         configured_absences = json.loads(motivos_no_computables) if motivos_no_computables else []
     except json.JSONDecodeError:
@@ -4216,10 +4920,10 @@ async def calculo_pago_grupal(fecha_desde: str = Query(...), fecha_hasta: str = 
     for item in detalle_legajos:
         item['incluido_target'] = (item['fecha'], str(item['legajo']).strip()) not in excluded_absence
     for item in detalle:
-        sector = item['sector']; day = item['fecha']
-        active_roster = total_by_sector.get(sector, set())
+        division = item['division']; day = item['fecha']
+        active_roster = total_by_division.get(division, set())
         eligible = {legajo for legajo in active_roster if (day, legajo) not in excluded_absence}
-        con_premio = len(premio_by_day_sector.get((day, sector), set()) & eligible)
+        con_premio = len(premio_by_day_division.get((day, division), set()) & eligible)
         item['dotacion_activa'] = len(active_roster)
         item['ausencias_no_computables'] = len(active_roster & {legajo for (absence_day, legajo) in excluded_absence if absence_day == day})
         item['legajos_totales'] = len(eligible)
@@ -4230,7 +4934,7 @@ async def calculo_pago_grupal(fecha_desde: str = Query(...), fecha_hasta: str = 
     # de habilitación es cumplimiento >= 90%.
     detalle_por_sector: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for item in detalle:
-        detalle_por_sector[item['sector']].append(item)
+        detalle_por_sector[item['division']].append(item)
     for item in sectores:
         dias_habilitados_sector = sum(1 for row in detalle_por_sector.get(item['sector'], []) if _num(row.get('cumplimiento')) >= 90)
         item['dias_con_premio'] = dias_habilitados_sector
@@ -4239,8 +4943,8 @@ async def calculo_pago_grupal(fecha_desde: str = Query(...), fecha_hasta: str = 
     for row in rows:
         legajo = str(row.get('legajo') or '').strip()
         day = str(row.get('fecha_base') or '')[:10]
-        sector = sector_by_legajo.get(legajo, 'SIN_SECTOR')
-        key = (day, sector, legajo)
+        division = division_by_legajo.get(legajo, 'SIN_DIVISION')
+        key = (day, division, legajo)
         item = activity_by_group.setdefault(key, {'bultos': 0.0, 'premio': 0.0, 'horas': set()})
         item['bultos'] += _num(row.get('bultos_reales'))
         item['premio'] += _num(row.get('premio_aplicado'))
@@ -4252,44 +4956,43 @@ async def calculo_pago_grupal(fecha_desde: str = Query(...), fecha_hasta: str = 
     pago_actual_total = sum(_num(row.get('premio_real')) for row in paid_rows)
     pago_nuevo_total = sum(_num(row.get('premio_aplicado')) for row in rows)
     bolsa_total = max(0.0, pago_actual_total - pago_nuevo_total)
-    sector_new_total: dict[str, float] = defaultdict(float)
-    for (day, sector, legajo), item in activity_by_group.items():
-        sector_new_total[sector] += item['premio']
-    new_total_all = sum(sector_new_total.values())
+    division_new_total: dict[str, float] = defaultdict(float)
+    for (day, division, legajo), item in activity_by_group.items():
+        division_new_total[division] += item['premio']
     day_sector_state: dict[tuple[str, str], dict[str, Any]] = {}
-    for sector, legajos in total_by_sector.items():
+    for division, legajos in total_by_division.items():
         for day in days:
             eligible = {legajo for legajo in legajos if (day, legajo) not in excluded_absence}
-            with_prize = {legajo for legajo in eligible if activity_by_group.get((day, sector, legajo), {}).get('premio', 0) > 0}
+            with_prize = {legajo for legajo in eligible if activity_by_group.get((day, division, legajo), {}).get('premio', 0) > 0}
             ratio = len(with_prize) / len(eligible) if eligible else 0.0
-            day_sector_state[(day, sector)] = {'dotacion_activa': len(legajos), 'ausencias_no_computables': len(legajos - eligible), 'target': len(eligible), 'with_prize': len(with_prize), 'cumplimiento': ratio * 100, 'habilitado': bool(eligible) and ratio >= 0.90}
+            day_sector_state[(day, division)] = {'division': division, 'dotacion_activa': len(legajos), 'ausencias_no_computables': len(legajos - eligible), 'target': len(eligible), 'with_prize': len(with_prize), 'cumplimiento': ratio * 100, 'habilitado': bool(eligible) and ratio >= 0.90}
     enabled_sector_new: dict[str, float] = defaultdict(float)
-    for (day, sector), state_day in day_sector_state.items():
+    for (day, division), state_day in day_sector_state.items():
         if state_day['habilitado']:
-            enabled_sector_new[sector] += sum(activity_by_group.get((day, sector, legajo), {}).get('premio', 0) for legajo in total_by_sector.get(sector, set()))
+            enabled_sector_new[division] += sum(activity_by_group.get((day, division, legajo), {}).get('premio', 0) for legajo in total_by_division.get(division, set()))
     enabled_new_total = sum(enabled_sector_new.values())
     distribution: dict[str, dict[str, Any]] = {}
     distribution_daily: dict[tuple[str, str], dict[str, Any]] = {}
-    for (day, sector), state_day in day_sector_state.items():
+    for (day, division), state_day in day_sector_state.items():
         if not state_day['habilitado'] or not enabled_new_total:
             continue
         # La bolsa completa se reparte sólo entre sectores que tienen al
         # menos un día habilitado; los sectores sin cumplimiento no generan
         # un sobrante oculto.
-        sector_pool = bolsa_total * (enabled_sector_new.get(sector, 0) / enabled_new_total)
-        day_base = sum(activity_by_group.get((day, sector, legajo), {}).get('premio', 0) for legajo in total_by_sector.get(sector, set()))
-        day_pool = sector_pool * (day_base / enabled_sector_new[sector]) if enabled_sector_new.get(sector) else 0.0
-        participants = [legajo for legajo in total_by_sector.get(sector, set()) if (day, sector, legajo) in activity_by_group]
-        total_bultos = sum(activity_by_group[(day, sector, legajo)]['bultos'] for legajo in participants)
-        total_horas = sum(len(activity_by_group[(day, sector, legajo)]['horas']) for legajo in participants)
+        sector_pool = bolsa_total * (enabled_sector_new.get(division, 0) / enabled_new_total)
+        day_base = sum(activity_by_group.get((day, division, legajo), {}).get('premio', 0) for legajo in total_by_division.get(division, set()))
+        day_pool = sector_pool * (day_base / enabled_sector_new[division]) if enabled_sector_new.get(division) else 0.0
+        participants = [legajo for legajo in total_by_division.get(division, set()) if (day, division, legajo) in activity_by_group]
+        total_bultos = sum(activity_by_group[(day, division, legajo)]['bultos'] for legajo in participants)
+        total_horas = sum(len(activity_by_group[(day, division, legajo)]['horas']) for legajo in participants)
         for legajo in participants:
-            item = activity_by_group[(day, sector, legajo)]
+            item = activity_by_group[(day, division, legajo)]
             key = legajo
-            agg = distribution.setdefault(key, {'legajo': legajo, 'adicional_bultos': 0.0, 'adicional_horas': 0.0, 'dias_habilitados': 0})
+            agg = distribution.setdefault(key, {'legajo': legajo, 'division': division, 'adicional_bultos': 0.0, 'adicional_horas': 0.0, 'dias_habilitados': 0})
             agg['adicional_bultos'] += day_pool * (item['bultos'] / total_bultos) if total_bultos else 0.0
             agg['adicional_horas'] += day_pool * (len(item['horas']) / total_horas) if total_horas else 0.0
             agg['dias_habilitados'] += 1
-            daily = distribution_daily.setdefault((day, legajo), {'fecha': day, 'legajo': legajo, 'adicional_bultos': 0.0, 'adicional_horas': 0.0})
+            daily = distribution_daily.setdefault((day, legajo), {'fecha': day, 'legajo': legajo, 'division': division, 'adicional_bultos': 0.0, 'adicional_horas': 0.0})
             daily['adicional_bultos'] += day_pool * (item['bultos'] / total_bultos) if total_bultos else 0.0
             daily['adicional_horas'] += day_pool * (len(item['horas']) / total_horas) if total_horas else 0.0
     for item in distribution.values():
@@ -4516,7 +5219,7 @@ async def _scenario_base_rows(fecha_desde: str, fecha_hasta: str, run_id: str = 
             run = await _fetch_one(db, "SELECT * FROM pp_punto0_run WHERE fecha_desde=? AND fecha_hasta=? AND status='PUBLISHED' ORDER BY published_at DESC LIMIT 1", (days[0].isoformat(), days[-1].isoformat()))
         if not run:
             raise HTTPException(status_code=409, detail="No hay un Punto 0 publicado para el rango seleccionado. Recalcule/publice el Punto 0 antes de simular.")
-        rows = await _fetch_rows(db, """SELECT p.fecha_base,p.legajo,p.sector,p.premio_actual,p.premio_individual,COALESCE(q.factor_multiplicador,1) AS factor_multiplicador
+        rows = await _fetch_rows(db, """SELECT p.fecha_base,p.legajo,p.sector,p.premio_actual,p.premio_individual,p.adicional_grupal_bultos,p.adicional_grupal_horas,COALESCE(q.factor_multiplicador,1) AS factor_multiplicador
             FROM pp_punto0_legajo_dia p LEFT JOIN pp_evaluacion_picking_pago q
               ON q.fecha_base=p.fecha_base AND q.legajo=p.legajo AND q.query_version=?
             WHERE p.run_id=? ORDER BY p.legajo,p.fecha_base""", (EVALUACION_PICKING_PAYMENT_QUERY_VERSION, run["run_id"]))
@@ -4537,8 +5240,10 @@ async def _scenario_threshold_deltas(fecha_desde: str, fecha_hasta: str, sectors
                for item in payment_rows}
     foto = await _tabla_premios_payload()
     scales_by_sector: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for item in foto.get("escalas_sector_hora", []):
-        scales_by_sector[_upper(item.get("sector"))].append(item)
+    for sector_item in foto.get("sectores", []):
+        sector = _upper(sector_item.get("sector"))
+        for item in sector_item.get("filas", []):
+            scales_by_sector[sector].append(item)
     deltas: dict[tuple[str, str], float] = defaultdict(float)
     for row in rows:
         sector = _upper(row.get("sector"))
@@ -4589,25 +5294,29 @@ async def simular_escenario(request: Request, payload: PremioScenarioRequest):
     by_legajo: dict[str, dict[str, Any]] = {}
     for row in base_rows:
         legajo = _clean(row.get("legajo")); sector = _upper(row.get("sector")); cfg = sectores.get(sector, {})
-        item = by_legajo.setdefault(legajo, {"legajo": legajo, "sector": sector, "pago_actual": 0.0, "pago_base": 0.0, "pago_escenario": 0.0})
+        item = by_legajo.setdefault(legajo, {"legajo": legajo, "sector": sector, "sector_days": defaultdict(int), "pago_actual": 0.0, "pago_base": 0.0, "pago_escenario": 0.0, "grupal_bultos": 0.0, "grupal_horas": 0.0})
+        item["sector_days"][sector] += 1
+        item["grupal_bultos"] += _num(row.get("adicional_grupal_bultos"))
+        item["grupal_horas"] += _num(row.get("adicional_grupal_horas"))
         base = _num(row.get("premio_individual")) * (_num(row.get("factor_multiplicador")) or 1)
         factor = 1 + _num(cfg.get("premio_pct")) / 100
         delta_threshold = threshold_deltas.get((str(row.get("fecha_base") or "")[:10], legajo), 0.0)
         item["pago_actual"] += _num(row.get("premio_actual")); item["pago_base"] += base; item["pago_escenario"] += base * factor + delta_threshold
     result_rows = []
     for item in by_legajo.values():
-        item["pago_actual"] = round(item["pago_actual"], 2); item["pago_base"] = round(item["pago_base"], 2); item["pago_escenario"] = round(item["pago_escenario"], 2)
+        item["sectores"] = " · ".join(f"{sector} ({days}d)" for sector, days in sorted(item.pop("sector_days").items()))
+        item["pago_actual"] = round(item["pago_actual"], 2); item["pago_base"] = round(item["pago_base"], 2); item["pago_escenario"] = round(item["pago_escenario"], 2); item["grupal_bultos"] = round(item["grupal_bultos"], 2); item["grupal_horas"] = round(item["grupal_horas"], 2)
         item["diferencia"] = round(item["pago_escenario"] - item["pago_actual"], 2); item["diferencia_pct"] = round((item["diferencia"] / item["pago_actual"] * 100), 2) if item["pago_actual"] else None
         result_rows.append(item)
     scenario_id = _scenario_id(payload.nombre, payload.fecha_desde, payload.fecha_hasta, [{"sector": k, **v} for k, v in sorted(sectores.items())])
-    total_actual = round(sum(row["pago_actual"] for row in result_rows), 2); total_base = round(sum(row["pago_base"] for row in result_rows), 2); total_scenario = round(sum(row["pago_escenario"] for row in result_rows), 2)
+    total_actual = round(sum(row["pago_actual"] for row in result_rows), 2); total_base = round(sum(row["pago_base"] for row in result_rows), 2); total_scenario = round(sum(row["pago_escenario"] for row in result_rows), 2); total_grupal_bultos = round(sum(row["grupal_bultos"] for row in result_rows), 2); total_grupal_horas = round(sum(row["grupal_horas"] for row in result_rows), 2)
     config = {"sectores": [{"sector": k, **v} for k, v in sorted(sectores.items())], "run_id": run_id, "formula": "premio individual base con multiplicador + ajuste sectorial versionado"}
     async with aiosqlite.connect(PREMIO_DB_PATH) as db:
-        await db.execute("""INSERT OR REPLACE INTO pp_premio_scenario(scenario_id,nombre,descripcion,fecha_desde,fecha_hasta,run_id,snapshot_id,estado,config_json,total_actual,total_base,total_escenario,legajos,created_at,published_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL)""", (scenario_id, payload.nombre.strip() or "Escenario sectorial", payload.descripcion.strip(), payload.fecha_desde, payload.fecha_hasta, run_id, str(run.get("snapshot_id") or ""), "SIMULADO", json.dumps(config, ensure_ascii=False), total_actual, total_base, total_scenario, len(result_rows), _now()))
+        await db.execute("""INSERT OR REPLACE INTO pp_premio_scenario(scenario_id,nombre,descripcion,fecha_desde,fecha_hasta,run_id,snapshot_id,estado,config_json,total_actual,total_base,total_escenario,total_grupal_bultos,total_grupal_horas,legajos,created_at,published_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL)""", (scenario_id, payload.nombre.strip() or "Escenario sectorial", payload.descripcion.strip(), payload.fecha_desde, payload.fecha_hasta, run_id, str(run.get("snapshot_id") or ""), "SIMULADO", json.dumps(config, ensure_ascii=False), total_actual, total_base, total_scenario, total_grupal_bultos, total_grupal_horas, len(result_rows), _now()))
         await db.execute("DELETE FROM pp_premio_scenario_result WHERE scenario_id=?", (scenario_id,))
-        await db.executemany("INSERT INTO pp_premio_scenario_result(scenario_id,legajo,sector,pago_actual,pago_base,pago_escenario,diferencia,diferencia_pct) VALUES(?,?,?,?,?,?,?,?)", [(scenario_id, r["legajo"], r["sector"], r["pago_actual"], r["pago_base"], r["pago_escenario"], r["diferencia"], r["diferencia_pct"]) for r in result_rows])
+        await db.executemany("INSERT INTO pp_premio_scenario_result(scenario_id,legajo,sector,sectores,pago_actual,pago_base,pago_escenario,grupal_bultos,grupal_horas,diferencia,diferencia_pct) VALUES(?,?,?,?,?,?,?,?,?,?,?)", [(scenario_id, r["legajo"], r["sector"], r["sectores"], r["pago_actual"], r["pago_base"], r["pago_escenario"], r["grupal_bultos"], r["grupal_horas"], r["diferencia"], r["diferencia_pct"]) for r in result_rows])
         await db.commit()
-    return {"scenario": {"scenario_id": scenario_id, "nombre": payload.nombre, "descripcion": payload.descripcion, "estado": "SIMULADO", "run_id": run_id, "config": config, "total_actual": total_actual, "total_base": total_base, "total_escenario": total_scenario, "diferencia": round(total_scenario-total_actual, 2), "diferencia_pct": round((total_scenario/total_actual-1)*100, 2) if total_actual else None, "legajos": len(result_rows)}, "rows": sorted(result_rows, key=lambda row: (row["diferencia_pct"] is None, row["diferencia_pct"] or 0))}
+    return {"scenario": {"scenario_id": scenario_id, "nombre": payload.nombre, "descripcion": payload.descripcion, "estado": "SIMULADO", "run_id": run_id, "config": config, "total_actual": total_actual, "total_base": total_base, "total_escenario": total_scenario, "total_grupal_bultos": total_grupal_bultos, "total_grupal_horas": total_grupal_horas, "diferencia": round(total_scenario-total_actual, 2), "diferencia_pct": round((total_scenario/total_actual-1)*100, 2) if total_actual else None, "legajos": len(result_rows)}, "rows": sorted(result_rows, key=lambda row: (row["diferencia_pct"] is None, row["diferencia_pct"] or 0))}
 
 
 @router.get("/escenarios/{scenario_id}")
@@ -4620,6 +5329,10 @@ async def obtener_escenario(request: Request, scenario_id: str):
     if not scenario:
         raise HTTPException(status_code=404, detail="Escenario no encontrado.")
     scenario["config"] = json.loads(scenario.get("config_json") or "{}")
+    total_actual = _num(scenario.get("total_actual"))
+    total_escenario = _num(scenario.get("total_escenario"))
+    scenario["diferencia"] = round(total_escenario - total_actual, 2)
+    scenario["diferencia_pct"] = round((total_escenario / total_actual - 1) * 100, 2) if total_actual else None
     return {"scenario": scenario, "rows": rows}
 
 

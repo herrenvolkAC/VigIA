@@ -1,0 +1,486 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/y90nupkv",
+    "id": "y90nupkv",
+    "slide": 1,
+    "layoutId": "/ppt/slideLayouts/slideLayout2.xml",
+    "layoutName": "DEFAULT",
+    "masterLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+    "masterLayoutName": "Master",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "fontScheme": {
+      "name": "Office",
+      "majorFont": {
+        "latinTypeface": "Calibri Light",
+        "eastAsianTypeface": "Calibri Light",
+        "complexScriptTypeface": "Calibri Light"
+      },
+      "minorFont": {
+        "latinTypeface": "Calibri",
+        "eastAsianTypeface": "Calibri",
+        "complexScriptTypeface": "Calibri"
+      }
+    },
+    "typefaces": [
+      "Aptos",
+      "Aptos Display",
+      "Calibri",
+      "Calibri Light"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "/ppt/slideLayouts/slideLayout2.xml",
+      "name": "DEFAULT",
+      "parentLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "/ppt/slideMasters/slideMaster1.xml",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/7mp0jixo",
+      "id": "9",
+      "name": "Image 0",
+      "bbox": [
+        32.64,
+        21.12,
+        1211.52,
+        408
+      ],
+      "contentType": "image/jpeg",
+      "imageCrop": {
+        "left": 0,
+        "top": 0.19781,
+        "right": 0,
+        "bottom": 0.19781
+      },
+      "asset": {
+        "assetId": "/ppt/media/image1.jpeg",
+        "contentType": "image/jpeg",
+        "byteLength": 808649
+      },
+      "fillImage": {
+        "assetId": "/ppt/media/image1.jpeg",
+        "contentType": "image/jpeg",
+        "byteLength": 808649
+      }
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/k3yl0zql",
+      "id": "3",
+      "name": "Shape 0",
+      "bbox": [
+        32.64,
+        21.12,
+        1211.52,
+        408
+      ],
+      "geometry": "rect",
+      "fillColor": "rgba(255, 255, 255, 0.28)",
+      "lineColor": "rgba(255, 255, 255, 0)",
+      "lineWidth": 1.33
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/7qp4be9c",
+      "id": "4",
+      "name": "Shape 1",
+      "bbox": [
+        51.84,
+        337.92,
+        724.8,
+        74.88
+      ],
+      "geometry": "rect",
+      "fillColor": "#005AA9",
+      "lineColor": "rgba(0, 90, 169, 0)",
+      "lineWidth": 1.33
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/65g3298r",
+      "id": "5",
+      "name": "Shape 2",
+      "bbox": [
+        51.84,
+        410.88,
+        724.8,
+        7.68
+      ],
+      "geometry": "rect",
+      "fillColor": "#62B32E",
+      "lineColor": "rgba(98, 179, 46, 0)",
+      "lineWidth": 1.33
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ts7md4r2",
+      "id": "6",
+      "name": "Text 3",
+      "bbox": [
+        74.88,
+        357.12,
+        676.8,
+        36.48
+      ],
+      "geometry": "rect",
+      "text": "Nuevo calculo de premios",
+      "textPreview": "Nuevo calculo de premios",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 2,
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "middle",
+        "wrap": "square",
+        "autoFit": "shrinkText",
+        "autoFitLineSpaceReduction": 10000,
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Nuevo calculo de premios"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Nuevo calculo de premios",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Nuevo calculo de premios",
+              "fontSize": 33.33,
+              "typeface": "Aptos Display",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/sryl4zqx",
+      "id": "7",
+      "name": "Text 4",
+      "bbox": [
+        59.52,
+        489.6,
+        686.4,
+        40.32
+      ],
+      "geometry": "rect",
+      "text": "Nuevo método de cálculo",
+      "textPreview": "Nuevo método de cálculo",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 2,
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "middle",
+        "wrap": "square",
+        "autoFit": "shrinkText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Nuevo método de cálculo"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Nuevo método de cálculo",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Nuevo método de cálculo",
+              "fontSize": 20.27,
+              "typeface": "Aptos",
+              "color": "#005AA9",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fu94fe98",
+      "id": "8",
+      "name": "Text 5",
+      "bbox": [
+        59.52,
+        549.12,
+        820.8,
+        34.56
+      ],
+      "geometry": "rect",
+      "text": "Modelo de gestión para que cada idea tenga canal de ingreso, criterio común, trazabilidad y próximos pasos.",
+      "textPreview": "Modelo de gestión para que cada idea tenga canal de ingreso, criterio común, trazabilidad y próximos pasos.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "anchor": 2,
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "verticalAlignment": "middle",
+        "wrap": "square",
+        "autoFit": "shrinkText",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Modelo de gestión para que cada idea tenga canal de ingreso, criterio común, trazabilidad y próximos pasos."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Modelo de gestión para que cada idea tenga canal de ingreso, criterio común, trazabilidad y próximos pasos.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Modelo",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 2,
+              "text": " de ",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 3,
+              "text": "gestión",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 4,
+              "text": " para que ",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 5,
+              "text": "cada",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 6,
+              "text": " idea ",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 7,
+              "text": "tenga",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 8,
+              "text": " canal de ",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 9,
+              "text": "ingreso",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 10,
+              "text": ", ",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 11,
+              "text": "criterio",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 12,
+              "text": " ",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 13,
+              "text": "común",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 14,
+              "text": ", ",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 15,
+              "text": "trazabilidad",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 16,
+              "text": " y ",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 17,
+              "text": "próximos",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            },
+            {
+              "index": 18,
+              "text": " pasos.",
+              "fontSize": 16.67,
+              "typeface": "Aptos",
+              "color": "#5B6770"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 8,
+      "kind": "image",
+      "scope": "slide",
+      "aid": "im/jqxw72dk",
+      "id": "10",
+      "name": "Image 1",
+      "bbox": [
+        1070.4,
+        616.32,
+        132.48,
+        48
+      ],
+      "contentType": "image/png",
+      "asset": {
+        "assetId": "/ppt/media/image2.png",
+        "contentType": "image/png",
+        "byteLength": 3141
+      },
+      "fillImage": {
+        "assetId": "/ppt/media/image2.png",
+        "contentType": "image/png",
+        "byteLength": 3141
+      }
+    }
+  ],
+  "composeRuns": []
+}

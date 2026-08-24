@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 from db.schema import DB_PATH, init_db
+from db.recepcion import init_recepcion_db, migrate_legacy_recepcion_db
 from db.auth import init_auth_db
 from db.checklist_tareas import init_checklist_tareas_db
 from db.casos import init_cases_db
@@ -36,6 +37,7 @@ from routers.gestion_operativa import router as gestion_operativa_router
 from routers.gestion_operativa import start_daily_auto_scheduler, stop_daily_auto_scheduler
 from routers.herramientas import router as herramientas_router
 from routers.casos import router as casos_router, start_forms_import_monitor, stop_forms_import_monitor
+from routers.recepcion import router as recepcion_router
 from routers.historia_legajo import (
     router as historia_legajo_router,
     start_historia_actividad_scheduler,
@@ -95,6 +97,8 @@ RESOURCES_DIR = Path(__file__).parent / "resources"
 async def lifespan(app: FastAPI):
     logger.info("Inicializando VigIA v2.0...")
     await init_db()
+    await init_recepcion_db()
+    await migrate_legacy_recepcion_db(DB_PATH)
     await init_auth_db()
     await init_checklist_tareas_db()
     await init_cases_db()
@@ -153,6 +157,7 @@ app.include_router(plantel_operativo_router)
 app.include_router(gestion_operativa_router)
 app.include_router(herramientas_router)
 app.include_router(casos_router)
+app.include_router(recepcion_router)
 app.include_router(historia_legajo_router)
 app.include_router(rrhh_novedades_router)
 app.include_router(panol_insumos_router)
@@ -280,6 +285,7 @@ API_MODULE_PREFIXES = (
     ("/api/historia-legajo", "historia_legajo"),
     ("/api/rrhh", "novedades_cd"),
     ("/api/casos", "casos"),
+    ("/api/recepcion", "recepcion"),
     ("/panol-insumos/api", "panol"),
     ("/api/simulador-operativo", "simulador_operativo"),
     ("/api/analisis-premio-productividad", "analisis_premio_productividad"),

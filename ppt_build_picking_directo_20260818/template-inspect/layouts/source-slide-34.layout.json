@@ -1,0 +1,838 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/ofu103u5",
+    "id": "ofu103u5",
+    "slide": 34,
+    "layoutId": "/ppt/slideLayouts/slideLayout1.xml",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#FFFFFF",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "fontScheme": {
+      "name": "Office",
+      "majorFont": {
+        "latinTypeface": "Calibri Light",
+        "eastAsianTypeface": "Calibri Light",
+        "complexScriptTypeface": "Calibri Light"
+      },
+      "minorFont": {
+        "latinTypeface": "Calibri",
+        "eastAsianTypeface": "Calibri",
+        "complexScriptTypeface": "Calibri"
+      }
+    },
+    "typefaces": [
+      "Aptos",
+      "Calibri",
+      "Calibri Light"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "/ppt/slideLayouts/slideLayout1.xml",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "/ppt/slideMasters/slideMaster1.xml",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0vidkfu5",
+      "id": "10",
+      "name": "kicker",
+      "bbox": [
+        64,
+        28,
+        500,
+        20
+      ],
+      "geometry": "rect",
+      "text": "CIERRE",
+      "textPreview": "CIERRE",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "CIERRE"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "CIERRE",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "CIERRE",
+              "fontSize": 10,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/pwzm1kbm",
+      "id": "2",
+      "name": "title",
+      "bbox": [
+        64,
+        52,
+        1120,
+        44
+      ],
+      "geometry": "rect",
+      "text": "31. Funciones medibles y no medibles",
+      "textPreview": "31. Funciones medibles y no medibles",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "31. Funciones medibles y no medibles"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "31. Funciones medibles y no medibles",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "31. Funciones medibles y no medibles",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ovq58fu1",
+      "id": "3",
+      "name": "accent-rule",
+      "bbox": [
+        54,
+        94,
+        104,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#047857",
+      "lineColor": "#047857",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/byh43utc",
+      "id": "4",
+      "name": "left-panel",
+      "bbox": [
+        100,
+        150,
+        500,
+        500
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#ECFDF5",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qx8napc7",
+      "id": "5",
+      "name": "right-panel",
+      "bbox": [
+        680,
+        150,
+        500,
+        500
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/d0zm54bi",
+      "id": "6",
+      "name": "med-title",
+      "bbox": [
+        130,
+        180,
+        440,
+        24
+      ],
+      "geometry": "rect",
+      "text": "Funciones medibles",
+      "textPreview": "Funciones medibles",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Funciones medibles"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Funciones medibles",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Funciones medibles",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/czq5czux",
+      "id": "7",
+      "name": "med-body",
+      "bbox": [
+        130,
+        230,
+        420,
+        260
+      ],
+      "geometry": "rect",
+      "text": "Tienen una unidad física observable por hora.\n\nEjemplos:\n• Picking\n• Carga\n• Carreteo\n• Clark\n• Control\n• Recepción",
+      "textPreview": "Tienen una unidad física observable por hora. |  | Ejemplos: | • Picking | • Carga | • Carreteo | • Clark | • Control | • Recepción",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 9,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Tienen una unidad física observable por hora."
+          },
+          {
+            "index": 2,
+            "text": ""
+          },
+          {
+            "index": 3,
+            "text": "Ejemplos:"
+          },
+          {
+            "index": 4,
+            "text": "• Picking"
+          },
+          {
+            "index": 5,
+            "text": "• Carga"
+          },
+          {
+            "index": 6,
+            "text": "• Carreteo"
+          },
+          {
+            "index": 7,
+            "text": "• Clark"
+          },
+          {
+            "index": 8,
+            "text": "• Control"
+          },
+          {
+            "index": 9,
+            "text": "• Recepción"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Tienen una unidad física observable por hora.",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Tienen una unidad física observable por hora.",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "Ejemplos:",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Ejemplos:",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "• Picking",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "• Picking",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "• Carga",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "• Carga",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 6,
+          "text": "• Carreteo",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "• Carreteo",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 7,
+          "text": "• Clark",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "• Clark",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 8,
+          "text": "• Control",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "• Control",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 9,
+          "text": "• Recepción",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "• Recepción",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/z2147eto",
+      "id": "8",
+      "name": "nomed-title",
+      "bbox": [
+        710,
+        180,
+        440,
+        24
+      ],
+      "geometry": "rect",
+      "text": "Funciones no medibles",
+      "textPreview": "Funciones no medibles",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Funciones no medibles"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Funciones no medibles",
+          "resolvedTextStyle": {
+            "fontSize": 18,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Funciones no medibles",
+              "fontSize": 18,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/y18ne9c3",
+      "id": "9",
+      "name": "nomed-body",
+      "bbox": [
+        710,
+        230,
+        430,
+        370
+      ],
+      "geometry": "rect",
+      "text": "No tienen aún una unidad física directa validada, y cobran premio actualmente.\n\nAdministrativas/soporte: Administrativos CD, Instructor, Hielo Seco, Reachstacker, Armado de Muebles Grandes.\n\nDevoluciones: Administración, Autoelevador, Operario, Recepción.\n\nOtras tareas: Administrativo, Autoelevador, Autoelevador Cámara 6, Cámara 6, Clasificación Guía, General, Operario, Toritero.\n\nRecepción/importados: Recepción Importado de NOA, Recepción Importado NOA | Toyota.\n\nRefrigerados: Administración, Calidad, Carga, Control de Procesos, Operaciones, Procesamiento, Recepción.",
+      "textPreview": "No tienen aún una unidad física directa validada, y cobran premio actualmente. |  | Administrativas/soporte: Administrativos CD, Instruct...",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 15,
+        "lines": [
+          {
+            "index": 1,
+            "text": "No tienen aún una unidad física directa validada, y cobran premio actualmente."
+          },
+          {
+            "index": 2,
+            "text": ""
+          },
+          {
+            "index": 3,
+            "text": "Administrativas/soporte: Administrativos CD, Instructor, Hielo Seco, Reachstacker,"
+          },
+          {
+            "index": 4,
+            "text": "Armado de Muebles Grandes."
+          },
+          {
+            "index": 5,
+            "text": ""
+          },
+          {
+            "index": 6,
+            "text": "Devoluciones: Administración, Autoelevador, Operario, Recepción."
+          },
+          {
+            "index": 7,
+            "text": ""
+          },
+          {
+            "index": 8,
+            "text": "Otras tareas: Administrativo, Autoelevador, Autoelevador Cámara 6, Cámara 6,"
+          },
+          {
+            "index": 9,
+            "text": "Clasificación Guía, General, Operario, Toritero."
+          },
+          {
+            "index": 10,
+            "text": ""
+          },
+          {
+            "index": 11,
+            "text": "Recepción/importados: Recepción Importado de NOA, Recepción Importado NOA"
+          },
+          {
+            "index": 12,
+            "text": "| Toyota."
+          },
+          {
+            "index": 13,
+            "text": ""
+          },
+          {
+            "index": 14,
+            "text": "Refrigerados: Administración, Calidad, Carga, Control de Procesos, Operaciones,"
+          },
+          {
+            "index": 15,
+            "text": "Procesamiento, Recepción."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "No tienen aún una unidad física directa validada, y cobran premio actualmente.",
+          "resolvedTextStyle": {
+            "fontSize": 11.51,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "No tienen aún una unidad física directa validada, y cobran premio actualmente.",
+              "fontSize": 11.51,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "Administrativas/soporte: Administrativos CD, Instructor, Hielo Seco, Reachstacker, Armado de Muebles Grandes.",
+          "resolvedTextStyle": {
+            "fontSize": 11.51,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Administrativas/soporte: Administrativos CD, Instructor, Hielo Seco, Reachstacker, Armado de Muebles Grandes.",
+              "fontSize": 11.51,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "Devoluciones: Administración, Autoelevador, Operario, Recepción.",
+          "resolvedTextStyle": {
+            "fontSize": 11.51,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Devoluciones: Administración, Autoelevador, Operario, Recepción.",
+              "fontSize": 11.51,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 7,
+          "text": "Otras tareas: Administrativo, Autoelevador, Autoelevador Cámara 6, Cámara 6, Clasificación Guía, General, Operario, Toritero.",
+          "resolvedTextStyle": {
+            "fontSize": 11.51,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Otras tareas: Administrativo, Autoelevador, Autoelevador Cámara 6, Cámara 6, Clasificación Guía, General, Operario, Toritero.",
+              "fontSize": 11.51,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 9,
+          "text": "Recepción/importados: Recepción Importado de NOA, Recepción Importado NOA | Toyota.",
+          "resolvedTextStyle": {
+            "fontSize": 11.51,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Recepción/importados: Recepción Importado de NOA, Recepción Importado NOA | Toyota.",
+              "fontSize": 11.51,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 11,
+          "text": "Refrigerados: Administración, Calidad, Carga, Control de Procesos, Operaciones, Procesamiento, Recepción.",
+          "resolvedTextStyle": {
+            "fontSize": 11.51,
+            "typeface": "Aptos",
+            "color": "#111827"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Refrigerados: Administración, Calidad, Carga, Control de Procesos, Operaciones, Procesamiento, Recepción.",
+              "fontSize": 11.51,
+              "typeface": "Aptos",
+              "color": "#111827"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

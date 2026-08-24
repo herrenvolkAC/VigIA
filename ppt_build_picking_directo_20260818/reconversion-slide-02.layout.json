@@ -1,0 +1,2608 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/hwbqtkby",
+    "id": "hwbqtkby",
+    "slide": 2,
+    "layoutId": "/ppt/slideLayouts/slideLayout1.xml",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+    "masterLayoutName": "Master",
+    "backgroundColor": "#F4F7FA",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "fontScheme": {
+      "name": "Office",
+      "majorFont": {
+        "latinTypeface": "Calibri Light",
+        "eastAsianTypeface": "Calibri Light",
+        "complexScriptTypeface": "Calibri Light"
+      },
+      "minorFont": {
+        "latinTypeface": "Calibri",
+        "eastAsianTypeface": "Calibri",
+        "complexScriptTypeface": "Calibri"
+      }
+    },
+    "typefaces": [
+      "Aptos",
+      "Calibri",
+      "Calibri Light"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "/ppt/slideLayouts/slideLayout1.xml",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "/ppt/slideMasters/slideMaster1.xml",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "/ppt/slideMasters/slideMaster1.xml",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/cnupgny5",
+      "id": "18",
+      "name": "kicker",
+      "bbox": [
+        64,
+        28,
+        500,
+        20
+      ],
+      "geometry": "rect",
+      "text": "RESULTADO MEDIDO",
+      "textPreview": "RESULTADO MEDIDO",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "RESULTADO MEDIDO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "RESULTADO MEDIDO",
+          "resolvedTextStyle": {
+            "fontSize": 10,
+            "typeface": "Aptos",
+            "color": "#0F766E",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "RESULTADO MEDIDO",
+              "fontSize": 10,
+              "typeface": "Aptos",
+              "color": "#0F766E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/9072xkry",
+      "id": "2",
+      "name": "title",
+      "bbox": [
+        64,
+        52,
+        1120,
+        44
+      ],
+      "geometry": "rect",
+      "text": "Cinco sectores requieren una calibración específica",
+      "textPreview": "Cinco sectores requieren una calibración específica",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cinco sectores requieren una calibración específica"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cinco sectores requieren una calibración específica",
+          "resolvedTextStyle": {
+            "fontSize": 30,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cinco sectores requieren una calibración específica",
+              "fontSize": 30,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ozy1ofad",
+      "id": "3",
+      "name": "accent-rule",
+      "bbox": [
+        54,
+        94,
+        104,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#047857",
+      "lineColor": "#047857",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/b29kza94",
+      "id": "4",
+      "name": "content-panel",
+      "bbox": [
+        64,
+        130,
+        1172,
+        556
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/a10jqpsj",
+      "id": "5",
+      "name": "s-title-0",
+      "bbox": [
+        104,
+        165,
+        420,
+        24
+      ],
+      "geometry": "rect",
+      "text": "SECTORES PROPUESTOS",
+      "textPreview": "SECTORES PROPUESTOS",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "SECTORES PROPUESTOS"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "SECTORES PROPUESTOS",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "SECTORES PROPUESTOS",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/x4r21kru",
+      "id": "6",
+      "name": "s-formula-0",
+      "bbox": [
+        104,
+        197,
+        430,
+        28
+      ],
+      "geometry": "rect",
+      "text": "B1 · AM · PI · N1 · VA",
+      "textPreview": "B1 · AM · PI · N1 · VA",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "B1 · AM · PI · N1 · VA"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "B1 · AM · PI · N1 · VA",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "B1 · AM · PI · N1 · VA",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/w3i1sfa9",
+      "id": "7",
+      "name": "s-body-0",
+      "bbox": [
+        560,
+        193,
+        590,
+        55
+      ],
+      "geometry": "rect",
+      "text": "Incremento propuesto: +30% en la escala monetaria del sector. No modifica los bultos registrados ni crea equivalencias.",
+      "textPreview": "Incremento propuesto: +30% en la escala monetaria del sector. No modifica los bultos registrados ni crea equivalencias.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Incremento propuesto: +30% en la escala monetaria del sector. No modifica los bultos registrados ni crea"
+          },
+          {
+            "index": 2,
+            "text": "equivalencias."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Incremento propuesto: +30% en la escala monetaria del sector. No modifica los bultos registrados ni crea equivalencias.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Incremento propuesto: +30% en la escala monetaria del sector. No modifica los bultos registrados ni crea equivalencias.",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/r65knqtk",
+      "id": "8",
+      "name": "s-title-1",
+      "bbox": [
+        104,
+        261,
+        420,
+        24
+      ],
+      "geometry": "rect",
+      "text": "EVIDENCIA OPERATIVA",
+      "textPreview": "EVIDENCIA OPERATIVA",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "EVIDENCIA OPERATIVA"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "EVIDENCIA OPERATIVA",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "EVIDENCIA OPERATIVA",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/q5wjelsz",
+      "id": "9",
+      "name": "s-formula-1",
+      "bbox": [
+        104,
+        293,
+        430,
+        62
+      ],
+      "geometry": "rect",
+      "text": "428,9 m por etapa\nvs 215,9 m en el resto",
+      "textPreview": "428,9 m por etapa | vs 215,9 m en el resto",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "428,9 m por etapa"
+          },
+          {
+            "index": 2,
+            "text": "vs 215,9 m en el resto"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "428,9 m por etapa",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "428,9 m por etapa",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "vs 215,9 m en el resto",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "vs 215,9 m en el resto",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ove9o7yd",
+      "id": "10",
+      "name": "s-body-1",
+      "bbox": [
+        560,
+        289,
+        590,
+        55
+      ],
+      "geometry": "rect",
+      "text": "El recorrido medio por etapa es 98,6% superior. La operación exige más desplazamiento para producir una unidad efectiva.",
+      "textPreview": "El recorrido medio por etapa es 98,6% superior. La operación exige más desplazamiento para producir una unidad efectiva.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El recorrido medio por etapa es 98,6% superior. La operación exige más desplazamiento para producir una"
+          },
+          {
+            "index": 2,
+            "text": "unidad efectiva."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El recorrido medio por etapa es 98,6% superior. La operación exige más desplazamiento para producir una unidad efectiva.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El recorrido medio por etapa es 98,6% superior. La operación exige más desplazamiento para producir una unidad efectiva.",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/9wnqhczy",
+      "id": "11",
+      "name": "s-title-2",
+      "bbox": [
+        104,
+        357,
+        420,
+        24
+      ],
+      "geometry": "rect",
+      "text": "IMPACTO OBSERVADO",
+      "textPreview": "IMPACTO OBSERVADO",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "IMPACTO OBSERVADO"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "IMPACTO OBSERVADO",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "IMPACTO OBSERVADO",
+              "fontSize": 16,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/mtwrmxg7",
+      "id": "12",
+      "name": "s-formula-2",
+      "bbox": [
+        104,
+        389,
+        430,
+        28
+      ],
+      "geometry": "rect",
+      "text": "16,23 m por bulto\nvs 14,35 m en el resto",
+      "textPreview": "16,23 m por bulto | vs 14,35 m en el resto",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "16,23 m por bulto"
+          },
+          {
+            "index": 2,
+            "text": "vs 14,35 m en el resto"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "16,23 m por bulto",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "16,23 m por bulto",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "vs 14,35 m en el resto",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "vs 14,35 m en el resto",
+              "fontSize": 17,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/nu58f2hs",
+      "id": "13",
+      "name": "s-body-2",
+      "bbox": [
+        560,
+        385,
+        590,
+        55
+      ],
+      "geometry": "rect",
+      "text": "La diferencia es 13,1% en metros por bulto. El ajuste calibra el valor monetario sin convertir metros en bultos.",
+      "textPreview": "La diferencia es 13,1% en metros por bulto. El ajuste calibra el valor monetario sin convertir metros en bultos.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "La diferencia es 13,1% en metros por bulto. El ajuste calibra el valor monetario sin convertir metros en"
+          },
+          {
+            "index": 2,
+            "text": "bultos."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "La diferencia es 13,1% en metros por bulto. El ajuste calibra el valor monetario sin convertir metros en bultos.",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La diferencia es 13,1% en metros por bulto. El ajuste calibra el valor monetario sin convertir metros en bultos.",
+              "fontSize": 13,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wjy9sry9",
+      "id": "14",
+      "name": "simple-box",
+      "bbox": [
+        104,
+        476,
+        1040,
+        42
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#F8FAFC",
+      "lineColor": "#CBD5E1",
+      "lineWidth": 1
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xk7qlczu",
+      "id": "15",
+      "name": "simple",
+      "bbox": [
+        124,
+        488,
+        1000,
+        20
+      ],
+      "geometry": "rect",
+      "text": "Propuesta: mantener bultos reales y hora reloj; ajustar la escala solo donde la evidencia muestra una exigencia de recorrido superior.",
+      "textPreview": "Propuesta: mantener bultos reales y hora reloj; ajustar la escala solo donde la evidencia muestra una exigencia de recorrido superior.",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Propuesta: mantener bultos reales y hora reloj; ajustar la escala solo donde la evidencia muestra una exigencia de recorrido superior."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Propuesta: mantener bultos reales y hora reloj; ajustar la escala solo donde la evidencia muestra una exigencia de recorrido superior.",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Propuesta: mantener bultos reales y hora reloj; ajustar la escala solo donde la evidencia muestra una exigencia de recorrido superior.",
+              "fontSize": 12,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ahwrqhgj",
+      "id": "16",
+      "name": "refs-title",
+      "bbox": [
+        104,
+        560,
+        220,
+        22
+      ],
+      "geometry": "rect",
+      "text": "BASE DE MEDICIÓN",
+      "textPreview": "BASE DE MEDICIÓN",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "BASE DE MEDICIÓN"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "BASE DE MEDICIÓN",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "typeface": "Aptos",
+            "color": "#111827",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "BASE DE MEDICIÓN",
+              "fontSize": 15,
+              "typeface": "Aptos",
+              "color": "#111827",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/bip8jmho",
+      "id": "17",
+      "name": "refs",
+      "bbox": [
+        104,
+        588,
+        1040,
+        56
+      ],
+      "geometry": "rect",
+      "text": "Julio 2026 · PV_ETAPA_CAB.DISTANCIA_EN_METROS · Picking · 72.052 etapas en los cinco sectores / 131.807 en el resto",
+      "textPreview": "Julio 2026 · PV_ETAPA_CAB.DISTANCIA_EN_METROS · Picking · 72.052 etapas en los cinco sectores / 131.807 en el resto",
+      "resolvedFontSize": 24,
+      "resolvedTextStyle": {
+        "fontSize": 24,
+        "typeface": "Calibri",
+        "color": "tx1",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Julio 2026 · PV_ETAPA_CAB.DISTANCIA_EN_METROS · Picking · 72.052 etapas en los cinco sectores / 131.807 en el resto"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Julio 2026 · PV_ETAPA_CAB.DISTANCIA_EN_METROS · Picking · 72.052 etapas en los cinco sectores / 131.807 en el resto",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "typeface": "Aptos",
+            "color": "#374151"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Julio 2026 · PV_ETAPA_CAB.DISTANCIA_EN_METROS · Picking · 72.052 etapas en los cinco sectores / 131.807 en el resto",
+              "fontSize": 12,
+              "typeface": "Aptos",
+              "color": "#374151"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/do3q9szq",
+      "id": "19",
+      "name": "visual-cover",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "geometry": "rect",
+      "fillColor": "#F4F7FA",
+      "lineColor": "#F4F7FA",
+      "lineWidth": 0
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/t8byxkn2",
+      "id": "20",
+      "name": "kicker",
+      "bbox": [
+        64,
+        36,
+        520,
+        18
+      ],
+      "geometry": "rect",
+      "text": "CALIBRACIÓN PROPUESTA",
+      "textPreview": "CALIBRACIÓN PROPUESTA",
+      "resolvedFontSize": 11,
+      "resolvedTextStyle": {
+        "fontSize": 11,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "CALIBRACIÓN PROPUESTA"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "CALIBRACIÓN PROPUESTA",
+          "resolvedTextStyle": {
+            "fontSize": 11,
+            "color": "#00A37A",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "CALIBRACIÓN PROPUESTA",
+              "fontSize": 11,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/s72xofmh",
+      "id": "21",
+      "name": "title",
+      "bbox": [
+        64,
+        62,
+        1080,
+        50
+      ],
+      "geometry": "rect",
+      "text": "El ajuste del 30% reduce la brecha, pero no la elimina",
+      "textPreview": "El ajuste del 30% reduce la brecha, pero no la elimina",
+      "resolvedFontSize": 31,
+      "resolvedTextStyle": {
+        "fontSize": 31,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "El ajuste del 30% reduce la brecha, pero no la elimina"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "El ajuste del 30% reduce la brecha, pero no la elimina",
+          "resolvedTextStyle": {
+            "fontSize": 31,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "El ajuste del 30% reduce la brecha, pero no la elimina",
+              "fontSize": 31,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 21,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/76twva5c",
+      "id": "22",
+      "bbox": [
+        64,
+        120,
+        92,
+        5
+      ],
+      "geometry": "rect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 22,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/65kfmpor",
+      "id": "23",
+      "name": "subtitle",
+      "bbox": [
+        64,
+        142,
+        1100,
+        30
+      ],
+      "geometry": "rect",
+      "text": "La evidencia muestra mayor recorrido operativo por unidad real",
+      "textPreview": "La evidencia muestra mayor recorrido operativo por unidad real",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "La evidencia muestra mayor recorrido operativo por unidad real"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "La evidencia muestra mayor recorrido operativo por unidad real",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La evidencia muestra mayor recorrido operativo por unidad real",
+              "fontSize": 15,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 23,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hcvy14ne",
+      "id": "24",
+      "bbox": [
+        64,
+        206,
+        350,
+        340
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#153D72",
+      "lineColor": "#153D72",
+      "lineWidth": 0
+    },
+    {
+      "order": 24,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/gbmxszmt",
+      "id": "25",
+      "bbox": [
+        94,
+        238,
+        260,
+        20
+      ],
+      "geometry": "rect",
+      "text": "SECTORES",
+      "textPreview": "SECTORES",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#A9C5E4",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "SECTORES"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "SECTORES",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#A9C5E4",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "SECTORES",
+              "fontSize": 12,
+              "color": "#A9C5E4",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 25,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fadgzu58",
+      "id": "26",
+      "bbox": [
+        94,
+        278,
+        270,
+        115
+      ],
+      "geometry": "rect",
+      "text": "B1 · Bebidas\nAM · Alimentos mascotas\nPI · Electrodomésticos\nN1 · Insumo a sucursales\nVA · Varios No Alimentos",
+      "textPreview": "B1 · Bebidas | AM · Alimentos mascotas | PI · Electrodomésticos | N1 · Insumo a sucursales | VA · Varios No Alimentos",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 5,
+        "lines": [
+          {
+            "index": 1,
+            "text": "B1 · Bebidas"
+          },
+          {
+            "index": 2,
+            "text": "AM · Alimentos mascotas"
+          },
+          {
+            "index": 3,
+            "text": "PI · Electrodomésticos"
+          },
+          {
+            "index": 4,
+            "text": "N1 · Insumo a sucursales"
+          },
+          {
+            "index": 5,
+            "text": "VA · Varios No Alimentos"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "B1 · Bebidas",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "B1 · Bebidas",
+              "fontSize": 16,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "AM · Alimentos mascotas",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "AM · Alimentos mascotas",
+              "fontSize": 16,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "PI · Electrodomésticos",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "PI · Electrodomésticos",
+              "fontSize": 16,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "N1 · Insumo a sucursales",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "N1 · Insumo a sucursales",
+              "fontSize": 16,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "VA · Varios No Alimentos",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#FFFFFF",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "VA · Varios No Alimentos",
+              "fontSize": 16,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 26,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/u94fqp4n",
+      "id": "27",
+      "bbox": [
+        94,
+        420,
+        146,
+        30
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 27,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/p0vy54na",
+      "id": "28",
+      "bbox": [
+        94,
+        426,
+        146,
+        18
+      ],
+      "geometry": "rect",
+      "text": "+30% escala",
+      "textPreview": "+30% escala",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "alignment": "center",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "+30% escala"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "+30% escala",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#FFFFFF",
+            "bold": true,
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "+30% escala",
+              "fontSize": 12,
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 28,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/4zmxwzmp",
+      "id": "29",
+      "bbox": [
+        94,
+        468,
+        260,
+        52
+      ],
+      "geometry": "rect",
+      "text": "Propuesta de calibración\nsobre el valor monetario del premio.",
+      "textPreview": "Propuesta de calibración | sobre el valor monetario del premio.",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#D8E6F3",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Propuesta de calibración"
+          },
+          {
+            "index": 2,
+            "text": "sobre el valor monetario del premio."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Propuesta de calibración",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#D8E6F3"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Propuesta de calibración",
+              "fontSize": 15,
+              "color": "#D8E6F3"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "sobre el valor monetario del premio.",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#D8E6F3"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "sobre el valor monetario del premio.",
+              "fontSize": 15,
+              "color": "#D8E6F3"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 29,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/mlgvq147",
+      "id": "30",
+      "bbox": [
+        94,
+        526,
+        270,
+        20
+      ],
+      "geometry": "rect",
+      "text": "No convierte metros en bultos.",
+      "textPreview": "No convierte metros en bultos.",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Calibri",
+        "color": "#F2A33A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "No convierte metros en bultos."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "No convierte metros en bultos.",
+          "resolvedTextStyle": {
+            "fontSize": 12,
+            "color": "#F2A33A",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "No convierte metros en bultos.",
+              "fontSize": 12,
+              "color": "#F2A33A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 30,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/nmpcj6ls",
+      "id": "31",
+      "bbox": [
+        454,
+        206,
+        762,
+        340
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFFFFF",
+      "lineColor": "#D8E1EA",
+      "lineWidth": 1
+    },
+    {
+      "order": 31,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/onydsbmd",
+      "id": "32",
+      "bbox": [
+        492,
+        238,
+        280,
+        24
+      ],
+      "geometry": "rect",
+      "text": "¿Qué se midió?",
+      "textPreview": "¿Qué se midió?",
+      "resolvedFontSize": 17,
+      "resolvedTextStyle": {
+        "fontSize": 17,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "¿Qué se midió?"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "¿Qué se midió?",
+          "resolvedTextStyle": {
+            "fontSize": 17,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "¿Qué se midió?",
+              "fontSize": 17,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 32,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/9o7ulg3y",
+      "id": "33",
+      "bbox": [
+        492,
+        270,
+        520,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Promedio de recorrido por unidad efectiva",
+      "textPreview": "Promedio de recorrido por unidad efectiva",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Promedio de recorrido por unidad efectiva"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Promedio de recorrido por unidad efectiva",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Promedio de recorrido por unidad efectiva",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 33,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/a9gvulkj",
+      "id": "34",
+      "bbox": [
+        492,
+        324,
+        180,
+        20
+      ],
+      "geometry": "rect",
+      "text": "Cinco sectores",
+      "textPreview": "Cinco sectores",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cinco sectores"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cinco sectores",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cinco sectores",
+              "fontSize": 14,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 34,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ba9cn6l4",
+      "id": "35",
+      "bbox": [
+        492,
+        353,
+        400,
+        16
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#E6EDF4",
+      "lineWidth": 0
+    },
+    {
+      "order": 35,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wbidwb29",
+      "id": "36",
+      "bbox": [
+        492,
+        353,
+        400,
+        16
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#00A37A",
+      "lineWidth": 0
+    },
+    {
+      "order": 36,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xcrupg3u",
+      "id": "37",
+      "bbox": [
+        910,
+        348,
+        160,
+        28
+      ],
+      "geometry": "rect",
+      "text": "428,9 m / etapa",
+      "textPreview": "428,9 m / etapa",
+      "resolvedFontSize": 19,
+      "resolvedTextStyle": {
+        "fontSize": 19,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "428,9 m / etapa"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "428,9 m / etapa",
+          "resolvedTextStyle": {
+            "fontSize": 19,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "428,9 m / etapa",
+              "fontSize": 19,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 37,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/id0vylkf",
+      "id": "38",
+      "bbox": [
+        492,
+        394,
+        180,
+        20
+      ],
+      "geometry": "rect",
+      "text": "Resto de sectores",
+      "textPreview": "Resto de sectores",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Resto de sectores"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Resto de sectores",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Resto de sectores",
+              "fontSize": 14,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 38,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/je9crql0",
+      "id": "39",
+      "bbox": [
+        492,
+        423,
+        400,
+        16
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#E6EDF4",
+      "lineWidth": 0
+    },
+    {
+      "order": 39,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ru5cbqd4",
+      "id": "40",
+      "bbox": [
+        492,
+        423,
+        201.35,
+        16
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#0E5AA7",
+      "lineWidth": 0
+    },
+    {
+      "order": 40,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/69wbilcj",
+      "id": "41",
+      "bbox": [
+        910,
+        418,
+        160,
+        28
+      ],
+      "geometry": "rect",
+      "text": "215,9 m / etapa",
+      "textPreview": "215,9 m / etapa",
+      "resolvedFontSize": 19,
+      "resolvedTextStyle": {
+        "fontSize": 19,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "215,9 m / etapa"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "215,9 m / etapa",
+          "resolvedTextStyle": {
+            "fontSize": 19,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "215,9 m / etapa",
+              "fontSize": 19,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 41,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/tw7ud0va",
+      "id": "42",
+      "bbox": [
+        492,
+        455,
+        660,
+        1
+      ],
+      "geometry": "rect",
+      "fillColor": "#D8E1EA",
+      "lineWidth": 0
+    },
+    {
+      "order": 42,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/svedkvup",
+      "id": "43",
+      "bbox": [
+        492,
+        474,
+        310,
+        24
+      ],
+      "geometry": "rect",
+      "text": "98,6% más metros por etapa",
+      "textPreview": "98,6% más metros por etapa",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "Calibri",
+        "color": "#00A37A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "98,6% más metros por etapa"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "98,6% más metros por etapa",
+          "resolvedTextStyle": {
+            "fontSize": 16,
+            "color": "#00A37A",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "98,6% más metros por etapa",
+              "fontSize": 16,
+              "color": "#00A37A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 43,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fypcfqdg",
+      "id": "44",
+      "bbox": [
+        492,
+        505,
+        650,
+        22
+      ],
+      "geometry": "rect",
+      "text": "16,23 m/bulto vs 14,35 m/bulto en el resto (+13,1%)",
+      "textPreview": "16,23 m/bulto vs 14,35 m/bulto en el resto (+13,1%)",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "16,23 m/bulto vs 14,35 m/bulto en el resto (+13,1%)"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "16,23 m/bulto vs 14,35 m/bulto en el resto (+13,1%)",
+          "resolvedTextStyle": {
+            "fontSize": 14,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "16,23 m/bulto vs 14,35 m/bulto en el resto (+13,1%)",
+              "fontSize": 14,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 44,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/exgvmlcv",
+      "id": "45",
+      "bbox": [
+        64,
+        585,
+        1152,
+        64
+      ],
+      "geometry": "roundRect",
+      "fillColor": "#FFF0D5",
+      "lineColor": "#FFF0D5",
+      "lineWidth": 0
+    },
+    {
+      "order": 45,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/107uh0v6",
+      "id": "46",
+      "bbox": [
+        88,
+        602,
+        100,
+        20
+      ],
+      "geometry": "rect",
+      "text": "Criterio",
+      "textPreview": "Criterio",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "Calibri",
+        "color": "#F2A33A",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Criterio"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Criterio",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#F2A33A",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Criterio",
+              "fontSize": 13,
+              "color": "#F2A33A",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 46,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/gzydovul",
+      "id": "47",
+      "bbox": [
+        190,
+        601,
+        990,
+        32
+      ],
+      "geometry": "rect",
+      "text": "Mantener bultos reales y hora reloj; calibrar el premio donde el recorrido operativo medido sea sistemáticamente superior.",
+      "textPreview": "Mantener bultos reales y hora reloj; calibrar el premio donde el recorrido operativo medido sea sistemáticamente superior.",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Mantener bultos reales y hora reloj; calibrar el premio donde el recorrido operativo medido sea sistemáticamente superior."
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Mantener bultos reales y hora reloj; calibrar el premio donde el recorrido operativo medido sea sistemáticamente superior.",
+          "resolvedTextStyle": {
+            "fontSize": 15,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Mantener bultos reales y hora reloj; calibrar el premio donde el recorrido operativo medido sea sistemáticamente superior.",
+              "fontSize": 15,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 47,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/v2lc36dw",
+      "id": "48",
+      "bbox": [
+        64,
+        658,
+        1100,
+        18
+      ],
+      "geometry": "rect",
+      "text": "Resultado: $37,77 M directo · $45,03 M con ajuste · $50,89 M actual",
+      "textPreview": "Resultado: $37,77 M directo · $45,03 M con ajuste · $50,89 M actual",
+      "resolvedFontSize": 13,
+      "resolvedTextStyle": {
+        "fontSize": 13,
+        "typeface": "Calibri",
+        "color": "#142033",
+        "bold": true,
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Resultado: $37,77 M directo · $45,03 M con ajuste · $50,89 M actual"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Resultado: $37,77 M directo · $45,03 M con ajuste · $50,89 M actual",
+          "resolvedTextStyle": {
+            "fontSize": 13,
+            "color": "#142033",
+            "bold": true
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Resultado: $37,77 M directo · $45,03 M con ajuste · $50,89 M actual",
+              "fontSize": 13,
+              "color": "#142033",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    },
+    {
+      "order": 48,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/a1cba1wb",
+      "id": "49",
+      "bbox": [
+        64,
+        682,
+        1100,
+        14
+      ],
+      "geometry": "rect",
+      "text": "Fuente: PV_ETAPA_CAB.DISTANCIA_EN_METROS · julio 2026 · 72.052 etapas en los cinco sectores / 131.807 en el resto",
+      "textPreview": "Fuente: PV_ETAPA_CAB.DISTANCIA_EN_METROS · julio 2026 · 72.052 etapas en los cinco sectores / 131.807 en el resto",
+      "resolvedFontSize": 9.51,
+      "resolvedTextStyle": {
+        "fontSize": 9.51,
+        "typeface": "Calibri",
+        "color": "#52657E",
+        "alignment": "left",
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Fuente: PV_ETAPA_CAB.DISTANCIA_EN_METROS · julio 2026 · 72.052 etapas en los cinco sectores / 131.807 en el resto"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Fuente: PV_ETAPA_CAB.DISTANCIA_EN_METROS · julio 2026 · 72.052 etapas en los cinco sectores / 131.807 en el resto",
+          "resolvedTextStyle": {
+            "fontSize": 9.51,
+            "color": "#52657E"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Fuente: PV_ETAPA_CAB.DISTANCIA_EN_METROS · julio 2026 · 72.052 etapas en los cinco sectores / 131.807 en el resto",
+              "fontSize": 9.51,
+              "color": "#52657E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ],
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

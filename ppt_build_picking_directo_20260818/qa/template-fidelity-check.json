@@ -1,0 +1,13 @@
+{
+  "status": "pass",
+  "checkedAt": "2026-08-18T18:30:10.237Z",
+  "workspace": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818",
+  "finalPptx": "C:\\Ingenieria\\VigIA\\outputs\\Picking_Escenario_Direccion_3_filminas.pptx",
+  "starterPptx": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter.pptx",
+  "mapPath": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-frame-map.json",
+  "starterLayoutDir": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\template-starter-layout",
+  "finalLayoutDir": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818\\final-layout",
+  "editDir": "C:\\Ingenieria\\VigIA\\ppt_build_picking_directo_20260818",
+  "issueCount": 0,
+  "issues": []
+}
