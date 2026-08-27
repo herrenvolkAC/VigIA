@@ -40,6 +40,7 @@ CREATE_RECEPCION_FOTOS = """
 CREATE TABLE IF NOT EXISTS recepcion_fotos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     recepcion_id INTEGER NOT NULL REFERENCES recepciones(id) ON DELETE CASCADE,
+    recepcion_plus_id INTEGER REFERENCES recepcion_plus(id) ON DELETE SET NULL,
     nombre_original TEXT NOT NULL,
     nombre_archivo TEXT NOT NULL,
     ruta_archivo TEXT NOT NULL,
@@ -57,6 +58,7 @@ CREATE_RECEPCION_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_recepcion_plus_recepcion ON recepcion_plus(recepcion_id)",
     "CREATE INDEX IF NOT EXISTS idx_recepcion_plus_plu ON recepcion_plus(plu_codigo)",
     "CREATE INDEX IF NOT EXISTS idx_recepcion_fotos_recepcion ON recepcion_fotos(recepcion_id)",
+    "CREATE INDEX IF NOT EXISTS idx_recepcion_fotos_plus ON recepcion_fotos(recepcion_plus_id)",
 ]
 
 
@@ -69,6 +71,10 @@ async def init_recepcion_db() -> None:
         await db.execute(CREATE_RECEPCIONES)
         await db.execute(CREATE_RECEPCION_PLUS)
         await db.execute(CREATE_RECEPCION_FOTOS)
+        async with db.execute("PRAGMA table_info(recepcion_fotos)") as cur:
+            columns = {row[1] for row in await cur.fetchall()}
+        if "recepcion_plus_id" not in columns:
+            await db.execute("ALTER TABLE recepcion_fotos ADD COLUMN recepcion_plus_id INTEGER REFERENCES recepcion_plus(id) ON DELETE SET NULL")
         for statement in CREATE_RECEPCION_INDEXES:
             await db.execute(statement)
         await db.commit()

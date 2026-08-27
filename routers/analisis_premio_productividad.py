@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 from PIL import Image
 
 from db.paths import ROOT_DIR, resolve_db_path
+from db.analisis_productividad import ANALISIS_PRODUCTIVIDAD_DB_PATH, init_analisis_productividad_db
 from db.schema import DB_PATH as OPERATIONAL_DB_PATH
 from routers.auth_local import current_auth
 
@@ -4603,6 +4604,27 @@ async def tablero_operaciones_general(
     return {"meta": {"fecha_desde": days[0].isoformat(), "fecha_hasta": days[-1].isoformat(), "query_version": OPERACIONES_GENERAL_HORA_QUERY_VERSION, "filas": len(rows), "cache_disponible": bool(rows)}, "kpis": {"pago_actual": current, "pago_nuevo": new, "diferencia": new-current, "diferencia_pct": (new-current)/current*100 if current else None, "pago_actual_comparable": current_comparable, "pago_nuevo_comparable": new_comparable, "diferencia_comparable": new_comparable-current_comparable, "diferencia_comparable_pct": (new_comparable-current_comparable)/current_comparable*100 if current_comparable else None, "filas": len(rows), "legajos": len(legajos), "funciones": len(function_rows), "comparables": len(comparable), "no_comparables": len(rows)-len(comparable)}, "funciones": sorted(function_rows, key=lambda row: row["diferencia"]), "legajos": sorted(legajos.values(), key=lambda row: row["diferencia"]), "motivos": sorted(motivos.values(), key=lambda row: abs(row["diferencia"]), reverse=True), "detalle": rows[:1000]}
 
 
+async def _read_local_tendencia(fecha_desde: str, fecha_hasta: str, operacion: str, grupo_productivo: int) -> dict | None:
+    """Lee lotes locales ya cargados; devuelve None para conservar el fallback a Oracle."""
+    if os.getenv("ANALISIS_PRODUCTIVIDAD_OMITIR_LOCAL", "").strip().lower() in {"1", "true", "yes", "si"}:
+        return None
+    await init_analisis_productividad_db()
+    start_month = int(fecha_desde[:7].replace("-", ""))
+    end_month = int(fecha_hasta[:7].replace("-", ""))
+    async with aiosqlite.connect(ANALISIS_PRODUCTIVIDAD_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            "SELECT mes, payload_json FROM ap_tendencia_mensual WHERE operacion=? AND grupo_productivo=? AND mes BETWEEN ? AND ? ORDER BY mes",
+            (operacion.upper(), int(grupo_productivo), start_month, end_month),
+        )
+        items = await cursor.fetchall()
+    if not items:
+        return None
+    rows = [json.loads(item["payload_json"]) for item in items]
+    expected = (end_month // 100 - start_month // 100) * 12 + end_month % 100 - start_month % 100 + 1
+    return {"meta": {"fecha_desde": fecha_desde, "fecha_hasta": fecha_hasta, "operacion": operacion.upper(), "grupo_productivo": int(grupo_productivo), "filas": len(rows), "origen": "sqlite_analisis_productividad", "meses_cargados": len(rows), "meses_pendientes": max(0, expected - len(rows))}, "rows": rows}
+
+
 @router.get("/tendencia-operativa")
 async def tendencia_operativa(
     fecha_desde: str = Query("2024-01-01"),
@@ -4611,6 +4633,11 @@ async def tendencia_operativa(
     grupo_productivo: int = Query(0, ge=0, le=9999),
 ):
     """Serie mensual para auditar volumen, dotación y conversión sin mezclar granos de detalle."""
+    local_data = await _read_local_tendencia(fecha_desde, fecha_hasta or date.today().isoformat(), operacion, grupo_productivo)
+    if local_data:
+        logger.info("Tendencia operativa servida desde SQLite local: operacion=%s grupo=%s filas=%s", operacion, grupo_productivo, local_data["meta"]["filas"])
+        return local_data
+    logger.info("Tendencia operativa solicitada: desde=%s hasta=%s operacion=%s grupo=%s", fecha_desde, fecha_hasta or "hoy", operacion, grupo_productivo)
     try:
         start_date = date.fromisoformat(fecha_desde)
         end_date = date.fromisoformat(fecha_hasta or date.today().isoformat())
@@ -4626,93 +4653,72 @@ async def tendencia_operativa(
     if not function_id:
         raise HTTPException(status_code=400, detail=f"Operacion no soportada para tendencia: {operacion}")
     start_int = int(days[0].strftime("%Y%m%d")); end_int = int(days[-1].strftime("%Y%m%d"))
-    group_filter = f" AND B.ID_PV_GRUPO_PRODUCTIVO = {int(grupo_productivo)}" if grupo_productivo else ""
-    etapa_group_join = f" JOIN PV_GRUPO_PRODUCTIVO_DET GP ON GP.ID_DE_DIVISION = E.DIVISION AND TRIM(GP.ID_DE_SECTOR) = TRIM(E.SECTOR) AND GP.ID_DE_GRUPO_PRODUCTIVO = {int(grupo_productivo)}" if grupo_productivo else ""
+    end_exclusive = end_date + timedelta(days=1)
     sql = f"""
-    WITH CONSOL_ETAPA AS (
-        SELECT TRUNC(Z.FECHA / 100) AS MES,
-               SUM(NVL(D.QCANTIDA,0)) AS BULTOS_REALES_CONSOL,
-               SUM(NVL(D.PRODUCCION_EQUIVALENTE,0)) AS EQ_CONSOL_ETAPA,
-               COUNT(DISTINCT E.ID) AS ACCIONES_CONSOL
-        FROM PV_DIA_LABORAL Z
-        JOIN PV_ETAPA_CAB E ON E.ID_PV_DIA_LABORAL = Z.ID
-        JOIN PV_ETAPA_DET D ON D.ID_ETAPA_CAB = E.ID
-        JOIN PV_CONSOLIDACION_ACCION CA ON INSTR(CA.DESCRIPCION, E.COD_FUNCION) > 0
-        JOIN PV_FUNCION F ON F.CODIGO = E.COD_FUNCION
-        JOIN PV_GRUPO_DE_FUNCIONES_DET FD ON FD.ID_PV_FUNCION = F.ID
-        {etapa_group_join}
-        WHERE Z.FECHA BETWEEN {start_int} AND {end_int}
-          AND FD.ID_PV_GRUPO_DE_FUNCIONES_CAB = {int(function_id)}
-        GROUP BY TRUNC(Z.FECHA / 100)
-    ), LEG_MES AS (
-        SELECT TRUNC(A.FECHA / 100) AS MES,
-               A.LEGAJO,
-               COUNT(*) AS JORNADAS,
-               SUM(CASE WHEN NVL(B.A_PAGAR_TOTAL,0) > 0 THEN 1 ELSE 0 END) AS JORNADAS_PREMIO,
-               SUM(NVL(B.OBJETIVO_NIVEL_ALCANZADO,0)) AS NIVEL_SUM,
-               MAX(NVL(B.OBJETIVO_NIVEL_ALCANZADO,0)) AS NIVEL_MAX
-        FROM PV_DIA_LABORAL A
-        JOIN PV_LIQUIDAC_DIA_DET1 B ON B.ID_PV_DIA_LABORAL = A.ID
-        WHERE A.FECHA BETWEEN {start_int} AND {end_int}
-          AND B.ID_PV_GRUPO_DE_FUNCIONES = {int(function_id)}{group_filter}
-        GROUP BY TRUNC(A.FECHA / 100), A.LEGAJO
-    ), LIQ AS (
-        SELECT MES,
-               COUNT(*) AS LEGAJOS,
-               SUM(JORNADAS) AS JORNADAS,
-               SUM(JORNADAS_PREMIO) AS JORNADAS_PREMIO,
-               SUM(NIVEL_SUM) AS NIVEL_SUM,
-               SUM(CASE WHEN JORNADAS_PREMIO = 0 THEN 1 ELSE 0 END) AS LEG_CONT_0,
-               SUM(CASE WHEN 100 * JORNADAS_PREMIO / NULLIF(JORNADAS,0) BETWEEN 0.01 AND 24.99 THEN 1 ELSE 0 END) AS LEG_CONT_1_24,
-               SUM(CASE WHEN 100 * JORNADAS_PREMIO / NULLIF(JORNADAS,0) BETWEEN 25 AND 49.99 THEN 1 ELSE 0 END) AS LEG_CONT_25_49,
-               SUM(CASE WHEN 100 * JORNADAS_PREMIO / NULLIF(JORNADAS,0) BETWEEN 50 AND 74.99 THEN 1 ELSE 0 END) AS LEG_CONT_50_74,
-               SUM(CASE WHEN 100 * JORNADAS_PREMIO / NULLIF(JORNADAS,0) >= 75 THEN 1 ELSE 0 END) AS LEG_CONT_75_100,
-               SUM(CASE WHEN NIVEL_MAX >= 1 THEN 1 ELSE 0 END) AS LEG_NIVEL_1,
-               SUM(CASE WHEN NIVEL_MAX >= 2 THEN 1 ELSE 0 END) AS LEG_NIVEL_2,
-               SUM(CASE WHEN NIVEL_MAX >= 3 THEN 1 ELSE 0 END) AS LEG_NIVEL_3,
-               SUM(CASE WHEN NIVEL_MAX >= 4 THEN 1 ELSE 0 END) AS LEG_NIVEL_4,
-               SUM(CASE WHEN NIVEL_MAX >= 5 THEN 1 ELSE 0 END) AS LEG_NIVEL_5
-        FROM LEG_MES
-        GROUP BY MES
-    ), PROD AS (
-        SELECT TRUNC(A.FECHA / 100) AS MES,
-               SUM(NVL(B.PROD_REAL,0)) AS PROD_REAL,
-               SUM(NVL(B.PROD_EQUIVAL_POR_SECTOR,0)) AS EQ_SECTOR,
-               SUM(NVL(B.PROD_EQUIVAL_POR_TRASLADO,0)) AS EQ_TRASLADO,
-               SUM(NVL(B.PROD_EQUIVAL_POR_CONSOLIDACION,0)) AS EQ_CONSOL,
-               SUM(NVL(B.TOTAL_DE_PUNTOS_EQUIVALENTES,0)) AS EQ_TOTAL
-        FROM PV_DIA_LABORAL A
-        JOIN PV_LIQUIDAC_DIA_DET2 B ON B.ID_PV_DIA_LABORAL = A.ID
-        WHERE A.FECHA BETWEEN {start_int} AND {end_int}
-          AND B.ID_PV_GRUPO_DE_FUNCIONES = {int(function_id)}{group_filter}
-        GROUP BY TRUNC(A.FECHA / 100)
+    WITH DET2_DIA AS (
+        SELECT C.FECHA, B.DESCRIPCION AS OPERACION,
+               SUM(NVL(A.PROD_REAL,0)) AS PROD_REAL,
+               SUM(NVL(A.PROD_EQUIVAL_POR_SECTOR,0)) AS EQ_SECTOR,
+               SUM(NVL(A.PROD_EQUIVAL_POR_CONSOLIDACION,0)) AS EQ_CONSOL,
+               SUM(NVL(A.PROD_EQUIVAL_POR_TRASLADO,0)) AS EQ_TRASLADO,
+               COUNT(*) AS DETALLES_DIA
+        FROM PV_LIQUIDAC_DIA_DET2 A
+        JOIN PV_GRUPO_DE_FUNCIONES_CAB B ON A.ID_PV_GRUPO_DE_FUNCIONES = B.ID
+        JOIN PV_DIA_LABORAL C ON A.ID_PV_DIA_LABORAL = C.ID
+        WHERE C.FECHA >= {start_int} AND C.FECHA <= {end_int}
+          AND B.DESCRIPCION = '{operation_key}'
+        GROUP BY C.FECHA, B.DESCRIPCION
+    ), LEGAJOS_MES AS (
+        SELECT TRUNC(C.FECHA / 100) AS MES, B.DESCRIPCION AS OPERACION,
+               COUNT(DISTINCT C.LEGAJO) AS LEGAJOS
+        FROM PV_LIQUIDAC_DIA_DET2 A
+        JOIN PV_GRUPO_DE_FUNCIONES_CAB B ON A.ID_PV_GRUPO_DE_FUNCIONES = B.ID
+        JOIN PV_DIA_LABORAL C ON A.ID_PV_DIA_LABORAL = C.ID
+        WHERE C.FECHA >= {start_int} AND C.FECHA <= {end_int}
+          AND B.DESCRIPCION = '{operation_key}'
+        GROUP BY TRUNC(C.FECHA / 100), B.DESCRIPCION
+    ), DET1_DIA AS (
+        SELECT C.FECHA, B.DESCRIPCION AS OPERACION,
+               MAX(NVL(D.PRODUCCION_TOTAL,0)) AS PRODUCCION_TOTAL,
+               MAX(NVL(D.OBJETIVO_NIVEL_ALCANZADO,0)) AS NIVEL_ALCANZADO,
+               MAX(CASE WHEN NVL(D.A_PAGAR_TOTAL,0) > 0 THEN 1 ELSE 0 END) AS JORNADA_PREMIO
+        FROM PV_LIQUIDAC_DIA_DET1 D
+        JOIN PV_GRUPO_DE_FUNCIONES_CAB B ON D.ID_PV_GRUPO_DE_FUNCIONES = B.ID
+        JOIN PV_DIA_LABORAL C ON D.ID_PV_DIA_LABORAL = C.ID
+        WHERE C.FECHA >= {start_int} AND C.FECHA <= {end_int}
+          AND B.DESCRIPCION = '{operation_key}'
+        GROUP BY C.FECHA, B.DESCRIPCION
+    ), MES AS (
+        SELECT TRUNC(X.FECHA / 100) AS MES, X.OPERACION,
+               SUM(X.PROD_REAL) AS PROD_REAL, SUM(X.EQ_SECTOR) AS EQ_SECTOR,
+               SUM(X.EQ_CONSOL) AS EQ_CONSOL, SUM(X.EQ_TRASLADO) AS EQ_TRASLADO,
+               COUNT(*) AS JORNADAS
+        FROM DET2_DIA X GROUP BY TRUNC(X.FECHA / 100), X.OPERACION
+    ), NIVEL AS (
+        SELECT TRUNC(X.FECHA / 100) AS MES, X.OPERACION,
+               SUM(X.PRODUCCION_TOTAL) AS PRODUCCION_TOTAL,
+               AVG(X.NIVEL_ALCANZADO) AS NIVEL_PROM,
+               SUM(X.JORNADA_PREMIO) AS JORNADAS_PREMIO
+        FROM DET1_DIA X GROUP BY TRUNC(X.FECHA / 100), X.OPERACION
     )
-    SELECT L.MES, L.LEGAJOS, L.JORNADAS,
-           ROUND(L.JORNADAS / NULLIF(L.LEGAJOS,0), 2) AS JORNADAS_X_LEGAJO,
-           L.JORNADAS_PREMIO,
-           ROUND(100 * L.JORNADAS_PREMIO / NULLIF(L.JORNADAS,0), 2) AS PCT_PREMIO,
-           ROUND(L.NIVEL_SUM / NULLIF(L.JORNADAS,0), 2) AS NIVEL_PROM,
-           L.LEG_CONT_0, L.LEG_CONT_1_24, L.LEG_CONT_25_49, L.LEG_CONT_50_74, L.LEG_CONT_75_100,
-           L.LEG_NIVEL_1, L.LEG_NIVEL_2, L.LEG_NIVEL_3, L.LEG_NIVEL_4, L.LEG_NIVEL_5,
-           ROUND(NVL(P.PROD_REAL,0), 1) AS PROD_REAL,
-           ROUND(NVL(P.EQ_SECTOR,0), 1) AS EQ_SECTOR,
-           ROUND(NVL(P.EQ_TRASLADO,0), 1) AS EQ_TRASLADO,
-           ROUND(NVL(P.EQ_CONSOL,0), 1) AS EQ_CONSOL,
-           ROUND(NVL(P.EQ_TOTAL,0), 1) AS EQ_TOTAL,
-           ROUND(NVL(E.BULTOS_REALES_CONSOL,0), 1) AS BULTOS_REALES_CONSOL,
-           ROUND(NVL(E.EQ_CONSOL_ETAPA,0), 1) AS EQ_CONSOL_ETAPA,
-           NVL(E.ACCIONES_CONSOL,0) AS ACCIONES_CONSOL,
-           ROUND(100 * NVL(P.EQ_TOTAL,0) / NULLIF(P.PROD_REAL,0), 2) AS PCT_EQ_SOBRE_REAL,
-           ROUND(100 * NVL(P.EQ_SECTOR,0) / NULLIF(P.PROD_REAL,0), 2) AS PCT_EQ_SECTOR_SOBRE_REAL,
-           ROUND(100 * NVL(P.EQ_TRASLADO,0) / NULLIF(P.PROD_REAL,0), 2) AS PCT_EQ_TRASLADO_SOBRE_REAL,
-           ROUND(100 * NVL(P.EQ_CONSOL,0) / NULLIF(P.PROD_REAL,0), 2) AS PCT_EQ_CONSOL_SOBRE_REAL,
-           ROUND(100 * (NVL(P.EQ_TOTAL,0) - NVL(P.PROD_REAL,0)) / NULLIF(P.PROD_REAL,0), 2) AS PCT_ADICIONAL_CONVERSION
-    FROM LIQ L LEFT JOIN PROD P ON P.MES = L.MES
-    LEFT JOIN CONSOL_ETAPA E ON E.MES = L.MES
-    ORDER BY L.MES
+    SELECT M.MES, M.OPERACION, L.LEGAJOS,
+           M.JORNADAS, ROUND(M.PROD_REAL / NULLIF(L.LEGAJOS,0),2) AS PRODUCTIVIDAD,
+           ROUND(M.PROD_REAL,1) AS PROD_REAL, ROUND(M.EQ_SECTOR,1) AS EQ_SECTOR,
+           ROUND(M.EQ_CONSOL,1) AS EQ_CONSOL, ROUND(M.EQ_TRASLADO,1) AS EQ_TRASLADO,
+           ROUND(N.PRODUCCION_TOTAL,1) AS PRODUCCION_TOTAL,
+           ROUND(N.NIVEL_PROM,2) AS NIVEL_PROM,
+           N.JORNADAS_PREMIO,
+           ROUND(100*N.JORNADAS_PREMIO/NULLIF(M.JORNADAS,0),2) AS PCT_PREMIO,
+           ROUND(M.PROD_REAL+M.EQ_SECTOR+M.EQ_CONSOL+M.EQ_TRASLADO,1) AS EQ_TOTAL,
+           ROUND(100*(M.PROD_REAL+M.EQ_SECTOR+M.EQ_CONSOL+M.EQ_TRASLADO)/NULLIF(M.PROD_REAL,0),2) AS PCT_EQ_SOBRE_REAL
+    FROM MES M
+    LEFT JOIN NIVEL N ON N.MES=M.MES AND N.OPERACION=M.OPERACION
+    LEFT JOIN LEGAJOS_MES L ON L.MES=M.MES AND L.OPERACION=M.OPERACION
+    ORDER BY M.MES
     """
     raw_rows = await asyncio.to_thread(_query_oracle, sql, {})
     rows = [{str(key).lower(): value for key, value in row.items()} for row in raw_rows]
+    logger.info("Tendencia operativa finalizada: operacion=%s grupo=%s filas=%s", operation_key, grupo_productivo, len(rows))
     return {"meta": {"fecha_desde": days[0].isoformat(), "fecha_hasta": days[-1].isoformat(), "operacion": operation_key, "grupo_productivo": grupo_productivo, "filas": len(rows), "origen": "oracle_productiva"}, "rows": rows}
 
 

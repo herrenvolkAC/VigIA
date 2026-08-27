@@ -72,11 +72,27 @@ async def plus(request: Request, q: str = Query("", min_length=0, max_length=80)
     await _auth(request)
     term = _clean(q).upper()
     sql = """
-        SELECT creferen AS PLU, darticul AS Articulo
-        FROM f002arti
-        WHERE (:q = '' OR TO_CHAR(creferen) LIKE '%' || :q || '%' OR UPPER(darticul) LIKE '%' || UPPER(:q) || '%')
-        AND ROWNUM <= 50
-        ORDER BY darticul
+        SELECT plu, articulo
+        FROM (
+            SELECT a.creferen AS PLU, a.darticul AS Articulo
+            FROM f002arti a
+            WHERE (
+                :q = ''
+                OR TO_CHAR(a.creferen) LIKE '%' || :q || '%'
+                OR UPPER(a.darticul) LIKE '%' || UPPER(:q) || '%'
+            )
+            AND EXISTS (
+                SELECT 1
+                FROM f602asec s
+                WHERE s.creferen = a.creferen
+                  AND s.cnsector IN (
+                      'CO', 'FQ', 'HU', 'PA', 'F4',
+                      'FB', 'F1', 'VE', 'MO', 'FC', 'BA'
+                  )
+            )
+            ORDER BY a.darticul, a.creferen
+        )
+        WHERE ROWNUM <= 50
     """
     return {"items": await _catalog(sql, {"q": term}, "PLU", "ARTICULO")}
 
@@ -150,7 +166,7 @@ async def detalle(recepcion_id: int, request: Request):
             raise HTTPException(status_code=404, detail="Recepcion no encontrada.")
         async with db.execute("SELECT * FROM recepcion_plus WHERE recepcion_id=? ORDER BY id", (recepcion_id,)) as cur:
             plus_rows = [dict(x) for x in await cur.fetchall()]
-        async with db.execute("SELECT id,nombre_original,tipo_mime,tamano_bytes,created_at FROM recepcion_fotos WHERE recepcion_id=? ORDER BY id", (recepcion_id,)) as cur:
+        async with db.execute("SELECT id,recepcion_plus_id,nombre_original,tipo_mime,tamano_bytes,created_at FROM recepcion_fotos WHERE recepcion_id=? ORDER BY id", (recepcion_id,)) as cur:
             fotos = [dict(x) for x in await cur.fetchall()]
         return {"recepcion": dict(row), "plus": plus_rows, "fotos": fotos}
     finally:
@@ -170,6 +186,7 @@ async def crear(
     cuenta_con_novedad: bool = Form(False),
     observacion: str = Form(""),
     plus_json: str = Form(...),
+    foto_plu_indices: str = Form("[]"),
     fotos: list[UploadFile] = File(default=[]),
 ):
     auth = await _auth(request)
@@ -179,6 +196,16 @@ async def crear(
         plus_rows = json.loads(plus_json)
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail="Detalle de PLU invalido.") from exc
+    try:
+        foto_indices = json.loads(foto_plu_indices or "[]")
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail="Relacion de fotos por PLU invalida.") from exc
+    if not isinstance(foto_indices, list):
+        raise HTTPException(status_code=400, detail="Relacion de fotos por PLU invalida.")
+    if not foto_indices and fotos:
+        foto_indices = [None] * len(fotos)
+    if len(foto_indices) != len(fotos):
+        raise HTTPException(status_code=400, detail="La cantidad de relaciones de fotos no coincide con los archivos.")
     if not isinstance(plus_rows, list) or not plus_rows:
         raise HTTPException(status_code=400, detail="Debe agregar al menos un PLU.")
     if len(fotos) > MAX_PHOTOS:
@@ -199,21 +226,32 @@ async def crear(
         """, (fecha_descarga, _clean(proveedor_codigo), _clean(proveedor_nombre), _clean(recepcionista_legajo),
               _clean(recepcionista_nombre), pallets_recibidos, pallets_auditados, int(cuenta_con_novedad), _clean(observacion), auth["username"]))
         recepcion_id = cursor.lastrowid
-        await db.executemany("INSERT INTO recepcion_plus (recepcion_id,plu_codigo,plu_articulo,afectacion,observacion) VALUES (?,?,?,?,?)", [
-            (recepcion_id, _clean(x.get("plu_codigo")), _clean(x.get("plu_articulo")), x.get("afectacion") or None, _clean(x.get("observacion"))) for x in plus_rows
-        ])
+        plus_ids: list[int] = []
+        for item in plus_rows:
+            plus_cursor = await db.execute(
+                "INSERT INTO recepcion_plus (recepcion_id,plu_codigo,plu_articulo,afectacion,observacion) VALUES (?,?,?,?,?)",
+                (recepcion_id, _clean(item.get("plu_codigo")), _clean(item.get("plu_articulo")), item.get("afectacion") or None, _clean(item.get("observacion"))),
+            )
+            plus_ids.append(plus_cursor.lastrowid)
         PHOTOS_DIR.mkdir(parents=True, exist_ok=True)
-        for upload in fotos:
+        for foto_index, upload in enumerate(fotos):
+            plu_index = foto_indices[foto_index]
+            plus_id = None
+            if plu_index is not None:
+                if isinstance(plu_index, bool) or not isinstance(plu_index, int) or plu_index < 0 or plu_index >= len(plus_ids):
+                    raise HTTPException(status_code=400, detail="Una foto referencia un PLU invalido.")
+                plus_id = plus_ids[plu_index]
             original = Path(upload.filename or "foto.jpg").name
             content = await upload.read()
             if len(content) > MAX_PHOTO_BYTES:
                 raise HTTPException(status_code=400, detail=f"La foto {original} supera el limite permitido.")
             suffix = Path(original).suffix.lower() or ".jpg"
-            filename = f"recepcion_{recepcion_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(4)}{suffix}"
+            scope = f"plu_{plus_id}_" if plus_id else "general_"
+            filename = f"recepcion_{recepcion_id}_{scope}{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(4)}{suffix}"
             path = PHOTOS_DIR / filename
             path.write_bytes(content); saved_paths.append(path)
-            await db.execute("""INSERT INTO recepcion_fotos (recepcion_id,nombre_original,nombre_archivo,ruta_archivo,tipo_mime,tamano_bytes,creado_por)
-                VALUES (?,?,?,?,?,?,?)""", (recepcion_id, original, filename, filename, upload.content_type or mimetypes.guess_type(original)[0], len(content), auth["username"]))
+            await db.execute("""INSERT INTO recepcion_fotos (recepcion_id,recepcion_plus_id,nombre_original,nombre_archivo,ruta_archivo,tipo_mime,tamano_bytes,creado_por)
+                VALUES (?,?,?,?,?,?,?,?)""", (recepcion_id, plus_id, original, filename, filename, upload.content_type or mimetypes.guess_type(original)[0], len(content), auth["username"]))
         await db.commit()
         return {"ok": True, "id": recepcion_id}
     except Exception:

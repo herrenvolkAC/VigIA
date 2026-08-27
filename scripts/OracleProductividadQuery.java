@@ -146,6 +146,21 @@ public class OracleProductividadQuery {
                      AND T.CAMIMATR = V.CAMIMATR
                     WHERE V.CSITVIAJ = 'EP'
                 ),
+                BULTOS_PLANIFICADOS AS (
+                    SELECT
+                        TO_CHAR(TV.CODIGO) AS HOJARUTA,
+                        SUM(D.CANTIDAD) AS BULTOS_PLANIFICADOS
+                    FROM TR_VIAJE TV
+                    JOIN VIAJES FV
+                      ON TV.CODIGO = TO_NUMBER(TRIM(FV.HOJARUTA))
+                    JOIN TR_CARGAS C
+                      ON TV.CODIGO = C.CODIGODEVIAJE
+                    JOIN TR_PALLET P
+                      ON C.NUMERODEPALLET = P.NUMERO
+                    JOIN TR_DETALLE_DE_PALLET_NEW D
+                      ON D.PALLET_ID = P.NUMERO
+                    GROUP BY TV.CODIGO
+                ),
                 EXPEDICIONES AS (
                     SELECT
                         V.CEMPRESA,
@@ -354,6 +369,7 @@ public class OracleProductividadQuery {
                     V.FMODIREG,
                     V.QPALMAXI,
                     V.QVOLMAXI,
+                    BP.BULTOS_PLANIFICADOS,
                     E.CNUMEXPE,
                     E.CSITEXPE,
                     E.FCREACIO AS FECHA_EXPEDICION,
@@ -372,6 +388,8 @@ public class OracleProductividadQuery {
                     NVL(C.LINEAS_VLOG_DUPLICADA, 0) AS LINEAS_VLOG_DUPLICADA,
                     SYSDATE AS ORACLE_NOW
                 FROM VIAJES V
+                LEFT JOIN BULTOS_PLANIFICADOS BP
+                  ON BP.HOJARUTA = TRIM(V.HOJARUTA)
                 LEFT JOIN EXPEDICIONES E
                   ON E.CEMPRESA = V.CEMPRESA
                  AND E.CCENTDIS = V.CCENTDIS
@@ -1820,6 +1838,22 @@ public class OracleProductividadQuery {
                 "  AND A.FECHA <= ? " +
                 "GROUP BY A.FECHA, A.LEGAJO, C.DESCRIPCION, C.ID_DE_UNIDAD_DE_PRODUCCION " +
                 "ORDER BY A.FECHA, A.LEGAJO, C.DESCRIPCION";
+        } else if ("plantel_legajo_actividades".equalsIgnoreCase(queryKey)) {
+            sql =
+                "SELECT " +
+                "    Z.FECHA AS FECHA, " +
+                "    Z.LEGAJO AS LEGAJO, " +
+                "    A.COD_FUNCION AS COD_FUNCION, " +
+                "    COALESCE(NULLIF(TRIM(A.DESC_FUNCION), ''), NULLIF(TRIM(F.DESCRIPCION), '')) AS ACTIVIDAD " +
+                "FROM PV_DIA_LABORAL Z " +
+                "JOIN PV_ETAPA_CAB A ON A.ID_PV_DIA_LABORAL = Z.ID " +
+                "LEFT JOIN PV_FUNCION F ON F.CODIGO = A.COD_FUNCION " +
+                "WHERE Z.FECHA BETWEEN TO_NUMBER(REPLACE(?, '-', '')) " +
+                "AND TO_NUMBER(REPLACE(?, '-', '')) " +
+                "AND TRIM(COALESCE(A.DESC_FUNCION, F.DESCRIPCION, '')) <> '' " +
+                "GROUP BY Z.FECHA, Z.LEGAJO, A.COD_FUNCION, " +
+                "COALESCE(NULLIF(TRIM(A.DESC_FUNCION), ''), NULLIF(TRIM(F.DESCRIPCION), '')) " +
+                "ORDER BY Z.FECHA, Z.LEGAJO, ACTIVIDAD";
         } else if ("historia_tnc_legajo".equalsIgnoreCase(queryKey)) {
             sql =
                 "SELECT " +
@@ -2342,7 +2376,7 @@ public class OracleProductividadQuery {
                     if (!first) out.append(",");
                     first = false;
 
-                    if ("raw_sql_env".equalsIgnoreCase(queryKey) || "monitor_cargas".equalsIgnoreCase(queryKey) || "premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_escalas_por_id".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey) || "pp_estudio_premios_oracle".equalsIgnoreCase(queryKey) || "pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) || "pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey) || "pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey) || "pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "rrhh_presencias".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey) || "rend_premio_dias_pago".equalsIgnoreCase(queryKey) || "rend_premio_escalas".equalsIgnoreCase(queryKey)) {
+                    if ("raw_sql_env".equalsIgnoreCase(queryKey) || "monitor_cargas".equalsIgnoreCase(queryKey) || "premio_escala".equalsIgnoreCase(queryKey) || "premio_pago_actual".equalsIgnoreCase(queryKey) || "premio_produccion_hora".equalsIgnoreCase(queryKey) || "pp_premio_escalas".equalsIgnoreCase(queryKey) || "pp_premio_escalas_por_id".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora".equalsIgnoreCase(queryKey) || "pp_premio_etapas_hora_por_id".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia".equalsIgnoreCase(queryKey) || "pp_premio_liquidacion_dia_por_id".equalsIgnoreCase(queryKey) || "pp_estudio_premios_oracle".equalsIgnoreCase(queryKey) || "pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) || "pv_etapas_desc_funcion_dia".equalsIgnoreCase(queryKey) || "pv_etapas_funciones_operacion_dia".equalsIgnoreCase(queryKey) || "pv_liquidacion_grupo_dia".equalsIgnoreCase(queryKey) || "premio_caso_modelo_final".equalsIgnoreCase(queryKey) || "premio_caso_modelo_rango".equalsIgnoreCase(queryKey) || "premio_caso_modelo_detalle".equalsIgnoreCase(queryKey) || "rendimiento_online".equalsIgnoreCase(queryKey) || "online".equalsIgnoreCase(queryKey) || "tiempos_muertos".equalsIgnoreCase(queryKey) || "tnc".equalsIgnoreCase(queryKey) || "tnc_master".equalsIgnoreCase(queryKey) || "tnc_monitor".equalsIgnoreCase(queryKey) || "picking_analysis".equalsIgnoreCase(queryKey) || "daily_productividad_raw".equalsIgnoreCase(queryKey) || "daily_picking_real".equalsIgnoreCase(queryKey) || "daily_recepcion_real".equalsIgnoreCase(queryKey) || "daily_despacho_real".equalsIgnoreCase(queryKey) || "daily_despacho_raw".equalsIgnoreCase(queryKey) || "daily_planificacion".equalsIgnoreCase(queryKey) || "daily_picking_plan".equalsIgnoreCase(queryKey) || "daily_despacho_plan".equalsIgnoreCase(queryKey) || "daily_spc_plan".equalsIgnoreCase(queryKey) || "daily_clark_real".equalsIgnoreCase(queryKey) || "plantel_optimo_demanda".equalsIgnoreCase(queryKey) || "plantel_legajo_actividades".equalsIgnoreCase(queryKey) || "picking_ubicaciones_hist".equalsIgnoreCase(queryKey) || "stock_cd".equalsIgnoreCase(queryKey) || "rack_stock".equalsIgnoreCase(queryKey) || "rack_inutilizadas".equalsIgnoreCase(queryKey) || "rrhh_presencias".equalsIgnoreCase(queryKey) || "gestion_productividad_picking".equalsIgnoreCase(queryKey) || "historia_productividad_legajo".equalsIgnoreCase(queryKey) || "historia_productividad_bulk".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones".equalsIgnoreCase(queryKey) || "historia_actividad_operaciones_bulk".equalsIgnoreCase(queryKey) || "rend_premio_dias_pago".equalsIgnoreCase(queryKey) || "rend_premio_escalas".equalsIgnoreCase(queryKey)) {
                         appendGenericJsonRow(rs, out);
                         continue;
                     }

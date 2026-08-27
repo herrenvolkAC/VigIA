@@ -162,6 +162,25 @@ FROM (
 ORDER BY FECHA, LEGAJO, OPERACION
 """
 
+QUERY_PLANTEL_LEGAJO_ACTIVIDADES = """
+SELECT
+    Z.FECHA AS FECHA,
+    Z.LEGAJO AS LEGAJO,
+    A.COD_FUNCION AS COD_FUNCION,
+    COALESCE(NULLIF(TRIM(A.DESC_FUNCION), ''), NULLIF(TRIM(F.DESCRIPCION), '')) AS ACTIVIDAD
+FROM PV_DIA_LABORAL Z
+JOIN PV_ETAPA_CAB A
+  ON A.ID_PV_DIA_LABORAL = Z.ID
+LEFT JOIN PV_FUNCION F
+  ON F.CODIGO = A.COD_FUNCION
+WHERE Z.FECHA BETWEEN TO_NUMBER(REPLACE(:fecha_desde, '-', ''))
+                  AND TO_NUMBER(REPLACE(:fecha_hasta, '-', ''))
+  AND TRIM(COALESCE(A.DESC_FUNCION, F.DESCRIPCION, '')) <> ''
+GROUP BY Z.FECHA, Z.LEGAJO, A.COD_FUNCION,
+         COALESCE(NULLIF(TRIM(A.DESC_FUNCION), ''), NULLIF(TRIM(F.DESCRIPCION), ''))
+ORDER BY Z.FECHA, Z.LEGAJO, ACTIVIDAD
+"""
+
 QUERY_PLANTEL_OPERATIVO = """
 SELECT
     A.FCREAREG AS FHMovimiento,
@@ -2004,6 +2023,14 @@ def query_productive_db_historia_actividad_operaciones_bulk(fecha_desde: str, fe
     )
 
 
+def query_productive_db_plantel_legajo_actividades(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
+    return _query_productive_db_sql(
+        QUERY_PLANTEL_LEGAJO_ACTIVIDADES,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+
 def query_productive_db_online_detail(fecha_desde: str, fecha_hasta: str) -> list[dict[str, Any]]:
     return _query_productive_db_sql(
         QUERY_PRODUCTIVIDAD_ONLINE_DETAIL,
@@ -2548,6 +2575,13 @@ def _query_productive_db_via_jdbc(query: str, fecha_desde: str, fecha_hasta: str
         and "ID_DE_UNIDAD_DE_PRODUCCION AS TIPO" in normalized_query
     ):
         query_key = "historia_productividad_bulk"
+    elif (
+        "PV_DIA_LABORAL" in normalized_query
+        and "PV_ETAPA_CAB" in normalized_query
+        and "ID_PV_DIA_LABORAL" in normalized_query
+        and "AS ACTIVIDAD" in normalized_query
+    ):
+        query_key = "plantel_legajo_actividades"
     elif (
         "PV_LIQUIDAC_DIA_DET3" in normalized_query
         and "TIEMPO_EXCEDIDO_EN_SEGUNDOS" in normalized_query

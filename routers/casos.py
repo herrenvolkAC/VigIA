@@ -1938,6 +1938,7 @@ async def listar(
     codigo_visible: str = "",
     service_externo: str = "",
     ubicacion: str = "",
+    sector_rack_id: int | None = None,
     estado_id: int | None = None,
     criticidad_id: int | None = None,
     fecha_desde: str = "",
@@ -1986,6 +1987,9 @@ async def listar(
                 """
             )
             args.extend([location_like, location_like, location_like, location_like, location_like, norm_like])
+        if sector_rack_id:
+            where.append("d.sector_rack_id = ?")
+            args.append(sector_rack_id)
         if estado_id:
             where.append("t.estado_id = ?")
             args.append(estado_id)

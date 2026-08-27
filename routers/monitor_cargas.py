@@ -43,8 +43,23 @@ WITH VIAJES AS (
       ON T.CEMPRESA = V.CEMPRESA
      AND T.CAMIMATR = V.CAMIMATR
     WHERE V.CSITVIAJ = 'EP'
-),
-EXPEDICIONES AS (
+                ),
+                BULTOS_PLANIFICADOS AS (
+                    SELECT
+                        TO_CHAR(TV.CODIGO) AS HOJARUTA,
+                        SUM(D.CANTIDAD) AS BULTOS_PLANIFICADOS
+                    FROM TR_VIAJE TV
+                    JOIN VIAJES FV
+                      ON TV.CODIGO = TO_NUMBER(TRIM(FV.HOJARUTA))
+                    JOIN TR_CARGAS C
+                      ON TV.CODIGO = C.CODIGODEVIAJE
+                    JOIN TR_PALLET P
+                      ON C.NUMERODEPALLET = P.NUMERO
+                    JOIN TR_DETALLE_DE_PALLET_NEW D
+                      ON D.PALLET_ID = P.NUMERO
+                    GROUP BY TV.CODIGO
+                ),
+                EXPEDICIONES AS (
     SELECT
         V.CEMPRESA,
         V.CCENTDIS,
@@ -252,6 +267,7 @@ SELECT
     V.FMODIREG,
     V.QPALMAXI,
     V.QVOLMAXI,
+    BP.BULTOS_PLANIFICADOS,
     E.CNUMEXPE,
     E.CSITEXPE,
     E.FCREACIO AS FECHA_EXPEDICION,
@@ -270,6 +286,8 @@ SELECT
     NVL(C.LINEAS_VLOG_DUPLICADA, 0) AS LINEAS_VLOG_DUPLICADA,
     SYSDATE AS ORACLE_NOW
 FROM VIAJES V
+LEFT JOIN BULTOS_PLANIFICADOS BP
+  ON BP.HOJARUTA = TRIM(V.HOJARUTA)
 LEFT JOIN EXPEDICIONES E
   ON E.CEMPRESA = V.CEMPRESA
  AND E.CCENTDIS = V.CCENTDIS
@@ -367,6 +385,7 @@ def build_monitor_payload(rows: list[dict[str, Any]]) -> dict[str, Any]:
                 "matricula": _text(row.get("CAMIMATR")),
                 "anden": _text(row.get("CNUANDEN")),
                 "capacidad_pallets": _integer(row.get("QPALMAXI")),
+                "bultos_planificados": _integer(row.get("BULTOS_PLANIFICADOS")) if row.get("BULTOS_PLANIFICADOS") is not None else None,
                 "capacidad_volumen_dm3": round(_number(row.get("QVOLMAXI")), 3),
                 "division_codigo": _text(row.get("CDIVISIO")),
                 "division": _text(row.get("DIVISION")) or "OTROS",
@@ -438,7 +457,7 @@ def build_monitor_payload(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
     return {
         "source": "Oracle",
-        "source_tables": ["F810VIAJ", "F811TRAI", "F035EXPE", "F080CPSA", "F081LPSA", "F054VLOG"],
+        "source_tables": ["F810VIAJ", "F811TRAI", "F035EXPE", "F080CPSA", "F081LPSA", "F054VLOG", "TR_VIAJE", "TR_CARGAS", "TR_PALLET", "TR_DETALLE_DE_PALLET_NEW"],
         "refreshed_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "oracle_now": oracle_now,
         "summary": {

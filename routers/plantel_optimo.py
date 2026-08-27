@@ -10,11 +10,16 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+import aiosqlite
 
 from db.auth import auth_db
+from db.schema import DB_PATH
 from db.plantel_optimo import plantel_optimo_db
 from routers.auth_local import current_auth
-from routers.productividad_analisis import _query_productive_db_sql
+from routers.productividad_analisis import (
+    _query_productive_db_sql,
+    query_productive_db_plantel_legajo_actividades,
+)
 
 
 router = APIRouter(prefix="/api/plantel-optimo", tags=["plantel-optimo"])
@@ -344,6 +349,134 @@ async def config(request: Request):
         "fecha_default": today,
         "window_default": _fecha_operativa_window(today),
         "productividades": PRODUCTIVIDAD_SECTOR_ESTANDAR,
+    }
+
+
+def _week_start(value: str) -> date:
+    try:
+        selected = datetime.strptime(_clean(value), "%Y-%m-%d").date()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Semana invalida. Usa formato YYYY-MM-DD.") from exc
+    return selected - timedelta(days=selected.weekday())
+
+
+def _activity_date(value: Any) -> str:
+    text = _clean(value)
+    if text.isdigit() and len(text) == 8:
+        return f"{text[:4]}-{text[4:6]}-{text[6:]}"
+    return text[:10]
+
+
+def _activity_legajo(value: Any) -> str:
+    text = _clean(value)
+    return text.lstrip("0") or text
+
+
+@router.get("/legajos-semana")
+async def legajos_semana(
+    request: Request,
+    semana: str,
+    sector: str = "",
+):
+    await _require_plantel_optimo_access(request)
+    start = _week_start(semana)
+    end = start + timedelta(days=6)
+    sector_filter = _clean(sector)
+
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        batch = await _fetch_one(
+            db,
+            """
+            SELECT batch_id
+            FROM rrhh_import_batches
+            WHERE status = 'complete'
+            ORDER BY imported_at DESC, batch_id DESC
+            LIMIT 1
+            """,
+        )
+        if not batch:
+            raise HTTPException(
+                status_code=424,
+                detail="No hay un lote completo del legajero importado. Importa primero el legajero desde el módulo RRHH.",
+            )
+        where = "batch_id = ?"
+        params: list[Any] = [batch["batch_id"]]
+        if sector_filter:
+            where += " AND COALESCE(desc_sector_generico, '') = ?"
+            params.append(sector_filter)
+        legajo_rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT legajo, nombre, desc_sector_generico AS sector,
+                   desc_funcion AS funcion
+            FROM rrhh_legajero
+            WHERE {where}
+            ORDER BY COALESCE(nombre, ''), legajo
+            """,
+            tuple(params),
+        )
+        sector_rows = await _fetch_rows(
+            db,
+            """
+            SELECT DISTINCT COALESCE(desc_sector_generico, '') AS sector
+            FROM rrhh_legajero
+            WHERE batch_id = ?
+              AND TRIM(COALESCE(desc_sector_generico, '')) <> ''
+            ORDER BY sector COLLATE NOCASE
+            """,
+            (batch["batch_id"],),
+        )
+
+    try:
+        activity_rows = await asyncio.to_thread(
+            query_productive_db_plantel_legajo_actividades,
+            start.isoformat(),
+            end.isoformat(),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"No se pudo consultar Productividad Carga: {exc}") from exc
+
+    allowed = {_activity_legajo(row.get("legajo")) for row in legajo_rows}
+    activities: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for raw in activity_rows:
+        row = {str(key).lower(): value for key, value in raw.items()}
+        legajo = _activity_legajo(row.get("legajo"))
+        day = _activity_date(row.get("fecha"))
+        task = _clean(row.get("actividad"))
+        if legajo in allowed and day and task and start.isoformat() <= day <= end.isoformat():
+            activities[(legajo, day)].add(task)
+
+    days = [(start + timedelta(days=offset)).isoformat() for offset in range(7)]
+    items = []
+    active_count = 0
+    for row in legajo_rows:
+        legajo = _activity_legajo(row.get("legajo"))
+        cells = {
+            day: sorted(activities.get((legajo, day), set()), key=lambda value: value.casefold())
+            for day in days
+        }
+        if any(cells.values()):
+            active_count += 1
+        items.append(
+            {
+                "legajo": legajo,
+                "nombre": row.get("nombre") or "",
+                "sector": row.get("sector") or "",
+                "funcion": row.get("funcion") or "",
+                "actividades": {day: " · ".join(values) for day, values in cells.items()},
+            }
+        )
+    return {
+        "semana": {"desde": start.isoformat(), "hasta": end.isoformat(), "dias": days},
+        "sectores": [row["sector"] for row in sector_rows],
+        "legajos": items,
+        "summary": {
+            "legajos": len(items),
+            "con_actividad": active_count,
+            "sin_actividad": len(items) - active_count,
+            "actividades_filas": len(activity_rows),
+        },
     }
 
 
