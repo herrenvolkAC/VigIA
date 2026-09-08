@@ -23,6 +23,11 @@ RRHH_GRUPAL_DB_PATH = ROOT_DIR / "datos" / "vigia.db"
 
 
 async def _ensure_config(db):
+    await db.execute('''CREATE TABLE IF NOT EXISTS lab_escala_override(
+        operacion TEXT NOT NULL, grupo_productivo TEXT NOT NULL DEFAULT '', nivel INTEGER NOT NULL,
+        desde REAL NOT NULL, hasta REAL NOT NULL, premio REAL NOT NULL DEFAULT 0,
+        premio_por_unidad_excedente REAL NOT NULL DEFAULT 0, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(operacion,grupo_productivo,nivel,desde,hasta))''')
     await db.execute('''CREATE TABLE IF NOT EXISTS lab_turno_fijo_legajo(
         legajo TEXT PRIMARY KEY, turno_fijo TEXT NOT NULL DEFAULT '',
         turno_probable TEXT NOT NULL DEFAULT '', dias_turno INTEGER NOT NULL DEFAULT 0,
@@ -521,6 +526,23 @@ async def escalas_premios(request: Request):
                              'premio_por_unidad_excedente': 0, 'fecha_vigencia_desde': None,
                              'fecha_vigencia_hasta': None, 'tabla_propia': True}
                             for grupo in grupos_todos for nivel, desde, hasta, premio in traslados)
+                async with db.execute('SELECT * FROM lab_escala_override') as cur:
+                    # Esta conexión usa tuplas (no Row); convertir por posición
+                    # evita que el refresco posterior al PUT falle con ValueError.
+                    overrides = {}
+                    for r in await cur.fetchall():
+                        override = {
+                            'operacion': r[0], 'grupo_productivo': r[1], 'nivel': int(r[2]),
+                            'desde': float(r[3]), 'hasta': float(r[4]), 'premio': float(r[5]),
+                            'premio_por_unidad_excedente': float(r[6]),
+                        }
+                        overrides[(r[0], r[1], int(r[2]), float(r[3]), float(r[4]))] = override
+                for row in rows:
+                    key = (str(row.get('operacion') or ''), str(row.get('grupo_productivo') or ''), int(row.get('nivel') or 0), float(row.get('desde') or 0), float(row.get('hasta') or 0))
+                    if key in overrides:
+                        row.update(overrides[key]); row['editado'] = True
+                    else:
+                        row['editado'] = False
                 rows.sort(key=lambda r: (r['operacion'], r['grupo_productivo'], float(r.get('nivel') or 0)))
                 return {'snapshot': {'snapshot_id': snapshot[0], 'captured_at': snapshot[1]},
                         'rows': rows, 'source': 'cache_estudio_oracle',
@@ -533,6 +555,26 @@ async def escalas_premios(request: Request):
         async with db.execute("SELECT snapshot_id,captured_at,algorithm_version FROM pp_premio_foto_meta ORDER BY id DESC LIMIT 1") as cur:
             meta=await cur.fetchone()
     return {"snapshot":dict(meta) if meta else None,"rows":rows,"source":str(PREMIO_SOURCE_DB_PATH)}
+
+
+@router.put('/escalas')
+async def guardar_escala_override(request: Request):
+    await _admin(request); data = await request.json()
+    try:
+        operacion = str(data['operacion']).strip(); grupo = str(data.get('grupo_productivo') or '').strip()
+        nivel = int(data['nivel']); desde = float(data['desde']); hasta = float(data['hasta'])
+        premio = float(data['premio']); excedente = float(data.get('premio_por_unidad_excedente') or 0)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(400, 'Valores de escala inválidos.') from exc
+    if not operacion or nivel < 0 or desde < 0 or hasta < desde or premio < 0 or excedente < 0:
+        raise HTTPException(400, 'Operación, rango y premios deben ser válidos.')
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        await db.execute('''INSERT INTO lab_escala_override(operacion,grupo_productivo,nivel,desde,hasta,premio,premio_por_unidad_excedente)
+            VALUES(?,?,?,?,?,?,?) ON CONFLICT(operacion,grupo_productivo,nivel,desde,hasta) DO UPDATE SET premio=excluded.premio,premio_por_unidad_excedente=excluded.premio_por_unidad_excedente,updated_at=CURRENT_TIMESTAMP''',
+            (operacion, grupo, nivel, desde, hasta, premio, excedente))
+        await db.commit()
+    return {'ok': True, 'editado': True}
 
 
 @router.get("/agrupado")
@@ -590,20 +632,6 @@ async def cache_agrupado(
         async with db.execute("SELECT grupo_cache,grupo_premio FROM lab_grupo_productivo_equivalencia WHERE grupo_premio<>''") as cur:
             equivalencias = {str(r[0]).strip().upper(): str(r[1]).strip() for r in await cur.fetchall()}
 
-    # Piloto solicitado: Carga. Las demás funciones se muestran agrupadas,
-    # pero todavía no se les asigna un importe nuevo.
-    # El grupal nuevo proviene directamente del simulador grupal. Se agrega
-    # por operación equivalente + grupo, una sola vez por beneficiario/día.
-    simulador_grupal = await calculo_grupal(request, fecha_desde, fecha_hasta)
-    grupal_nuevo = {}
-    for item in simulador_grupal.get('nivel_1', []):
-        grupo = str(item.get('grupo_productivo') or '').strip()
-        operacion = str(item.get('operacion') or '').strip().upper()
-        if not grupo or not operacion:
-            continue
-        operacion = 'CARGA' if operacion == 'CARGA CAMION' else operacion
-        key = (operacion, grupo.upper())
-        grupal_nuevo[key] = grupal_nuevo.get(key, 0) + int(round(float(item.get('premio_grupal_total') or 0) * 100))
     for row in rows:
         p = parametros.get(row["desc_funcion"], {})
         unidad = str(p.get("unidad_medida") or "").upper()
@@ -697,6 +725,39 @@ async def cache_agrupado(
             "filters": {"fecha_desde": fecha_desde, "fecha_hasta": fecha_hasta, "legajo": legajo.strip(), "desc_funcion": desc_funcion.strip()}}
 
 
+@router.post("/recalcular-individual")
+async def recalcular_individual(request: Request, fecha_desde: str = '2026-08-01',
+                                fecha_hasta: str = '2026-08-31'):
+    """Reemplaza por completo la cache de evaluación individual del período."""
+    await _admin(request)
+    try:
+        datetime.strptime(fecha_desde, '%Y-%m-%d')
+        datetime.strptime(fecha_hasta, '%Y-%m-%d')
+    except ValueError as exc:
+        raise HTTPException(400, 'Fechas inválidas.') from exc
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        await db.execute('DELETE FROM lab_evaluacion_premio WHERE fecha>=? AND fecha<=?',
+                         (fecha_desde.replace('-', ''), fecha_hasta.replace('-', '')))
+        await db.commit()
+    # La función de ruta usa Query como valor por defecto cuando se invoca
+    # directamente; pasar filtros explícitos evita que llegue un objeto Query
+    # al filtro de texto durante el recálculo.
+    result = await cache_agrupado(request, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta,
+                                  legajo='', desc_funcion='', grupo_productivo='',
+                                  limit=500, offset=0)
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH.as_uri() + '?mode=ro', uri=True) as db:
+        async with db.execute('''SELECT COUNT(*), SUM(CASE WHEN evaluacion_estado='Evaluado' THEN 1 ELSE 0 END),
+                COALESCE(SUM(premio_nuevo),0) FROM lab_evaluacion_premio
+                WHERE fecha>=? AND fecha<=?''', (fecha_desde.replace('-', ''), fecha_hasta.replace('-', ''))) as cur:
+            total, evaluadas, premio = await cur.fetchone()
+    return {'ok': True, 'filas_procesadas': int(total or 0), 'filas_evaluadas': int(evaluadas or 0),
+            'filas_pendientes': int((total or 0) - (evaluadas or 0)),
+            'premio_individual_nuevo': float(premio or 0), 'fecha_desde': fecha_desde,
+            'fecha_hasta': fecha_hasta, 'cache_reemplazado': True,
+            'snapshot_tablas': str(result.get('filters', {}).get('fecha_desde') or '')}
+
+
 @router.get("/pagos-actuales")
 async def pagos_actuales(request: Request, fecha_desde: str = '2026-08-01',
                          fecha_hasta: str = '2026-08-31', legajo: str = ''):
@@ -766,6 +827,15 @@ async def premios_totales(request: Request, fecha_desde: str = '2026-08-01',
                 GROUP BY operacion_premio,grupo_productivo''', (desde, hasta)) as cur:
             simulated = {(str(r[0] or '').upper(), str(r[1] or '').upper()): dict(r)
                          for r in await cur.fetchall()}
+    simulador_grupal = await calculo_grupal(request, fecha_desde, fecha_hasta)
+    grupal_nuevo = {}
+    for item in simulador_grupal.get('nivel_1', []):
+        grupo = str(item.get('grupo_productivo') or '').strip()
+        operacion = str(item.get('operacion') or '').strip().upper()
+        if not grupo or not operacion:
+            continue
+        operacion = 'CARGA' if operacion == 'CARGA CAMION' else operacion
+        grupal_nuevo[(operacion, grupo.upper())] = grupal_nuevo.get((operacion, grupo.upper()), 0) + int(round(float(item.get('premio_grupal_total') or 0) * 100))
     for row in rows:
         total = int(row.get('total_centavos') or 0)
         grupal_actual = round(total * 0.55)
@@ -790,6 +860,35 @@ async def premios_totales(request: Request, fecha_desde: str = '2026-08-01',
             'nota': 'Total nuevo = grupal simulado + individual simulado + polivalencia nueva. El grupal se suma desde Cálculo grupal diario por operación y grupo productivo; no reemplaza la liquidación Oracle.',
             'grupal': {'filas': len(simulador_grupal.get('nivel_1', [])), 'grupos_con_premio': len(grupal_nuevo),
                        'total_centavos': sum(grupal_nuevo.values())}}
+
+
+@router.get("/resumen-legajos")
+async def resumen_legajos(request: Request, fecha_desde: str = '2026-08-01', fecha_hasta: str = '2026-08-31'):
+    """Consolida por legajo pago actual, individual, polivalencia y grupal."""
+    await _admin(request)
+    desde = datetime.strptime(fecha_desde, '%Y-%m-%d').strftime('%Y%m%d')
+    hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d').strftime('%Y%m%d')
+    grupal = await calculo_grupal(request, fecha_desde, fecha_hasta)
+    por_legajo = {}
+    for item in grupal.get('nivel_3', []):
+        l = str(item.get('legajo') or '').strip()
+        if not l: continue
+        x = por_legajo.setdefault(l, {'legajo': l, 'nombre': item.get('nombre',''), 'sector': item.get('sector',''), 'funcion': item.get('funcion_legajero',''), 'turno_madre': item.get('turno_fijo',''), 'grupal_nuevo_centavos': 0})
+        x['grupal_nuevo_centavos'] += int(round(float(item.get('premio_grupal') or 0) * 100))
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH.as_uri()+'?mode=ro', uri=True) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute('SELECT legajo,COALESCE(SUM(pago_centavos),0) actual FROM lab_pago_actual_operacion WHERE fecha>=? AND fecha<=? GROUP BY legajo',(desde,hasta)) as cur:
+            actual = {str(r['legajo']): int(r['actual'] or 0) for r in await cur.fetchall()}
+        async with db.execute('SELECT legajo,COALESCE(SUM(premio_nuevo),0) individual FROM lab_evaluacion_premio WHERE fecha>=? AND fecha<=? GROUP BY legajo',(desde,hasta)) as cur:
+            individual = {str(r['legajo']): int(round(float(r['individual'] or 0)*100)) for r in await cur.fetchall()}
+    # El universo queda restringido a legajos que pertenecen a una combinación
+    # sector/función/turno con parámetro grupal activo (nivel_3).
+    rows=[]
+    for x in por_legajo.values():
+        x['pago_actual_centavos']=actual.get(x['legajo'],0); x['individual_nuevo_centavos']=individual.get(x['legajo'],0); x['polivalencia_nuevo_centavos']=0
+        x['total_nuevo_centavos']=x.get('grupal_nuevo_centavos',0)+x['individual_nuevo_centavos']; x['diferencia_centavos']=x['total_nuevo_centavos']-x['pago_actual_centavos']; rows.append(x)
+    rows.sort(key=lambda x:x['legajo'])
+    return {'rows':rows,'snapshot':None,'nota':'La nómina grupal proviene del cálculo diario; polivalencia queda separada para su asignación específica.'}
 
 
 @router.get("/propuesta-individual-carga")
