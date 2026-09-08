@@ -4474,7 +4474,7 @@ async def get_presencias(
             WHERE {" AND ".join(where)}
               AND TRIM(COALESCE(l.fecha_baja, '')) = ''
               AND TRIM(COALESCE(l.legajo, '')) <> ''
-            ORDER BY sector, funcion, nombre
+            ORDER BY sector, funcion, l.nombre
             """,
             tuple(params),
         ) as cur:

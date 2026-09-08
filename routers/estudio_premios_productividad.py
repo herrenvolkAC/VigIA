@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime
 from collections import Counter
+import math
+from utils.estudio_grupal import calcular_grupal, inferir_turnos
 import json
 from pathlib import Path
 from typing import Any
@@ -17,9 +19,16 @@ router = APIRouter(prefix="/api/estudio-premios-productividad", tags=["estudio-p
 LAB_CACHE_DB_PATH = ROOT_DIR / "datos" / "laboratorio_premios.db"
 LAB_CACHE_RUN_PREFIX = "ETAPA_AGOSTO_2026_SIN_FILTRO_ID_R1_"
 PREMIO_SOURCE_DB_PATH = ROOT_DIR / "datos" / "premio_productividad.db"
+RRHH_GRUPAL_DB_PATH = ROOT_DIR / "datos" / "vigia.db"
 
 
 async def _ensure_config(db):
+    await db.execute('''CREATE TABLE IF NOT EXISTS lab_turno_fijo_legajo(
+        legajo TEXT PRIMARY KEY, turno_fijo TEXT NOT NULL DEFAULT '',
+        turno_probable TEXT NOT NULL DEFAULT '', dias_turno INTEGER NOT NULL DEFAULT 0,
+        total_dias INTEGER NOT NULL DEFAULT 0, distribucion TEXT NOT NULL DEFAULT '{}',
+        snapshot TEXT NOT NULL, criterio TEXT NOT NULL, origen TEXT NOT NULL DEFAULT 'automatico',
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)''')
     await db.execute("""CREATE TABLE IF NOT EXISTS lab_evaluacion_premio(
         id INTEGER PRIMARY KEY, fecha TEXT NOT NULL, legajo TEXT NOT NULL,
         desc_funcion TEXT NOT NULL, sector TEXT NOT NULL DEFAULT '*',
@@ -32,6 +41,27 @@ async def _ensure_config(db):
     await db.execute("""CREATE TABLE IF NOT EXISTS lab_mapa_polivalencia(
         operacion_a TEXT NOT NULL, operacion_b TEXT NOT NULL, polivalencia INTEGER NOT NULL DEFAULT 0,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(operacion_a, operacion_b))""")
+    await db.execute("""CREATE TABLE IF NOT EXISTS lab_ausencia_config(
+        cod_ausentismo TEXT PRIMARY KEY, descripcion TEXT NOT NULL DEFAULT '', permitido INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
+    await db.execute("""CREATE TABLE IF NOT EXISTS lab_parametro_grupal(
+        sector TEXT NOT NULL, funcion_legajero TEXT NOT NULL, turno TEXT NOT NULL,
+        uc_por_operario REAL NOT NULL DEFAULT 0, factor_ausentismo REAL NOT NULL DEFAULT 0,
+        premio_grupal REAL NOT NULL DEFAULT 0, activo INTEGER NOT NULL DEFAULT 1,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(sector,funcion_legajero,turno))""")
+    async with db.execute('PRAGMA table_info(lab_parametro_grupal)') as cur:
+        columnas_grupales = {row[1] for row in await cur.fetchall()}
+    if 'operacion_medible' not in columnas_grupales:
+        await db.execute("ALTER TABLE lab_parametro_grupal ADD COLUMN operacion_medible TEXT NOT NULL DEFAULT ''")
+    if 'grupo_productivo_id' not in columnas_grupales:
+        await db.execute('ALTER TABLE lab_parametro_grupal ADD COLUMN grupo_productivo_id INTEGER')
+    await db.execute("""CREATE TABLE IF NOT EXISTS lab_cache_grupal(
+        fecha TEXT NOT NULL, legajo TEXT NOT NULL, turno TEXT NOT NULL DEFAULT '', sector TEXT NOT NULL DEFAULT '',
+        funcion_legajero TEXT NOT NULL DEFAULT '', operacion TEXT NOT NULL DEFAULT '',
+        uc_brutas REAL NOT NULL DEFAULT 0, uc_polivalencia REAL NOT NULL DEFAULT 0,
+        uc_computables REAL NOT NULL DEFAULT 0, ausencia TEXT NOT NULL DEFAULT '',
+        PRIMARY KEY(fecha,legajo,turno,sector,funcion_legajero,operacion))""")
     await db.execute("""CREATE TABLE IF NOT EXISTS lab_grupo_productivo_equivalencia(
         grupo_cache TEXT PRIMARY KEY, grupo_premio TEXT NOT NULL DEFAULT '',
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
@@ -86,6 +116,232 @@ async def polivalencias(request: Request, fecha_desde: str = '2026-08-01', fecha
         async with db.execute(q, (desde,hasta,legajo.strip(),f'%{legajo.strip()}%',desde,hasta)) as cur:
             rows=[dict(r) for r in await cur.fetchall()]
     return {'rows':rows,'total':len(rows),'pago_total':0}
+
+@router.get('/ausencias-config')
+async def ausencias_config(request: Request):
+    await _admin(request)
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        await db.execute("INSERT OR IGNORE INTO lab_ausencia_config(cod_ausentismo,descripcion) SELECT DISTINCT COALESCE(NULLIF(ausencia,''),'SIN_CODIGO'),COALESCE(ausencia,'Sin ausencia informada') FROM lab_cache_grupal")
+        # Completar también los tipos de los ausentes sin actividad WMS.
+        async with db.execute("SELECT payload FROM lab_fuente_registro WHERE fuente='oracle.PV_DIA_LABORAL' AND snapshot=(SELECT snapshot FROM lab_fuente_lote WHERE fuente='oracle.PV_DIA_LABORAL' ORDER BY capturado DESC LIMIT 1)") as cur:
+            jornadas = [json.loads(r[0]) for r in await cur.fetchall()]
+        catalogo = {str(r.get('COD_AUSENTISMO') or '').strip(): str(r.get('DES_AUSENTISMO') or r.get('COD_AUSENTISMO') or '').strip()
+                    for r in jornadas if str(r.get('COD_AUSENTISMO') or '').strip()}
+        for codigo, descripcion in catalogo.items():
+            await db.execute('''INSERT OR IGNORE INTO lab_ausencia_config(cod_ausentismo,descripcion,permitido)
+                VALUES(?,?,COALESCE((SELECT permitido FROM lab_ausencia_config WHERE cod_ausentismo=?),0))''',
+                (codigo, descripcion, descripcion))
+        await db.commit(); db.row_factory=aiosqlite.Row
+        async with db.execute('SELECT * FROM lab_ausencia_config ORDER BY descripcion,cod_ausentismo') as cur:
+            rows = [dict(r) for r in await cur.fetchall()]
+        # Las antiguas claves por descripción siguen siendo compatibles, pero
+        # se muestra la entrada por código cuando ya existe en el snapshot.
+        rows = [r for r in rows if r['cod_ausentismo'] not in set(catalogo.values()) or r['cod_ausentismo'] in catalogo]
+    return {'rows':rows}
+
+@router.put('/ausencias-config')
+async def guardar_ausencia_config(request: Request):
+    await _admin(request); data=await request.json(); cod=str(data.get('cod_ausentismo') or '').strip()
+    if not cod: raise HTTPException(400,'Código de ausencia requerido.')
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db); await db.execute("INSERT INTO lab_ausencia_config(cod_ausentismo,descripcion,permitido) VALUES(?,?,?) ON CONFLICT(cod_ausentismo) DO UPDATE SET descripcion=excluded.descripcion,permitido=excluded.permitido,updated_at=CURRENT_TIMESTAMP",(cod,str(data.get('descripcion') or cod),1 if data.get('permitido') else 0)); await db.commit()
+    return {'ok':True}
+
+async def _operaciones_grupales(db):
+    async with db.execute("SELECT desc_funcion,unidad_medida FROM lab_funcion_parametro WHERE medible=1 AND unidad_medida IN ('PALET','BULTO','PLU') ORDER BY desc_funcion") as cur:
+        return {row[0]: row[1] for row in await cur.fetchall()}
+
+
+async def _catalogo_grupos_productivos(db):
+    """Catálogo Oracle importado; no confundir con equivalencias de divisiones."""
+    async with db.execute("SELECT snapshot FROM lab_fuente_lote WHERE fuente='oracle.PV_GRUPO_PRODUCTIVO_CAB' ORDER BY capturado DESC LIMIT 1") as cur:
+        meta = await cur.fetchone()
+    if not meta:
+        return []
+    async with db.execute("SELECT payload FROM lab_fuente_registro WHERE snapshot=? AND fuente='oracle.PV_GRUPO_PRODUCTIVO_CAB'", (meta[0],)) as cur:
+        source = [json.loads(r[0]) for r in await cur.fetchall()]
+    catalogo = {int(r['ID']): str(r['DESCRIPCION']).strip() for r in source}
+    return [{'id': key, 'descripcion': value} for key, value in sorted(catalogo.items(), key=lambda x: x[1].casefold())]
+
+
+def _identificar_grupos_parametros(parametros, catalogo):
+    nombres = {r['id']: r['descripcion'] for r in catalogo}
+    for parametro in parametros:
+        group_id = parametro.get('grupo_productivo_id')
+        parametro['grupo_productivo'] = nombres.get(group_id, f'Grupo {group_id} (fuera de catálogo)') if group_id is not None else ''
+
+
+async def _nomina_grupal():
+    async with aiosqlite.connect(RRHH_GRUPAL_DB_PATH.as_uri()+'?mode=ro', uri=True) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute('SELECT legajo,nombre,desc_sector_generico,desc_funcion,active,fecha_ingreso,fecha_baja FROM rrhh_personas WHERE active=1') as cur:
+            return [dict(r) for r in await cur.fetchall()]
+
+
+async def _fijar_turnos_nuevos(db, personas, jornadas, snapshot):
+    probables = inferir_turnos(jornadas)
+    for person in personas:
+        legajo = str(person['legajo']).strip()
+        p = probables.get(legajo, {})
+        await db.execute('''INSERT OR IGNORE INTO lab_turno_fijo_legajo
+            (legajo,turno_fijo,turno_probable,dias_turno,total_dias,distribucion,snapshot,criterio)
+            VALUES(?,?,?,?,?,?,?,?)''', (legajo, p.get('turno_probable', ''), p.get('turno_probable', ''),
+            p.get('dias_turno', 0), p.get('total_dias', 0), json.dumps(p.get('distribucion', {})),
+            snapshot, p.get('criterio', 'sin_historial')))
+    await db.commit()
+    async with db.execute('SELECT * FROM lab_turno_fijo_legajo ORDER BY legajo') as cur:
+        return [dict(r) for r in await cur.fetchall()]
+
+
+@router.get('/turnos-grupales')
+async def turnos_grupales(request: Request):
+    await _admin(request)
+    personas = await _nomina_grupal()
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT snapshot FROM lab_fuente_lote WHERE fuente='oracle.PV_DIA_LABORAL' ORDER BY capturado DESC LIMIT 1") as cur:
+            meta = await cur.fetchone()
+        if not meta:
+            raise HTTPException(409, 'No hay un snapshot local para estimar turnos.')
+        async with db.execute("SELECT payload FROM lab_fuente_registro WHERE snapshot=? AND fuente='oracle.PV_DIA_LABORAL'", (meta[0],)) as cur:
+            jornadas = [json.loads(r[0]) for r in await cur.fetchall()]
+        rows = await _fijar_turnos_nuevos(db, personas, jornadas, meta[0])
+    by_legajo = {str(p['legajo']).strip(): p for p in personas}
+    rows = [dict(r, nombre=by_legajo[r['legajo']]['nombre'],
+                 sector=by_legajo[r['legajo']]['desc_sector_generico'],
+                 funcion_legajero=by_legajo[r['legajo']]['desc_funcion'])
+            for r in rows if r['legajo'] in by_legajo]
+    return {'rows': rows, 'sin_turno': sum(not r['turno_fijo'] for r in rows),
+            'criterio': 'Mayor cantidad de días del snapshot completo; empate: uso más reciente, luego código menor. Se fija una vez y no cambia al filtrar fechas.'}
+
+
+@router.put('/turnos-grupales')
+async def guardar_turno_grupal(request: Request):
+    await _admin(request)
+    data = await request.json()
+    legajo, turno = str(data.get('legajo') or '').strip(), str(data.get('turno_fijo') or '').strip()
+    if not legajo or len(turno) > 20 or any(c.isspace() for c in turno):
+        raise HTTPException(400, 'Legajo requerido y turno de hasta 20 caracteres, sin espacios.')
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        cursor = await db.execute("UPDATE lab_turno_fijo_legajo SET turno_fijo=?,origen='manual',updated_at=CURRENT_TIMESTAMP WHERE legajo=?", (turno, legajo))
+        if cursor.rowcount != 1:
+            raise HTTPException(404, 'Legajo no encontrado en la tabla de turnos.')
+        await db.commit()
+    return {'ok': True}
+
+
+@router.get('/parametros-grupales')
+async def parametros_grupales(request: Request):
+    await _admin(request)
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        db.row_factory = aiosqlite.Row
+        async with db.execute('SELECT * FROM lab_parametro_grupal ORDER BY sector,funcion_legajero,turno') as cur:
+            rows = [dict(r) for r in await cur.fetchall()]
+        operaciones = await _operaciones_grupales(db)
+        grupos = await _catalogo_grupos_productivos(db)
+        _identificar_grupos_parametros(rows, grupos)
+    async with aiosqlite.connect(RRHH_GRUPAL_DB_PATH.as_uri()+'?mode=ro', uri=True) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT DISTINCT desc_sector_generico AS sector,desc_funcion AS funcion_legajero FROM rrhh_personas WHERE active=1 ORDER BY desc_sector_generico,desc_funcion") as cur:
+            catalogo = [dict(r) for r in await cur.fetchall()]
+    return {'rows': rows, 'catalogo': catalogo, 'grupos_productivos': grupos,
+            'operaciones': [{'operacion': op, 'unidad_medida': unidad} for op, unidad in operaciones.items()]}
+
+
+@router.get('/calculo-grupal')
+async def calculo_grupal(request: Request, fecha_desde: str='2026-08-01', fecha_hasta: str='2026-08-31'):
+    await _admin(request)
+    try:
+        desde = datetime.strptime(fecha_desde, '%Y-%m-%d').strftime('%Y%m%d')
+        hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d').strftime('%Y%m%d')
+    except ValueError as exc:
+        raise HTTPException(400, 'Fechas inválidas.') from exc
+    if desde > hasta:
+        raise HTTPException(400, 'La fecha desde debe ser anterior o igual a la fecha hasta.')
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        db.row_factory = aiosqlite.Row
+        async with db.execute('SELECT * FROM lab_parametro_grupal WHERE activo=1 ORDER BY sector,funcion_legajero,turno') as cur:
+            parametros = [dict(r) for r in await cur.fetchall()]
+        operaciones = await _operaciones_grupales(db)
+        grupos = await _catalogo_grupos_productivos(db)
+        _identificar_grupos_parametros(parametros, grupos)
+        async with db.execute('SELECT operacion_a,operacion_b FROM lab_mapa_polivalencia WHERE polivalencia=1') as cur:
+            relaciones = [tuple(r) for r in await cur.fetchall()]
+        async with db.execute('SELECT cod_ausentismo,permitido FROM lab_ausencia_config') as cur:
+            ausencias = {str(r[0]): bool(r[1]) for r in await cur.fetchall()}
+        async with db.execute("SELECT snapshot FROM lab_fuente_lote WHERE fuente='oracle.PV_DIA_LABORAL' ORDER BY capturado DESC LIMIT 1") as cur:
+            snapshot_row = await cur.fetchone()
+        if not snapshot_row:
+            raise HTTPException(409, 'No hay un snapshot local de asistencia PV_DIA_LABORAL.')
+        snapshot = snapshot_row[0]
+        async with db.execute("SELECT payload FROM lab_fuente_registro WHERE snapshot=? AND fuente='oracle.PV_DIA_LABORAL'", (snapshot,)) as cur:
+            jornadas = [json.loads(r[0]) for r in await cur.fetchall()]
+        async with db.execute('SELECT fecha,legajo,desc_funcion,palets,plus,cantidad FROM lab_cache_agrupado WHERE fecha>=? AND fecha<=?', (desde, hasta)) as cur:
+            produccion = [dict(r) for r in await cur.fetchall()]
+    async with aiosqlite.connect(RRHH_GRUPAL_DB_PATH.as_uri()+'?mode=ro', uri=True) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute('SELECT legajo,nombre,desc_sector_generico,desc_funcion,active,fecha_ingreso,fecha_baja FROM rrhh_personas WHERE active=1') as cur:
+            personas = [dict(r) for r in await cur.fetchall()]
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        turnos = await _fijar_turnos_nuevos(db, personas, jornadas, snapshot)
+    result = calcular_grupal(personas, jornadas, produccion, parametros, operaciones,
+                             relaciones, ausencias, desde, hasta, {r['legajo']: r['turno_fijo'] for r in turnos})
+    result['snapshot'] = snapshot
+    result['nota'] = 'Plantel fijo por sector/función y turno madre guardado. Toda actividad del legajo, aunque se ejecute en otro turno, se atribuye una sola vez al turno madre. Sin turno fijo: revisar la lista pendiente y asignar en Parámetros grupales. El legajero activo es el actual; no reconstruye transferencias históricas.'
+    return result
+
+
+@router.put('/parametros-grupales')
+async def guardar_parametro_grupal(request: Request):
+    await _admin(request)
+    data = await request.json()
+    keys = ('sector', 'funcion_legajero', 'turno', 'operacion_medible')
+    if any(not str(data.get(k) or '').strip() for k in keys):
+        raise HTTPException(400, 'Sector, función, turno y operación medible son obligatorios.')
+    try:
+        uc, factor, premio = (float(data[k]) for k in ('uc_por_operario', 'factor_ausentismo', 'premio_grupal'))
+    except (KeyError, ValueError, TypeError) as exc:
+        raise HTTPException(400, 'Objetivo, factor y premio deben ser números válidos.') from exc
+    if not all(math.isfinite(v) for v in (uc, factor, premio)) or uc <= 0 or not 0 <= factor <= 100 or premio < 0:
+        raise HTTPException(400, 'Objetivo mayor a cero, factor entre 0 y 100 y premio no negativo.')
+    sector, funcion, turno, operacion = (str(data[k]).strip() for k in keys)
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        operaciones = await _operaciones_grupales(db)
+        if operacion not in operaciones:
+            raise HTTPException(400, 'Elegí una operación marcada como medible, con unidad PALET, BULTO o PLU en Parámetros.')
+        # Omitir el campo conserva la asociación de clientes anteriores.
+        # Enviar null o vacío la elimina de manera explícita.
+        if 'grupo_productivo_id' in data:
+            group_id = data['grupo_productivo_id']
+            if group_id is None or group_id == '':
+                group_id = None
+            else:
+                catalogo = await _catalogo_grupos_productivos(db)
+                validos = {str(r['id']): r['id'] for r in catalogo}
+                if str(group_id).strip() not in validos:
+                    raise HTTPException(400, 'El grupo productivo no existe en el catálogo importado.')
+                group_id = validos[str(group_id).strip()]
+        else:
+            async with db.execute('SELECT grupo_productivo_id FROM lab_parametro_grupal WHERE sector=? AND funcion_legajero=? AND turno=?', (sector, funcion, turno)) as cur:
+                anterior = await cur.fetchone()
+            group_id = anterior[0] if anterior else None
+        await db.execute("""INSERT INTO lab_parametro_grupal
+            (sector,funcion_legajero,turno,operacion_medible,uc_por_operario,factor_ausentismo,premio_grupal,activo,grupo_productivo_id)
+            VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(sector,funcion_legajero,turno) DO UPDATE SET
+            operacion_medible=excluded.operacion_medible,uc_por_operario=excluded.uc_por_operario,
+            factor_ausentismo=excluded.factor_ausentismo,premio_grupal=excluded.premio_grupal,
+            activo=excluded.activo,grupo_productivo_id=excluded.grupo_productivo_id,updated_at=CURRENT_TIMESTAMP""",
+            (sector, funcion, turno, operacion, uc, factor, premio, 1 if data.get('activo', True) else 0, group_id))
+        await db.commit()
+    return {'ok': True}
+
 
 @router.put("/mapa-polivalencia")
 async def guardar_mapa_polivalencia(request: Request):
