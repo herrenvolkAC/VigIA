@@ -42,6 +42,8 @@ MODULE_LABELS = {
     "checklist_tareas": "CheckList Tareas",
     "reposicion": "Reposicion",
     "recepcion": "Recepcion",
+    "control_procesos": "Monitor Cargas",
+    "mapa": "Mapa",
     "generales": "Herramientas Operativas",
     "sistema": "Sistema",
 }
@@ -136,6 +138,16 @@ def ensure_usage_events_schema() -> None:
     AUTH_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with closing(sqlite3.connect(AUTH_DB_PATH, timeout=2)) as conn:
         conn.executescript(USAGE_EVENTS_SCHEMA_SQL)
+        # Normaliza eventos anteriores que guardaron el identificador técnico
+        # sin su etiqueta visible.
+        conn.execute(
+            "UPDATE auth_usage_events SET module_label = ? WHERE module = ?",
+            (MODULE_LABELS["control_procesos"], "control_procesos"),
+        )
+        conn.execute(
+            "UPDATE auth_usage_events SET module = ?, module_label = ? WHERE module = ?",
+            ("mapa", MODULE_LABELS["mapa"], "trafico"),
+        )
         conn.commit()
 
 

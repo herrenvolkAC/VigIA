@@ -11,6 +11,10 @@
   .app .grid .field,.app .grid .field.wide{grid-column:auto!important;min-width:0}
   .app .grid input,.app .grid select,.app .grid textarea{width:100%;max-width:100%;min-width:0}
   .app .grid input[type="datetime-local"]{display:block;min-width:0;width:100%}
+  .modal{z-index:1000!important;padding:12px!important;align-items:flex-start!important}
+  .modal>div{max-height:calc(100vh - 24px)!important;margin:0!important}
+  .modal>div>.actions{position:sticky!important;top:0!important;z-index:10!important;display:flex!important}
+  .modal>div>.actions .btn{position:relative!important;display:inline-flex!important;visibility:visible!important;z-index:11!important}
 }
 </style>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VigIA · Recepción</title><link rel="stylesheet" href="/css/vigia.css"><style>
@@ -135,7 +139,10 @@ window.openDetail=async function(id){
       return `<section class="plu-detail"><h4>${esc(item.plu_codigo)} · ${esc(item.plu_articulo)}</h4><div class="plu-affectation">Afectación: <strong>${afectacion}</strong></div><div class="photos">${photoHtml(photos)}</div></section>`;
     }).join('');
     $('detail').innerHTML=`<div class="cards">${[['Fecha',data.recepcion.fecha_descarga],['Proveedor',data.recepcion.proveedor_nombre],['Recepcionista',data.recepcion.recepcionista_nombre],['Pallets',data.recepcion.pallets_recibidos+' / '+data.recepcion.pallets_auditados]].map(x=>`<div class="card"><small>${esc(x[0])}</small><strong>${esc(x[1])}</strong></div>`).join('')}</div><h3>Fotos generales</h3><div class="photos">${photoHtml(general)}</div><h3>Fotos por PLU</h3>${pluSections||'Sin PLU asociados.'}`;
-    $('modal').classList.remove('hidden');
+    const modal=$('modal');
+    modal.scrollTop=0;
+    if(modal.firstElementChild)modal.firstElementChild.scrollTop=0;
+    modal.classList.remove('hidden');
   }catch(error){alert(error.message)}
 };
 </script>

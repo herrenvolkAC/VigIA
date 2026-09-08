@@ -69,10 +69,13 @@ class ArticleRequest(BaseModel):
     descripcion: str
     categoria: str = ""
     unidad: str = "UN"
+    unidad_stock: str = ""
+    unidad_produccion: str = ""
+    factor_stock_a_produccion: float | None = None
     uso: str = ""
     stock_minimo: float = 0
     activo: bool = True
-    costo_unitario: float | None = None
+    costo_unitario: Any = None
     moneda: str = "ARS"
     fecha_costo: str = ""
 
@@ -90,6 +93,7 @@ class MovementRequest(BaseModel):
 class ProductionRequest(BaseModel):
     articulo_id: int
     cantidad: float
+    uso_produccion: str = ""
     observacion: str = ""
 
 
@@ -97,6 +101,7 @@ class ProductionDeliveryRequest(BaseModel):
     articulo_id: int
     ubicacion_destino_id: int
     cantidad: float
+    uso_produccion: str = ""
     observacion: str = ""
 
 
@@ -104,6 +109,7 @@ class SupplyOrderItemRequest(BaseModel):
     articulo_id: int
     cantidad_insumo: float = 0
     cantidad_produccion: float = 0
+    uso_solicitado: str = ""
 
 
 class SupplyOrderRequest(BaseModel):
@@ -219,6 +225,30 @@ def _to_float(value: Any) -> float:
     text = str(value).strip().replace(",", ".")
     if not text:
         return 0.0
+    return float(text)
+
+
+def _positive_optional_float(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    number = float(value)
+    return number if number > 0 else None
+
+
+def _money_optional_float(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value).strip().replace(" ", "")
+    if not text:
+        return None
+    if "," in text:
+        text = text.replace(".", "").replace(",", ".")
+    else:
+        parts = text.split(".")
+        if len(parts) > 1 and len(parts[-1]) == 3 and all(part.isdigit() for part in parts):
+            text = "".join(parts)
     return float(text)
 
 
@@ -490,7 +520,32 @@ async def _stock_cd(db: aiosqlite.Connection, articulo_id: int) -> float:
     return float((row or {}).get("stock_cd") or 0)
 
 
-async def _stock_producido(db: aiosqlite.Connection, articulo_id: int) -> float:
+async def _stock_producido(
+    db: aiosqlite.Connection,
+    articulo_id: int,
+    uso_produccion: str | None = None,
+) -> float:
+    clean_usage = _clean(uso_produccion)
+    if clean_usage:
+        article = await _fetch_one(db, "SELECT uso FROM articulos WHERE id = ?", (articulo_id,))
+        usages = _usage_options((article or {}).get("uso"))
+        include_blank = len(usages) == 1 and usages[0].upper() == clean_usage.upper()
+        row = await _fetch_one(
+            db,
+            """
+            SELECT
+                COALESCE(SUM(CASE WHEN tipo = 'PRODUCCION' THEN cantidad ELSE 0 END), 0)
+              - COALESCE(SUM(CASE WHEN tipo = 'ENTREGA' THEN cantidad ELSE 0 END), 0) AS stock
+            FROM produccion_movimientos
+            WHERE articulo_id = ?
+              AND (
+                    UPPER(TRIM(COALESCE(uso_produccion, ''))) = UPPER(?)
+                 OR (? = 1 AND TRIM(COALESCE(uso_produccion, '')) = '')
+              )
+            """,
+            (articulo_id, clean_usage, 1 if include_blank else 0),
+        )
+        return float((row or {}).get("stock") or 0)
     row = await _fetch_one(
         db,
         """
@@ -503,6 +558,14 @@ async def _stock_producido(db: aiosqlite.Connection, articulo_id: int) -> float:
         (articulo_id,),
     )
     return float((row or {}).get("stock") or 0)
+
+
+async def _stock_producido_por_uso(db: aiosqlite.Connection, articulo_id: int) -> dict[str, float]:
+    article = await _fetch_one(db, "SELECT uso FROM articulos WHERE id = ?", (articulo_id,))
+    stocks: dict[str, float] = {}
+    for usage in _usage_options((article or {}).get("uso")):
+        stocks[usage] = await _stock_producido(db, articulo_id, usage)
+    return stocks
 
 
 async def _request_sectors(db: aiosqlite.Connection) -> list[dict[str, Any]]:
@@ -711,20 +774,27 @@ async def create_article(req: ArticleRequest, request: Request):
     descripcion = _clean(req.descripcion)
     if not codigo or not descripcion:
         raise HTTPException(status_code=400, detail="Codigo y descripcion son obligatorios.")
+    unidad_stock = _clean(req.unidad_stock or req.unidad) or "UN"
+    unidad_produccion = _clean(req.unidad_produccion) or "UN"
+    factor_stock_a_produccion = _positive_optional_float(req.factor_stock_a_produccion)
     now = _now()
     try:
         async with panol_db() as db:
             cur = await db.execute(
                 """
                 INSERT INTO articulos
-                    (codigo, descripcion, categoria, unidad, uso, stock_minimo, activo, creado_en, actualizado_en)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (codigo, descripcion, categoria, unidad, unidad_stock, unidad_produccion,
+                     factor_stock_a_produccion, uso, stock_minimo, activo, creado_en, actualizado_en)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     codigo,
                     descripcion,
                     _clean(req.categoria),
-                    _clean(req.unidad) or "UN",
+                    unidad_stock,
+                    unidad_stock,
+                    unidad_produccion,
+                    factor_stock_a_produccion,
                     _clean(req.uso),
                     max(float(req.stock_minimo or 0), 0),
                     1 if req.activo else 0,
@@ -735,7 +805,7 @@ async def create_article(req: ArticleRequest, request: Request):
             await _set_article_cost(
                 db,
                 int(cur.lastrowid),
-                req.costo_unitario,
+                _money_optional_float(req.costo_unitario),
                 req.moneda,
                 req.fecha_costo,
                 str(auth.get("username") or ""),
@@ -753,12 +823,16 @@ async def update_article(articulo_id: int, req: ArticleRequest, request: Request
     descripcion = _clean(req.descripcion)
     if not codigo or not descripcion:
         raise HTTPException(status_code=400, detail="Codigo y descripcion son obligatorios.")
+    unidad_stock = _clean(req.unidad_stock or req.unidad) or "UN"
+    unidad_produccion = _clean(req.unidad_produccion) or "UN"
+    factor_stock_a_produccion = _positive_optional_float(req.factor_stock_a_produccion)
     try:
         async with panol_db() as db:
             cur = await db.execute(
                 """
                 UPDATE articulos
-                SET codigo = ?, descripcion = ?, categoria = ?, unidad = ?, uso = ?, stock_minimo = ?,
+                SET codigo = ?, descripcion = ?, categoria = ?, unidad = ?, unidad_stock = ?,
+                    unidad_produccion = ?, factor_stock_a_produccion = ?, uso = ?, stock_minimo = ?,
                     activo = ?, actualizado_en = ?
                 WHERE id = ?
                 """,
@@ -766,7 +840,10 @@ async def update_article(articulo_id: int, req: ArticleRequest, request: Request
                     codigo,
                     descripcion,
                     _clean(req.categoria),
-                    _clean(req.unidad) or "UN",
+                    unidad_stock,
+                    unidad_stock,
+                    unidad_produccion,
+                    factor_stock_a_produccion,
                     _clean(req.uso),
                     max(float(req.stock_minimo or 0), 0),
                     1 if req.activo else 0,
@@ -779,7 +856,7 @@ async def update_article(articulo_id: int, req: ArticleRequest, request: Request
             await _set_article_cost(
                 db,
                 articulo_id,
-                req.costo_unitario,
+                _money_optional_float(req.costo_unitario),
                 req.moneda,
                 req.fecha_costo,
                 str(auth.get("username") or ""),
@@ -876,7 +953,7 @@ async def list_movements(
         rows = await _fetch_rows(
             db,
             f"""
-            SELECT m.*, a.codigo, a.descripcion,
+            SELECT m.*, a.codigo, a.descripcion, a.unidad, a.unidad_stock,
                    uo.codigo AS origen_codigo, ud.codigo AS destino_codigo
             FROM movimientos m
             JOIN articulos a ON a.id = m.articulo_id
@@ -915,7 +992,8 @@ async def _pedido_rows(db: aiosqlite.Connection, where: str, args: tuple[Any, ..
         pedido["items"] = await _fetch_rows(
             db,
             """
-            SELECT i.*, a.codigo, a.descripcion, a.unidad, a.uso, u.codigo AS origen_insumo_codigo
+            SELECT i.*, a.codigo, a.descripcion, a.unidad, a.unidad_stock, a.unidad_produccion,
+                   a.factor_stock_a_produccion, a.uso, u.codigo AS origen_insumo_codigo
             FROM pedidos_insumos_items i
             JOIN articulos a ON a.id = i.articulo_id
             LEFT JOIN ubicaciones u ON u.id = i.ubicacion_origen_insumo_id
@@ -924,6 +1002,13 @@ async def _pedido_rows(db: aiosqlite.Connection, where: str, args: tuple[Any, ..
             """,
             (pedido["id"],),
         )
+        for item in pedido["items"]:
+            requested_usage = _clean(item.get("uso_solicitado"))
+            item["stock_produccion_uso"] = (
+                await _stock_producido(db, int(item["articulo_id"]), requested_usage)
+                if requested_usage
+                else None
+            )
     return headers
 
 
@@ -990,7 +1075,8 @@ async def supply_order_catalog(request: Request):
         articles = await _fetch_rows(
             db,
             """
-            SELECT id, codigo, descripcion, categoria, unidad, uso
+            SELECT id, codigo, descripcion, categoria, unidad, unidad_stock, unidad_produccion,
+                   factor_stock_a_produccion, uso
             FROM articulos
             WHERE activo = 1
             ORDER BY codigo
@@ -1000,6 +1086,7 @@ async def supply_order_catalog(request: Request):
         for art in articles:
             stock_insumo, stock_jaula, stock_oficina = await _stock_insumo_total(db, int(art["id"]))
             stock_produccion = await _stock_producido(db, int(art["id"]))
+            stock_produccion_por_uso = await _stock_producido_por_uso(db, int(art["id"]))
             if stock_insumo <= 0 and stock_produccion <= 0:
                 continue
             items.append(
@@ -1009,6 +1096,7 @@ async def supply_order_catalog(request: Request):
                     "stock_jaula": stock_jaula,
                     "stock_oficina": stock_oficina,
                     "stock_produccion": stock_produccion,
+                    "stock_produccion_por_uso": stock_produccion_por_uso,
                 }
             )
     return {"items": items}
@@ -1026,7 +1114,7 @@ async def create_supply_order(req: SupplyOrderRequest, request: Request):
         sector = await _fetch_one(db, "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1", (sector_id,))
         if not sector:
             raise HTTPException(status_code=400, detail="Sector invalido.")
-        lines: list[tuple[int, float, float]] = []
+        lines: list[tuple[int, float, float, str]] = []
         seen: set[int] = set()
         for item in req.items:
             articulo_id = int(item.articulo_id)
@@ -1035,20 +1123,38 @@ async def create_supply_order(req: SupplyOrderRequest, request: Request):
             seen.add(articulo_id)
             cantidad_insumo = float(item.cantidad_insumo or 0)
             cantidad_produccion = float(item.cantidad_produccion or 0)
+            uso_solicitado = _clean(item.uso_solicitado)
             if cantidad_insumo < 0 or cantidad_produccion < 0:
                 raise HTTPException(status_code=400, detail="Las cantidades no pueden ser negativas.")
             if cantidad_insumo <= 0 and cantidad_produccion <= 0:
                 continue
-            article = await _fetch_one(db, "SELECT id FROM articulos WHERE id = ? AND activo = 1", (articulo_id,))
+            article = await _fetch_one(db, "SELECT id, uso FROM articulos WHERE id = ? AND activo = 1", (articulo_id,))
             if not article:
                 raise HTTPException(status_code=404, detail=f"Articulo {articulo_id} no encontrado o inactivo.")
+            article_usages = _usage_options(article.get("uso"))
+            if uso_solicitado:
+                valid_usages = {usage.upper() for usage in article_usages}
+                if uso_solicitado.upper() not in valid_usages:
+                    raise HTTPException(status_code=400, detail="El uso solicitado no corresponde al PLU.")
+            if cantidad_produccion > 0 and article_usages:
+                if not uso_solicitado:
+                    if len(article_usages) == 1:
+                        uso_solicitado = article_usages[0]
+                    else:
+                        raise HTTPException(
+                            status_code=400,
+                            detail="Selecciona el uso solicitado para pedir produccion de este PLU.",
+                        )
             stock_insumo, _, _ = await _stock_insumo_total(db, articulo_id)
-            stock_produccion = await _stock_producido(db, articulo_id)
+            stock_produccion = await _stock_producido(db, articulo_id, uso_solicitado) if uso_solicitado else await _stock_producido(db, articulo_id)
             if cantidad_insumo > stock_insumo + 0.000001:
                 raise HTTPException(status_code=400, detail="La cantidad de insumo pedida supera el stock disponible.")
             if cantidad_produccion > stock_produccion + 0.000001:
-                raise HTTPException(status_code=400, detail="La cantidad de produccion pedida supera el stock disponible.")
-            lines.append((articulo_id, cantidad_insumo, cantidad_produccion))
+                detail = "La cantidad de produccion pedida supera el stock disponible."
+                if uso_solicitado:
+                    detail = f"La cantidad de produccion pedida supera el stock preparado para el uso {uso_solicitado}."
+                raise HTTPException(status_code=400, detail=detail)
+            lines.append((articulo_id, cantidad_insumo, cantidad_produccion, uso_solicitado))
         if not lines:
             raise HTTPException(status_code=400, detail="Carga al menos una cantidad a pedir.")
         cur = await db.execute(
@@ -1063,10 +1169,13 @@ async def create_supply_order(req: SupplyOrderRequest, request: Request):
         await db.executemany(
             """
             INSERT INTO pedidos_insumos_items
-                (pedido_id, articulo_id, cantidad_insumo_solicitada, cantidad_produccion_solicitada)
-            VALUES (?, ?, ?, ?)
+                (pedido_id, articulo_id, cantidad_insumo_solicitada, cantidad_produccion_solicitada, uso_solicitado)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            [(pedido_id, articulo_id, cantidad_insumo, cantidad_produccion) for articulo_id, cantidad_insumo, cantidad_produccion in lines],
+            [
+                (pedido_id, articulo_id, cantidad_insumo, cantidad_produccion, uso_solicitado)
+                for articulo_id, cantidad_insumo, cantidad_produccion, uso_solicitado in lines
+            ],
         )
         await db.commit()
     return {"ok": True, "pedido_id": pedido_id, "estado": "PENDIENTE", "fecha_solicitud": now}
@@ -1492,6 +1601,27 @@ async def supply_order_indicators(
     waste_clause = "WHERE " + " AND ".join(waste_where) if waste_where else ""
     order_cost = _cost_at_sql("i.articulo_id", "COALESCE(p.fecha_confirmacion, p.fecha_solicitud)")
     waste_cost = _cost_at_sql("m.articulo_id", "m.fecha_hora")
+    requested_value_qty = """
+        (i.cantidad_insumo_solicitada + CASE
+            WHEN COALESCE(a.factor_stock_a_produccion, 0) > 0
+            THEN i.cantidad_produccion_solicitada / a.factor_stock_a_produccion
+            ELSE i.cantidad_produccion_solicitada
+        END)
+    """
+    confirmed_value_qty = """
+        (i.cantidad_insumo_confirmada + CASE
+            WHEN COALESCE(a.factor_stock_a_produccion, 0) > 0
+            THEN i.cantidad_produccion_confirmada / a.factor_stock_a_produccion
+            ELSE i.cantidad_produccion_confirmada
+        END)
+    """
+    waste_value_qty = """
+        (CASE
+            WHEN m.tipo = 'PRODUCCION' AND COALESCE(a.factor_stock_a_produccion, 0) > 0
+            THEN m.cantidad / a.factor_stock_a_produccion
+            ELSE m.cantidad
+        END)
+    """
     async with panol_db() as db:
         metrics = await _fetch_one(
             db,
@@ -1503,10 +1633,11 @@ async def supply_order_indicators(
                 COUNT(DISTINCT CASE WHEN p.estado = 'CONFIRMADO_PARCIAL' THEN p.id END) AS parciales,
                 COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS solicitado,
                 COALESCE(SUM(i.cantidad_insumo_confirmada + i.cantidad_produccion_confirmada), 0) AS confirmado,
-                COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor_solicitado,
-                COALESCE(SUM((i.cantidad_insumo_confirmada + i.cantidad_produccion_confirmada) * {order_cost}), 0) AS valor_confirmado
+                COALESCE(SUM({requested_value_qty} * {order_cost}), 0) AS valor_solicitado,
+                COALESCE(SUM({confirmed_value_qty} * {order_cost}), 0) AS valor_confirmado
             FROM pedidos_insumos p
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+            JOIN articulos a ON a.id = i.articulo_id
             {clause}
             """,
             tuple(args),
@@ -1516,8 +1647,9 @@ async def supply_order_indicators(
             f"""
             SELECT COUNT(*) AS registros,
                    COALESCE(SUM(cantidad), 0) AS cantidad,
-                   COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor
+                   COALESCE(SUM({waste_value_qty} * {waste_cost}), 0) AS valor
             FROM mermas_insumos m
+            JOIN articulos a ON a.id = m.articulo_id
             {waste_clause}
             """,
             tuple(waste_args),
@@ -1528,10 +1660,11 @@ async def supply_order_indicators(
             SELECT u.codigo AS sector,
                    COUNT(DISTINCT p.id) AS pedidos,
                    COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad,
-                   COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor
+                   COALESCE(SUM({requested_value_qty} * {order_cost}), 0) AS valor
             FROM pedidos_insumos p
             JOIN ubicaciones u ON u.id = p.sector_id
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+            JOIN articulos a ON a.id = i.articulo_id
             {clause}
             GROUP BY u.codigo
             ORDER BY pedidos DESC, cantidad DESC, u.codigo
@@ -1545,9 +1678,10 @@ async def supply_order_indicators(
             SELECT u.codigo AS sector,
                    COUNT(*) AS registros,
                    COALESCE(SUM(m.cantidad), 0) AS cantidad,
-                   COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor
+                   COALESCE(SUM({waste_value_qty} * {waste_cost}), 0) AS valor
             FROM mermas_insumos m
             JOIN ubicaciones u ON u.id = m.sector_id
+            JOIN articulos a ON a.id = m.articulo_id
             {waste_clause}
             GROUP BY u.codigo
             ORDER BY cantidad DESC, registros DESC, u.codigo
@@ -1560,7 +1694,7 @@ async def supply_order_indicators(
             f"""
             SELECT a.codigo, a.descripcion, a.uso,
                    COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad,
-                   COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor
+                   COALESCE(SUM({requested_value_qty} * {order_cost}), 0) AS valor
             FROM pedidos_insumos p
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
             JOIN articulos a ON a.id = i.articulo_id
@@ -1576,7 +1710,7 @@ async def supply_order_indicators(
             f"""
             SELECT a.codigo, a.descripcion, a.uso,
                    COALESCE(SUM(m.cantidad), 0) AS cantidad,
-                   COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor,
+                   COALESCE(SUM({waste_value_qty} * {waste_cost}), 0) AS valor,
                    COUNT(*) AS registros
             FROM mermas_insumos m
             JOIN articulos a ON a.id = m.articulo_id
@@ -1592,9 +1726,10 @@ async def supply_order_indicators(
             f"""
             SELECT m.motivo,
                    COALESCE(SUM(m.cantidad), 0) AS cantidad,
-                   COALESCE(SUM(m.cantidad * {waste_cost}), 0) AS valor,
+                   COALESCE(SUM({waste_value_qty} * {waste_cost}), 0) AS valor,
                    COUNT(*) AS registros
             FROM mermas_insumos m
+            JOIN articulos a ON a.id = m.articulo_id
             {waste_clause}
             GROUP BY m.motivo
             ORDER BY cantidad DESC, m.motivo
@@ -1608,10 +1743,11 @@ async def supply_order_indicators(
             SELECT p.id, p.estado, p.fecha_solicitud, p.usuario_solicita, u.codigo AS sector,
                    COUNT(i.id) AS lineas,
                    COALESCE(SUM(i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada), 0) AS cantidad,
-                   COALESCE(SUM((i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada) * {order_cost}), 0) AS valor
+                   COALESCE(SUM({requested_value_qty} * {order_cost}), 0) AS valor
             FROM pedidos_insumos p
             JOIN ubicaciones u ON u.id = p.sector_id
             JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+            JOIN articulos a ON a.id = i.articulo_id
             {clause}
             GROUP BY p.id, p.estado, p.fecha_solicitud, p.usuario_solicita, u.codigo
             ORDER BY p.fecha_solicitud DESC, p.id DESC
@@ -1683,6 +1819,10 @@ async def confirm_supply_order(pedido_id: int, req: SupplyOrderConfirmRequest, r
             qty_insumo = float((confirm.cantidad_insumo_confirmada if confirm else 0) or 0)
             qty_produccion = float((confirm.cantidad_produccion_confirmada if confirm else 0) or 0)
             selected_usage = _clean(confirm.uso_entrega if confirm else "")
+            requested_usage = _clean(row.get("uso_solicitado"))
+            delivery_usage = selected_usage or requested_usage
+            if requested_usage and selected_usage and selected_usage.upper() != requested_usage.upper():
+                raise HTTPException(status_code=400, detail="El uso de entrega no coincide con el uso solicitado.")
             if qty_insumo < 0 or qty_produccion < 0:
                 raise HTTPException(status_code=400, detail="Las cantidades confirmadas no pueden ser negativas.")
             req_insumo = float(row["cantidad_insumo_solicitada"] or 0)
@@ -1699,10 +1839,22 @@ async def confirm_supply_order(pedido_id: int, req: SupplyOrderConfirmRequest, r
                 stock_origin = await _stock_for_origin(db, int(row["articulo_id"]), origin_id)
                 if stock_origin + 0.000001 < qty_insumo:
                     raise HTTPException(status_code=400, detail="La confirmacion de insumo dejaria stock negativo.")
+            if qty_insumo > 0 or qty_produccion > 0:
+                article_usage = _clean(row.get("uso"))
+                if article_usage and not delivery_usage:
+                    raise HTTPException(status_code=400, detail="Selecciona el uso de entrega para los PLUs que lo requieren.")
+                if article_usage:
+                    valid_usages = {usage.upper() for usage in _usage_options(article_usage)}
+                    if delivery_usage.upper() not in valid_usages:
+                        raise HTTPException(status_code=400, detail="Uso de entrega invalido para el PLU.")
+                any_confirmed = True
             if qty_produccion > 0:
-                stock_produccion = await _stock_producido(db, int(row["articulo_id"]))
+                stock_produccion = await _stock_producido(db, int(row["articulo_id"]), delivery_usage)
                 if stock_produccion + 0.000001 < qty_produccion:
-                    raise HTTPException(status_code=400, detail="La confirmacion de produccion dejaria stock negativo.")
+                    detail = "La confirmacion de produccion dejaria stock negativo."
+                    if delivery_usage:
+                        detail = f"No hay stock producido suficiente para el uso {delivery_usage}."
+                    raise HTTPException(status_code=400, detail=detail)
             if qty_insumo > 0:
                 await db.execute(
                     """
@@ -1724,28 +1876,21 @@ async def confirm_supply_order(pedido_id: int, req: SupplyOrderConfirmRequest, r
                 await db.execute(
                     """
                     INSERT INTO produccion_movimientos
-                        (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, observacion, usuario, fecha_hora)
-                    VALUES (?, 'ENTREGA', ?, ?, ?, ?, ?, ?)
+                        (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, uso_produccion,
+                         observacion, usuario, fecha_hora)
+                    VALUES (?, 'ENTREGA', ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         int(row["articulo_id"]),
                         int(pedido["sector_id"]),
                         qty_produccion,
                         turno,
+                        delivery_usage,
                         clean_obs or f"Pedido #{pedido_id}",
                         auth.get("username"),
                         now,
                     ),
                 )
-            if qty_insumo > 0 or qty_produccion > 0:
-                article_usage = _clean(row.get("uso"))
-                if article_usage and not selected_usage:
-                    raise HTTPException(status_code=400, detail="Selecciona el uso de entrega para los PLUs que lo requieren.")
-                if article_usage:
-                    valid_usages = {usage.upper() for usage in _usage_options(article_usage)}
-                    if selected_usage.upper() not in valid_usages:
-                        raise HTTPException(status_code=400, detail="Uso de entrega invalido para el PLU.")
-                any_confirmed = True
             await db.execute(
                 """
                 UPDATE pedidos_insumos_items
@@ -1759,7 +1904,7 @@ async def confirm_supply_order(pedido_id: int, req: SupplyOrderConfirmRequest, r
                     qty_insumo,
                     qty_produccion,
                     origin_id if qty_insumo > 0 else None,
-                    selected_usage if (qty_insumo > 0 or qty_produccion > 0) else "",
+                    delivery_usage if (qty_insumo > 0 or qty_produccion > 0) else "",
                     item_id,
                 ),
             )
@@ -1867,16 +2012,27 @@ async def create_production(req: ProductionRequest, request: Request):
     now = _now()
     turno = _turno_por_hora(now)
     async with panol_db() as db:
-        article = await _fetch_one(db, "SELECT id FROM articulos WHERE id = ? AND activo = 1", (req.articulo_id,))
+        article = await _fetch_one(db, "SELECT id, uso FROM articulos WHERE id = ? AND activo = 1", (req.articulo_id,))
         if not article:
             raise HTTPException(status_code=404, detail="Articulo no encontrado o inactivo.")
+        usos = _usage_options(article.get("uso"))
+        uso_produccion = _clean(req.uso_produccion)
+        if usos:
+            valid_usages = {value.upper() for value in usos}
+            if not uso_produccion:
+                if len(usos) == 1:
+                    uso_produccion = usos[0]
+                else:
+                    raise HTTPException(status_code=400, detail="Selecciona el uso de produccion para este PLU.")
+            if uso_produccion.upper() not in valid_usages:
+                raise HTTPException(status_code=400, detail="El uso de produccion no corresponde al PLU seleccionado.")
         await db.execute(
             """
             INSERT INTO produccion_movimientos
-                (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, observacion, usuario, fecha_hora)
-            VALUES (?, 'PRODUCCION', NULL, ?, ?, ?, ?, ?)
+                (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, uso_produccion, observacion, usuario, fecha_hora)
+            VALUES (?, 'PRODUCCION', NULL, ?, ?, ?, ?, ?, ?)
             """,
-            (req.articulo_id, cantidad, turno, _clean(req.observacion), auth.get("username"), now),
+            (req.articulo_id, cantidad, turno, uso_produccion, _clean(req.observacion), auth.get("username"), now),
         )
         await db.commit()
     return {"ok": True, "turno": turno, "fecha_hora": now}
@@ -1891,9 +2047,20 @@ async def create_production_delivery(req: ProductionDeliveryRequest, request: Re
     now = _now()
     turno = _turno_por_hora(now)
     async with panol_db() as db:
-        article = await _fetch_one(db, "SELECT id FROM articulos WHERE id = ? AND activo = 1", (req.articulo_id,))
+        article = await _fetch_one(db, "SELECT id, uso FROM articulos WHERE id = ? AND activo = 1", (req.articulo_id,))
         if not article:
             raise HTTPException(status_code=404, detail="Articulo no encontrado o inactivo.")
+        usos = _usage_options(article.get("uso"))
+        uso_produccion = _clean(req.uso_produccion)
+        if usos:
+            valid_usages = {value.upper() for value in usos}
+            if not uso_produccion:
+                if len(usos) == 1:
+                    uso_produccion = usos[0]
+                else:
+                    raise HTTPException(status_code=400, detail="Selecciona el uso de entrega para este PLU.")
+            if uso_produccion.upper() not in valid_usages:
+                raise HTTPException(status_code=400, detail="El uso de entrega no corresponde al PLU seleccionado.")
         destination = await _fetch_one(
             db,
             "SELECT id FROM ubicaciones WHERE id = ? AND activo = 1",
@@ -1901,20 +2068,24 @@ async def create_production_delivery(req: ProductionDeliveryRequest, request: Re
         )
         if not destination:
             raise HTTPException(status_code=400, detail="Destino invalido.")
-        stock_actual = await _stock_producido(db, req.articulo_id)
+        stock_actual = await _stock_producido(db, req.articulo_id, uso_produccion)
         if stock_actual + 0.000001 < cantidad:
-            raise HTTPException(status_code=400, detail="La entrega dejaria stock producido negativo.")
+            detail = "La entrega dejaria stock producido negativo."
+            if uso_produccion:
+                detail = f"No hay stock producido suficiente para el uso {uso_produccion}."
+            raise HTTPException(status_code=400, detail=detail)
         await db.execute(
             """
             INSERT INTO produccion_movimientos
-                (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, observacion, usuario, fecha_hora)
-            VALUES (?, 'ENTREGA', ?, ?, ?, ?, ?, ?)
+                (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, uso_produccion, observacion, usuario, fecha_hora)
+            VALUES (?, 'ENTREGA', ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 req.articulo_id,
                 req.ubicacion_destino_id,
                 cantidad,
                 turno,
+                uso_produccion,
                 _clean(req.observacion),
                 auth.get("username"),
                 now,
@@ -1932,6 +2103,7 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
             db,
             f"""
             SELECT a.id AS articulo_id, a.codigo, a.descripcion, a.categoria, a.unidad,
+                   a.uso, a.unidad_stock, a.unidad_produccion, a.factor_stock_a_produccion,
                    ac.costo_unitario, ac.moneda AS costo_moneda, ac.fecha_desde AS costo_fecha_desde,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0) AS producido,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS entregado,
@@ -1942,7 +2114,8 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
             LEFT JOIN produccion_movimientos pm ON pm.articulo_id = a.id
             WHERE a.activo = 1
               AND (? IS NULL OR a.id = ?)
-            GROUP BY a.id, a.codigo, a.descripcion, a.categoria, a.unidad,
+            GROUP BY a.id, a.codigo, a.descripcion, a.categoria, a.unidad, a.uso,
+                     a.unidad_stock, a.unidad_produccion, a.factor_stock_a_produccion,
                      ac.costo_unitario, ac.moneda, ac.fecha_desde
             ORDER BY a.codigo
             """,
@@ -1960,15 +2133,23 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
             """,
             (f"{_today()} 00:00:00", articulo_id, articulo_id),
         )
+        stocks_by_usage = {
+            int(row["articulo_id"]): await _stock_producido_por_uso(db, int(row["articulo_id"]))
+            for row in rows
+        }
     items = []
     for row in rows:
         if q and q.lower() not in f"{row['codigo']} {row['descripcion']}".lower():
             continue
         cost = float(row["costo_unitario"]) if row.get("costo_unitario") is not None else None
+        factor = float(row.get("factor_stock_a_produccion") or 0)
+        production_unit_cost = None if cost is None else (cost / factor if factor > 0 else cost)
         items.append(
             {
                 **row,
-                "valor_stock_producido": None if cost is None else float(row.get("stock_producido") or 0) * cost,
+                "stock_produccion_por_uso": stocks_by_usage.get(int(row["articulo_id"]), {}),
+                "costo_unitario_produccion": production_unit_cost,
+                "valor_stock_producido": None if production_unit_cost is None else float(row.get("stock_producido") or 0) * production_unit_cost,
             }
         )
     return {
@@ -2021,7 +2202,8 @@ async def list_production_movements(
         rows = await _fetch_rows(
             db,
             f"""
-            SELECT pm.*, a.codigo, a.descripcion, u.codigo AS destino_codigo
+            SELECT pm.*, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso) AS uso,
+                   a.unidad_produccion, u.codigo AS destino_codigo
             FROM produccion_movimientos pm
             JOIN articulos a ON a.id = pm.articulo_id
             LEFT JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
@@ -2042,14 +2224,15 @@ async def production_logistic_day(request: Request):
         produced = await _fetch_rows(
             db,
             """
-            SELECT a.id AS articulo_id, a.codigo, a.descripcion,
+            SELECT a.id AS articulo_id, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso) AS uso,
+                   a.unidad_produccion,
                    COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
             JOIN articulos a ON a.id = pm.articulo_id
             WHERE pm.tipo = 'PRODUCCION'
               AND pm.fecha_hora >= ?
               AND pm.fecha_hora <= ?
-            GROUP BY a.id, a.codigo, a.descripcion
+            GROUP BY a.id, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso), a.unidad_produccion
             ORDER BY cantidad DESC, a.codigo
             LIMIT 20
             """,
@@ -2058,7 +2241,7 @@ async def production_logistic_day(request: Request):
         delivered = await _fetch_rows(
             db,
             """
-            SELECT a.id AS articulo_id, a.codigo, a.descripcion,
+            SELECT a.id AS articulo_id, a.codigo, a.descripcion, a.unidad_produccion,
                    u.codigo AS destino_codigo,
                    COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
@@ -2067,7 +2250,7 @@ async def production_logistic_day(request: Request):
             WHERE pm.tipo = 'ENTREGA'
               AND pm.fecha_hora >= ?
               AND pm.fecha_hora <= ?
-            GROUP BY a.id, a.codigo, a.descripcion, u.codigo
+            GROUP BY a.id, a.codigo, a.descripcion, a.unidad_produccion, u.codigo
             ORDER BY cantidad DESC, a.codigo, u.codigo
             LIMIT 20
             """,
@@ -2123,13 +2306,15 @@ async def production_indicators(
         by_sector_plu = await _fetch_rows(
             db,
             f"""
-            SELECT u.codigo AS sector, a.codigo, a.descripcion, a.uso, COALESCE(SUM(pm.cantidad), 0) AS cantidad
+            SELECT u.codigo AS sector, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso) AS uso,
+                   a.unidad_produccion,
+                   COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
             JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
             JOIN articulos a ON a.id = pm.articulo_id
             WHERE pm.tipo = 'ENTREGA'
               {pm_clause}
-            GROUP BY u.codigo, a.codigo, a.descripcion, a.uso
+            GROUP BY u.codigo, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso), a.unidad_produccion
             ORDER BY cantidad DESC, u.codigo, a.codigo
             LIMIT 200
             """,
@@ -2138,14 +2323,15 @@ async def production_indicators(
         by_usage = await _fetch_rows(
             db,
             f"""
-            SELECT COALESCE(NULLIF(a.uso, ''), 'Sin uso') AS uso, a.codigo, a.descripcion,
+            SELECT COALESCE(NULLIF(pm.uso_produccion, ''), NULLIF(a.uso, ''), 'Sin uso') AS uso, a.codigo, a.descripcion,
+                   a.unidad_produccion,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0) AS producido,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS entregado
             FROM produccion_movimientos pm
             JOIN articulos a ON a.id = pm.articulo_id
             WHERE 1 = 1
               {pm_clause}
-            GROUP BY a.uso, a.codigo, a.descripcion
+            GROUP BY COALESCE(NULLIF(pm.uso_produccion, ''), NULLIF(a.uso, ''), 'Sin uso'), a.codigo, a.descripcion, a.unidad_produccion
             ORDER BY producido DESC, entregado DESC, a.codigo
             LIMIT 200
             """,
@@ -2189,13 +2375,16 @@ async def export_production_indicators(
         summary = await _fetch_rows(
             db,
             f"""
-            SELECT u.codigo AS sector, a.codigo, a.descripcion, COALESCE(SUM(pm.cantidad), 0) AS cantidad
+            SELECT u.codigo AS sector, a.codigo, a.descripcion,
+                   COALESCE(NULLIF(pm.uso_produccion, ''), NULLIF(a.uso, ''), 'Sin uso') AS uso,
+                   COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
             JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
             JOIN articulos a ON a.id = pm.articulo_id
             WHERE pm.tipo = 'ENTREGA'
               {clause}
-            GROUP BY u.codigo, a.codigo, a.descripcion
+            GROUP BY u.codigo, a.codigo, a.descripcion,
+                     COALESCE(NULLIF(pm.uso_produccion, ''), NULLIF(a.uso, ''), 'Sin uso')
             ORDER BY u.codigo, a.codigo
             """,
             tuple(args),
@@ -2204,6 +2393,7 @@ async def export_production_indicators(
             db,
             f"""
             SELECT pm.fecha_hora, u.codigo AS sector, a.codigo, a.descripcion,
+                   COALESCE(NULLIF(pm.uso_produccion, ''), NULLIF(a.uso, ''), 'Sin uso') AS uso,
                    pm.cantidad, pm.turno, pm.usuario, pm.observacion
             FROM produccion_movimientos pm
             JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
@@ -2220,18 +2410,19 @@ async def export_production_indicators(
     ws.title = "Resumen"
     ws.append(["Rango desde", fecha_desde or "Inicio", "Rango hasta", fecha_hasta or "Actual", "Articulo ID", articulo_id or "Todos"])
     ws.append([])
-    ws.append(["Sector", "PLU", "Descripcion", "Cantidad entregada"])
+    ws.append(["Sector", "PLU", "Uso", "Descripcion", "Cantidad entregada"])
     for row in summary:
-        ws.append([row.get("sector"), row.get("codigo"), row.get("descripcion"), float(row.get("cantidad") or 0)])
+        ws.append([row.get("sector"), row.get("codigo"), row.get("uso"), row.get("descripcion"), float(row.get("cantidad") or 0)])
 
     detail = wb.create_sheet("Movimientos")
-    detail.append(["Fecha hora", "Sector", "PLU", "Descripcion", "Cantidad", "Turno", "Usuario", "Observacion"])
+    detail.append(["Fecha hora", "Sector", "PLU", "Uso", "Descripcion", "Cantidad", "Turno", "Usuario", "Observacion"])
     for row in movements:
         detail.append(
             [
                 row.get("fecha_hora"),
                 row.get("sector"),
                 row.get("codigo"),
+                row.get("uso"),
                 row.get("descripcion"),
                 float(row.get("cantidad") or 0),
                 row.get("turno"),
@@ -2512,7 +2703,7 @@ async def list_inventory(
         rows = await _fetch_rows(
             db,
             f"""
-            SELECT i.*, a.codigo, a.descripcion, u.codigo AS ubicacion_codigo,
+            SELECT i.*, a.codigo, a.descripcion, a.unidad, a.unidad_stock, u.codigo AS ubicacion_codigo,
                    c.stock_inicial, c.ingresos_turno,
                    c.consumo_calculado
             FROM inventario_turno i

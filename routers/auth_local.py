@@ -36,6 +36,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str
+
+
 class UserCreateRequest(BaseModel):
     username: str
     password: str
@@ -49,6 +55,11 @@ class DeviceActionRequest(BaseModel):
 
 class UserActionRequest(BaseModel):
     username: str
+
+
+class UserRoleRequest(BaseModel):
+    username: str
+    role: str
 
 
 class UserLegajoRequest(BaseModel):
@@ -168,23 +179,22 @@ APP_MODULES = [
     {"id": "gestion_operativa", "label": "Gestion Operativa", "path": "/gestion-operativa.html"},
     {"id": "casos", "label": "Gestion de Casos", "path": "/casos.html"},
     {"id": "panol", "label": "Panol Insumos", "path": "/panol-insumos"},
-    {"id": "historia_legajo", "label": "Historia de Legajo", "path": "/historia-legajo.html"},
     {"id": "opex", "label": "OpEX", "path": "/opex.html"},
     {"id": "simulador_operativo", "label": "Simulador Operativo", "path": "/simulador-operativo.html"},
     {"id": "analisis_premio_productividad", "label": "Analisis Premio Productividad", "path": "/analisis-premio-productividad.html"},
+    {"id": "estudio_premios_productividad", "label": "Estudio Premios Productividad", "path": "/estudio-premios-productividad.html"},
     {"id": "plantel_optimo", "label": "Plantel Optimo", "path": "/plantel-optimo.html"},
     {"id": "rendimiento_online", "label": "Rendimiento Online", "path": "/rendimiento-online.html"},
     {"id": "checklist_tareas", "label": "CheckList Tareas", "path": "/checklist-tareas"},
     {"id": "recepcion", "label": "Recepcion", "path": "/recepcion.html"},
-    {"id": "mapa", "label": "Mapa", "path": "", "available": False},
+    {"id": "mapa", "label": "Mapa", "path": "http://130.93.104.192:8090/"},
     {"id": "control_procesos", "label": "Monitor Cargas", "path": "/monitor-cargas"},
-    {"id": "trafico", "label": "Trafico", "path": "", "available": False},
     {"id": "generales", "label": "Herramientas Operativas", "path": "/herramientas.html"},
 ]
 APP_MODULE_IDS = {module["id"] for module in APP_MODULES}
 DEFAULT_ENABLED_MODULES: set[str] = set()
 
-CASOS_FALLBACK_PROFILES = ["OPERACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "ADMIN"]
+CASOS_FALLBACK_PROFILES = ["OPERACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "LECTURA", "ADMIN"]
 
 AUTH_ACCESS_SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS auth_user_app_access (
@@ -477,6 +487,7 @@ async def module_access_for_user(username: str, role: str = "user") -> dict[str,
     if str(role or "").strip().lower() == "admin":
         return {module["id"]: True for module in APP_MODULES}
     access = {module["id"]: module["id"] in DEFAULT_ENABLED_MODULES for module in APP_MODULES}
+    access["estudio_premios_productividad"] = False
     async with auth_db(attach_operational=True) as db:
         db.row_factory = aiosqlite.Row
         rows = await _fetch_rows(
@@ -696,6 +707,37 @@ async def me(request: Request):
     }
 
 
+@router.post("/change-password")
+async def change_password(req: ChangePasswordRequest, request: Request):
+    auth = await current_auth(request)
+    if not auth or auth.get("device_status") != "approved":
+        raise HTTPException(status_code=401, detail="No autenticado.")
+    if len(req.new_password) < 8:
+        raise HTTPException(status_code=400, detail="La nueva clave debe tener al menos 8 caracteres.")
+    if req.new_password != req.confirm_password:
+        raise HTTPException(status_code=400, detail="La nueva clave y su confirmación no coinciden.")
+    if req.current_password == req.new_password:
+        raise HTTPException(status_code=400, detail="La nueva clave debe ser diferente de la actual.")
+    current_token_hash = _token_hash(request.cookies.get(SESSION_COOKIE, ""))
+    async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT password_hash FROM auth_users WHERE username = ?", (auth["username"],)) as cur:
+            user = await cur.fetchone()
+        if not user or not _verify_password(req.current_password, user["password_hash"]):
+            raise HTTPException(status_code=400, detail="La clave actual no es correcta.")
+        now = _now()
+        await db.execute(
+            "UPDATE auth_users SET password_hash = ?, updated_at = ? WHERE username = ?",
+            (_hash_password(req.new_password), now, auth["username"]),
+        )
+        await db.execute(
+            "DELETE FROM auth_sessions WHERE username = ? AND session_token_hash <> ?",
+            (auth["username"], current_token_hash),
+        )
+        await db.commit()
+    return {"ok": True, "message": "Clave actualizada correctamente."}
+
+
 @router.get("/apps")
 async def my_apps(request: Request):
     auth = await current_auth(request)
@@ -775,7 +817,7 @@ async def list_users(request: Request):
             rows = [dict(row) for row in await cur.fetchall()]
     for row in rows:
         row["rrhh_sectors"] = [item for item in (row.get("rrhh_sectors") or "").split("|") if item]
-    return {"users": rows, "modules": APP_MODULES}
+    return {"users": rows, "modules": APP_MODULES, "casos_profiles": await _case_profiles()}
 
 
 @router.get("/admin/usage-events")
@@ -883,6 +925,34 @@ async def usage_module_summary(
         "modules": modules,
         "details": details,
     }
+
+
+@router.post("/admin/users/role")
+async def set_user_role(req: UserRoleRequest, request: Request):
+    admin = await _require_admin(request)
+    username = _normalize_username(req.username)
+    role = str(req.role or "").strip().lower()
+    if role not in {"user", "rrhh", "admin"}:
+        raise HTTPException(status_code=400, detail="Rol invalido.")
+    if not username:
+        raise HTTPException(status_code=400, detail="Usuario requerido.")
+    async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT role, active FROM auth_users WHERE username = ?", (username,)) as cur:
+            target = await cur.fetchone()
+        if target is None:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+        if target["role"] == "admin" and role != "admin" and target["active"]:
+            async with db.execute("SELECT COUNT(*) FROM auth_users WHERE role = 'admin' AND active = 1") as cur:
+                active_admins = (await cur.fetchone())[0]
+            if active_admins <= 1:
+                raise HTTPException(status_code=400, detail="No se puede quitar el rol al ultimo admin activo.")
+        await db.execute(
+            "UPDATE auth_users SET role = ?, updated_at = ? WHERE username = ?",
+            (role, _now(), username),
+        )
+        await db.commit()
+    return {"ok": True, "username": username, "role": role, "changed_by": admin["username"]}
 
 
 @router.post("/admin/users/legajo")
@@ -1048,7 +1118,7 @@ async def _grant_initial_module_access(
     *,
     username: str,
     module: str,
-    panol_profile: str = "OPERACION",
+    profile: str = "OPERACION",
 ) -> None:
     if module == "none":
         return
@@ -1065,7 +1135,7 @@ async def _grant_initial_module_access(
         await _set_cases_access_db(
             username=username,
             enabled=True,
-            profile="OPERACION",
+            profile=profile,
             sector="",
             email="",
         )
@@ -1074,7 +1144,7 @@ async def _grant_initial_module_access(
             username=username,
             module=module,
             enabled=True,
-            profile="OPERACION",
+            profile=profile,
             scope="perfil",
         )
     elif module == "panol":
@@ -1083,7 +1153,7 @@ async def _grant_initial_module_access(
             username=username,
             module=module,
             enabled=True,
-            profile=panol_profile,
+            profile=profile,
             scope="perfil",
         )
     elif module == "checklist_tareas":
@@ -1453,6 +1523,8 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
     profile = (req.profile or "OPERACION").strip().upper()
     if module == "panol" and profile not in {"SOLICITANTE", "OPERACION", "ADMIN"}:
         raise HTTPException(status_code=400, detail="Perfil de Panol invalido.")
+    if module == "casos" and profile not in await _case_profiles():
+        raise HTTPException(status_code=400, detail="Perfil de casos invalido.")
 
     input_mode = (req.input_mode or "users").strip().lower()
     if input_mode == "legajos" or req.legajos:
@@ -1532,7 +1604,7 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
                         db,
                         username=username,
                         module=module,
-                        panol_profile=profile,
+                        profile=profile,
                     )
                     message = f"Ya existia. Acceso a {_module_label_by_id(module)} actualizado."
                 else:
@@ -1571,7 +1643,7 @@ async def create_users_bulk(req: BulkUsersRequest, request: Request):
                     db,
                     username=username,
                     module=module,
-                    panol_profile=profile,
+                    profile=profile,
                 )
             if legajo:
                 await db.execute(
@@ -1652,7 +1724,7 @@ async def activate_user(req: UserActionRequest, request: Request):
     return await _set_user_active(req, request, 1)
 
 
-async def _set_device_status(req: DeviceActionRequest, request: Request, status: str) -> dict[str, bool]:
+async def _set_device_status(req: DeviceActionRequest, request: Request, status: str) -> dict[str, Any]:
     admin = await _require_admin(request)
     now = _now()
     fields = {
@@ -1661,6 +1733,20 @@ async def _set_device_status(req: DeviceActionRequest, request: Request, status:
         "revoked": ("revoked_at", "revoked_by"),
     }[status]
     async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT d.username, u.display_name, l.legajo
+            FROM auth_devices d
+            JOIN auth_users u ON u.username = d.username
+            LEFT JOIN auth_user_legajos l ON l.username = d.username
+            WHERE d.device_id = ?
+            """,
+            (req.device_id,),
+        ) as cur:
+            target = await cur.fetchone()
+        if not target:
+            raise HTTPException(status_code=404, detail="Dispositivo no encontrado.")
         await db.execute(
             f"UPDATE auth_devices SET status = ?, {fields[0]} = ?, {fields[1]} = ? WHERE device_id = ?",
             (status, now, admin["username"], req.device_id),
@@ -1668,7 +1754,27 @@ async def _set_device_status(req: DeviceActionRequest, request: Request, status:
         if status in {"rejected", "revoked"}:
             await db.execute("DELETE FROM auth_sessions WHERE device_id = ?", (req.device_id,))
         await db.commit()
-    return {"ok": True}
+    result: dict[str, Any] = {"ok": True}
+    if status == "approved":
+        legajo = str(target["legajo"] or "").strip()
+        display_name = str(target["display_name"] or target["username"] or "").strip()
+        selector_origin = os.getenv("VIGIA_PUBLIC_ORIGIN", "").strip().rstrip("/") or _server_origin(request)
+        result["mail"] = {
+            "to": legajo,
+            "subject": "Acceso a VigIA habilitado",
+            "body": "\n".join([
+                f"Hola {display_name},",
+                "",
+                "Te informamos que tu acceso a VigIA ya fue habilitado.",
+                "",
+                f"Ingresá desde: {selector_origin}/selector.html",
+                "",
+                "Si es tu primer ingreso desde este navegador, el sistema puede solicitar una aprobación adicional.",
+                "",
+                "Saludos.",
+            ]),
+        }
+    return result
 
 
 @router.post("/admin/devices/approve")

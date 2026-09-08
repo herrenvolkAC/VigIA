@@ -32,6 +32,8 @@ router = APIRouter(prefix="/api/analisis-premio-productividad", tags=["analisis-
 logger = logging.getLogger("vigia.analisis_premio_productividad")
 
 PREMIO_DB_PATH = resolve_db_path("PREMIO_PRODUCTIVIDAD_DB_PATH", "premio_productividad.db", ROOT_DIR)
+LAB_CACHE_DB_PATH = ROOT_DIR / "datos" / "laboratorio_premios.db"
+LAB_CACHE_RUN_PREFIX = "ETAPA_AGOSTO_2026_SIN_FILTRO_ID_R1_"
 PREMIO_FOTO_JSON_PATH = PREMIO_DB_PATH.with_name("premio_tabla_foto.json")
 PREMIO_FOTO_ALGORITHM_VERSION = "sector_general_equivalencia_v5_multiplicativa"
 JORNADA_HORAS = 8
@@ -4722,6 +4724,87 @@ async def tendencia_operativa(
     return {"meta": {"fecha_desde": days[0].isoformat(), "fecha_hasta": days[-1].isoformat(), "operacion": operation_key, "grupo_productivo": grupo_productivo, "filas": len(rows), "origen": "oracle_productiva"}, "rows": rows}
 
 
+@router.get("/cambio-escalas")
+async def estudio_cambio_escalas(
+    request: Request,
+    fecha_desde: str = Query("2026-08-01"),
+    fecha_hasta: str = Query("2026-08-30"),
+    umbral_desde: float = Query(247, ge=0),
+    umbral_hasta: float = Query(284, ge=0),
+    simular: bool = Query(False),
+):
+    """Compara el pago actual de CARGA contra un umbral alternativo, sin tocar liquidaciones."""
+    await _require_premio_estudio(request)
+    days = _date_range_inclusive(fecha_desde, fecha_hasta)
+    if umbral_hasta < umbral_desde:
+        raise HTTPException(status_code=400, detail="El umbral hasta no puede ser menor que el umbral desde.")
+    start_int = int(days[0].strftime("%Y%m%d")); end_int = int(days[-1].strftime("%Y%m%d"))
+    monto_escala = 9184.72
+    sql = f"""
+    WITH CARGAHOY AS (
+        SELECT DISTINCT A.FECHA, A.ID, A.LEGAJO
+        FROM PV_DIA_LABORAL A
+        JOIN PV_LIQUIDAC_DIA_DET1 B ON A.ID = B.ID_PV_DIA_LABORAL
+        JOIN PV_GRUPO_DE_FUNCIONES_CAB C ON B.ID_PV_GRUPO_DE_FUNCIONES = C.ID
+        WHERE A.FECHA BETWEEN {start_int} AND {end_int}
+          AND C.DESCRIPCION = 'CARGA'
+    )
+    SELECT A.FECHA, A.LEGAJO,
+           CASE C.DESCRIPCION WHEN 'CARGA' THEN 'CARGA' ELSE 'OTRAS' END AS OPERACION,
+           SUM(CASE C.DESCRIPCION WHEN 'CARGA' THEN NVL(B.OBJETIVO_PRODUCCION_8HS,0) ELSE 0 END) AS OBJETIVO_PRODUCCION_8HS,
+           SUM(CASE C.DESCRIPCION WHEN 'CARGA' THEN NVL(B.OBJETIVO_NIVEL_ALCANZADO,0) ELSE 0 END) AS OBJETIVO_NIVEL_ALCANZADO,
+           SUM(CASE C.DESCRIPCION WHEN 'CARGA' THEN NVL(B.PREMIO_COMPLETO,0) ELSE 0 END) AS PREMIO_COMPLETO,
+           SUM(NVL(B.A_PAGAR_TOTAL,0)) AS A_PAGAR_TOTAL
+    FROM CARGAHOY Z
+    JOIN PV_DIA_LABORAL A ON Z.ID=A.ID AND Z.LEGAJO=A.LEGAJO AND Z.FECHA=A.FECHA
+    JOIN PV_LIQUIDAC_DIA_DET1 B ON A.ID=B.ID_PV_DIA_LABORAL
+    JOIN PV_GRUPO_DE_FUNCIONES_CAB C ON B.ID_PV_GRUPO_DE_FUNCIONES=C.ID
+    GROUP BY A.FECHA, A.LEGAJO, CASE C.DESCRIPCION WHEN 'CARGA' THEN 'CARGA' ELSE 'OTRAS' END
+    ORDER BY A.FECHA, A.LEGAJO, OPERACION
+    """
+    raw_rows = await asyncio.to_thread(_query_oracle, sql, {})
+    rows = [{str(key).lower(): value for key, value in row.items()} for row in raw_rows]
+    by_legajo: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        legajo = _clean(row.get("legajo"))
+        item = by_legajo.setdefault(legajo, {"legajo": legajo, "carga_actual": 0.0, "otras_tareas": 0.0, "carga_simulada": 0.0, "jornadas_carga": 0, "objetivo_maximo": 0.0, "detalle": []})
+        pago = _num(row.get("a_pagar_total")); operacion = _clean(row.get("operacion")).upper()
+        item["detalle"].append({"fecha": row.get("fecha"), "operacion": operacion, "pago_actual": round(pago, 2), "objetivo_produccion_8hs": round(_num(row.get("objetivo_produccion_8hs")), 2), "nivel": round(_num(row.get("objetivo_nivel_alcanzado")), 2)})
+        if operacion == "CARGA":
+            objetivo = _num(row.get("objetivo_produccion_8hs")); item["carga_actual"] += pago; item["jornadas_carga"] += 1; item["objetivo_maximo"] = max(item["objetivo_maximo"], objetivo)
+            if simular:
+                vigente = 247 <= objetivo <= 284
+                nuevo = umbral_desde <= objetivo <= umbral_hasta
+                # La liquidación real es la base. Solo cambia el pago cuando
+                # la jornada cruza el límite; los demás niveles conservan su pago.
+                item["carga_simulada"] += (monto_escala if nuevo and not vigente else 0) if nuevo != vigente else pago
+            else:
+                item["carga_simulada"] += pago
+        else:
+            item["otras_tareas"] += pago
+    result_rows = []
+    for item in by_legajo.values():
+        item["carga_actual"] = round(item["carga_actual"], 2); item["otras_tareas"] = round(item["otras_tareas"], 2); item["carga_simulada"] = round(item["carga_simulada"], 2)
+        item["total_actual"] = round(item["carga_actual"] + item["otras_tareas"], 2)
+        if not simular:
+            item["carga_simulada"] = None; item["total_simulado"] = None; item["diferencia"] = None; item["estado"] = "BASE ACTUAL"
+        else:
+            item["total_simulado"] = round(item["carga_simulada"] + item["otras_tareas"], 2); item["diferencia"] = round(item["total_simulado"] - item["total_actual"], 2)
+        if simular and item["carga_actual"] <= 0 and item["carga_simulada"] > 0: item["estado"] = "NUEVO COBRO CARGA"
+        elif simular and item["carga_simulada"] > item["carga_actual"]: item["estado"] = "AUMENTA CARGA"
+        elif simular and item["carga_simulada"] < item["carga_actual"]: item["estado"] = "REDUCE CARGA"
+        elif simular: item["estado"] = "SIN CAMBIO CARGA"
+        elif simular: item["estado"] = "SIN PAGO CARGA"
+        result_rows.append(item)
+    result_rows.sort(key=lambda row: (-(row["diferencia"] or 0), row["legajo"]))
+    summary = {"legajos": len(result_rows), "nuevos_cobros": sum(row["estado"] == "NUEVO COBRO CARGA" for row in result_rows), "aumentan": sum(row["estado"] == "AUMENTA CARGA" for row in result_rows), "sin_cambio": sum(row["estado"] == "SIN CAMBIO CARGA" for row in result_rows), "sin_pago_carga": sum(row["carga_actual"] <= 0 for row in result_rows), "carga_actual": round(sum(row["carga_actual"] for row in result_rows), 2), "total_actual": round(sum(row["total_actual"] for row in result_rows), 2)}
+    if simular:
+        summary["carga_simulada"] = round(sum(row["carga_simulada"] or 0 for row in result_rows), 2); summary["total_simulado"] = round(sum(row["total_simulado"] or 0 for row in result_rows), 2); summary["diferencia_carga"] = round(summary["carga_simulada"] - summary["carga_actual"], 2); summary["diferencia_total"] = round(summary["total_simulado"] - summary["total_actual"], 2)
+    else:
+        summary.update({"carga_simulada": None, "total_simulado": None, "diferencia_carga": None, "diferencia_total": None})
+    return {"meta": {"fecha_desde": days[0].isoformat(), "fecha_hasta": days[-1].isoformat(), "origen": "oracle_productiva", "simular": simular, "umbral_desde": umbral_desde, "umbral_hasta": umbral_hasta, "monto_escala": monto_escala, "filas_oracle": len(rows)}, "summary": summary, "rows": result_rows}
+
+
 @router.get("/operaciones/general/detalle")
 async def detalle_operacion_general(
     fecha_desde: str = Query(...),
@@ -6031,6 +6114,66 @@ async def exportar_gif(req: GifExportRequest):
         media_type="image/gif",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/cache-wms")
+async def cache_wms(
+    request: Request,
+    fecha_desde: str = Query("2026-08-01"),
+    fecha_hasta: str = Query("2026-08-31"),
+    legajo: str = Query(""),
+    desc_funcion: str = Query(""),
+    limit: int = Query(250, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+):
+    """Consulta paginada del detalle WMS crudo del estudio, sólo para ADMIN."""
+    auth = await current_auth(request)
+    if not auth or auth.get("device_status") != "approved":
+        raise HTTPException(status_code=401, detail="No autenticado.")
+    if str(auth.get("role") or "").lower() != "admin":
+        raise HTTPException(status_code=403, detail="Requiere administrador.")
+    try:
+        desde = datetime.strptime(fecha_desde, "%Y-%m-%d").strftime("%Y%m%d")
+        hasta = datetime.strptime(fecha_hasta, "%Y-%m-%d").strftime("%Y%m%d")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Las fechas deben tener formato YYYY-MM-DD.") from exc
+    if desde > hasta:
+        raise HTTPException(status_code=400, detail="Fecha desde no puede ser posterior a fecha hasta.")
+    legajo = legajo.strip()
+    desc_funcion = desc_funcion.strip()
+    where = ["run_id LIKE ?", "fecha >= ?", "fecha <= ?"]
+    args: list[Any] = [f"{LAB_CACHE_RUN_PREFIX}%", desde, hasta]
+    if legajo:
+        where.append("CAST(legajo AS TEXT) LIKE ?")
+        args.append(f"%{legajo}%")
+    if desc_funcion:
+        where.append("UPPER(COALESCE(desc_funcion, '')) LIKE ?")
+        args.append(f"%{desc_funcion.upper()}%")
+    predicate = " AND ".join(where)
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        total = await _fetch_one(db, f"SELECT COUNT(*) AS total FROM lab_etapa_detalle_raw WHERE {predicate}", tuple(args))
+        rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT row_id, fecha, legajo, id_etapa, fyhini, fyhfin, cod_funcion,
+                   desc_funcion, division, sector, pallet, plu, cantidad, peso
+            FROM lab_etapa_detalle_raw
+            WHERE {predicate}
+            ORDER BY fecha, legajo, fyhini, id_etapa, row_id
+            LIMIT ? OFFSET ?
+            """,
+            tuple(args + [limit, offset]),
+        )
+    return {
+        "filters": {"fecha_desde": fecha_desde, "fecha_hasta": fecha_hasta, "legajo": legajo, "desc_funcion": desc_funcion},
+        "total": int((total or {}).get("total") or 0),
+        "limit": limit,
+        "offset": offset,
+        "has_more": offset + len(rows) < int((total or {}).get("total") or 0),
+        "rows": rows,
+        "source": {"db": str(LAB_CACHE_DB_PATH), "run_prefix": LAB_CACHE_RUN_PREFIX},
+    }
 
 
 @router.get("/datos-cache")

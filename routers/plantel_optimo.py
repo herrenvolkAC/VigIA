@@ -20,6 +20,7 @@ from routers.productividad_analisis import (
     _query_productive_db_sql,
     query_productive_db_plantel_legajo_actividades,
 )
+from routers.rrhh_novedades import _query_rrhh_presencias_jdbc
 
 
 router = APIRouter(prefix="/api/plantel-optimo", tags=["plantel-optimo"])
@@ -174,7 +175,7 @@ def _parse_fecha_operativa(value: str) -> date:
 
 def _fecha_operativa_window(value: str) -> dict[str, str]:
     day = _parse_fecha_operativa(value)
-    start = datetime.combine(day, time(6, 0))
+    start = datetime.combine(day, time(14, 0))
     end = start + timedelta(days=1)
     return {
         "fecha": day.isoformat(),
@@ -352,16 +353,71 @@ async def config(request: Request):
     }
 
 
-def _week_start(value: str) -> date:
+@router.get("/filtros")
+async def filtros(request: Request):
+    """Devuelve solo los catálogos del legajero; no consulta Productividad ni Presentismo."""
+    await _require_plantel_optimo_access(request)
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        batch = await _fetch_one(
+            db,
+            """
+            SELECT batch_id
+            FROM rrhh_import_batches
+            WHERE status = 'complete'
+            ORDER BY imported_at DESC, batch_id DESC
+            LIMIT 1
+            """,
+        )
+        if not batch:
+            raise HTTPException(status_code=424, detail="No hay un lote completo del legajero importado.")
+        sectors = await _fetch_rows(
+            db,
+            """
+            SELECT DISTINCT COALESCE(desc_sector_generico, '') AS sector
+            FROM rrhh_legajero
+            WHERE batch_id = ? AND TRIM(COALESCE(desc_sector_generico, '')) <> ''
+            ORDER BY sector COLLATE NOCASE
+            """,
+            (batch["batch_id"],),
+        )
+        functions = await _fetch_rows(
+            db,
+            """
+            SELECT DISTINCT COALESCE(desc_sector_generico, '') AS sector,
+                            COALESCE(desc_funcion, '') AS funcion
+            FROM rrhh_legajero
+            WHERE batch_id = ?
+              AND TRIM(COALESCE(desc_sector_generico, '')) <> ''
+              AND TRIM(COALESCE(desc_funcion, '')) <> ''
+            ORDER BY sector COLLATE NOCASE, funcion COLLATE NOCASE
+            """,
+            (batch["batch_id"],),
+        )
+    by_sector: dict[str, list[str]] = {}
+    for row in functions:
+        by_sector.setdefault(row["sector"], []).append(row["funcion"])
+    return {
+        "sectores": [row["sector"] for row in sectors],
+        "funciones_por_sector": by_sector,
+    }
+
+
+def _parse_range_date(value: str, label: str) -> date:
     try:
-        selected = datetime.strptime(_clean(value), "%Y-%m-%d").date()
+        return datetime.strptime(_clean(value), "%Y-%m-%d").date()
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail="Semana invalida. Usa formato YYYY-MM-DD.") from exc
-    return selected - timedelta(days=selected.weekday())
+        raise HTTPException(status_code=400, detail=f"{label} invalida. Usa formato YYYY-MM-DD.") from exc
+
+
+def _iter_days(start: date, end: date) -> list[date]:
+    return [start + timedelta(days=offset) for offset in range((end - start).days + 1)]
 
 
 def _activity_date(value: Any) -> str:
     text = _clean(value)
+    if text.endswith(".0") and text[:-2].isdigit():
+        text = text[:-2]
     if text.isdigit() and len(text) == 8:
         return f"{text[:4]}-{text[4:6]}-{text[6:]}"
     return text[:10]
@@ -369,19 +425,30 @@ def _activity_date(value: Any) -> str:
 
 def _activity_legajo(value: Any) -> str:
     text = _clean(value)
+    if text.endswith(".0") and text[:-2].isdigit():
+        text = text[:-2]
     return text.lstrip("0") or text
 
 
 @router.get("/legajos-semana")
 async def legajos_semana(
     request: Request,
-    semana: str,
+    semana: str = "",
+    fecha_desde: str = "",
+    fecha_hasta: str = "",
     sector: str = "",
+    funcion: str = "",
 ):
     await _require_plantel_optimo_access(request)
-    start = _week_start(semana)
-    end = start + timedelta(days=6)
-    sector_filter = _clean(sector)
+    start = _parse_range_date(fecha_desde or semana, "Fecha desde")
+    end = _parse_range_date(fecha_hasta or start.isoformat(), "Fecha hasta")
+    if end < start:
+        raise HTTPException(status_code=400, detail="La fecha hasta no puede ser menor que la fecha desde.")
+    if (end - start).days > 366:
+        raise HTTPException(status_code=400, detail="El rango no puede superar 366 días.")
+    days = [day.isoformat() for day in _iter_days(start, end)]
+    sector_filters = [_clean(value) for value in sector.split(",") if _clean(value)]
+    funcion_filters = [_clean(value) for value in funcion.split(",") if _clean(value)]
 
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
@@ -402,9 +469,12 @@ async def legajos_semana(
             )
         where = "batch_id = ?"
         params: list[Any] = [batch["batch_id"]]
-        if sector_filter:
-            where += " AND COALESCE(desc_sector_generico, '') = ?"
-            params.append(sector_filter)
+        if sector_filters:
+            where += f" AND COALESCE(desc_sector_generico, '') IN ({','.join('?' for _ in sector_filters)})"
+            params.extend(sector_filters)
+        if funcion_filters:
+            where += f" AND COALESCE(desc_funcion, '') IN ({','.join('?' for _ in funcion_filters)})"
+            params.extend(funcion_filters)
         legajo_rows = await _fetch_rows(
             db,
             f"""
@@ -424,6 +494,17 @@ async def legajos_semana(
             WHERE batch_id = ?
               AND TRIM(COALESCE(desc_sector_generico, '')) <> ''
             ORDER BY sector COLLATE NOCASE
+            """,
+            (batch["batch_id"],),
+        )
+        funcion_rows = await _fetch_rows(
+            db,
+            """
+            SELECT DISTINCT COALESCE(desc_funcion, '') AS funcion
+            FROM rrhh_legajero
+            WHERE batch_id = ?
+              AND TRIM(COALESCE(desc_funcion, '')) <> ''
+            ORDER BY funcion COLLATE NOCASE
             """,
             (batch["batch_id"],),
         )
@@ -447,7 +528,34 @@ async def legajos_semana(
         if legajo in allowed and day and task and start.isoformat() <= day <= end.isoformat():
             activities[(legajo, day)].add(task)
 
-    days = [(start + timedelta(days=offset)).isoformat() for offset in range(7)]
+    presence_rows: list[dict[str, Any]] = []
+    legajos = sorted(allowed)
+    try:
+        for query_day in _iter_days(start, end + timedelta(days=1)):
+            for offset in range(0, len(legajos), 850):
+                presence_rows.extend(
+                    await asyncio.to_thread(
+                        _query_rrhh_presencias_jdbc,
+                        query_day.isoformat(),
+                        legajos[offset:offset + 850],
+                    )
+                )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"No se pudo consultar Presentismo: {exc}") from exc
+
+    presence: dict[tuple[str, str], dict[str, str]] = {}
+    for raw in presence_rows:
+        row = {str(key).lower(): value for key, value in raw.items()}
+        legajo = _activity_legajo(row.get("legajo_norm") or row.get("legajo"))
+        day = _activity_date(row.get("fecha"))
+        if not legajo or not day:
+            continue
+        hours = _clean(row.get("hs_trabajadas"))
+        reason = _clean(row.get("descripcion_aus")) or _clean(row.get("clase_ausentismo"))
+        entry = _clean(row.get("entrada_real")) or _clean(row.get("entradar"))
+        exit_time = _clean(row.get("salida_real")) or _clean(row.get("salidar"))
+        presence[(legajo, day)] = {"horas": hours, "motivo": reason, "entrada": entry, "salida": exit_time}
+
     items = []
     active_count = 0
     for row in legajo_rows:
@@ -456,6 +564,7 @@ async def legajos_semana(
             day: sorted(activities.get((legajo, day), set()), key=lambda value: value.casefold())
             for day in days
         }
+        presence_cells = {day: presence.get((legajo, day), {}) for day in days}
         if any(cells.values()):
             active_count += 1
         items.append(
@@ -465,17 +574,21 @@ async def legajos_semana(
                 "sector": row.get("sector") or "",
                 "funcion": row.get("funcion") or "",
                 "actividades": {day: " · ".join(values) for day, values in cells.items()},
+                "presentismo": presence_cells,
             }
         )
     return {
+        "rango": {"desde": start.isoformat(), "hasta": end.isoformat(), "dias": days},
         "semana": {"desde": start.isoformat(), "hasta": end.isoformat(), "dias": days},
         "sectores": [row["sector"] for row in sector_rows],
+        "funciones": [row["funcion"] for row in funcion_rows],
         "legajos": items,
         "summary": {
             "legajos": len(items),
             "con_actividad": active_count,
             "sin_actividad": len(items) - active_count,
             "actividades_filas": len(activity_rows),
+            "presentismo_filas": len(presence_rows),
         },
     }
 

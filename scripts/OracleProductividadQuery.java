@@ -1840,20 +1840,20 @@ public class OracleProductividadQuery {
                 "ORDER BY A.FECHA, A.LEGAJO, C.DESCRIPCION";
         } else if ("plantel_legajo_actividades".equalsIgnoreCase(queryKey)) {
             sql =
-                "SELECT " +
-                "    Z.FECHA AS FECHA, " +
-                "    Z.LEGAJO AS LEGAJO, " +
-                "    A.COD_FUNCION AS COD_FUNCION, " +
-                "    COALESCE(NULLIF(TRIM(A.DESC_FUNCION), ''), NULLIF(TRIM(F.DESCRIPCION), '')) AS ACTIVIDAD " +
-                "FROM PV_DIA_LABORAL Z " +
-                "JOIN PV_ETAPA_CAB A ON A.ID_PV_DIA_LABORAL = Z.ID " +
-                "LEFT JOIN PV_FUNCION F ON F.CODIGO = A.COD_FUNCION " +
-                "WHERE Z.FECHA BETWEEN TO_NUMBER(REPLACE(?, '-', '')) " +
-                "AND TO_NUMBER(REPLACE(?, '-', '')) " +
-                "AND TRIM(COALESCE(A.DESC_FUNCION, F.DESCRIPCION, '')) <> '' " +
-                "GROUP BY Z.FECHA, Z.LEGAJO, A.COD_FUNCION, " +
-                "COALESCE(NULLIF(TRIM(A.DESC_FUNCION), ''), NULLIF(TRIM(F.DESCRIPCION), '')) " +
-                "ORDER BY Z.FECHA, Z.LEGAJO, ACTIVIDAD";
+                "SELECT DISTINCT TO_CHAR(TRUNC(A.FCREAREG - 14/24), 'YYYY-MM-DD') AS FECHA, A.COPECREA AS LEGAJO, CASE WHEN UPPER(TRIM(A.CDESCRIP)) IN ('EXTRACCION DE REAPROS', 'EXTRACCION TRASPASOS', 'GUARADO PALETS ENTRADA', 'PNC SURTIDO P.COMPLETOS', 'PNC EXTRACCION DE REAPROS', 'SURTIDO P.COMPLETOS', 'UBICACION DE REAPROS', 'UBICACION TRASPASOS') THEN 'CLARK' WHEN UPPER(TRIM(A.CDESCRIP)) IN ('FIN DESCARGA PALLETS RECEP', 'INICIO DESCARGA PALLETS RECEP', 'REVISION PALETS ENTRADA') THEN 'RECEPCION' WHEN UPPER(TRIM(A.CDESCRIP)) IN ('ALTA CONSOLIDACION CARGA', 'ALTA CONSOLIDACION RF-68', 'CAMBIO PALET ANDEN', 'CIERRE EXPEDICION', 'CONTROL DE CARGA', 'INICIO TRASLADO RF-59', 'MODI CONSOLIDACION CARGA', 'TRASLADO A SALA DE ESPERA', 'TRASLADO RF-59') THEN 'CARGA' ELSE TRIM(A.CDESCRIP) END AS ACTIVIDAD " +
+                "FROM F132HIST A " +
+                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD') + 14/24 " +
+                "AND A.FCREAREG < TO_DATE(?, 'YYYY-MM-DD') + 1 + 14/24 " +
+                "AND A.COPECREA IS NOT NULL AND TRIM(A.CDESCRIP) IS NOT NULL " +
+                "AND UPPER(TRIM(A.CDESCRIP)) NOT IN ('ALTA CONSOLIDACION RF-67', 'ALTA CONSOLIDACION RF-93', 'BAJA CONSOLIDACION', 'ENTREGA DE EQUIPO', 'SUPERVISION PALLET RACK', 'TRANSPORTE DE PALETS', 'DEVOLUCION DE EQUIPO', 'ZUNCHADO PALLET', 'VERIFICACION PICKING', 'TRASPASO DE EQUIPO', 'SALIDA ROTOS', 'REVISION CROSS DOCK', 'MODI CONSOLIDACION RF-93') " +
+                "UNION " +
+                "SELECT DISTINCT TO_CHAR(TRUNC(A.FCREAREG - 14/24), 'YYYY-MM-DD') AS FECHA, A.COPECREA AS LEGAJO, CASE WHEN UPPER(TRIM(A.CDESCRIP)) IN ('EXTRACCION DE REAPROS', 'EXTRACCION TRASPASOS', 'GUARADO PALETS ENTRADA', 'PNC SURTIDO P.COMPLETOS', 'PNC EXTRACCION DE REAPROS', 'SURTIDO P.COMPLETOS', 'UBICACION DE REAPROS', 'UBICACION TRASPASOS') THEN 'CLARK' WHEN UPPER(TRIM(A.CDESCRIP)) IN ('FIN DESCARGA PALLETS RECEP', 'INICIO DESCARGA PALLETS RECEP', 'REVISION PALETS ENTRADA') THEN 'RECEPCION' WHEN UPPER(TRIM(A.CDESCRIP)) IN ('ALTA CONSOLIDACION CARGA', 'ALTA CONSOLIDACION RF-68', 'CAMBIO PALET ANDEN', 'CIERRE EXPEDICION', 'CONTROL DE CARGA', 'INICIO TRASLADO RF-59', 'MODI CONSOLIDACION CARGA', 'TRASLADO A SALA DE ESPERA', 'TRASLADO RF-59') THEN 'CARGA' ELSE TRIM(A.CDESCRIP) END AS ACTIVIDAD " +
+                "FROM F132HIST_HIST A " +
+                "WHERE A.FCREAREG >= TO_DATE(?, 'YYYY-MM-DD') + 14/24 " +
+                "AND A.FCREAREG < TO_DATE(?, 'YYYY-MM-DD') + 1 + 14/24 " +
+                "AND A.COPECREA IS NOT NULL AND TRIM(A.CDESCRIP) IS NOT NULL " +
+                "AND UPPER(TRIM(A.CDESCRIP)) NOT IN ('ALTA CONSOLIDACION RF-67', 'ALTA CONSOLIDACION RF-93', 'BAJA CONSOLIDACION', 'ENTREGA DE EQUIPO', 'SUPERVISION PALLET RACK', 'TRANSPORTE DE PALETS', 'DEVOLUCION DE EQUIPO', 'ZUNCHADO PALLET', 'VERIFICACION PICKING', 'TRASPASO DE EQUIPO', 'SALIDA ROTOS', 'REVISION CROSS DOCK', 'MODI CONSOLIDACION RF-93') " +
+                "ORDER BY FECHA, LEGAJO, ACTIVIDAD";
         } else if ("historia_tnc_legajo".equalsIgnoreCase(queryKey)) {
             sql =
                 "SELECT " +
@@ -2343,6 +2343,11 @@ public class OracleProductividadQuery {
                 for (int i = 0; i < legajos.length; i++) {
                     ps.setString(2 + i, legajos[i]);
                 }
+            } else if ("plantel_legajo_actividades".equalsIgnoreCase(queryKey)) {
+                ps.setString(1, fechaDesde);
+                ps.setString(2, fechaHasta);
+                ps.setString(3, fechaDesde);
+                ps.setString(4, fechaHasta);
             } else if (!"monitor_cargas".equalsIgnoreCase(queryKey) && !"picking_ubicaciones_hist".equalsIgnoreCase(queryKey) && !"tnc_master".equalsIgnoreCase(queryKey) && !"stock_cd".equalsIgnoreCase(queryKey) && !"rack_inutilizadas".equalsIgnoreCase(queryKey) && !"rrhh_presencias".equalsIgnoreCase(queryKey) && !"pv_grupo_funciones_catalogo".equalsIgnoreCase(queryKey) && !"rend_premio_escalas".equalsIgnoreCase(queryKey)) {
                 ps.setString(1, fechaDesde);
                 ps.setString(2, fechaHasta);

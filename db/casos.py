@@ -195,6 +195,23 @@ CREATE TABLE IF NOT EXISTS ticket_rack_detalle (
 );
 """
 
+CREATE_TICKET_RACK_UBICACION_GRUPO = """
+CREATE TABLE IF NOT EXISTS ticket_rack_ubicacion_grupo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id INTEGER NOT NULL REFERENCES ticket(id),
+    orden INTEGER NOT NULL DEFAULT 1,
+    zona_text TEXT NOT NULL,
+    pasillo TEXT NOT NULL,
+    cara_id INTEGER REFERENCES rack_cara(id),
+    ubicaciones TEXT NOT NULL,
+    niveles TEXT NOT NULL,
+    activo INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(ticket_id, orden)
+);
+"""
+
 CREATE_TICKET_FORMS_INGRESO = """
 CREATE TABLE IF NOT EXISTS ticket_forms_ingreso (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -294,6 +311,7 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_ticket_usuario_perfil_user ON ticket_usuario_perfil(username, tipo_codigo, activo)",
     "CREATE INDEX IF NOT EXISTS idx_ticket_forms_estado ON ticket_forms_ingreso(estado_importacion, created_at)",
     "CREATE INDEX IF NOT EXISTS idx_ticket_forms_ticket ON ticket_forms_ingreso(ticket_id)",
+    "CREATE INDEX IF NOT EXISTS idx_ticket_rack_ubicacion_ticket ON ticket_rack_ubicacion_grupo(ticket_id, activo, orden)",
 ]
 
 RACK_STATES = [
@@ -354,7 +372,7 @@ RACK_PARAMS = {
     ],
 }
 
-PERFILES = ["OPERACION", "ACTIVACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "ADMIN"]
+PERFILES = ["OPERACION", "ACTIVACION", "ADO", "MAPA_ALMACEN", "PLANEAMIENTO", "MANTENIMIENTO", "LECTURA", "ADMIN"]
 
 
 async def init_cases_db() -> None:
@@ -374,6 +392,7 @@ async def init_cases_db() -> None:
             CREATE_TICKET_PERMISO_PERFIL,
             CREATE_TICKET_USUARIO_PERFIL,
             CREATE_TICKET_RACK_DETALLE,
+            CREATE_TICKET_RACK_UBICACION_GRUPO,
             CREATE_TICKET_EVENTO_NOTIFICACION,
             CREATE_TICKET_FORMS_INGRESO,
         ]:
@@ -433,6 +452,32 @@ async def init_cases_db() -> None:
                 await db.execute(ddl)
         for statement in INDEXES:
             await db.execute(statement)
+        await db.execute(
+            """
+            INSERT OR IGNORE INTO ticket_rack_ubicacion_grupo
+                (ticket_id, orden, zona_text, pasillo, cara_id, ubicaciones, niveles, activo)
+            SELECT
+                d.ticket_id,
+                1,
+                UPPER(COALESCE(NULLIF(TRIM(d.zona_text), ''), rz.nombre, '')),
+                UPPER(TRIM(COALESCE(d.pasillo, ''))),
+                d.cara_id,
+                UPPER(TRIM(COALESCE(d.ubicaciones, ''))),
+                d.niveles,
+                1
+            FROM ticket_rack_detalle d
+            LEFT JOIN rack_zona rz ON rz.id = d.zona_id
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM ticket_rack_ubicacion_grupo g
+                WHERE g.ticket_id = d.ticket_id
+            )
+              AND UPPER(COALESCE(NULLIF(TRIM(d.zona_text), ''), rz.nombre, '')) <> ''
+              AND UPPER(TRIM(COALESCE(d.pasillo, ''))) <> ''
+              AND UPPER(TRIM(COALESCE(d.ubicaciones, ''))) <> ''
+              AND COALESCE(d.niveles, '') <> ''
+            """
+        )
         await seed_cases_db(db)
         await db.commit()
 
@@ -510,6 +555,24 @@ async def seed_cases_db(db: aiosqlite.Connection) -> None:
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         permisos,
+    )
+    await db.execute(
+        """
+        INSERT INTO ticket_permiso_perfil
+            (tipo_id, perfil, puede_crear, puede_ver_todos, puede_ver_sector, puede_editar,
+             puede_comentar, puede_adjuntar, puede_exportar, activo)
+        VALUES (?, 'LECTURA', 0, 1, 1, 0, 0, 0, 1, 1)
+        ON CONFLICT(tipo_id, perfil) DO UPDATE SET
+            puede_crear=0,
+            puede_ver_todos=1,
+            puede_ver_sector=1,
+            puede_editar=0,
+            puede_comentar=0,
+            puede_adjuntar=0,
+            puede_exportar=1,
+            activo=1
+        """,
+        (tipo_id,),
     )
     await db.execute(
         """

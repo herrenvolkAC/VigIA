@@ -42,6 +42,12 @@ REAL_SANCIONES = (
 REAL_SANCION_CODES = ("03", "97", "98", "99")
 
 
+def _historia_actividad_enabled() -> bool:
+    return os.getenv("HISTORIA_ACTIVIDAD_ENABLED", "0").strip().lower() in {
+        "1", "true", "yes", "on"
+    }
+
+
 def _norm_legajo(value: Any) -> str:
     text = str(value or "").strip()
     return text.lstrip("0") or text
@@ -951,6 +957,8 @@ async def buscar_legajos(q: str = Query("", min_length=1), limit: int = Query(12
 
 @router.get("/actividad-sync/status")
 async def actividad_sync_status() -> dict[str, Any]:
+    if not _historia_actividad_enabled():
+        return {"enabled": False, "status": "disabled", "detail": "Historia de actividad deshabilitada."}
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         db.row_factory = aiosqlite.Row
@@ -997,6 +1005,8 @@ async def actividad_sync_status() -> dict[str, Any]:
 
 @router.post("/actividad-sync/run")
 async def actividad_sync_run(force_window: bool = Query(False)) -> dict[str, Any]:
+    if not _historia_actividad_enabled():
+        raise HTTPException(status_code=410, detail="Historia de actividad deshabilitada.")
     return await run_actividad_operaciones_sync_once(trigger="manual", force_window=force_window)
 
 
@@ -1006,6 +1016,8 @@ async def historia_legajo(
     fecha_desde: date = Query(date(2026, 1, 1)),
     fecha_hasta: date = Query(default_factory=date.today),
 ) -> dict[str, Any]:
+    if not _historia_actividad_enabled():
+        raise HTTPException(status_code=410, detail="Historia de actividad deshabilitada.")
     legajo_norm = _norm_legajo(legajo)
     if fecha_desde > fecha_hasta:
         raise HTTPException(status_code=400, detail="El rango de fechas es invalido: desde no puede ser mayor que hasta.")

@@ -27,6 +27,7 @@
     .dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.chart-panel,.text-panel{background:var(--panel);border:1px solid var(--rule);min-height:280px;padding:12px;display:flex;flex-direction:column;min-width:0}.text-panel{min-height:0}.chart-title{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.chart-title strong{font-weight:600}.chart-title span{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
     .tendencia-controls{display:grid;grid-template-columns:180px 260px 1fr;gap:12px;align-items:end;margin:12px 0}.tendencia-series,.simple-series{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;align-items:center}.tendencia-series label,.simple-series label{border:1px solid var(--rule);background:var(--panel);padding:7px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;white-space:nowrap}.tendencia-series input,.simple-series input{accent-color:var(--green);margin-right:5px}.tendencia-grid,.tendencia-simple-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tendencia-grid .executive-wide{grid-column:1/-1}.chart-with-insight{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:12px;align-items:stretch}.chart-with-insight.executive-wide{grid-column:1/-1}.tendencia-insight{border-top:3px solid var(--blue);background:var(--panel);padding:12px 14px;font-size:12px;line-height:1.45;color:var(--ink)}.tendencia-insight h4{margin:0 0 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--blue)}.tendencia-insight p{margin:0 0 8px}.tendencia-insight ul{margin:0 0 8px;padding-left:17px}.tendencia-insight li{margin:0 0 5px}.tendencia-insight .insight-caveat{border-top:1px solid var(--rule);padding-top:8px;color:var(--ink-soft);font-size:11px}.tendencia-chart{width:100%;height:270px}.tendencia-chart svg{width:100%;height:270px;display:block}.tendencia-chart .grid{stroke:var(--rule);stroke-width:1}.tendencia-chart .axis{stroke:var(--rule-strong);stroke-width:1}.tendencia-chart .line{fill:none;stroke-width:2.5}.tendencia-chart .dot{stroke:var(--panel);stroke-width:2}.tendencia-chart text{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.tendencia-chart .value{fill:var(--ink);font-size:9px}.tendencia-chart-note{font-size:11px;color:var(--ink-soft);margin-top:5px}.tendencia-empty{padding:30px 10px;color:var(--ink-soft);border-left:3px solid var(--amber);background:var(--amber-soft)}
     .tendencia-simple-card{grid-column:1/-1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:12px}.tendencia-simple-card .chart-panel{width:100%;min-width:0}.tendencia-simple-card .tendencia-insight{width:100%;box-sizing:border-box}.tendencia-simple-card [id^="chart-tendencia-"]{width:100%!important;min-width:0;display:block;flex:1 1 auto}.tendencia-simple-card [id^="chart-tendencia-"] .tendencia-chart,.tendencia-simple-card [id^="chart-tendencia-"] .tendencia-chart svg{width:100%!important;max-width:none;min-width:100%;align-self:stretch}.simple-series{margin:8px 0 2px}.simple-series label{cursor:pointer}.simple-series label:hover{border-color:var(--blue)}
+    .cambio-escalas-controls{grid-template-columns:repeat(3,minmax(0,1fr));align-items:end}.cambio-bar-chart{display:grid;gap:10px;margin-top:10px}.cambio-bar-row{display:grid;grid-template-columns:145px 1fr 90px;gap:8px;align-items:center;font-size:11px}.cambio-bar-track{height:18px;background:#edf1ee}.cambio-bar-fill{height:100%;background:var(--green)}.cambio-bar-fill.new{background:var(--blue)}.cambio-bar-fill.delta{background:var(--amber)}
     .bars{display:flex;flex-direction:column;gap:9px}.bar-row{display:grid;grid-template-columns:minmax(112px,1fr) minmax(120px,2fr) 82px;gap:8px;align-items:center;font-size:12px}.bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:14px;background:#EAEEEB;position:relative}.bar-fill{height:100%;background:var(--green);min-width:2px}.bar-fill.blue{background:var(--blue)}.bar-fill.amber{background:var(--amber)}.bar-fill.bad{background:var(--red)}.bar-value{font-family:'IBM Plex Mono',monospace;text-align:right;color:var(--ink-soft)}
     .evolution-panel{min-height:320px;margin-top:14px}.evolution-wrap{overflow:auto}.line-chart{width:100%;min-width:900px;height:250px;overflow:visible}.line-chart .axis{stroke:var(--rule-strong);stroke-width:1}.line-chart .grid{stroke:var(--rule);stroke-width:1;opacity:.75}.line-chart .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink-soft)}.line-chart polyline{fill:none;stroke-width:2.2}.line-chart polyline.ok{stroke:var(--green)}.line-chart polyline.blue{stroke:var(--blue)}.line-chart polyline.amber{stroke:var(--amber)}.line-chart polyline.red{stroke:var(--red)}.line-chart circle.ok{fill:var(--green)}.line-chart circle.blue{fill:var(--blue)}.line-chart circle.amber{fill:var(--amber)}.line-chart circle.red{fill:var(--red)}.line-chart .point{cursor:pointer}.line-chart .point-hit{fill:transparent;stroke:transparent}.line-chart .point-label{opacity:0;font-family:'IBM Plex Mono',monospace;font-size:10px;fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.line-chart .point:hover .point-label{opacity:1}.chart-legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}.legend-dot{display:inline-block;width:18px;height:3px;margin-right:5px;vertical-align:middle;background:var(--green)}.legend-dot.blue{background:var(--blue)}.legend-dot.amber{background:var(--amber)}.legend-dot.red{background:var(--red)}
     .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);margin-top:12px}.paper-table th{position:sticky;top:0;z-index:3;background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 10px;box-shadow:0 1px 0 var(--rule)}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--blue);background:#EEF4F0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 10px;font-size:12px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}.table-wrap{overflow:auto;max-height:540px}.pill{display:inline-block;padding:3px 6px;border:1px solid #C8E2D0;background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px}.pill.warn{border-color:#E1BF76;background:var(--amber-soft);color:#6F4300}.pill.bad{border-color:#E8A0AA;background:var(--red-soft);color:var(--red)}
@@ -80,6 +81,7 @@
       <button class="tab-btn" data-tab="propuesta-autonoma">Premio individual</button>
       <button class="tab-btn" data-tab="analisis-operaciones">Análisis general</button>
       <button class="tab-btn" data-tab="tendencia-operativa">Tendencia</button>
+      <button class="tab-btn" data-tab="cambio-escalas">Cambio de escalas</button>
     </div>
     <details class="audit-tabs">
       <summary>Histórico / Auditoría — versiones previas conservadas</summary>
@@ -106,6 +108,7 @@
       <button class="tab-btn" data-tab="propuesta-autonoma">Premio individual</button>
       <button class="tab-btn" data-tab="analisis-operaciones">Análisis general</button>
       <button class="tab-btn" data-tab="tendencia-operativa">Tendencia</button>
+      <button class="tab-btn" data-tab="cambio-escalas">Cambio de escalas</button>
       <button class="tab-btn" data-tab="detalle">Datos</button>
       <button class="tab-btn" data-tab="cache">Metodologia/cache</button>
     </div>
@@ -401,6 +404,26 @@
     </section>
   </section>
 
+  <section class="paper-panel" id="panel-cambio-escalas">
+    <div class="group-head-actions">
+      <div><div class="chart-title"><strong>Estudio de cambio de escalas · CARGA</strong><span>Agosto 2026 · cerrado al 30/08</span></div></div>
+      <button class="primary-cta" id="cambio-escalas-consultar" type="button">Consultar / recalcular</button>
+    </div>
+    <p class="muted" style="margin:10px 0">Simula únicamente el pago de CARGA. El pago por otras tareas se conserva para mostrar el impacto total por legajo.</p>
+    <section class="summary-filters cambio-escalas-controls">
+      <div class="field"><label class="label" for="cambio-escalas-desde">Umbral desde · actual 247</label><input class="paper-input" id="cambio-escalas-desde" type="number" min="0" step="0.01" value="247"></div>
+      <div class="field"><label class="label" for="cambio-escalas-hasta">Umbral hasta · actual 284</label><input class="paper-input" id="cambio-escalas-hasta" type="number" min="0" step="0.01" value="284"></div>
+      <div class="field"><label class="label">Monto escala</label><div class="paper-input" style="background:#f5f7f5">$ 9.184,72 · fijo</div></div>
+    </section>
+    <section class="kpi-row kpi-row-5" id="kpis-cambio-escalas"></section>
+    <section class="data-grid">
+      <article class="data-panel"><div class="chart-title"><strong>Impacto del escenario</strong><span id="cambio-escalas-meta">sin consultar</span></div><div id="chart-cambio-escalas"></div></article>
+      <article class="data-panel"><div class="chart-title"><strong>Resultado por legajo</strong><span>carga + otras tareas</span></div><div class="table-wrap"><table class="paper-table" id="tabla-cambio-escalas"></table></div></article>
+    </section>
+    <article class="data-panel" style="margin-top:12px"><div class="chart-title"><strong>Detalle diario del legajo</strong><span id="cambio-escalas-detalle-title">Hacé clic en un legajo</span></div><div class="table-wrap"><table class="paper-table" id="tabla-cambio-escalas-detalle"></table></div></article>
+  </section>
+
+
   <section class="paper-panel" id="panel-estudio">
     <section class="kpi-row" id="kpis-estudio"></section>
     <section class="summary-filters">
@@ -518,7 +541,6 @@
       Object.entries(GROUP_FIXED_BY_DIVISION_DEFAULTS).map(([division, value]) => [`${operacion}|${division}`, value])
     )
   );
-  const state = {activeTab:'tabla-premios', propuestaAutonomaView:'bultos', escenarioAumentoTabla:0, escenarioBolsaGrupal:10000000, escenarioBolsaAdicional:0, scenarioSectors:[], scenarioResult:null, scenarioLoading:false, hasConsulted:false, loading:false, evaluacionPickingLoading:false, calculoPagoGrupalLoading:false, punto0Loading:false, loadError:'', fechaDesde:'', fechaHasta:'', operacion:'PICKING', almacen:'TODOS', loadGeneration:0, tabLoadKeys:{}, tabPromises:{}, tabAbortControllers:{}, tabNavigationGeneration:0, ausenciaCatalogo:[], ausenciasNoComputables:['VACAC','FRANCO'], ausenciaScenarioPending:[], resumenRows:[], detalleResumenRows:[], detalleRows:[], detalleGridRows:[], detalleGridTotal:0, groupFixedDaily:{...GROUP_FIXED_DEFAULTS}, groupMarginPct:90, groupBonusRows:[], groupFilters:{almacen:'TODOS', fecha:'', legajo:''}, groupLegajoSelected:'', estudio:null, estudioFilters:{sector:[], estado:'', tipo:'', texto:''}, estudioOperacionSelected:null, estudioEnabled:false, tablaPremios:null, evaluacionPicking:null, evaluacionPickingLegajoFilter:'', evaluacionPickingSelected:'', evaluacionPickingDaySelected:'', evaluacionPickingHourSelected:'', calculoPagoGrupal:null, punto0:null, operacionesGeneral:null, operacionesGeneralSelected:'', operacionesGeneralView:'medibles', tendenciaOperativa:null, tendenciaLoading:false, tendenciaSeries:new Set(['legajos','prod_real','eq_total','pct_eq_sobre_real','pct_eq_sector_sobre_real','pct_eq_traslado_sobre_real','pct_eq_consol_sobre_real','pct_premio']), operacionesGeneralAdjustments:{'PICKING|BULTO|B1':30,'PICKING|BULTO|AM':30,'PICKING|BULTO|PI':30,'PICKING|BULTO|N1':30,'PICKING|BULTO|VA':30}, calculoPagoGrupalSectorSelected:'', calculoPagoGrupalSelectedDate:'', calculoPagoGrupalLegajoSelected:'', sorts:{}, explicacion:null};
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const fmt = value => new Intl.NumberFormat('es-AR', {maximumFractionDigits:2}).format(Number(value || 0));
   const money = value => '$ ' + fmt(value);
@@ -622,10 +644,11 @@
     const isPunto0 = tab === 'punto0';
     const isAnalisisOperaciones = tab === 'analisis-operaciones';
     const isTendencia = tab === 'tendencia-operativa';
-    $('main-filters').classList.toggle('hidden', isTendencia);
+    const isCambioEscalas = tab === 'cambio-escalas';
+    $('main-filters').classList.toggle('hidden', isTendencia || isCambioEscalas);
     $('main-filters').classList.toggle('study-mode', isStudy);
     ['rango-desde','rango-hasta'].forEach(id => $(id)?.closest('.field')?.classList.toggle('hidden', isTablaPremios));
-    document.querySelectorAll('.scenario-filter').forEach(el => el.classList.toggle('hidden', isStudy || isTablaPremios || isEvaluacionPicking || isCalculoPagoGrupal || isPropuestaAutonoma || isPunto0 || isAnalisisOperaciones || isTendencia));
+    document.querySelectorAll('.scenario-filter').forEach(el => el.classList.toggle('hidden', isStudy || isTablaPremios || isEvaluacionPicking || isCalculoPagoGrupal || isPropuestaAutonoma || isPunto0 || isAnalisisOperaciones || isTendencia || isCambioEscalas));
     $('scope-label').textContent = isStudy ? 'Estudio transversal' : isTablaPremios ? 'Foto de escalas' : isEvaluacionPicking ? 'Evaluación local' : isAnalisisOperaciones ? 'Análisis general' : 'Ciclo diario';
     $('scope-text').textContent = isStudy
       ? 'Rango calendario contra Oracle Productiv. No aplica operacion, division ni escenario horario.'
@@ -633,6 +656,7 @@
       : isEvaluacionPicking ? 'Bultos reales por hora y sector. Se consulta Oracle sólo para días aún no cargados.'
       : isAnalisisOperaciones ? 'Julio: caché de pagos actuales y simulación por unidad logística efectiva.'
       : isTendencia ? 'Serie mensual desde enero de 2024. Consulta separada de liquidación y producción.'
+      : isCambioEscalas ? 'Agosto 2026 cerrado al 30/08. El análisis usa una consulta propia de CARGA y otras tareas.'
       : 'Incluye ambos extremos - 06:00 a 06:00 - siempre desde cache';
   }
   async function setupDefaultCachedDate(){
@@ -803,6 +827,14 @@
         const index = Array.from(tr.parentElement.children).indexOf(tr);
         const row = data[index];
         seleccionarEstudioOperacion(row);
+      };
+    });
+    $(id).querySelectorAll('[data-action="cambio-escalas-detalle"]').forEach(btn => {
+      btn.onclick = event => {
+        event.stopPropagation();
+        const tr = btn.closest('tr');
+        const index = Array.from(tr.parentElement.children).indexOf(tr);
+        renderCambioEscalasDetalle(data[index]);
       };
     });
     if (id === 'tabla-estudio-operacion') {
@@ -1620,6 +1652,32 @@
     $('propuesta-tab-horas').onclick=()=>{state.propuestaAutonomaView='horas';renderPropuestaResumen(state.propuestaRows||[]);renderPropuestaAutonomaAlternatives();};
   }
 
+  function renderCambioEscalas(data){
+    const s=data.summary||{}; const meta=data.meta||{}; const rows=data.rows||[];
+    const simulado=Boolean(meta.simular);
+    $('cambio-escalas-meta').textContent=`${meta.fecha_desde||''} a ${meta.fecha_hasta||''} · ${fmt(s.legajos)} legajos`;
+    $('kpis-cambio-escalas').innerHTML=[
+      kpi('Nuevos cobros CARGA',fmt(s.nuevos_cobros),'Legajos que no cobraban CARGA y comenzarían a cobrar.'),
+      kpi('Aumentan CARGA',fmt(s.aumentan),'Legajos con mayor pago de CARGA.'),
+      kpi('Carga actual',money(s.carga_actual),'Suma actual del componente CARGA.'),
+      kpi('Nuevo escenario',simulado?money(s.carga_simulada):'No ejecutada',simulado?'Suma con el nuevo umbral.':'Ingresá un nuevo umbral para simular.','ok'),
+      kpi('Impacto en CARGA',simulado?money(s.diferencia_carga):'No ejecutada',simulado?'Diferencia contra el pago real actual.':'Sin escenario alternativo.',simulado?(s.diferencia_carga>=0?'ok':'bad'):'warn'),
+      kpi('Impacto total',simulado?money(s.diferencia_total):'No ejecutada',simulado?'CARGA + otras tareas.':'Sin escenario alternativo.',simulado?(s.diferencia_total>=0?'ok':'bad'):'warn')
+    ].join('');
+    if(!simulado){ $('chart-cambio-escalas').innerHTML='<p class="muted">Consulta base realizada. No se ejecutó ningún escenario alternativo.</p>'; }
+    else { const chartRows=[['Sin pago CARGA',s.sin_pago_carga,'#9CA3AF'],['Nuevos cobros',s.nuevos_cobros,'#0B5FAE'],['Aumentan CARGA',s.aumentan,'#1F7A4D'],['Sin cambio',s.sin_cambio,'#D89B00']]; const max=Math.max(1,...chartRows.map(x=>Number(x[1]||0))); $('chart-cambio-escalas').innerHTML=`<div class="cambio-bar-chart">${chartRows.map(([label,value,color])=>`<div class="cambio-bar-row"><span>${esc(label)}</span><div class="cambio-bar-track"><div class="cambio-bar-fill" style="width:${Math.min(100,Number(value||0)*100/max)}%;background:${color}"></div></div><strong>${fmt(value)}</strong></div>`).join('')}</div><p class="muted" style="margin-top:12px">Pago real CARGA: <strong>${money(s.carga_actual)}</strong> · nuevo escenario: <strong>${money(s.carga_simulada)}</strong> · impacto: <strong>${money(s.diferencia_carga)}</strong>. Otras tareas permanecen sin cambios.</p>`; }
+    const columns=[{key:'legajo',label:'Legajo',mono:true,w:'80px',link:'cambio-escalas-detalle'}, {key:'estado',label:'Resultado'}, {key:'carga_actual',label:'Carga actual',money:true}, {key:'otras_tareas',label:'Otras tareas',money:true}, {key:'total_actual',label:'Total actual',money:true}]; if(simulado) columns.push({key:'carga_simulada',label:'Carga nueva',money:true},{key:'total_simulado',label:'Total nuevo',money:true},{key:'diferencia',label:'Impacto total',money:true});
+    table('tabla-cambio-escalas',columns,rows,{maxRows:1000});
+  }
+  function renderCambioEscalasDetalle(row){
+    const detalle=row?.detalle||[]; $('cambio-escalas-detalle-title').textContent=row?.legajo?`Legajo ${row.legajo} · ${fmt(detalle.length)} registros diarios`:'Hacé clic en un legajo';
+    table('tabla-cambio-escalas-detalle',[{key:'fecha',label:'Fecha',mono:true},{key:'operacion',label:'Operación'},{key:'objetivo_produccion_8hs',label:'Obj. prod. 8 hs',num:true},{key:'nivel',label:'Nivel',num:true},{key:'pago_actual',label:'Pago actual',money:true}],detalle,{maxRows:1000});
+  }
+  async function loadCambioEscalas(){
+    const button=$('cambio-escalas-consultar'); if(state.cambioEscalasLoading) return; state.cambioEscalasLoading=true; button.disabled=true; button.textContent='Consultando...'; setStatus('Consultando pagos reales de CARGA y otras tareas en Oracle...');
+    try { const rawDesde=$('cambio-escalas-desde').value.trim(); const rawHasta=$('cambio-escalas-hasta').value.trim(); const desde=Number(rawDesde||247); const hasta=Number(rawHasta||284); const simular=desde!==247 || hasta!==284; const data=await api('/api/analisis-premio-productividad/cambio-escalas?'+qs({fecha_desde:'2026-08-01',fecha_hasta:'2026-08-30',umbral_desde:desde,umbral_hasta:hasta,simular})); state.cambioEscalas=data; renderCambioEscalas(data); setStatus(simular?`Escenario simulado: ${fmt(data.summary?.legajos)} legajos evaluados.`:`Consulta base actualizada: ${fmt(data.summary?.legajos)} legajos evaluados.`); }
+    finally {state.cambioEscalasLoading=false; button.disabled=false; button.textContent='Consultar / recalcular';}
+  }
   async function loadEstudio(){
     if (!state.estudioEnabled) {
       setStatus('Solapa de estudio no habilitada para este usuario.', true);
@@ -3863,7 +3921,12 @@
       else renderTendencia(state.tendenciaOperativa);
       return;
     }
-    if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0','analisis-operaciones','tendencia-operativa'].includes(tab)) {
+    if (tab === 'cambio-escalas') {
+      if (state.cambioEscalas) renderCambioEscalas(state.cambioEscalas);
+      else setStatus('Presioná “Consultar Oracle” para evaluar agosto de 2026.');
+      return;
+    }
+    if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0','analisis-operaciones','tendencia-operativa','cambio-escalas'].includes(tab)) {
       state.activeTab = tab;
       setStatus('Sin consulta ejecutada. Ajustá los filtros y presioná Consultar para cargar datos.');
       return;
@@ -3876,6 +3939,7 @@
     if (tab === 'grupal') await loadPremioGrupal();
     if (tab === 'grupal-legajos') await loadPremioGrupalLegajos();
     if (tab === 'estudio') await loadEstudio();
+    if (tab === 'cambio-escalas') await loadCambioEscalas();
     if (tab === 'detalle') await loadDetalle();
     if (tab === 'cache') await loadCache();
     if (state.activeTab !== tab) return;
@@ -3889,7 +3953,7 @@
     $(`panel-${tab}`).classList.add('active');
     state.activeTab = tab;
     updateGlobalFiltersForTab(tab);
-    if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0','analisis-operaciones','tendencia-operativa'].includes(tab)) {
+    if (!state.hasConsulted && !['tabla-premios','evaluacion-picking','propuesta-autonoma','calculo-pago-grupal','punto0','analisis-operaciones','tendencia-operativa','cambio-escalas'].includes(tab)) {
       setStatus('Sin consulta ejecutada. Ajustá los filtros y presioná Consultar para cargar datos.');
       return;
     }
@@ -4006,6 +4070,7 @@
   $('tendencia-exportar-pdf').onclick = () => {
     try { exportarTendenciaPdf(); } catch (e) { setStatus(e.message, true); }
   };
+  $('cambio-escalas-consultar').onclick = () => loadCambioEscalas().catch(e => setStatus(e.message, true));
   $('editar-fijos-grupal').onclick = abrirFijosGrupal;
   $('cerrar-fijos-grupal').onclick = cerrarFijosGrupal;
   $('aplicar-fijos-grupal').onclick = aplicarFijosGrupal;

@@ -52,6 +52,18 @@ SQLITE_BUSY_TIMEOUT_MS = SQLITE_BUSY_TIMEOUT_SECONDS * 1000
 JAVA_HELPER_SRC = Path(__file__).parent.parent / "scripts" / "OracleProductividadQuery.java"
 JAVA_BUILD_DIR = Path(__file__).parent.parent / ".codex_tmp" / "java_build"
 RACK_PARAM_TABLES = {"rack_zona", "rack_cara", "rack_nivel", "rack_sector", "rack_descripcion", "rack_tipo"}
+RACK_RECTIFICABLE_STATES = {"REGISTRADO", "PENDIENTE_VALIDACION", "REQUIERE_CORRECCION", "PENDIENTE_TRASPASOS"}
+RACK_RECTIFICABLE_PROFILES = {"ADO", "MAPA", "MAPA_ALMACEN", "ADMIN"}
+RACK_MAINTENANCE_TAKE_RESOLVE_STATES = {
+    "REGISTRADO",
+    "PENDIENTE_VALIDACION",
+    "REQUIERE_CORRECCION",
+    "PENDIENTE_TRASPASOS",
+    "TRASPASOS_ASIGNADOS",
+    "POSICION_BLOQUEADA",
+    "EN_REPARACION",
+}
+RACK_MAP_RETURN_MAINTENANCE_STATES = {"REPARADO", "PENDIENTE_HABILITACION"}
 _FORMS_IMPORT_TASK: asyncio.Task | None = None
 COMMON_PARAM_COLUMNS = {
     "ticket_tipo": {"codigo", "nombre", "descripcion", "activo"},
@@ -65,18 +77,37 @@ COMMON_PARAM_COLUMNS = {
 }
 
 
-class RackNuevoRequest(BaseModel):
+class RackUbicacionGrupoRequest(BaseModel):
     zona_text: str
     pasillo: str
     cara_id: int
     ubicaciones: str
     niveles: list[int]
+
+
+class RackNuevoRequest(BaseModel):
+    zona_text: str = ""
+    pasillo: str = ""
+    cara_id: int = 0
+    ubicaciones: str = ""
+    niveles: list[int] = []
+    ubicacion_grupos: list[RackUbicacionGrupoRequest] = []
     sector_rack_id: int
     descripcion_rack_id: int
     criticidad_id: int
     tipo_rack_id: int
     comentario_operativo: str = ""
     fotografias: list[dict[str, str]] = []
+
+
+class RackUbicacionesRectificarRequest(BaseModel):
+    zona_text: str = ""
+    pasillo: str = ""
+    cara_id: int = 0
+    ubicaciones: str = ""
+    niveles: list[int] = []
+    ubicacion_grupos: list[RackUbicacionGrupoRequest] = []
+    comentario: str
 
 
 class ComentarioRequest(BaseModel):
@@ -94,6 +125,14 @@ class CambioEstadoRequest(BaseModel):
     relevamiento_mapa: str = ""
     reetiquetado_requerido: bool = False
     rehabilitacion_wms_confirmada: bool = False
+
+
+class MantenimientoTomarResolverRequest(BaseModel):
+    solucion: str
+
+
+class MapaDevolverMantenimientoRequest(BaseModel):
+    motivo: str
 
 
 class AdjuntoRequest(BaseModel):
@@ -273,6 +312,34 @@ async def _tipo_id(db: aiosqlite.Connection, codigo: str = "REPARACION_RACK") ->
     return int(row["id"])
 
 
+def _can_rectify_rack_locations(ticket: dict[str, Any], perfil: str) -> bool:
+    estado = str(ticket.get("estado_codigo") or "").upper()
+    perfil_actual = str(perfil or "").upper()
+    return (
+        ticket.get("tipo_codigo") == "REPARACION_RACK"
+        and estado in RACK_RECTIFICABLE_STATES
+        and (perfil_actual in RACK_RECTIFICABLE_PROFILES or (perfil_actual == "OPERACION" and estado == "REQUIERE_CORRECCION"))
+    )
+
+
+def _can_maintenance_take_resolve(ticket: dict[str, Any], perfil: str) -> bool:
+    return (
+        ticket.get("tipo_codigo") == "REPARACION_RACK"
+        and not int(ticket.get("es_final") or 0)
+        and str(ticket.get("estado_codigo") or "").upper() in RACK_MAINTENANCE_TAKE_RESOLVE_STATES
+        and str(perfil or "").upper() in {"MANTENIMIENTO", "ADMIN"}
+    )
+
+
+def _can_map_return_to_maintenance(ticket: dict[str, Any], perfil: str) -> bool:
+    return (
+        ticket.get("tipo_codigo") == "REPARACION_RACK"
+        and not int(ticket.get("es_final") or 0)
+        and str(ticket.get("estado_codigo") or "").upper() in RACK_MAP_RETURN_MAINTENANCE_STATES
+        and str(perfil or "").upper() in {"MAPA", "MAPA_ALMACEN", "ADMIN"}
+    )
+
+
 async def _permiso(db: aiosqlite.Connection, tipo_id: int, perfil: str) -> dict[str, Any]:
     row = await _fetch_one(
         db,
@@ -283,13 +350,18 @@ async def _permiso(db: aiosqlite.Connection, tipo_id: int, perfil: str) -> dict[
         """,
         (tipo_id, perfil),
     )
-    if not row and perfil != "ADMIN":
+    if not row and perfil not in {"ADMIN", "LECTURA"}:
         row = await _fetch_one(
             db,
             "SELECT * FROM ticket_permiso_perfil WHERE tipo_id = ? AND perfil = 'OPERACION' AND activo = 1",
             (tipo_id,),
         )
     return row or {}
+
+
+def _ensure_write_profile(perfil: str) -> None:
+    if str(perfil or "").upper() == "LECTURA":
+        raise HTTPException(status_code=403, detail="El perfil LECTURA solo permite visualizar informacion.")
 
 
 async def _historial(
@@ -673,6 +745,290 @@ def _split_position_parts(value: Any) -> list[str]:
     return [part for part in re.split(r"[^A-Z0-9]+", str(value or "").strip().upper()) if part]
 
 
+def _clean_operational_comment(value: Any) -> str:
+    return re.sub(r"\s*Adjuntos Forms:[\s\S]*$", "", str(value or ""), flags=re.IGNORECASE).strip()
+
+
+def _model_to_dict(value: Any) -> dict[str, Any]:
+    if hasattr(value, "model_dump"):
+        return value.model_dump()
+    if hasattr(value, "dict"):
+        return value.dict()
+    return dict(value or {})
+
+
+def _legacy_location_group(source: Any) -> dict[str, Any]:
+    data = _model_to_dict(source)
+    return {
+        "zona_text": data.get("zona_text"),
+        "pasillo": data.get("pasillo"),
+        "cara_id": data.get("cara_id"),
+        "ubicaciones": data.get("ubicaciones"),
+        "niveles": data.get("niveles") or [],
+    }
+
+
+async def _normalize_rack_location_groups(db: aiosqlite.Connection, raw_groups: list[Any]) -> list[dict[str, Any]]:
+    groups: list[dict[str, Any]] = []
+    if not raw_groups:
+        raise HTTPException(status_code=400, detail="Carga al menos un grupo de ubicaciones.")
+    for raw in raw_groups:
+        data = _model_to_dict(raw)
+        zona_text = " ".join(str(data.get("zona_text") or "").split()).upper()
+        if not zona_text:
+            raise HTTPException(status_code=400, detail="Zona obligatoria.")
+        pasillo = _validate_pasillo(str(data.get("pasillo") or ""))
+        ubicaciones = _validate_ubicaciones(str(data.get("ubicaciones") or ""))
+        cara_id = int(data.get("cara_id") or 0)
+        if not await _fetch_one(db, "SELECT id FROM rack_cara WHERE id = ? AND activo = 1", (cara_id,)):
+            raise HTTPException(status_code=400, detail="Cara invalida.")
+        niveles: list[int] = []
+        for nivel in data.get("niveles") or []:
+            try:
+                nivel_id = int(nivel)
+            except (TypeError, ValueError):
+                raise HTTPException(status_code=400, detail="Nivel invalido.")
+            if nivel_id not in niveles:
+                niveles.append(nivel_id)
+        if not niveles:
+            raise HTTPException(status_code=400, detail="Selecciona al menos un nivel afectado.")
+        placeholders = ",".join("?" for _ in niveles)
+        niveles_rows = await _fetch_all(
+            db,
+            f"SELECT id FROM rack_nivel WHERE id IN ({placeholders}) AND activo = 1",
+            tuple(niveles),
+        )
+        if len(niveles_rows) != len(niveles):
+            raise HTTPException(status_code=400, detail="Niveles invalidos.")
+        groups.append(
+            {
+                "orden": len(groups) + 1,
+                "zona_text": zona_text,
+                "pasillo": pasillo,
+                "cara_id": cara_id,
+                "ubicaciones": ubicaciones,
+                "niveles": niveles,
+                "niveles_json": json.dumps(niveles),
+            }
+        )
+    return groups
+
+
+def _rack_case_title(groups: list[dict[str, Any]]) -> str:
+    if not groups:
+        return "Reparacion de rack"
+    first = groups[0]
+    if len(groups) == 1:
+        return f"Reparacion de rack Z{first['zona_text']} P{first['pasillo']} U{first['ubicaciones']}"
+    zonas = list(dict.fromkeys(str(group["zona_text"]).upper() for group in groups))
+    suffix = ", ".join(zonas[:3])
+    if len(zonas) > 3:
+        suffix = f"{suffix}, +{len(zonas) - 3}"
+    return f"Reparacion de rack multizona Z{suffix}"
+
+
+async def _insert_rack_location_groups(db: aiosqlite.Connection, ticket_id: int, groups: list[dict[str, Any]]) -> None:
+    await db.executemany(
+        """
+        INSERT INTO ticket_rack_ubicacion_grupo
+            (ticket_id, orden, zona_text, pasillo, cara_id, ubicaciones, niveles, activo, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+        """,
+        [
+            (
+                ticket_id,
+                group["orden"],
+                group["zona_text"],
+                group["pasillo"],
+                group["cara_id"],
+                group["ubicaciones"],
+                group["niveles_json"],
+                _now(),
+            )
+            for group in groups
+        ],
+    )
+
+
+async def _replace_rack_location_groups(db: aiosqlite.Connection, ticket_id: int, groups: list[dict[str, Any]]) -> None:
+    existing = await _fetch_all(db, "SELECT id, orden FROM ticket_rack_ubicacion_grupo WHERE ticket_id = ?", (ticket_id,))
+    by_order = {int(row["orden"]): int(row["id"]) for row in existing}
+    now = _now()
+    used_orders = set()
+    for group in groups:
+        orden = int(group["orden"])
+        used_orders.add(orden)
+        params = (
+            group["zona_text"],
+            group["pasillo"],
+            group["cara_id"],
+            group["ubicaciones"],
+            group["niveles_json"],
+            now,
+        )
+        if orden in by_order:
+            await db.execute(
+                """
+                UPDATE ticket_rack_ubicacion_grupo
+                SET zona_text=?, pasillo=?, cara_id=?, ubicaciones=?, niveles=?, activo=1, updated_at=?
+                WHERE id=?
+                """,
+                (*params, by_order[orden]),
+            )
+        else:
+            await db.execute(
+                """
+                INSERT INTO ticket_rack_ubicacion_grupo
+                    (ticket_id, orden, zona_text, pasillo, cara_id, ubicaciones, niveles, activo, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+                """,
+                (
+                    ticket_id,
+                    orden,
+                    group["zona_text"],
+                    group["pasillo"],
+                    group["cara_id"],
+                    group["ubicaciones"],
+                    group["niveles_json"],
+                    now,
+                ),
+            )
+    if existing:
+        placeholders = ",".join("?" for _ in used_orders) or "NULL"
+        await db.execute(
+            f"""
+            UPDATE ticket_rack_ubicacion_grupo
+            SET activo=0, updated_at=?
+            WHERE ticket_id=? AND orden NOT IN ({placeholders})
+            """,
+            (now, ticket_id, *used_orders),
+        )
+
+
+async def _sync_legacy_rack_location(db: aiosqlite.Connection, ticket_id: int, groups: list[dict[str, Any]]) -> None:
+    if not groups:
+        return
+    first = groups[0]
+    await db.execute(
+        """
+        UPDATE ticket_rack_detalle
+        SET zona_text=?, pasillo=?, cara_id=?, ubicaciones=?, niveles=?
+        WHERE ticket_id=?
+        """,
+        (
+            first["zona_text"],
+            first["pasillo"],
+            first["cara_id"],
+            first["ubicaciones"],
+            first["niveles_json"],
+            ticket_id,
+        ),
+    )
+
+
+async def _fetch_rack_location_groups(
+    db: aiosqlite.Connection,
+    ticket_id: int,
+    legacy_rack: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    rows = await _fetch_all(
+        db,
+        """
+        SELECT g.*, rc.nombre cara
+        FROM ticket_rack_ubicacion_grupo g
+        LEFT JOIN rack_cara rc ON rc.id = g.cara_id
+        WHERE g.ticket_id = ? AND g.activo = 1
+        ORDER BY g.orden, g.id
+        """,
+        (ticket_id,),
+    )
+    if not rows and legacy_rack:
+        rows = [
+            {
+                "id": None,
+                "ticket_id": ticket_id,
+                "orden": 1,
+                "zona_text": legacy_rack.get("zona_text") or legacy_rack.get("zona"),
+                "pasillo": legacy_rack.get("pasillo"),
+                "cara_id": legacy_rack.get("cara_id"),
+                "cara": legacy_rack.get("cara"),
+                "ubicaciones": legacy_rack.get("ubicaciones"),
+                "niveles": legacy_rack.get("niveles"),
+                "activo": 1,
+            }
+        ]
+    groups: list[dict[str, Any]] = []
+    for row in rows:
+        item = dict(row)
+        try:
+            item["niveles"] = json.loads(item.get("niveles") or "[]")
+        except Exception:
+            item["niveles"] = []
+        item["zona"] = str(item.get("zona_text") or "").strip().upper()
+        item["pasillo"] = str(item.get("pasillo") or "").strip().upper()
+        item["cara"] = str(item.get("cara") or "").strip().upper()
+        item["ubicaciones"] = str(item.get("ubicaciones") or "").strip().upper()
+        groups.append(item)
+    return groups
+
+
+async def _rack_location_summary(
+    db: aiosqlite.Connection,
+    zona: Any,
+    pasillo: Any,
+    cara_id: Any,
+    ubicaciones: Any,
+    niveles_json: Any,
+) -> str:
+    cara = ""
+    if cara_id:
+        row = await _fetch_one(db, "SELECT nombre FROM rack_cara WHERE id=?", (cara_id,))
+        cara = str(row.get("nombre") if row else "").strip().upper()
+    try:
+        nivel_ids = json.loads(niveles_json or "[]") if isinstance(niveles_json, str) else list(niveles_json or [])
+    except Exception:
+        nivel_ids = []
+    niveles: list[str] = []
+    if nivel_ids:
+        placeholders = ",".join("?" for _ in nivel_ids)
+        rows = await _fetch_all(
+            db,
+            f"SELECT id, COALESCE(NULLIF(nombre,''), codigo) nombre FROM rack_nivel WHERE id IN ({placeholders})",
+            tuple(nivel_ids),
+        )
+        by_id = {int(row["id"]): str(row.get("nombre") or "").strip().upper() for row in rows}
+        for nivel_id in nivel_ids:
+            try:
+                niveles.append(by_id.get(int(nivel_id), str(nivel_id).strip().upper()))
+            except (TypeError, ValueError):
+                niveles.append(str(nivel_id).strip().upper())
+    return (
+        f"Z{str(zona or '').strip().upper()} "
+        f"P{str(pasillo or '').strip().upper()}{cara} "
+        f"U{str(ubicaciones or '').strip().upper()} "
+        f"N{', '.join(niveles)}"
+    ).strip()
+
+
+async def _rack_groups_summary(db: aiosqlite.Connection, groups: list[dict[str, Any]]) -> str:
+    summaries = []
+    for group in groups:
+        niveles_json = group.get("niveles_json")
+        if niveles_json is None:
+            niveles_json = json.dumps(group.get("niveles") or [])
+        summaries.append(
+            await _rack_location_summary(
+                db,
+                group.get("zona_text") or group.get("zona"),
+                group.get("pasillo"),
+                group.get("cara_id"),
+                group.get("ubicaciones"),
+                niveles_json,
+            )
+        )
+    return " | ".join(summaries)
+
+
 async def _active_service_locations(db: aiosqlite.Connection) -> list[dict[str, Any]]:
     rows = await _fetch_all(
         db,
@@ -685,17 +1041,19 @@ async def _active_service_locations(db: aiosqlite.Connection) -> list[dict[str, 
             t.fecha_ultima_actualizacion,
             e.codigo estado_codigo,
             e.nombre estado,
-            d.zona_text,
-            d.pasillo,
-            d.ubicaciones,
-            d.niveles,
+            d.service_externo_id,
+            g.zona_text,
+            g.pasillo,
+            g.ubicaciones,
+            g.niveles,
             rc.nombre cara
         FROM ticket t
         JOIN ticket_estado e ON e.id=t.estado_id
         JOIN ticket_rack_detalle d ON d.ticket_id=t.id
-        LEFT JOIN rack_cara rc ON rc.id=d.cara_id
+        JOIN ticket_rack_ubicacion_grupo g ON g.ticket_id=t.id AND g.activo=1
+        LEFT JOIN rack_cara rc ON rc.id=g.cara_id
         WHERE t.activo=1 AND e.es_final=0
-        ORDER BY t.fecha_ultima_actualizacion DESC, t.id DESC
+        ORDER BY t.fecha_ultima_actualizacion DESC, t.id DESC, g.orden
         """,
     )
     nivel_rows = await _fetch_all(db, "SELECT id, codigo, nombre FROM rack_nivel WHERE activo=1")
@@ -734,7 +1092,103 @@ async def _active_service_locations(db: aiosqlite.Connection) -> list[dict[str, 
                         "codigo_visible": row["codigo_visible"],
                         "estado": row["estado"],
                         "estado_codigo": row["estado_codigo"],
+                        "service_externo_id": row.get("service_externo_id") or "",
                         "titulo": row["titulo"],
+                        "fecha_creacion": row["fecha_creacion"],
+                        "fecha_ultima_actualizacion": row["fecha_ultima_actualizacion"],
+                    }
+                )
+    return locations
+
+
+async def _release_pending_locations(db: aiosqlite.Connection) -> list[dict[str, Any]]:
+    rows = await _fetch_all(
+        db,
+        """
+        SELECT
+            t.id ticket_id,
+            t.codigo_visible,
+            t.titulo,
+            t.fecha_creacion,
+            t.fecha_ultima_actualizacion,
+            e.codigo estado_codigo,
+            e.nombre estado,
+            d.service_externo_id,
+            d.mantenimiento_usuario,
+            d.mantenimiento_fecha,
+            d.comentario_operativo,
+            rs.nombre sector_rack,
+            rt.nombre tipo_rack,
+            rd.nombre descripcion_rack,
+            g.zona_text,
+            g.pasillo,
+            g.ubicaciones,
+            g.niveles,
+            rc.nombre cara
+        FROM ticket t
+        JOIN ticket_estado e ON e.id=t.estado_id
+        JOIN ticket_rack_detalle d ON d.ticket_id=t.id
+        JOIN ticket_rack_ubicacion_grupo g ON g.ticket_id=t.id AND g.activo=1
+        LEFT JOIN rack_cara rc ON rc.id=g.cara_id
+        LEFT JOIN rack_sector rs ON rs.id=d.sector_rack_id
+        LEFT JOIN rack_tipo rt ON rt.id=d.tipo_rack_id
+        LEFT JOIN rack_descripcion rd ON rd.id=d.descripcion_rack_id
+        WHERE t.activo=1
+          AND e.es_final=0
+          AND COALESCE(d.mantenimiento_finalizado, 0)=1
+          AND COALESCE(d.rehabilitacion_wms_confirmada, 0)=0
+        ORDER BY d.mantenimiento_fecha DESC, t.fecha_ultima_actualizacion DESC, t.id DESC, g.orden
+        """,
+    )
+    nivel_rows = await _fetch_all(db, "SELECT id, codigo, nombre FROM rack_nivel WHERE activo=1")
+    nivel_map = {int(row["id"]): str(row.get("nombre") or row.get("codigo") or "").strip().upper() for row in nivel_rows}
+    locations = []
+    for row in rows:
+        zona = str(row.get("zona_text") or "").strip().upper()
+        pasillo = str(row.get("pasillo") or "").strip().upper()
+        cara = str(row.get("cara") or "").strip().upper()
+        pasillo_cara = f"{pasillo}{cara}"
+        motivo_parts = [
+            str(row.get("sector_rack") or "").strip(),
+            str(row.get("tipo_rack") or "").strip(),
+            str(row.get("descripcion_rack") or "").strip(),
+        ]
+        motivo_service = " · ".join(part for part in motivo_parts if part)
+        comentario_operativo = _clean_operational_comment(row.get("comentario_operativo"))
+        if comentario_operativo:
+            motivo_service = f"{motivo_service} | {comentario_operativo}" if motivo_service else comentario_operativo
+        try:
+            nivel_ids = json.loads(row.get("niveles") or "[]")
+        except Exception:
+            nivel_ids = []
+        niveles: list[str] = []
+        for nivel_id in nivel_ids:
+            text_id = str(nivel_id).strip()
+            if not text_id:
+                continue
+            try:
+                niveles.append(nivel_map.get(int(text_id), text_id.upper()))
+            except ValueError:
+                niveles.append(text_id.upper())
+        for ubicacion in _split_position_parts(row.get("ubicaciones")):
+            for nivel in niveles:
+                chuecopa = f"{ubicacion}{nivel}"
+                locations.append(
+                    {
+                        "key": _position_key(zona, pasillo_cara, chuecopa),
+                        "posicion": _position_label(zona, pasillo_cara, chuecopa),
+                        "czonalma": zona,
+                        "cpasillo": pasillo_cara,
+                        "chuecopa": chuecopa,
+                        "ticket_id": row["ticket_id"],
+                        "codigo_visible": row["codigo_visible"],
+                        "estado": row["estado"],
+                        "estado_codigo": row["estado_codigo"],
+                        "service_externo_id": row.get("service_externo_id") or "",
+                        "motivo_service": motivo_service,
+                        "titulo": row["titulo"],
+                        "mantenimiento_usuario": row.get("mantenimiento_usuario") or "",
+                        "mantenimiento_fecha": row.get("mantenimiento_fecha") or "",
                         "fecha_creacion": row["fecha_creacion"],
                         "fecha_ultima_actualizacion": row["fecha_ultima_actualizacion"],
                     }
@@ -886,6 +1340,8 @@ async def config(request: Request):
     async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         tipos = await _fetch_all(db, "SELECT * FROM ticket_tipo WHERE activo = 1 ORDER BY nombre")
+        tipo_default = await _fetch_one(db, "SELECT id FROM ticket_tipo WHERE codigo = 'REPARACION_RACK' AND activo = 1")
+        permisos = await _permiso(db, int(tipo_default["id"]), perfil) if tipo_default else {}
         criticidades = await _fetch_all(db, "SELECT * FROM ticket_criticidad WHERE activo = 1 ORDER BY tipo_id, sla_horas")
         estados = await _fetch_all(db, "SELECT * FROM ticket_estado WHERE activo = 1 ORDER BY tipo_id, orden")
         rack_params = {}
@@ -898,6 +1354,7 @@ async def config(request: Request):
         "criticidades": criticidades,
         "estados": estados,
         "rack_params": rack_params,
+        "permisos": permisos,
     }
 
 
@@ -919,6 +1376,7 @@ async def admin_init_db(request: Request):
             "ticket_permiso_perfil",
             "ticket_usuario_perfil",
             "ticket_rack_detalle",
+            "ticket_rack_ubicacion_grupo",
             "ticket_evento_notificacion",
             "ticket_forms_ingreso",
             "rack_zona",
@@ -1297,6 +1755,17 @@ async def _forms_payload_to_case(db: aiosqlite.Connection, payload: dict[str, An
         "cara_id": cara_id,
         "ubicaciones": ubicaciones,
         "niveles": niveles,
+        "ubicacion_grupos": [
+            {
+                "zona_text": zona,
+                "pasillo": pasillo,
+                "cara_id": cara_id,
+                "ubicaciones": ubicaciones,
+                "niveles": niveles,
+                "niveles_json": json.dumps(niveles),
+                "orden": 1,
+            }
+        ],
         "sector_rack_id": sector_id,
         "descripcion_rack_id": descripcion_id,
         "criticidad_id": criticidad_id,
@@ -1318,7 +1787,18 @@ async def _create_rack_case_from_forms(
         raise RuntimeError("Faltan parametros base para crear el caso.")
     fecha_actual = _now()
     sla_vencimiento = (datetime.now(CASES_TZ) + timedelta(hours=int(criticidad["sla_horas"]))).strftime("%Y-%m-%d %H:%M:%S")
-    titulo = f"Reparacion de rack Z{case_data['zona_text']} P{case_data['pasillo']} U{case_data['ubicaciones']}"
+    groups = case_data.get("ubicacion_grupos") or [
+        {
+            "orden": 1,
+            "zona_text": case_data["zona_text"],
+            "pasillo": case_data["pasillo"],
+            "cara_id": case_data["cara_id"],
+            "ubicaciones": case_data["ubicaciones"],
+            "niveles": case_data["niveles"],
+            "niveles_json": json.dumps(case_data["niveles"]),
+        }
+    ]
+    titulo = _rack_case_title(groups)
     creador = os.getenv("VIGIA_FORMS_RACKS_USER", "forms_import").strip() or "forms_import"
     cur = await db.execute(
         """
@@ -1366,6 +1846,7 @@ async def _create_rack_case_from_forms(
             case_data["comentario_operativo"],
         ),
     )
+    await _insert_rack_location_groups(db, ticket_id, groups)
     auth = {"username": creador}
     await _historial(db, ticket_id, auth, "FORMS", "CREACION_FORMS", f"Importado desde Forms response_id={payload.get('response_id')}")
     await _attach_forms_files(db, ticket_id, codigo_visible, auth, payload, source_file)
@@ -1756,7 +2237,8 @@ async def stop_forms_import_monitor() -> None:
 
 @router.post("/forms/import")
 async def importar_forms(request: Request):
-    await _require_auth(request)
+    _, perfil = await _require_auth(request)
+    _ensure_write_profile(perfil)
     return await _import_forms_files()
 
 
@@ -1788,7 +2270,8 @@ async def listar_forms_ingresos(request: Request, estado: str = "", limit: int =
 
 @router.post("/forms/ingresos/{ingreso_id}/reintentar")
 async def reintentar_forms_ingreso(ingreso_id: int, request: Request):
-    await _require_auth(request)
+    _, perfil = await _require_auth(request)
+    _ensure_write_profile(perfil)
     async with aiosqlite.connect(CASES_DB_PATH) as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         db.row_factory = aiosqlite.Row
@@ -1808,7 +2291,8 @@ async def reintentar_forms_ingreso(ingreso_id: int, request: Request):
 
 @router.post("/forms/ingresos/{ingreso_id}/reclamar")
 async def reclamar_forms_ingreso(ingreso_id: int, req: FormsReclamoRequest, request: Request):
-    auth, _ = await _require_auth(request)
+    auth, perfil = await _require_auth(request)
+    _ensure_write_profile(perfil)
     async with aiosqlite.connect(CASES_DB_PATH) as db:
         await db.execute(
             """
@@ -1826,10 +2310,7 @@ async def reclamar_forms_ingreso(ingreso_id: int, req: FormsReclamoRequest, requ
 async def crear_rack(req: RackNuevoRequest, request: Request):
     auth, perfil = await _require_auth(request)
     assignment = await _case_assignment(auth)
-    pasillo = _validate_pasillo(req.pasillo)
-    ubicaciones = _validate_ubicaciones(req.ubicaciones)
-    if not req.niveles:
-        raise HTTPException(status_code=400, detail="Selecciona al menos un nivel afectado.")
+    raw_groups = req.ubicacion_grupos or [_legacy_location_group(req)]
     if not req.fotografias:
         raise HTTPException(status_code=400, detail="Al menos una fotografia es obligatoria.")
     async with aiosqlite.connect(CASES_DB_PATH) as db:
@@ -1852,23 +2333,17 @@ async def crear_rack(req: RackNuevoRequest, request: Request):
         if not estado:
             raise HTTPException(status_code=400, detail="No hay estado inicial configurado.")
         for table, value in [
-            ("rack_cara", req.cara_id),
             ("rack_sector", req.sector_rack_id),
             ("rack_descripcion", req.descripcion_rack_id),
             ("rack_tipo", req.tipo_rack_id),
         ]:
             if not await _fetch_one(db, f"SELECT id FROM {table} WHERE id = ? AND activo = 1", (value,)):
                 raise HTTPException(status_code=400, detail=f"Parametro invalido: {table}.")
-        zona_text = " ".join(req.zona_text.split()).upper()
-        if not zona_text:
-            raise HTTPException(status_code=400, detail="Zona obligatoria.")
-        placeholders = ",".join("?" for _ in req.niveles)
-        niveles_rows = await _fetch_all(db, f"SELECT id, nombre FROM rack_nivel WHERE id IN ({placeholders}) AND activo = 1", tuple(req.niveles))
-        if len(niveles_rows) != len(set(req.niveles)):
-            raise HTTPException(status_code=400, detail="Niveles invalidos.")
+        groups = await _normalize_rack_location_groups(db, raw_groups)
+        first_group = groups[0]
         fecha_actual = _now()
         sla_vencimiento = (datetime.now(CASES_TZ) + timedelta(hours=int(criticidad["sla_horas"]))).strftime("%Y-%m-%d %H:%M:%S")
-        titulo = f"Reparacion de rack Z{zona_text} P{pasillo} U{ubicaciones}"
+        titulo = _rack_case_title(groups)
         cur = await db.execute(
             """
             INSERT INTO ticket
@@ -1904,17 +2379,18 @@ async def crear_rack(req: RackNuevoRequest, request: Request):
             """,
             (
                 ticket_id,
-                zona_text,
-                pasillo,
-                req.cara_id,
-                ubicaciones,
-                json.dumps(req.niveles),
+                first_group["zona_text"],
+                first_group["pasillo"],
+                first_group["cara_id"],
+                first_group["ubicaciones"],
+                first_group["niveles_json"],
                 req.sector_rack_id,
                 req.descripcion_rack_id,
                 req.tipo_rack_id,
                 req.comentario_operativo.strip(),
             ),
         )
+        await _insert_rack_location_groups(db, ticket_id, groups)
         await _historial(db, ticket_id, auth, perfil, "CREACION", "Caso creado", None, int(estado["id"]))
         await _evento(db, ticket_id, "ticket_creado", {"tipo": "REPARACION_RACK"})
         for foto in req.fotografias:
@@ -1970,19 +2446,26 @@ async def listar(
             norm_like = f"%{norm_ubicacion}%"
             where.append(
                 """
-                (
-                    UPPER(COALESCE(d.zona_text, rz.nombre, '')) LIKE ?
-                    OR UPPER(COALESCE(d.pasillo, '')) LIKE ?
-                    OR UPPER(COALESCE(rc.nombre, '')) LIKE ?
-                    OR UPPER(COALESCE(d.ubicaciones, '')) LIKE ?
-                    OR UPPER(COALESCE(d.niveles, '')) LIKE ?
-                    OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(
-                        COALESCE(d.zona_text, rz.nombre, '') ||
-                        COALESCE(d.pasillo, '') ||
-                        COALESCE(rc.nombre, '') ||
-                        COALESCE(d.ubicaciones, '') ||
-                        COALESCE(d.niveles, '')
-                    ), ' ', ''), '-', ''), ',', ''), '/', ''), ';', '') LIKE ?
+                EXISTS (
+                    SELECT 1
+                    FROM ticket_rack_ubicacion_grupo g
+                    LEFT JOIN rack_cara gc ON gc.id = g.cara_id
+                    WHERE g.ticket_id = t.id
+                      AND g.activo = 1
+                      AND (
+                        UPPER(COALESCE(g.zona_text, '')) LIKE ?
+                        OR UPPER(COALESCE(g.pasillo, '')) LIKE ?
+                        OR UPPER(COALESCE(gc.nombre, '')) LIKE ?
+                        OR UPPER(COALESCE(g.ubicaciones, '')) LIKE ?
+                        OR UPPER(COALESCE(g.niveles, '')) LIKE ?
+                        OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(
+                            COALESCE(g.zona_text, '') ||
+                            COALESCE(g.pasillo, '') ||
+                            COALESCE(gc.nombre, '') ||
+                            COALESCE(g.ubicaciones, '') ||
+                            COALESCE(g.niveles, '')
+                        ), ' ', ''), '-', ''), ',', ''), '/', ''), ';', '') LIKE ?
+                      )
                 )
                 """
             )
@@ -2030,8 +2513,6 @@ async def listar(
             JOIN ticket_estado e ON e.id = t.estado_id
             JOIN ticket_criticidad c ON c.id = t.criticidad_id
             LEFT JOIN ticket_rack_detalle d ON d.ticket_id = t.id
-            LEFT JOIN rack_zona rz ON rz.id = d.zona_id
-            LEFT JOIN rack_cara rc ON rc.id = d.cara_id
             WHERE {" AND ".join(where)}
             ORDER BY t.fecha_ultima_actualizacion DESC, t.id DESC
             LIMIT 500
@@ -2052,6 +2533,7 @@ async def _control_ubicaciones_payload(limit: int = 500) -> dict[str, Any]:
     async with aiosqlite.connect(CASES_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         service_rows = await _active_service_locations(db)
+        release_pending_rows = await _release_pending_locations(db)
 
     wms_by_key: dict[str, dict[str, Any]] = {}
     for row in wms_rows:
@@ -2099,10 +2581,12 @@ async def _control_ubicaciones_payload(limit: int = 500) -> dict[str, Any]:
             "coincidencias": len(matched_keys),
             "wms_sin_service": len(wms_without_service_keys),
             "services_sin_wms": len(services_without_wms_keys),
+            "pendientes_liberacion": len(release_pending_rows),
         },
         "wms_without_service": wms_without_service,
         "services_without_wms": services_without_wms,
         "matched": matched,
+        "release_pending": release_pending_rows[:limit],
         "limit": limit,
     }
 
@@ -2135,45 +2619,124 @@ def _write_xlsx_sheet(workbook: xlsxwriter.Workbook, name: str, columns: list[tu
         sheet.set_column(col_idx, col_idx, min(max(width, 10), 42))
 
 
+def _control_matched_export_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    export_rows = []
+    for row in rows:
+        wms = row.get("wms") or {}
+        service = row.get("service") or {}
+        export_rows.append(
+            {
+                "posicion": wms.get("posicion") or service.get("posicion") or "",
+                "czonalma": wms.get("czonalma") or service.get("czonalma") or "",
+                "cpasillo": wms.get("cpasillo") or service.get("cpasillo") or "",
+                "chuecopa": wms.get("chuecopa") or service.get("chuecopa") or "",
+                "codigo_visible": service.get("codigo_visible") or "",
+                "estado": service.get("estado") or "",
+                "service_externo_id": service.get("service_externo_id") or "",
+                "titulo": service.get("titulo") or "",
+                "fecha_wms": wms.get("fcreareg") or "",
+                "usuario_wms": wms.get("usuacrea") or "",
+                "movimiento_wms": wms.get("movimien") or "",
+                "observacion_wms": wms.get("observac") or "",
+                "ticket_id": service.get("ticket_id") or "",
+            }
+        )
+    return export_rows
+
+
+def _control_export_sheets(data: dict[str, Any], tipo: str) -> tuple[str, list[tuple[str, list[tuple[str, str]], list[dict[str, Any]]]]]:
+    specs: dict[str, tuple[str, str, list[tuple[str, str]], list[dict[str, Any]]]] = {
+        "wms-sin-service": (
+            "control_ubicaciones_wms_sin_service.xlsx",
+            "WMS sin service activo",
+            [
+                ("posicion", "Posicion"),
+                ("czonalma", "Zona"),
+                ("cpasillo", "Pasillo/Cara"),
+                ("chuecopa", "Ubic/Nivel"),
+                ("fcreareg", "Fecha WMS"),
+                ("usuacrea", "Usuario"),
+                ("movimien", "Movimiento"),
+                ("observac", "Observacion"),
+            ],
+            data.get("wms_without_service") or [],
+        ),
+        "services-sin-wms": (
+            "control_ubicaciones_services_sin_wms.xlsx",
+            "Services sin WMS inutilizado",
+            [
+                ("posicion", "Posicion"),
+                ("codigo_visible", "Ticket"),
+                ("estado", "Estado"),
+                ("service_externo_id", "Service externo"),
+                ("titulo", "Titulo"),
+                ("fecha_creacion", "Fecha creacion"),
+                ("fecha_ultima_actualizacion", "Ultima actualizacion"),
+                ("ticket_id", "Ticket ID"),
+            ],
+            data.get("services_without_wms") or [],
+        ),
+        "pendientes-liberacion": (
+            "control_ubicaciones_pendientes_liberacion.xlsx",
+            "Pendientes liberacion Mapa",
+            [
+                ("posicion", "Posicion"),
+                ("codigo_visible", "Ticket"),
+                ("estado", "Estado"),
+                ("service_externo_id", "Service externo"),
+                ("motivo_service", "Motivo service"),
+                ("mantenimiento_fecha", "Fecha mantenimiento"),
+                ("mantenimiento_usuario", "Usuario mantenimiento"),
+                ("titulo", "Titulo"),
+                ("fecha_ultima_actualizacion", "Ultima actualizacion"),
+                ("ticket_id", "Ticket ID"),
+            ],
+            data.get("release_pending") or [],
+        ),
+        "coincidencias": (
+            "control_ubicaciones_coincidencias.xlsx",
+            "Coincidencias",
+            [
+                ("posicion", "Posicion"),
+                ("czonalma", "Zona"),
+                ("cpasillo", "Pasillo/Cara"),
+                ("chuecopa", "Ubic/Nivel"),
+                ("codigo_visible", "Ticket"),
+                ("estado", "Estado"),
+                ("service_externo_id", "Service externo"),
+                ("titulo", "Titulo"),
+                ("fecha_wms", "Fecha WMS"),
+                ("usuario_wms", "Usuario WMS"),
+                ("movimiento_wms", "Movimiento WMS"),
+                ("observacion_wms", "Observacion WMS"),
+                ("ticket_id", "Ticket ID"),
+            ],
+            _control_matched_export_rows(data.get("matched") or []),
+        ),
+    }
+    if tipo == "todos":
+        sheets = [(sheet_name, columns, rows) for _, sheet_name, columns, rows in specs.values()]
+        return "control_ubicaciones_completo.xlsx", sheets
+    if tipo not in specs:
+        raise HTTPException(status_code=400, detail="Tipo de exportacion invalido.")
+    filename, sheet_name, columns, rows = specs[tipo]
+    return filename, [(sheet_name, columns, rows)]
+
+
 @router.get("/control-ubicaciones/export.xlsx")
 async def export_control_ubicaciones_xlsx(
     request: Request,
-    tipo: str = Query(..., pattern="^(wms-sin-service|services-sin-wms)$"),
+    tipo: str = Query(..., pattern="^(wms-sin-service|services-sin-wms|pendientes-liberacion|coincidencias|todos)$"),
     limit: int = Query(5000, ge=50, le=5000),
 ):
     await _require_auth(request)
     data = await _control_ubicaciones_payload(limit)
-    if tipo == "wms-sin-service":
-        title = "Ubicaciones WMS sin service activo"
-        filename = "control_ubicaciones_wms_sin_service.xlsx"
-        rows = data.get("wms_without_service") or []
-        columns = [
-            ("posicion", "Posicion"),
-            ("czonalma", "Zona"),
-            ("cpasillo", "Pasillo/Cara"),
-            ("chuecopa", "Ubic/Nivel"),
-            ("fcreareg", "Fecha WMS"),
-            ("usuacrea", "Usuario"),
-            ("movimien", "Movimiento"),
-            ("observac", "Observacion"),
-        ]
-    else:
-        title = "Services activos sin ubicacion inutilizada WMS"
-        filename = "control_ubicaciones_services_sin_wms.xlsx"
-        rows = data.get("services_without_wms") or []
-        columns = [
-            ("posicion", "Posicion"),
-            ("codigo_visible", "Ticket"),
-            ("estado", "Estado"),
-            ("titulo", "Titulo"),
-            ("fecha_creacion", "Fecha creacion"),
-            ("fecha_ultima_actualizacion", "Ultima actualizacion"),
-            ("ticket_id", "Ticket ID"),
-        ]
+    filename, sheets = _control_export_sheets(data, tipo)
     output = io.BytesIO()
     workbook = xlsxwriter.Workbook(output, {"in_memory": True})
-    workbook.set_properties({"title": title, "company": "Coto C.I.C.S.A.", "comments": "Exportado desde VigIA"})
-    _write_xlsx_sheet(workbook, title, columns, rows)
+    workbook.set_properties({"title": "Control de Ubicaciones", "company": "Coto C.I.C.S.A.", "comments": "Exportado desde VigIA"})
+    for sheet_name, columns, rows in sheets:
+        _write_xlsx_sheet(workbook, sheet_name, columns, rows)
     workbook.close()
     output.seek(0)
     return StreamingResponse(
@@ -2222,7 +2785,7 @@ async def dashboard(request: Request):
             "tickets_por_sector_asignado": "SELECT COALESCE(NULLIF(t.perfil_asignado,''),'Sin sector') label, COUNT(*) value FROM ticket t JOIN ticket_estado e ON e.id=t.estado_id WHERE t.activo=1 AND e.es_final=0 GROUP BY label ORDER BY value DESC, label",
             "tendencia_creacion": "SELECT date(fecha_creacion) label, COUNT(*) value FROM ticket WHERE activo=1 GROUP BY date(fecha_creacion) ORDER BY label DESC LIMIT 14",
             "tendencia_cierre": "SELECT date(fecha_cierre) label, COUNT(*) value FROM ticket WHERE activo=1 AND fecha_cierre IS NOT NULL GROUP BY date(fecha_cierre) ORDER BY label DESC LIMIT 14",
-            "racks_por_zona": "SELECT COALESCE(NULLIF(d.zona_text,''), rz.nombre, 'Sin zona') label, COUNT(*) value FROM ticket_rack_detalle d LEFT JOIN rack_zona rz ON rz.id=d.zona_id GROUP BY label",
+            "racks_por_zona": "SELECT COALESCE(NULLIF(g.zona_text,''), 'Sin zona') label, COUNT(DISTINCT g.ticket_id) value FROM ticket_rack_ubicacion_grupo g WHERE g.activo=1 GROUP BY label",
             "racks_por_tipo": "SELECT rt.nombre label, COUNT(*) value FROM ticket_rack_detalle d JOIN rack_tipo rt ON rt.id=d.tipo_rack_id GROUP BY rt.nombre",
             "racks_por_descripcion": "SELECT rd.nombre label, COUNT(*) value FROM ticket_rack_detalle d JOIN rack_descripcion rd ON rd.id=d.descripcion_rack_id GROUP BY rd.nombre",
         }.items():
@@ -2314,14 +2877,19 @@ async def detalle(ticket_id: int, request: Request):
             )
             if rack:
                 rack["niveles"] = json.loads(rack.get("niveles") or "[]")
+                rack_groups = await _fetch_rack_location_groups(db, ticket_id, rack)
+                rack["ubicacion_grupos"] = rack_groups
                 try:
-                    ubicaciones = [part for part in re.split(r"[\s,;\-/]+", str(rack.get("ubicaciones") or "").upper()) if part]
-                    rack_stock = await asyncio.to_thread(
-                        _query_rack_oracle_stock,
-                        str(rack.get("zona") or ""),
-                        f"{rack.get('pasillo') or ''}{rack.get('cara') or ''}",
-                        ubicaciones,
-                    )
+                    for group in rack_groups:
+                        ubicaciones = _split_position_parts(group.get("ubicaciones"))
+                        rack_stock.extend(
+                            await asyncio.to_thread(
+                                _query_rack_oracle_stock,
+                                str(group.get("zona") or group.get("zona_text") or ""),
+                                f"{group.get('pasillo') or ''}{group.get('cara') or ''}",
+                                ubicaciones,
+                            )
+                        )
                 except Exception as exc:
                     rack_stock_error = str(exc)
         adjuntos = await _fetch_all(db, "SELECT id, fecha, usuario_id, nombre_original, nombre_archivo, tipo_mime FROM ticket_adjunto WHERE ticket_id=? AND activo=1 ORDER BY fecha", (ticket_id,))
@@ -2358,7 +2926,108 @@ async def detalle(ticket_id: int, request: Request):
             """,
             (ticket["tipo_id"], ticket["estado_id"], perfil),
         )
-    return {"ticket": ticket, "rack": rack, "rack_stock": rack_stock, "rack_stock_error": rack_stock_error, "comentarios": comentarios, "adjuntos": adjuntos, "historial": historial, "transiciones": transiciones, "perfil": perfil}
+    return {
+        "ticket": ticket,
+        "rack": rack,
+        "rack_stock": rack_stock,
+        "rack_stock_error": rack_stock_error,
+        "comentarios": comentarios,
+        "adjuntos": adjuntos,
+        "historial": historial,
+        "transiciones": transiciones,
+        "perfil": perfil,
+        "puede_rectificar_ubicaciones": _can_rectify_rack_locations(ticket, perfil),
+        "puede_tomar_resolver_mantenimiento": (
+            _can_maintenance_take_resolve(ticket, perfil)
+            and bool(str((rack or {}).get("service_externo_id") or "").strip())
+        ),
+        "puede_devolver_mantenimiento_mapa": _can_map_return_to_maintenance(ticket, perfil),
+    }
+
+
+@router.post("/ticket/{ticket_id}/ubicaciones")
+async def rectificar_ubicaciones(ticket_id: int, req: RackUbicacionesRectificarRequest, request: Request):
+    auth, perfil = await _require_auth(request)
+    comentario = req.comentario.strip()
+    if not comentario:
+        raise HTTPException(status_code=400, detail="El comentario de rectificacion es obligatorio.")
+    raw_groups = req.ubicacion_grupos or [_legacy_location_group(req)]
+
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        ticket = await _ticket_row(db, ticket_id)
+        if not _can_rectify_rack_locations(ticket, perfil):
+            if str(ticket.get("estado_codigo") or "").upper() not in RACK_RECTIFICABLE_STATES:
+                raise HTTPException(status_code=400, detail="Las ubicaciones solo pueden rectificarse antes de generar traspasos.")
+            raise HTTPException(status_code=403, detail="Tu perfil no puede rectificar ubicaciones.")
+        rack = await _fetch_one(db, "SELECT * FROM ticket_rack_detalle WHERE ticket_id=?", (ticket_id,))
+        if not rack:
+            raise HTTPException(status_code=404, detail="Detalle de rack no encontrado.")
+        groups = await _normalize_rack_location_groups(db, raw_groups)
+        estado_ado = await _fetch_one(
+            db,
+            "SELECT id, perfil_asignado FROM ticket_estado WHERE tipo_id=? AND codigo='PENDIENTE_VALIDACION' AND activo=1",
+            (ticket["tipo_id"],),
+        )
+        if not estado_ado:
+            raise HTTPException(status_code=400, detail="No esta configurado el estado Pendiente Validacion.")
+
+        old_groups = await _fetch_rack_location_groups(db, ticket_id, rack)
+        old_summary = await _rack_groups_summary(db, old_groups)
+        new_summary = await _rack_groups_summary(db, groups)
+        fecha_actual = _now()
+        titulo = _rack_case_title(groups)
+        await db.execute(
+            """
+            UPDATE ticket_rack_detalle
+            SET service_externo_id=NULL, service_externo_usuario=NULL, service_externo_fecha=NULL,
+                traspasos_wms=NULL, traspasos_usuario=NULL, traspasos_fecha=NULL,
+                vaciado_confirmado=0, vaciado_usuario=NULL, vaciado_fecha=NULL,
+                inutilizacion_wms_confirmada=0, inutilizacion_usuario=NULL, inutilizacion_fecha=NULL,
+                mantenimiento_finalizado=0, mantenimiento_usuario=NULL, mantenimiento_fecha=NULL,
+                relevamiento_mapa=NULL, reetiquetado_requerido=0,
+                rehabilitacion_wms_confirmada=0, rehabilitacion_usuario=NULL, rehabilitacion_fecha=NULL
+            WHERE ticket_id=?
+            """,
+            (ticket_id,),
+        )
+        await _replace_rack_location_groups(db, ticket_id, groups)
+        await _sync_legacy_rack_location(db, ticket_id, groups)
+        perfil_ado = estado_ado.get("perfil_asignado") or "ADO"
+        await db.execute(
+            """
+            UPDATE ticket
+            SET titulo=?, estado_id=?, perfil_asignado=?, sector_asignado=?, fecha_ultima_actualizacion=?
+            WHERE id=?
+            """,
+            (titulo, int(estado_ado["id"]), perfil_ado, perfil_ado, fecha_actual, ticket_id),
+        )
+        derivacion = "Caso rectificado y derivado a ADO para validar ubicaciones y generar service externo."
+        historial = f"{old_summary} -> {new_summary}. {comentario} | {derivacion}"
+        await _append_system_comment(
+            db,
+            ticket_id,
+            auth["username"],
+            f"Rectificacion de ubicaciones\nAntes: {old_summary}\nDespues: {new_summary}\nMotivo: {comentario}\n{derivacion}",
+        )
+        await _historial(
+            db,
+            ticket_id,
+            auth,
+            perfil,
+            "RECTIFICA_UBICACIONES",
+            historial,
+            int(ticket["estado_id"]),
+            int(estado_ado["id"]),
+        )
+        await _evento(
+            db,
+            ticket_id,
+            "rectifica_ubicaciones",
+            {"antes": old_summary, "despues": new_summary, "estado_destino": "PENDIENTE_VALIDACION", "perfil_asignado": perfil_ado},
+        )
+        await db.commit()
+    return {"ok": True, "antes": old_summary, "despues": new_summary, "estado": "PENDIENTE_VALIDACION", "perfil_asignado": perfil_ado}
 
 
 @router.post("/ticket/{ticket_id}/comentarios")
@@ -2394,6 +3063,159 @@ async def adjuntar(ticket_id: int, req: AdjuntoRequest, request: Request):
         await db.execute("UPDATE ticket SET fecha_ultima_actualizacion = ? WHERE id = ?", (_now(), ticket_id))
         await db.commit()
     return {"ok": True, "adjunto": saved}
+
+
+@router.post("/ticket/{ticket_id}/mantenimiento/tomar-resolver")
+async def mantenimiento_tomar_resolver(ticket_id: int, req: MantenimientoTomarResolverRequest, request: Request):
+    auth, perfil = await _require_auth(request)
+    solucion = req.solucion.strip()
+    if not solucion:
+        raise HTTPException(status_code=400, detail="El detalle de la solucion es obligatorio.")
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        ticket = await _ticket_row(db, ticket_id)
+        if not _can_maintenance_take_resolve(ticket, perfil):
+            raise HTTPException(status_code=403, detail="Mantenimiento no puede tomar este caso en su estado actual.")
+        rack = await _fetch_one(db, "SELECT * FROM ticket_rack_detalle WHERE ticket_id=?", (ticket_id,))
+        if not rack:
+            raise HTTPException(status_code=404, detail="Detalle de rack no encontrado.")
+        service_externo = str(rack.get("service_externo_id") or "").strip()
+        if not service_externo:
+            raise HTTPException(status_code=400, detail="Para que Mantenimiento tome el caso, primero debe estar cargado el service externo.")
+        estado_reparado = await _fetch_one(
+            db,
+            "SELECT id, perfil_asignado FROM ticket_estado WHERE tipo_id=? AND codigo='REPARADO' AND activo=1",
+            (ticket["tipo_id"],),
+        )
+        if not estado_reparado:
+            raise HTTPException(status_code=400, detail="No esta configurado el estado Reparado.")
+        now = _now()
+        destino_perfil = estado_reparado.get("perfil_asignado") or "MAPA_ALMACEN"
+        await db.execute(
+            """
+            UPDATE ticket_rack_detalle
+            SET mantenimiento_finalizado=1, mantenimiento_usuario=?, mantenimiento_fecha=?
+            WHERE ticket_id=?
+            """,
+            (auth["username"], now, ticket_id),
+        )
+        await db.execute(
+            """
+            UPDATE ticket
+            SET estado_id=?, perfil_asignado=?, sector_asignado=?, fecha_ultima_actualizacion=?
+            WHERE id=?
+            """,
+            (int(estado_reparado["id"]), destino_perfil, destino_perfil, now, ticket_id),
+        )
+        comentario = (
+            f"Mantenimiento toma y resuelve el caso.\n"
+            f"Service externo: {service_externo}\n"
+            f"Solucion: {solucion}\n"
+            f"Derivado a {destino_perfil} para validacion WMS."
+        )
+        await _append_system_comment(db, ticket_id, auth["username"], comentario)
+        await _historial(
+            db,
+            ticket_id,
+            auth,
+            perfil,
+            "TOMA_Y_RESUELVE_MANTENIMIENTO",
+            comentario,
+            int(ticket["estado_id"]),
+            int(estado_reparado["id"]),
+        )
+        await _evento(
+            db,
+            ticket_id,
+            "mantenimiento_toma_resuelve",
+            {"service_externo": service_externo, "perfil_asignado": destino_perfil},
+        )
+        mailto = await _mailto_ticket(
+            db,
+            ticket_id,
+            "Mantenimiento resolvio el caso",
+            destino_perfil,
+            comentario,
+            str(request.base_url),
+        )
+        await db.commit()
+    return {"ok": True, "estado": "REPARADO", "perfil_asignado": destino_perfil, "mailto": mailto}
+
+
+@router.post("/ticket/{ticket_id}/mapa/devolver-mantenimiento")
+async def mapa_devolver_mantenimiento(ticket_id: int, req: MapaDevolverMantenimientoRequest, request: Request):
+    auth, perfil = await _require_auth(request)
+    motivo = req.motivo.strip()
+    if not motivo:
+        raise HTTPException(status_code=400, detail="El motivo de devolucion a Mantenimiento es obligatorio.")
+    async with aiosqlite.connect(CASES_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        ticket = await _ticket_row(db, ticket_id)
+        if not _can_map_return_to_maintenance(ticket, perfil):
+            raise HTTPException(status_code=403, detail="Mapa no puede devolver este caso a Mantenimiento en su estado actual.")
+        rack = await _fetch_one(db, "SELECT * FROM ticket_rack_detalle WHERE ticket_id=?", (ticket_id,))
+        if not rack:
+            raise HTTPException(status_code=404, detail="Detalle de rack no encontrado.")
+        service_externo = str(rack.get("service_externo_id") or "").strip()
+        estado_mantenimiento = await _fetch_one(
+            db,
+            "SELECT id, perfil_asignado FROM ticket_estado WHERE tipo_id=? AND codigo='EN_REPARACION' AND activo=1",
+            (ticket["tipo_id"],),
+        )
+        if not estado_mantenimiento:
+            raise HTTPException(status_code=400, detail="No esta configurado el estado En Reparacion.")
+        now = _now()
+        destino_perfil = estado_mantenimiento.get("perfil_asignado") or "MANTENIMIENTO"
+        await db.execute(
+            """
+            UPDATE ticket_rack_detalle
+            SET mantenimiento_finalizado=0, mantenimiento_usuario=NULL, mantenimiento_fecha=NULL,
+                relevamiento_mapa=NULL, reetiquetado_requerido=0,
+                rehabilitacion_wms_confirmada=0, rehabilitacion_usuario=NULL, rehabilitacion_fecha=NULL
+            WHERE ticket_id=?
+            """,
+            (ticket_id,),
+        )
+        await db.execute(
+            """
+            UPDATE ticket
+            SET estado_id=?, perfil_asignado=?, sector_asignado=?, fecha_ultima_actualizacion=?
+            WHERE id=?
+            """,
+            (int(estado_mantenimiento["id"]), destino_perfil, destino_perfil, now, ticket_id),
+        )
+        comentario = (
+            "Mapa devuelve el caso a Mantenimiento por reparacion no conforme.\n"
+            f"Service externo: {service_externo or '-'}\n"
+            f"Motivo: {motivo}"
+        )
+        await _append_system_comment(db, ticket_id, auth["username"], comentario)
+        await _historial(
+            db,
+            ticket_id,
+            auth,
+            perfil,
+            "DEVUELVE_A_MANTENIMIENTO",
+            comentario,
+            int(ticket["estado_id"]),
+            int(estado_mantenimiento["id"]),
+        )
+        await _evento(
+            db,
+            ticket_id,
+            "devolucion_mantenimiento",
+            {"service_externo": service_externo, "motivo": motivo, "perfil_asignado": destino_perfil},
+        )
+        mailto = await _mailto_ticket(
+            db,
+            ticket_id,
+            "Mapa devuelve el caso a Mantenimiento",
+            destino_perfil,
+            comentario,
+            str(request.base_url),
+        )
+        await db.commit()
+    return {"ok": True, "estado": "EN_REPARACION", "perfil_asignado": destino_perfil, "mailto": mailto}
 
 
 @router.get("/adjuntos/{adjunto_id}/download")
@@ -2559,6 +3381,13 @@ async def export_csv(request: Request, tipo_id: int | None = Query(None)):
                    t.titulo, t.sector_creacion_id sector, t.usuario_creacion_id creado_por,
                    t.fecha_ultima_actualizacion, t.sla_vencimiento,
                    COALESCE(NULLIF(d.zona_text,''), rz.nombre) zona, d.pasillo, rc.nombre cara, d.ubicaciones, d.niveles,
+                   (
+                     SELECT GROUP_CONCAT(g.zona_text || ' ' || g.pasillo || COALESCE(gc.nombre, '') || ' U' || g.ubicaciones || ' N' || g.niveles, ' | ')
+                     FROM ticket_rack_ubicacion_grupo g
+                     LEFT JOIN rack_cara gc ON gc.id = g.cara_id
+                     WHERE g.ticket_id = t.id AND g.activo = 1
+                     ORDER BY g.orden
+                   ) ubicacion_grupos,
                    rt.nombre tipo_rack, rd.nombre descripcion_rack
             FROM ticket t
             JOIN ticket_tipo tt ON tt.id=t.tipo_id

@@ -29,8 +29,10 @@ from routers.casos import (  # noqa: E402
     _fetch_all,
     _fetch_one,
     _historial,
+    _insert_rack_location_groups,
     _match_key,
     _now,
+    _rack_case_title,
     _tipo_id,
     _upsert_forms_payload,
     _validate_pasillo,
@@ -409,6 +411,17 @@ async def payload_to_case_data(resolver: Resolver, payload: dict[str, Any]) -> t
         "cara_id": cara_id,
         "ubicaciones": ubicaciones,
         "niveles": niveles,
+        "ubicacion_grupos": [
+            {
+                "orden": 1,
+                "zona_text": zona,
+                "pasillo": pasillo,
+                "cara_id": cara_id,
+                "ubicaciones": ubicaciones,
+                "niveles": niveles,
+                "niveles_json": json.dumps(niveles),
+            }
+        ],
         "sector_rack_id": sector_id,
         "descripcion_rack_id": descripcion_id,
         "criticidad_id": criticidad_id,
@@ -488,7 +501,18 @@ async def create_rack_case_from_csv(
         raise RuntimeError("Faltan parametros base para crear el caso.")
     fecha_actual = _now()
     sla_vencimiento = (datetime.now(CASES_TZ) + timedelta(hours=int(criticidad["sla_horas"]))).strftime("%Y-%m-%d %H:%M:%S")
-    titulo = f"Reparacion de rack Z{case_data['zona_text']} P{case_data['pasillo']} U{case_data['ubicaciones']}"
+    groups = case_data.get("ubicacion_grupos") or [
+        {
+            "orden": 1,
+            "zona_text": case_data["zona_text"],
+            "pasillo": case_data["pasillo"],
+            "cara_id": case_data["cara_id"],
+            "ubicaciones": case_data["ubicaciones"],
+            "niveles": case_data["niveles"],
+            "niveles_json": json.dumps(case_data["niveles"]),
+        }
+    ]
+    titulo = _rack_case_title(groups)
     creador = os.getenv("VIGIA_FORMS_RACKS_USER", IMPORT_USER).strip() or IMPORT_USER
     cur = await db.execute(
         """
@@ -536,6 +560,7 @@ async def create_rack_case_from_csv(
             case_data["comentario_operativo"],
         ),
     )
+    await _insert_rack_location_groups(db, ticket_id, groups)
     auth = {"username": creador}
     await _historial(db, ticket_id, auth, "FORMS", "CREACION_FORMS_CSV", f"Importado desde CSV Forms response_id={payload.get('response_id')}")
     if attach_files:

@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS articulos (
     descripcion TEXT NOT NULL,
     categoria TEXT,
     unidad TEXT DEFAULT 'UN',
+    unidad_stock TEXT DEFAULT 'UN',
+    unidad_produccion TEXT DEFAULT 'UN',
+    factor_stock_a_produccion REAL,
     uso TEXT,
     stock_minimo REAL DEFAULT 0,
     activo INTEGER DEFAULT 1,
@@ -135,6 +138,7 @@ CREATE TABLE IF NOT EXISTS produccion_movimientos (
     ubicacion_destino_id INTEGER,
     cantidad REAL NOT NULL,
     turno TEXT NOT NULL,
+    uso_produccion TEXT,
     observacion TEXT,
     usuario TEXT,
     fecha_hora TEXT,
@@ -168,6 +172,7 @@ CREATE TABLE IF NOT EXISTS pedidos_insumos_items (
     cantidad_insumo_confirmada REAL DEFAULT 0,
     cantidad_produccion_confirmada REAL DEFAULT 0,
     ubicacion_origen_insumo_id INTEGER,
+    uso_solicitado TEXT,
     uso_entrega TEXT,
     FOREIGN KEY (pedido_id) REFERENCES pedidos_insumos(id),
     FOREIGN KEY (articulo_id) REFERENCES articulos(id),
@@ -280,7 +285,27 @@ async def init_panol_db() -> None:
             await db.execute(stmt)
         await _ensure_column(db, "inventario_turno", "ubicacion_id", "INTEGER")
         await _ensure_column(db, "articulos", "uso", "TEXT")
+        await _ensure_column(db, "articulos", "unidad_stock", "TEXT")
+        await _ensure_column(db, "articulos", "unidad_produccion", "TEXT")
+        await _ensure_column(db, "articulos", "factor_stock_a_produccion", "REAL")
+        await _ensure_column(db, "pedidos_insumos_items", "uso_solicitado", "TEXT")
         await _ensure_column(db, "pedidos_insumos_items", "uso_entrega", "TEXT")
+        await _ensure_column(db, "produccion_movimientos", "uso_produccion", "TEXT")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_pedidos_items_uso ON pedidos_insumos_items(uso_solicitado)")
+        await db.execute(
+            """
+            UPDATE articulos
+            SET unidad_stock = COALESCE(NULLIF(unidad_stock, ''), NULLIF(unidad, ''), 'UN')
+            WHERE unidad_stock IS NULL OR unidad_stock = ''
+            """
+        )
+        await db.execute(
+            """
+            UPDATE articulos
+            SET unidad_produccion = COALESCE(NULLIF(unidad_produccion, ''), 'UN')
+            WHERE unidad_produccion IS NULL OR unidad_produccion = ''
+            """
+        )
         await db.executemany(
             """
             INSERT OR IGNORE INTO ubicaciones (codigo, descripcion, activo)

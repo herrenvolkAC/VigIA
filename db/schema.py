@@ -2,6 +2,8 @@
 VigIA · db/schema.py
 Definición de tablas SQLite y conexión con aiosqlite.
 """
+import os
+
 import aiosqlite
 
 from db.paths import ROOT_DIR, resolve_db_path
@@ -1202,9 +1204,19 @@ async def init_db():
         await db.execute(CREATE_GESTION_PRODUCTIVIDAD_PICKING_RUNS)
         await db.execute(CREATE_GESTION_PRODUCTIVIDAD_PICKING_EVENTS)
         await db.execute(CREATE_GESTION_PRODUCTIVIDAD_PICKING_SEGMENTS)
-        await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_OPERACIONES)
-        await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_SYNC_RUNS)
-        await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_SYNC_LOCK)
+        historia_actividad_enabled = os.getenv("HISTORIA_ACTIVIDAD_ENABLED", "0").strip().lower() in {
+            "1", "true", "yes", "on"
+        }
+        if historia_actividad_enabled:
+            await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_OPERACIONES)
+            await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_SYNC_RUNS)
+            await db.execute(CREATE_HISTORIA_LEGAJO_ACTIVIDAD_SYNC_LOCK)
+        else:
+            # Migración única/segura: esta funcionalidad fue retirada y sus
+            # tres tablas no deben recrearse en cada arranque.
+            await db.execute("DROP TABLE IF EXISTS historia_legajo_actividad_sync_lock")
+            await db.execute("DROP TABLE IF EXISTS historia_legajo_actividad_sync_runs")
+            await db.execute("DROP TABLE IF EXISTS historia_legajo_actividad_operaciones")
         await db.execute(CREATE_PRODUCTIVIDAD_HOURLY_IA_CACHE)
         await db.execute(CREATE_TNC_EVENTOS_CACHE)
         await db.execute(CREATE_TNC_CACHE_SYNC)
@@ -1329,8 +1341,9 @@ async def init_db():
             await db.execute(statement)
         for statement in CREATE_GESTION_PRODUCTIVIDAD_PICKING_INDEXES:
             await db.execute(statement)
-        for statement in CREATE_HISTORIA_LEGAJO_INDEXES:
-            await db.execute(statement)
+        if historia_actividad_enabled:
+            for statement in CREATE_HISTORIA_LEGAJO_INDEXES:
+                await db.execute(statement)
         for statement in CREATE_PRODUCTIVIDAD_HOURLY_IA_INDEXES:
             await db.execute(statement)
         for statement in CREATE_TNC_CACHE_INDEXES:

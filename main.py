@@ -61,12 +61,16 @@ from routers.analisis_premio_productividad import (
     init_premio_productividad_db,
     router as analisis_premio_productividad_router,
 )
+from routers.estudio_premios_productividad import router as estudio_premios_productividad_router
 from routers.rendimiento_online import (
     router as rendimiento_online_router,
     start_rendimiento_historico_scheduler,
     stop_rendimiento_historico_scheduler,
 )
 from routers.monitor_cargas import router as monitor_cargas_router
+from routers.torre_control import router as torre_control_router
+from routers.picking_parquet import router as picking_parquet_router
+from db.torre_control import init_torre_control_db
 from routers.websocket import router as websocket_router
 from utils.db_backup import start_db_backup_scheduler, stop_db_backup_scheduler
 from utils.usage_log import cleanup_old_usage_logs, ensure_usage_events_schema, request_action, write_usage_event, write_usage_log
@@ -107,11 +111,13 @@ async def lifespan(app: FastAPI):
     await init_plantel_optimo_db()
     await init_simulador_db()
     await init_premio_productividad_db()
+    await init_torre_control_db()
     await ensure_bootstrap_admin()
     ensure_usage_events_schema()
     cleanup_old_usage_logs()
     start_daily_auto_scheduler()
-    start_historia_actividad_scheduler()
+    if os.getenv("HISTORIA_ACTIVIDAD_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"}:
+        start_historia_actividad_scheduler()
     start_panol_stock_cd_scheduler()
     start_rendimiento_historico_scheduler()
     start_rrhh_folder_monitor()
@@ -164,8 +170,11 @@ app.include_router(panol_insumos_router)
 app.include_router(plantel_optimo_router)
 app.include_router(simulador_operativo_router)
 app.include_router(analisis_premio_productividad_router)
+app.include_router(estudio_premios_productividad_router)
 app.include_router(rendimiento_online_router)
 app.include_router(monitor_cargas_router)
+app.include_router(torre_control_router)
+app.include_router(picking_parquet_router)
 app.include_router(websocket_router)
 app.include_router(auth_router)
 app.include_router(checklist_tareas_router)
@@ -184,6 +193,8 @@ PROTECTED_PAGE_PATHS = {
     "/opex-shift.html",
     "/opex-olas",
     "/opex-olas.html",
+    "/opex-torre-control",
+    "/opex-torre-control.html",
     "/novedades-cd",
     "/novedades-cd.html",
     "/historia-legajo",
@@ -250,6 +261,8 @@ PAGE_MODULES = {
     "/opex-shift.html": "opex",
     "/opex-olas": "opex",
     "/opex-olas.html": "opex",
+    "/opex-torre-control": "opex",
+    "/opex-torre-control.html": "opex",
     "/novedades-cd": "novedades_cd",
     "/novedades-cd.html": "novedades_cd",
     "/historia-legajo": "historia_legajo",
@@ -262,6 +275,8 @@ PAGE_MODULES = {
     "/simulador-operativo.html": "simulador_operativo",
     "/analisis-premio-productividad": "analisis_premio_productividad",
     "/analisis-premio-productividad.html": "analisis_premio_productividad",
+    "/estudio-premios-productividad": "estudio_premios_productividad",
+    "/estudio-premios-productividad.html": "estudio_premios_productividad",
     "/plantel-optimo": "plantel_optimo",
     "/plantel-optimo.html": "plantel_optimo",
     "/rendimiento-online": "rendimiento_online",
@@ -289,9 +304,11 @@ API_MODULE_PREFIXES = (
     ("/panol-insumos/api", "panol"),
     ("/api/simulador-operativo", "simulador_operativo"),
     ("/api/analisis-premio-productividad", "analisis_premio_productividad"),
+    ("/api/estudio-premios-productividad", "estudio_premios_productividad"),
     ("/api/plantel-optimo", "plantel_optimo"),
     ("/api/rendimiento-online", "rendimiento_online"),
     ("/api/monitor-cargas", "control_procesos"),
+    ("/api/opex/torre-control", "opex"),
     ("/api/checklist-tareas", "checklist_tareas"),
     ("/api/herramientas", "generales"),
 )
@@ -459,6 +476,10 @@ async def page_opex_shift(): return FileResponse(STATIC_DIR / "opex_shift.html")
 @app.get("/opex-olas",      include_in_schema=False)
 async def page_opex_olas(): return FileResponse(STATIC_DIR / "opex_olas.html")
 
+@app.get("/opex-torre-control.html", include_in_schema=False)
+@app.get("/opex-torre-control",      include_in_schema=False)
+async def page_opex_torre_control(): return FileResponse(STATIC_DIR / "opex_torre_control.html")
+
 @app.get("/novedades-cd.html", include_in_schema=False)
 @app.get("/novedades-cd",      include_in_schema=False)
 async def page_novedades_cd(): return FileResponse(STATIC_DIR / "novedades_cd.html")
@@ -490,6 +511,11 @@ async def page_analisis_premio_productividad():
         STATIC_DIR / "analisis_premio_productividad.html",
         headers={"Cache-Control": "no-store, max-age=0"},
     )
+
+@app.get("/estudio-premios-productividad.html", include_in_schema=False)
+@app.get("/estudio-premios-productividad", include_in_schema=False)
+async def page_estudio_premios_productividad():
+    return FileResponse(STATIC_DIR / "estudio_premios_productividad.html", headers={"Cache-Control": "no-store, max-age=0"})
 
 @app.get("/plantel-optimo.html", include_in_schema=False)
 @app.get("/plantel-optimo",      include_in_schema=False)

@@ -56,6 +56,16 @@
       padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
     }
     .logout-btn:hover{color:var(--red);border-color:var(--red)}
+    .account-btn{min-height:28px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);color:var(--ink-soft);padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+    .account-btn:hover{color:var(--blue);border-color:var(--blue)}
+    .modal-backdrop{display:none;position:fixed;inset:0;z-index:10;place-items:center;padding:16px;background:rgba(14,22,32,.42)}
+    .modal-backdrop.visible{display:grid}
+    .modal{width:min(420px,100%);padding:18px;background:var(--panel);border:1px solid var(--rule-strong);box-shadow:0 12px 32px rgba(14,22,32,.22)}
+    .modal h2{font-size:18px;margin:0 0 4px}.modal p{font-size:12px;color:var(--ink-soft);margin:0 0 16px}
+    .modal form{display:grid;gap:10px}.modal label{display:grid;gap:4px;font-size:11px;color:var(--ink-soft)}
+    .modal input{width:100%;padding:9px;border:1px solid var(--rule);font:inherit}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+    .modal-actions button{border:1px solid var(--rule);background:var(--panel);padding:8px 12px}.modal-actions .primary{background:var(--green);border-color:var(--green);color:white}
+    .modal-message{min-height:16px;font-size:11px;color:var(--red)}
     .env-banner{
       display:none;margin:8px 0 0;border:1px solid var(--amber);background:var(--amber-soft);color:#6F4300;
       padding:7px 11px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
@@ -153,6 +163,7 @@
       <div class="user-chip">
         <div><div class="label">Usuario</div><div class="user-value" id="user-label">Validando...</div></div>
       </div>
+      <button class="account-btn" id="change-password-btn">Cambiar clave</button>
       <button class="logout-btn" id="logout-btn">Salir</button>
     </div>
   </header>
@@ -169,6 +180,19 @@
 
   <main class="module-grid" id="module-grid"></main>
 </div>
+<div class="modal-backdrop" id="password-modal" role="dialog" aria-modal="true" aria-labelledby="password-title">
+  <section class="modal">
+    <h2 id="password-title">Cambiar clave</h2>
+    <p>La nueva clave debe tener al menos 8 caracteres.</p>
+    <form id="password-form">
+      <label>Clave actual<input id="current-password" type="password" autocomplete="current-password" required></label>
+      <label>Nueva clave<input id="new-password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label>Repetir nueva clave<input id="confirm-password" type="password" autocomplete="new-password" minlength="8" required></label>
+      <div class="modal-message" id="password-message" role="status"></div>
+      <div class="modal-actions"><button type="button" id="cancel-password">Cancelar</button><button class="primary" type="submit">Guardar clave</button></div>
+    </form>
+  </section>
+</div>
 
 <script>
   const MODULES = [
@@ -181,12 +205,13 @@
     {id:'opex',icon:'target',label:'OpEX',url:'/opex.html',active:true,description:'Seguimiento diario de metas, desvios y acciones operativas para alinear los equipos.'},
     {id:'simulador_operativo',icon:'sliders',label:'Simulador Operativo',url:'/simulador-operativo.html',active:true,description:'Importacion CSV, indicadores, articulos criticos y escenarios de mejora.'},
     {id:'analisis_premio_productividad',style:'premio',icon:'award',label:'Analisis Premio Productividad',url:'/analisis-premio-productividad.html',active:true,hideWhenDenied:true,description:'Auditoria y simulacion de modelos de pago.'},
+    {id:'estudio_premios_productividad',style:'premio',icon:'award',label:'Estudio Premios Productividad',url:'/estudio-premios-productividad.html',active:true,hideWhenDenied:true,description:'Datos crudos del cache WMS para simulaciones.'},
     {id:'plantel_optimo',icon:'users',label:'Actividad semanal por legajo',url:'/plantel-optimo.html',active:true,description:'Funciones del legajero y actividades realizadas por día desde Productividad.'},
     {id:'rendimiento_online',style:'rendimiento',icon:'gauge',label:'Analisis Rendimiento',url:'/rendimiento-online.html',active:true,description:'Productividad online por almacen, sector y legajo contra estandar.'},
     {id:'checklist_tareas',style:'checklist',icon:'check-square',label:'CheckList Tareas',url:'/checklist-tareas',active:true,description:'Tareas operativas recurrentes, responsables, pendientes y trazabilidad por sector.'},
     {id:'recepcion',style:'recepcion',icon:'package',label:'Recepción Refrigerados',url:'/recepcion.html',active:true,description:'Alta de descargas, múltiples PLU, fotos de inspección y consulta de registros.'},
     {id:'control_procesos',style:'monitor',icon:'truck',label:'Monitor Cargas',url:'/monitor-cargas',active:true,description:'Carga y ocupacion por anden: matricula, bultos y volumen de viajes abiertos.'},
-    {id:'trafico',icon:'truck',label:'Trafico',active:false,state:'En desarrollo',description:'Programacion de muelles, flota, entradas y salidas.'},
+    {id:'mapa',style:'mapa',icon:'map',label:'Mapa',url:'http://130.93.104.192:8090/',external:true,active:true,description:'Tableros de Mapa de Almacén.'},
     {id:'generales',icon:'calculator',label:'Herramientas Operativas',url:'/herramientas.html',active:true,description:'Calculadoras simples para prorrateos, calendarios y controles operativos.'},
   ];
 
@@ -200,6 +225,7 @@
     'clipboard-list':'<rect x="8" y="3" width="8" height="4" rx="1"></rect><path d="M9 5H6a2 2 0 0 0-2 2v13h16V7a2 2 0 0 0-2-2h-3"></path><path d="M8 12h8"></path><path d="M8 16h6"></path>',
     'gauge':'<path d="M4 16a8 8 0 1 1 16 0"></path><path d="M12 16l4-5"></path><path d="M6 20h12"></path>',
     'id-card':'<rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M6 16c.7-1.3 1.7-2 3-2s2.3.7 3 2"></path><path d="M14 10h4"></path><path d="M14 14h3"></path>',
+    'map':'<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path>',
     'package':'<path d="M21 8.5 12 3 3 8.5 12 14l9-5.5Z"></path><path d="M3 8.5V16l9 5 9-5V8.5"></path><path d="M12 14v7"></path>',
     'settings':'<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a8 8 0 0 0 .1-2l2-1.2-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15.2 6h-4l-.3 2.4a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.2a8 8 0 0 0 .1 2l-2.1 1.2 2 3.4 2.4-1a7 7 0 0 0 1.6.9l.3 2.5h4l.3-2.5a7 7 0 0 0 1.6-.9l2.4 1 2-3.4-2.1-1.2Z"></path>',
     'sliders':'<path d="M4 6h8"></path><path d="M16 6h4"></path><circle cx="14" cy="6" r="2"></circle><path d="M4 18h4"></path><path d="M12 18h8"></path><circle cx="10" cy="18" r="2"></circle><path d="M4 12h2"></path><path d="M10 12h10"></path><circle cx="8" cy="12" r="2"></circle>',
@@ -232,8 +258,9 @@
           <span class="module-arrow">></span>
         </div>`;
       const style = esc(module.style || module.id);
+      const target = module.external ? ' target="_blank" rel="noopener noreferrer"' : '';
       return available
-        ? `<a class="module-card active ${style}" href="${esc(module.url)}">${content}</a>`
+        ? `<a class="module-card active ${style}" href="${esc(module.url)}"${target}>${content}</a>`
         : `<article class="module-card ${module.active ? 'denied' : 'inactive'} ${style}" title="${module.active ? 'Tu usuario no tiene acceso habilitado.' : esc(module.state)}">${content}</article>`;
     }).join('');
     $('module-count').textContent = `${MODULES.filter(module => module.active && access[module.id]).length} modulos habilitados`;
@@ -276,6 +303,34 @@
     sessionStorage.removeItem('vigia_session');
     await fetch('/api/auth/logout', {method:'POST',credentials:'same-origin'}).catch(() => {});
     window.location.replace('/login');
+  };
+
+  const passwordModal = $('password-modal');
+  const passwordMessage = $('password-message');
+  $('change-password-btn').onclick = () => {
+    passwordMessage.textContent = '';
+    $('password-form').reset();
+    passwordModal.classList.add('visible');
+    $('current-password').focus();
+  };
+  $('cancel-password').onclick = () => passwordModal.classList.remove('visible');
+  passwordModal.onclick = event => { if (event.target === passwordModal) passwordModal.classList.remove('visible'); };
+  $('password-form').onsubmit = async event => {
+    event.preventDefault();
+    passwordMessage.textContent = 'Guardando...';
+    try {
+      const res = await fetch('/api/auth/change-password', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+        current_password:$('current-password').value, new_password:$('new-password').value, confirm_password:$('confirm-password').value,
+      })});
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || 'No se pudo actualizar la clave.');
+      passwordMessage.style.color = 'var(--green)';
+      passwordMessage.textContent = 'Clave actualizada correctamente.';
+      setTimeout(() => passwordModal.classList.remove('visible'), 900);
+    } catch (error) {
+      passwordMessage.style.color = 'var(--red)';
+      passwordMessage.textContent = error.message;
+    }
   };
 
   initSelector();

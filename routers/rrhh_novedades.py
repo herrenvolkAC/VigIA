@@ -68,6 +68,7 @@ _rrhh_oracle_scheduler_task: asyncio.Task | None = None
 _rrhh_oracle_scheduler_stop: asyncio.Event | None = None
 _rrhh_oracle_scheduler_last_attempt: str | None = None
 _rrhh_monitor_seen: dict[str, tuple[int, int, float]] = {}
+_rrhh_monitor_last_state: str | None = None
 RRHH_IMPORT_LOG_HEADERS = (
     "fecha_hora",
     "batch_key",
@@ -967,6 +968,16 @@ def _insert_actividad_payload(
     inserted_payload: list[tuple[Any, ...]] = []
     updated = 0
     skipped_existing_oracle = 0
+    oracle_keys: set[tuple[str, str]] = set()
+    if source != "oracle_auto":
+        cur.execute(
+            "SELECT legajo, fecha FROM rrhh_actividad_diaria WHERE origen_dato = 'oracle_auto'"
+        )
+        oracle_keys = {
+            (_norm_legajo(row["legajo"]), _to_date(row["fecha"]))
+            for row in cur.fetchall()
+            if _norm_legajo(row["legajo"]) and _to_date(row["fecha"])
+        }
     for item in payload:
         data = dict(zip(ACTIVIDAD_INSERT_COLUMNS, item))
         legajo = _norm_legajo(data.get("legajo"))
@@ -993,18 +1004,7 @@ def _insert_actividad_payload(
             if existed:
                 updated += 1
         else:
-            cur.execute(
-                """
-                SELECT 1
-                FROM rrhh_actividad_diaria
-                WHERE LTRIM(legajo, '0') = ?
-                  AND fecha = ?
-                  AND origen_dato = 'oracle_auto'
-                LIMIT 1
-                """,
-                (legajo, fecha),
-            )
-            if cur.fetchone():
+            if (legajo, fecha) in oracle_keys:
                 skipped_existing_oracle += 1
                 continue
         data["updated_at"] = now_text
@@ -1720,7 +1720,9 @@ def _rrhh_quality_warnings(cur: sqlite3.Cursor, batch_id: int, limit: int = 25) 
 
 
 def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: bool) -> dict[str, Any]:
+    logger.info("Monitor RRHH: lote %s iniciando detección de archivos.", batch_key)
     files = _detect_files(folder)
+    logger.info("Monitor RRHH: lote %s archivos detectados: %s.", batch_key, _stringify_files(files))
     import_mode = "error"
     import_log_details: list[dict[str, Any]] = []
     conn = sqlite3.connect(DB_PATH)
@@ -1728,6 +1730,7 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
     conn.execute("PRAGMA foreign_keys = ON")
     cur = conn.cursor()
     try:
+        logger.info("Monitor RRHH: lote %s iniciando transacción de base de datos.", batch_key)
         _cleanup_rrhh_orphans(cur)
         cur.execute("SELECT batch_id FROM rrhh_import_batches WHERE batch_key = ?", (batch_key,))
         existing = cur.fetchone()
@@ -1751,7 +1754,9 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
         import_mode = "completo"
         if files.get("legajero"):
             legajero_path = Path(files["legajero"])
+            logger.info("Monitor RRHH: lote %s importando legajero %s.", batch_key, legajero_path.name)
             legajero_info = _import_legajero(cur, batch_id, legajero_path)
+            logger.info("Monitor RRHH: lote %s legajero finalizado (%s registros).", batch_key, legajero_info.get("inserted", 0))
             import_log_details.append({"path": legajero_path, "kind": "legajero", "excel_rows": _excel_data_rows(legajero_path, "legajero"), "inserted_rows": legajero_info["inserted"]})
         elif reference_legajero_batch_id:
             legajero_info = _copy_legajero_from_batch(cur, batch_id, reference_legajero_batch_id)
@@ -1771,27 +1776,34 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
         gerencia_map = legajero_info["gerencia_map"]
         if files.get("codigos_ausentismo"):
             codigos_path = Path(files["codigos_ausentismo"])
+            logger.info("Monitor RRHH: lote %s importando códigos de ausentismo %s.", batch_key, codigos_path.name)
             codigos_info = _import_codigos(cur, batch_id, codigos_path)
             import_log_details.append({"path": codigos_path, "kind": "codigos_ausentismo", "excel_rows": _excel_data_rows(codigos_path, "codigos_ausentismo"), "inserted_rows": codigos_info["codigos"]})
         else:
             codigos_info = {"codigos": 0, "reglas": 0}
         if files.get("francos"):
             francos_path = Path(files["francos"])
+            logger.info("Monitor RRHH: lote %s importando francos %s.", batch_key, francos_path.name)
             francos_inicial = _import_francos_inicial(cur, francos_path, imported_by)
             import_log_details.append({"path": francos_path, "kind": "francos", "excel_rows": _excel_data_rows(francos_path, "francos"), "inserted_rows": francos_inicial})
         else:
             francos_inicial = 0
         actividad_paths = _as_paths(files, "actividad_files")
         sanciones_paths = _as_paths(files, "sanciones_files")
+        logger.info("Monitor RRHH: lote %s importando actividad (%s archivo(s)).", batch_key, len(actividad_paths))
         actividad_total, actividad_details = _import_actividad_files_detailed(cur, batch_id, actividad_paths, gerencia_map) if actividad_paths else (0, [])
+        logger.info("Monitor RRHH: lote %s actividad finalizada (%s registros).", batch_key, actividad_total)
         import_log_details.extend(actividad_details)
         if files.get("fichadas"):
             fichadas_path = Path(files["fichadas"])
+            logger.info("Monitor RRHH: lote %s importando fichadas %s.", batch_key, fichadas_path.name)
             fichadas_total = _import_fichadas(cur, batch_id, fichadas_path, gerencia_map)
+            logger.info("Monitor RRHH: lote %s fichadas finalizadas (%s registros).", batch_key, fichadas_total)
             import_log_details.append({"path": fichadas_path, "kind": "fichadas", "excel_rows": _excel_data_rows(fichadas_path, "fichadas"), "inserted_rows": fichadas_total})
         else:
             fichadas_total = 0
         sanciones_total, sanciones_details = _import_sanciones_files_detailed(cur, batch_id, sanciones_paths, gerencia_map) if sanciones_paths else (0, [])
+        logger.info("Monitor RRHH: lote %s sanciones finalizadas (%s registros).", batch_key, sanciones_total)
         import_log_details.extend(sanciones_details)
         summary = {
             "modo_importacion": import_mode,
@@ -1830,6 +1842,7 @@ def _import_folder_sync(folder: Path, batch_key: str, imported_by: str, force: b
             """,
             (json.dumps(summary, ensure_ascii=False), batch_id),
         )
+        logger.info("Monitor RRHH: lote %s confirmando transacción.", batch_key)
         conn.commit()
         _write_rrhh_import_log([
             _import_log_entry(
@@ -1934,6 +1947,15 @@ def _make_auto_batch_key(paths: list[Path]) -> str:
         ).encode("utf-8")
     ).hexdigest()[:16]
     return f"auto_{digest}"
+
+
+def _log_monitor_state(state: str, message: str, *args: Any, level: int = logging.INFO) -> None:
+    """Registra cambios de estado del monitor sin repetir el mismo mensaje cada minuto."""
+    global _rrhh_monitor_last_state
+    if state == _rrhh_monitor_last_state:
+        return
+    _rrhh_monitor_last_state = state
+    logger.log(level, message, *args)
 
 
 def _flatten_imported_paths(files: dict[str, Any]) -> list[Path]:
@@ -2088,18 +2110,59 @@ def _write_import_error_report(
 
 
 async def _rrhh_monitor_loop() -> None:
-    logger.info("Monitor RRHH iniciado.")
+    inbox = _watch_inbox()
+    _log_monitor_state(
+        f"inicio:{inbox}",
+        "Monitor RRHH iniciado. Carpeta observada: %s. Importados: %s. Error: %s.",
+        inbox,
+        _watch_imported_dir(inbox) if inbox else None,
+        _watch_error_dir(inbox) if inbox else None,
+    )
     interval = _env_int("RRHH_WATCH_POLL_SECONDS", 60, minimum=10, maximum=3600)
     stability = _env_int("RRHH_WATCH_STABILITY_SECONDS", 30, minimum=5, maximum=3600)
     while _rrhh_monitor_stop is not None and not _rrhh_monitor_stop.is_set():
         try:
             inbox = _watch_inbox()
             if inbox is None or not inbox.exists() or not inbox.is_dir():
-                logger.warning("Monitor RRHH: carpeta no disponible: %s", inbox)
+                _log_monitor_state(
+                    f"inaccesible:{inbox}",
+                    "Monitor RRHH: carpeta no disponible: %s",
+                    inbox,
+                    level=logging.WARNING,
+                )
             else:
-                stable_files = await asyncio.to_thread(_stable_excel_files, inbox, stability)
+                excel_files = await asyncio.to_thread(_excel_files, inbox)
+                if not excel_files:
+                    _log_monitor_state(
+                        f"sin_archivos:{inbox}",
+                        "Monitor RRHH: no hay archivos .xlsx/.xls directamente en %s.",
+                        inbox,
+                        level=logging.WARNING,
+                    )
+                    stable_files = []
+                else:
+                    file_state = "|".join(
+                        f"{path.name}:{path.stat().st_size}:{path.stat().st_mtime_ns}"
+                        for path in excel_files
+                    )
+                    stable_files = await asyncio.to_thread(_stable_excel_files, inbox, stability)
+                    if len(stable_files) != len(excel_files):
+                        _log_monitor_state(
+                            f"inestables:{file_state}",
+                            "Monitor RRHH: esperando estabilidad de %s archivo(s) (%ss): %s.",
+                            len(excel_files),
+                            stability,
+                            ", ".join(path.name for path in excel_files),
+                        )
+                    else:
+                        _log_monitor_state(
+                            f"estables:{file_state}",
+                            "Monitor RRHH: archivos estables detectados: %s.",
+                            ", ".join(path.name for path in stable_files),
+                        )
                 if stable_files:
                     batch_key = _make_auto_batch_key(stable_files)
+                    logger.info("Monitor RRHH: intentando importar lote %s.", batch_key)
                     try:
                         try:
                             result = await _import_folder_locked(inbox, batch_key, "rrhh_monitor", False)
@@ -2115,6 +2178,12 @@ async def _rrhh_monitor_loop() -> None:
                             batch_key,
                         )
                         logger.info("Monitor RRHH importo %s y movio %s archivo(s).", batch_key, len(moved))
+                        _log_monitor_state(
+                            f"importado:{batch_key}",
+                            "Monitor RRHH: lote %s procesado correctamente. Archivos movidos: %s.",
+                            batch_key,
+                            len(moved),
+                        )
                     except Exception as exc:
                         logger.exception("Monitor RRHH fallo al importar %s: %s", batch_key, exc)
                         if "No se detectaron archivos RRHH compatibles" in str(exc):
@@ -2589,7 +2658,7 @@ def _oracle_activity_payload(
     codes: dict[str, dict[str, str]],
     no_count_patterns: list[str],
 ) -> tuple[list[tuple[Any, ...]], int]:
-    window_start = datetime.strptime(f"{fecha_operativa} 06:00:00", "%Y-%m-%d %H:%M:%S")
+    window_start = datetime.strptime(f"{fecha_operativa} 14:00:00", "%Y-%m-%d %H:%M:%S")
     window_end = window_start + timedelta(days=1) - timedelta(seconds=1)
     oracle_by_legajo: dict[str, list[dict[str, Any]]] = {}
     for row in oracle_rows:
@@ -2893,8 +2962,8 @@ def _rrhh_logistic_windows_path() -> Path:
 
 def _rrhh_logistic_windows_config() -> dict[str, dict[str, Any]]:
     default_config = {
-        "default": {"inicio": "06:00", "fin": "05:59", "descripcion": "Jornada logistica general"},
-        "CD-TRAFICO": {"inicio": "16:00", "fin": "15:59", "lunes_inicio": "22:00", "margen_ingreso_minutos": 30, "descripcion": "Jornada logistica Trafico"},
+        "default": {"inicio": "14:00", "fin": "13:59", "descripcion": "Jornada logistica general"},
+        "CD-TRAFICO": {"inicio": "14:00", "fin": "13:59", "lunes_inicio": "14:00", "margen_ingreso_minutos": 30, "descripcion": "Jornada logistica Trafico"},
     }
     path = _rrhh_logistic_windows_path()
     try:
@@ -2915,7 +2984,7 @@ def _rrhh_logistic_windows_config() -> dict[str, dict[str, Any]]:
 def _rrhh_operational_window(now_dt: datetime | None = None, sectores: list[str] | None = None) -> dict[str, Any]:
     now_dt = now_dt or datetime.now()
     config = _rrhh_logistic_windows_config()
-    default_window = config.get("default") or {"inicio": "06:00", "fin": "05:59", "descripcion": "Jornada logistica general"}
+    default_window = config.get("default") or {"inicio": "14:00", "fin": "13:59", "descripcion": "Jornada logistica general"}
     sector_keys = sorted({_fold_config_key(sector) for sector in (sectores or []) if _norm(sector)})
     matched_windows: dict[str, dict[str, Any]] = {
         key: config[key]
@@ -4307,6 +4376,8 @@ async def get_presencias_filtros(request: Request):
             f"""
             SELECT DISTINCT l.desc_sector_generico value
             FROM latest_legajero l
+            JOIN rrhh_personas persona_activa
+              ON persona_activa.legajo = l.legajo AND persona_activa.active = 1
             WHERE {filter_vis}
               AND TRIM(COALESCE(l.fecha_baja, '')) = ''
               AND TRIM(COALESCE(l.desc_sector_generico, '')) <> ''
@@ -4319,6 +4390,8 @@ async def get_presencias_filtros(request: Request):
             f"""
             SELECT DISTINCT COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), '')) value
             FROM latest_legajero l
+            JOIN rrhh_personas persona_activa
+              ON persona_activa.legajo = l.legajo AND persona_activa.active = 1
             WHERE {filter_vis}
               AND TRIM(COALESCE(l.fecha_baja, '')) = ''
               AND TRIM(COALESCE(l.legajo, '')) <> ''
@@ -4333,6 +4406,8 @@ async def get_presencias_filtros(request: Request):
             SELECT l.desc_sector_generico sector,
                    COALESCE(NULLIF(TRIM(l.desc_funcion), ''), NULLIF(TRIM(l.desc_posicion), '')) funcion
             FROM latest_legajero l
+            JOIN rrhh_personas persona_activa
+              ON persona_activa.legajo = l.legajo AND persona_activa.active = 1
             WHERE {filter_vis}
               AND TRIM(COALESCE(l.fecha_baja, '')) = ''
               AND TRIM(COALESCE(l.legajo, '')) <> ''
@@ -4394,6 +4469,8 @@ async def get_presencias(
                    COALESCE(NULLIF(TRIM(l.desc_unidad_organizativa), ''), '') unidad,
                    COALESCE(NULLIF(TRIM(l.fecha_baja), ''), '') fecha_baja
             FROM latest_legajero l
+            JOIN rrhh_personas persona_activa
+              ON persona_activa.legajo = l.legajo AND persona_activa.active = 1
             WHERE {" AND ".join(where)}
               AND TRIM(COALESCE(l.fecha_baja, '')) = ''
               AND TRIM(COALESCE(l.legajo, '')) <> ''
