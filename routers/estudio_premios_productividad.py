@@ -592,6 +592,18 @@ async def cache_agrupado(
 
     # Piloto solicitado: Carga. Las demás funciones se muestran agrupadas,
     # pero todavía no se les asigna un importe nuevo.
+    # El grupal nuevo proviene directamente del simulador grupal. Se agrega
+    # por operación equivalente + grupo, una sola vez por beneficiario/día.
+    simulador_grupal = await calculo_grupal(request, fecha_desde, fecha_hasta)
+    grupal_nuevo = {}
+    for item in simulador_grupal.get('nivel_1', []):
+        grupo = str(item.get('grupo_productivo') or '').strip()
+        operacion = str(item.get('operacion') or '').strip().upper()
+        if not grupo or not operacion:
+            continue
+        operacion = 'CARGA' if operacion == 'CARGA CAMION' else operacion
+        key = (operacion, grupo.upper())
+        grupal_nuevo[key] = grupal_nuevo.get(key, 0) + int(round(float(item.get('premio_grupal_total') or 0) * 100))
     for row in rows:
         p = parametros.get(row["desc_funcion"], {})
         unidad = str(p.get("unidad_medida") or "").upper()
@@ -756,20 +768,28 @@ async def premios_totales(request: Request, fecha_desde: str = '2026-08-01',
                          for r in await cur.fetchall()}
     for row in rows:
         total = int(row.get('total_centavos') or 0)
-        grupal = round(total * 0.55)
+        grupal_actual = round(total * 0.55)
         individual = round(total * 0.35)
         sim = simulated.get((str(row.get('operacion') or '').upper(), str(row.get('grupo') or '').upper()), {})
-        nuevo = int(round(float(sim.get('simulado') or 0) * 100))
-        row.update({'total_centavos': total, 'grupal_centavos': grupal,
+        individual_nuevo = int(round(float(sim.get('simulado') or 0) * 100))
+        key = (str(row.get('operacion') or '').upper(), str(row.get('grupo') or '').upper())
+        grupal_nuevo_centavos = grupal_nuevo.get(key, 0)
+        polivalencia_nueva = 0
+        total_nuevo = grupal_nuevo_centavos + individual_nuevo + polivalencia_nueva
+        row.update({'total_centavos': total, 'grupal_centavos': grupal_actual,
                     'individual_centavos': individual,
-                    'polivalencia_centavos': total - grupal - individual,
-                    'simulado_centavos': nuevo,
-                    'grupal_nuevo_centavos': 0,
-                    'individual_nuevo_centavos': nuevo,
-                    'polivalencia_nuevo_centavos': 0})
+                    'polivalencia_centavos': total - grupal_actual - individual,
+                    'simulado_centavos': total_nuevo,
+                    'grupal_nuevo_centavos': grupal_nuevo_centavos,
+                    'individual_nuevo_centavos': individual_nuevo,
+                    'polivalencia_nuevo_centavos': polivalencia_nueva,
+                    'total_nuevo_centavos': total_nuevo,
+                    'diferencia_centavos': total_nuevo - total})
     return {'snapshot': meta['snapshot'], 'rows': rows,
             'porcentajes': {'grupal': 55, 'individual': 35, 'polivalencia': 10},
-            'nota': 'Distribución teórica del pago real por tarea; no reemplaza la liquidación Oracle.'}
+            'nota': 'Total nuevo = grupal simulado + individual simulado + polivalencia nueva. El grupal se suma desde Cálculo grupal diario por operación y grupo productivo; no reemplaza la liquidación Oracle.',
+            'grupal': {'filas': len(simulador_grupal.get('nivel_1', [])), 'grupos_con_premio': len(grupal_nuevo),
+                       'total_centavos': sum(grupal_nuevo.values())}}
 
 
 @router.get("/propuesta-individual-carga")
