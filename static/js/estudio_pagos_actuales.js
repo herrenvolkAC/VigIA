@@ -10,12 +10,12 @@ const moneyActual=v=>v==null?'Sin información':(v/100).toLocaleString('es-AR',{
 function paymentHierarchy(rows,actualRows,restricted){
  const days=new Map(),legs=new Map();
  const key=(l,d)=>JSON.stringify([String(l??''),String(d??'')]);
- const ensure=(l,d)=>{const k=key(l,d);if(!days.has(k))days.set(k,{legajo:String(l??''),fecha:String(d??''),total:null,pago_actual:null,actual:null});return days.get(k);};
- for(const r of rows){const d=ensure(r.legajo,r.fecha);if(r.premio_nuevo!=null)d.total=(d.total??0)+Math.round(Number(r.premio_nuevo)*100);}
+ const ensure=(l,d,perfil={})=>{const k=key(l,d);if(!days.has(k))days.set(k,{legajo:String(l??''),fecha:String(d??''),nombre:perfil.nombre||'',sector_legajero:perfil.sector_legajero||'',funcion_legajero:perfil.funcion_legajero||'',total:null,pago_actual:null,actual:null});return days.get(k);};
+ for(const r of rows){const d=ensure(r.legajo,r.fecha,r);if(r.premio_nuevo!=null)d.total=(d.total??0)+Math.round(Number(r.premio_nuevo)*100);}
  const simLegs=new Set([...days.values()].map(d=>d.legajo));
  for(const r of actualRows){if(restricted&&!simLegs.has(String(r.legajo)))continue;const d=ensure(r.legajo,r.fecha);d.actual=r;d.pago_actual=r.pago_centavos;}
  for(const d of days.values()){
-  if(!legs.has(d.legajo))legs.set(d.legajo,{legajo:d.legajo,total:null,pago_actual:null,faltantes:0});
+  if(!legs.has(d.legajo))legs.set(d.legajo,{legajo:d.legajo,nombre:d.nombre,sector_legajero:d.sector_legajero,funcion_legajero:d.funcion_legajero,total:null,pago_actual:null,faltantes:0});
   const l=legs.get(d.legajo);
   if(d.total!=null)l.total=(l.total??0)+d.total;
   if(d.pago_actual!=null)l.pago_actual=(l.pago_actual??0)+d.pago_actual;else l.faltantes++;
@@ -29,7 +29,7 @@ function renderResumen(){
  const restricted=!!(model.query_filters?.desc_funcion||model.query_filters?.grupo_productivo);
  const data=paymentHierarchy(rows,model.actual_data?.rows||[],restricted);
  const paint=yes=>yes?' class="hierarchy-selected" aria-selected="true"':' aria-selected="false"';
- $('jerarquia-legajos').innerHTML=hierarchySort(data.legs,'legajos').map(r=>`<tr tabindex="0" data-pick="${esc(r.legajo)}"${paint(r.legajo===hierarchy.legajo)}><td>${esc(r.legajo)}</td><td>${moneyActual(r.pago_actual)}${r.faltantes&&r.pago_actual!=null?' (parcial)':''}</td><td>${moneyActual(r.total)}</td><td>${moneyActual(r.diferencia)}${r.faltantes&&r.diferencia!=null?' (parcial)':''}</td></tr>`).join('');
+ $('jerarquia-legajos').innerHTML=hierarchySort(data.legs,'legajos').map(r=>`<tr tabindex="0" data-pick="${esc(r.legajo)}"${paint(r.legajo===hierarchy.legajo)}><td>${esc(r.legajo)}</td><td>${esc(r.nombre||'—')}</td><td>${esc(r.sector_legajero||'—')}</td><td>${esc(r.funcion_legajero||'—')}</td><td>${moneyActual(r.pago_actual)}${r.faltantes&&r.pago_actual!=null?' (parcial)':''}</td><td>${moneyActual(r.total)}</td><td>${moneyActual(r.diferencia)}${r.faltantes&&r.diferencia!=null?' (parcial)':''}</td></tr>`).join('');
  const days=data.days.filter(d=>d.legajo===hierarchy.legajo);
  $('jerarquia-dias').innerHTML=hierarchySort(days,'dias').map(r=>`<tr tabindex="0" data-pick="${esc(r.fecha)}"${paint(r.fecha===hierarchy.dia)}><td>${esc(r.legajo)}</td><td>${esc(r.fecha)}</td><td>${moneyActual(r.pago_actual)}</td><td>${moneyActual(r.total)}</td><td>${moneyActual(r.diferencia)}${r.faltantes&&r.diferencia!=null?' (parcial)':''}</td></tr>`).join('');
  const funcs=hierarchy.dia===null?[]:rows.map((r,index)=>({...r,index})).filter(r=>String(r.legajo??'')===hierarchy.legajo&&String(r.fecha??'')===hierarchy.dia);

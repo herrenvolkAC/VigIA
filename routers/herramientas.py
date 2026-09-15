@@ -966,3 +966,7 @@ async def exportar_hojas_ruta(req: HojasRutaCalcularRequest):
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+from routers.herramientas_horas import router as horas_router
+router.include_router(horas_router)

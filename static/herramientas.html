@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <title>VigIA - Herramientas Operativas</title>
   <style>
     :root{--bg:#f2f4f1;--panel:#fff;--ink:#0e1620;--soft:#5c6773;--rule:#d4dbd8;--strong:#a9b4ac;--accent:#58636e;--accent-soft:#e8ebed;--red:#c8102e}
@@ -25,6 +26,7 @@
     @media(max-width:980px){header,.tool-grid,.bulk-grid{grid-template-columns:1fr}.actions{justify-content:flex-start}.kpis{grid-template-columns:1fr 1fr}.bulk-tools{justify-content:flex-start}}
     @media(max-width:620px){.form-grid,.kpis{grid-template-columns:1fr}}
   </style>
+  <link rel="stylesheet" href="/css/herramientas.css">
 </head>
 <body>
   <header>
@@ -38,10 +40,15 @@
     </nav>
   </header>
   <main>
+    <div class="main-tabs" role="tablist" aria-label="Herramientas">
+      <button id="tab-viajes" role="tab" aria-selected="true" aria-controls="panel-viajes" class="active" type="button">Viajes Larga Distancia</button>
+      <button id="tab-horas" role="tab" aria-selected="false" aria-controls="panel-horas" tabindex="-1" type="button">Autorización de Horas Extras</button>
+    </div>
+    <div id="panel-viajes" role="tabpanel" aria-labelledby="tab-viajes">
     <div class="tabs"><button id="tab-calculo" class="tab-active" type="button">Cálculo KM</button><button id="tab-feriados" type="button">ABM Feriados</button></div>
     <div id="panel-calculo">
     <section id="modelo-panel" class="band">
-      <div class="band-head"><div><h2>Validación desde Excel</h2><div class="muted">Cargue el Excel modelo y consulte las hojas de ruta en F922TRAF/F922TRAF_HIST.</div></div></div>
+      <div class="band-head"><div><h2>Validación desde Excel</h2><div class="muted">Cargue el Excel modelo.</div></div></div>
       <div class="bulk-grid"><div><label for="modelo-file">Archivo Excel</label><input id="modelo-file" type="file" accept=".xlsx"><div class="message" id="modelo-message"></div></div><div class="bulk-tools"><button id="modelo-consultar" class="primary" type="button">Consultar</button><button id="modelo-recalcular" type="button">Recalcular editados</button><button id="modelo-exportar" type="button">Exportar Excel validado</button></div></div>
       <details id="modelo-edit-panel-new" class="edit-panel"><summary>Editar viaje seleccionado</summary><div class="muted" id="modelo-edit-title-new"></div><div class="form-grid"><div><label>Fecha viaje</label><input id="edit-fecha-viaje-new" type="date"></div><div><label>Hora viaje</label><input id="edit-hora-viaje-new" type="time"></div><div><label>Legajo Excel</label><input id="edit-excel-legajo-new"></div><div><label>Hoja de ruta</label><input id="edit-hojaruta-new"></div><div><label>KM viaje</label><input id="edit-cantidad-new" type="number" min="0" step="0.01"></div><div><label>Fecha salida</label><input id="edit-fesalida-new" type="datetime-local"></div><div><label>Fecha regreso</label><input id="edit-fevuelta-new" type="datetime-local"></div><div><label>Llegada al local</label><input id="edit-llegada-local-new" type="datetime-local"></div><div><label>Salida del local</label><input id="edit-salida-local-new" type="datetime-local"></div><div><label>Legajo Oracle</label><input id="edit-legajo-new"></div><div><label>Nombre chofer</label><input id="edit-nombre-new"></div><div><label>DNI</label><input id="edit-nrodoc-new"></div><div class="span actions"><button id="modelo-guardar-edicion-new" class="primary" type="button">Guardar edición</button><button id="modelo-cancelar-edicion-new" type="button">Cancelar</button></div></div></details>
       <div class="table-wrap" style="margin-top:14px"><table class="modelo-table"><thead><tr><th>Fecha viaje Excel</th><th>Hora viaje</th><th>Legajo Excel</th><th>Hoja ruta</th><th>KM viaje</th><th>Fecha salida Oracle</th><th>Fecha regreso Oracle</th><th>Horas totales</th><th>Legajo Oracle</th><th>Nombre chofer</th><th>DNI</th><th>KM al 100</th><th>Pernocte</th><th>Torito</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="modelo-body"><tr><td colspan="16" class="muted">Seleccione el Excel y presione Consultar.</td></tr></tbody></table></div>
@@ -124,6 +131,30 @@
       </form>
       <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Fecha</th><th>Motivo</th><th>Tipo</th><th>Acciones</th></tr></thead><tbody id="feriados-body"></tbody></table></div>
     </section>
+    </div>
+    <section id="panel-horas" role="tabpanel" aria-labelledby="tab-horas" hidden>
+      <form id="he-form" class="band he-filters">
+        <div><label for="he-desde">Desde</label><input id="he-desde" type="date" required></div>
+        <div><label for="he-hasta">Hasta</label><input id="he-hasta" type="date" required></div>
+        <div><label for="he-sector">Sector</label><select id="he-sector" required><option value="">Cargando sectores…</option></select></div>
+        <div><label>Funciones</label><details id="he-funciones"><summary>Seleccione un sector</summary><div id="he-checks"></div></details></div>
+        <button id="he-consultar" class="primary" type="submit">Consultar</button>
+      </form>
+      <div id="he-message" class="band message" role="status" aria-live="polite">Seleccione el rango, sector y funciones.</div>
+      <div id="he-kpis" class="kpis"></div>
+      <section class="band">
+        <div class="band-head"><div><h2>Horas extras por legajo y día</h2><p class="muted">Cada decisión corresponde al total diario. Las autorizaciones se registran de forma independiente.</p></div><button id="he-guardar" class="primary" type="button" disabled>Guardar cambios</button></div>
+        <div class="he-bulk">
+          <span id="he-selection" role="status">0 filas seleccionadas</span>
+          <label for="he-motivo">Motivo para rechazo masivo</label><input id="he-motivo" maxlength="500" placeholder="Obligatorio para rechazar">
+          <button id="he-aprobar" type="button" disabled>Aprobar seleccionadas</button>
+          <button id="he-rechazar" type="button" disabled>Rechazar seleccionadas</button>
+          <button id="he-exportar" type="button" disabled>Exportar Excel</button>
+        </div>
+        <p class="muted">Seleccione filas o marque todas. Las decisiones masivas se aplican al presionar Guardar cambios. El Excel contiene los resultados consultados con las decisiones guardadas.</p>
+        <div class="table-wrap"><table><thead id="he-head"><tr><th><input id="he-select-all" type="checkbox" aria-label="Seleccionar todas las filas consultadas"></th><th aria-sort="none"><button type="button" data-sort="fecha">Fecha</button></th><th aria-sort="none"><button type="button" data-sort="legajo">Legajo</button></th><th aria-sort="none"><button type="button" data-sort="empleado">Empleado</button></th><th aria-sort="none"><button type="button" data-sort="sector">Sector</button></th><th aria-sort="none"><button type="button" data-sort="funcion">Función</button></th><th aria-sort="none"><button type="button" data-sort="horas">HE realizadas</button></th><th aria-sort="none"><button type="button" data-sort="estado">Decisión</button></th><th aria-sort="none"><button type="button" data-sort="observacion">Observación</button></th><th aria-sort="none"><button type="button" data-sort="updated_at">Última decisión</button></th></tr></thead><tbody id="he-body"><tr><td colspan="10">Realice una consulta.</td></tr></tbody></table></div>
+      </section>
+    </section>
   </main>
   <div id="modelo-modal" class="modal-backdrop" style="display:none"><div class="modal"><div id="modelo-modal-content"></div><div class="actions" style="margin-top:16px"><button id="modelo-modal-close" type="button">Cerrar</button></div></div></div>
   <script>
@@ -192,5 +223,6 @@
     $('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
     init().catch(e=>setMsg(e.message,true));
   </script>
+  <script src="/js/herramientas_horas.js"></script>
 </body>
 </html>

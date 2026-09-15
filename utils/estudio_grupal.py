@@ -61,7 +61,15 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
         if row.get('active'):
             nominas[texto(row['desc_sector_generico']), texto(row['desc_funcion'])].append(row)
     alias = lambda op: 'CARGA' if op == 'CARGA CAMION' else op
-    relaciones = {(alias(a), alias(b)) for a, b in relaciones}
+    # Las relaciones actuales se acotan al perfil de legajero. Se conserva la
+    # forma anterior de pares sólo para no romper escenarios históricos.
+    reglas_por_perfil = None
+    if isinstance(relaciones, dict):
+        reglas_por_perfil = {tuple(str(item).strip().upper() for item in key):
+                              {str(op).strip().upper() for op in value}
+                              for key, value in relaciones.items()}
+    else:
+        relaciones = {(alias(a), alias(b)) for a, b in relaciones}
     columnas = {'PALET': 'palets', 'BULTO': 'cantidad', 'PLU': 'plus'}
     nivel_1, nivel_2, nivel_3 = [], [], []
     for par in parametros:
@@ -69,8 +77,12 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
             continue
         sector, funcion, turno = (texto(par[k]) for k in ('sector', 'funcion_legajero', 'turno'))
         operacion = texto(par.get('operacion_medible'))
-        unidad = operaciones.get(operacion, '')
-        configurado = bool(operacion and unidad in columnas and par['uc_por_operario'] > 0)
+        componentes = {texto(x.get('funcion_wms')).upper() for x in par.get('componentes', []) if texto(x.get('funcion_wms'))}
+        # Sin componentes se preserva el parámetro histórico de una operación.
+        if not componentes and operacion:
+            componentes = {operacion.upper()}
+        unidad = 'PALET' if par.get('componentes') else operaciones.get(operacion, '')
+        configurado = bool(componentes and unidad in columnas and par['uc_por_operario'] > 0)
         identidad = dict(sector=sector, funcion_legajero=funcion, turno=turno,
                          operacion=operacion, unidad_medida=unidad,
                          grupo_productivo_id=par.get('grupo_productivo_id'),
@@ -103,10 +115,18 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                 ops = {alias(texto(r['desc_funcion'])) for r in acts}
                 # La operación madre viene del parámetro del grupo. Puede haber
                 # polivalencia aun si ese día sólo trabajó en la otra operación.
-                madre = alias(operacion)
-                polivalente = any(a == madre and b in ops and a != b for a, b in relaciones)
+                # PALETS OPERADOS combina Carga y Traslado para medir. La
+                # regla de polivalencia conserva esa operación madre y se
+                # aplica sólo a las operaciones B de este perfil.
+                if reglas_por_perfil is not None:
+                    clave_regla = (sector.upper(), funcion.upper(), operacion.upper())
+                    polivalente = bool(ops & reglas_por_perfil.get(clave_regla, set()))
+                else:
+                    madres = ({'CARGA', 'TRASLADO'} if operacion.upper() == 'PALETS OPERADOS'
+                              else {alias(item) for item in componentes})
+                    polivalente = any(a in madres and b in ops and a != b for a, b in relaciones)
                 producida = sum(Decimal(str(r.get(columnas.get(unidad, ''), 0) or 0))
-                               for r in acts if texto(r['desc_funcion']) == operacion)
+                               for r in acts if texto(r['desc_funcion']).upper() in componentes)
                 computable = producida if aplica_grupo and confirmado and presente and not polivalente else Decimal(0)
                 sin_registro = not records and not acts
                 motivo = ('Fuera de vigencia' if not vigente else
@@ -146,8 +166,9 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                        ausentes_permitidos=sum(p['aplica_grupo'] and p['asistencia'] == 'Ausente' and p['ausencia_permitida'] for p in people),
                        ausentes_no_permitidos=sum(p['aplica_grupo'] and p['asistencia'] == 'Ausente' and not p['ausencia_permitida'] for p in people),
                        polivalentes=sum(p['aplica_grupo'] and p['es_polivalencia'] for p in people), nomina_computable=base,
+                       operarios_promedio=sum(p['aplica_grupo'] and p['asistencia'] == 'Presente' and not p['es_polivalencia'] for p in people),
                        beneficiarios=sum(p['beneficiario'] for p in people), pendientes=pending,
-                       factor_ausentismo=par['factor_ausentismo'], target=target,
+                       objetivo_por_operario=par['uc_por_operario'], factor_ausentismo=par['factor_ausentismo'], target=target,
                        uc_computables=unidades, cumple=cumple, evaluable=evaluable,
                        parametro_configurado=configurado, estado=estado, premio_grupal=pago,
                        premio_grupal_total=importe(sum(Decimal(str(p['premio_grupal'])) for p in people)))

@@ -100,6 +100,22 @@ class CalculationTests(unittest.TestCase):
         self.assertTrue(person['es_polivalencia'])
         self.assertTrue(person['cobra'])
 
+    def test_unified_pallets_measure_charge_and_keep_charge_polivalence(self):
+        self.operations = {'PALETS OPERADOS': 'PALET'}
+        self.params[0]['operacion_medible'] = 'PALETS OPERADOS'
+        self.production = [
+            dict(fecha='20260801', legajo='1', desc_funcion='PALETS OPERADOS', palets=100, cantidad=0, plus=0),
+            dict(fecha='20260801', legajo='4', desc_funcion='PALETS OPERADOS', palets=80, cantidad=0, plus=0),
+            # La actividad WMS adicional no mide producción, pero conserva la
+            # detección de polivalencia desde Carga.
+            dict(fecha='20260801', legajo='4', desc_funcion='PICKIN', palets=0, cantidad=0, plus=0),
+        ]
+        result = self.calculate()
+        day = result['nivel_2'][0]
+        self.assertEqual(day['uc_computables'], 100)
+        self.assertTrue(next(p for p in result['nivel_3'] if p['legajo'] == '4')['es_polivalencia'])
+        self.assertEqual(day['premio_grupal_total'], 1500)
+
     def test_missing_attendance_keeps_person_and_blocks_payment(self):
         self.days = self.days[:-1]
         result = self.calculate()
@@ -352,6 +368,37 @@ class EndpointTests(unittest.IsolatedAsyncioTestCase):
             await self.save(dict(self.params, grupo_productivo_id=19))
             await self.save(dict(self.params, grupo_productivo_id=empty))
             self.assertIsNone((await api.parametros_grupales(None))['rows'][0]['grupo_productivo_id'])
+
+    async def test_profile_poly_rule_pays_once_per_day_even_with_multiple_b(self):
+        await self.save(self.params)
+        async with aiosqlite.connect(self.lab) as db:
+            await db.execute("INSERT INTO lab_cache_agrupado VALUES('20260801','4','SURTIDO','',0,0,0)")
+            await db.commit()
+
+        class RuleRequest:
+            async def json(self):
+                return {'sector': 'S', 'funcion_legajero': 'F',
+                        'operacion_madre': 'CARGA CAMION',
+                        'operaciones_b': ['PICKIN', 'SURTIDO'],
+                        'premio_centavos': 12345, 'activo': True}
+
+        await api.guardar_polivalencia_regla(RuleRequest())
+        result = await api.calculo_grupal(None, '2026-08-01', '2026-08-01')
+        self.assertTrue(next(row for row in result['nivel_3'] if row['legajo'] == '4')['es_polivalencia'])
+        async with aiosqlite.connect(self.lab.as_uri() + '?mode=ro', uri=True) as db:
+            db.row_factory = aiosqlite.Row
+            eventos = await api._eventos_polivalencia_nueva(db, '20260801', '20260801')
+            async with db.execute('''SELECT polivalencia_json FROM lab_calculo_grupal_cache
+                    WHERE fecha_desde='20260801' AND fecha_hasta='20260801' ''') as cur:
+                cache = json.loads((await cur.fetchone())['polivalencia_json'])
+        self.assertEqual(len(eventos), 1)
+        self.assertEqual(eventos[0]['legajo'], '4')
+        self.assertEqual(eventos[0]['premio_centavos'], 12345)
+        self.assertEqual(set(eventos[0]['operaciones_b'].split(',')), {'PICKIN', 'SURTIDO'})
+        self.assertEqual(len(cache), 1)
+        self.assertEqual(cache[0]['legajo'], '4')
+        self.assertEqual(cache[0]['premio_centavos'], 12345)
+        self.assertEqual(cache[0]['operaciones_b'], 'PICKIN · SURTIDO')
 
     async def test_invalid_group_rejected_without_changing_association(self):
         await self.add_group_catalog()

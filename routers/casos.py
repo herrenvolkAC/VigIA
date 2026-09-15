@@ -2424,6 +2424,7 @@ async def listar(
     solo_mis_casos: bool = False,
     pendientes_mi_perfil: bool = False,
     vencidos_sla: bool = False,
+    mostrar_finalizados: bool = False,
 ):
     auth, perfil = await _require_auth(request)
     async with aiosqlite.connect(CASES_DB_PATH) as db:
@@ -2497,6 +2498,8 @@ async def listar(
         if vencidos_sla:
             where.append("t.sla_vencimiento < ? AND e.es_final = 0")
             args.append(_now())
+        if not mostrar_finalizados:
+            where.append("e.es_final = 0")
         if pendientes_mi_perfil:
             where.append("t.perfil_asignado = ?")
             args.append(perfil)
