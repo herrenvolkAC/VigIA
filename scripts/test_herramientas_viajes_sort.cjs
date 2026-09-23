@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('static/herramientas.html','utf8');
+const js=source.match(/<script>([\s\S]*?)<\/script>/)[1];new vm.Script(js);
+const nodes={};const $=id=>nodes[id]??={innerHTML:'',addEventListener(){}};
+const ctx={$,Intl,Date,Number,String,Map,esc:v=>String(v??''),fmt:v=>String(v??0),displayDateTime:v=>String(v??'')};vm.createContext(ctx);
+const start=js.indexOf('    let viajeHolidays=');const end=js.indexOf("    $('modelo-body').addEventListener",start);
+vm.runInContext('let modeloRows=[];'+js.slice(start,end),ctx);
+vm.runInContext(`modeloRows=[{fecha_viaje:'20/09/2026',hojaruta:'10',cantidad:20,hoja_fisica_presente:true},{fecha_viaje:'2026-09-18',hojaruta:'2',cantidad:3}];viajeSortKey='cantidad';renderModelo(modeloRows);`,ctx);
+assert.ok($('modelo-body').innerHTML.indexOf('data-model-row="1"')<$('modelo-body').innerHTML.indexOf('data-model-row="0"'));
+assert.ok($('modelo-body').innerHTML.includes('openModeloEdit(0)'));
+vm.runInContext(`viajeSortKey='fecha_viaje';viajeSortDirection=-1;renderModelo(modeloRows);`,ctx);
+assert.ok($('modelo-body').innerHTML.indexOf('data-model-row="0"')<$('modelo-body').innerHTML.indexOf('data-model-row="1"'));
+vm.runInContext(`viajeSortKey='hoja_fisica_presente';viajeSortDirection=1;renderModelo(modeloRows);`,ctx);
+assert.ok($('modelo-body').innerHTML.indexOf('data-model-row="1"')<$('modelo-body').innerHTML.indexOf('data-model-row="0"'));
+console.log('OK: numeric/date/checkbox ordering retains original edit indices');

@@ -42,6 +42,13 @@ MERMA_REASONS = {
     "NO_UTILIZABLE": "No utilizable",
     "OTRO": "Otro",
 }
+PRODUCTION_ADJUST_REASONS = {
+    "CONCILIACION_FISICA": "Conciliacion con conteo fisico",
+    "HISTORICO_SIN_USO": "Regularizacion de stock sin uso",
+    "ERROR_CARGA": "Correccion por error de carga",
+    "RECLASIFICACION_USO": "Reclasificacion entre usos",
+    "OTRO": "Otro",
+}
 _stock_cd_scheduler_task: asyncio.Task | None = None
 _stock_cd_scheduler_stop: asyncio.Event | None = None
 _stock_cd_scheduler_last_attempt: str | None = None
@@ -103,6 +110,15 @@ class ProductionDeliveryRequest(BaseModel):
     cantidad: float
     uso_produccion: str = ""
     observacion: str = ""
+
+
+class ProductionAdjustmentRequest(BaseModel):
+    articulo_id: int
+    tipo: str
+    cantidad: float
+    uso_produccion: str = ""
+    motivo: str
+    observacion: str
 
 
 class SupplyOrderItemRequest(BaseModel):
@@ -524,18 +540,19 @@ async def _stock_producido(
     db: aiosqlite.Connection,
     articulo_id: int,
     uso_produccion: str | None = None,
+    include_legacy_blank: bool = True,
 ) -> float:
     clean_usage = _clean(uso_produccion)
     if clean_usage:
         article = await _fetch_one(db, "SELECT uso FROM articulos WHERE id = ?", (articulo_id,))
         usages = _usage_options((article or {}).get("uso"))
-        include_blank = len(usages) == 1 and usages[0].upper() == clean_usage.upper()
+        include_blank = include_legacy_blank and len(usages) == 1 and usages[0].upper() == clean_usage.upper()
         row = await _fetch_one(
             db,
             """
             SELECT
-                COALESCE(SUM(CASE WHEN tipo = 'PRODUCCION' THEN cantidad ELSE 0 END), 0)
-              - COALESCE(SUM(CASE WHEN tipo = 'ENTREGA' THEN cantidad ELSE 0 END), 0) AS stock
+                COALESCE(SUM(CASE WHEN tipo IN ('PRODUCCION', 'AJUSTE_POSITIVO') THEN cantidad ELSE 0 END), 0)
+              - COALESCE(SUM(CASE WHEN tipo IN ('ENTREGA', 'AJUSTE_NEGATIVO') THEN cantidad ELSE 0 END), 0) AS stock
             FROM produccion_movimientos
             WHERE articulo_id = ?
               AND (
@@ -550,10 +567,26 @@ async def _stock_producido(
         db,
         """
         SELECT
-            COALESCE(SUM(CASE WHEN tipo = 'PRODUCCION' THEN cantidad ELSE 0 END), 0)
-          - COALESCE(SUM(CASE WHEN tipo = 'ENTREGA' THEN cantidad ELSE 0 END), 0) AS stock
+            COALESCE(SUM(CASE WHEN tipo IN ('PRODUCCION', 'AJUSTE_POSITIVO') THEN cantidad ELSE 0 END), 0)
+          - COALESCE(SUM(CASE WHEN tipo IN ('ENTREGA', 'AJUSTE_NEGATIVO') THEN cantidad ELSE 0 END), 0) AS stock
         FROM produccion_movimientos
         WHERE articulo_id = ?
+        """,
+        (articulo_id,),
+    )
+    return float((row or {}).get("stock") or 0)
+
+
+async def _stock_producido_sin_uso(db: aiosqlite.Connection, articulo_id: int) -> float:
+    row = await _fetch_one(
+        db,
+        """
+        SELECT
+            COALESCE(SUM(CASE WHEN tipo IN ('PRODUCCION', 'AJUSTE_POSITIVO') THEN cantidad ELSE 0 END), 0)
+          - COALESCE(SUM(CASE WHEN tipo IN ('ENTREGA', 'AJUSTE_NEGATIVO') THEN cantidad ELSE 0 END), 0) AS stock
+        FROM produccion_movimientos
+        WHERE articulo_id = ?
+          AND TRIM(COALESCE(uso_produccion, '')) = ''
         """,
         (articulo_id,),
     )
@@ -564,7 +597,10 @@ async def _stock_producido_por_uso(db: aiosqlite.Connection, articulo_id: int) -
     article = await _fetch_one(db, "SELECT uso FROM articulos WHERE id = ?", (articulo_id,))
     stocks: dict[str, float] = {}
     for usage in _usage_options((article or {}).get("uso")):
-        stocks[usage] = await _stock_producido(db, articulo_id, usage)
+        stocks[usage] = await _stock_producido(db, articulo_id, usage, include_legacy_blank=False)
+    blank_stock = await _stock_producido_sin_uso(db, articulo_id)
+    if abs(blank_stock) > 0.000001:
+        stocks["Sin uso asignado"] = blank_stock
     return stocks
 
 
@@ -639,6 +675,7 @@ async def context(request: Request):
         "sectores_solicitantes": sectores_solicitantes,
         "turnos": turnos,
         "merma_motivos": [{"codigo": code, "descripcion": label} for code, label in MERMA_REASONS.items()],
+        "produccion_ajuste_motivos": [{"codigo": code, "descripcion": label} for code, label in PRODUCTION_ADJUST_REASONS.items()],
     }
 
 
@@ -1599,6 +1636,21 @@ async def supply_order_indicators(
         waste_where.append("m.sector_id = ?")
         waste_args.append(sector_id)
     waste_clause = "WHERE " + " AND ".join(waste_where) if waste_where else ""
+    reprint_where = []
+    reprint_args: list[Any] = []
+    if fecha_desde:
+        reprint_where.append("r.fecha_solicitud >= ?")
+        reprint_args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        reprint_where.append("r.fecha_solicitud <= ?")
+        reprint_args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        reprint_where.append("r.articulo_id = ?")
+        reprint_args.append(articulo_id)
+    if sector_id:
+        reprint_where.append("r.sector_id = ?")
+        reprint_args.append(sector_id)
+    reprint_clause = "WHERE " + " AND ".join(reprint_where) if reprint_where else ""
     order_cost = _cost_at_sql("i.articulo_id", "COALESCE(p.fecha_confirmacion, p.fecha_solicitud)")
     waste_cost = _cost_at_sql("m.articulo_id", "m.fecha_hora")
     requested_value_qty = """
@@ -1737,6 +1789,62 @@ async def supply_order_indicators(
             """,
             tuple(waste_args),
         )
+        reprint_metrics = await _fetch_one(
+            db,
+            f"""
+            SELECT COUNT(*) AS registros,
+                   COALESCE(SUM(r.cantidad), 0) AS cantidad,
+                   COUNT(CASE WHEN r.estado = 'PENDIENTE' THEN 1 END) AS pendientes,
+                   COUNT(CASE WHEN r.estado = 'RESUELTO' THEN 1 END) AS resueltas,
+                   COUNT(CASE WHEN r.estado = 'CANCELADO' THEN 1 END) AS canceladas
+            FROM pedidos_reimpresiones r
+            {reprint_clause}
+            """,
+            tuple(reprint_args),
+        )
+        reprints_by_day = await _fetch_rows(
+            db,
+            f"""
+            SELECT date(r.fecha_solicitud) AS fecha,
+                   COUNT(*) AS registros,
+                   COALESCE(SUM(r.cantidad), 0) AS cantidad
+            FROM pedidos_reimpresiones r
+            {reprint_clause}
+            GROUP BY date(r.fecha_solicitud)
+            ORDER BY fecha
+            """,
+            tuple(reprint_args),
+        )
+        reprints_by_sector = await _fetch_rows(
+            db,
+            f"""
+            SELECT u.codigo AS sector,
+                   COUNT(*) AS registros,
+                   COALESCE(SUM(r.cantidad), 0) AS cantidad
+            FROM pedidos_reimpresiones r
+            JOIN ubicaciones u ON u.id = r.sector_id
+            {reprint_clause}
+            GROUP BY u.codigo
+            ORDER BY cantidad DESC, registros DESC, u.codigo
+            LIMIT 12
+            """,
+            tuple(reprint_args),
+        )
+        reprints_by_plu = await _fetch_rows(
+            db,
+            f"""
+            SELECT a.codigo, a.descripcion, r.uso,
+                   COUNT(*) AS registros,
+                   COALESCE(SUM(r.cantidad), 0) AS cantidad
+            FROM pedidos_reimpresiones r
+            JOIN articulos a ON a.id = r.articulo_id
+            {reprint_clause}
+            GROUP BY a.codigo, a.descripcion, r.uso
+            ORDER BY cantidad DESC, registros DESC, a.codigo
+            LIMIT 12
+            """,
+            tuple(reprint_args),
+        )
         recent = await _fetch_rows(
             db,
             f"""
@@ -1761,6 +1869,11 @@ async def supply_order_indicators(
             "mermas_registros": int((waste_metrics or {}).get("registros") or 0),
             "mermas_cantidad": float((waste_metrics or {}).get("cantidad") or 0),
             "mermas_valor": float((waste_metrics or {}).get("valor") or 0),
+            "reimpresiones_registros": int((reprint_metrics or {}).get("registros") or 0),
+            "reimpresiones_cantidad": float((reprint_metrics or {}).get("cantidad") or 0),
+            "reimpresiones_pendientes": int((reprint_metrics or {}).get("pendientes") or 0),
+            "reimpresiones_resueltas": int((reprint_metrics or {}).get("resueltas") or 0),
+            "reimpresiones_canceladas": int((reprint_metrics or {}).get("canceladas") or 0),
         },
         "pedidos_por_sector": by_sector,
         "pedidos_por_plu": by_plu,
@@ -1770,6 +1883,9 @@ async def supply_order_indicators(
             {**row, "motivo_label": MERMA_REASONS.get(str(row.get("motivo") or ""), str(row.get("motivo") or ""))}
             for row in waste_by_reason
         ],
+        "reimpresiones_por_dia": reprints_by_day,
+        "reimpresiones_por_sector": reprints_by_sector,
+        "reimpresiones_por_plu": reprints_by_plu,
         "recientes": recent,
     }
 
@@ -2095,6 +2211,70 @@ async def create_production_delivery(req: ProductionDeliveryRequest, request: Re
     return {"ok": True, "turno": turno, "fecha_hora": now}
 
 
+@router.post("/produccion/ajustes")
+async def create_production_adjustment(req: ProductionAdjustmentRequest, request: Request):
+    auth = await _require_panol_operator(request)
+    tipo = _norm_code(req.tipo)
+    cantidad = float(req.cantidad or 0)
+    motivo = _norm_code(req.motivo)
+    observacion = _clean(req.observacion)
+    if tipo not in {"AJUSTE_POSITIVO", "AJUSTE_NEGATIVO"}:
+        raise HTTPException(status_code=400, detail="Tipo de ajuste invalido.")
+    if cantidad <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad ajustada debe ser mayor a cero.")
+    if motivo not in PRODUCTION_ADJUST_REASONS:
+        raise HTTPException(status_code=400, detail="Motivo de ajuste invalido.")
+    if not observacion:
+        raise HTTPException(status_code=400, detail="La observacion del ajuste es obligatoria.")
+    now = _now()
+    turno = _turno_por_hora(now)
+    async with panol_db() as db:
+        article = await _fetch_one(db, "SELECT id, uso FROM articulos WHERE id = ? AND activo = 1", (req.articulo_id,))
+        if not article:
+            raise HTTPException(status_code=404, detail="Articulo no encontrado o inactivo.")
+        usos = _usage_options(article.get("uso"))
+        raw_usage = _clean(req.uso_produccion)
+        adjust_blank_usage = raw_usage.upper() in {"SIN USO", "SIN USO ASIGNADO", "__SIN_USO__"}
+        uso_produccion = "" if adjust_blank_usage else raw_usage
+        if usos and not adjust_blank_usage:
+            valid_usages = {value.upper() for value in usos}
+            if not uso_produccion:
+                if len(usos) == 1:
+                    uso_produccion = usos[0]
+                else:
+                    raise HTTPException(status_code=400, detail="Selecciona el uso de produccion a ajustar.")
+            if uso_produccion.upper() not in valid_usages:
+                raise HTTPException(status_code=400, detail="El uso de produccion no corresponde al PLU seleccionado.")
+        if tipo == "AJUSTE_NEGATIVO":
+            stock_actual = (
+                await _stock_producido_sin_uso(db, req.articulo_id)
+                if adjust_blank_usage
+                else await _stock_producido(db, req.articulo_id, uso_produccion, include_legacy_blank=False)
+            )
+            if stock_actual + 0.000001 < cantidad:
+                scope = "sin uso asignado" if adjust_blank_usage else (uso_produccion or "total")
+                raise HTTPException(status_code=400, detail=f"El ajuste dejaria stock producido negativo para {scope}.")
+        await db.execute(
+            """
+            INSERT INTO produccion_movimientos
+                (articulo_id, tipo, ubicacion_destino_id, cantidad, turno, uso_produccion, observacion, usuario, fecha_hora)
+            VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                req.articulo_id,
+                tipo,
+                cantidad,
+                turno,
+                uso_produccion,
+                f"{PRODUCTION_ADJUST_REASONS[motivo]} - {observacion}",
+                auth.get("username"),
+                now,
+            ),
+        )
+        await db.commit()
+    return {"ok": True, "turno": turno, "fecha_hora": now}
+
+
 @router.get("/produccion/stock")
 async def production_stock(request: Request, q: str = Query(""), articulo_id: int | None = Query(None)):
     await _require_panol_operator(request)
@@ -2107,8 +2287,10 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
                    ac.costo_unitario, ac.moneda AS costo_moneda, ac.fecha_desde AS costo_fecha_desde,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0) AS producido,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS entregado,
-                   COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0)
-                 - COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS stock_producido
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'AJUSTE_POSITIVO' THEN pm.cantidad ELSE 0 END), 0) AS ajuste_positivo,
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'AJUSTE_NEGATIVO' THEN pm.cantidad ELSE 0 END), 0) AS ajuste_negativo,
+                   COALESCE(SUM(CASE WHEN pm.tipo IN ('PRODUCCION', 'AJUSTE_POSITIVO') THEN pm.cantidad ELSE 0 END), 0)
+                 - COALESCE(SUM(CASE WHEN pm.tipo IN ('ENTREGA', 'AJUSTE_NEGATIVO') THEN pm.cantidad ELSE 0 END), 0) AS stock_producido
             FROM articulos a
             {_current_cost_join("a")}
             LEFT JOIN produccion_movimientos pm ON pm.articulo_id = a.id
@@ -2126,7 +2308,9 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
             """
             SELECT
                 COALESCE(SUM(CASE WHEN tipo = 'PRODUCCION' THEN cantidad ELSE 0 END), 0) AS producido,
-                COALESCE(SUM(CASE WHEN tipo = 'ENTREGA' THEN cantidad ELSE 0 END), 0) AS entregado
+                COALESCE(SUM(CASE WHEN tipo = 'ENTREGA' THEN cantidad ELSE 0 END), 0) AS entregado,
+                COALESCE(SUM(CASE WHEN tipo = 'AJUSTE_POSITIVO' THEN cantidad ELSE 0 END), 0)
+              - COALESCE(SUM(CASE WHEN tipo = 'AJUSTE_NEGATIVO' THEN cantidad ELSE 0 END), 0) AS ajustes
             FROM produccion_movimientos
             WHERE fecha_hora >= ?
               AND (? IS NULL OR articulo_id = ?)
@@ -2148,6 +2332,7 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
             {
                 **row,
                 "stock_produccion_por_uso": stocks_by_usage.get(int(row["articulo_id"]), {}),
+                "ajuste_neto": float(row.get("ajuste_positivo") or 0) - float(row.get("ajuste_negativo") or 0),
                 "costo_unitario_produccion": production_unit_cost,
                 "valor_stock_producido": None if production_unit_cost is None else float(row.get("stock_producido") or 0) * production_unit_cost,
             }
@@ -2157,6 +2342,7 @@ async def production_stock(request: Request, q: str = Query(""), articulo_id: in
         "metrics": {
             "producido_hoy": float((today or {}).get("producido") or 0),
             "entregado_hoy": float((today or {}).get("entregado") or 0),
+            "ajustes_hoy": float((today or {}).get("ajustes") or 0),
             "stock_total_producido": sum(float(row.get("stock_producido") or 0) for row in rows),
             "valor_stock_producido": sum(float(row.get("valor_stock_producido") or 0) for row in items),
             "articulos_sin_costo": sum(1 for row in items if row.get("costo_unitario") is None),
@@ -2202,7 +2388,7 @@ async def list_production_movements(
         rows = await _fetch_rows(
             db,
             f"""
-            SELECT pm.*, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso) AS uso,
+            SELECT pm.*, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), 'Sin uso asignado') AS uso,
                    a.unidad_produccion, u.codigo AS destino_codigo
             FROM produccion_movimientos pm
             JOIN articulos a ON a.id = pm.articulo_id
@@ -2224,7 +2410,7 @@ async def production_logistic_day(request: Request):
         produced = await _fetch_rows(
             db,
             """
-            SELECT a.id AS articulo_id, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso) AS uso,
+            SELECT a.id AS articulo_id, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), 'Sin uso asignado') AS uso,
                    a.unidad_produccion,
                    COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
@@ -2232,7 +2418,7 @@ async def production_logistic_day(request: Request):
             WHERE pm.tipo = 'PRODUCCION'
               AND pm.fecha_hora >= ?
               AND pm.fecha_hora <= ?
-            GROUP BY a.id, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso), a.unidad_produccion
+            GROUP BY a.id, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), 'Sin uso asignado'), a.unidad_produccion
             ORDER BY cantidad DESC, a.codigo
             LIMIT 20
             """,
@@ -2306,7 +2492,8 @@ async def production_indicators(
         by_sector_plu = await _fetch_rows(
             db,
             f"""
-            SELECT u.codigo AS sector, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso) AS uso,
+            SELECT u.codigo AS sector, a.codigo, a.descripcion,
+                   COALESCE(NULLIF(pm.uso_produccion, ''), 'Sin uso asignado') AS uso,
                    a.unidad_produccion,
                    COALESCE(SUM(pm.cantidad), 0) AS cantidad
             FROM produccion_movimientos pm
@@ -2314,7 +2501,7 @@ async def production_indicators(
             JOIN articulos a ON a.id = pm.articulo_id
             WHERE pm.tipo = 'ENTREGA'
               {pm_clause}
-            GROUP BY u.codigo, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), a.uso), a.unidad_produccion
+            GROUP BY u.codigo, a.codigo, a.descripcion, COALESCE(NULLIF(pm.uso_produccion, ''), 'Sin uso asignado'), a.unidad_produccion
             ORDER BY cantidad DESC, u.codigo, a.codigo
             LIMIT 200
             """,
@@ -2323,16 +2510,20 @@ async def production_indicators(
         by_usage = await _fetch_rows(
             db,
             f"""
-            SELECT COALESCE(NULLIF(pm.uso_produccion, ''), NULLIF(a.uso, ''), 'Sin uso') AS uso, a.codigo, a.descripcion,
+            SELECT COALESCE(NULLIF(pm.uso_produccion, ''), 'Sin uso asignado') AS uso, a.codigo, a.descripcion,
                    a.unidad_produccion,
                    COALESCE(SUM(CASE WHEN pm.tipo = 'PRODUCCION' THEN pm.cantidad ELSE 0 END), 0) AS producido,
-                   COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS entregado
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'ENTREGA' THEN pm.cantidad ELSE 0 END), 0) AS entregado,
+                   COALESCE(SUM(CASE WHEN pm.tipo = 'AJUSTE_POSITIVO' THEN pm.cantidad ELSE 0 END), 0)
+                 - COALESCE(SUM(CASE WHEN pm.tipo = 'AJUSTE_NEGATIVO' THEN pm.cantidad ELSE 0 END), 0) AS ajuste_neto,
+                   COALESCE(SUM(CASE WHEN pm.tipo IN ('PRODUCCION', 'AJUSTE_POSITIVO') THEN pm.cantidad ELSE 0 END), 0)
+                 - COALESCE(SUM(CASE WHEN pm.tipo IN ('ENTREGA', 'AJUSTE_NEGATIVO') THEN pm.cantidad ELSE 0 END), 0) AS stock
             FROM produccion_movimientos pm
             JOIN articulos a ON a.id = pm.articulo_id
             WHERE 1 = 1
               {pm_clause}
-            GROUP BY COALESCE(NULLIF(pm.uso_produccion, ''), NULLIF(a.uso, ''), 'Sin uso'), a.codigo, a.descripcion, a.unidad_produccion
-            ORDER BY producido DESC, entregado DESC, a.codigo
+            GROUP BY COALESCE(NULLIF(pm.uso_produccion, ''), 'Sin uso asignado'), a.codigo, a.descripcion, a.unidad_produccion
+            ORDER BY stock DESC, producido DESC, entregado DESC, a.codigo
             LIMIT 200
             """,
             tuple(args),

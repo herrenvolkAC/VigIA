@@ -28,7 +28,7 @@
     .tabs{display:flex;align-items:flex-end;margin-top:12px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--rule);overflow:auto}.tab{border:0;background:transparent;color:var(--soft);padding:13px 18px 12px;min-width:132px;font-size:11px;letter-spacing:.16em;text-transform:uppercase}.tab.active{background:var(--panel);border:1px solid var(--rule);border-top:2px solid var(--green);border-bottom-color:var(--panel);margin-bottom:-1px;color:var(--ink);font-weight:600}.tab.active::after{content:"";display:inline-block;width:6px;height:6px;margin-left:8px;border-radius:50%;background:var(--green);vertical-align:middle}
     .panel{display:none}.panel.active{display:block}.status{min-height:30px;border:1px solid var(--rule);border-top:0;background:var(--panel);padding:8px 12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px;color:var(--soft)}.status.error{color:var(--red)}
     .filters,.form-grid,.import-line{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}.form-grid{border-top:1px solid var(--rule);margin-top:12px}.import-line{grid-template-columns:1fr auto auto auto auto}.indicator-filters{display:grid;grid-template-columns:minmax(130px,.65fr) minmax(130px,.65fr) minmax(180px,.85fr) minmax(220px,1.1fr) auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
-    .production-pair{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px;margin-top:12px}.production-card{position:relative;border:1px solid var(--rule-strong);border-top-width:4px;padding-top:42px;margin-top:0}.production-card::before{position:absolute;top:12px;left:12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}.production-card::after{content:"";position:absolute;top:13px;right:12px;width:10px;height:10px;border-radius:50%}.production-card.produced{border-top-color:var(--green);background:linear-gradient(90deg,var(--green-soft),transparent 42%),var(--panel)}.production-card.produced::before{content:"Alta de produccion";color:var(--green)}.production-card.produced::after{background:var(--green)}.production-card.delivered{border-top-color:var(--amber);background:linear-gradient(90deg,var(--amber-soft),transparent 42%),var(--panel)}.production-card.delivered::before{content:"Entrega a sector";color:var(--amber)}.production-card.delivered::after{background:var(--amber)}.logistic-summary{border:1px solid var(--rule);border-top:4px solid var(--blue);background:var(--panel);min-height:100%;padding:10px 12px}.logistic-summary.produced{border-top-color:var(--green)}.logistic-summary.delivered{border-top-color:var(--amber)}.summary-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:8px}.summary-head strong{font-size:13px}.summary-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);text-align:right}.summary-list{display:flex;flex-direction:column;gap:6px;max-height:150px;overflow:auto}.summary-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;border-bottom:1px solid var(--rule);padding-bottom:6px;font-size:12px}.summary-item:last-child{border-bottom:0}.summary-item b{font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px}.summary-item small{display:block;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.summary-item .qty{font-family:"IBM Plex Mono",Consolas,monospace;font-weight:600}.production-sections{display:grid;gap:14px;margin-top:14px}.production-section{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue)}.production-section.moves{border-top-color:var(--amber)}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--rule);background:#f8faf7}.section-head strong{font-size:14px}.section-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}.production-section .table-wrap{border:0;max-height:320px}.production-section.moves .table-wrap{max-height:260px}.production-section table th{top:0}
+    .production-pair{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px;margin-top:12px}.production-card{position:relative;border:1px solid var(--rule-strong);border-top-width:4px;padding-top:42px;margin-top:0}.production-card::before{position:absolute;top:12px;left:12px;font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}.production-card::after{content:"";position:absolute;top:13px;right:12px;width:10px;height:10px;border-radius:50%}.production-card.produced{border-top-color:var(--green);background:linear-gradient(90deg,var(--green-soft),transparent 42%),var(--panel)}.production-card.produced::before{content:"Alta de produccion";color:var(--green)}.production-card.produced::after{background:var(--green)}.production-card.delivered{border-top-color:var(--amber);background:linear-gradient(90deg,var(--amber-soft),transparent 42%),var(--panel)}.production-card.delivered::before{content:"Entrega a sector";color:var(--amber)}.production-card.delivered::after{background:var(--amber)}.production-card.adjusted{border-top-color:var(--blue);background:linear-gradient(90deg,#f3f8fd,transparent 42%),var(--panel)}.production-card.adjusted::before{content:"Ajuste auditado";color:var(--blue)}.production-card.adjusted::after{background:var(--blue)}.logistic-summary{border:1px solid var(--rule);border-top:4px solid var(--blue);background:var(--panel);min-height:100%;padding:10px 12px}.logistic-summary.produced{border-top-color:var(--green)}.logistic-summary.delivered{border-top-color:var(--amber)}.summary-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:8px}.summary-head strong{font-size:13px}.summary-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);text-align:right}.summary-list{display:flex;flex-direction:column;gap:6px;max-height:150px;overflow:auto}.summary-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;border-bottom:1px solid var(--rule);padding-bottom:6px;font-size:12px}.summary-item:last-child{border-bottom:0}.summary-item b{font-family:"IBM Plex Mono",Consolas,monospace;font-size:11px}.summary-item small{display:block;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.summary-item .qty{font-family:"IBM Plex Mono",Consolas,monospace;font-weight:600}.production-sections{display:grid;gap:14px;margin-top:14px}.production-section{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue)}.production-section.moves{border-top-color:var(--amber)}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 12px;border-bottom:1px solid var(--rule);background:#f8faf7}.section-head strong{font-size:14px}.section-head span{font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}.production-section .table-wrap{border:0;max-height:320px}.production-section.moves .table-wrap{max-height:260px}.production-section table th{top:0}
     .field{display:flex;flex-direction:column;gap:6px;min-width:0}.field.span{grid-column:1/-1}.input,select,textarea{width:100%;min-height:34px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);padding:7px 10px}.input,select{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12px;font-weight:500}textarea{min-height:68px;resize:vertical}
     .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0}.kpi{background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--blue);padding:12px 14px;min-height:108px}.kpi.warn{border-top-color:var(--amber)}.kpi.ok{border-top-color:var(--green)}.kpi-num{font-family:"IBM Plex Mono",Consolas,monospace;font-size:32px;line-height:1.05;font-weight:600;margin:10px 0 6px;white-space:nowrap}.kpi.warn .kpi-num{color:var(--amber)}.kpi.ok .kpi-num{color:var(--green)}.indicator-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.indicator-column{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--blue);min-width:0}.indicator-column.stock{border-top-color:var(--green)}.indicator-column.production{border-top-color:var(--amber)}.indicator-column.orders{border-top-color:var(--blue)}.indicator-column-head{padding:12px;border-bottom:1px solid var(--rule);background:#f8faf7}.indicator-column-head strong{font-size:16px}.mini-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;padding:10px 12px;border-bottom:1px solid var(--rule)}.mini-kpi{border:1px solid var(--rule);background:var(--panel);padding:8px;min-width:0;overflow:hidden}.mini-kpi.value-card{grid-column:span 2}.mini-kpi .label{font-size:9px;letter-spacing:.12em}.mini-kpi .kpi-num{font-size:20px;margin:6px 0 0;max-width:100%;overflow:hidden;text-overflow:ellipsis}.mini-kpi.value-card .kpi-num{font-size:18px}.indicator-column .chart-panel{border:0;border-top:1px solid var(--rule);min-height:256px}.indicator-column .chart-panel:first-of-type{border-top:0}.indicator-column .chart-panel.wide{grid-column:auto}.indicator-column .table-wrap{border:0;border-top:1px solid var(--rule);max-height:260px}
     .table-wrap{overflow:auto;max-height:560px;border:1px solid var(--rule);border-top:0;background:var(--panel)}table{width:100%;border-collapse:collapse;table-layout:fixed}th{position:sticky;top:0;background:#f6f8f5;color:var(--soft);font-family:"IBM Plex Mono",Consolas,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule);padding:9px;user-select:none;cursor:pointer}th:hover{color:var(--ink);background:#edf2ee}th.sorted{color:var(--ink)}th.sorted::after{content:attr(data-sort-mark);float:right;color:var(--green);letter-spacing:0}td{border-bottom:1px solid var(--rule);padding:8px 9px;font-size:13px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}tbody tr:nth-child(odd){background:#f8faf7}
@@ -275,6 +275,7 @@
         <div class="mini-kpis">
           <div class="mini-kpi"><div class="label">Producido hoy</div><div class="kpi-num" id="p-produced-today">0</div></div>
           <div class="mini-kpi"><div class="label">Entregado hoy</div><div class="kpi-num" id="p-delivered-today">0</div></div>
+          <div class="mini-kpi"><div class="label">Ajustes hoy</div><div class="kpi-num" id="p-adjust-today">0</div></div>
           <div class="mini-kpi"><div class="label">Stock prod.</div><div class="kpi-num" id="p-stock-total">0</div></div>
           <div class="mini-kpi value-card"><div class="label">Valor stock</div><div class="kpi-num" id="p-stock-value">$ 0</div></div>
         </div>
@@ -283,9 +284,9 @@
           <div class="pie-wrap"><div class="pie" id="chart-prod-sector-pie"></div><div class="chart-legend" id="legend-prod-sector"></div></div>
         </article>
         <article class="chart-panel">
-          <div class="chart-head"><div><strong>Entregado por PLU</strong><div class="muted">Segmentos por sector destino</div></div><span>Apilado</span></div>
+          <div class="chart-head"><div><strong>Entregado por PLU</strong><div class="muted">Cantidad total con apertura en grilla</div></div><span>Barras</span></div>
           <div class="legend" id="legend-prod-delivered"></div>
-          <div class="vertical-chart" id="chart-prod-delivered-bars"></div>
+          <div class="bar-list value-bars" id="chart-prod-delivered-bars"></div>
         </article>
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Detalle entregado por PLU</strong><div class="muted">Referencias y cantidades</div></div><span>Grilla</span></div>
@@ -304,6 +305,7 @@
           <div class="mini-kpi"><div class="label">Pendientes</div><div class="kpi-num" id="o-pending">0</div></div>
           <div class="mini-kpi"><div class="label">Confirmado</div><div class="kpi-num" id="o-confirmed">0</div></div>
           <div class="mini-kpi"><div class="label">Mermas</div><div class="kpi-num" id="o-waste">0</div></div>
+          <div class="mini-kpi"><div class="label">Reimpres. cant.</div><div class="kpi-num" id="o-reprints">0</div></div>
           <div class="mini-kpi value-card"><div class="label">Valor conf.</div><div class="kpi-num" id="o-confirmed-value">$ 0</div></div>
           <div class="mini-kpi value-card"><div class="label">Valor merma</div><div class="kpi-num" id="o-waste-value">$ 0</div></div>
         </div>
@@ -326,6 +328,18 @@
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Mermas por PLU</strong><div class="muted">Cantidad y valor</div></div><span>PLU</span></div>
           <div class="bar-list value-bars" id="chart-waste-plu"></div>
+        </article>
+        <article class="chart-panel">
+          <div class="chart-head"><div><strong>Reimpresiones por dia</strong><div class="muted">Cantidad solicitada y registros</div></div><span>Dia</span></div>
+          <div class="bar-list value-bars" id="chart-reprints-day"></div>
+        </article>
+        <article class="chart-panel">
+          <div class="chart-head"><div><strong>Reimpresiones por sector</strong><div class="muted">Cantidad solicitada</div></div><span>Sector</span></div>
+          <div class="bar-list value-bars" id="chart-reprints-sector"></div>
+        </article>
+        <article class="chart-panel">
+          <div class="chart-head"><div><strong>Reimpresiones por PLU / Uso</strong><div class="muted">Cantidad solicitada</div></div><span>PLU</span></div>
+          <div class="bar-list value-bars" id="chart-reprints-plu"></div>
         </article>
         <article class="chart-panel">
           <div class="chart-head"><div><strong>Ultimos pedidos</strong><div class="muted">Actividad reciente</div></div><span>Log</span></div>
@@ -514,14 +528,23 @@
           <div class="summary-list" id="logistic-delivered-list"></div>
         </aside>
       </div>
+      <form class="form-grid production-card adjusted" id="production-adjust-form">
+        <label class="field"><span class="label">PLU a ajustar</span><select id="adj-articulo"></select></label>
+        <label class="field"><span class="label">Uso</span><select id="adj-uso"></select></label>
+        <label class="field"><span class="label">Tipo ajuste</span><select id="adj-tipo"><option value="AJUSTE_POSITIVO">Ajuste positivo</option><option value="AJUSTE_NEGATIVO">Ajuste negativo</option></select></label>
+        <label class="field"><span class="label">Motivo</span><select id="adj-motivo"></select></label>
+        <div class="field"><label class="label">Cantidad</label><input class="input" id="adj-cantidad" type="number" step="0.001" min="0.001" required></div>
+        <div class="field span"><label class="label">Observacion</label><textarea id="adj-obs" required></textarea></div>
+        <button class="btn primary">Registrar ajuste</button>
+      </form>
       <div class="production-sections">
         <section class="production-section">
           <div class="section-head"><div><strong>Stock producido</strong><div class="muted">Disponible por PLU</div></div><span>Saldo</span></div>
-          <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th>Uso</th><th>Unidad prod.</th><th class="right">Producido</th><th class="right">Entregado</th><th class="right">Stock producido</th><th class="right">Costo prod.</th><th class="right">Valor</th></tr></thead><tbody id="production-stock-body"></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Codigo</th><th>Descripcion</th><th>Uso</th><th>Unidad prod.</th><th class="right">Producido</th><th class="right">Entregado</th><th class="right">Ajuste neto</th><th class="right">Stock producido</th><th class="right">Costo prod.</th><th class="right">Valor</th></tr></thead><tbody id="production-stock-body"></tbody></table></div>
         </section>
         <section class="production-section">
           <div class="section-head"><div><strong>Cantidades por uso</strong><div class="muted">Produccion y entregas agrupadas por uso</div></div><span>Uso</span></div>
-          <div class="table-wrap"><table><thead><tr><th>Uso</th><th>PLU</th><th>Descripcion</th><th>Unidad prod.</th><th class="right">Producido</th><th class="right">Entregado</th></tr></thead><tbody id="production-usage-body"></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Uso</th><th>PLU</th><th>Descripcion</th><th>Unidad prod.</th><th class="right">Producido</th><th class="right">Entregado</th><th class="right">Ajuste</th><th class="right">Stock</th></tr></thead><tbody id="production-usage-body"></tbody></table></div>
         </section>
         <section class="production-section moves">
           <div class="section-head"><div><strong>Ultimos movimientos</strong><div class="muted">Produccion y entregas registradas</div></div><span>Log</span></div>
@@ -745,9 +768,16 @@ function renderProductionCharts(){
   const sectorRows=(productionIndicatorData.entregas_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad)}));
   renderPie('chart-prod-sector-pie','legend-prod-sector',sectorRows,'Sin entregas registradas');
   renderVerticalBars('chart-prod-stock-bars',productionStockRows.map(r=>({label:r.codigo,value:num(r.stock_producido)})),'Sin stock producido');
-  renderStackedVerticalBars('chart-prod-delivered-bars',productionIndicatorData.entregas_por_sector_plu||[],'Sin entregas registradas');
-  const sectors=[...new Set((productionIndicatorData.entregas_por_sector_plu||[]).map(r=>r.sector).filter(Boolean))];
-  $('legend-prod-delivered').innerHTML=sectors.length?sectors.map((s,i)=>`<span><i style="background:${chartColors[i%chartColors.length]}"></i>${esc(s)}</span>`).join(''):'';
+  const byPlu=new Map();
+  (productionIndicatorData.entregas_por_sector_plu||[]).forEach(r=>{
+    const key=r.codigo;
+    if(!byPlu.has(key))byPlu.set(key,{label:r.codigo,value:0,display:''});
+    const row=byPlu.get(key);
+    row.value+=num(r.cantidad);
+    row.display=qtyUnit(row.value,unitProduction(r));
+  });
+  renderSimpleBars('chart-prod-delivered-bars',[...byPlu.values()].sort((a,b)=>b.value-a.value),{empty:'Sin entregas registradas'});
+  $('legend-prod-delivered').innerHTML='<span><i style="background:var(--green)"></i>Total entregado. Ver detalle por sector y uso en la grilla.</span>';
 }
 function renderPedidoIndicators(){
   const metrics=pedidoIndicatorData.metrics||{};
@@ -755,6 +785,7 @@ function renderPedidoIndicators(){
   $('o-pending').textContent=fmt(metrics.pendientes);
   $('o-confirmed').textContent=fmt(num(metrics.confirmados)+num(metrics.parciales));
   $('o-waste').textContent=fmt(metrics.mermas_cantidad);
+  $('o-reprints').textContent=fmt(metrics.reimpresiones_cantidad);
   $('o-confirmed-value').textContent=fmtMoney(metrics.valor_confirmado);
   $('o-waste-value').textContent=fmtMoney(metrics.mermas_valor);
   renderSimpleBars('chart-orders-sector',(pedidoIndicatorData.pedidos_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin pedidos por sector'});
@@ -762,15 +793,18 @@ function renderPedidoIndicators(){
   renderSimpleBars('chart-waste-reason',(pedidoIndicatorData.mermas_por_motivo||[]).map(r=>({label:r.motivo_label||r.motivo,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin mermas registradas'});
   renderSimpleBars('chart-waste-sector',(pedidoIndicatorData.mermas_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin mermas por sector'});
   renderSimpleBars('chart-waste-plu',(pedidoIndicatorData.mermas_por_plu||[]).map(r=>({label:r.codigo,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin mermas por PLU'});
+  renderSimpleBars('chart-reprints-day',(pedidoIndicatorData.reimpresiones_por_dia||[]).map(r=>({label:r.fecha,value:num(r.cantidad),display:`Cant. ${fmt(r.cantidad)} | Registros ${fmt(r.registros)}`})),{empty:'Sin reimpresiones por dia'});
+  renderSimpleBars('chart-reprints-sector',(pedidoIndicatorData.reimpresiones_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad),display:`Cant. ${fmt(r.cantidad)} | Registros ${fmt(r.registros)}`})),{empty:'Sin reimpresiones por sector'});
+  renderSimpleBars('chart-reprints-plu',(pedidoIndicatorData.reimpresiones_por_plu||[]).map(r=>({label:`${r.codigo} - ${r.uso||'Sin uso'}`,value:num(r.cantidad),display:`Cant. ${fmt(r.cantidad)} | Registros ${fmt(r.registros)}`})),{empty:'Sin reimpresiones por PLU'});
   const recent=pedidoIndicatorData.recientes||[];
   $('chart-orders-recent').innerHTML=recent.length?recent.map(r=>`<div class="activity-item"><strong>#${esc(r.id)} - ${esc(statusLabel(r.estado))} - ${fmt(r.cantidad)} - ${fmtMoney(r.valor)}</strong><span>${shortDate(r.fecha_solicitud)} - ${esc(r.sector||'-')} - ${esc(r.usuario_solicita||'')} - ${fmt(r.lineas)} PLUs</span></div>`).join(''):emptyChart('Sin pedidos recientes');
 }
 function renderProductionTables(){
-  $('production-stock-body').innerHTML=productionStockRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td>${esc(r.uso||'-')}</td><td>${esc(unitProduction(r))}</td><td class="right">${fmt(r.producido)}</td><td class="right">${fmt(r.entregado)}</td><td class="right">${fmt(r.stock_producido)}</td><td class="right">${costLabel(r.costo_unitario_produccion)}</td><td class="right">${r.valor_stock_producido==null?'Sin costo':fmtMoney(r.valor_stock_producido)}</td></tr>`).join('')||'<tr><td colspan="9">Sin stock producido.</td></tr>';
+  $('production-stock-body').innerHTML=productionStockRows.map(r=>`<tr><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td>${esc(r.uso||'-')}</td><td>${esc(unitProduction(r))}</td><td class="right">${fmt(r.producido)}</td><td class="right">${fmt(r.entregado)}</td><td class="right">${fmt(r.ajuste_neto)}</td><td class="right">${fmt(r.stock_producido)}</td><td class="right">${costLabel(r.costo_unitario_produccion)}</td><td class="right">${r.valor_stock_producido==null?'Sin costo':fmtMoney(r.valor_stock_producido)}</td></tr>`).join('')||'<tr><td colspan="10">Sin stock producido.</td></tr>';
   const sectorRows=productionIndicatorData.entregas_por_sector_plu||[];
   $('chart-prod-delivered-table').innerHTML=sectorRows.map(r=>`<tr><td>${esc(r.sector)}</td><td>${esc(r.codigo)}</td><td>${esc(r.uso||'-')}</td><td>${esc(r.descripcion)}</td><td>${esc(unitProduction(r))}</td><td class="right">${fmt(r.cantidad)}</td></tr>`).join('')||'<tr><td colspan="6">Sin entregas por PLU.</td></tr>';
   $('chart-prod-delivered-usage-table').innerHTML=sectorRows.map(r=>`<tr><td>${esc(r.uso||'Sin uso')}</td><td>${esc(r.sector)}</td><td>${esc(r.codigo)}</td><td>${esc(unitProduction(r))}</td><td class="right">${fmt(r.cantidad)}</td></tr>`).join('')||'<tr><td colspan="5">Sin entregas por uso.</td></tr>';
-  $('production-usage-body').innerHTML=(productionIndicatorData.produccion_por_uso||[]).map(r=>`<tr><td>${esc(r.uso||'-')}</td><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td>${esc(unitProduction(r))}</td><td class="right">${fmt(r.producido)}</td><td class="right">${fmt(r.entregado)}</td></tr>`).join('')||'<tr><td colspan="6">Sin produccion por uso.</td></tr>';
+  $('production-usage-body').innerHTML=(productionIndicatorData.produccion_por_uso||[]).map(r=>`<tr><td>${esc(r.uso||'-')}</td><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td>${esc(unitProduction(r))}</td><td class="right">${fmt(r.producido)}</td><td class="right">${fmt(r.entregado)}</td><td class="right">${fmt(r.ajuste_neto)}</td><td class="right">${fmt(r.stock)}</td></tr>`).join('')||'<tr><td colspan="8">Sin produccion por uso.</td></tr>';
   const sectorBody=$('production-sector-body');
   if(sectorBody)sectorBody.innerHTML=sectorRows.map(r=>`<tr><td>${esc(r.sector)}</td><td>${esc(r.codigo)}</td><td>${esc(r.descripcion)}</td><td class="right">${fmt(r.cantidad)}</td></tr>`).join('')||'<tr><td colspan="4">Sin entregas por sector.</td></tr>';
   $('production-movements-body').innerHTML=productionMovementRows.map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.codigo)}</td><td>${esc(r.tipo)}</td><td>${esc(r.uso||'-')}</td><td>${esc(r.destino_codigo||'-')}</td><td>${esc(r.turno)}</td><td class="right">${qtyUnit(r.cantidad,unitProduction(r))}</td><td>${esc(r.usuario||'')}</td><td>${esc(r.observacion||'')}</td></tr>`).join('')||'<tr><td colspan="9">Sin movimientos de produccion.</td></tr>';
@@ -867,6 +901,25 @@ function renderDeliveryUsageSelect(){
   select.innerHTML=`${options.length>1?'<option value="">Seleccionar uso</option>':''}${options.map(uso=>`<option value="${esc(uso)}">${esc(uso)} (${qtyUnit(stocks[uso]||0,unitProduction(row||{}))})</option>`).join('')}`;
   select.disabled=false;
   select.required=options.length>1;
+}
+function productionAdjustReasonOptions(){return (ctx?.produccion_ajuste_motivos||[]).map(x=>`<option value="${esc(x.codigo)}">${esc(x.descripcion)}</option>`).join('')}
+function renderAdjustmentUsageSelect(){
+  const select=$('adj-uso');
+  if(!select)return;
+  const article=selectedArticleById($('adj-articulo')?.value);
+  const stockRow=productionStockRows.find(r=>String(r.articulo_id)===String($('adj-articulo')?.value));
+  const usages=usageOptions(article?.uso);
+  if(!usages.length){
+    select.innerHTML='<option value="">No aplica</option>';
+    select.disabled=true;
+    select.required=false;
+    return;
+  }
+  const stocks=stockRow?.stock_produccion_por_uso||{};
+  const allOptions=[...usages,'Sin uso asignado'];
+  select.innerHTML=`<option value="">Seleccionar uso</option>${allOptions.map(uso=>`<option value="${esc(uso)}">${esc(uso)} (${qtyUnit(stocks[uso]||0,unitProduction(article||stockRow||{}))})</option>`).join('')}`;
+  select.disabled=false;
+  select.required=true;
 }
 function locationOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${(ctx?.ubicaciones||[]).map(x=>`<option value="${x.id}">${esc(x.codigo)}</option>`).join('')}`}
 function sortedLocations(){return [...(ctx?.ubicaciones||[])].sort((a,b)=>String(a.codigo||'').localeCompare(String(b.codigo||''),'es-AR',{numeric:true,sensitivity:'base'}))}
@@ -965,7 +1018,7 @@ function applyPanolPermissions(){
   if(!operate)activateTab('pedido-insumos');
 }
 async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} - ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=requestSectorOptions();$('user-sector-select').innerHTML=requestSectorOptions('Seleccionar sector');$('indicator-sector').innerHTML=requestSectorOptions('Todos');setDefaultReceivedDates();applyPanolPermissions();applyAssignedSector();if(!canOperate())return;setDefaultIndicatorDates();resetArticle();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-ubicacion').innerHTML=locationOptions('Todas');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
-async function loadArticles(){const d=await api('/panol-insumos/api/articulos?include_inactive=1');articles=d.items||[];const active=articles.filter(a=>a.activo);$('mov-articulo').innerHTML=optionList(active);$('prod-articulo').innerHTML=optionList(active);renderProductionUsageSelect();$('deliv-articulo').innerHTML='<option value="">Sin PLU con stock producido</option>';renderDeliveryUsageSelect();$('hist-articulo').innerHTML=optionList(articles,'Todos');$('indicator-plu').innerHTML=optionList(active,'Todos');renderArticles();renderInventoryRows();}
+async function loadArticles(){const d=await api('/panol-insumos/api/articulos?include_inactive=1');articles=d.items||[];const active=articles.filter(a=>a.activo);$('mov-articulo').innerHTML=optionList(active);$('prod-articulo').innerHTML=optionList(active);$('adj-articulo').innerHTML=optionList(active);$('adj-motivo').innerHTML=productionAdjustReasonOptions();renderProductionUsageSelect();renderAdjustmentUsageSelect();$('deliv-articulo').innerHTML='<option value="">Sin PLU con stock producido</option>';renderDeliveryUsageSelect();$('hist-articulo').innerHTML=optionList(articles,'Todos');$('indicator-plu').innerHTML=optionList(active,'Todos');renderArticles();renderInventoryRows();}
 function renderArticles(){
   $('articles-body').innerHTML=articles.map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.categoria||'')}</td><td>${esc(unitStock(a))}</td><td>${esc(unitProduction(a))}</td><td>${esc(factorLabel(a))}</td><td>${esc(a.uso||'')}</td><td class="right">${fmt(a.stock_minimo)}</td><td class="right">${costLabel(a.costo_unitario)}</td><td>${esc(a.costo_fecha_desde||'-')}</td><td>${a.activo?'Si':'No'}</td><td><button class="btn" data-edit-article="${a.id}">Editar</button></td></tr>`).join('')||'<tr><td colspan="12">Sin articulos.</td></tr>';
 }
@@ -1275,10 +1328,12 @@ async function loadProduction(){
   const metrics=stock.metrics||{};
   $('p-produced-today').textContent=fmt(metrics.producido_hoy);
   $('p-delivered-today').textContent=fmt(metrics.entregado_hoy);
+  $('p-adjust-today').textContent=fmt(metrics.ajustes_hoy);
   $('p-stock-total').textContent=fmt(metrics.stock_total_producido);
   $('p-stock-value').textContent=fmtMoney(metrics.valor_stock_producido);
   $('deliv-articulo').innerHTML=productionDeliveryOptions('Seleccionar PLU');
   renderDeliveryUsageSelect();
+  renderAdjustmentUsageSelect();
   renderLogisticSummary(await api('/panol-insumos/api/produccion/dia-logistico')||{});
   const indQuery=productionIndicatorQuery();
   productionIndicatorData=await api(`/panol-insumos/api/produccion/indicadores${indQuery?`?${indQuery}`:''}`)||{};
@@ -1339,6 +1394,19 @@ async function saveArticle(ev){
 async function saveMovement(ev){ev.preventDefault();const body={articulo_id:Number($('mov-articulo').value),tipo:$('mov-tipo').value,ubicacion_origen_id:$('mov-origen').value?Number($('mov-origen').value):null,ubicacion_destino_id:$('mov-destino').value?Number($('mov-destino').value):null,cantidad:Number($('mov-cantidad').value),motivo:$('mov-motivo').value,observacion:$('mov-obs').value};await api('/panol-insumos/api/movimientos',{method:'POST',body:JSON.stringify(body)});$('movement-form').reset();$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');await loadMovements();await loadStock();await loadPedidoCatalog();renderDashboardCharts();setStatus('Movimiento registrado.')}
 async function saveProduction(ev){ev.preventDefault();const body={articulo_id:Number($('prod-articulo').value),cantidad:Number($('prod-cantidad').value),uso_produccion:$('prod-uso')?.disabled?'':$('prod-uso').value,observacion:$('prod-obs').value};const d=await api('/panol-insumos/api/produccion',{method:'POST',body:JSON.stringify(body)});$('production-form').reset();renderProductionUsageSelect();await loadProduction();await loadPedidoCatalog();setStatus(`Produccion registrada. Turno: ${esc(d.turno||'')}`)}
 async function saveProductionDelivery(ev){ev.preventDefault();if(!$('deliv-articulo').value)throw new Error('No hay PLU con stock producido disponible para entregar.');const body={articulo_id:Number($('deliv-articulo').value),ubicacion_destino_id:Number($('deliv-destino').value),cantidad:Number($('deliv-cantidad').value),uso_produccion:$('deliv-uso')?.disabled?'':$('deliv-uso').value,observacion:$('deliv-obs').value};const d=await api('/panol-insumos/api/produccion/entregas',{method:'POST',body:JSON.stringify(body)});$('delivery-form').reset();$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');renderDeliveryUsageSelect();await loadProduction();await loadPedidoCatalog();setStatus(`Entrega registrada. Turno: ${esc(d.turno||'')}`)}
+async function saveProductionAdjustment(ev){
+  ev.preventDefault();
+  const article=$('adj-articulo')?.selectedOptions?.[0]?.textContent||'';
+  const body={articulo_id:Number($('adj-articulo').value),tipo:$('adj-tipo').value,cantidad:Number($('adj-cantidad').value),uso_produccion:$('adj-uso')?.disabled?'':$('adj-uso').value,motivo:$('adj-motivo').value,observacion:$('adj-obs').value};
+  const d=await api('/panol-insumos/api/produccion/ajustes',{method:'POST',body:JSON.stringify(body)});
+  $('production-adjust-form').reset();
+  renderAdjustmentUsageSelect();
+  await loadProduction();
+  await loadPedidoCatalog();
+  await loadPedidoIndicators();
+  setStatus(`Ajuste de produccion registrado. Turno: ${esc(d.turno||'')}`);
+  showOkModal('Ajuste registrado',[`${article}`,`${body.tipo}: ${fmt(body.cantidad)}. Uso: ${body.uso_produccion||'No aplica'}.`]);
+}
 async function saveInventory(){
   const btn=$('save-inventory');
   btn.disabled=true;
@@ -1355,10 +1423,12 @@ async function saveInventory(){
     renderDashboardCharts();
     const ubicacion=(d.items||[])[0]?.ubicacion||$('inv-ubicacion')?.selectedOptions?.[0]?.textContent||'';
     const lineas=(d.items||[]).length;
-    setStatus(`Inventario guardado correctamente. Ubicacion: ${ubicacion}. Lineas: ${lineas}`);
+    const ajustes=(d.items||[]).filter(x=>Math.abs(num(x.diferencia))>0.000001);
+    setStatus(`Inventario guardado correctamente. Ubicacion: ${ubicacion}. Lineas: ${lineas}. Ajustes automaticos: ${ajustes.length}`);
     showOkModal('Inventario guardado',[
       `Ubicacion: ${ubicacion}.`,
-      `Fecha: ${$('inv-fecha').value}. Turno: ${$('inv-turno').value}. Lineas: ${lineas}.`
+      `Fecha: ${$('inv-fecha').value}. Turno: ${$('inv-turno').value}. Lineas: ${lineas}.`,
+      `Ajustes automaticos generados: ${ajustes.length}.`
     ]);
   }finally{
     btn.disabled=false;
@@ -1419,6 +1489,9 @@ $('prod-articulo').onchange=renderProductionUsageSelect;
 $('production-form').onsubmit=e=>saveProduction(e).catch(err=>setStatus(err.message,true));
 $('deliv-articulo').onchange=renderDeliveryUsageSelect;
 $('delivery-form').onsubmit=e=>saveProductionDelivery(e).catch(err=>setStatus(err.message,true));
+$('adj-articulo').onchange=renderAdjustmentUsageSelect;
+$('adj-tipo').onchange=renderAdjustmentUsageSelect;
+$('production-adjust-form').onsubmit=e=>saveProductionAdjustment(e).catch(err=>setStatus(err.message,true));
 $('export-prod-indicators').onclick=exportProductionIndicators;
 $('save-inventory').onclick=()=>saveInventory().catch(e=>setStatus(e.message,true));
 $('inventory-body').addEventListener('keydown',ev=>{

@@ -74,6 +74,31 @@ class HorasTest(unittest.IsolatedAsyncioTestCase):
             await h.guardar(None,h.Guardar(rows=[valid,invalid]))
         self.assertEqual((await self.query())[0]['version'],0)
 
+    async def test_partial_validation_persistence_history_export(self):
+        row = (await self.query())[0]
+        for hours in (None, 0, row['horas'], row['horas']+1):
+            with self.assertRaises(HTTPException) as error:
+                await h.guardar(None, h.Guardar(rows=[h.Decision(**{**row, 'estado':'parcial', 'horas_autorizadas':hours})]))
+            self.assertEqual(error.exception.status_code, 400)
+        await h.guardar(None, h.Guardar(rows=[h.Decision(**{**row, 'estado':'parcial', 'horas_autorizadas':1.5})]))
+        saved = (await self.query())[0]
+        self.assertEqual(saved['estado'], 'parcial')
+        self.assertEqual(saved['horas_autorizadas'], 1.5)
+        with closing(sqlite3.connect(self.path)) as db:
+            self.assertEqual(db.execute('SELECT horas_autorizadas FROM herramientas_he_historial').fetchone()[0],1.5)
+        book = load_workbook(h.excel_content([saved]))
+        self.assertEqual(book.active['L2'].value.total_seconds(), 5400)
+        book.close()
+        await h.guardar(None, h.Guardar(rows=[h.Decision(**{**saved,'estado':'autorizada'})]))
+        full = (await self.query())[0]
+        self.assertEqual(full['horas_autorizadas'],full['horas'])
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute('UPDATE rrhh_actividad_diaria SET hs_ext_realiz=4 WHERE id=2')
+            db.commit()
+        revised = (await self.query())[0]
+        self.assertEqual(revised['estado'], 'pendiente')
+        self.assertEqual(revised['horas_autorizadas'],0)
+
     def test_argentina_time(self):
         self.assertEqual(h.argentina_time('2026-09-15 18:28:08'), '15/09/2026 15:28:08')
         self.assertEqual(h.argentina_time('2026-09-15 01:28:08'), '14/09/2026 22:28:08')
@@ -98,7 +123,7 @@ class HorasTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sheet['B2'].data_type, 's')
         self.assertEqual(sheet['H2'].data_type, 's')
         self.assertEqual(sheet['H2'].value, '=HYPERLINK("external")')
-        self.assertEqual(sheet.auto_filter.ref, 'A1:K3')
+        self.assertEqual(sheet.auto_filter.ref, 'A1:L3')
         self.assertEqual(sheet.freeze_panes, 'C2')
         workbook.close()
         with patch.object(h,'_require_auth',AsyncMock(return_value={'role':'user','username':'scoped','rrhh_scope':'sector_completo','rrhh_sectors':['Frio']})):

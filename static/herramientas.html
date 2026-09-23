@@ -26,7 +26,7 @@
     @media(max-width:980px){header,.tool-grid,.bulk-grid{grid-template-columns:1fr}.actions{justify-content:flex-start}.kpis{grid-template-columns:1fr 1fr}.bulk-tools{justify-content:flex-start}}
     @media(max-width:620px){.form-grid,.kpis{grid-template-columns:1fr}}
   </style>
-  <link rel="stylesheet" href="/css/herramientas.css">
+  <link rel="stylesheet" href="/css/herramientas.css?v=viajes-sucursales-v1">
 </head>
 <body>
   <header>
@@ -49,10 +49,20 @@
     <div id="panel-calculo">
     <section id="modelo-panel" class="band">
       <div class="band-head"><div><h2>Validación desde Excel</h2><div class="muted">Cargue el Excel modelo.</div></div></div>
-      <div class="bulk-grid"><div><label for="modelo-file">Archivo Excel</label><input id="modelo-file" type="file" accept=".xlsx"><div class="message" id="modelo-message"></div></div><div class="bulk-tools"><button id="modelo-consultar" class="primary" type="button">Consultar</button><button id="modelo-recalcular" type="button">Recalcular editados</button><button id="modelo-exportar" type="button">Exportar Excel validado</button></div></div>
-      <details id="modelo-edit-panel-new" class="edit-panel"><summary>Editar viaje seleccionado</summary><div class="muted" id="modelo-edit-title-new"></div><div class="form-grid"><div><label>Fecha viaje</label><input id="edit-fecha-viaje-new" type="date"></div><div><label>Hora viaje</label><input id="edit-hora-viaje-new" type="time"></div><div><label>Legajo Excel</label><input id="edit-excel-legajo-new"></div><div><label>Hoja de ruta</label><input id="edit-hojaruta-new"></div><div><label>KM viaje</label><input id="edit-cantidad-new" type="number" min="0" step="0.01"></div><div><label>Fecha salida</label><input id="edit-fesalida-new" type="datetime-local"></div><div><label>Fecha regreso</label><input id="edit-fevuelta-new" type="datetime-local"></div><div><label>Llegada al local</label><input id="edit-llegada-local-new" type="datetime-local"></div><div><label>Salida del local</label><input id="edit-salida-local-new" type="datetime-local"></div><div><label>Legajo Oracle</label><input id="edit-legajo-new"></div><div><label>Nombre chofer</label><input id="edit-nombre-new"></div><div><label>DNI</label><input id="edit-nrodoc-new"></div><div class="span actions"><button id="modelo-guardar-edicion-new" class="primary" type="button">Guardar edición</button><button id="modelo-cancelar-edicion-new" type="button">Cancelar</button></div></div></details>
-      <div class="table-wrap" style="margin-top:14px"><table class="modelo-table"><thead><tr><th>Fecha viaje Excel</th><th>Hora viaje</th><th>Legajo Excel</th><th>Hoja ruta</th><th>KM viaje</th><th>Fecha salida Oracle</th><th>Fecha regreso Oracle</th><th>Horas totales</th><th>Legajo Oracle</th><th>Nombre chofer</th><th>DNI</th><th>KM al 100</th><th>Pernocte</th><th>Torito</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="modelo-body"><tr><td colspan="16" class="muted">Seleccione el Excel y presione Consultar.</td></tr></tbody></table></div>
+      <div class="bulk-grid"><div><label for="modelo-file">Archivo Excel</label><input id="modelo-file" type="file" accept=".xlsx"><div class="message" id="modelo-message" role="status" aria-live="polite" aria-atomic="true"></div></div><div><label for="modelo-legajo">Filtrar grilla por legajo</label><input id="modelo-legajo" inputmode="numeric" autocomplete="off" placeholder="Opcional"></div><div class="bulk-tools"><button id="modelo-consultar" class="primary" type="button" disabled>Consultar</button><button id="modelo-recalcular" type="button" disabled>Recalcular editados</button><button id="modelo-exportar" type="button" disabled>Exportar Excel validado</button></div></div>
+      <details id="modelo-edit-panel-new" class="edit-panel"><summary>Editar viaje seleccionado</summary><div class="muted" id="modelo-edit-title-new"></div><div class="form-grid"><div><label>Fecha viaje</label><input id="edit-fecha-viaje-new" type="date"></div><div><label>Hora viaje</label><input id="edit-hora-viaje-new" type="time"></div><div><label>Legajo Excel</label><input id="edit-excel-legajo-new"></div><div><label>Hoja de ruta</label><input id="edit-hojaruta-new"></div><div><label>KM viaje</label><input id="edit-cantidad-new" type="number" min="0" step="0.01"></div><div><label>Fecha salida</label><input id="edit-fesalida-new" type="datetime-local"></div><div><label>Fecha regreso</label><input id="edit-fevuelta-new" type="datetime-local"></div><div><label>Legajo Oracle</label><input id="edit-legajo-new"></div><div><label>Nombre chofer</label><input id="edit-nombre-new"></div><div><label>DNI</label><input id="edit-nrodoc-new"></div></div><div class="branch-editor span"><h3>Sucursales de la hoja de ruta</h3><p class="muted">Edite la llegada y la salida de cada sucursal. El cálculo usa la primera llegada y la última salida; las distancias de Oracle no se modifican.</p><div class="table-wrap"><table class="branch-table"><thead><tr><th>Sucursal</th><th>Llegada sucursal</th><th>Salida sucursal</th><th>KM Oracle ida</th><th>KM Oracle regreso</th></tr></thead><tbody id="edit-sucursales-new"></tbody></table></div></div><div class="actions"><button id="modelo-guardar-edicion-new" class="primary" type="button">Guardar edición</button><button id="modelo-cancelar-edicion-new" type="button">Cancelar</button></div></details>
+      <p class="muted">Colores por fecha de viaje: viernes amarillo · sábado naranja · domingo verde · feriados durazno (prioridad sobre el día semanal). Feriados según ABM Feriados.</p><div class="table-wrap modelo-scroll" style="margin-top:14px" tabindex="0" role="region" aria-label="Viajes Larga Distancia: tabla con encabezados fijos"><table class="modelo-table"><thead id="modelo-head"><tr><th aria-sort="none"><button type="button" data-viaje-sort="fecha_viaje">Fecha viaje Excel</button></th><th aria-sort="none"><button type="button" data-viaje-sort="dia_viaje">Día Viaje</button></th><th aria-sort="none"><button type="button" data-viaje-sort="hora_viaje">Hora viaje</button></th><th aria-sort="none"><button type="button" data-viaje-sort="excel_legajo">Legajo Excel</button></th><th aria-sort="none"><button type="button" data-viaje-sort="hojaruta">Hoja ruta</button></th><th aria-sort="none"><button type="button" data-viaje-sort="hoja_fisica_presente">Hoja Física Presente</button></th><th aria-sort="none"><button type="button" data-viaje-sort="cantidad">KM viaje</button></th><th aria-sort="none"><button type="button" data-viaje-sort="fesalida">Fecha salida Oracle</button></th><th aria-sort="none"><button type="button" data-viaje-sort="fevuelta">Fecha regreso Oracle</button></th><th aria-sort="none"><button type="button" data-viaje-sort="horas_totales_viaje">Horas totales</button></th><th aria-sort="none"><button type="button" data-viaje-sort="legajo">Legajo Oracle</button></th><th aria-sort="none"><button type="button" data-viaje-sort="nombre">Nombre chofer</button></th><th aria-sort="none"><button type="button" data-viaje-sort="nrodoc">DNI</button></th><th aria-sort="none"><button type="button" data-viaje-sort="km_al_100">KM al 100</button></th><th aria-sort="none"><button type="button" data-viaje-sort="pernocte">Pernocte</button></th><th aria-sort="none"><button type="button" data-viaje-sort="torito">Torito</button></th><th aria-sort="none"><button type="button" data-viaje-sort="estado">Estado</button></th><th>Acción</th></tr></thead><tbody id="modelo-body"><tr><td colspan="18" class="muted">Seleccione el Excel y presione Consultar.</td></tr></tbody></table></div>
       <div id="modelo-edit-panel" class="edit-panel" style="display:none"><div class="band-head"><div><h2>Editar viaje</h2><div class="muted" id="modelo-edit-title"></div></div></div><div class="form-grid"><div><label>Fecha viaje</label><input id="edit-fecha-viaje" type="date"></div><div><label>Hora viaje</label><input id="edit-hora-viaje" type="time"></div><div><label>Legajo Excel</label><input id="edit-excel-legajo"></div><div><label>Hoja de ruta</label><input id="edit-hojaruta"></div><div><label>KM viaje</label><input id="edit-cantidad" type="number" min="0" step="0.01"></div><div><label>Fecha salida</label><input id="edit-fesalida" type="datetime-local"></div><div><label>Fecha regreso</label><input id="edit-fevuelta" type="datetime-local"></div><div><label>Legajo Oracle</label><input id="edit-legajo"></div><div><label>Nombre chofer</label><input id="edit-nombre"></div><div><label>DNI</label><input id="edit-nrodoc"></div><div class="span actions"><button id="modelo-guardar-edicion" class="primary" type="button">Guardar edición</button><button id="modelo-cancelar-edicion" type="button">Cancelar</button></div></div></div>
+    </section>
+    <section id="viajes-historico" class="band">
+      <div class="band-head"><div><h2>Reporte acumulado</h2><div class="muted">Consulta los viajes guardados en la base por fecha de viaje.</div></div></div>
+      <div class="form-grid">
+        <div><label for="viajes-desde">Desde</label><input id="viajes-desde" type="date"></div>
+        <div><label for="viajes-hasta">Hasta</label><input id="viajes-hasta" type="date"></div>
+        <div><label for="viajes-legajo">Legajo</label><input id="viajes-legajo" inputmode="numeric" autocomplete="off" placeholder="Opcional"></div>
+        <div class="span actions"><button id="viajes-consultar" class="primary" type="button">Consultar acumulado</button><button id="viajes-exportar" type="button" disabled>Exportar acumulado</button></div>
+        <div class="span message" id="viajes-message" role="status" aria-live="polite"></div>
+      </div>
     </section>
     <section id="legacy-bulk" class="band">
       <div class="band-head">
@@ -143,7 +153,7 @@
       <div id="he-message" class="band message" role="status" aria-live="polite">Seleccione el rango, sector y funciones.</div>
       <div id="he-kpis" class="kpis"></div>
       <section class="band">
-        <div class="band-head"><div><h2>Horas extras por legajo y día</h2><p class="muted">Cada decisión corresponde al total diario. Las autorizaciones se registran de forma independiente.</p></div><button id="he-guardar" class="primary" type="button" disabled>Guardar cambios</button></div>
+        <div class="band-head"><div><h2>Horas extras por legajo y día</h2><p class="muted">Aprobación parcial: ingrese horas decimales (1,5 = 1 h 30 min). El resto queda no autorizado.</p></div><button id="he-guardar" class="primary" type="button" disabled>Guardar cambios</button></div>
         <div class="he-bulk">
           <span id="he-selection" role="status">0 filas seleccionadas</span>
           <label for="he-motivo">Motivo para rechazo masivo</label><input id="he-motivo" maxlength="500" placeholder="Obligatorio para rechazar">
@@ -152,7 +162,7 @@
           <button id="he-exportar" type="button" disabled>Exportar Excel</button>
         </div>
         <p class="muted">Seleccione filas o marque todas. Las decisiones masivas se aplican al presionar Guardar cambios. El Excel contiene los resultados consultados con las decisiones guardadas.</p>
-        <div class="table-wrap"><table><thead id="he-head"><tr><th><input id="he-select-all" type="checkbox" aria-label="Seleccionar todas las filas consultadas"></th><th aria-sort="none"><button type="button" data-sort="fecha">Fecha</button></th><th aria-sort="none"><button type="button" data-sort="legajo">Legajo</button></th><th aria-sort="none"><button type="button" data-sort="empleado">Empleado</button></th><th aria-sort="none"><button type="button" data-sort="sector">Sector</button></th><th aria-sort="none"><button type="button" data-sort="funcion">Función</button></th><th aria-sort="none"><button type="button" data-sort="horas">HE realizadas</button></th><th aria-sort="none"><button type="button" data-sort="estado">Decisión</button></th><th aria-sort="none"><button type="button" data-sort="observacion">Observación</button></th><th aria-sort="none"><button type="button" data-sort="updated_at">Última decisión</button></th></tr></thead><tbody id="he-body"><tr><td colspan="10">Realice una consulta.</td></tr></tbody></table></div>
+        <div class="table-wrap"><table><thead id="he-head"><tr><th><input id="he-select-all" type="checkbox" aria-label="Seleccionar todas las filas consultadas"></th><th aria-sort="none"><button type="button" data-sort="fecha">Fecha</button></th><th aria-sort="none"><button type="button" data-sort="legajo">Legajo</button></th><th aria-sort="none"><button type="button" data-sort="empleado">Empleado</button></th><th aria-sort="none"><button type="button" data-sort="sector">Sector</button></th><th aria-sort="none"><button type="button" data-sort="funcion">Función</button></th><th aria-sort="none"><button type="button" data-sort="horas">HE realizadas</button></th><th aria-sort="none"><button type="button" data-sort="estado">Decisión</button></th><th aria-sort="none"><button type="button" data-sort="horas_autorizadas">Horas autorizadas</button></th><th aria-sort="none"><button type="button" data-sort="observacion">Observación</button></th><th aria-sort="none"><button type="button" data-sort="updated_at">Última decisión</button></th></tr></thead><tbody id="he-body"><tr><td colspan="11">Realice una consulta.</td></tr></tbody></table></div>
       </section>
     </section>
   </main>
@@ -163,8 +173,10 @@
     const fmt=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
     function nowLocal(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
     function endLocal(){const d=new Date(Date.now()+6*60*60000);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
+    function localDate(daysOffset=0){const d=new Date();d.setDate(d.getDate()+daysOffset);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
     function setMsg(text,error=false){$('message').textContent=text||'';$('message').style.color=error?'var(--red)':'var(--soft)'}
     function setBulkMsg(text,error=false){$('bulk-message').textContent=text||'';$('bulk-message').style.color=error?'var(--red)':'var(--soft)'}
+    function setViajesMsg(text,error=false){$('viajes-message').textContent=text||'';$('viajes-message').style.color=error?'var(--red)':'var(--soft)'}
     async function api(path,opt={}){const r=await fetch(path,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});if(r.status===401){location.href='/login?next=/herramientas.html';return null}const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||'No se pudo completar la operacion.');return d}
     function parseDates(text){return (text.match(/\d{4}-\d{2}-\d{2}/g)||[])}
     function parseHojas(text){return [...new Set((text.match(/\d+/g)||[]).map(v=>String(Number(v))))].filter(v=>v&&v!=='NaN')}
@@ -177,18 +189,167 @@
     function modeloInput(row,field,value,type='text'){return `<input data-model-field="${field}" type="${type}" value="${esc(value??'')}">`}
     function dateTimeInput(value){return value?String(value).slice(0,16):''}
     function displayDateTime(value){if(!value)return '';const d=new Date(value);if(Number.isNaN(d.getTime()))return String(value).replace('T',' ');return d.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}
-    function renderModelo(rows){modeloRows=rows||[];$('modelo-body').innerHTML=modeloRows.map((row,i)=>{const valid=String(row.estado||'').includes('Validado');return `<tr data-model-row="${i}"><td>${esc(row.fecha_viaje||'')}</td><td>${esc(row.hora_viaje||'')}</td><td>${esc(row.excel_legajo||'')}</td><td>${esc(row.hojaruta||'')}</td><td class="mono">${fmt(row.cantidad)}</td><td>${esc(displayDateTime(row.fesalida))}</td><td>${esc(displayDateTime(row.fevuelta))}</td><td class="mono">${fmt(row.horas_totales_viaje)} h</td><td>${esc(row.legajo||'')}</td><td>${esc(row.nombre||'')}</td><td>${esc(row.nrodoc||'')}</td><td class="mono">${fmt(row.km_al_100)}</td><td class="mono">${row.pernocte?'<span class="flag-yes">✓</span>':''}</td><td class="mono">${row.torito?'<span class="flag-yes">✓</span>':''}</td><td title="${esc(row.estado||'')}">${valid?'<span class="status-dot status-green"></span>':'<span class="status-dot status-red"></span>'}</td><td><button type="button" onclick="openModeloEdit(${i})">Editar</button> <button type="button" onclick="showModeloDetail(${i})">Detalle</button></td></tr>`}).join('')||'<tr><td colspan="16" class="muted">No hay rutas para mostrar.</td></tr>'}
+    let viajeHolidays=[];
+    function viajeCalendar(value){
+      const text=String(value||'');let m=text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if(!m){const d=text.match(/^(\d{2})[/-](\d{2})[/-](\d{4})/);if(d)m=[d[0],d[3],d[2],d[1]]}
+      if(!m)return {name:'',color:'#FFFFFF'};
+      const date=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));
+      if(date.getUTCFullYear()!==+m[1]||date.getUTCMonth()!==+m[2]-1||date.getUTCDate()!==+m[3])return {name:'',color:'#FFFFFF'};
+      const iso=`${m[1]}-${m[2]}-${m[3]}`,weekday=date.getUTCDay();
+      const holiday=viajeHolidays.some(h=>String(h.fecha).slice(0,10)===iso&&h.activo!==0&&h.activo!==false);
+      return {name:['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][weekday],color:holiday?'#FCE4D6':({5:'#FFFF00',6:'#FFC000',0:'#92D050'}[weekday]||'#FFFFFF')};
+    }
+    let viajeSortKey='',viajeSortDirection=1;
+    const viajeCollator=new Intl.Collator('es',{numeric:true,sensitivity:'base'});
+    function viajeSortValue(row,key){
+      if(key==='dia_viaje')return ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].indexOf(viajeCalendar(row.fecha_viaje).name);
+      if(['cantidad','horas_totales_viaje','km_al_100'].includes(key))return Number(row[key]||0);
+      if(['hoja_fisica_presente','pernocte','torito'].includes(key))return row[key]?1:0;
+      let value=String(row[key]??'');
+      if(['fecha_viaje','fesalida','fevuelta'].includes(key))value=value.replace(/^(\d{2})[/-](\d{2})[/-](\d{4})/,'$3-$2-$1').replace(' ','T');
+      return value;
+    }
+    function compareViajes(a,b){
+      if(!viajeSortKey)return a.i-b.i;
+      const x=viajeSortValue(a.row,viajeSortKey),y=viajeSortValue(b.row,viajeSortKey);
+      return viajeSortDirection*(typeof x==='number'?x-y:viajeCollator.compare(x,y))||a.i-b.i;
+    }
+    function normalizeLegajo(value){return String(value||'').replace(/\s+/g,'').trim()}
+    function modeloLegajoFilter(){return normalizeLegajo($('modelo-legajo')?.value)}
+    function modeloMatchesLegajo(row,legajo){return !legajo||normalizeLegajo(row.excel_legajo)===legajo||normalizeLegajo(row.legajo)===legajo}
+    $('modelo-head').addEventListener('click',event=>{
+      const button=event.target.closest('[data-viaje-sort]');if(!button||modeloBusy)return;
+      const key=button.dataset.viajeSort;
+      viajeSortDirection=key===viajeSortKey?-viajeSortDirection:1;viajeSortKey=key;
+      document.querySelectorAll('[data-viaje-sort]').forEach(b=>b.parentElement.setAttribute('aria-sort',b.dataset.viajeSort===key?(viajeSortDirection===1?'ascending':'descending'):'none'));
+      renderModelo(modeloRows);
+    });
+    function renderModelo(rows){const previous=new Map(modeloRows.map(r=>[String(r.hojaruta),r.hoja_fisica_presente===true]));modeloRows=(rows||[]).map(r=>({...r,hoja_fisica_presente:r.hoja_fisica_presente??previous.get(String(r.hojaruta))??false}));const legajo=modeloLegajoFilter();const visible=modeloRows.map((row,i)=>({row,i})).filter(({row})=>modeloMatchesLegajo(row,legajo));$('modelo-body').innerHTML=visible.sort(compareViajes).map(({row,i})=>{const valid=String(row.estado||'').includes('Validado');const day=viajeCalendar(row.fecha_viaje);const status=row.km_revision||row.estado||'Sin estado';return `<tr data-model-row="${i}" style="--viaje-color:${day.color}"><td style="background-color:${day.color}">${esc(row.fecha_viaje||'')}</td><td style="background-color:${day.color}">${esc(day.name)}</td><td style="background-color:${day.color}">${esc(row.hora_viaje||'')}</td><td style="background-color:${day.color}">${esc(row.excel_legajo||'')}</td><td style="background-color:${day.color}">${esc(row.hojaruta||'')}</td><td style="background-color:${day.color}"><input type="checkbox" class="hoja-fisica" data-hoja-fisica aria-label="Hoja Física Presente ${esc(row.hojaruta)}" ${row.hoja_fisica_presente?'checked':''}></td><td style="background-color:${day.color}" class="mono">${fmt(row.cantidad)}</td><td style="background-color:${day.color}">${esc(displayDateTime(row.fesalida))}</td><td style="background-color:${day.color}">${esc(displayDateTime(row.fevuelta))}</td><td style="background-color:${day.color}" class="mono">${fmt(row.horas_totales_viaje)} h</td><td style="background-color:${day.color}">${esc(row.legajo||'')}</td><td style="background-color:${day.color}">${esc(row.nombre||'')}</td><td style="background-color:${day.color}">${esc(row.nrodoc||'')}</td><td style="background-color:${day.color}" class="mono">${row.km_al_100==null?'Pendiente':fmt(row.km_al_100)}</td><td style="background-color:${day.color}" class="mono">${row.pernocte?'<span class="flag-yes">✓</span>':''}</td><td style="background-color:${day.color}" class="mono">${row.torito?'<span class="flag-yes">✓</span>':''}</td><td style="background-color:${day.color}" class="modelo-status" title="${esc(status)}">${valid?'<span class="status-dot status-green"></span>':'<span class="status-dot status-red"></span>'}${esc(status)}</td><td style="background-color:${day.color}"><button type="button" onclick="openModeloEdit(${i})">Editar</button> <button type="button" onclick="showModeloDetail(${i})">Detalle</button></td></tr>`}).join('')||`<tr><td colspan="18" class="muted">${legajo?'No hay rutas para el legajo indicado.':'No hay rutas para mostrar.'}</td></tr>`}
+    $('modelo-body').addEventListener('change',async event=>{
+      if(!event.target.matches('[data-hoja-fisica]'))return;
+      const index=Number(event.target.closest('[data-model-row]').dataset.modelRow);
+      const row=modeloRows[index];
+      row.hoja_fisica_presente=event.target.checked;
+      if(!row.viaje_id)return;
+      try{
+        await api(`/api/herramientas/viajes/${row.viaje_id}/marca`,{method:'PUT',body:JSON.stringify({hoja_fisica_presente:row.hoja_fisica_presente,estado_manual:row.estado_manual||'',observacion:row.observacion||''})});
+        $('modelo-message').textContent='Marca guardada en la base.';
+      }catch(e){
+        event.target.checked=!row.hoja_fisica_presente;
+        row.hoja_fisica_presente=event.target.checked;
+        $('modelo-message').textContent=e.message||'No se pudo guardar la marca.';
+        $('modelo-message').style.color='var(--red)';
+      }
+    });
     function collectModeloRows(){return modeloRows}
-    let modeloEditIndex=null;
-    function openModeloEdit(index){modeloEditIndex=index;const row=modeloRows[index]||{};$('modelo-edit-title-new').textContent=`Hoja de ruta ${row.hojaruta||''}`;$('edit-fecha-viaje-new').value=row.fecha_viaje||'';$('edit-hora-viaje-new').value=row.hora_viaje||'';$('edit-excel-legajo-new').value=row.excel_legajo||'';$('edit-hojaruta-new').value=row.hojaruta||'';$('edit-cantidad-new').value=row.cantidad??'';$('edit-fesalida-new').value=dateTimeInput(row.fesalida);$('edit-fevuelta-new').value=dateTimeInput(row.fevuelta);$('edit-llegada-local-new').value=dateTimeInput(row.llegada_local);$('edit-salida-local-new').value=dateTimeInput(row.salida_local);$('edit-legajo-new').value=row.legajo||'';$('edit-nombre-new').value=row.nombre||'';$('edit-nrodoc-new').value=row.nrodoc||'';$('modelo-edit-panel-new').open=true}
-    function saveModeloEdit(){if(modeloEditIndex===null)return;const row={...modeloRows[modeloEditIndex],fecha_viaje:$('edit-fecha-viaje-new').value,hora_viaje:$('edit-hora-viaje-new').value,excel_legajo:$('edit-excel-legajo-new').value,hojaruta:$('edit-hojaruta-new').value,cantidad:Number($('edit-cantidad-new').value||0),fesalida:$('edit-fesalida-new').value,fevuelta:$('edit-fevuelta-new').value,llegada_local:$('edit-llegada-local-new').value,salida_local:$('edit-salida-local-new').value,legajo:$('edit-legajo-new').value,nombre:$('edit-nombre-new').value,nrodoc:$('edit-nrodoc-new').value};modeloRows[modeloEditIndex]=row;renderModelo(modeloRows);$('modelo-edit-panel-new').open=false}
+    let modeloEditIndex=null;let sucursalesEditadas=[];
+    function renderSucursalesEditadas(){
+      $('edit-sucursales-new').innerHTML=sucursalesEditadas.map((stop,index)=>`<tr data-sucursal-index="${index}"><td class="branch-code">${esc(stop.sucursal||'Sin código')}</td><td><input data-sucursal-field="llegada_sucursal" type="datetime-local" value="${esc(dateTimeInput(stop.llegada_sucursal))}" aria-label="Llegada sucursal ${esc(stop.sucursal||index+1)}"></td><td><input data-sucursal-field="salida_sucursal" type="datetime-local" value="${esc(dateTimeInput(stop.salida_sucursal))}" aria-label="Salida sucursal ${esc(stop.sucursal||index+1)}"></td><td class="branch-distance">${stop.km_ida==null?'Sin distancia':esc(fmt(stop.km_ida))}</td><td class="branch-distance">${stop.km_regreso==null?'Sin distancia':esc(fmt(stop.km_regreso))}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">No se encontraron sucursales para esta hoja de ruta. Consulte Oracle nuevamente.</td></tr>';
+    }
+    function collectSucursalesEditadas(){
+      return [...$('edit-sucursales-new').querySelectorAll('tr[data-sucursal-index]')].map(tr=>{
+        const index=Number(tr.dataset.sucursalIndex),base=sucursalesEditadas[index]||{};
+        return {...base,llegada_sucursal:tr.querySelector('[data-sucursal-field="llegada_sucursal"]')?.value||'',salida_sucursal:tr.querySelector('[data-sucursal-field="salida_sucursal"]')?.value||''};
+      });
+    }
+    function openModeloEdit(index){
+      modeloEditIndex=index;const row=modeloRows[index]||{};
+      sucursalesEditadas=(row.sucursales||[]).filter(stop=>stop&&typeof stop==='object').map(stop=>({...stop}));
+      if(sucursalesEditadas.length===1){
+        if(!sucursalesEditadas[0].llegada_sucursal&&row.llegada_local)sucursalesEditadas[0].llegada_sucursal=row.llegada_local;
+        if(!sucursalesEditadas[0].salida_sucursal&&row.salida_local)sucursalesEditadas[0].salida_sucursal=row.salida_local;
+      }
+      $('modelo-edit-title-new').textContent=`Hoja de ruta ${row.hojaruta||''}`;$('edit-fecha-viaje-new').value=row.fecha_viaje||'';$('edit-hora-viaje-new').value=row.hora_viaje||'';$('edit-excel-legajo-new').value=row.excel_legajo||'';$('edit-hojaruta-new').value=row.hojaruta||'';$('edit-cantidad-new').value=row.cantidad??'';$('edit-fesalida-new').value=dateTimeInput(row.fesalida);$('edit-fevuelta-new').value=dateTimeInput(row.fevuelta);$('edit-legajo-new').value=row.legajo||'';$('edit-nombre-new').value=row.nombre||'';$('edit-nrodoc-new').value=row.nrodoc||'';renderSucursalesEditadas();$('modelo-edit-panel-new').open=true;
+    }
+    async function saveModeloEdit(){
+      if(modeloEditIndex===null)return;
+      const row={...modeloRows[modeloEditIndex],fecha_viaje:$('edit-fecha-viaje-new').value,hora_viaje:$('edit-hora-viaje-new').value,excel_legajo:$('edit-excel-legajo-new').value,hojaruta:$('edit-hojaruta-new').value,cantidad:Number($('edit-cantidad-new').value||0),fesalida:$('edit-fesalida-new').value,fevuelta:$('edit-fevuelta-new').value,legajo:$('edit-legajo-new').value,nombre:$('edit-nombre-new').value,nrodoc:$('edit-nrodoc-new').value,sucursales:collectSucursalesEditadas(),llegada_local:'',salida_local:''};
+      modeloRows[modeloEditIndex]=row;renderModelo(modeloRows);$('modelo-edit-panel-new').open=false;$('modelo-message').style.color='';
+      if(!row.viaje_id){$('modelo-message').textContent='Edición aplicada en la grilla. Para guardarla en histórico, primero presione Consultar.';return}
+      await modeloWorking('Guardando edición y recalculando viaje… Espere, por favor.',async()=>{
+        const data=await api('/api/herramientas/excel/recalcular',{method:'POST',body:JSON.stringify({rows:collectModeloRows()})});
+        if(!data)return;
+        renderModelo(data.rows||[]);
+        $('modelo-message').textContent='Edición guardada en histórico y cálculo actualizado.';
+      });
+    }
     $('modelo-guardar-edicion-new').onclick=saveModeloEdit;$('modelo-cancelar-edicion-new').onclick=()=>{$('modelo-edit-panel-new').open=false};
-    function showModeloDetail(index){const row=modeloRows[index]||{};const branches=(row.sucursales||[]).map(s=>`<tr><td>${esc(s.sucursal)}</td><td>${esc(displayDateTime(s.llegada_sucursal))}</td><td>${esc(displayDateTime(s.salida_sucursal))}</td><td>${fmt(s.demora_horas)} h</td></tr>`).join('')||'<tr><td colspan="4" class="muted">Sin datos de sucursales.</td></tr>';$('modelo-modal-content').innerHTML=`<h2>Detalle hoja de ruta ${esc(row.hojaruta)}</h2><p>Fecha Excel: ${esc(row.fecha_viaje)} ${esc(row.hora_viaje)} | Legajo Excel: ${esc(row.excel_legajo)} | KM: ${fmt(row.cantidad)}</p><p>Salida viaje: ${esc(displayDateTime(row.fesalida))} | Regreso viaje: ${esc(displayDateTime(row.fevuelta))} | Duración total: ${fmt(row.horas_totales_viaje)} h</p><p>Chofer: ${esc(row.nombre)} | Legajo: ${esc(row.legajo)} | DNI: ${esc(row.nrodoc)}</p><table><thead><tr><th>Sucursal</th><th>Llegada sucursal</th><th>Salida sucursal</th><th>Estadía</th></tr></thead><tbody>${branches}</tbody></table>`;$('modelo-modal').style.display='flex'}
+    function showModeloDetail(index){const row=modeloRows[index]||{};const branches=(row.sucursales||[]).map(s=>`<tr><td>${esc(s.sucursal)}</td><td>${esc(displayDateTime(s.llegada_sucursal))}</td><td>${esc(displayDateTime(s.salida_sucursal))}</td><td>${fmt(s.demora_horas)} h</td><td>${s.km_ida==null?'Sin distancia':fmt(s.km_ida)}</td><td>${s.km_regreso==null?'Sin distancia':fmt(s.km_regreso)}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">Sin datos de sucursales.</td></tr>';$('modelo-modal-content').innerHTML=`<h2>Detalle hoja de ruta ${esc(row.hojaruta)}</h2><p>Fecha Excel: ${esc(row.fecha_viaje)} ${esc(row.hora_viaje)} | Legajo Excel: ${esc(row.excel_legajo)} | KM: ${fmt(row.cantidad)}</p><p>Salida viaje: ${esc(displayDateTime(row.fesalida))} | Regreso viaje: ${esc(displayDateTime(row.fevuelta))} | Duración total: ${fmt(row.horas_totales_viaje)} h</p><p>Chofer: ${esc(row.nombre)} | Legajo: ${esc(row.legajo)} | DNI: ${esc(row.nrodoc)}</p><table><thead><tr><th>Sucursal</th><th>Llegada sucursal</th><th>Salida sucursal</th><th>Estadía</th><th>KM Oracle ida</th><th>KM Oracle regreso</th></tr></thead><tbody>${branches}</tbody></table>`;$('modelo-modal-content').innerHTML+=`<h3>Cálculo KM al 100 — distancias Oracle</h3><p class="muted">Los KM del Excel se conservan. Porcentaje de pago redondeado hacia arriba en pasos de 5%.</p>${row.km_revision?`<p class="status-warn">${esc(row.km_revision)}</p>`:''}<table><thead><tr><th>Tramo</th><th>Sucursal</th><th>Desde</th><th>Hasta</th><th>KM Oracle</th><th>% real</th><th>% pago</th><th>KM al 100</th></tr></thead><tbody>${(row.km_tramos||[]).map(t=>`<tr><td>${esc(t.tramo)}</td><td>${esc(t.sucursal)}</td><td>${esc(displayDateTime(t.desde))}</td><td>${esc(displayDateTime(t.hasta))}</td><td>${t.km_oracle==null?'Sin distancia':fmt(t.km_oracle)}</td><td>${fmt(t.porcentaje_real)}</td><td>${fmt(t.porcentaje_pago)}</td><td>${fmt(t.km_al_100)}</td></tr>`).join('')}</tbody></table>`;$('modelo-modal').style.display='flex'}
     $('modelo-modal-close').onclick=()=>{$('modelo-modal').style.display='none'};
-    $('modelo-file').addEventListener('change',async ev=>{modeloFile=ev.target.files?.[0]||null;if(!modeloFile){$('modelo-message').textContent='Seleccione un archivo Excel.';return}try{$('modelo-message').textContent='Leyendo Excel...';const data=await api('/api/herramientas/excel/leer',{method:'POST',body:JSON.stringify(await modeloPayload())});renderModelo(data.rows||[]);$('modelo-message').textContent=`Excel cargado. Hojas: ${data.total||0}. Presione Consultar para validar en Oracle.`}catch(e){$('modelo-message').textContent=e.message;$('modelo-message').style.color='var(--red)'}});
-    $('modelo-consultar').onclick=async()=>{try{$('modelo-message').textContent='Consultando Oracle...';const data=await api('/api/herramientas/excel/consultar',{method:'POST',body:JSON.stringify(await modeloPayload())});renderModelo(data.rows||[]);$('modelo-message').textContent=`Consulta lista. Hojas: ${data.total||0}.`}catch(e){$('modelo-message').textContent=e.message;$('modelo-message').style.color='var(--red)'}};
-    $('modelo-recalcular').onclick=async()=>{try{const data=await api('/api/herramientas/excel/recalcular',{method:'POST',body:JSON.stringify({rows:collectModeloRows()})});renderModelo(data.rows||[]);$('modelo-message').textContent='Recalculo listo.'}catch(e){$('modelo-message').textContent=e.message;$('modelo-message').style.color='var(--red)'}};
-    $('modelo-exportar').onclick=async()=>{try{const rows=collectModeloRows();const payload={...(await modeloPayload()),rows};$('modelo-message').textContent='Generando Excel...';const r=await fetch('/api/herramientas/excel/exportar.xlsx',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.detail||'No se pudo exportar.')}const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='modelo_validado.xlsx';a.click();URL.revokeObjectURL(url);$('modelo-message').textContent='Excel exportado.'}catch(e){$('modelo-message').textContent=e.message;$('modelo-message').style.color='var(--red)'}};
+    async function exportError(response){
+      if(response.status===401)return 'La sesión venció. Inicie sesión nuevamente y vuelva a exportar.';
+      if(response.status===403)return 'Su usuario no tiene permiso para exportar estos datos.';
+      const data=await response.json().catch(()=>({}));
+      if(typeof data.detail==='string'&&data.detail.trim())return data.detail;
+      if(response.status===413)return 'El archivo es demasiado grande para exportarlo. Utilice un archivo más pequeño.';
+      if(response.status===422)return 'Los datos de exportación no son válidos. Vuelva a cargar el archivo o a consultar los datos.';
+      if(response.status>=500)return `El servidor no pudo generar el Excel (HTTP ${response.status}). Intente nuevamente; si persiste, informe este código.`;
+      return `No se pudo completar la exportación (HTTP ${response.status}). Vuelva a consultar los datos e inténtelo nuevamente.`;
+    }
+    function updateModeloActions(){
+      $('modelo-consultar').disabled=modeloBusy||!modeloFile;
+      $('modelo-recalcular').disabled=modeloBusy||!modeloRows.length;
+      $('modelo-exportar').disabled=modeloBusy||!modeloFile||!modeloRows.length;
+    }
+    let modeloBusy=false;
+    async function modeloWorking(message, action){
+      if(modeloBusy)return;
+      modeloBusy=true;
+      const ids=['modelo-file','modelo-consultar','modelo-recalcular','modelo-exportar'];
+      const controls=ids.map(id=>$(id));
+      const previous=controls.map(control=>control.disabled);
+      controls.forEach(control=>control.disabled=true);
+      $('modelo-panel').setAttribute('aria-busy','true');
+      $('modelo-message').classList.add('working');
+      $('modelo-message').style.color='';
+      $('modelo-message').textContent=message;
+      const buttonLabel=$('modelo-consultar').textContent;
+      $('modelo-consultar').textContent='Trabajando…';
+      try{
+        // Allow the browser to paint the busy state before preparing the file.
+        await new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
+        await action();
+      }catch(e){
+        $('modelo-message').textContent=e instanceof TypeError?'No se pudo conectar con el servidor. Revise la conexión e intente nuevamente.':e.message||'No se pudo completar la operación.';
+        $('modelo-message').style.color='var(--red)';
+      }finally{
+        modeloBusy=false;
+        controls.forEach((control,i)=>control.disabled=previous[i]);
+        $('modelo-consultar').textContent=buttonLabel;
+        $('modelo-panel').setAttribute('aria-busy','false');
+        $('modelo-message').classList.remove('working');
+        updateModeloActions();
+      }
+    }
+    $('modelo-file').addEventListener('change',async ev=>{
+      if(modeloBusy)return;
+      modeloFile=ev.target.files?.[0]||null;modeloRows=[];renderModelo([]);updateModeloActions();
+      if(!modeloFile){$('modelo-message').textContent='Seleccione un archivo Excel.';return}
+      await modeloWorking('Leyendo archivo Excel… Espere, por favor.',async()=>{
+        const data=await api('/api/herramientas/excel/leer',{method:'POST',body:JSON.stringify(await modeloPayload())});
+        if(!data)return;
+        renderModelo(data.rows||[]);
+        $('modelo-message').textContent=`Excel cargado. Hojas: ${data.total||0}. Presione Consultar para validar en Oracle.`;
+      });
+    });
+    $('modelo-consultar').onclick=()=>modeloWorking('Consultando hojas de ruta… Espere, por favor.',async()=>{
+      const data=await api('/api/herramientas/excel/consultar',{method:'POST',body:JSON.stringify(await modeloPayload())});
+      if(!data)return;
+      renderModelo(data.rows||[]);$('modelo-message').textContent=`Consulta lista. Hojas: ${data.total||0}.`;
+    });
+    $('modelo-recalcular').onclick=()=>modeloWorking('Recalculando viajes… Espere, por favor.',async()=>{
+      const data=await api('/api/herramientas/excel/recalcular',{method:'POST',body:JSON.stringify({rows:collectModeloRows()})});
+      if(!data)return;
+      renderModelo(data.rows||[]);$('modelo-message').textContent='Recálculo listo.';
+    });
+    $('modelo-exportar').onclick=()=>modeloWorking('Generando Excel… Espere, por favor.',async()=>{
+      if(!modeloFile)throw new Error('Seleccione un archivo Excel antes de exportar.');
+      const rows=collectModeloRows();if(!rows.length)throw new Error('No hay viajes para exportar. Cargue un Excel con hojas de ruta y espere a que termine la lectura.');const payload={...(await modeloPayload()),rows};
+      const r=await fetch('/api/herramientas/excel/exportar.xlsx',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!r.ok)throw new Error(await exportError(r));
+      const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=r.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/i)?.[1]||'Viajes_Larga_Distancia_validado.xlsx';a.click();URL.revokeObjectURL(url);$('modelo-message').textContent='Excel exportado.';
+    });
     function rowStatusClass(row){const text=String(row.estado||'').toLowerCase();if(text.includes('calculado'))return 'status-ok';if(text.includes('no encontrada')||text.includes('faltan'))return 'status-warn';return text.includes('error')?'status-error':''}
     function toLocalInput(value){return value?String(value).slice(0,16):''}
     function renderBulk(rows){bulkRows=rows||[];$('bulk-body').innerHTML=bulkRows.map((row,i)=>{const t=row.totales||{};return `<tr data-row="${i}">
@@ -204,7 +365,33 @@
     </tr>`}).join('')||'<tr><td colspan="14" class="muted">Pegue hojas de ruta y busque en Oracle.</td></tr>'}
     function collectBulkRows(){return [...$('bulk-body').querySelectorAll('tr[data-row]')].map(tr=>{const i=Number(tr.dataset.row);const base=bulkRows[i]||{};const val=f=>tr.querySelector(`[data-field="${f}"]`)?.value||'';return {...base,distanciadirecta:val('distanciadirecta')===''?null:Number(val('distanciadirecta')),fesalida:val('fesalida')||null,fevuelta:val('fevuelta')||null,demora_sucursal_horas:Number(val('demora_sucursal_horas')||0)}})}
     async function recalcBulk(){const rows=collectBulkRows();if(!rows.length){setBulkMsg('No hay filas para recalcular.',true);return null}setBulkMsg('Recalculando...');const data=await api('/api/herramientas/km/hojas-ruta/calcular',{method:'POST',body:JSON.stringify({rows})});renderBulk(data.rows||[]);setBulkMsg(`Recalculo listo. Filas: ${data.total||0}.`);return data}
-    async function init(){const data=await api('/api/herramientas/km/destinos');if(!data)return;$('destino').innerHTML=(data.destinos||[]).map(d=>`<option value="${esc(d.id)}" data-km="${esc(d.km)}">${esc(d.nombre)} - ${fmt(d.km)} km total</option>`).join('');$('fecha-inicio').value=nowLocal();$('fecha-fin').value=endLocal()}
+    let viajesHistoricoBusy=false;
+    function updateViajesActions(){const ok=$('viajes-desde').value&&$('viajes-hasta').value;$('viajes-consultar').disabled=viajesHistoricoBusy||!ok;$('viajes-exportar').disabled=viajesHistoricoBusy||!ok;}
+    async function viajesHistoricoWorking(message,action){
+      if(viajesHistoricoBusy)return;
+      viajesHistoricoBusy=true;updateViajesActions();setViajesMsg(message);
+      try{await action()}catch(e){setViajesMsg(e.message||'No se pudo completar la consulta acumulada.',true)}
+      finally{viajesHistoricoBusy=false;updateViajesActions()}
+    }
+    function viajesHistoricoParams(){const desde=$('viajes-desde').value,hasta=$('viajes-hasta').value,legajo=($('viajes-legajo').value||'').trim();if(!desde||!hasta)throw new Error('Complete el rango de fechas.');if(hasta<desde)throw new Error('La fecha hasta debe ser igual o posterior a desde.');const params=new URLSearchParams({desde,hasta});if(legajo)params.set('legajo',legajo);return params}
+    async function consultarViajesGuardados(){
+      await viajesHistoricoWorking('Consultando viajes acumulados...',async()=>{
+        const data=await api('/api/herramientas/viajes?'+viajesHistoricoParams().toString(),{headers:{}});
+        if(!data)return;
+        modeloFile=null;$('modelo-file').value='';renderModelo(data.rows||[]);updateModeloActions();
+        const legajo=($('viajes-legajo').value||'').trim();
+        setViajesMsg(`Consulta lista. Viajes guardados: ${data.total||0}${legajo?` para legajo ${legajo}`:''}.`);
+        $('modelo-message').textContent='Mostrando viajes acumulados desde la base.';
+      });
+    }
+    async function exportarViajesGuardados(){
+      await viajesHistoricoWorking('Generando Excel acumulado...',async()=>{
+        const r=await fetch('/api/herramientas/viajes/exportar.xlsx?'+viajesHistoricoParams().toString(),{credentials:'same-origin'});
+        if(!r.ok)throw new Error(await exportError(r));
+        const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=r.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/i)?.[1]||'Reporte_Viajes_Larga_Distancia.xlsx';a.click();URL.revokeObjectURL(url);setViajesMsg('Excel acumulado exportado.');
+      });
+    }
+    async function init(){const data=await api('/api/herramientas/km/destinos');if(!data)return;viajeHolidays=data.feriados||[];renderModelo(modeloRows);$('destino').innerHTML=(data.destinos||[]).map(d=>`<option value="${esc(d.id)}" data-km="${esc(d.km)}">${esc(d.nombre)} - ${fmt(d.km)} km total</option>`).join('');$('fecha-inicio').value=nowLocal();$('fecha-fin').value=endLocal();$('viajes-desde').value=localDate(-30);$('viajes-hasta').value=localDate();updateViajesActions()}
     $('km-form').addEventListener('submit',async ev=>{ev.preventDefault();try{setMsg('Calculando...');const body={destino_id:$('destino').value,fecha_inicio:$('fecha-inicio').value,fecha_fin:$('fecha-fin').value,demora_sucursal_horas:Number($('demora-sucursal').value||0),feriados_extra:parseDates($('feriados-extra').value)};if($('km-manual').value!=='')body.km_override=Number($('km-manual').value);const data=await api('/api/herramientas/km/prorratear',{method:'POST',body:JSON.stringify(body)});render(data);setMsg(`Calculo listo. Dias: ${data.dias}.`)}catch(e){setMsg(e.message,true)}});
     $('reset-btn').onclick=()=>{$('km-form').reset();$('fecha-inicio').value=nowLocal();$('fecha-fin').value=endLocal();$('detail-body').innerHTML='<tr><td colspan="6" class="muted">Complete el formulario para calcular.</td></tr>';render({totales:{}});setMsg('')};
     $('hojas-input').addEventListener('paste',()=>setTimeout(()=>{$('hojas-input').value=parseHojas($('hojas-input').value).join('\n')},0));
@@ -213,16 +400,20 @@
     $('bulk-export').onclick=async()=>{try{const rows=collectBulkRows();if(!rows.length){setBulkMsg('No hay filas para exportar.',true);return}setBulkMsg('Preparando CSV...');const r=await fetch('/api/herramientas/km/hojas-ruta/exportar.csv',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows})});if(r.status===401){location.href='/login?next=/herramientas.html';return}if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.detail||'No se pudo exportar.')}const blob=await r.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='prorrateador_km.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);setBulkMsg('CSV generado.')}catch(e){setBulkMsg(e.message,true)}};
     $('bulk-clear').onclick=()=>{bulkRows=[];$('hojas-input').value='';renderBulk([]);setBulkMsg('')};
     function renderFeriados(rows){$('feriados-body').innerHTML=(rows||[]).map(f=>`<tr><td class="mono">${esc(f.fecha)}</td><td>${esc(f.motivo)}</td><td>${esc(f.tipo)}</td><td><button type="button" onclick="editFeriado(${f.id},'${esc(f.fecha)}','${esc(f.motivo)}','${esc(f.tipo)}')">Editar</button> <button type="button" onclick="deleteFeriado(${f.id})">Borrar</button></td></tr>`).join('')||'<tr><td colspan="4" class="muted">No hay feriados cargados.</td></tr>'}
-    async function loadFeriados(){const data=await api('/api/herramientas/km/feriados');renderFeriados(data.feriados||[])}
+    async function loadFeriados(){const data=await api('/api/herramientas/km/feriados');viajeHolidays=data.feriados||[];renderModelo(modeloRows);renderFeriados(viajeHolidays)}
     function editFeriado(id,fecha,motivo,tipo){$('feriado-id').value=id;$('feriado-fecha').value=fecha;$('feriado-motivo').value=motivo;$('feriado-tipo').value=tipo}
     async function deleteFeriado(id){if(!confirm('¿Borrar este feriado?'))return;try{await api('/api/herramientas/km/feriados/'+id,{method:'DELETE'});await loadFeriados()}catch(e){$('feriado-message').textContent=e.message}}
     $('feriado-form').addEventListener('submit',async ev=>{ev.preventDefault();const id=$('feriado-id').value;const body={fecha:$('feriado-fecha').value,motivo:$('feriado-motivo').value,tipo:$('feriado-tipo').value,activo:true};try{await api('/api/herramientas/km/feriados'+(id?'/'+id:''),{method:id?'PUT':'POST',body:JSON.stringify(body)});$('feriado-form').reset();$('feriado-id').value='';await loadFeriados()}catch(e){$('feriado-message').textContent=e.message}});
     $('feriado-cancelar').onclick=()=>{$('feriado-form').reset();$('feriado-id').value=''};
+    $('modelo-legajo').addEventListener('input',()=>renderModelo(modeloRows));
+    $('viajes-desde').addEventListener('input',updateViajesActions);$('viajes-hasta').addEventListener('input',updateViajesActions);$('viajes-legajo').addEventListener('input',updateViajesActions);
+    $('viajes-consultar').onclick=consultarViajesGuardados;
+    $('viajes-exportar').onclick=exportarViajesGuardados;
     $('tab-calculo').onclick=()=>{$('panel-calculo').style.display='block';$('panel-feriados').style.display='none';$('tab-calculo').classList.add('tab-active');$('tab-feriados').classList.remove('tab-active')};
     $('tab-feriados').onclick=async()=>{$('panel-calculo').style.display='none';$('panel-feriados').style.display='block';$('tab-feriados').classList.add('tab-active');$('tab-calculo').classList.remove('tab-active');try{await loadFeriados()}catch(e){$('feriado-message').textContent=e.message}};
     $('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
     init().catch(e=>setMsg(e.message,true));
   </script>
-  <script src="/js/herramientas_horas.js"></script>
+  <script src="/js/herramientas_horas.js?v=5dfd0b10ffb0"></script>
 </body>
 </html>

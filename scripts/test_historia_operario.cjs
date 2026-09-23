@@ -1,0 +1,24 @@
+const fs=require('fs'), vm=require('vm'), assert=require('node:assert/strict');
+const source=fs.readFileSync('static/js/historia_operario.js','utf8');
+new vm.Script(source);
+const ctx=vm.createContext({console});
+vm.runInContext(source.slice(0,source.indexOf("$('buscar').onclick")),ctx);
+const run=s=>vm.runInContext(s,ctx);
+assert.equal(run("sum([], 'PROD_REAL')"),null);
+assert.equal(run("sum([{PROD_REAL:0}], 'PROD_REAL')"),0);
+assert.equal(run("sum([{PROD_REAL:10},{PROD_REAL:null},{PROD_REAL:20}], 'PROD_REAL')"),30);
+assert.notEqual(run("key({ID_PV_GRUPO_DE_FUNCIONES:1,ID_PV_GRUPO_PRODUCTIVO:2,ID_PV_UNIDAD_DE_PRODUCCION:'BULTO'})"),run("key({ID_PV_GRUPO_DE_FUNCIONES:1,ID_PV_GRUPO_PRODUCTIVO:2,ID_PV_UNIDAD_DE_PRODUCCION:'PALLET'})"));
+assert.equal(run("frequent([{FECHA:20260801,OBJETIVO_NIVEL_ALCANZADO:2},{FECHA:20260801,OBJETIVO_NIVEL_ALCANZADO:2},{FECHA:20260802,OBJETIVO_NIVEL_ALCANZADO:301}])"),'N2 / N301');
+assert.equal(run("frequent([{FECHA:20260801,OBJETIVO_NIVEL_ALCANZADO:0}])"),'N0');
+assert.equal(run("frequent([{FECHA:20260801,OBJETIVO_NIVEL_ALCANZADO:null}])"),'Sin nivel');
+assert.equal(run("esc('<script>')"),'&lt;script&gt;');
+run("data={produccion:[{FECHA:20260801,ID_PV_GRUPO_DE_FUNCIONES:1,ID_PV_GRUPO_PRODUCTIVO:2,ID_PV_UNIDAD_DE_PRODUCCION:'BULTO',PROD_REAL:100}],pagos:[{FECHA:20260801,ID_PV_GRUPO_DE_FUNCIONES:1,ID_PV_GRUPO_PRODUCTIVO:2,ID_PV_UNIDAD_DE_PRODUCCION:'BULTO',A_PAGAR_TOTAL:10},{FECHA:20260801,ID_PV_GRUPO_DE_FUNCIONES:1,ID_PV_GRUPO_PRODUCTIVO:2,ID_PV_UNIDAD_DE_PRODUCCION:'BULTO',A_PAGAR_TOTAL:20}]};scope='1|2|BULTO'");
+assert.equal(run("sum(groups()[0].p,'PROD_REAL')"),100);
+assert.equal(run("sum(groups()[0].a,'A_PAGAR_TOTAL')"),30);
+assert.equal(run("groups(data,true)[0].date"),'2026-08');
+console.log('OK: nulos, ceros, unidades, niveles especiales, jornadas únicas, escape y granularidad independiente');
+
+assert.ok(!/oracle/i.test(fs.readFileSync('static/historia_operario.html','utf8')));
+const visibleSource=source.replaceAll('/api/historia-legajo/oracle/','').replace('/oracle/gi','');
+assert.ok(!/oracle/i.test(visibleSource),'No debe nombrarse el proveedor en textos visibles');
+for(const file of ['static/js/historia_niveles.js','static/js/historia_niveles_ui.js']) assert.ok(!/oracle/i.test(fs.readFileSync(file,'utf8')));

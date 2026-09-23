@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from collections import Counter, defaultdict
 import math
+import re
 from utils.estudio_grupal import calcular_grupal, inferir_turnos
 import json
 from pathlib import Path
@@ -21,6 +22,13 @@ LAB_CACHE_RUN_PREFIX = "ETAPA_AGOSTO_2026_SIN_FILTRO_ID_R1_"
 PREMIO_SOURCE_DB_PATH = ROOT_DIR / "datos" / "premio_productividad.db"
 RRHH_GRUPAL_DB_PATH = ROOT_DIR / "datos" / "vigia.db"
 
+DIVISIONES_DESCRIPCION = {
+    '1': 'SECOS',
+    '2': 'REFRIGERADOS',
+    '4': 'REFRIGERADOS',
+    '6': 'NOA',
+}
+
 
 def _operacion_total(operacion: Any) -> str:
     """Nombre que vincula simulaciones unificadas con el pago Oracle."""
@@ -28,15 +36,89 @@ def _operacion_total(operacion: Any) -> str:
     return 'CARGA' if valor in {'CARGA CAMION', 'PALETS OPERADOS'} else valor
 
 
+def _division_codigo(value: Any) -> str:
+    return str(value or '').strip()
+
+
+def _division_codigos(value: Any) -> list[str]:
+    if isinstance(value, (list, tuple, set)):
+        raw_items = value
+    else:
+        raw_items = str(value or '').replace('|', ',').replace(';', ',').split(',')
+    codigos = {_division_codigo(item) for item in raw_items}
+    return sorted((codigo for codigo in codigos if codigo),
+                  key=lambda item: (0, int(item)) if item.isdigit() else (1, item))
+
+
+def _division_label(codigo: Any) -> str:
+    codigo = _division_codigo(codigo)
+    descripcion = DIVISIONES_DESCRIPCION.get(codigo, '')
+    return f'{codigo} · {descripcion}' if descripcion else codigo
+
+
+def _divisiones_label(value: Any) -> str:
+    return ' / '.join(_division_label(codigo) for codigo in _division_codigos(value))
+
+
+async def _catalogo_divisiones(db) -> list[dict[str, str]]:
+    async with db.execute("""SELECT DISTINCT TRIM(division) division
+            FROM lab_cache_agrupado
+            WHERE TRIM(COALESCE(division,''))<>''
+            ORDER BY CAST(TRIM(division) AS INTEGER), TRIM(division)""") as cur:
+        codigos = [_division_codigo(row[0]) for row in await cur.fetchall()]
+    conocidos = set(codigos)
+    for codigo in DIVISIONES_DESCRIPCION:
+        if codigo not in conocidos:
+            codigos.append(codigo)
+    codigos = sorted(set(codigos), key=lambda item: (0, int(item)) if item.isdigit() else (1, item))
+    return [{'codigo': codigo, 'descripcion': DIVISIONES_DESCRIPCION.get(codigo, ''),
+             'label': _division_label(codigo)} for codigo in codigos if codigo]
+
+
 async def _ensure_config(db):
     await db.execute('CREATE INDEX IF NOT EXISTS idx_lab_cache_agrupado_desc_funcion ON lab_cache_agrupado(desc_funcion)')
+    # Las escalas, grupos y asistencia se consultan por snapshot/fuente en
+    # cada cálculo. Este índice evita recorridos completos del histórico al
+    # abrir una operación sintética o al recalcular individuales.
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_lab_fuente_registro_snapshot_fuente ON lab_fuente_registro(snapshot,fuente,ordinal)')
     await db.execute('''CREATE TABLE IF NOT EXISTS lab_palets_carga_traslado(
         fecha TEXT NOT NULL, legajo TEXT NOT NULL, pallet TEXT NOT NULL,
         contribucion INTEGER NOT NULL, inicio TEXT NOT NULL DEFAULT '', fin TEXT NOT NULL DEFAULT '',
         etapas_traslado INTEGER NOT NULL DEFAULT 0, etapas_carga INTEGER NOT NULL DEFAULT 0,
         tipo TEXT NOT NULL DEFAULT '', detalle TEXT NOT NULL DEFAULT '',
         PRIMARY KEY(fecha,legajo,pallet,contribucion))''')
+    async with db.execute("PRAGMA table_info(lab_palets_carga_traslado)") as cur:
+        columnas_ct = {row[1] for row in await cur.fetchall()}
+    if 'division' not in columnas_ct:
+        await db.execute("ALTER TABLE lab_palets_carga_traslado ADD COLUMN division TEXT NOT NULL DEFAULT ''")
     await db.execute('CREATE INDEX IF NOT EXISTS idx_palets_ct_fecha_legajo ON lab_palets_carga_traslado(fecha,legajo)')
+    # Recepción es una unidad física del proceso, aun cuando el WMS registre
+    # la etiqueta en Operación de recepción y también en Revisor recepción.
+    # Se conserva un solo dueño determinista por fecha/pallet para que la
+    # suma individual reconcilie con la producción grupal.
+    await db.execute('''CREATE TABLE IF NOT EXISTS lab_palets_recepcion(
+        fecha TEXT NOT NULL, legajo TEXT NOT NULL, pallet TEXT NOT NULL,
+        funcion_origen TEXT NOT NULL DEFAULT '', inicio TEXT NOT NULL DEFAULT '',
+        fin TEXT NOT NULL DEFAULT '', funciones TEXT NOT NULL DEFAULT '',
+        division TEXT NOT NULL DEFAULT '',
+        PRIMARY KEY(fecha,pallet,division))''')
+    async with db.execute("PRAGMA table_info(lab_palets_recepcion)") as cur:
+        columnas_recepcion = {row[1] for row in await cur.fetchall()}
+    if 'division' not in columnas_recepcion:
+        await db.execute("ALTER TABLE lab_palets_recepcion ADD COLUMN division TEXT NOT NULL DEFAULT ''")
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_palets_recepcion_fecha_legajo ON lab_palets_recepcion(fecha,legajo)')
+    await db.execute('''CREATE TABLE IF NOT EXISTS lab_palets_recepcion_division(
+        fecha TEXT NOT NULL, legajo TEXT NOT NULL, pallet TEXT NOT NULL,
+        division TEXT NOT NULL DEFAULT '', funcion_origen TEXT NOT NULL DEFAULT '',
+        inicio TEXT NOT NULL DEFAULT '', fin TEXT NOT NULL DEFAULT '', funciones TEXT NOT NULL DEFAULT '',
+        PRIMARY KEY(fecha,pallet,division))''')
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_palets_recepcion_div_fecha_legajo ON lab_palets_recepcion_division(fecha,legajo)')
+    await db.execute('''CREATE TABLE IF NOT EXISTS lab_escalas_propuestas_cache(
+        fecha TEXT NOT NULL, operacion TEXT NOT NULL, division TEXT NOT NULL DEFAULT '',
+        turno TEXT NOT NULL DEFAULT '', legajo TEXT NOT NULL, unidad_medida TEXT NOT NULL DEFAULT '',
+        uc REAL NOT NULL DEFAULT 0, inicio TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(fecha,operacion,division,turno,legajo))''')
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_escalas_prop_op_fecha ON lab_escalas_propuestas_cache(operacion,fecha,division,turno)')
     await db.execute('''CREATE TABLE IF NOT EXISTS lab_escala_override(
         operacion TEXT NOT NULL, grupo_productivo TEXT NOT NULL DEFAULT '', nivel INTEGER NOT NULL,
         desde REAL NOT NULL, hasta REAL NOT NULL, premio REAL NOT NULL DEFAULT 0,
@@ -63,6 +145,45 @@ async def _ensure_config(db):
              'Base Secos + NOA.'),
             ('CLARK', 'Sin grupo operativo', 4, 185, 999999, 24535.26,
              'Base Secos + NOA; último tramo abierto.'),
+        ])
+    # Escalas iniciales de recepción: replican las tablas vigentes de los
+    # submódulos Secos y NOA, para que la operación unificada sea editable
+    # desde el estudio sin depender de grupo operativo.
+    await db.executemany('''INSERT OR IGNORE INTO lab_escala_propia
+        (operacion,grupo_productivo,nivel,desde,hasta,premio,premio_por_unidad_excedente,observaciones)
+        VALUES(?,?,?,?,?,?,0,?)''', [
+            ('RECEPCION', 'CD-SECOS - ZONA 2', 0, 0, 57, 0,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 2', 1, 58, 77, 4037.79,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 2', 2, 78, 87, 5102.62,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 2', 3, 88, 180, 5102.62,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 2', 4, 181, 999999, 18076.12,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 1', 0, 0, 57, 0,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 1', 1, 58, 77, 4037.79,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 1', 2, 78, 87, 5102.62,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 1', 3, 88, 180, 5102.62,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-SECOS - ZONA 1', 4, 181, 999999, 18076.12,
+             'Base de RECEPCION_SECOS_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-NOA', 0, 0, 42, 0,
+             'Base de RECEPCION_NOA_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-NOA', 1, 43, 62, 4037.79,
+             'Base de RECEPCION_NOA_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-NOA', 2, 63, 72, 5102.62,
+             'Base de RECEPCION_NOA_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-NOA', 3, 73, 152, 5102.62,
+             'Base de RECEPCION_NOA_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-NOA', 4, 153, 999999, 16223.34,
+             'Base de RECEPCION_NOA_TABLA_SUBMODULO.'),
+            ('RECEPCION', 'CD-REFRIGERADOS', 0, 0, 999999, 3535.72,
+             'Base de REFRIGERADOS | RECEPCION.'),
         ])
     await db.execute('''CREATE TABLE IF NOT EXISTS lab_turno_fijo_legajo(
         legajo TEXT PRIMARY KEY, turno_fijo TEXT NOT NULL DEFAULT '',
@@ -138,6 +259,8 @@ async def _ensure_config(db):
         await db.execute("ALTER TABLE lab_parametro_grupal ADD COLUMN operacion_medible TEXT NOT NULL DEFAULT ''")
     if 'grupo_productivo_id' not in columnas_grupales:
         await db.execute('ALTER TABLE lab_parametro_grupal ADD COLUMN grupo_productivo_id INTEGER')
+    if 'division_madre' not in columnas_grupales:
+        await db.execute("ALTER TABLE lab_parametro_grupal ADD COLUMN division_madre TEXT NOT NULL DEFAULT ''")
     # Migración funcional: Cargador de Secos mide la operación unificada,
     # cuyo insumo es carga + traslado validado por palet/etapa.
     await db.execute("""UPDATE lab_parametro_grupal SET operacion_medible='PALETS OPERADOS'
@@ -184,6 +307,28 @@ async def _ensure_config(db):
             ('CLARK', 'EXTRAC.REAPRO', 'PALET'),
             ('CLARK', 'EXTRAC.TRASP', 'PALET'),
         ])
+    await db.execute("""INSERT OR IGNORE INTO lab_funcion_parametro
+        (desc_funcion,medible,unidad_medida,observaciones)
+        VALUES('ARMADO',1,'BULTO',
+        'Operación compuesta inicial para armado/picking medida por bultos.')""")
+    await db.execute("""INSERT OR IGNORE INTO lab_funcion_equivalencia(desc_funcion,operacion_premio)
+        VALUES('ARMADO','ARMADO')""")
+    await db.executemany("""INSERT OR IGNORE INTO lab_operacion_medible_componente
+        (operacion_medible,funcion_wms,unidad_medida,factor) VALUES(?,?,?,1)""", [
+            ('ARMADO', 'PICKIN', 'BULTO'),
+        ])
+    await db.execute("""INSERT OR IGNORE INTO lab_funcion_parametro
+        (desc_funcion,medible,unidad_medida,observaciones)
+        VALUES('RECEPCION',1,'PALET',
+        'Operación compuesta: recepción y revisión, por etiqueta física única.')""")
+    await db.execute("""INSERT OR IGNORE INTO lab_funcion_equivalencia(desc_funcion,operacion_premio)
+        VALUES('RECEPCION','RECEPCION')""")
+    await db.executemany("""INSERT OR IGNORE INTO lab_operacion_medible_componente
+        (operacion_medible,funcion_wms,unidad_medida,factor) VALUES(?,?,?,1)""", [
+            ('RECEPCION', 'OPERACIÓN DE RECEPCION', 'PALET'),
+            ('RECEPCION', 'REVISOR RECEPCION SECOS', 'PALET'),
+            ('RECEPCION', 'REVISOR RECEPCION NOA', 'PALET'),
+        ])
     await db.execute("""INSERT OR IGNORE INTO lab_grupo_productivo_equivalencia(grupo_cache)
         SELECT DISTINCT TRIM(division) FROM lab_cache_agrupado
         WHERE TRIM(COALESCE(division,'')) <> ''""")
@@ -227,7 +372,7 @@ async def polivalencia_reglas(request: Request):
     for regla in reglas:
         regla['operaciones_b'] = [x for x in str(regla.get('operaciones_b') or '').split(' | ') if x]
     return {'perfiles': perfiles, 'reglas': reglas, 'operaciones': operaciones,
-            'nota': 'El pago se genera una sola vez por legajo, jornada y regla, aunque coincidan varias operaciones B.'}
+            'nota': 'El pago se genera una sola vez por legajo, jornada y regla. Las operaciones B son opcionales: también dispara por cambio de función o división madre.'}
 
 
 @router.put('/polivalencia-reglas')
@@ -249,8 +394,6 @@ async def guardar_polivalencia_regla(request: Request):
         raise HTTPException(400, 'El importe no puede ser negativo.')
     prohibidas = {madre, 'CARGA CAMION', 'CARGA', 'TRASLADO'} if madre == 'PALETS OPERADOS' else {madre}
     operaciones_b = [item for item in operaciones_b if item not in prohibidas]
-    if activo and not operaciones_b:
-        raise HTTPException(400, 'Seleccioná al menos una operación B para una regla activa.')
     async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         await _ensure_config(db)
@@ -354,6 +497,71 @@ async def _componentes_operaciones_medibles(db) -> dict[str, list[dict[str, Any]
     return resultado
 
 
+_RECEPCION_COMPONENTES = (
+    'OPERACIÓN DE RECEPCION',
+    'REVISOR RECEPCION SECOS',
+    'REVISOR RECEPCION NOA',
+)
+
+
+async def _recalcular_palets_recepcion(db, desde: str, hasta: str) -> None:
+    """Reconstruye RECEPCION por etiqueta física única.
+
+    Una misma etiqueta puede figurar más de una vez en la extracción y puede
+    pasar por Operación de recepción y Revisor. Se cuenta una sola unidad y
+    se asigna al primer registro de la jornada; el desempate fijo evita que
+    la producción individual y la grupal diverjan.
+    """
+    await db.execute('DELETE FROM lab_palets_recepcion WHERE fecha>=? AND fecha<=?', (desde, hasta))
+    await db.execute('DELETE FROM lab_palets_recepcion_division WHERE fecha>=? AND fecha<=?', (desde, hasta))
+    placeholders = ','.join('?' for _ in _RECEPCION_COMPONENTES)
+    sql = f'''SELECT fecha,CAST(legajo AS TEXT),TRIM(desc_funcion),TRIM(pallet),
+                     COALESCE(fyhini,''),COALESCE(fyhfin,''),CAST(id_etapa AS TEXT),
+                     TRIM(COALESCE(division,''))
+              FROM lab_etapa_detalle_raw
+              WHERE fecha>=? AND fecha<=?
+                AND UPPER(TRIM(desc_funcion)) IN ({placeholders})'''
+    prioridad = {nombre: orden for orden, nombre in enumerate(_RECEPCION_COMPONENTES)}
+    por_palet: dict[tuple[str, str, str], list[tuple[str, str, str, str, str]]] = defaultdict(list)
+    async with db.execute(sql, (desde, hasta, *_RECEPCION_COMPONENTES)) as cur:
+        async for fecha, legajo, funcion, pallet, inicio, fin, etapa, division in cur:
+            etiqueta = str(pallet or '').strip()
+            if etiqueta in {'', '0', '*', '-'}:
+                continue
+            funcion = str(funcion or '').strip().upper()
+            por_palet[(str(fecha), str(division or '').strip(), etiqueta)].append((str(inicio or ''), funcion, str(legajo or ''),
+                                                       str(fin or ''), str(etapa or '')))
+    filas = []
+    for (fecha, division, pallet), eventos in por_palet.items():
+        # id_etapa solamente quita copias de la misma fila de origen; distintas
+        # etapas del mismo pallet compiten para elegir el legajo acreditado.
+        unicos = {(inicio, funcion, legajo, fin, etapa) for inicio, funcion, legajo, fin, etapa in eventos}
+        ordenados = sorted(unicos, key=lambda item: (item[0] or '9999', prioridad.get(item[1], 99), item[2], item[4]))
+        inicio, funcion, legajo, fin, _ = ordenados[0]
+        funciones = ' | '.join(sorted({item[1] for item in ordenados}))
+        filas.append((fecha, legajo, pallet, funcion, inicio, fin, funciones, division))
+    if filas:
+        await db.executemany('''INSERT OR REPLACE INTO lab_palets_recepcion
+                (fecha,legajo,pallet,funcion_origen,inicio,fin,funciones,division)
+                VALUES(?,?,?,?,?,?,?,?)''', filas)
+        await db.executemany('''INSERT OR REPLACE INTO lab_palets_recepcion_division
+                (fecha,legajo,pallet,funcion_origen,inicio,fin,funciones,division)
+                VALUES(?,?,?,?,?,?,?,?)''', filas)
+    await db.commit()
+
+
+async def _asegurar_palets_recepcion(db, desde: str, hasta: str) -> None:
+    async with db.execute('''SELECT COUNT(*) total,
+                              SUM(CASE WHEN TRIM(COALESCE(division,''))<>'' THEN 1 ELSE 0 END) con_division
+                          FROM lab_palets_recepcion_division WHERE fecha>=? AND fecha<=?''',
+                          (desde, hasta)) as cur:
+        row = await cur.fetchone()
+        hay = int(row[0] or 0)
+        con_division = int(row[1] or 0)
+    if not hay or not con_division:
+        await _recalcular_palets_recepcion(db, desde, hasta)
+
+
 async def _catalogo_grupos_productivos(db):
     """Catálogo Oracle importado; no confundir con equivalencias de divisiones."""
     async with db.execute("SELECT snapshot FROM lab_fuente_lote WHERE fuente='oracle.PV_GRUPO_PRODUCTIVO_CAB' ORDER BY capturado DESC LIMIT 1") as cur:
@@ -454,16 +662,23 @@ async def parametros_grupales(request: Request):
             predeterminados = componentes_catalogo.get(str(row.get('operacion_medible') or '').strip().upper(), [])
             row['componentes'] = propios or predeterminados
             row['componentes_origen'] = 'parametro' if propios else 'operacion' if predeterminados else ''
+            row['division_madre'] = ','.join(_division_codigos(row.get('division_madre')))
+            row['division_madre_descripcion'] = ' / '.join(
+                DIVISIONES_DESCRIPCION.get(codigo, '') for codigo in _division_codigos(row['division_madre'])
+                if DIVISIONES_DESCRIPCION.get(codigo, ''))
+            row['division_madre_label'] = _divisiones_label(row['division_madre'])
         operaciones = await _operaciones_grupales(db)
         async with db.execute("SELECT DISTINCT UPPER(TRIM(desc_funcion)) FROM lab_cache_agrupado WHERE TRIM(COALESCE(desc_funcion,''))<>'' ORDER BY 1") as cur:
             funciones_wms = [row[0] for row in await cur.fetchall()]
         grupos = await _catalogo_grupos_productivos(db)
         _identificar_grupos_parametros(rows, grupos)
+        divisiones = await _catalogo_divisiones(db)
     async with aiosqlite.connect(RRHH_GRUPAL_DB_PATH.as_uri()+'?mode=ro', uri=True) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("SELECT DISTINCT desc_sector_generico AS sector,desc_funcion AS funcion_legajero FROM rrhh_personas WHERE active=1 ORDER BY desc_sector_generico,desc_funcion") as cur:
             catalogo = [dict(r) for r in await cur.fetchall()]
     return {'rows': rows, 'catalogo': catalogo, 'grupos_productivos': grupos,
+            'divisiones': divisiones,
             'operaciones': [{'operacion': op, 'unidad_medida': unidad} for op, unidad in operaciones.items()],
             'funciones_wms': funciones_wms,
             'componentes_operaciones': componentes_catalogo}
@@ -499,14 +714,15 @@ async def calculo_grupal(request: Request, fecha_desde: str='2026-08-01', fecha_
         _identificar_grupos_parametros(parametros, grupos)
         async with db.execute('''SELECT r.sector,r.funcion_legajero,r.operacion_madre,r.premio_centavos,o.operacion_b
                 FROM lab_polivalencia_regla r
-                JOIN lab_polivalencia_regla_operacion o ON o.regla_id=r.id
+                LEFT JOIN lab_polivalencia_regla_operacion o ON o.regla_id=r.id
                 WHERE r.activo=1''') as cur:
             relaciones: dict[tuple[str, str, str], set[str]] = defaultdict(set)
             premios_polivalencia: dict[tuple[str, str, str], int] = {}
             for row in await cur.fetchall():
                 clave_regla = (str(row['sector']).strip().upper(), str(row['funcion_legajero']).strip().upper(),
                                str(row['operacion_madre']).strip().upper())
-                relaciones[clave_regla].add(str(row['operacion_b']).strip().upper())
+                if row['operacion_b']:
+                    relaciones[clave_regla].add(str(row['operacion_b']).strip().upper())
                 premios_polivalencia[clave_regla] = int(row['premio_centavos'] or 0)
         async with db.execute('SELECT cod_ausentismo,permitido FROM lab_ausencia_config') as cur:
             ausencias = {str(r[0]): bool(r[1]) for r in await cur.fetchall()}
@@ -517,7 +733,8 @@ async def calculo_grupal(request: Request, fecha_desde: str='2026-08-01', fecha_
         snapshot = snapshot_row[0]
         async with db.execute("SELECT payload FROM lab_fuente_registro WHERE snapshot=? AND fuente='oracle.PV_DIA_LABORAL'", (snapshot,)) as cur:
             jornadas = [json.loads(r[0]) for r in await cur.fetchall()]
-        async with db.execute('SELECT fecha,legajo,desc_funcion,palets,plus,cantidad FROM lab_cache_agrupado WHERE fecha>=? AND fecha<=?', (desde, hasta)) as cur:
+        async with db.execute('''SELECT fecha,legajo,desc_funcion,division,sector,palets,plus,cantidad
+                FROM lab_cache_agrupado WHERE fecha>=? AND fecha<=?''', (desde, hasta)) as cur:
             produccion = [dict(r) for r in await cur.fetchall()]
         # PALETS OPERADOS es la única medición de Carga: cada contribución
         # validada de carga/traslado vale un palet. Se agrega como actividad
@@ -530,15 +747,33 @@ async def calculo_grupal(request: Request, fecha_desde: str='2026-08-01', fecha_
                 hay_palets_unificados = int((await cur.fetchone())[0] or 0)
             if not hay_palets_unificados:
                 await _recalcular_palets_carga_traslado(db, desde, hasta)
-            async with db.execute('''SELECT fecha,legajo,COUNT(*) AS palets
+            async with db.execute('''SELECT fecha,legajo,TRIM(COALESCE(division,'')) AS division,COUNT(*) AS palets
                     FROM lab_palets_carga_traslado
                     WHERE fecha>=? AND fecha<=?
-                    GROUP BY fecha,legajo''', (desde, hasta)) as cur:
+                    GROUP BY fecha,legajo,TRIM(COALESCE(division,''))''', (desde, hasta)) as cur:
                 produccion.extend({
                     'fecha': row['fecha'], 'legajo': row['legajo'],
                     'desc_funcion': 'PALETS OPERADOS', 'palets': row['palets'],
-                    'plus': 0, 'cantidad': 0,
+                    'division': row['division'] or '', 'sector': '*', 'plus': 0, 'cantidad': 0,
                 } for row in await cur.fetchall())
+        # RECEPCION no suma las filas de cada etapa: toma el pallet físico
+        # único y lo atribuye al primer legajo que lo registró. Reemplazar los
+        # componentes por la actividad sintética impide duplicarlo en la meta.
+        if any(str(p.get('operacion_medible') or '').strip().upper() == 'RECEPCION'
+               for p in parametros):
+            await _asegurar_palets_recepcion(db, desde, hasta)
+            async with db.execute('''SELECT fecha,legajo,TRIM(COALESCE(division,'')) AS division,COUNT(*) palets
+                    FROM lab_palets_recepcion_division WHERE fecha>=? AND fecha<=?
+                    GROUP BY fecha,legajo,TRIM(COALESCE(division,''))''', (desde, hasta)) as cur:
+                produccion.extend({
+                    'fecha': row['fecha'], 'legajo': row['legajo'],
+                    'desc_funcion': 'RECEPCION', 'palets': row['palets'],
+                    'division': row['division'] or '', 'sector': '*', 'plus': 0, 'cantidad': 0,
+                } for row in await cur.fetchall())
+            for parametro in parametros:
+                if str(parametro.get('operacion_medible') or '').strip().upper() == 'RECEPCION':
+                    parametro['polivalencia_componentes'] = parametro.get('componentes', [])
+                    parametro['componentes'] = [{'funcion_wms': 'RECEPCION', 'unidad_medida': 'PALET', 'factor': 1}]
     async with aiosqlite.connect(RRHH_GRUPAL_DB_PATH.as_uri()+'?mode=ro', uri=True) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute('SELECT legajo,nombre,desc_sector_generico,desc_funcion,active,fecha_ingreso,fecha_baja FROM rrhh_personas WHERE active=1') as cur:
@@ -563,17 +798,21 @@ async def calculo_grupal(request: Request, fecha_desde: str='2026-08-01', fecha_
                        str(persona.get('funcion_legajero') or '').strip().upper(),
                        str(persona.get('operacion') or '').strip().upper())
         premio_centavos = premios_polivalencia.get(clave_regla, 0)
-        if not (premio_centavos > 0 and persona.get('es_polivalencia')
-                and persona.get('aplica_grupo') and persona.get('asistencia') == 'Presente'):
+        if not (persona.get('es_polivalencia') and persona.get('aplica_grupo')
+                and persona.get('asistencia') == 'Presente'):
             continue
         clave_evento = (str(persona.get('fecha') or ''), str(persona.get('legajo') or ''), *clave_regla)
-        operaciones_b = sorted(actividades_por_jornada[clave_evento[:2]] & relaciones.get(clave_regla, set()))
+        operaciones_b = sorted({
+            *(actividades_por_jornada[clave_evento[:2]] & relaciones.get(clave_regla, set())),
+            *[str(item).strip().upper() for item in persona.get('polivalencia_operaciones', []) if str(item).strip()],
+        })
         polivalencias_cache[clave_evento] = {
             'fecha': clave_evento[0], 'legajo': clave_evento[1],
             'nombre': persona.get('nombre', ''), 'sector': persona.get('sector', ''),
             'funcion': persona.get('funcion_legajero', ''),
             'turno': persona.get('turno_fijo', ''), 'operacion_a': persona.get('operacion', ''),
             'operaciones_b': ' · '.join(operaciones_b),
+            'motivos': ' · '.join(persona.get('polivalencia_motivos', [])),
             'premio_centavos': premio_centavos,
         }
     async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
@@ -631,6 +870,11 @@ async def guardar_parametro_grupal(request: Request):
         operaciones = await _operaciones_grupales(db)
         if operacion not in operaciones:
             raise HTTPException(400, 'Elegí una operación marcada como medible, con unidad PALET, BULTO o PLU en Parámetros.')
+        async with db.execute('''SELECT grupo_productivo_id,division_madre
+                FROM lab_parametro_grupal
+                WHERE sector=? AND funcion_legajero=? AND turno=?''',
+                (sector, funcion, turno)) as cur:
+            anterior = await cur.fetchone()
         # Omitir el campo conserva la asociación de clientes anteriores.
         # Enviar null o vacío la elimina de manera explícita.
         if 'grupo_productivo_id' in data:
@@ -644,16 +888,18 @@ async def guardar_parametro_grupal(request: Request):
                     raise HTTPException(400, 'El grupo productivo no existe en el catálogo importado.')
                 group_id = validos[str(group_id).strip()]
         else:
-            async with db.execute('SELECT grupo_productivo_id FROM lab_parametro_grupal WHERE sector=? AND funcion_legajero=? AND turno=?', (sector, funcion, turno)) as cur:
-                anterior = await cur.fetchone()
             group_id = anterior[0] if anterior else None
+        division_madre_raw = data.get('division_madre') if 'division_madre' in data else (anterior[1] if anterior else '')
+        division_madre = ','.join(_division_codigos(division_madre_raw))
         await db.execute("""INSERT INTO lab_parametro_grupal
-            (sector,funcion_legajero,turno,operacion_medible,uc_por_operario,factor_ausentismo,premio_grupal,activo,grupo_productivo_id)
-            VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(sector,funcion_legajero,turno) DO UPDATE SET
+            (sector,funcion_legajero,turno,operacion_medible,division_madre,uc_por_operario,factor_ausentismo,premio_grupal,activo,grupo_productivo_id)
+            VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(sector,funcion_legajero,turno) DO UPDATE SET
             operacion_medible=excluded.operacion_medible,uc_por_operario=excluded.uc_por_operario,
             factor_ausentismo=excluded.factor_ausentismo,premio_grupal=excluded.premio_grupal,
-            activo=excluded.activo,grupo_productivo_id=excluded.grupo_productivo_id,updated_at=CURRENT_TIMESTAMP""",
-            (sector, funcion, turno, operacion, uc, factor, premio, 1 if data.get('activo', True) else 0, group_id))
+            activo=excluded.activo,grupo_productivo_id=excluded.grupo_productivo_id,
+            division_madre=excluded.division_madre,updated_at=CURRENT_TIMESTAMP""",
+            (sector, funcion, turno, operacion, division_madre, uc, factor, premio,
+             1 if data.get('activo', True) else 0, group_id))
         await db.execute('DELETE FROM lab_calculo_grupal_cache')
         await db.commit()
     return {'ok': True}
@@ -1021,17 +1267,23 @@ async def cache_agrupado(
                        FROM rrhh_legajero.rrhh_personas GROUP BY CAST(legajo AS TEXT)) pers
               ON pers.legajo=CAST(w.legajo AS TEXT)
             WHERE {predicate_legajero}'''
-        async with db.execute(f"SELECT COUNT(*) AS total {grouped}", tuple(args)) as cur:
-            total = int((await cur.fetchone())["total"] or 0)
-        # Consolidar y evaluar siempre el conjunto completo antes de paginar.
-        page_clause = ""
-        page_args = tuple(args)
-        async with db.execute(f"""SELECT w.fecha, w.legajo, w.desc_funcion, w.division, w.sector,
-                w.palets, w.plus, w.cantidad, w.peso, w.detalle_filas,
-                COALESCE(pers.nombre,'') nombre,COALESCE(pers.sector_legajero,'') sector_legajero,
-                COALESCE(pers.funcion_legajero,'') funcion_legajero {grouped_legajero}
-                ORDER BY w.fecha, w.legajo, UPPER(TRIM(w.desc_funcion)){page_clause}""", page_args) as cur:
-            rows = [dict(row) for row in await cur.fetchall()]
+        # RECEPCION no existe como fila cruda: evitar el recorrido completo
+        # del cache cuando el usuario consulta sólo la operación sintética.
+        consulta_sintetica = str(desc_funcion or '').strip().upper() == 'RECEPCION'
+        if consulta_sintetica:
+            total, rows = 0, []
+        else:
+            async with db.execute(f"SELECT COUNT(*) AS total {grouped}", tuple(args)) as cur:
+                total = int((await cur.fetchone())["total"] or 0)
+            # Consolidar y evaluar siempre el conjunto completo antes de paginar.
+            page_clause = ""
+            page_args = tuple(args)
+            async with db.execute(f"""SELECT w.fecha, w.legajo, w.desc_funcion, w.division, w.sector,
+                    w.palets, w.plus, w.cantidad, w.peso, w.detalle_filas,
+                    COALESCE(pers.nombre,'') nombre,COALESCE(pers.sector_legajero,'') sector_legajero,
+                    COALESCE(pers.funcion_legajero,'') funcion_legajero {grouped_legajero}
+                    ORDER BY w.fecha, w.legajo, UPPER(TRIM(w.desc_funcion)){page_clause}""", page_args) as cur:
+                rows = [dict(row) for row in await cur.fetchall()]
         await _ensure_config(db)
         componentes_medibles = await _componentes_operaciones_medibles(db)
         async with db.execute("""SELECT p.desc_funcion,p.medible,p.unidad_medida,
@@ -1071,12 +1323,41 @@ async def cache_agrupado(
             'peso': 0, 'detalle_filas': x['palets'], 'nombre': x['nombre'] or '',
             'sector_legajero': x['sector_legajero'] or '',
             'funcion_legajero': x['funcion_legajero'] or ''} for x in unificados)
+        # RECEPCION se forma desde el detalle de etiquetas, no desde el cache
+        # agregado. Así Operación de recepción y Revisor no duplican un pallet
+        # cuando corresponden al mismo movimiento físico.
+        desde_cache, hasta_cache = fecha_desde.replace('-', ''), fecha_hasta.replace('-', '')
+        await _asegurar_palets_recepcion(db, desde_cache, hasta_cache)
+        filtro_funcion = str(desc_funcion or '').strip().upper()
+        if not filtro_funcion or filtro_funcion == 'RECEPCION':
+            recepcion_where = 'r.fecha>=? AND r.fecha<=?'
+            recepcion_args: list[Any] = [desde_cache, hasta_cache]
+            if legajo.strip():
+                recepcion_where += ' AND CAST(r.legajo AS TEXT) LIKE ?'
+                recepcion_args.append(f'%{legajo.strip()}%')
+            async with db.execute(f'''SELECT r.fecha,r.legajo,COUNT(*) palets,
+                    MAX(p.nombre) nombre,MAX(p.desc_sector_generico) sector_legajero,
+                    MAX(p.desc_funcion) funcion_legajero
+                FROM lab_palets_recepcion r
+                LEFT JOIN rrhh_unificada.rrhh_personas p ON CAST(p.legajo AS TEXT)=CAST(r.legajo AS TEXT)
+                WHERE {recepcion_where}
+                GROUP BY r.fecha,r.legajo''', tuple(recepcion_args)) as cur:
+                recepcion_unificada = [dict(row) for row in await cur.fetchall()]
+            rows.extend({'fecha': x['fecha'], 'legajo': x['legajo'], 'desc_funcion': 'RECEPCION',
+                'division': '', 'sector': '*', 'palets': x['palets'], 'plus': 0, 'cantidad': 0,
+                'peso': 0, 'detalle_filas': x['palets'], 'nombre': x['nombre'] or '',
+                'sector_legajero': x['sector_legajero'] or '',
+                'funcion_legajero': x['funcion_legajero'] or ''} for x in recepcion_unificada)
         # Las operaciones compuestas se consolidan por jornada y legajo. En
         # Clark no interviene la división ni el grupo operativo: todos sus
         # movimientos físicos alimentan una única escala diaria.
         for operacion_compuesta, componentes in componentes_medibles.items():
-            if operacion_compuesta == 'PALETS OPERADOS':
+            if operacion_compuesta in {'PALETS OPERADOS', 'RECEPCION'}:
                 continue
+            unidad_componentes = {str(item.get('unidad_medida') or '').strip().upper() for item in componentes
+                                  if str(item.get('unidad_medida') or '').strip()}
+            unidad_compuesta = next(iter(unidad_componentes)) if len(unidad_componentes) == 1 else 'PALET'
+            columna_compuesta = {'PALET': 'palets', 'BULTO': 'cantidad', 'PLU': 'plus'}.get(unidad_compuesta, 'palets')
             funciones = {str(item.get('funcion_wms') or '').strip().upper() for item in componentes}
             acumuladas: dict[tuple[str, str], dict[str, Any]] = {}
             for row in rows:
@@ -1089,7 +1370,7 @@ async def cache_agrupado(
                     'nombre': row.get('nombre') or '',
                     'sector_legajero': row.get('sector_legajero') or '',
                     'funcion_legajero': row.get('funcion_legajero') or ''})
-                total_compuesto['palets'] += float(row.get('palets') or 0)
+                total_compuesto[columna_compuesta] += float(row.get(columna_compuesta) or 0)
                 total_compuesto['detalle_filas'] += float(row.get('detalle_filas') or 0)
             rows.extend(acumuladas.values())
         division_grupo = {}
@@ -1117,6 +1398,10 @@ async def cache_agrupado(
         grupo_escala = grupo or equivalencias.get(grupo_operativo.upper(), grupo_operativo)
         if operacion.upper() == 'CLARK':
             grupo_escala = 'Sin grupo operativo'
+        elif operacion.upper() == 'RECEPCION':
+            # La tabla propia de recepción es por sector de legajero, no por
+            # división WMS: Secos y NOA tienen escalas históricas distintas.
+            grupo_escala = str(row.get('sector_legajero') or '').strip()
         if operacion.upper() == "TRASLADOS" and not unidad:
             unidad = "PALET"
         unidades = {"PALET": row.get("palets"), "PLU": row.get("plus"),
@@ -1127,7 +1412,7 @@ async def cache_agrupado(
                            (not grupo_escala or str(x.get("grupo_productivo") or "").strip().upper() == grupo_escala.upper()))]
         tramo = next((x for x in candidatos if float(x.get("desde") or 0) <= float(unidades or 0)
                       <= float(x.get("hasta") or 0)), None) if unidades is not None else None
-        if operacion.upper() not in {"CARGA", "TRASLADOS", "PALETS OPERADOS", "CLARK"}:
+        if operacion.upper() not in {"CARGA", "TRASLADOS", "PALETS OPERADOS", "CLARK", "RECEPCION", "ARMADO"}:
             row.update({"evaluacion_estado": "Fuera del piloto", "operacion_premio": operacion,
                        "unidad_medida": unidad, "unidades_evaluadas": None, "nivel_nuevo": None,
                        "premio_nuevo": None})
@@ -1167,7 +1452,7 @@ async def cache_agrupado(
     rows = list(consolidated.values())
     # La escala se aplica sobre el total consolidado, no sobre cada división.
     for row in rows:
-        if str(row.get("operacion_premio") or "").upper() not in {"CARGA", "TRASLADOS", "PALETS OPERADOS", "CLARK"}:
+        if str(row.get("operacion_premio") or "").upper() not in {"CARGA", "TRASLADOS", "PALETS OPERADOS", "CLARK", "RECEPCION", "ARMADO"}:
             continue
         op = str(row.get("operacion_premio") or "").upper()
         unidades = row.get("palets") if str(row.get("unidad_medida") or "").upper() == "PALET" else row.get("cantidad")
@@ -1275,6 +1560,214 @@ async def pagos_actuales_detalle(request: Request, snapshot: str, fecha: str, le
             rows = [dict(r) for r in await cur.fetchall()]
     return {'rows':rows, 'snapshot':snapshot, 'fecha':fecha, 'legajo':legajo}
 
+
+def _turno_inferido_desde_inicio(inicio: Any) -> str:
+    texto = str(inicio or '').strip()
+    if not texto:
+        return 'Sin turno'
+    match = re.search(r'T?(\d{1,2}):(\d{2})', texto)
+    if not match:
+        return 'Sin turno'
+    valor = int(match.group(1)) * 60 + int(match.group(2))
+    if 6 * 60 <= valor < 14 * 60:
+        return '1 - Manana'
+    if 14 * 60 <= valor < 22 * 60:
+        return '2 - Tarde'
+    return '3 - Noche'
+
+
+def _division_operativa(codigo: Any) -> tuple[str, str]:
+    valor = str(codigo or '').strip()
+    if valor == '1':
+        return '1', '1 - SECOS'
+    if valor in {'2', '4', '2,4'}:
+        return '2,4', '2/4 - REFRIGERADOS'
+    if valor == '6':
+        return '6', '6 - NOA'
+    if valor in {'SIN_DIVISION', ''}:
+        return 'SIN_DIVISION', 'Sin division'
+    return valor, f'{valor} - Sin division'
+
+
+async def _reconstruir_escalas_propuestas_cache(db: aiosqlite.Connection, desde: str, hasta: str) -> None:
+    await db.execute('DELETE FROM lab_escalas_propuestas_cache WHERE fecha>=? AND fecha<=?', (desde, hasta))
+    await _asegurar_palets_recepcion(db, desde, hasta)
+    async with db.execute("""SELECT COUNT(*) total,
+                              SUM(CASE WHEN TRIM(COALESCE(division,''))<>'' THEN 1 ELSE 0 END) con_division
+                    FROM lab_palets_carga_traslado WHERE fecha>=? AND fecha<=?""", (desde, hasta)) as cur:
+        row = await cur.fetchone()
+        if not int(row[0] or 0) or not int(row[1] or 0):
+            await _recalcular_palets_carga_traslado(db, desde, hasta)
+    filas: list[tuple[Any, ...]] = []
+    async with db.execute("""SELECT fecha,CAST(legajo AS TEXT) legajo,TRIM(COALESCE(division,'')) division,
+                   COALESCE(inicio,'') inicio,COUNT(*) uc
+            FROM lab_palets_carga_traslado
+            WHERE fecha>=? AND fecha<=?
+            GROUP BY fecha,CAST(legajo AS TEXT),TRIM(COALESCE(division,'')),COALESCE(inicio,'')""",
+            (desde, hasta)) as cur:
+        async for row in cur:
+            division_key, _ = _division_operativa(row['division'])
+            filas.append((row['fecha'], 'PALETS OPERADOS', division_key, _turno_inferido_desde_inicio(row['inicio']),
+                          row['legajo'], 'PALET', float(row['uc'] or 0), row['inicio'] or ''))
+    async with db.execute("""SELECT fecha,CAST(legajo AS TEXT) legajo,TRIM(COALESCE(division,'')) division,
+                   COALESCE(inicio,'') inicio,COUNT(*) uc
+            FROM lab_palets_recepcion_division
+            WHERE fecha>=? AND fecha<=?
+            GROUP BY fecha,CAST(legajo AS TEXT),TRIM(COALESCE(division,'')),COALESCE(inicio,'')""",
+            (desde, hasta)) as cur:
+        async for row in cur:
+            division_key, _ = _division_operativa(row['division'])
+            filas.append((row['fecha'], 'RECEPCION', division_key, _turno_inferido_desde_inicio(row['inicio']),
+                          row['legajo'], 'PALET', float(row['uc'] or 0), row['inicio'] or ''))
+    componentes = await _componentes_operaciones_medibles(db)
+    for operacion, items in componentes.items():
+        operacion = str(operacion or '').strip().upper()
+        if operacion in {'PALETS OPERADOS', 'RECEPCION'}:
+            continue
+        funciones = sorted({str(item.get('funcion_wms') or '').strip().upper() for item in items if str(item.get('funcion_wms') or '').strip()})
+        unidades = {str(item.get('unidad_medida') or '').strip().upper() for item in items if str(item.get('unidad_medida') or '').strip()}
+        unidad = next(iter(unidades)) if len(unidades) == 1 else ''
+        expresion_uc = {
+            'PALET': "COUNT(DISTINCT NULLIF(TRIM(COALESCE(pallet,'')),''))",
+            'BULTO': "SUM(COALESCE(cantidad,0))",
+            'PLU': "COUNT(DISTINCT NULLIF(TRIM(COALESCE(plu,'')),''))",
+        }.get(unidad, '')
+        if not funciones or not expresion_uc:
+            continue
+        placeholders = ','.join('?' for _ in funciones)
+        async with db.execute(f"""SELECT fecha,CAST(legajo AS TEXT) legajo,TRIM(COALESCE(division,'')) division,
+                       MIN(COALESCE(fyhini,'')) inicio,{expresion_uc} uc
+                FROM lab_etapa_detalle_raw
+                WHERE fecha>=? AND fecha<=? AND UPPER(TRIM(desc_funcion)) IN ({placeholders})
+                GROUP BY fecha,CAST(legajo AS TEXT),TRIM(COALESCE(division,'')),id_etapa""",
+                (desde, hasta, *funciones)) as cur:
+            async for row in cur:
+                division_key, _ = _division_operativa(row['division'])
+                filas.append((row['fecha'], operacion, division_key, _turno_inferido_desde_inicio(row['inicio']),
+                              row['legajo'], unidad, float(row['uc'] or 0), row['inicio'] or ''))
+    if filas:
+        await db.executemany("""INSERT INTO lab_escalas_propuestas_cache
+            (fecha,operacion,division,turno,legajo,unidad_medida,uc,inicio)
+            VALUES(?,?,?,?,?,?,?,?)
+            ON CONFLICT(fecha,operacion,division,turno,legajo) DO UPDATE SET
+                uc=uc+excluded.uc,
+                inicio=CASE WHEN inicio='' OR (excluded.inicio<>'' AND excluded.inicio<inicio) THEN excluded.inicio ELSE inicio END,
+                unidad_medida=excluded.unidad_medida, updated_at=CURRENT_TIMESTAMP""", filas)
+    await db.commit()
+
+
+async def _asegurar_escalas_propuestas_cache(db: aiosqlite.Connection, desde: str, hasta: str) -> None:
+    async with db.execute('SELECT COUNT(*) FROM lab_escalas_propuestas_cache WHERE fecha>=? AND fecha<=?', (desde, hasta)) as cur:
+        hay = int((await cur.fetchone())[0] or 0)
+    if not hay:
+        await _reconstruir_escalas_propuestas_cache(db, desde, hasta)
+
+@router.get("/escalas-propuestas")
+async def escalas_propuestas(request: Request, fecha_desde: str = '2026-08-01',
+                             fecha_hasta: str = '2026-08-31', operacion: str = '',
+                             division: str = '', sector: str = '', turno: str = ''):
+    """Propone umbrales desde cache materializada: UC por operario activo, división y turno inferido."""
+    await _admin(request)
+    try:
+        desde = datetime.strptime(fecha_desde, '%Y-%m-%d').strftime('%Y%m%d')
+        hasta = datetime.strptime(fecha_hasta, '%Y-%m-%d').strftime('%Y%m%d')
+    except ValueError as exc:
+        raise HTTPException(400, 'Fechas inválidas.') from exc
+    if desde > hasta:
+        raise HTTPException(400, 'La fecha desde debe ser anterior o igual a la fecha hasta.')
+
+    def _unidad_label(unidad: str) -> str:
+        valor = str(unidad or '').strip().upper()
+        if valor == 'PALET': return 'Palets'
+        if valor == 'BULTO': return 'Bultos'
+        return valor or 'UC real'
+
+    async with aiosqlite.connect(LAB_CACHE_DB_PATH) as db:
+        await _ensure_config(db)
+        db.row_factory = aiosqlite.Row
+        operaciones_catalogo = await _operaciones_grupales(db)
+        operaciones_disponibles = sorted({str(op or '').strip().upper() for op in operaciones_catalogo if str(op or '').strip()} - {'CARGA CAMION', 'TRASLADO', 'TRASLADOS'})
+        filtro_operacion = str(operacion or '').strip().upper()
+        await _asegurar_escalas_propuestas_cache(db, desde, hasta)
+        filtro_division = str(division or sector or '').strip()
+        filtro_turno = str(turno or '').strip()
+        catalog_where = ['fecha>=?', 'fecha<=?']
+        catalog_args: list[Any] = [desde, hasta]
+        if filtro_operacion:
+            catalog_where.append('operacion=?'); catalog_args.append(filtro_operacion)
+        async with db.execute(f"""SELECT DISTINCT division FROM lab_escalas_propuestas_cache
+                WHERE {' AND '.join(catalog_where)} ORDER BY division""", tuple(catalog_args)) as cur:
+            divisiones_catalogo = [{'value': row['division'], 'label': _division_operativa(row['division'])[1]} for row in await cur.fetchall()]
+        async with db.execute(f"""SELECT DISTINCT turno FROM lab_escalas_propuestas_cache
+                WHERE {' AND '.join(catalog_where)} ORDER BY turno""", tuple(catalog_args)) as cur:
+            turnos_catalogo = [row['turno'] for row in await cur.fetchall()]
+        where = ['fecha>=?', 'fecha<=?']
+        args: list[Any] = [desde, hasta]
+        if filtro_operacion:
+            where.append('operacion=?'); args.append(filtro_operacion)
+        if filtro_division:
+            where.append('division=?'); args.append(filtro_division)
+        if filtro_turno:
+            where.append('turno=?'); args.append(filtro_turno)
+        async with db.execute(f"""SELECT fecha,operacion,division,turno,CAST(legajo AS TEXT) legajo,
+                       MAX(unidad_medida) unidad_medida,SUM(uc) uc
+                FROM lab_escalas_propuestas_cache
+                WHERE {' AND '.join(where)}
+                GROUP BY fecha,operacion,division,turno,CAST(legajo AS TEXT)""", tuple(args)) as cur:
+            eventos = [dict(row) for row in await cur.fetchall()]
+
+    diarios: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for evento in eventos:
+        if not evento.get('uc'):
+            continue
+        op_key = str(evento.get('operacion') or '').strip().upper()
+        div_key = str(evento.get('division') or 'SIN_DIVISION')
+        turno_key = str(evento.get('turno') or 'Sin turno')
+        clave = (op_key, div_key, turno_key, str(evento['fecha']))
+        dia = diarios.setdefault(clave, {'operacion': op_key, 'division': div_key, 'division_label': _division_operativa(div_key)[1], 'turno': turno_key, 'fecha': str(evento['fecha']), 'unidad_medida': str(evento.get('unidad_medida') or ''), 'uc_total': 0.0, 'legajos': set()})
+        dia['uc_total'] += float(evento.get('uc') or 0)
+        dia['legajos'].add(str(evento.get('legajo') or ''))
+        if not dia.get('unidad_medida'):
+            dia['unidad_medida'] = str(evento.get('unidad_medida') or '')
+
+    por_grupo: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for dia in diarios.values():
+        if dia['legajos']:
+            dia['operarios'] = len(dia['legajos'])
+            dia['uc_promedio_operario'] = dia['uc_total'] / dia['operarios'] if dia['operarios'] else 0
+            por_grupo[(dia['operacion'], dia['division'], dia['turno'])].append(dia)
+
+    rows, series = [], []
+    for (op_key, div_key, turno_key), dias in sorted(por_grupo.items(), key=lambda item: (item[0][0], item[0][1], item[0][2])):
+        unidad = next((str(dia.get('unidad_medida') or '') for dia in dias if dia.get('unidad_medida')), '')
+        thresholds = [float(dia['uc_promedio_operario'] or 0) for dia in dias]
+        max_uc = max(thresholds or [0])
+        step = 1 if max_uc <= 80 else 2 if max_uc <= 160 else 5
+        limite = int(math.ceil(max_uc / step) * step + step)
+        puntos = []
+        uc = 0
+        while uc <= limite:
+            dias_cobra = sum(1 for th in thresholds if th > uc)
+            puntos.append({'uc': uc, 'dias_cobra': dias_cobra, 'pct_dias': round(dias_cobra / len(dias) * 100, 2) if dias else 0})
+            uc += step
+        ordenados = sorted(thresholds, reverse=True)
+        def uc_para_pct(pct: float) -> float:
+            if not ordenados: return 0
+            idx = max(0, min(len(ordenados) - 1, math.ceil(len(ordenados) * pct / 100) - 1))
+            return float(ordenados[idx])
+        uc_total = sum(float(dia['uc_total'] or 0) for dia in dias)
+        operarios_total = sum(int(dia['operarios'] or 0) for dia in dias)
+        row = {'operacion': op_key, 'division': div_key, 'division_label': dias[0]['division_label'], 'turno': turno_key,
+               'unidad_medida': unidad, 'unidad_label': _unidad_label(unidad), 'dias': len(dias),
+               'uc_min': round(min(thresholds or [0]), 2), 'uc_max': round(max_uc, 2),
+               'uc_sugerido_75': round(uc_para_pct(75), 2), 'uc_sugerido_50': round(uc_para_pct(50), 2), 'uc_sugerido_25': round(uc_para_pct(25), 2),
+               'uc_total': round(uc_total, 2), 'uc_promedio_dia': round(uc_total / len(dias), 2) if dias else 0,
+               'operarios_dia_promedio': round(operarios_total / len(dias), 2) if dias else 0,
+               'uc_promedio_operario': round(sum(thresholds) / len(thresholds), 2) if thresholds else 0}
+        rows.append(row)
+        series.append({**row, 'points': puntos})
+    return {'rows': rows, 'series': series, 'filtros': {'operaciones': operaciones_disponibles, 'divisiones': divisiones_catalogo, 'turnos': turnos_catalogo},
+            'nota': 'Simulación desde cache materializada: UC por operario con actividad real, división WMS y turno inferido por hora de inicio.'}
 
 @router.get("/premios-totales")
 async def premios_totales(request: Request, fecha_desde: str = '2026-08-01',
@@ -1623,7 +2116,7 @@ async def _recalcular_palets_carga_traslado(db: aiosqlite.Connection, desde: str
     db.row_factory = aiosqlite.Row
     query = '''SELECT fecha,CAST(legajo AS TEXT) legajo,pallet,id_etapa,
         MIN(COALESCE(fyhini,'')) inicio,MAX(COALESCE(fyhfin,'')) fin,
-        UPPER(TRIM(desc_funcion)) funcion
+        UPPER(TRIM(desc_funcion)) funcion,MAX(TRIM(COALESCE(division,''))) division
         FROM lab_etapa_detalle_raw
         WHERE run_id LIKE ? AND fecha>=? AND fecha<=? AND TRIM(COALESCE(pallet,''))<>''
           AND UPPER(TRIM(desc_funcion)) IN ('CARGA CAMION','TRASLADO')
@@ -1640,6 +2133,7 @@ async def _recalcular_palets_carga_traslado(db: aiosqlite.Connection, desde: str
         for etapa in secuencia:
             if etapa['funcion'] == 'TRASLADO':
                 contribuciones.append({'legajo': etapa['legajo'], 'inicio': etapa['inicio'], 'fin': etapa['fin'],
+                    'division': str(etapa.get('division') or '').strip(),
                     'traslado': 1, 'carga': 0, 'tipo': 'Traslado', 'detalle': f"Traslado etapa {etapa['id_etapa']}"})
                 continue
             # Una carga posterior del mismo operario absorbe sólo su traslado
@@ -1648,20 +2142,23 @@ async def _recalcular_palets_carga_traslado(db: aiosqlite.Connection, desde: str
                            if item['legajo'] == etapa['legajo'] and item['traslado'] and not item['carga']), None)
             if previa:
                 previa['carga'] = 1; previa['fin'] = etapa['fin'] or previa['fin']
+                if etapa.get('division'):
+                    previa['division'] = str(etapa.get('division') or '').strip()
                 previa['tipo'] = 'Traslado + carga'
                 previa['detalle'] += f" · Carga etapa {etapa['id_etapa']}"
             else:
                 contribuciones.append({'legajo': etapa['legajo'], 'inicio': etapa['inicio'], 'fin': etapa['fin'],
+                    'division': str(etapa.get('division') or '').strip(),
                     'traslado': 0, 'carga': 1, 'tipo': 'Carga', 'detalle': f"Carga etapa {etapa['id_etapa']}"})
         por_legajo: dict[str, int] = defaultdict(int)
         for item in contribuciones:
             por_legajo[item['legajo']] += 1
             resultado.append((fecha, item['legajo'], pallet, por_legajo[item['legajo']], item['inicio'], item['fin'],
-                              item['traslado'], item['carga'], item['tipo'], item['detalle']))
+                              item['traslado'], item['carga'], item['tipo'], item['detalle'], item.get('division','')))
     await db.execute('DELETE FROM lab_palets_carga_traslado WHERE fecha>=? AND fecha<=?', (desde, hasta))
     await db.executemany('''INSERT INTO lab_palets_carga_traslado
-        (fecha,legajo,pallet,contribucion,inicio,fin,etapas_traslado,etapas_carga,tipo,detalle)
-        VALUES(?,?,?,?,?,?,?,?,?,?)''', resultado)
+        (fecha,legajo,pallet,contribucion,inicio,fin,etapas_traslado,etapas_carga,tipo,detalle,division)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?)''', resultado)
     await db.commit()
 
 

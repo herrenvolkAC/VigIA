@@ -1,6 +1,5 @@
 """Decisiones independientes sobre la actividad diaria consolidada de RRHH."""
-from datetime import date, datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import date, datetime, timezone, timedelta
 from typing import Literal
 import json
 import io
@@ -36,7 +35,8 @@ CREATE TABLE IF NOT EXISTS herramientas_he_historial (
 class Decision(BaseModel):
     legajo: str = Field(min_length=1, max_length=40)
     fecha: date
-    estado: Literal['pendiente', 'autorizada', 'rechazada']
+    estado: Literal['pendiente', 'autorizada', 'rechazada', 'parcial']
+    horas_autorizadas: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     observacion: str = Field(default='', max_length=500)
     origen: str
     version: int = Field(ge=0)
@@ -49,6 +49,21 @@ class Guardar(BaseModel):
 def source(row):
     return json.dumps([round(float(row[k] or 0), 6) for k in
                        ('hs_ext_realiz', 'hs_50_autorizadas', 'hs_100')])
+
+
+async def ensure_decisions(db):
+    await db.executescript(DDL)
+    await db.execute('BEGIN IMMEDIATE')
+    try:
+        for table in ('herramientas_he_decisiones', 'herramientas_he_historial'):
+            async with db.execute(f'PRAGMA table_info({table})') as cur:
+                columns = {row[1] for row in await cur.fetchall()}
+            if 'horas_autorizadas' not in columns:
+                await db.execute(f'ALTER TABLE {table} ADD COLUMN horas_autorizadas REAL')
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise
 
 
 async def activity(db, auth, condition, params):
@@ -95,7 +110,7 @@ async def consultar(request: Request, desde: date, hasta: date,
         params.extend(funcion)
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        await db.executescript(DDL)
+        await ensure_decisions(db)
         rows = await activity(db, auth, condition, params)
         async with db.execute('SELECT * FROM herramientas_he_decisiones WHERE fecha BETWEEN ? AND ?',
                               (desde.isoformat(), hasta.isoformat())) as cur:
@@ -106,13 +121,15 @@ async def consultar(request: Request, desde: date, hasta: date,
         saved = decisions.get((row['legajo'], row['fecha']), {})
         row['revision'] = bool(saved and saved['origen'] != row['origen'])
         row['estado'] = 'pendiente' if row['revision'] else saved.get('estado', 'pendiente')
+        row['horas_autorizadas'] = (row['horas'] if row['estado'] == 'autorizada' else
+                                   float(saved.get('horas_autorizadas') or 0) if row['estado'] == 'parcial' else 0)
         for key, default in [('version', 0), ('observacion', ''), ('usuario', ''), ('updated_at', '')]:
             row[key] = saved.get(key, default)
     return {'rows': rows}
 
 
 SORT_FIELDS = Literal['fecha', 'legajo', 'empleado', 'sector', 'funcion',
-                      'horas', 'estado', 'observacion', 'updated_at']
+                      'horas', 'horas_autorizadas', 'estado', 'observacion', 'updated_at']
 
 
 def argentina_time(value):
@@ -121,13 +138,13 @@ def argentina_time(value):
     stamp = datetime.fromisoformat(value)
     if stamp.tzinfo is None:
         stamp = stamp.replace(tzinfo=timezone.utc)
-    return stamp.astimezone(ZoneInfo('America/Argentina/Buenos_Aires')).strftime('%d/%m/%Y %H:%M:%S')
+    return stamp.astimezone(timezone(timedelta(hours=-3))).strftime('%d/%m/%Y %H:%M:%S')
 
 
 def excel_content(rows, orden='fecha', direccion='desc'):
     def key(row):
-        if orden == 'horas':
-            return row['horas']
+        if orden in ('horas', 'horas_autorizadas'):
+            return row.get(orden, 0)
         text = unicodedata.normalize('NFKD', str(row.get(orden) or '').casefold())
         text = ''.join(c for c in text if not unicodedata.combining(c))
         return [(0, int(s)) if s.isdigit() else (1, s) for s in re.split(r'(\d+)', text)]
@@ -136,12 +153,12 @@ def excel_content(rows, orden='fecha', direccion='desc'):
     sheet = workbook.active
     sheet.title = 'Horas extras'
     sheet.append(['Fecha', 'Legajo', 'Empleado', 'Sector', 'Función', 'HE realizadas',
-                  'Decisión', 'Observación', 'Requiere revisión', 'Usuario', 'Última decisión (hora Argentina)'])
+                  'Decisión', 'Observación', 'Requiere revisión', 'Usuario', 'Última decisión (hora Argentina)', 'Horas autorizadas'])
     for row in sorted(rows, key=key, reverse=direccion == 'desc'):
         values = [date.fromisoformat(row['fecha']), str(row['legajo']), row['empleado'],
                   row['sector'], row['funcion'], row['horas']/24,
-                  {'pendiente':'Pendiente', 'autorizada':'Autorizada', 'rechazada':'Rechazada'}[row['estado']],
-                  row['observacion'], 'Sí' if row['revision'] else 'No', row['usuario'], argentina_time(row['updated_at'])]
+                  {'pendiente':'Pendiente', 'autorizada':'Autorizada', 'rechazada':'Rechazada', 'parcial':'Aprobación parcial'}[row['estado']],
+                  row['observacion'], 'Sí' if row['revision'] else 'No', row['usuario'], argentina_time(row['updated_at']), row.get('horas_autorizadas', 0)/24]
         sheet.append(values)
         for cell in sheet[sheet.max_row]:
             if isinstance(cell.value, str):
@@ -150,10 +167,11 @@ def excel_content(rows, orden='fecha', direccion='desc'):
             cell.alignment = Alignment(vertical='top', wrap_text=True)
         sheet.cell(sheet.max_row, 1).number_format = 'dd/mm/yyyy'
         sheet.cell(sheet.max_row, 6).number_format = '[h]:mm'
+        sheet.cell(sheet.max_row, 12).number_format = '[h]:mm'
     for cell in sheet[1]:
         cell.font = Font(bold=True, color='FFFFFF')
         cell.fill = PatternFill('solid', fgColor='1F7A4D')
-    for i, width in enumerate([14,14,32,24,28,18,16,50,20,24,24], 1):
+    for i, width in enumerate([14,14,32,24,28,18,22,50,20,24,24,20], 1):
         sheet.column_dimensions[get_column_letter(i)].width = width
     sheet.freeze_panes = 'C2'
     sheet.auto_filter.ref = sheet.dimensions
@@ -181,7 +199,7 @@ async def guardar(request: Request, payload: Guardar):
         raise HTTPException(400, 'Hay filas duplicadas.')
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
-        await db.executescript(DDL)
+        await ensure_decisions(db)
         await db.execute('BEGIN IMMEDIATE')
         for row in payload.rows:
             if row.estado == 'rechazada' and not row.observacion.strip():
@@ -197,14 +215,20 @@ async def guardar(request: Request, payload: Guardar):
                 saved = await cur.fetchone()
             if (saved['version'] if saved else 0) != row.version:
                 raise HTTPException(409, 'Otro usuario modificó la decisión. Consulte nuevamente.')
+            total = sum(json.loads(source(current[0])))
+            authorized = total if row.estado == 'autorizada' else 0
+            if row.estado == 'parcial':
+                if row.horas_autorizadas is None or not 0 < row.horas_autorizadas < total:
+                    raise HTTPException(400, 'La aprobación parcial requiere horas mayores a cero y menores a las realizadas.')
+                authorized = row.horas_autorizadas
             values = (row.legajo, row.fecha.isoformat(), row.estado, row.observacion.strip(),
-                      row.origen, auth['username'], row.version+1)
+                      row.origen, auth['username'], row.version+1, authorized)
             await db.execute('''INSERT INTO herramientas_he_decisiones
-                (legajo,fecha,estado,observacion,origen,usuario,version) VALUES (?,?,?,?,?,?,?)
+                (legajo,fecha,estado,observacion,origen,usuario,version,horas_autorizadas) VALUES (?,?,?,?,?,?,?,?)
                 ON CONFLICT(legajo,fecha) DO UPDATE SET estado=excluded.estado,
                 observacion=excluded.observacion,origen=excluded.origen,usuario=excluded.usuario,
-                version=excluded.version,updated_at=CURRENT_TIMESTAMP''', values)
+                horas_autorizadas=excluded.horas_autorizadas,version=excluded.version,updated_at=CURRENT_TIMESTAMP''', values)
             await db.execute('''INSERT INTO herramientas_he_historial
-                (legajo,fecha,estado,observacion,origen,usuario,version) VALUES (?,?,?,?,?,?,?)''', values)
+                (legajo,fecha,estado,observacion,origen,usuario,version,horas_autorizadas) VALUES (?,?,?,?,?,?,?,?)''', values)
         await db.commit()
     return {'guardadas': len(payload.rows)}

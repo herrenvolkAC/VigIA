@@ -38,6 +38,7 @@ from routers.gestion_operativa import start_daily_auto_scheduler, stop_daily_aut
 from routers.herramientas import router as herramientas_router
 from routers.casos import router as casos_router, start_forms_import_monitor, stop_forms_import_monitor
 from routers.recepcion import router as recepcion_router
+from routers.historia_oracle import router as historia_oracle_router
 from routers.historia_legajo import (
     router as historia_legajo_router,
     start_historia_actividad_scheduler,
@@ -164,6 +165,7 @@ app.include_router(gestion_operativa_router)
 app.include_router(herramientas_router)
 app.include_router(casos_router)
 app.include_router(recepcion_router)
+app.include_router(historia_oracle_router)
 app.include_router(historia_legajo_router)
 app.include_router(rrhh_novedades_router)
 app.include_router(panol_insumos_router)
@@ -486,7 +488,7 @@ async def page_novedades_cd(): return FileResponse(STATIC_DIR / "novedades_cd.ht
 
 @app.get("/historia-legajo.html", include_in_schema=False)
 @app.get("/historia-legajo",      include_in_schema=False)
-async def page_historia_legajo(): return FileResponse(STATIC_DIR / "historia_legajo.html")
+async def page_historia_legajo(): return FileResponse(STATIC_DIR / "historia_operario.html")
 
 @app.get("/casos.html", include_in_schema=False)
 @app.get("/casos",      include_in_schema=False)

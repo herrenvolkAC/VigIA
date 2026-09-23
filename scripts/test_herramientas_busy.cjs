@@ -1,0 +1,21 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('static/herramientas.html','utf8');
+const script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+new vm.Script(script);
+const nodes={};const $=id=>nodes[id]??=( {disabled:false,textContent:'Consultar',style:{},classList:{add(){},remove(){}},setAttribute(){}} );
+const context={$,setTimeout,requestAnimationFrame:fn=>fn(),modeloFile:{},modeloRows:[]};vm.createContext(context);
+vm.runInContext(script.slice(script.indexOf('    function updateModeloActions'),script.indexOf("    $('modelo-file').addEventListener('change'")),context);
+(async()=>{
+ let release, calls=0;
+ const pending=context.modeloWorking('Leyendo…',()=>{calls++;return new Promise(r=>release=r)});
+ assert.equal($('modelo-file').disabled,true);assert.equal($('modelo-consultar').disabled,true);
+ assert.equal($('modelo-message').textContent,'Leyendo…');
+ await context.modeloWorking('Duplicado',()=>calls++);
+ await new Promise(r=>setTimeout(r,10));assert.equal(calls,1);
+ release();await pending;assert.equal($('modelo-file').disabled,false);assert.equal($('modelo-consultar').textContent,'Consultar');
+ await context.modeloWorking('Consultando…',async()=>{throw new Error('Error de consulta')});
+ assert.equal($('modelo-message').textContent,'Error de consulta');assert.equal($('modelo-consultar').disabled,false);
+ context.modeloFile=null;context.updateModeloActions();assert.equal($('modelo-consultar').disabled,true);assert.equal($('modelo-exportar').disabled,true);
+ context.modeloFile={};context.modeloRows=[{}];context.updateModeloActions();assert.equal($('modelo-exportar').disabled,false);
+ console.log('OK: busy state, duplicate prevention, recovery after success/error and JavaScript syntax');
+})().catch(e=>{console.error(e);process.exitCode=1});

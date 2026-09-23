@@ -3,23 +3,28 @@ from __future__ import annotations
 import math
 import base64
 import csv
+import hashlib
 import io
 import json
 import logging
 import os
 import re
 import subprocess
-from datetime import date, datetime, time, timedelta
+import unicodedata
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 import aiosqlite
+from openpyxl import Workbook
 from openpyxl import load_workbook
-from fastapi import APIRouter, HTTPException
+from openpyxl.styles import PatternFill
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from db.schema import DB_PATH
+from routers.auth_local import current_auth
 
 
 router = APIRouter(prefix="/api/herramientas", tags=["herramientas"])
@@ -126,6 +131,13 @@ class ExcelExportRequest(ExcelConsultaRequest):
 
 class ExcelRecalcularRequest(BaseModel):
     rows: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ViajeMarcaRequest(BaseModel):
+    viaje_id: int | None = None
+    hoja_fisica_presente: bool | None = None
+    estado_manual: str | None = None
+    observacion: str = ""
 
 
 def _destino(destino_id: str) -> dict[str, Any] | None:
@@ -265,6 +277,451 @@ def _calculate_prorrateo(
 
 def _productive_db_local_only_enabled() -> bool:
     return os.getenv("PRODUCTIVE_DB_LOCAL_ONLY", "0").strip().lower() in {"1", "true", "yes", "si"}
+
+
+async def _auth_username(request: Request | None) -> str:
+    if request is None:
+        return ""
+    auth = await current_auth(request)
+    return str((auth or {}).get("username") or "").strip()
+
+
+def _json_dumps(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, default=str)
+
+
+def _parse_date_text(value: Any) -> str:
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    text = str(value or "").strip()
+    for pattern, length in (("%Y-%m-%d", 10), ("%d/%m/%Y", 10), ("%d-%m-%Y", 10)):
+        try:
+            return datetime.strptime(text[:length], pattern).date().isoformat()
+        except ValueError:
+            continue
+    return text[:10] if re.match(r"^\d{4}-\d{2}-\d{2}", text) else ""
+
+
+async def _ensure_viajes_tables(db: aiosqlite.Connection | None = None) -> None:
+    own_connection = db is None
+    if own_connection:
+        db = await aiosqlite.connect(DB_PATH)
+    assert db is not None
+    try:
+        await db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS herramientas_viajes_importaciones (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                archivo_nombre TEXT NOT NULL,
+                archivo_hash TEXT NOT NULL,
+                fecha_importacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                usuario_importacion TEXT NOT NULL DEFAULT '',
+                cantidad_filas INTEGER NOT NULL DEFAULT 0,
+                estado TEXT NOT NULL DEFAULT 'procesado',
+                observacion TEXT NOT NULL DEFAULT ''
+            )
+            """
+        )
+        await db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS herramientas_viajes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                importacion_id INTEGER,
+                hoja_ruta TEXT NOT NULL,
+                fecha_viaje TEXT NOT NULL,
+                hora_viaje TEXT NOT NULL DEFAULT '',
+                legajo_excel TEXT NOT NULL DEFAULT '',
+                legajo_oracle TEXT NOT NULL DEFAULT '',
+                nombre_chofer TEXT NOT NULL DEFAULT '',
+                dni TEXT NOT NULL DEFAULT '',
+                km_excel REAL,
+                km_oracle_ida REAL,
+                km_oracle_regreso REAL,
+                fecha_salida_oracle TEXT NOT NULL DEFAULT '',
+                fecha_regreso_oracle TEXT NOT NULL DEFAULT '',
+                horas_totales REAL,
+                km_al_100 REAL,
+                pernocte INTEGER NOT NULL DEFAULT 0,
+                torito INTEGER NOT NULL DEFAULT 0,
+                estado_calculo TEXT NOT NULL DEFAULT '',
+                estado_viaje TEXT NOT NULL DEFAULT '',
+                detalle_calculo_json TEXT NOT NULL DEFAULT '{}',
+                sucursales_json TEXT NOT NULL DEFAULT '[]',
+                excel_row INTEGER,
+                original_json TEXT NOT NULL DEFAULT '[]',
+                creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                actualizado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(hoja_ruta, legajo_excel, fecha_viaje)
+            )
+            """
+        )
+        await db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS herramientas_viajes_marcas (
+                viaje_id INTEGER PRIMARY KEY,
+                hoja_fisica_presente INTEGER NOT NULL DEFAULT 0,
+                estado_manual TEXT NOT NULL DEFAULT '',
+                observacion TEXT NOT NULL DEFAULT '',
+                usuario_modificacion TEXT NOT NULL DEFAULT '',
+                fecha_modificacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        await db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS herramientas_viajes_historial (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                viaje_id INTEGER NOT NULL,
+                campo TEXT NOT NULL,
+                valor_anterior TEXT,
+                valor_nuevo TEXT,
+                usuario TEXT NOT NULL DEFAULT '',
+                fecha_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_hv_fecha ON herramientas_viajes(fecha_viaje)")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_hv_hoja ON herramientas_viajes(hoja_ruta)")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_hv_importacion ON herramientas_viajes(importacion_id)")
+        await db.commit()
+    finally:
+        if own_connection:
+            await db.close()
+
+
+def _travel_db_values(row: dict[str, Any]) -> dict[str, Any]:
+    tramos = row.get("km_tramos") or []
+    km_ida = next((t.get("km_oracle") for t in tramos if t.get("tramo") == "Ida"), None)
+    km_regreso = next((t.get("km_oracle") for t in tramos if t.get("tramo") == "Regreso"), None)
+    return {
+        "hoja_ruta": str(row.get("hojaruta") or "").strip(),
+        "fecha_viaje": _parse_date_text(row.get("fecha_viaje")),
+        "hora_viaje": str(row.get("hora_viaje") or "").strip(),
+        "legajo_excel": str(row.get("excel_legajo") or "").strip(),
+        "legajo_oracle": str(row.get("legajo") or "").strip(),
+        "nombre_chofer": str(row.get("nombre") or "").strip(),
+        "dni": str(row.get("nrodoc") or "").strip(),
+        "km_excel": row.get("cantidad"),
+        "km_oracle_ida": km_ida,
+        "km_oracle_regreso": km_regreso,
+        "fecha_salida_oracle": str(row.get("fesalida") or ""),
+        "fecha_regreso_oracle": str(row.get("fevuelta") or ""),
+        "horas_totales": row.get("horas_totales_viaje"),
+        "km_al_100": row.get("km_al_100"),
+        "pernocte": 1 if row.get("pernocte") else 0,
+        "torito": 1 if row.get("torito") else 0,
+        "estado_calculo": str(row.get("km_revision") or row.get("estado") or ""),
+        "estado_viaje": str(row.get("estado") or ""),
+        "detalle_calculo_json": _json_dumps({"km_revision": row.get("km_revision") or "", "km_tramos": tramos}),
+        "sucursales_json": _json_dumps(row.get("sucursales") or []),
+        "excel_row": row.get("excel_row"),
+        "original_json": _json_dumps(row.get("original") or []),
+    }
+
+
+async def _store_viajes_importacion(
+    filename: str,
+    content: bytes,
+    rows: list[dict[str, Any]],
+    username: str,
+) -> tuple[int, list[dict[str, Any]]]:
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_viajes_tables(db)
+        digest = hashlib.sha256(content).hexdigest()
+        cur = await db.execute(
+            """
+            INSERT INTO herramientas_viajes_importaciones
+                (archivo_nombre, archivo_hash, usuario_importacion, cantidad_filas)
+            VALUES (?, ?, ?, ?)
+            """,
+            (filename or "modelo.xlsx", digest, username, len(rows)),
+        )
+        import_id = int(cur.lastrowid)
+        stored: list[dict[str, Any]] = []
+        for row in rows:
+            values = _travel_db_values(row)
+            if not values["hoja_ruta"] or not values["fecha_viaje"]:
+                stored.append(row)
+                continue
+            await db.execute(
+                """
+                INSERT INTO herramientas_viajes (
+                    importacion_id, hoja_ruta, fecha_viaje, hora_viaje, legajo_excel, legajo_oracle,
+                    nombre_chofer, dni, km_excel, km_oracle_ida, km_oracle_regreso, fecha_salida_oracle,
+                    fecha_regreso_oracle, horas_totales, km_al_100, pernocte, torito, estado_calculo,
+                    estado_viaje, detalle_calculo_json, sucursales_json, excel_row, original_json
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
+                ON CONFLICT(hoja_ruta, legajo_excel, fecha_viaje) DO UPDATE SET
+                    importacion_id=excluded.importacion_id,
+                    hora_viaje=excluded.hora_viaje,
+                    legajo_oracle=excluded.legajo_oracle,
+                    nombre_chofer=excluded.nombre_chofer,
+                    dni=excluded.dni,
+                    km_excel=excluded.km_excel,
+                    km_oracle_ida=excluded.km_oracle_ida,
+                    km_oracle_regreso=excluded.km_oracle_regreso,
+                    fecha_salida_oracle=excluded.fecha_salida_oracle,
+                    fecha_regreso_oracle=excluded.fecha_regreso_oracle,
+                    horas_totales=excluded.horas_totales,
+                    km_al_100=excluded.km_al_100,
+                    pernocte=excluded.pernocte,
+                    torito=excluded.torito,
+                    estado_calculo=excluded.estado_calculo,
+                    estado_viaje=excluded.estado_viaje,
+                    detalle_calculo_json=excluded.detalle_calculo_json,
+                    sucursales_json=excluded.sucursales_json,
+                    excel_row=excluded.excel_row,
+                    original_json=excluded.original_json,
+                    actualizado_en=CURRENT_TIMESTAMP
+                """,
+                (
+                    import_id,
+                    values["hoja_ruta"],
+                    values["fecha_viaje"],
+                    values["hora_viaje"],
+                    values["legajo_excel"],
+                    values["legajo_oracle"],
+                    values["nombre_chofer"],
+                    values["dni"],
+                    values["km_excel"],
+                    values["km_oracle_ida"],
+                    values["km_oracle_regreso"],
+                    values["fecha_salida_oracle"],
+                    values["fecha_regreso_oracle"],
+                    values["horas_totales"],
+                    values["km_al_100"],
+                    values["pernocte"],
+                    values["torito"],
+                    values["estado_calculo"],
+                    values["estado_viaje"],
+                    values["detalle_calculo_json"],
+                    values["sucursales_json"],
+                    values["excel_row"],
+                    values["original_json"],
+                ),
+            )
+            async with db.execute(
+                """
+                SELECT v.id, COALESCE(m.hoja_fisica_presente, 0) AS hoja_fisica_presente,
+                       COALESCE(m.estado_manual, '') AS estado_manual,
+                       COALESCE(m.observacion, '') AS observacion,
+                       COALESCE(m.usuario_modificacion, '') AS usuario_modificacion,
+                       COALESCE(m.fecha_modificacion, '') AS fecha_modificacion
+                FROM herramientas_viajes v
+                LEFT JOIN herramientas_viajes_marcas m ON m.viaje_id = v.id
+                WHERE v.hoja_ruta = ? AND v.legajo_excel = ? AND v.fecha_viaje = ?
+                """,
+                (values["hoja_ruta"], values["legajo_excel"], values["fecha_viaje"]),
+            ) as cur2:
+                mark = await cur2.fetchone()
+            enriched = dict(row)
+            if mark:
+                enriched.update(
+                    {
+                        "viaje_id": mark["id"],
+                        "importacion_id": import_id,
+                        "hoja_fisica_presente": bool(mark["hoja_fisica_presente"]),
+                        "estado_manual": mark["estado_manual"],
+                        "observacion": mark["observacion"],
+                        "usuario_modificacion": mark["usuario_modificacion"],
+                        "fecha_modificacion": mark["fecha_modificacion"],
+                    }
+                )
+            stored.append(enriched)
+        await db.commit()
+        return import_id, stored
+
+
+def _viaje_row_from_db(row: aiosqlite.Row) -> dict[str, Any]:
+    detalle = json.loads(row["detalle_calculo_json"] or "{}")
+    return {
+        "viaje_id": row["id"],
+        "importacion_id": row["importacion_id"],
+        "fecha_viaje": row["fecha_viaje"],
+        "hora_viaje": row["hora_viaje"],
+        "excel_legajo": row["legajo_excel"],
+        "hojaruta": row["hoja_ruta"],
+        "cantidad": row["km_excel"],
+        "fesalida": row["fecha_salida_oracle"],
+        "fevuelta": row["fecha_regreso_oracle"],
+        "horas_totales_viaje": row["horas_totales"],
+        "legajo": row["legajo_oracle"],
+        "nombre": row["nombre_chofer"],
+        "nrodoc": row["dni"],
+        "km_al_100": row["km_al_100"],
+        "pernocte": bool(row["pernocte"]),
+        "torito": bool(row["torito"]),
+        "estado": row["estado_viaje"],
+        "km_revision": detalle.get("km_revision") or "",
+        "km_tramos": detalle.get("km_tramos") or [],
+        "sucursales": json.loads(row["sucursales_json"] or "[]"),
+        "hoja_fisica_presente": bool(row["hoja_fisica_presente"] or 0),
+        "estado_manual": row["estado_manual"] or "",
+        "observacion": row["observacion"] or "",
+        "usuario_modificacion": row["usuario_modificacion"] or "",
+        "fecha_modificacion": row["fecha_modificacion"] or "",
+        "archivo_nombre": row["archivo_nombre"] or "",
+        "fecha_importacion": row["fecha_importacion"] or "",
+    }
+
+
+def _normalize_legajo_filter(value: str | None) -> str:
+    return re.sub(r"\s+", "", str(value or "").strip())
+
+
+async def _query_viajes_guardados(desde: date, hasta: date, legajo: str = "") -> list[dict[str, Any]]:
+    await _ensure_viajes_tables()
+    legajo_filter = _normalize_legajo_filter(legajo)
+    where = ["v.fecha_viaje BETWEEN ? AND ?"]
+    params: list[Any] = [desde.isoformat(), hasta.isoformat()]
+    if legajo_filter:
+        where.append("(v.legajo_excel = ? OR v.legajo_oracle = ?)")
+        params.extend([legajo_filter, legajo_filter])
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            f"""
+            SELECT v.*, i.archivo_nombre, i.fecha_importacion,
+                   COALESCE(m.hoja_fisica_presente, 0) AS hoja_fisica_presente,
+                   COALESCE(m.estado_manual, '') AS estado_manual,
+                   COALESCE(m.observacion, '') AS observacion,
+                   COALESCE(m.usuario_modificacion, '') AS usuario_modificacion,
+                   COALESCE(m.fecha_modificacion, '') AS fecha_modificacion
+            FROM herramientas_viajes v
+            LEFT JOIN herramientas_viajes_importaciones i ON i.id = v.importacion_id
+            LEFT JOIN herramientas_viajes_marcas m ON m.viaje_id = v.id
+            WHERE {' AND '.join(where)}
+            ORDER BY v.fecha_viaje, v.hora_viaje, CAST(v.hoja_ruta AS INTEGER), v.hoja_ruta
+            """,
+            params,
+        ) as cur:
+            return [_viaje_row_from_db(row) for row in await cur.fetchall()]
+
+
+async def _update_viajes_guardados(rows: list[dict[str, Any]]) -> None:
+    rows = [row for row in rows if row.get("viaje_id")]
+    if not rows:
+        return
+    async with aiosqlite.connect(DB_PATH) as db:
+        await _ensure_viajes_tables(db)
+        for row in rows:
+            values = _travel_db_values(row)
+            await db.execute(
+                """
+                UPDATE herramientas_viajes SET
+                    hoja_ruta = ?,
+                    fecha_viaje = ?,
+                    hora_viaje = ?,
+                    legajo_excel = ?,
+                    legajo_oracle = ?,
+                    nombre_chofer = ?,
+                    dni = ?,
+                    km_excel = ?,
+                    km_oracle_ida = ?,
+                    km_oracle_regreso = ?,
+                    fecha_salida_oracle = ?,
+                    fecha_regreso_oracle = ?,
+                    horas_totales = ?,
+                    km_al_100 = ?,
+                    pernocte = ?,
+                    torito = ?,
+                    estado_calculo = ?,
+                    estado_viaje = ?,
+                    detalle_calculo_json = ?,
+                    sucursales_json = ?,
+                    excel_row = ?,
+                    original_json = ?,
+                    actualizado_en = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (
+                    values["hoja_ruta"],
+                    values["fecha_viaje"],
+                    values["hora_viaje"],
+                    values["legajo_excel"],
+                    values["legajo_oracle"],
+                    values["nombre_chofer"],
+                    values["dni"],
+                    values["km_excel"],
+                    values["km_oracle_ida"],
+                    values["km_oracle_regreso"],
+                    values["fecha_salida_oracle"],
+                    values["fecha_regreso_oracle"],
+                    values["horas_totales"],
+                    values["km_al_100"],
+                    values["pernocte"],
+                    values["torito"],
+                    values["estado_calculo"],
+                    values["estado_viaje"],
+                    values["detalle_calculo_json"],
+                    values["sucursales_json"],
+                    values["excel_row"],
+                    values["original_json"],
+                    row["viaje_id"],
+                ),
+            )
+        await db.commit()
+
+
+async def _save_viaje_marca(viaje_id: int, payload: ViajeMarcaRequest, username: str) -> dict[str, Any]:
+    await _ensure_viajes_tables()
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT id FROM herramientas_viajes WHERE id = ?", (viaje_id,)) as cur:
+            if not await cur.fetchone():
+                raise HTTPException(status_code=404, detail="Viaje no encontrado.")
+        async with db.execute(
+            "SELECT hoja_fisica_presente, estado_manual, observacion FROM herramientas_viajes_marcas WHERE viaje_id = ?",
+            (viaje_id,),
+        ) as cur:
+            previous = await cur.fetchone()
+        prev = dict(previous) if previous else {"hoja_fisica_presente": 0, "estado_manual": "", "observacion": ""}
+        hoja = int(payload.hoja_fisica_presente) if payload.hoja_fisica_presente is not None else int(prev["hoja_fisica_presente"])
+        estado = (payload.estado_manual if payload.estado_manual is not None else prev["estado_manual"]) or ""
+        observacion = payload.observacion if payload.observacion is not None else (prev["observacion"] or "")
+        await db.execute(
+            """
+            INSERT INTO herramientas_viajes_marcas
+                (viaje_id, hoja_fisica_presente, estado_manual, observacion, usuario_modificacion)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(viaje_id) DO UPDATE SET
+                hoja_fisica_presente=excluded.hoja_fisica_presente,
+                estado_manual=excluded.estado_manual,
+                observacion=excluded.observacion,
+                usuario_modificacion=excluded.usuario_modificacion,
+                fecha_modificacion=CURRENT_TIMESTAMP
+            """,
+            (viaje_id, hoja, estado, observacion, username),
+        )
+        for field, old, new in (
+            ("hoja_fisica_presente", str(prev["hoja_fisica_presente"]), str(hoja)),
+            ("estado_manual", str(prev["estado_manual"] or ""), estado),
+            ("observacion", str(prev["observacion"] or ""), observacion),
+        ):
+            if old != new:
+                await db.execute(
+                    """
+                    INSERT INTO herramientas_viajes_historial
+                        (viaje_id, campo, valor_anterior, valor_nuevo, usuario)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (viaje_id, field, old, new, username),
+                )
+        await db.commit()
+        async with db.execute(
+            """
+            SELECT hoja_fisica_presente, estado_manual, observacion, usuario_modificacion, fecha_modificacion
+            FROM herramientas_viajes_marcas WHERE viaje_id = ?
+            """,
+            (viaje_id,),
+        ) as cur:
+            row = await cur.fetchone()
+        return dict(row) if row else {}
 
 
 async def _load_holidays() -> list[dict[str, Any]]:
@@ -453,7 +910,11 @@ def _build_excel_hojas_ruta_sql(hojas_ruta: list[str]) -> str:
             D.NOMBRE AS NOMBRE,
             D.NRODOC AS NRODOC,
             C.HORLLEGA AS LLEGADA_SUCURSAL,
-            C.HORASALI AS SALIDA_SUCURSAL
+            C.HORASALI AS SALIDA_SUCURSAL,
+            (SELECT CASE WHEN MIN(B.DISTANCIADIRECTA)=MAX(B.DISTANCIADIRECTA) THEN MIN(B.DISTANCIADIRECTA) END
+             FROM TR_TIEMPO_DE_VIAJE B WHERE B.CODIGODESITIO1=93 AND TO_CHAR(B.CODIGODESITIO2)=TRIM(C.CLUGENTR)) AS KM_IDA,
+            (SELECT CASE WHEN MIN(B.DISTANCIADIRECTA)=MAX(B.DISTANCIADIRECTA) THEN MIN(B.DISTANCIADIRECTA) END
+             FROM TR_TIEMPO_DE_VIAJE B WHERE TO_CHAR(B.CODIGODESITIO1)=TRIM(C.CLUGENTR) AND B.CODIGODESITIO2=93) AS KM_REGRESO
         FROM F922_SOURCE C
         LEFT JOIN ACTIVE_EMPLOYEE D ON D.NRODOC = C.DDNICOND
         ORDER BY TO_NUMBER(C.HOJARUTA), C.HORLLEGA
@@ -534,6 +995,62 @@ def _parse_edit_datetime(value: Any) -> datetime | None:
     return _parse_oracle_datetime(value)
 
 
+def _calculate_route_payment(stops, start, end, holidays, arrival_override=None, departure_override=None):
+    def review(message):
+        return {'km_al_100': None, 'km_revision': message, 'km_tramos': []}
+    if not start or not end or end <= start:
+        return review('Faltan horarios válidos de salida o regreso al CD.')
+    if (end-start).days > 62:
+        return review('Duración de viaje fuera de rango.')
+    if not stops:
+        return review('Faltan sucursales y distancias de Oracle. Consulte nuevamente.')
+    if len(stops)>1 and (arrival_override or departure_override):
+        return review('La edición manual de horarios de local requiere identificar cada sucursal.')
+    arrivals = [_parse_oracle_datetime(r.get('llegada_sucursal')) for r in stops]
+    departures = [_parse_oracle_datetime(r.get('salida_sucursal')) for r in stops]
+    invalid_stops = [
+        str(stop.get('sucursal') or 'sin código')
+        for stop, arrival_at, departure_at in zip(stops, arrivals, departures)
+        if not arrival_at or not departure_at or not start <= arrival_at <= departure_at <= end
+    ]
+    if invalid_stops:
+        labels = ', '.join(dict.fromkeys(invalid_stops))
+        return review(f'Complete llegada y salida válidas para la sucursal {labels}.')
+    first = min(range(len(stops)), key=lambda i: arrivals[i])
+    last = max(range(len(stops)), key=lambda i: departures[i])
+    arrival = arrival_override or arrivals[first]
+    departure = departure_override or departures[last]
+    if not start < arrival <= departure < end:
+        return review('Los extremos de ida y regreso no forman tramos válidos.')
+    # No holiday-specific endpoint rule has been agreed yet: do not invent a payout.
+    holiday_dates = _holiday_lookup([], holidays)
+    segments = [('Ida', start, arrival, stops[first], 'km_ida'),
+                ('Regreso', departure, end, stops[last], 'km_regreso')]
+    detail = []
+    for label, left, right, stop, field in segments:
+        if any(_overlap_minutes(left,right,datetime.combine(day,time.min),datetime.combine(day+timedelta(days=1),time.min))>0 for day in holiday_dates):
+            return review('Tramo en feriado: falta definir el criterio de pago.')
+        premium = 0.0
+        for offset in range((right.date()-left.date()).days+3):
+            day = left.date()-timedelta(days=1)+timedelta(days=offset)
+            if label == 'Ida' and day.weekday()==5 and left.date()==day:
+                premium += _overlap_minutes(left,right,datetime.combine(day,time(13)),datetime.combine(day+timedelta(days=2),time.min))
+            elif label == 'Ida' and day.weekday()==6:
+                premium += _overlap_minutes(left,right,datetime.combine(day,time.min),datetime.combine(day+timedelta(days=1),time.min))
+            elif label == 'Regreso' and day.weekday()==5:
+                premium += _overlap_minutes(left,right,datetime.combine(day,time(13)),datetime.combine(day+timedelta(days=2),time.min))
+        km = stop.get(field)
+        if premium and (km is None or not math.isfinite(float(km)) or float(km)<=0):
+            return review('Falta una distancia Oracle única y positiva para ' + label.lower() + '.')
+        ratio = 100*premium/((right-left).total_seconds()/60)
+        percent = _round_pay_percent(ratio)
+        amount = float(km or 0)*percent/100
+        detail.append({'tramo':label,'sucursal':stop.get('sucursal'), 'desde':left.isoformat(),
+                       'hasta':right.isoformat(),'km_oracle':km,'porcentaje_real':round(ratio,4),
+                       'porcentaje_pago':percent,'km_al_100':round(amount,2)})
+    return {'km_al_100':round(sum(r['km_al_100'] for r in detail),2),'km_revision':'','km_tramos':detail}
+
+
 async def _consolidate_excel_rows(excel_rows: list[dict[str, Any]], oracle_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     by_route: dict[str, list[dict[str, Any]]] = {}
     for row in oracle_rows:
@@ -549,10 +1066,7 @@ async def _consolidate_excel_rows(excel_rows: list[dict[str, Any]], oracle_rows:
         chosen = next((row for row in normalized if row["legajo"] or row["nombre"] or row["nrodoc"]), {})
         delay = max((row["demora_minutos"] for row in normalized), default=0.0)
         pernocte = bool(salida and vuelta and (vuelta - salida).total_seconds() >= 24 * 3600)
-        km100 = 0.0
-        if salida and vuelta:
-            calc = _calculate_prorrateo(float(source["cantidad"]), salida, vuelta, [], 0, configured)
-            km100 = float(calc["extra_100"])
+        payment = _calculate_route_payment(normalized, salida, vuelta, configured)
         complete = bool(raw and salida and vuelta and chosen.get("nombre") and chosen.get("nrodoc"))
         result.append({
             **source,
@@ -569,8 +1083,8 @@ async def _consolidate_excel_rows(excel_rows: list[dict[str, Any]], oracle_rows:
             "salida_local": "",
             "sucursales": normalized,
             "pernocte": pernocte,
-            "km_al_100": round(km100, 2),
-            "estado": "Validado" if complete else "Incompleto",
+            **payment,
+            "estado": ("Requiere revisión: " + payment['km_revision']) if payment['km_revision'] else ("Validado" if complete else "Incompleto"),
         })
     return result
 
@@ -587,6 +1101,8 @@ def _normalize_oracle_excel_row(row: dict[str, Any]) -> dict[str, Any]:
     vuelta = _parse_oracle_datetime(_row_value(row, "FEVUELTA"))
     reference = salida or datetime.now()
     return {
+        "km_ida": _row_value(row, "KM_IDA"),
+        "km_regreso": _row_value(row, "KM_REGRESO"),
         "sucursal": str(_row_value(row, "SUCURSAL") or "").strip(),
         "fesalida": salida,
         "fevuelta": vuelta,
@@ -682,7 +1198,7 @@ async def list_km_destinos():
 
 
 @router.post("/excel/consultar")
-async def consultar_excel(req: ExcelConsultaRequest):
+async def consultar_excel(req: ExcelConsultaRequest, request: Request):
     try:
         content = base64.b64decode(req.content_b64)
         _headers, excel_rows = _read_excel_rows(content)
@@ -693,10 +1209,16 @@ async def consultar_excel(req: ExcelConsultaRequest):
     try:
         oracle_rows = _query_oracle_raw_sql(sql)
         consolidated = await _consolidate_excel_rows(excel_rows, oracle_rows)
+        import_id, consolidated = await _store_viajes_importacion(
+            req.filename,
+            content,
+            consolidated,
+            await _auth_username(request),
+        )
     except Exception as exc:
         logger.exception("No se pudo consultar el Excel contra Oracle.")
         raise HTTPException(status_code=502, detail=f"No se pudo consultar Oracle: {exc}") from exc
-    return {"filename": req.filename, "rows": consolidated, "total": len(consolidated)}
+    return {"filename": req.filename, "importacion_id": import_id, "rows": consolidated, "total": len(consolidated)}
 
 
 @router.post("/excel/leer")
@@ -735,28 +1257,73 @@ async def recalcular_excel(req: ExcelRecalcularRequest):
         item = dict(row)
         start = _parse_oracle_datetime(item.get("fesalida"))
         end = _parse_oracle_datetime(item.get("fevuelta"))
+        stops = [dict(stop) for stop in (item.get('sucursales') or []) if isinstance(stop, dict)]
+        # Compatibilidad con ediciones anteriores: esos dos campos siempre
+        # representaron la única sucursal de la hoja de ruta.
         llegada_local = _parse_edit_datetime(item.get("llegada_local"))
         salida_local = _parse_edit_datetime(item.get("salida_local"))
-        demora_minutos = _oracle_duration_minutes(llegada_local, salida_local)
+        if len(stops) == 1 and (llegada_local or salida_local):
+            stops[0]["llegada_sucursal"] = llegada_local.isoformat(timespec="minutes") if llegada_local else ""
+            stops[0]["salida_sucursal"] = salida_local.isoformat(timespec="minutes") if salida_local else ""
+        delays = []
+        for stop in stops:
+            arrival_at = _parse_edit_datetime(stop.get("llegada_sucursal"))
+            departure_at = _parse_edit_datetime(stop.get("salida_sucursal"))
+            minutes = _oracle_duration_minutes(arrival_at, departure_at) if arrival_at and departure_at else 0.0
+            stop["demora_minutos"] = round(minutes, 2)
+            stop["demora_horas"] = round(minutes / 60, 2)
+            delays.append(minutes)
+        demora_minutos = max(delays, default=0.0)
         item["torito"] = demora_minutos > 120
         item["demora_horas"] = round(demora_minutos / 60, 2)
+        item["demora_max_minutos"] = round(demora_minutos, 2)
+        item["sucursales"] = stops
         if start and end and end > start:
-            calc = _calculate_prorrateo(float(item.get("cantidad") or 0), start, end, [], 0, holidays)
-            item["km_al_100"] = round(float(calc["extra_100"]), 2)
+            payment = _calculate_route_payment(stops, start, end, holidays)
+            item.update(payment)
             item["pernocte"] = (end - start).total_seconds() >= 24 * 3600
             item["horas_totales_viaje"] = round((end - start).total_seconds() / 3600, 2)
             item["estado"] = "Validado manualmente." if item.get("nombre") and item.get("nrodoc") else "Datos incompletos; completar manualmente."
         else:
-            item["km_al_100"] = 0
+            item["km_al_100"] = None
+            item["km_revision"] = "Faltan horarios válidos de salida o regreso al CD."
             item["pernocte"] = False
             item["horas_totales_viaje"] = 0
             item["estado"] = "Datos incompletos; completar manualmente."
+        if item.get('km_revision'):
+            item['estado'] = 'Requiere revisión: ' + item['km_revision']
         recalculated.append(item)
+    await _update_viajes_guardados(recalculated)
     return {"rows": recalculated, "total": len(recalculated)}
+
+
+VIAJE_DIAS = ('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo')
+
+
+def viaje_calendar(value, holidays):
+    if isinstance(value, datetime):
+        day = value.date()
+    elif isinstance(value, date):
+        day = value
+    else:
+        day = None
+        for pattern, length in (('%Y-%m-%d', 10), ('%d/%m/%Y', 10), ('%d-%m-%Y', 10)):
+            try:
+                day = datetime.strptime(str(value or '')[:length], pattern).date()
+                break
+            except ValueError:
+                continue
+    if day is None:
+        return '', 'FFFFFF'
+    holiday = any(str(h.get('fecha'))[:10] == day.isoformat() and h.get('activo', 1) for h in holidays)
+    color = 'FCE4D6' if holiday else {4:'FFFF00', 5:'FFC000', 6:'92D050'}.get(day.weekday(), 'FFFFFF')
+    return VIAJE_DIAS[day.weekday()], color
 
 
 @router.post("/excel/exportar.xlsx")
 async def exportar_excel(req: ExcelExportRequest):
+    holidays = await _load_holidays()
+    await _update_viajes_guardados(req.rows)
     try:
         content = base64.b64decode(req.content_b64)
         workbook = load_workbook(io.BytesIO(content))
@@ -766,7 +1333,7 @@ async def exportar_excel(req: ExcelExportRequest):
         route_col = positions.get("Num.Hoj.Ru")
         if not route_col:
             raise ValueError("No existe la columna Num.Hoj.Ru")
-        extra_headers = ["KM al 100", "Pernocte", "Torito", "DNI", "Nombre del chofer"]
+        extra_headers = ["KM al 100", "Pernocte", "Torito", "DNI", "Nombre del chofer", "Día Viaje", "Hoja Física Presente", "Estado cálculo KM 100", "KM Oracle ida", "KM Oracle regreso"]
         start_col = sheet.max_column + 1
         for offset, header in enumerate(extra_headers):
             sheet.cell(row=1, column=start_col + offset, value=header)
@@ -781,16 +1348,134 @@ async def exportar_excel(req: ExcelExportRequest):
             sheet.cell(row=row_number, column=start_col + 2, value=1 if row.get("torito") else "")
             sheet.cell(row=row_number, column=start_col + 3, value=row.get("nrodoc", ""))
             sheet.cell(row=row_number, column=start_col + 4, value=row.get("nombre", ""))
+            fecha_col = positions.get('Fecha viaj')
+            original_fecha = sheet.cell(row_number, fecha_col).value if fecha_col else None
+            fecha = row.get('fecha_viaje', original_fecha)
+            day_name, color = viaje_calendar(fecha, holidays)
+            if fecha_col and row.get('fecha_viaje'):
+                sheet.cell(row_number, fecha_col, value=fecha)
+            sheet.cell(row_number, start_col + 5, value=day_name)
+            sheet.cell(row_number, start_col + 6, value="Sí" if row.get("hoja_fisica_presente") is True else "No")
+            sheet.cell(row_number, start_col + 7, value=row.get('km_revision') or row.get('estado', ''))
+            for offset, label in ((8,'Ida'),(9,'Regreso')):
+                tramo = next((t for t in row.get('km_tramos',[]) if t.get('tramo')==label),{})
+                sheet.cell(row_number,start_col+offset,value=tramo.get('km_oracle'))
+            for cell in sheet[row_number]:
+                cell.fill = PatternFill('solid', fgColor=color)
         output = io.BytesIO()
         workbook.save(output)
         output.seek(0)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"No se pudo exportar el Excel: {exc}") from exc
-    filename = Path(req.filename or "modelo.xlsx").stem + "_validado.xlsx"
+    source_name = Path((req.filename or 'archivo.xlsx').replace('\\', '/')).stem
+    source_name = unicodedata.normalize('NFKD', source_name).encode('ascii', 'ignore').decode()
+    source_name = re.sub(r'[^A-Za-z0-9_-]+', '_', source_name).strip('_')[:80] or 'archivo'
+    timestamp = datetime.now(timezone(timedelta(hours=-3))).strftime('%Y-%m-%d_%H-%M-%S')
+    filename = f'Viajes_Larga_Distancia_{source_name}_validado_{timestamp}.xlsx'
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.put("/viajes/{viaje_id}/marca")
+async def update_viaje_marca(viaje_id: int, req: ViajeMarcaRequest, request: Request):
+    result = await _save_viaje_marca(viaje_id, req, await _auth_username(request))
+    return {"ok": True, "marca": result}
+
+
+@router.get("/viajes")
+async def list_viajes(desde: date, hasta: date, legajo: str = ""):
+    if hasta < desde:
+        raise HTTPException(status_code=400, detail="La fecha hasta debe ser igual o posterior a desde.")
+    if (hasta - desde).days > 366:
+        raise HTTPException(status_code=400, detail="El rango maximo es de 366 dias.")
+    rows = await _query_viajes_guardados(desde, hasta, legajo)
+    return {"rows": rows, "total": len(rows)}
+
+
+def _historico_filename(desde: date, hasta: date, legajo: str = "") -> str:
+    legajo_filter = _normalize_legajo_filter(legajo)
+    suffix = f"_legajo_{legajo_filter}" if legajo_filter else ""
+    return f"Reporte_Viajes_Larga_Distancia_{desde.isoformat()}_a_{hasta.isoformat()}{suffix}.xlsx"
+
+
+@router.get("/viajes/exportar.xlsx")
+async def exportar_viajes_guardados(desde: date, hasta: date, legajo: str = ""):
+    if hasta < desde:
+        raise HTTPException(status_code=400, detail="La fecha hasta debe ser igual o posterior a desde.")
+    rows = await _query_viajes_guardados(desde, hasta, legajo)
+    holidays = await _load_holidays()
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Viajes"
+    headers = [
+        "Fecha viaje",
+        "Día viaje",
+        "Hora viaje",
+        "Legajo Excel",
+        "Legajo Oracle",
+        "Nombre chofer",
+        "DNI",
+        "Hoja ruta",
+        "Hoja Física Presente",
+        "KM Excel",
+        "KM Oracle ida",
+        "KM Oracle regreso",
+        "Salida Oracle",
+        "Regreso Oracle",
+        "Horas totales",
+        "KM al 100",
+        "Pernocte",
+        "Torito",
+        "Estado cálculo",
+        "Observación",
+        "Usuario modificación",
+        "Fecha modificación",
+        "Archivo origen",
+        "Fecha importación",
+    ]
+    sheet.append(headers)
+    for item in rows:
+        day_name, color = viaje_calendar(item.get("fecha_viaje"), holidays)
+        tramos = item.get("km_tramos") or []
+        row_values = [
+            item.get("fecha_viaje", ""),
+            day_name,
+            item.get("hora_viaje", ""),
+            item.get("excel_legajo", ""),
+            item.get("legajo", ""),
+            item.get("nombre", ""),
+            item.get("nrodoc", ""),
+            item.get("hojaruta", ""),
+            "Sí" if item.get("hoja_fisica_presente") else "No",
+            item.get("cantidad"),
+            next((t.get("km_oracle") for t in tramos if t.get("tramo") == "Ida"), None),
+            next((t.get("km_oracle") for t in tramos if t.get("tramo") == "Regreso"), None),
+            item.get("fesalida", ""),
+            item.get("fevuelta", ""),
+            item.get("horas_totales_viaje"),
+            item.get("km_al_100"),
+            "Sí" if item.get("pernocte") else "",
+            "Sí" if item.get("torito") else "",
+            item.get("km_revision") or item.get("estado", ""),
+            item.get("observacion", ""),
+            item.get("usuario_modificacion", ""),
+            item.get("fecha_modificacion", ""),
+            item.get("archivo_nombre", ""),
+            item.get("fecha_importacion", ""),
+        ]
+        sheet.append(row_values)
+        for cell in sheet[sheet.max_row]:
+            cell.fill = PatternFill("solid", fgColor=color)
+    output = io.BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{_historico_filename(desde, hasta, legajo)}"'},
     )
 
 

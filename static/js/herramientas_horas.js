@@ -20,11 +20,11 @@
   }
   function summary() {
     const totals = {Realizadas: 0, Pendientes: 0, Autorizadas: 0, Rechazadas: 0};
-    rows.forEach(r => { totals.Realizadas += r.horas; totals[{pendiente:'Pendientes',autorizada:'Autorizadas',rechazada:'Rechazadas'}[r.estado]] += r.horas; });
+    rows.forEach(r => { totals.Realizadas += r.horas; if(r.estado==='parcial'){const approved=Math.max(0,Math.min(r.horas,Number(r.horas_autorizadas)||0));totals.Autorizadas+=approved;totals.Rechazadas+=r.horas-approved;}else totals[{pendiente:'Pendientes',autorizada:'Autorizadas',rechazada:'Rechazadas'}[r.estado]] += r.horas; });
     $('he-kpis').innerHTML = Object.entries(totals).map(([k,v]) => `<div class="kpi"><div class="kpi-label">${k}</div><div class="kpi-value mono">${hours(v)}</div></div>`).join('');
   }
   function render() {
-    $('he-body').innerHTML = rows.map((r,i) => ({r,i})).sort((a,b) => sortDirection * (sortKey === 'horas' ? a.r.horas-b.r.horas : collator.compare(a.r[sortKey] || '', b.r[sortKey] || '')) || a.i-b.i).map(({r,i}) => `<tr data-he-row="${i}"><td><input type="checkbox" data-select-row="${i}" ${selectedRows.has(i)?'checked':''} aria-label="Seleccionar ${esc(r.legajo)} ${esc(r.fecha)}"></td><td>${esc(r.fecha)}</td><td>${esc(r.legajo)}</td><td>${esc(r.empleado)}</td><td>${esc(r.sector)}</td><td>${esc(r.funcion)}</td><td class="mono">${hours(r.horas)}</td><td>${r.revision ? '<div class="status-warn">Requiere revisión</div>' : ''}<select data-field="estado" aria-label="Decisión ${esc(r.legajo)} ${esc(r.fecha)}">${[['pendiente','Pendiente'],['autorizada','Autorizar'],['rechazada','Rechazar']].map(([v,l]) => `<option value="${v}" ${v===r.estado?'selected':''}>${l}</option>`).join('')}</select></td><td><input data-field="observacion" maxlength="500" value="${esc(r.observacion)}" aria-label="Observación ${esc(r.legajo)} ${esc(r.fecha)}"></td><td>${esc(r.usuario)}<br>${esc(argentinaTime(r.updated_at))}${r.updated_at?' (Argentina)':''}</td></tr>`).join('') || '<tr><td colspan="10">No hay horas extras para los filtros seleccionados.</td></tr>';
+    $('he-body').innerHTML = rows.map((r,i) => ({r,i})).sort((a,b) => sortDirection * (['horas','horas_autorizadas'].includes(sortKey) ? (a.r[sortKey]||0)-(b.r[sortKey]||0) : collator.compare(a.r[sortKey] || '', b.r[sortKey] || '')) || a.i-b.i).map(({r,i}) => `<tr data-he-row="${i}"><td><input type="checkbox" data-select-row="${i}" ${selectedRows.has(i)?'checked':''} aria-label="Seleccionar ${esc(r.legajo)} ${esc(r.fecha)}"></td><td>${esc(r.fecha)}</td><td>${esc(r.legajo)}</td><td>${esc(r.empleado)}</td><td>${esc(r.sector)}</td><td>${esc(r.funcion)}</td><td class="mono">${hours(r.horas)}</td><td>${r.revision ? '<div class="status-warn">Requiere revisión</div>' : ''}<select data-field="estado" aria-label="Decisión ${esc(r.legajo)} ${esc(r.fecha)}">${[['pendiente','Pendiente'],['autorizada','Autorizar'],['rechazada','Rechazar'],['parcial','Aprobación parcial']].map(([v,l]) => `<option value="${v}" ${v===r.estado?'selected':''}>${l}</option>`).join('')}</select></td><td>${r.estado==='parcial'?`<input data-field="horas_autorizadas" type="number" min="0" max="${r.horas}" step="any" value="${esc(r.horas_autorizadas??'')}" aria-label="Horas autorizadas ${esc(r.legajo)} ${esc(r.fecha)}" placeholder="Ej.: 1,5">`:`<span class="mono">${hours(r.estado==='autorizada'?r.horas:0)}</span>`}</td><td><input data-field="observacion" maxlength="500" value="${esc(r.observacion)}" aria-label="Observación ${esc(r.legajo)} ${esc(r.fecha)}"></td><td>${esc(r.usuario)}<br>${esc(argentinaTime(r.updated_at))}${r.updated_at?' (Argentina)':''}</td></tr>`).join('') || '<tr><td colspan="11">No hay horas extras para los filtros seleccionados.</td></tr>';
     summary(); selection();
     document.querySelectorAll('#he-head [data-sort]').forEach(b => b.parentElement.setAttribute('aria-sort', b.dataset.sort===sortKey ? (sortDirection===1?'ascending':'descending') : 'none'));
   }
@@ -79,7 +79,8 @@
   });
   $('he-body').addEventListener('input', e => {
     const field = e.target.dataset.field; if (!field || busy) return;
-    const i = Number(e.target.closest('tr').dataset.heRow); rows[i][field] = e.target.value; dirty.add(i);
+    const i = Number(e.target.closest('tr').dataset.heRow); rows[i][field] = field==='horas_autorizadas' ? (e.target.value===''?null:Number(e.target.value)) : e.target.value; dirty.add(i);
+    if(field==='estado'){rows[i].horas_autorizadas=rows[i].estado==='autorizada'?rows[i].horas:rows[i].estado==='parcial'?null:0;render();}
     $('he-guardar').disabled = false; summary(); msg(`${dirty.size} filas con cambios sin guardar.`);
   });
   $('he-guardar').onclick = async () => {
@@ -87,6 +88,7 @@
     const changed = [...dirty].map(i => rows[i]);
     if (changed.length > 1000) return msg('Guarde hasta 1000 filas por operación; reduzca el rango de consulta.', true);
     if (changed.some(r => r.estado==='rechazada' && !r.observacion.trim())) return msg('Indique el motivo en cada fila rechazada.', true);
+    if(changed.some(r=>r.estado==='parcial'&&(!Number.isFinite(r.horas_autorizadas)||r.horas_autorizadas<=0||r.horas_autorizadas>=r.horas)))return msg('Ingrese horas parciales mayores a cero y menores a las realizadas (ej.: 1,5 = 1 h 30 min).',true);
     lock(true); msg('Guardando…');
     try {
       const result = await api('/api/herramientas/horas-extras/decisiones', {method:'POST',body:JSON.stringify({rows:changed})});
@@ -126,7 +128,7 @@
     if (estado === 'rechazada' && !motivo) return msg('Ingrese el motivo del rechazo masivo.', true);
     const affected = new Set([...dirty, ...selectedRows]);
     if (affected.size > 1000) return msg('Seleccione hasta 1000 filas por operación, incluyendo cambios pendientes.', true);
-    selectedRows.forEach(i => { rows[i].estado = estado; if (estado === 'rechazada') rows[i].observacion = motivo; dirty.add(i); });
+    selectedRows.forEach(i => { rows[i].estado = estado; rows[i].horas_autorizadas=estado==='autorizada'?rows[i].horas:0; if (estado === 'rechazada') rows[i].observacion = motivo; dirty.add(i); });
     render(); $('he-guardar').disabled = false;
     msg(`${selectedRows.size} filas preparadas para ${estado==='autorizada'?'aprobar':'rechazar'}. Presione Guardar cambios.`);
   }
@@ -140,7 +142,7 @@
       const params = new URLSearchParams(lastQuery); params.set('orden',sortKey); params.set('direccion',sortDirection===1?'asc':'desc');
       const response = await fetch('/api/herramientas/horas-extras/exportar.xlsx?' + params, {credentials:'same-origin'});
       if (response.status===401) { location.href='/login?next=/herramientas.html'; return; }
-      if (!response.ok) { const error = await response.json().catch(() => ({})); throw new Error(error.detail || 'No se pudo exportar.'); }
+      if (!response.ok) throw new Error(await exportError(response));
       const url = URL.createObjectURL(await response.blob()); const link = document.createElement('a');
       link.href = url; link.download = `horas_extras_${params.get('desde')}_${params.get('hasta')}.xlsx`;
       document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url),30000);

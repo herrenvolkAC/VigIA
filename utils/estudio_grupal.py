@@ -3,9 +3,27 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
+DIVISIONES_DESCRIPCION = {
+    '1': 'SECOS',
+    '2': 'REFRIGERADOS',
+    '4': 'REFRIGERADOS',
+    '6': 'NOA',
+}
+
 
 def texto(value):
     return str(value or '').strip()
+
+
+def division_label(value):
+    codigo = texto(value)
+    descripcion = DIVISIONES_DESCRIPCION.get(codigo, '')
+    return f'{codigo} · {descripcion}' if descripcion else codigo
+
+
+def division_codigos(value):
+    raw_items = value if isinstance(value, (list, tuple, set)) else str(value or '').replace('|', ',').replace(';', ',').split(',')
+    return {texto(item) for item in raw_items if texto(item)}
 
 
 def importe(value):
@@ -77,14 +95,24 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
             continue
         sector, funcion, turno = (texto(par[k]) for k in ('sector', 'funcion_legajero', 'turno'))
         operacion = texto(par.get('operacion_medible'))
+        divisiones_madre = division_codigos(par.get('division_madre'))
+        division_madre = ','.join(sorted(divisiones_madre, key=lambda item: (0, int(item)) if item.isdigit() else (1, item)))
         componentes = {texto(x.get('funcion_wms')).upper() for x in par.get('componentes', []) if texto(x.get('funcion_wms'))}
+        componentes_polivalencia = {
+            texto(x.get('funcion_wms')).upper()
+            for x in par.get('polivalencia_componentes', par.get('componentes', []))
+            if texto(x.get('funcion_wms'))
+        }
         # Sin componentes se preserva el parámetro histórico de una operación.
         if not componentes and operacion:
             componentes = {operacion.upper()}
-        unidad = 'PALET' if par.get('componentes') else operaciones.get(operacion, '')
+        unidades_componentes = {texto(x.get('unidad_medida')).upper() for x in par.get('componentes', [])
+                               if texto(x.get('unidad_medida'))}
+        unidad = next(iter(unidades_componentes)) if len(unidades_componentes) == 1 else operaciones.get(operacion, '')
         configurado = bool(componentes and unidad in columnas and par['uc_por_operario'] > 0)
         identidad = dict(sector=sector, funcion_legajero=funcion, turno=turno,
                          operacion=operacion, unidad_medida=unidad,
+                         division_madre=division_madre,
                          grupo_productivo_id=par.get('grupo_productivo_id'),
                          grupo_productivo=par.get('grupo_productivo', ''))
         nomina = sorted((p for p in nominas[sector, funcion]
@@ -112,19 +140,51 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                 confirmado = confirmado and (ausente or presente)
                 permitida = ausente and bool(ausencias.get(cod, ausencias.get(descripcion, False)))
                 acts = actividad[fecha, legajo]
-                ops = {alias(texto(r['desc_funcion'])) for r in acts}
+                # Para polivalencia sólo cuentan actividades productivas. El
+                # cache WMS también trae eventos administrativos del equipo o
+                # de RF (fichadas, fin de turno, controles, menús) que no deben
+                # convertir a todo el plantel en polivalente ni cambiarle la
+                # división madre del día.
+                acts_productivos = [
+                    r for r in acts
+                    if any(Decimal(str(r.get(columna, 0) or 0)) > 0 for columna in columnas.values())
+                ]
+                ops = {alias(texto(r['desc_funcion']).upper()) for r in acts_productivos}
                 # La operación madre viene del parámetro del grupo. Puede haber
                 # polivalencia aun si ese día sólo trabajó en la otra operación.
                 # PALETS OPERADOS combina Carga y Traslado para medir. La
                 # regla de polivalencia conserva esa operación madre y se
                 # aplica sólo a las operaciones B de este perfil.
+                funciones_madre = {alias(item.upper()) for item in (componentes_polivalencia or componentes)}
+                if operacion.upper():
+                    funciones_madre.add(alias(operacion.upper()))
+                if operacion.upper() == 'PALETS OPERADOS':
+                    funciones_madre.update({'PALETS OPERADOS', 'CARGA', 'TRASLADO'})
+                acts_madre_productivos = [
+                    r for r in acts_productivos
+                    if alias(texto(r.get('desc_funcion')).upper()) in funciones_madre
+                ]
+                cambios_funcion = []
+                cambios_division = sorted({
+                    texto(r.get('division')) for r in acts_madre_productivos
+                    if divisiones_madre and texto(r.get('division')) and texto(r.get('division')) not in divisiones_madre
+                })
                 if reglas_por_perfil is not None:
                     clave_regla = (sector.upper(), funcion.upper(), operacion.upper())
-                    polivalente = bool(ops & reglas_por_perfil.get(clave_regla, set()))
+                    ops_configuradas = sorted(ops & reglas_por_perfil.get(clave_regla, set()))
+                    polivalente = bool(ops_configuradas or cambios_funcion or cambios_division)
                 else:
                     madres = ({'CARGA', 'TRASLADO'} if operacion.upper() == 'PALETS OPERADOS'
                               else {alias(item) for item in componentes})
-                    polivalente = any(a in madres and b in ops and a != b for a, b in relaciones)
+                    ops_configuradas = sorted({b for a, b in relaciones if a in madres and b in ops and a != b})
+                    polivalente = bool(ops_configuradas or cambios_funcion or cambios_division)
+                motivos_polivalencia = []
+                if ops_configuradas or cambios_funcion:
+                    motivos_polivalencia.append('Cambio de función')
+                if cambios_division:
+                    motivos_polivalencia.append('Cambio de división')
+                detalle_polivalencia = sorted(set(ops_configuradas + cambios_funcion +
+                                                  [f'DIVISION {division_label(item)}' for item in cambios_division]))
                 producida = sum(Decimal(str(r.get(columnas.get(unidad, ''), 0) or 0))
                                for r in acts if texto(r['desc_funcion']).upper() in componentes)
                 computable = producida if aplica_grupo and confirmado and presente and not polivalente else Decimal(0)
@@ -141,6 +201,8 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                     aplica_grupo=aplica_grupo, motivo_inclusion=motivo,
                     ausencia=descripcion or cod, cod_ausentismo=cod,
                     ausencia_permitida=permitida, es_polivalencia=polivalente,
+                    polivalencia_motivos=motivos_polivalencia,
+                    polivalencia_operaciones=detalle_polivalencia,
                     integra_meta=aplica_grupo and not permitida and not polivalente,
                     uc_brutas=float(producida), uc_computables=float(computable),
                     beneficiario=aplica_grupo and confirmado and presente, datos_completos=confirmado,

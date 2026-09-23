@@ -174,6 +174,7 @@ def _normalize_username(value: str) -> str:
 
 
 APP_MODULES = [
+    {"id": "historia_legajo", "label": "Historia del Operario", "path": "/historia-legajo.html"},
     {"id": "productividad", "label": "Productividad", "path": "/productividad.html"},
     {"id": "novedades_cd", "label": "Tablero RRHH", "path": "/novedades-cd"},
     {"id": "gestion_operativa", "label": "Gestion Operativa", "path": "/gestion-operativa.html"},
