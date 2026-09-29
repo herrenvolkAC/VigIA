@@ -828,6 +828,28 @@ CREATE TABLE IF NOT EXISTS rrhh_fichadas (
 );
 """
 
+CREATE_RRHH_SANCION_HECHOS = """
+CREATE TABLE IF NOT EXISTS rrhh_sancion_hechos (
+    sancion_key TEXT PRIMARY KEY,
+    snapshot_json TEXT NOT NULL,
+    fecha_hecho DATE,
+    observacion TEXT NOT NULL DEFAULT '',
+    updated_by TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1
+);
+"""
+CREATE_RRHH_SANCION_HECHOS_AUDIT = """
+CREATE TABLE IF NOT EXISTS rrhh_sancion_hechos_audit (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sancion_key TEXT NOT NULL,
+    anterior_json TEXT,
+    nuevo_json TEXT NOT NULL,
+    usuario TEXT NOT NULL,
+    fecha TEXT NOT NULL
+);
+"""
+
 CREATE_RRHH_SANCIONES = """
 CREATE TABLE IF NOT EXISTS rrhh_sanciones (
     id                      INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1227,6 +1249,8 @@ async def init_db():
         await db.execute(CREATE_RRHH_ACTIVIDAD)
         await db.execute(CREATE_RRHH_FICHADAS)
         await db.execute(CREATE_RRHH_SANCIONES)
+        await db.execute(CREATE_RRHH_SANCION_HECHOS)
+        await db.execute(CREATE_RRHH_SANCION_HECHOS_AUDIT)
         await db.execute(CREATE_RRHH_CODIGOS_AUSENTISMO)
         await db.execute(CREATE_RRHH_CODIGOS_AUSENTISMO_MAESTRO)
         await db.execute(CREATE_RRHH_AUSENTISMO_REGLAS)

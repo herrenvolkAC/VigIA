@@ -177,6 +177,7 @@ APP_MODULES = [
     {"id": "historia_legajo", "label": "Historia del Operario", "path": "/historia-legajo.html"},
     {"id": "productividad", "label": "Productividad", "path": "/productividad.html"},
     {"id": "novedades_cd", "label": "Tablero RRHH", "path": "/novedades-cd"},
+    {"id": "horas_extras", "label": "Aprobacion Horas Extras", "path": "/horas-extras"},
     {"id": "gestion_operativa", "label": "Gestion Operativa", "path": "/gestion-operativa.html"},
     {"id": "casos", "label": "Gestion de Casos", "path": "/casos.html"},
     {"id": "panol", "label": "Panol Insumos", "path": "/panol-insumos"},
@@ -1381,6 +1382,29 @@ async def set_user_access(req: UserAccessRequest, request: Request):
                     "sectors": _clean_sectors(req.sectors) or ["MAPA_ALMACEN"],
                     "shift": shift or None,
                 },
+            )
+        elif module == "horas_extras":
+            profile = (req.profile or "CONSULTA").strip().upper()
+            if profile not in {"CONSULTA", "JEFE", "GERENTE", "RRHH"}:
+                raise HTTPException(status_code=400, detail="Perfil de Horas Extras invalido.")
+            scope = (req.scope or "sector").strip().lower()
+            if scope not in {"sector", "global"}:
+                raise HTTPException(status_code=400, detail="Alcance de Horas Extras invalido.")
+            sectors = _clean_sectors(req.sectors)
+            sector = _clean_text(req.sector)
+            if sector and sector not in sectors:
+                sectors.append(sector)
+            if req.enabled and scope == "sector" and not sectors:
+                raise HTTPException(status_code=400, detail="El alcance por sector requiere al menos un sector.")
+            await _upsert_app_access(
+                db,
+                username=username,
+                module=module,
+                enabled=req.enabled,
+                profile=profile,
+                scope=scope,
+                sector=sectors[0] if sectors else "",
+                metadata={"sectors": sectors},
             )
         else:
             profile = (req.profile or "").strip().upper()

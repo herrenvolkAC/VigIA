@@ -275,7 +275,7 @@
       <button class="link-btn" id="actividad-exportar">Exportar Excel</button>
     </div>
     <div class="table-wrap" id="inner-actividad"><table class="paper-table" id="actividad-table"></table></div>
-    <div class="table-wrap hidden" id="inner-sanciones"><table class="paper-table" id="sanciones-table"></table></div>
+    <div class="table-wrap hidden" id="inner-sanciones"><label>Filtrar fechas por <select id="sancion-criterio"><option value="creacion">Creación de sanción</option><option value="hecho">Fecha del hecho</option></select></label><p>La fecha del hecho identifica el día que motivó la sanción. Las asociaciones pendientes de revisión se conservan aunque cambie el archivo.</p><table class="paper-table" id="sanciones-table"></table></div>
   </section>
 
   <section class="paper-panel" id="panel-francos">
@@ -364,6 +364,11 @@
   function setApplyLoading(loading){
     const button = $('apply-filters');
     if (!button) return;
+    state.applyLoading = loading;
+    document.querySelectorAll('.filters, .paper-tabs, .paper-panel').forEach(element => {
+      element.inert = loading;
+      element.setAttribute('aria-busy', String(loading));
+    });
     button.disabled = loading;
     button.textContent = loading ? 'Consultando...' : (state.activeTab === 'presencias' ? 'Consultar' : 'Aplicar');
   }
@@ -691,8 +696,10 @@
     renderPresencias();
     setStatus('Selecciona sectores y presiona Consultar.');
   }
-  async function loadPresencias(){
-    setApplyLoading(true);
+  async function loadPresencias(options = {}){
+    const manageApply = options.manageApply !== false;
+    const finalStatus = options.finalStatus !== false;
+    if (manageApply) setApplyLoading(true);
     try {
       setStatus('Consultando presencias Oracle...');
       const data = await api(`/api/rrhh/presencias?${presenceParams()}`);
@@ -702,9 +709,9 @@
       state.presenciaDrill = {sector:'', funcion:''};
       if (!state.presenceFiltersLoaded) await loadPresenceFilters();
       renderPresencias();
-      setStatus('Presencias actualizadas.');
+      if (finalStatus) setStatus('Presencias actualizadas.');
     } finally {
-      setApplyLoading(false);
+      if (manageApply) setApplyLoading(false);
     }
   }
   function renderFrancos(data, candidatos){
@@ -993,7 +1000,7 @@
       const active = sort.key === c.key;
       const mark = active ? `<span class="sort-mark">${sort.dir === 'desc' ? '▼' : '▲'}</span>` : '';
       return `<th class="sortable" data-table="${esc(id)}" data-key="${esc(c.key)}" title="Ordenar por ${esc(c.label)}">${esc(c.label)}${mark}</th>`;
-    }).join('')}</tr></thead><tbody>${data.map(row=>`<tr>${cols.map(c=>`<td class="${c.mono?'mono':''}" title="${esc(valueFor(row, c) ?? '')}">${esc(valueFor(row, c) ?? '')}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}">Sin datos.</td></tr>`}</tbody>`;
+    }).join('')}</tr></thead><tbody>${data.map(row=>`<tr>${cols.map(c=>`<td class="${c.mono?'mono':''}" title="${esc(valueFor(row, c) ?? '')}">${id === 'sanciones-table' && c.key === 'fecha_hecho' && state.canEditSanciones ? `<button type="button" class="sancion-fecha-edit" data-key="${esc(row.sancion_key)}">${esc(row.fecha_hecho || 'Asignar fecha')}</button>` : esc(valueFor(row, c) ?? '')}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}">Sin datos.</td></tr>`}</tbody>`;
     $(id).__rows = rows || [];
     $(id).__cols = cols;
   }
@@ -1509,16 +1516,45 @@
     renderTable('actividad-table', [
       {key:'fecha',label:'Fecha',mono:true},{key:'legajo',label:'Legajo',mono:true},{key:'empleado',label:'Empleado'},{key:'sector',label:'Sector'},
       {key:'horario_teorico',label:'Horario teor.'},{key:'ingreso_teorico',label:'Ingreso teor.',mono:true},{key:'salida_teorica',label:'Salida teor.',mono:true},{key:'entrada',label:'Entrada real',mono:true},{key:'salida',label:'Salida real',mono:true},{key:'aus_pres_codigo',label:'Cod.',mono:true},
-      {key:'motivo',label:'Motivo'},{key:'ausentismo_clasificacion',label:'Clasif.'},{key:'hs_trab',label:'Hs.',mono:true,format:'hhmm'},{key:'tarde',label:'Tarde min.',mono:true,format:'integer'}
+      {key:'sanciones_asociadas',label:'Sanciones asociadas al día'},{key:'motivo',label:'Motivo'},{key:'ausentismo_clasificacion',label:'Clasif.'},{key:'hs_trab',label:'Hs.',mono:true,format:'hhmm'},{key:'tarde',label:'Tarde min.',mono:true,format:'integer'}
     ], data.rows);
   }
   async function loadSanciones(){
-    const data = await api(`/api/rrhh/sanciones?${params()}&limit=250`);
+    const data = await api(`/api/rrhh/sanciones?${params()}&limit=250&criterio_fecha=${$('sancion-criterio').value}`);
+    state.canEditSanciones = Boolean(data.can_edit);
+    data.rows.forEach(row => row.estado_asociacion = row.pendiente_revision ? 'Pendiente de revisión' : (row.fecha_hecho ? 'Asociada' : 'Sin asignar'));
     renderTable('sanciones-table', [
-      {key:'creacion',label:'Creacion',mono:true},{key:'legajo',label:'Legajo',mono:true},{key:'nombre',label:'Nombre'},{key:'sector',label:'Sector'},{key:'cod',label:'Cod.',mono:true},
+      {key:'creacion',label:'Creación',mono:true},{key:'fecha_hecho',label:'Fecha del hecho',mono:true},{key:'estado_asociacion',label:'Asociación'},{key:'observacion',label:'Observación'},{key:'updated_by',label:'Modificado por'},{key:'updated_at',label:'Modificado el'},{key:'legajo',label:'Legajo',mono:true},{key:'nombre',label:'Nombre'},{key:'sector',label:'Sector'},{key:'cod',label:'Cod.',mono:true},
       {key:'descripcion',label:'Descripcion'},{key:'detalle',label:'Detalle'},{key:'causa_sancion',label:'Causa'},{key:'descripcion_causa',label:'Detalle causa'}
     ], data.rows);
   }
+  $('sancion-criterio').onchange = () => loadSanciones().catch(e => setStatus(e.message, true));
+  document.addEventListener('click', event => {
+    const button = event.target.closest('.sancion-fecha-edit');
+    if (!button) return;
+    const row = ($('sanciones-table').__rows || []).find(item => item.sancion_key === button.dataset.key);
+    if (!row || !state.canEditSanciones) return;
+    const dialog = document.createElement('dialog');
+    dialog.innerHTML = `<form><h3>Fecha del hecho</h3><p>${esc(row.legajo)} · ${esc(row.nombre)}<br>${esc(row.descripcion)} · Creación: ${esc(row.creacion || '')}</p><label>Día del hecho <input name="fecha" type="date" max="${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}" value="${esc(row.fecha_hecho || row.creacion || row.inicio || '')}"></label><p>Dejá la fecha vacía para quitar la asociación.</p><label>Observación <textarea name="observacion" maxlength="2000">${esc(row.observacion || '')}</textarea></label><p class="dialog-error" role="alert"></p><button type="submit">Guardar</button> <button type="button" class="cancel">Cancelar</button></form>`;
+    document.body.appendChild(dialog);
+    dialog.addEventListener('close', () => dialog.remove());
+    dialog.querySelector('.cancel').onclick = () => dialog.close();
+    dialog.querySelector('form').onsubmit = async event => {
+      event.preventDefault();
+      const save = dialog.querySelector('[type="submit"]');
+      save.disabled = true;
+      try {
+        await api('/api/rrhh/sanciones/fecha-hecho', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({source_id:row.source_id, sancion_key:row.sancion_key, version:row.version, fecha_hecho:dialog.querySelector('[name="fecha"]').value || null, observacion:dialog.querySelector('[name="observacion"]').value})});
+        dialog.close();
+        await Promise.all([loadSanciones(), loadActividad()]);
+        setStatus('Fecha del hecho guardada. Actividad actualizada.');
+      } catch (error) {
+        if (dialog.isConnected) dialog.querySelector('.dialog-error').textContent = error.message;
+        else setStatus(error.message, true);
+      } finally { save.disabled = false; }
+    };
+    dialog.showModal();
+  });
   async function loadFrancos(){
     const query = params();
     const [data, candidatos] = await Promise.all([
@@ -1551,18 +1587,20 @@
     await loadIndicators();
   }
   async function applyAllTabs(){
-    if (state.indicatorsLoading) return;
+    if (state.applyLoading || state.indicatorsLoading) return;
     setApplyLoading(true);
     setStatus('Consultando todas las solapas con el filtro actual...');
     try {
       await loadIndicators({ manageApply: false, finalStatus: false });
-      await Promise.all([
+      const results = await Promise.allSettled([
         loadActividad(),
         loadSanciones(),
         loadFrancos(),
-        loadPresencias(),
+        loadPresencias({ manageApply: false, finalStatus: false }),
         loadBatches(),
       ]);
+      const failure = results.find(result => result.status === 'rejected');
+      if (failure) throw failure.reason;
       setStatus('Indicadores, presencias, datos, francos e importacion actualizados.');
       $('filter-panel').classList.remove('open');
       saveFilters();

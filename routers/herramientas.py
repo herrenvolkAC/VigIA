@@ -414,7 +414,14 @@ def _travel_db_values(row: dict[str, Any]) -> dict[str, Any]:
         "torito": 1 if row.get("torito") else 0,
         "estado_calculo": str(row.get("km_revision") or row.get("estado") or ""),
         "estado_viaje": str(row.get("estado") or ""),
-        "detalle_calculo_json": _json_dumps({"km_revision": row.get("km_revision") or "", "km_tramos": tramos}),
+        "detalle_calculo_json": _json_dumps({
+            "km_revision": row.get("km_revision") or "",
+            "km_tramos": tramos,
+            "km_oracle_al_100": row.get("km_oracle_al_100"),
+            "km_oracle_total": row.get("km_oracle_total"),
+            "porcentaje_global_100": row.get("porcentaje_global_100"),
+            "km_base_liquidacion": row.get("km_base_liquidacion") or "excel",
+        }),
         "sucursales_json": _json_dumps(row.get("sucursales") or []),
         "excel_row": row.get("excel_row"),
         "original_json": _json_dumps(row.get("original") or []),
@@ -559,6 +566,10 @@ def _viaje_row_from_db(row: aiosqlite.Row) -> dict[str, Any]:
         "estado": row["estado_viaje"],
         "km_revision": detalle.get("km_revision") or "",
         "km_tramos": detalle.get("km_tramos") or [],
+        "km_oracle_al_100": detalle.get("km_oracle_al_100"),
+        "km_oracle_total": detalle.get("km_oracle_total"),
+        "porcentaje_global_100": detalle.get("porcentaje_global_100"),
+        "km_base_liquidacion": detalle.get("km_base_liquidacion") or "excel",
         "sucursales": json.loads(row["sucursales_json"] or "[]"),
         "hoja_fisica_presente": bool(row["hoja_fisica_presente"] or 0),
         "estado_manual": row["estado_manual"] or "",
@@ -997,7 +1008,7 @@ def _parse_edit_datetime(value: Any) -> datetime | None:
 
 def _calculate_route_payment(stops, start, end, holidays, arrival_override=None, departure_override=None):
     def review(message):
-        return {'km_al_100': None, 'km_revision': message, 'km_tramos': []}
+        return {'km_al_100': None, 'km_revision': message, 'km_tramos': [], 'km_oracle_al_100': None, 'km_oracle_total': None, 'porcentaje_global_100': None}
     if not start or not end or end <= start:
         return review('Faltan horarios válidos de salida o regreso al CD.')
     if (end-start).days > 62:
@@ -1042,13 +1053,42 @@ def _calculate_route_payment(stops, start, end, holidays, arrival_override=None,
         km = stop.get(field)
         if premium and (km is None or not math.isfinite(float(km)) or float(km)<=0):
             return review('Falta una distancia Oracle única y positiva para ' + label.lower() + '.')
-        ratio = 100*premium/((right-left).total_seconds()/60)
+        duration_minutes = (right-left).total_seconds()/60
+        premium = min(premium, duration_minutes)
+        ratio = 100*premium/duration_minutes if duration_minutes else 0
         percent = _round_pay_percent(ratio)
         amount = float(km or 0)*percent/100
         detail.append({'tramo':label,'sucursal':stop.get('sucursal'), 'desde':left.isoformat(),
                        'hasta':right.isoformat(),'km_oracle':km,'porcentaje_real':round(ratio,4),
                        'porcentaje_pago':percent,'km_al_100':round(amount,2)})
-    return {'km_al_100':round(sum(r['km_al_100'] for r in detail),2),'km_revision':'','km_tramos':detail}
+    oracle_total = sum(float(r.get('km_oracle') or 0) for r in detail)
+    oracle_100 = sum(r['km_al_100'] for r in detail)
+    global_percent = _round_pay_percent((oracle_100 * 100 / oracle_total) if oracle_total else 0)
+    return {
+        'km_al_100': round(oracle_100, 2),
+        'km_revision': '',
+        'km_tramos': detail,
+        'km_oracle_al_100': round(oracle_100, 2),
+        'km_oracle_total': round(oracle_total, 2),
+        'porcentaje_global_100': global_percent,
+    }
+
+
+def _apply_excel_km_payment(row: dict[str, Any], payment: dict[str, Any]) -> dict[str, Any]:
+    result = dict(payment)
+    if result.get('km_al_100') is None:
+        return result
+    try:
+        excel_km = float(row.get('cantidad') or 0)
+    except (TypeError, ValueError):
+        excel_km = 0.0
+    oracle_total = float(result.get('km_oracle_total') or 0)
+    oracle_100 = float(result.get('km_oracle_al_100') or result.get('km_al_100') or 0)
+    percent = _round_pay_percent((oracle_100 * 100 / oracle_total) if oracle_total else 0)
+    result['porcentaje_global_100'] = percent
+    result['km_al_100'] = round(excel_km * percent / 100, 2)
+    result['km_base_liquidacion'] = 'excel'
+    return result
 
 
 async def _consolidate_excel_rows(excel_rows: list[dict[str, Any]], oracle_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1066,7 +1106,7 @@ async def _consolidate_excel_rows(excel_rows: list[dict[str, Any]], oracle_rows:
         chosen = next((row for row in normalized if row["legajo"] or row["nombre"] or row["nrodoc"]), {})
         delay = max((row["demora_minutos"] for row in normalized), default=0.0)
         pernocte = bool(salida and vuelta and (vuelta - salida).total_seconds() >= 24 * 3600)
-        payment = _calculate_route_payment(normalized, salida, vuelta, configured)
+        payment = _apply_excel_km_payment(source, _calculate_route_payment(normalized, salida, vuelta, configured))
         complete = bool(raw and salida and vuelta and chosen.get("nombre") and chosen.get("nrodoc"))
         result.append({
             **source,
@@ -1279,7 +1319,7 @@ async def recalcular_excel(req: ExcelRecalcularRequest):
         item["demora_max_minutos"] = round(demora_minutos, 2)
         item["sucursales"] = stops
         if start and end and end > start:
-            payment = _calculate_route_payment(stops, start, end, holidays)
+            payment = _apply_excel_km_payment(item, _calculate_route_payment(stops, start, end, holidays))
             item.update(payment)
             item["pernocte"] = (end - start).total_seconds() >= 24 * 3600
             item["horas_totales_viaje"] = round((end - start).total_seconds() / 3600, 2)
@@ -1333,7 +1373,7 @@ async def exportar_excel(req: ExcelExportRequest):
         route_col = positions.get("Num.Hoj.Ru")
         if not route_col:
             raise ValueError("No existe la columna Num.Hoj.Ru")
-        extra_headers = ["KM al 100", "Pernocte", "Torito", "DNI", "Nombre del chofer", "Día Viaje", "Hoja Física Presente", "Estado cálculo KM 100", "KM Oracle ida", "KM Oracle regreso"]
+        extra_headers = ["KM al 100", "Pernocte", "Torito", "DNI", "Nombre del chofer", "Día Viaje", "Hoja Física Presente", "Estado cálculo KM 100", "KM Oracle ida", "KM Oracle regreso", "% global 100", "KM Oracle al 100", "KM Oracle total"]
         start_col = sheet.max_column + 1
         for offset, header in enumerate(extra_headers):
             sheet.cell(row=1, column=start_col + offset, value=header)
@@ -1360,6 +1400,9 @@ async def exportar_excel(req: ExcelExportRequest):
             for offset, label in ((8,'Ida'),(9,'Regreso')):
                 tramo = next((t for t in row.get('km_tramos',[]) if t.get('tramo')==label),{})
                 sheet.cell(row_number,start_col+offset,value=tramo.get('km_oracle'))
+            sheet.cell(row_number, start_col + 10, value=row.get('porcentaje_global_100'))
+            sheet.cell(row_number, start_col + 11, value=row.get('km_oracle_al_100'))
+            sheet.cell(row_number, start_col + 12, value=row.get('km_oracle_total'))
             for cell in sheet[row_number]:
                 cell.fill = PatternFill('solid', fgColor=color)
         output = io.BytesIO()
@@ -1423,6 +1466,9 @@ async def exportar_viajes_guardados(desde: date, hasta: date, legajo: str = ""):
         "KM Excel",
         "KM Oracle ida",
         "KM Oracle regreso",
+        "% global 100",
+        "KM Oracle al 100",
+        "KM Oracle total",
         "Salida Oracle",
         "Regreso Oracle",
         "Horas totales",
@@ -1453,6 +1499,9 @@ async def exportar_viajes_guardados(desde: date, hasta: date, legajo: str = ""):
             item.get("cantidad"),
             next((t.get("km_oracle") for t in tramos if t.get("tramo") == "Ida"), None),
             next((t.get("km_oracle") for t in tramos if t.get("tramo") == "Regreso"), None),
+            item.get("porcentaje_global_100"),
+            item.get("km_oracle_al_100"),
+            item.get("km_oracle_total"),
             item.get("fesalida", ""),
             item.get("fevuelta", ""),
             item.get("horas_totales_viaje"),

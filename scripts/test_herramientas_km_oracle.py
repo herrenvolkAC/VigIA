@@ -23,20 +23,28 @@ saturday_after_13=[
 ]
 r=calc(saturday_after_13,D(2026,8,29,21,31),D(2026,8,30,14,7),[])
 assert r['km_al_100']==680,r
+assert r['km_tramos'][0]['porcentaje_real']==100,r
 assert r['km_tramos'][0]['porcentaje_pago']==100,r
 assert r['km_tramos'][1]['porcentaje_pago']==100,r
 async def test():
  raw=[{'HOJARUTA':'1967463','SUCURSAL':'118','FESALIDA':start,'FEVUELTA':end,'LLEGADA_SUCURSAL':stops[0]['llegada_sucursal'],'SALIDA_SUCURSAL':stops[0]['salida_sucursal'],'KM_IDA':514,'KM_REGRESO':514,'NOMBRE':'Test','NRODOC':'1'}]
  with patch('routers.herramientas._load_holidays',AsyncMock(return_value=[])):
   rows=await _consolidate_excel_rows([{'hojaruta':'1967463','cantidad':1008,'fecha_viaje':'2026-09-06'}],raw)
-  assert rows[0]['cantidad']==1008 and rows[0]['km_al_100']==257
-  result=await recalcular_excel(ExcelRecalcularRequest(rows=rows));assert result['rows'][0]['km_al_100']==257
+  assert rows[0]['cantidad']==1008 and rows[0]['km_al_100']==252
+  assert rows[0]['km_oracle_al_100']==257 and rows[0]['km_oracle_total']==1028
+  assert rows[0]['porcentaje_global_100']==25
+  result=await recalcular_excel(ExcelRecalcularRequest(rows=rows));assert result['rows'][0]['km_al_100']==252
   multi_row={'hojaruta':'1965921','cantidad':670,'fesalida':'2026-09-05T08:00:00','fevuelta':'2026-09-05T14:00:00','nombre':'Test','nrodoc':'1','sucursales':multi}
   multi_result=await recalcular_excel(ExcelRecalcularRequest(rows=[multi_row]))
-  assert multi_result['rows'][0]['km_al_100']==150,multi_result
+  assert multi_result['rows'][0]['km_al_100']==268,multi_result
   assert multi_result['rows'][0]['demora_max_minutos']==60,multi_result
+  full_row={'hojaruta':'1965910','cantidad':670,'fesalida':'2026-08-29T21:31:00','fevuelta':'2026-08-30T14:07:00','nombre':'Test','nrodoc':'1','sucursales':saturday_after_13}
+  full_result=await recalcular_excel(ExcelRecalcularRequest(rows=[full_row]))
+  assert full_result['rows'][0]['km_al_100']==670,full_result
+  assert full_result['rows'][0]['km_oracle_al_100']==680,full_result
+  assert full_result['rows'][0]['porcentaje_global_100']==100,full_result
   wb=Workbook();wb.active.append(['Num.Hoj.Ru','Fecha viaj','Cantidad']);wb.active.append(['1967463','2026-09-06',1008]);b=io.BytesIO();wb.save(b)
   response=await exportar_excel(ExcelExportRequest(filename='test.xlsx',content_b64=base64.b64encode(b.getvalue()).decode(),rows=rows))
-  content=b''.join([chunk async for chunk in response.body_iterator]);out=load_workbook(io.BytesIO(content));assert out.active['C2'].value==1008;assert out.active['D2'].value==257
- print('OK: Sunday, Saturday multiple stops, clear missing-branch review, per-branch recalculation and original Excel KM preserved')
+  content=b''.join([chunk async for chunk in response.body_iterator]);out=load_workbook(io.BytesIO(content));assert out.active['C2'].value==1008;assert out.active['D2'].value==252
+ print('OK: Oracle proportion, Excel-liquidated KM, multiple stops, review messages and export preserved')
 asyncio.run(test())

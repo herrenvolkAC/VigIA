@@ -334,6 +334,10 @@
           <div class="bar-list value-bars" id="chart-reprints-day"></div>
         </article>
         <article class="chart-panel">
+          <div class="chart-head"><div><strong>Reimpresiones satisfechas por turno</strong><div class="muted">Calculado por fecha de resolucion</div></div><span>Turno</span></div>
+          <div class="bar-list value-bars" id="chart-reprints-shift"></div>
+        </article>
+        <article class="chart-panel">
           <div class="chart-head"><div><strong>Reimpresiones por sector</strong><div class="muted">Cantidad solicitada</div></div><span>Sector</span></div>
           <div class="bar-list value-bars" id="chart-reprints-sector"></div>
         </article>
@@ -567,13 +571,23 @@
 
   <section class="panel" id="panel-historial">
     <div class="filters">
-      <div class="field"><label class="label">Fecha</label><input class="input" id="hist-fecha" type="date"></div>
-      <label class="field"><span class="label">Ubicacion</span><select id="hist-ubicacion"></select></label>
+      <div class="field"><label class="label">Fecha desde</label><input class="input" id="hist-date-from" type="date"></div>
+      <div class="field"><label class="label">Fecha hasta</label><input class="input" id="hist-date-to" type="date"></div>
+      <label class="field"><span class="label">Tipo</span><select id="hist-type"><option value="">Toda actividad</option><option value="PEDIDOS">Pedidos</option><option value="REIMPRESIONES">Reimpresiones</option><option value="PRODUCCION">Produccion</option><option value="STOCK">Stock</option><option value="INVENTARIO">Inventario</option><option value="MERMAS">Mermas</option></select></label>
+      <label class="field"><span class="label">Sector / ubicacion</span><select id="hist-sector"></select></label>
       <label class="field"><span class="label">Turno</span><select id="hist-turno"></select></label>
       <label class="field"><span class="label">Articulo</span><select id="hist-articulo"></select></label>
       <button class="btn primary" id="refresh-history">Consultar</button>
+      <button class="btn" id="export-history" type="button">Exportar Excel</button>
     </div>
-    <div class="table-wrap"><table><thead><tr><th>Fecha hora</th><th>Fecha</th><th>Ubicacion</th><th>Turno</th><th>Codigo</th><th>Unidad stock</th><th class="right">Inicial</th><th class="right">Ingresos</th><th class="right">Final</th><th class="right">Consumo detectado</th><th>Usuario</th></tr></thead><tbody id="inventory-history-body"></tbody></table></div>
+    <div class="mini-kpis">
+      <div class="mini-kpi"><div class="label">Registros</div><div class="kpi-num" id="hist-total">0</div></div>
+      <div class="mini-kpi"><div class="label">Manana</div><div class="kpi-num" id="hist-shift-manana">0</div></div>
+      <div class="mini-kpi"><div class="label">Tarde</div><div class="kpi-num" id="hist-shift-tarde">0</div></div>
+      <div class="mini-kpi"><div class="label">Noche</div><div class="kpi-num" id="hist-shift-noche">0</div></div>
+      <div class="mini-kpi value-card"><div class="label">Reimpresiones</div><div class="kpi-num" id="hist-reprints">0 / 0 res.</div></div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Fecha hora</th><th>Turno</th><th>Tipo</th><th>Evento</th><th>Sector</th><th>Codigo</th><th>Descripcion</th><th>Uso</th><th class="right">Cantidad</th><th>Referencia</th><th>Usuario</th><th>Observacion</th></tr></thead><tbody id="activity-history-body"></tbody></table></div>
   </section>
 
   <section class="panel" id="panel-importacion">
@@ -794,6 +808,7 @@ function renderPedidoIndicators(){
   renderSimpleBars('chart-waste-sector',(pedidoIndicatorData.mermas_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin mermas por sector'});
   renderSimpleBars('chart-waste-plu',(pedidoIndicatorData.mermas_por_plu||[]).map(r=>({label:r.codigo,value:num(r.cantidad),display:`${fmt(r.cantidad)} / ${fmtMoney(r.valor)}`})),{empty:'Sin mermas por PLU'});
   renderSimpleBars('chart-reprints-day',(pedidoIndicatorData.reimpresiones_por_dia||[]).map(r=>({label:r.fecha,value:num(r.cantidad),display:`Cant. ${fmt(r.cantidad)} | Registros ${fmt(r.registros)}`})),{empty:'Sin reimpresiones por dia'});
+  renderSimpleBars('chart-reprints-shift',(pedidoIndicatorData.reimpresiones_por_turno_resolucion||[]).map(r=>({label:r.turno,value:num(r.cantidad),display:`Cant. ${fmt(r.cantidad)} | Registros ${fmt(r.registros)}`})),{empty:'Sin reimpresiones resueltas por turno'});
   renderSimpleBars('chart-reprints-sector',(pedidoIndicatorData.reimpresiones_por_sector||[]).map(r=>({label:r.sector,value:num(r.cantidad),display:`Cant. ${fmt(r.cantidad)} | Registros ${fmt(r.registros)}`})),{empty:'Sin reimpresiones por sector'});
   renderSimpleBars('chart-reprints-plu',(pedidoIndicatorData.reimpresiones_por_plu||[]).map(r=>({label:`${r.codigo} - ${r.uso||'Sin uso'}`,value:num(r.cantidad),display:`Cant. ${fmt(r.cantidad)} | Registros ${fmt(r.registros)}`})),{empty:'Sin reimpresiones por PLU'});
   const recent=pedidoIndicatorData.recientes||[];
@@ -956,6 +971,7 @@ function applyAssignedSector(){
 }
 function setDefaultLocation(selectId, code){const el=$(selectId);const item=(ctx?.ubicaciones||[]).find(x=>String(x.codigo).toUpperCase()===code);if(el&&item)el.value=String(item.id)}
 function turnOptions(empty=''){return `${empty?`<option value="">${esc(empty)}</option>`:''}${(ctx?.turnos||[]).map(x=>`<option value="${esc(x.codigo)}">${esc(x.descripcion||x.codigo)}</option>`).join('')}`}
+function turnLabel(code){const item=(ctx?.turnos||[]).find(x=>String(x.codigo)===String(code));return item?.descripcion||code||'-'}
 function usageOptions(value){return String(value||'').replace(/\r/g,'\n').replace(/[;,]/g,'\n').split('\n').map(x=>x.trim()).filter(Boolean)}
 function canOperate(){return !!ctx?.user?.can_operate}
 function localDateInputValue(date){
@@ -969,6 +985,8 @@ function setDefaultIndicatorDates(){
   const first=new Date(today.getFullYear(),today.getMonth(),1);
   if(!$('indicator-date-from').value)$('indicator-date-from').value=localDateInputValue(first);
   if(!$('indicator-date-to').value)$('indicator-date-to').value=localDateInputValue(today);
+  if($('hist-date-from')&&!$('hist-date-from').value)$('hist-date-from').value=localDateInputValue(first);
+  if($('hist-date-to')&&!$('hist-date-to').value)$('hist-date-to').value=localDateInputValue(today);
 }
 function setDefaultReceivedDates(){
   const today=new Date();
@@ -1017,7 +1035,7 @@ function applyPanolPermissions(){
   if(usersTab)usersTab.classList.toggle('hidden',!ctx?.user?.can_full);
   if(!operate)activateTab('pedido-insumos');
 }
-async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} - ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=requestSectorOptions();$('user-sector-select').innerHTML=requestSectorOptions('Seleccionar sector');$('indicator-sector').innerHTML=requestSectorOptions('Todos');setDefaultReceivedDates();applyPanolPermissions();applyAssignedSector();if(!canOperate())return;setDefaultIndicatorDates();resetArticle();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-ubicacion').innerHTML=locationOptions('Todas');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
+async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} - ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=requestSectorOptions();$('user-sector-select').innerHTML=requestSectorOptions('Seleccionar sector');$('indicator-sector').innerHTML=requestSectorOptions('Todos');setDefaultReceivedDates();applyPanolPermissions();applyAssignedSector();if(!canOperate())return;setDefaultIndicatorDates();resetArticle();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-sector').innerHTML=locationOptions('Todos');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
 async function loadArticles(){const d=await api('/panol-insumos/api/articulos?include_inactive=1');articles=d.items||[];const active=articles.filter(a=>a.activo);$('mov-articulo').innerHTML=optionList(active);$('prod-articulo').innerHTML=optionList(active);$('adj-articulo').innerHTML=optionList(active);$('adj-motivo').innerHTML=productionAdjustReasonOptions();renderProductionUsageSelect();renderAdjustmentUsageSelect();$('deliv-articulo').innerHTML='<option value="">Sin PLU con stock producido</option>';renderDeliveryUsageSelect();$('hist-articulo').innerHTML=optionList(articles,'Todos');$('indicator-plu').innerHTML=optionList(active,'Todos');renderArticles();renderInventoryRows();}
 function renderArticles(){
   $('articles-body').innerHTML=articles.map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.categoria||'')}</td><td>${esc(unitStock(a))}</td><td>${esc(unitProduction(a))}</td><td>${esc(factorLabel(a))}</td><td>${esc(a.uso||'')}</td><td class="right">${fmt(a.stock_minimo)}</td><td class="right">${costLabel(a.costo_unitario)}</td><td>${esc(a.costo_fecha_desde||'-')}</td><td>${a.activo?'Si':'No'}</td><td><button class="btn" data-edit-article="${a.id}">Editar</button></td></tr>`).join('')||'<tr><td colspan="12">Sin articulos.</td></tr>';
@@ -1344,7 +1362,36 @@ async function loadProduction(){
   renderProductionTables();
   initSortableTables();
 }
-async function loadInventoryHistory(){const p=new URLSearchParams();if($('hist-fecha').value)p.set('fecha',$('hist-fecha').value);if($('hist-ubicacion').value)p.set('ubicacion_id',$('hist-ubicacion').value);if($('hist-turno').value)p.set('turno',$('hist-turno').value);if($('hist-articulo').value)p.set('articulo_id',$('hist-articulo').value);const d=await api(`/panol-insumos/api/inventario-turno?${p}`);$('inventory-history-body').innerHTML=(d.items||[]).map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(r.fecha)}</td><td>${esc(r.ubicacion_codigo||'OFICINA_ADO')}</td><td>${esc(r.turno)}</td><td>${esc(r.codigo)}</td><td>${esc(unitStock(r))}</td><td class="right">${r.stock_inicial==null?'-':fmt(r.stock_inicial)}</td><td class="right">${r.ingresos_turno==null?'-':fmt(r.ingresos_turno)}</td><td class="right">${fmt(r.stock_fisico)}</td><td class="right">${r.consumo_calculado==null?'-':fmt(r.consumo_calculado)}</td><td>${esc(r.usuario||'')}</td></tr>`).join('')||'<tr><td colspan="11">Sin inventarios.</td></tr>'}
+async function loadInventoryHistory(){
+  const p=new URLSearchParams();
+  if($('hist-date-from')?.value)p.set('fecha_desde',$('hist-date-from').value);
+  if($('hist-date-to')?.value)p.set('fecha_hasta',$('hist-date-to').value);
+  if($('hist-type')?.value)p.set('tipo',$('hist-type').value);
+  if($('hist-sector')?.value)p.set('sector_id',$('hist-sector').value);
+  if($('hist-turno')?.value)p.set('turno',$('hist-turno').value);
+  if($('hist-articulo')?.value)p.set('articulo_id',$('hist-articulo').value);
+  const d=await api(`/panol-insumos/api/historial/actividad?${p}`);
+  const metrics=d.metrics||{};
+  const shifts=d.por_turno||[];
+  const shift=code=>shifts.find(x=>x.turno===code)||{};
+  $('hist-total').textContent=fmt(metrics.registros);
+  $('hist-shift-manana').textContent=fmt(shift('MANANA').registros||0);
+  $('hist-shift-tarde').textContent=fmt(shift('TARDE').registros||0);
+  $('hist-shift-noche').textContent=fmt(shift('NOCHE').registros||0);
+  $('hist-reprints').textContent=`${fmt(metrics.reimpresiones)} / ${fmt(metrics.reimpresiones_resueltas)} res.`;
+  $('activity-history-body').innerHTML=(d.items||[]).map(r=>`<tr><td>${shortDate(r.fecha_hora)}</td><td>${esc(turnLabel(r.turno))}</td><td>${esc(r.tipo||'')}</td><td>${esc(r.evento||r.estado||'')}</td><td>${esc(r.sector||'')}</td><td>${esc(r.codigo||'')}</td><td>${esc(r.descripcion||'')}</td><td>${esc(r.uso||'-')}</td><td class="right">${fmt(r.cantidad)} ${esc(r.unidad||'')}</td><td>${esc(r.referencia||'')}</td><td>${esc(r.usuario||'')}</td><td>${esc(r.observacion||'')}</td></tr>`).join('')||'<tr><td colspan="12">Sin actividad para los filtros seleccionados.</td></tr>';
+}
+function historyQuery(){
+  const p=new URLSearchParams();
+  if($('hist-date-from')?.value)p.set('fecha_desde',$('hist-date-from').value);
+  if($('hist-date-to')?.value)p.set('fecha_hasta',$('hist-date-to').value);
+  if($('hist-type')?.value)p.set('tipo',$('hist-type').value);
+  if($('hist-sector')?.value)p.set('sector_id',$('hist-sector').value);
+  if($('hist-turno')?.value)p.set('turno',$('hist-turno').value);
+  if($('hist-articulo')?.value)p.set('articulo_id',$('hist-articulo').value);
+  return p;
+}
+function exportHistory(){const q=historyQuery();window.location.href=`/panol-insumos/api/historial/actividad/exportar${q?`?${q}`:''}`}
 function resetArticle(){
   $('article-id').value='';
   $('article-code').value='';
@@ -1505,6 +1552,7 @@ $('inventory-body').addEventListener('keydown',ev=>{
   else{$('save-inventory').focus();}
 });
 $('refresh-history').onclick=()=>loadInventoryHistory().catch(e=>setStatus(e.message,true));
+$('export-history').onclick=exportHistory;
 $('preview-cd').onclick=()=>sendCd(true).catch(e=>setStatus(e.message,true));
 $('import-cd').onclick=()=>sendCd(false).catch(e=>setStatus(e.message,true));
 $('sync-cd-oracle').onclick=()=>syncCdOracle(false).catch(e=>setStatus(e.message,true));

@@ -4888,13 +4888,22 @@ async def get_actividad(
     params.append(limit)
     rows = await _query_rows(
         f"""
-        {_with_consolidated()}
+        {_with_consolidated(_sanciones_hechos_cte())}
         SELECT a.fecha, a.legajo, a.empleado, COALESCE(l.desc_sector_generico, a.sector) sector,
                a.horario, a.horario_teorico, a.ingreso_teorico, a.salida_teorica, a.horas_teoricas,
                a.entrada, a.salida, a.motivo, a.aus_pres_codigo,
                a.ausentismo_clasificacion, a.ausentismo_tratamiento,
                a.hs_trab, a.hs_ext_realiz, a.hs_50_autorizadas, a.hs_100,
-               ROUND(a.tarde * 60, 0) tarde
+               ROUND(a.tarde * 60, 0) tarde,
+               (SELECT GROUP_CONCAT(
+                   COALESCE(h.descripcion, 'Sanción') ||
+                   ' · Creación: ' || COALESCE(h.creacion, 'Sin fecha') ||
+                   ' · ' || COALESCE(h.detalle, '') ||
+                   CASE WHEN h.pendiente_revision = 1 THEN ' · Pendiente de revisión' ELSE '' END ||
+                   CASE WHEN h.observacion <> '' THEN ' · ' || h.observacion ELSE '' END, ' | ')
+                FROM sanciones_hechos h
+                WHERE h.legajo = a.legajo
+                  AND h.fecha_hecho = a.fecha) sanciones_asociadas
         FROM actividad_consolidada a
         LEFT JOIN latest_legajero l ON l.legajo = a.legajo
         WHERE {' AND '.join(where)}
@@ -4955,6 +4964,87 @@ async def get_fichadas(
     return {"rows": rows, "restricted": not _can_see_all(auth)}
 
 
+# La identidad no depende del ID ni del lote, que cambian al reimportar.
+SANCION_IDENTIDAD = ("legajo", "inicio", "fin", "cod", "creacion", "descripcion", "causa_sancion", "descripcion_causa")
+SANCION_SNAPSHOT = (*SANCION_IDENTIDAD, "nombre", "detalle", "desc_unidad_organizativa", "es_gerencia")
+
+
+def _sancion_key(row):
+    values = [str(row.get(field) or "") for field in SANCION_IDENTIDAD]
+    return hashlib.sha256(json.dumps(values, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def _sanciones_hechos_cte():
+    match = " AND ".join(f"COALESCE(s.{field}, '') = COALESCE(json_extract(h.snapshot_json, '$.{field}'), '')" for field in SANCION_IDENTIDAD)
+    source = ", ".join(f"s.{field}" for field in SANCION_SNAPSHOT)
+    saved = ", ".join(f"json_extract(h.snapshot_json, '$.{field}') AS {field}" for field in SANCION_SNAPSHOT)
+    return f"""sanciones_hechos AS (
+        SELECT s.id, {source}, h.sancion_key, h.fecha_hecho, h.observacion,
+               COALESCE(h.version, 0) version, h.updated_by, h.updated_at, 0 pendiente_revision
+        FROM sanciones_consolidadas s LEFT JOIN rrhh_sancion_hechos h ON {match}
+        UNION ALL
+        SELECT NULL id, {saved}, h.sancion_key, h.fecha_hecho, h.observacion,
+               h.version, h.updated_by, h.updated_at, 1 pendiente_revision
+        FROM rrhh_sancion_hechos h
+        WHERE NOT EXISTS (SELECT 1 FROM sanciones_consolidadas s WHERE {match})
+    )"""
+
+
+class SancionHechoRequest(BaseModel):
+    source_id: int | None = None
+    sancion_key: str = ""
+    fecha_hecho: date | None = None
+    observacion: str = ""
+    version: int = 0
+
+
+@router.post("/sanciones/fecha-hecho")
+async def save_sancion_hecho(req: SancionHechoRequest, request: Request):
+    auth = await _require_auth(request)
+    _require_rrhh_write_role(auth)
+    if req.fecha_hecho and req.fecha_hecho > date.today():
+        raise HTTPException(400, "La fecha del hecho no puede ser futura.")
+    if len(req.observacion) > 2000:
+        raise HTTPException(400, "La observación admite hasta 2000 caracteres.")
+    async with aiosqlite.connect(DB_PATH, timeout=30) as db:
+        db.row_factory = aiosqlite.Row
+        await db.execute("BEGIN IMMEDIATE")
+        snapshot = None
+        key = req.sancion_key
+        if req.source_id is not None:
+            async with db.execute("SELECT * FROM rrhh_sanciones WHERE id = ?", (req.source_id,)) as cur:
+                source = await cur.fetchone()
+            if not source:
+                raise HTTPException(409, "La sanción cambió. Actualizá la consulta antes de guardar.")
+            snapshot = {field: dict(source).get(field) for field in SANCION_SNAPSHOT}
+            if key and key != _sancion_key(snapshot):
+                raise HTTPException(409, "La sanción cambió. Actualizá la consulta.")
+            key = _sancion_key(snapshot)
+        async with db.execute("SELECT * FROM rrhh_sancion_hechos WHERE sancion_key = ?", (key,)) as cur:
+            old = await cur.fetchone()
+        if snapshot is None:
+            if not old:
+                raise HTTPException(404, "Sanción no encontrada.")
+            snapshot = json.loads(old["snapshot_json"])
+        if (old["version"] if old else 0) != req.version:
+            raise HTTPException(409, "Otra persona modificó la fecha. Actualizá la consulta.")
+        fecha = req.fecha_hecho.isoformat() if req.fecha_hecho else None
+        user, now = auth.get("username") or "", _now()
+        new = {"fecha_hecho": fecha, "observacion": req.observacion.strip(), "version": req.version + 1}
+        await db.execute("""INSERT INTO rrhh_sancion_hechos
+            (sancion_key, snapshot_json, fecha_hecho, observacion, updated_by, updated_at, version)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(sancion_key) DO UPDATE SET fecha_hecho=excluded.fecha_hecho,
+            observacion=excluded.observacion, updated_by=excluded.updated_by,
+            updated_at=excluded.updated_at, version=excluded.version""",
+            (key, json.dumps(snapshot, ensure_ascii=False), fecha, new["observacion"], user, now, new["version"]))
+        await db.execute("""INSERT INTO rrhh_sancion_hechos_audit
+            (sancion_key, anterior_json, nuevo_json, usuario, fecha) VALUES (?, ?, ?, ?, ?)""",
+            (key, json.dumps(dict(old), ensure_ascii=False) if old else None, json.dumps(new, ensure_ascii=False), user, now))
+        await db.commit()
+    return {"ok": True}
+
+
 @router.get("/sanciones")
 async def get_sanciones(
     request: Request,
@@ -4966,6 +5056,7 @@ async def get_sanciones(
     motivo: str = "ALL",
     persona: str = "",
     solo_reales: bool = False,
+    criterio_fecha: str = "creacion",
     limit: int = Query(200, ge=1, le=1000),
 ):
     auth = await _require_auth(request)
@@ -4974,11 +5065,14 @@ async def get_sanciones(
     motivos_sel = _multi_query_values(request, "motivo", motivo)
     where = [_visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
     params: list[Any] = []
+    if criterio_fecha not in {"creacion", "hecho"}:
+        raise HTTPException(400, "Criterio de fecha inválido.")
+    fecha_expr = "s.fecha_hecho" if criterio_fecha == "hecho" else "COALESCE(s.creacion, s.inicio)"
     if fecha_desde:
-        where.append("COALESCE(s.creacion, s.inicio) >= ?")
+        where.append(f"{fecha_expr} >= ?")
         params.append(fecha_desde)
     if fecha_hasta:
-        where.append("COALESCE(s.creacion, s.inicio) <= ?")
+        where.append(f"{fecha_expr} <= ?")
         params.append(fecha_hasta)
     if solo_reales:
         where.append(f"TRIM(s.descripcion) IN ({', '.join('?' for _ in REAL_SANCIONES)})")
@@ -4994,11 +5088,11 @@ async def get_sanciones(
     params.append(limit)
     rows = await _query_rows(
         f"""
-        {_with_consolidated()}
-        SELECT s.legajo, s.nombre, COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '') sector,
+        {_with_consolidated(_sanciones_hechos_cte())}
+        SELECT s.id source_id, s.sancion_key, s.fecha_hecho, s.observacion, s.version, s.updated_by, s.updated_at, s.pendiente_revision, s.fin, s.legajo, s.nombre, COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '') sector,
                COALESCE(l.desc_funcion, '') cargo, s.inicio, s.creacion, s.cod, s.descripcion,
                s.detalle, s.causa_sancion, s.descripcion_causa
-        FROM sanciones_consolidadas s
+        FROM sanciones_hechos s
         LEFT JOIN latest_legajero l ON l.legajo = s.legajo
         WHERE {' AND '.join(where)}
         ORDER BY COALESCE(s.creacion, s.inicio) DESC, s.legajo
@@ -5006,4 +5100,6 @@ async def get_sanciones(
         """,
         tuple(params),
     )
-    return {"rows": rows, "restricted": not _can_see_all(auth)}
+    for row in rows:
+        row["sancion_key"] = row.get("sancion_key") or _sancion_key(row)
+    return {"rows": rows, "restricted": not _can_see_all(auth), "can_edit": auth.get("role") in FULL_ACCESS_ROLES}

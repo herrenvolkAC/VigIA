@@ -36,6 +36,7 @@ from routers.plantel_operativo import router as plantel_operativo_router
 from routers.gestion_operativa import router as gestion_operativa_router
 from routers.gestion_operativa import start_daily_auto_scheduler, stop_daily_auto_scheduler
 from routers.herramientas import router as herramientas_router
+from routers.horas_extras import init_horas_extras_db, router as horas_extras_router
 from routers.casos import router as casos_router, start_forms_import_monitor, stop_forms_import_monitor
 from routers.recepcion import router as recepcion_router
 from routers.historia_oracle import router as historia_oracle_router
@@ -113,6 +114,7 @@ async def lifespan(app: FastAPI):
     await init_simulador_db()
     await init_premio_productividad_db()
     await init_torre_control_db()
+    await init_horas_extras_db()
     await ensure_bootstrap_admin()
     ensure_usage_events_schema()
     cleanup_old_usage_logs()
@@ -163,6 +165,7 @@ app.include_router(productividad_analisis_router)
 app.include_router(plantel_operativo_router)
 app.include_router(gestion_operativa_router)
 app.include_router(herramientas_router)
+app.include_router(horas_extras_router)
 app.include_router(casos_router)
 app.include_router(recepcion_router)
 app.include_router(historia_oracle_router)
@@ -219,6 +222,8 @@ PROTECTED_PAGE_PATHS = {
     "/checklist-tareas.html",
     "/herramientas",
     "/herramientas.html",
+    "/horas-extras",
+    "/horas-extras.html",
 }
 PROTECTED_API_PREFIXES = (
     "/api/productividad/tnc",
@@ -235,6 +240,7 @@ PROTECTED_API_PREFIXES = (
     "/api/monitor-cargas",
     "/api/checklist-tareas",
     "/api/herramientas",
+    "/api/horas-extras",
 )
 ADMIN_PAGE_PATHS = {
     "/admin/dispositivos",
@@ -289,6 +295,8 @@ PAGE_MODULES = {
     "/checklist-tareas.html": "checklist_tareas",
     "/herramientas": "generales",
     "/herramientas.html": "generales",
+    "/horas-extras": "horas_extras",
+    "/horas-extras.html": "horas_extras",
     "/reposicion": "reposicion",
     "/reposicion.html": "reposicion",
     "/recepcion": "recepcion",
@@ -313,6 +321,7 @@ API_MODULE_PREFIXES = (
     ("/api/opex/torre-control", "opex"),
     ("/api/checklist-tareas", "checklist_tareas"),
     ("/api/herramientas", "generales"),
+    ("/api/horas-extras", "horas_extras"),
 )
 
 
@@ -550,6 +559,14 @@ async def page_checklist_tareas():
 async def page_herramientas():
     return FileResponse(
         STATIC_DIR / "herramientas.html",
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
+
+@app.get("/horas-extras.html", include_in_schema=False)
+@app.get("/horas-extras",      include_in_schema=False)
+async def page_horas_extras():
+    return FileResponse(
+        STATIC_DIR / "horas_extras.html",
         headers={"Cache-Control": "no-store, max-age=0"},
     )
 

@@ -1651,6 +1651,21 @@ async def supply_order_indicators(
         reprint_where.append("r.sector_id = ?")
         reprint_args.append(sector_id)
     reprint_clause = "WHERE " + " AND ".join(reprint_where) if reprint_where else ""
+    reprint_resolution_where = ["r.estado = 'RESUELTO'", "r.fecha_resolucion IS NOT NULL"]
+    reprint_resolution_args: list[Any] = []
+    if fecha_desde:
+        reprint_resolution_where.append("r.fecha_resolucion >= ?")
+        reprint_resolution_args.append(f"{fecha_desde} 00:00:00")
+    if fecha_hasta:
+        reprint_resolution_where.append("r.fecha_resolucion <= ?")
+        reprint_resolution_args.append(f"{fecha_hasta} 23:59:59")
+    if articulo_id:
+        reprint_resolution_where.append("r.articulo_id = ?")
+        reprint_resolution_args.append(articulo_id)
+    if sector_id:
+        reprint_resolution_where.append("r.sector_id = ?")
+        reprint_resolution_args.append(sector_id)
+    reprint_resolution_clause = "WHERE " + " AND ".join(reprint_resolution_where)
     order_cost = _cost_at_sql("i.articulo_id", "COALESCE(p.fecha_confirmacion, p.fecha_solicitud)")
     waste_cost = _cost_at_sql("m.articulo_id", "m.fecha_hora")
     requested_value_qty = """
@@ -1845,6 +1860,36 @@ async def supply_order_indicators(
             """,
             tuple(reprint_args),
         )
+        reprints_by_shift = await _fetch_rows(
+            db,
+            f"""
+            SELECT turno,
+                   COUNT(*) AS registros,
+                   COALESCE(SUM(cantidad), 0) AS cantidad
+            FROM (
+                SELECT r.cantidad,
+                       CASE
+                           WHEN CAST(strftime('%H', r.fecha_resolucion) AS INTEGER) >= 6
+                            AND CAST(strftime('%H', r.fecha_resolucion) AS INTEGER) < 14 THEN 'Mañana (6-14)'
+                           WHEN CAST(strftime('%H', r.fecha_resolucion) AS INTEGER) >= 14
+                            AND CAST(strftime('%H', r.fecha_resolucion) AS INTEGER) < 22 THEN 'Tarde (14-22)'
+                           ELSE 'Noche (22-6)'
+                       END AS turno,
+                       CASE
+                           WHEN CAST(strftime('%H', r.fecha_resolucion) AS INTEGER) >= 6
+                            AND CAST(strftime('%H', r.fecha_resolucion) AS INTEGER) < 14 THEN 1
+                           WHEN CAST(strftime('%H', r.fecha_resolucion) AS INTEGER) >= 14
+                            AND CAST(strftime('%H', r.fecha_resolucion) AS INTEGER) < 22 THEN 2
+                           ELSE 3
+                       END AS orden
+                FROM pedidos_reimpresiones r
+                {reprint_resolution_clause}
+            )
+            GROUP BY turno, orden
+            ORDER BY orden
+            """,
+            tuple(reprint_resolution_args),
+        )
         recent = await _fetch_rows(
             db,
             f"""
@@ -1886,8 +1931,448 @@ async def supply_order_indicators(
         "reimpresiones_por_dia": reprints_by_day,
         "reimpresiones_por_sector": reprints_by_sector,
         "reimpresiones_por_plu": reprints_by_plu,
+        "reimpresiones_por_turno_resolucion": reprints_by_shift,
         "recientes": recent,
     }
+
+
+@router.get("/historial/actividad")
+async def activity_history(
+    request: Request,
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    turno: str = Query(""),
+    tipo: str = Query(""),
+    sector_id: int | None = Query(None),
+    articulo_id: int | None = Query(None),
+):
+    await _require_panol_operator(request)
+    clean_tipo = _norm_code(tipo)
+    clean_turno = _norm_code(turno)
+    allowed_types = {"", "PEDIDOS", "REIMPRESIONES", "PRODUCCION", "STOCK", "INVENTARIO", "MERMAS"}
+    if clean_tipo not in allowed_types:
+        raise HTTPException(status_code=400, detail="Tipo de actividad invalido.")
+    if clean_turno and clean_turno not in {"MANANA", "TARDE", "NOCHE"}:
+        raise HTTPException(status_code=400, detail="Turno invalido.")
+
+    start = f"{fecha_desde} 00:00:00" if fecha_desde else ""
+    end = f"{fecha_hasta} 23:59:59" if fecha_hasta else ""
+
+    def add_date_filter(where: list[str], args: list[Any], field: str) -> None:
+        if start:
+            where.append(f"{field} >= ?")
+            args.append(start)
+        if end:
+            where.append(f"{field} <= ?")
+            args.append(end)
+
+    def build_clause(where: list[str]) -> str:
+        return "WHERE " + " AND ".join(where) if where else ""
+
+    def include(name: str) -> bool:
+        return not clean_tipo or clean_tipo == name
+
+    items: list[dict[str, Any]] = []
+
+    def append_activity(row: dict[str, Any], activity_type: str) -> None:
+        fecha_hora = row.get("fecha_hora") or ""
+        row_turno = _norm_code(row.get("turno")) or _turno_por_hora(fecha_hora or None)
+        if clean_turno and row_turno != clean_turno:
+            return
+        items.append(
+            {
+                "fecha_hora": fecha_hora,
+                "turno": row_turno,
+                "tipo": activity_type,
+                "evento": row.get("evento") or row.get("estado") or "",
+                "estado": row.get("estado") or "",
+                "sector": row.get("sector") or "",
+                "codigo": row.get("codigo") or "",
+                "descripcion": row.get("descripcion") or "",
+                "uso": row.get("uso") or "",
+                "cantidad": float(row.get("cantidad") or 0),
+                "unidad": row.get("unidad") or "",
+                "referencia": row.get("referencia") or "",
+                "usuario": row.get("usuario") or "",
+                "observacion": row.get("observacion") or "",
+            }
+        )
+
+    async with panol_db() as db:
+        if include("PEDIDOS"):
+            event_date = "COALESCE(p.fecha_confirmacion, p.fecha_solicitud)"
+            where: list[str] = []
+            args: list[Any] = []
+            add_date_filter(where, args, event_date)
+            if sector_id:
+                where.append("p.sector_id = ?")
+                args.append(sector_id)
+            if articulo_id:
+                where.append("i.articulo_id = ?")
+                args.append(articulo_id)
+            rows = await _fetch_rows(
+                db,
+                f"""
+                SELECT {event_date} AS fecha_hora,
+                       p.estado,
+                       CASE WHEN p.estado = 'PENDIENTE' THEN 'Solicitud' ELSE 'Cierre' END AS evento,
+                       u.codigo AS sector,
+                       a.codigo,
+                       a.descripcion,
+                       COALESCE(NULLIF(i.uso_entrega, ''), NULLIF(i.uso_solicitado, ''), '') AS uso,
+                       CASE
+                           WHEN p.estado IN ('CONFIRMADO', 'CONFIRMADO_PARCIAL')
+                           THEN i.cantidad_insumo_confirmada + i.cantidad_produccion_confirmada
+                           ELSE i.cantidad_insumo_solicitada + i.cantidad_produccion_solicitada
+                       END AS cantidad,
+                       CASE
+                           WHEN i.cantidad_insumo_solicitada > 0 AND i.cantidad_produccion_solicitada > 0 THEN 'INS/PROD'
+                           WHEN i.cantidad_produccion_solicitada > 0 THEN COALESCE(a.unidad_produccion, a.unidad, 'UN')
+                           ELSE COALESCE(a.unidad_stock, a.unidad, 'UN')
+                       END AS unidad,
+                       '#' || p.id AS referencia,
+                       COALESCE(p.usuario_confirma, p.usuario_solicita, '') AS usuario,
+                       COALESCE(NULLIF(p.observacion_confirmacion, ''), p.observacion_solicitud, '') AS observacion
+                FROM pedidos_insumos p
+                JOIN pedidos_insumos_items i ON i.pedido_id = p.id
+                JOIN articulos a ON a.id = i.articulo_id
+                JOIN ubicaciones u ON u.id = p.sector_id
+                {build_clause(where)}
+                ORDER BY fecha_hora DESC, p.id DESC, i.id DESC
+                LIMIT 600
+                """,
+                tuple(args),
+            )
+            for row in rows:
+                append_activity(row, "PEDIDO")
+
+        if include("REIMPRESIONES"):
+            event_date = """
+                COALESCE(
+                    CASE WHEN r.estado IN ('RESUELTO', 'CANCELADO') AND r.fecha_resolucion IS NOT NULL THEN r.fecha_resolucion END,
+                    r.fecha_solicitud
+                )
+            """
+            where = []
+            args = []
+            add_date_filter(where, args, event_date)
+            if sector_id:
+                where.append("r.sector_id = ?")
+                args.append(sector_id)
+            if articulo_id:
+                where.append("r.articulo_id = ?")
+                args.append(articulo_id)
+            rows = await _fetch_rows(
+                db,
+                f"""
+                SELECT {event_date} AS fecha_hora,
+                       r.estado,
+                       CASE WHEN r.estado IN ('RESUELTO', 'CANCELADO') THEN 'Cierre' ELSE 'Solicitud' END AS evento,
+                       u.codigo AS sector,
+                       a.codigo,
+                       a.descripcion,
+                       r.uso,
+                       r.cantidad,
+                       COALESCE(a.unidad_produccion, a.unidad, 'UN') AS unidad,
+                       'Pallet ' || r.identificador || ' / #' || r.id AS referencia,
+                       COALESCE(r.usuario_resuelve, r.usuario_solicita, '') AS usuario,
+                       COALESCE(NULLIF(r.observacion_resolucion, ''), r.observacion, '') AS observacion
+                FROM pedidos_reimpresiones r
+                JOIN articulos a ON a.id = r.articulo_id
+                JOIN ubicaciones u ON u.id = r.sector_id
+                {build_clause(where)}
+                ORDER BY fecha_hora DESC, r.id DESC
+                LIMIT 600
+                """,
+                tuple(args),
+            )
+            for row in rows:
+                append_activity(row, "REIMPRESION")
+
+        if include("PRODUCCION"):
+            where = []
+            args = []
+            add_date_filter(where, args, "pm.fecha_hora")
+            if sector_id:
+                where.append("pm.ubicacion_destino_id = ?")
+                args.append(sector_id)
+            if articulo_id:
+                where.append("pm.articulo_id = ?")
+                args.append(articulo_id)
+            rows = await _fetch_rows(
+                db,
+                f"""
+                SELECT pm.fecha_hora,
+                       pm.turno,
+                       pm.tipo AS estado,
+                       pm.tipo AS evento,
+                       COALESCE(u.codigo, '') AS sector,
+                       a.codigo,
+                       a.descripcion,
+                       pm.uso_produccion AS uso,
+                       pm.cantidad,
+                       COALESCE(a.unidad_produccion, a.unidad, 'UN') AS unidad,
+                       COALESCE(u.codigo, '') AS referencia,
+                       pm.usuario,
+                       pm.observacion
+                FROM produccion_movimientos pm
+                JOIN articulos a ON a.id = pm.articulo_id
+                LEFT JOIN ubicaciones u ON u.id = pm.ubicacion_destino_id
+                {build_clause(where)}
+                ORDER BY pm.fecha_hora DESC, pm.id DESC
+                LIMIT 600
+                """,
+                tuple(args),
+            )
+            for row in rows:
+                append_activity(row, "PRODUCCION")
+
+        if include("STOCK"):
+            where = []
+            args = []
+            add_date_filter(where, args, "m.fecha_hora")
+            if sector_id:
+                where.append("(m.ubicacion_origen_id = ? OR m.ubicacion_destino_id = ?)")
+                args.extend([sector_id, sector_id])
+            if articulo_id:
+                where.append("m.articulo_id = ?")
+                args.append(articulo_id)
+            rows = await _fetch_rows(
+                db,
+                f"""
+                SELECT m.fecha_hora,
+                       m.tipo AS estado,
+                       m.tipo AS evento,
+                       COALESCE(ud.codigo, uo.codigo, '') AS sector,
+                       a.codigo,
+                       a.descripcion,
+                       '' AS uso,
+                       m.cantidad,
+                       COALESCE(a.unidad_stock, a.unidad, 'UN') AS unidad,
+                       COALESCE(uo.codigo, '-') || ' -> ' || COALESCE(ud.codigo, '-') AS referencia,
+                       m.usuario,
+                       m.observacion
+                FROM movimientos m
+                JOIN articulos a ON a.id = m.articulo_id
+                LEFT JOIN ubicaciones uo ON uo.id = m.ubicacion_origen_id
+                LEFT JOIN ubicaciones ud ON ud.id = m.ubicacion_destino_id
+                {build_clause(where)}
+                ORDER BY m.fecha_hora DESC, m.id DESC
+                LIMIT 600
+                """,
+                tuple(args),
+            )
+            for row in rows:
+                append_activity(row, "STOCK")
+
+        if include("INVENTARIO"):
+            where = []
+            args = []
+            add_date_filter(where, args, "i.fecha_hora")
+            if sector_id:
+                where.append("i.ubicacion_id = ?")
+                args.append(sector_id)
+            if articulo_id:
+                where.append("i.articulo_id = ?")
+                args.append(articulo_id)
+            rows = await _fetch_rows(
+                db,
+                f"""
+                SELECT i.fecha_hora,
+                       i.turno,
+                       'Inventario' AS estado,
+                       'Conteo' AS evento,
+                       COALESCE(u.codigo, '') AS sector,
+                       a.codigo,
+                       a.descripcion,
+                       '' AS uso,
+                       i.stock_fisico AS cantidad,
+                       COALESCE(a.unidad_stock, a.unidad, 'UN') AS unidad,
+                       CASE
+                           WHEN c.consumo_calculado IS NOT NULL THEN 'Consumo ' || ROUND(c.consumo_calculado, 3)
+                           ELSE ''
+                       END AS referencia,
+                       i.usuario,
+                       i.observacion
+                FROM inventario_turno i
+                JOIN articulos a ON a.id = i.articulo_id
+                LEFT JOIN ubicaciones u ON u.id = i.ubicacion_id
+                LEFT JOIN consumos_calculados c ON c.inventario_id = i.id
+                {build_clause(where)}
+                ORDER BY i.fecha_hora DESC, i.id DESC
+                LIMIT 600
+                """,
+                tuple(args),
+            )
+            for row in rows:
+                append_activity(row, "INVENTARIO")
+
+        if include("MERMAS"):
+            where = []
+            args = []
+            add_date_filter(where, args, "m.fecha_hora")
+            if sector_id:
+                where.append("m.sector_id = ?")
+                args.append(sector_id)
+            if articulo_id:
+                where.append("m.articulo_id = ?")
+                args.append(articulo_id)
+            rows = await _fetch_rows(
+                db,
+                f"""
+                SELECT m.fecha_hora,
+                       m.tipo AS estado,
+                       m.motivo AS evento,
+                       u.codigo AS sector,
+                       a.codigo,
+                       a.descripcion,
+                       '' AS uso,
+                       m.cantidad,
+                       CASE WHEN m.tipo = 'PRODUCCION' THEN COALESCE(a.unidad_produccion, a.unidad, 'UN')
+                            ELSE COALESCE(a.unidad_stock, a.unidad, 'UN') END AS unidad,
+                       CASE WHEN m.pedido_id IS NOT NULL THEN 'Pedido #' || m.pedido_id ELSE '' END AS referencia,
+                       m.usuario,
+                       m.observacion
+                FROM mermas_insumos m
+                JOIN articulos a ON a.id = m.articulo_id
+                JOIN ubicaciones u ON u.id = m.sector_id
+                {build_clause(where)}
+                ORDER BY m.fecha_hora DESC, m.id DESC
+                LIMIT 600
+                """,
+                tuple(args),
+            )
+            for row in rows:
+                row["evento"] = MERMA_REASONS.get(str(row.get("evento") or ""), str(row.get("evento") or ""))
+                append_activity(row, "MERMA")
+
+    items.sort(key=lambda row: str(row.get("fecha_hora") or ""), reverse=True)
+    items = items[:500]
+    shift_order = ["MANANA", "TARDE", "NOCHE"]
+    by_shift = {
+        shift: {
+            "turno": shift,
+            "registros": 0,
+            "cantidad": 0.0,
+            "reimpresiones": 0,
+            "reimpresiones_cantidad": 0.0,
+        }
+        for shift in shift_order
+    }
+    for item in items:
+        bucket = by_shift.get(str(item.get("turno") or ""))
+        if not bucket:
+            continue
+        quantity = float(item.get("cantidad") or 0)
+        bucket["registros"] += 1
+        bucket["cantidad"] += quantity
+        if item.get("tipo") == "REIMPRESION":
+            bucket["reimpresiones"] += 1
+            bucket["reimpresiones_cantidad"] += quantity
+
+    return {
+        "items": items,
+        "metrics": {
+            "registros": len(items),
+            "cantidad": sum(float(item.get("cantidad") or 0) for item in items),
+            "reimpresiones": sum(1 for item in items if item.get("tipo") == "REIMPRESION"),
+            "reimpresiones_resueltas": sum(
+                1 for item in items if item.get("tipo") == "REIMPRESION" and item.get("estado") == "RESUELTO"
+            ),
+        },
+        "por_turno": [by_shift[shift] for shift in shift_order],
+    }
+
+
+@router.get("/historial/actividad/exportar")
+async def export_activity_history(
+    request: Request,
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+    turno: str = Query(""),
+    tipo: str = Query(""),
+    sector_id: int | None = Query(None),
+    articulo_id: int | None = Query(None),
+):
+    data = await activity_history(
+        request,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        turno=turno,
+        tipo=tipo,
+        sector_id=sector_id,
+        articulo_id=articulo_id,
+    )
+    turn_labels = {
+        "MANANA": "Manana (6-14)",
+        "TARDE": "Tarde (14-22)",
+        "NOCHE": "Noche (22-6)",
+    }
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Actividad"
+    ws.append(["Fecha desde", fecha_desde or "Inicio", "Fecha hasta", fecha_hasta or "Actual", "Turno", turn_labels.get(_norm_code(turno), turno or "Todos")])
+    ws.append(["Tipo", _norm_code(tipo) or "Todos", "Sector ID", sector_id or "Todos", "Articulo ID", articulo_id or "Todos"])
+    ws.append([])
+    ws.append(["Fecha hora", "Turno", "Tipo", "Evento", "Estado", "Sector", "PLU", "Descripcion", "Uso", "Cantidad", "Unidad", "Referencia", "Usuario", "Observacion"])
+    for row in data.get("items", []):
+        ws.append(
+            [
+                row.get("fecha_hora"),
+                turn_labels.get(str(row.get("turno") or ""), row.get("turno") or ""),
+                row.get("tipo"),
+                row.get("evento"),
+                row.get("estado"),
+                row.get("sector"),
+                row.get("codigo"),
+                row.get("descripcion"),
+                row.get("uso"),
+                float(row.get("cantidad") or 0),
+                row.get("unidad"),
+                row.get("referencia"),
+                row.get("usuario"),
+                row.get("observacion"),
+            ]
+        )
+
+    summary = wb.create_sheet("Resumen")
+    metrics = data.get("metrics", {})
+    summary.append(["Indicador", "Valor"])
+    summary.append(["Registros", int(metrics.get("registros") or 0)])
+    summary.append(["Cantidad total", float(metrics.get("cantidad") or 0)])
+    summary.append(["Reimpresiones", int(metrics.get("reimpresiones") or 0)])
+    summary.append(["Reimpresiones resueltas", int(metrics.get("reimpresiones_resueltas") or 0)])
+    summary.append([])
+    summary.append(["Turno", "Registros", "Cantidad", "Reimpresiones", "Cantidad reimpresiones"])
+    for row in data.get("por_turno", []):
+        summary.append(
+            [
+                turn_labels.get(str(row.get("turno") or ""), row.get("turno") or ""),
+                int(row.get("registros") or 0),
+                float(row.get("cantidad") or 0),
+                int(row.get("reimpresiones") or 0),
+                float(row.get("reimpresiones_cantidad") or 0),
+            ]
+        )
+
+    for sheet in (ws, summary):
+        for column_cells in sheet.columns:
+            max_len = max(len(str(cell.value or "")) for cell in column_cells)
+            sheet.column_dimensions[column_cells[0].column_letter].width = min(max(max_len + 2, 12), 54)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    suffix = f"_{fecha_desde or 'inicio'}_{fecha_hasta or 'actual'}"
+    if _norm_code(tipo):
+        suffix += f"_{_norm_code(tipo).lower()}"
+    if _norm_code(turno):
+        suffix += f"_{_norm_code(turno).lower()}"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=panol_historial_actividad{suffix}.xlsx"},
+    )
 
 
 @router.post("/pedidos/{pedido_id}/confirmar")
