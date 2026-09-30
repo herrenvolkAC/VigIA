@@ -319,7 +319,7 @@ RACK_STATES = [
     ("PENDIENTE_VALIDACION", "Pendiente Validacion", "ADO", 20, 1, 0),
     ("REQUIERE_CORRECCION", "Requiere Correccion", "OPERACION", 30, 0, 0),
     ("PENDIENTE_TRASPASOS", "Pendiente Generar Traspasos", "MAPA_ALMACEN", 40, 0, 0),
-    ("TRASPASOS_ASIGNADOS", "Traspasos Finalizados", "MAPA_ALMACEN", 50, 0, 0),
+    ("TRASPASOS_ASIGNADOS", "Traspasos Generados", "MAPA_ALMACEN", 50, 0, 0),
     ("POSICION_BLOQUEADA", "Posicion Bloqueada", "MANTENIMIENTO", 70, 0, 0),
     ("EN_REPARACION", "En Reparacion", "MANTENIMIENTO", 80, 0, 0),
     ("REPARADO", "Reparado", "MAPA_ALMACEN", 90, 0, 0),

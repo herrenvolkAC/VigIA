@@ -136,6 +136,25 @@ async def init_horas_extras_db() -> None:
         await db.execute("PRAGMA busy_timeout = 10000")
         await db.execute("PRAGMA journal_mode = WAL")
         await db.executescript(SCHEMA)
+        # Repair unassigned branches only when the sector has one active manager.
+        await db.execute("""
+            UPDATE he_responsables_sector AS orphan
+            SET gerente_username = (
+                SELECT MAX(gerente_username) FROM he_responsables_sector
+                WHERE sector=orphan.sector AND activo=1
+                  AND TRIM(COALESCE(gerente_username, ''))<>''
+            )
+            WHERE TRIM(COALESCE(orphan.gerente_username, ''))=''
+              AND (SELECT COUNT(DISTINCT gerente_username)
+                   FROM he_responsables_sector WHERE sector=orphan.sector AND activo=1
+                   AND TRIM(COALESCE(gerente_username, ''))<>'')=1
+              AND NOT EXISTS (
+                  SELECT 1 FROM he_responsables_sector assigned
+                  WHERE assigned.sector=orphan.sector
+                    AND COALESCE(assigned.jefe_username,'')=COALESCE(orphan.jefe_username,'')
+                    AND TRIM(COALESCE(assigned.gerente_username,''))<>''
+              )
+        """)
         await db.commit()
 
 
@@ -520,6 +539,23 @@ async def guardar_responsable(request: Request, payload: ResponsableRequest):
         raise HTTPException(403, "Requiere perfil RRHH o administrador.")
     await init_horas_extras_db()
     async with aiosqlite.connect(HORAS_EXTRAS_DB_PATH) as db:
+        await db.execute("BEGIN IMMEDIATE")
+        sector = payload.sector.strip()
+        manager = (payload.gerente_username or "").strip()
+        async with db.execute(
+            "SELECT DISTINCT gerente_username FROM he_responsables_sector "
+            "WHERE sector=? AND activo=1 AND TRIM(COALESCE(gerente_username,''))<>''",
+            (sector,),
+        ) as cur:
+            managers = [row[0] for row in await cur.fetchall()]
+        if len(managers) == 1:
+            if manager and manager != managers[0]:
+                raise HTTPException(409, "El sector ya tiene un gerente asignado. Los nuevos jefes deben depender de ese gerente.")
+            manager = managers[0]
+        elif not manager and len(managers) > 1:
+            raise HTTPException(409, "El sector tiene varios gerentes configurados. Seleccione el gerente correspondiente.")
+        if not manager:
+            raise HTTPException(422, "Asigne un gerente al sector antes de agregar jefes.")
         await db.execute(
             """
             INSERT INTO he_responsables_sector
@@ -534,7 +570,7 @@ async def guardar_responsable(request: Request, payload: ResponsableRequest):
             (
                 payload.sector.strip(),
                 (payload.jefe_username or "").strip() or None,
-                (payload.gerente_username or "").strip() or None,
+                manager,
                 1 if payload.activo else 0,
                 payload.vigencia_desde.isoformat() if payload.vigencia_desde else None,
                 payload.vigencia_hasta.isoformat() if payload.vigencia_hasta else None,

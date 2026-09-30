@@ -1029,6 +1029,16 @@ async def _rack_groups_summary(db: aiosqlite.Connection, groups: list[dict[str, 
     return " | ".join(summaries)
 
 
+def _is_flow_rack_type(tipo_rack: Any) -> bool:
+    return "FLOW" in str(tipo_rack or "").strip().upper()
+
+
+def _rack_wms_chuecopas(ubicaciones: list[str], niveles: list[str], tipo_rack: Any) -> list[str]:
+    if _is_flow_rack_type(tipo_rack):
+        return ubicaciones
+    return [f"{ubicacion}{nivel}" for ubicacion in ubicaciones for nivel in niveles]
+
+
 async def _active_service_locations(db: aiosqlite.Connection) -> list[dict[str, Any]]:
     rows = await _fetch_all(
         db,
@@ -1042,6 +1052,7 @@ async def _active_service_locations(db: aiosqlite.Connection) -> list[dict[str, 
             e.codigo estado_codigo,
             e.nombre estado,
             d.service_externo_id,
+            rt.nombre tipo_rack,
             g.zona_text,
             g.pasillo,
             g.ubicaciones,
@@ -1052,6 +1063,7 @@ async def _active_service_locations(db: aiosqlite.Connection) -> list[dict[str, 
         JOIN ticket_rack_detalle d ON d.ticket_id=t.id
         JOIN ticket_rack_ubicacion_grupo g ON g.ticket_id=t.id AND g.activo=1
         LEFT JOIN rack_cara rc ON rc.id=g.cara_id
+        LEFT JOIN rack_tipo rt ON rt.id=d.tipo_rack_id
         WHERE t.activo=1 AND e.es_final=0
         ORDER BY t.fecha_ultima_actualizacion DESC, t.id DESC, g.orden
         """,
@@ -1078,26 +1090,24 @@ async def _active_service_locations(db: aiosqlite.Connection) -> list[dict[str, 
                 niveles.append(nivel_map.get(int(text_id), text_id.upper()))
             except ValueError:
                 niveles.append(text_id.upper())
-        for ubicacion in ubicaciones:
-            for nivel in niveles:
-                chuecopa = f"{ubicacion}{nivel}"
-                locations.append(
-                    {
-                        "key": _position_key(zona, pasillo_cara, chuecopa),
-                        "posicion": _position_label(zona, pasillo_cara, chuecopa),
-                        "czonalma": zona,
-                        "cpasillo": pasillo_cara,
-                        "chuecopa": chuecopa,
-                        "ticket_id": row["ticket_id"],
-                        "codigo_visible": row["codigo_visible"],
-                        "estado": row["estado"],
-                        "estado_codigo": row["estado_codigo"],
-                        "service_externo_id": row.get("service_externo_id") or "",
-                        "titulo": row["titulo"],
-                        "fecha_creacion": row["fecha_creacion"],
-                        "fecha_ultima_actualizacion": row["fecha_ultima_actualizacion"],
-                    }
-                )
+        for chuecopa in _rack_wms_chuecopas(ubicaciones, niveles, row.get("tipo_rack")):
+            locations.append(
+                {
+                    "key": _position_key(zona, pasillo_cara, chuecopa),
+                    "posicion": _position_label(zona, pasillo_cara, chuecopa),
+                    "czonalma": zona,
+                    "cpasillo": pasillo_cara,
+                    "chuecopa": chuecopa,
+                    "ticket_id": row["ticket_id"],
+                    "codigo_visible": row["codigo_visible"],
+                    "estado": row["estado"],
+                    "estado_codigo": row["estado_codigo"],
+                    "service_externo_id": row.get("service_externo_id") or "",
+                    "titulo": row["titulo"],
+                    "fecha_creacion": row["fecha_creacion"],
+                    "fecha_ultima_actualizacion": row["fecha_ultima_actualizacion"],
+                }
+            )
     return locations
 
 
@@ -1170,29 +1180,28 @@ async def _release_pending_locations(db: aiosqlite.Connection) -> list[dict[str,
                 niveles.append(nivel_map.get(int(text_id), text_id.upper()))
             except ValueError:
                 niveles.append(text_id.upper())
-        for ubicacion in _split_position_parts(row.get("ubicaciones")):
-            for nivel in niveles:
-                chuecopa = f"{ubicacion}{nivel}"
-                locations.append(
-                    {
-                        "key": _position_key(zona, pasillo_cara, chuecopa),
-                        "posicion": _position_label(zona, pasillo_cara, chuecopa),
-                        "czonalma": zona,
-                        "cpasillo": pasillo_cara,
-                        "chuecopa": chuecopa,
-                        "ticket_id": row["ticket_id"],
-                        "codigo_visible": row["codigo_visible"],
-                        "estado": row["estado"],
-                        "estado_codigo": row["estado_codigo"],
-                        "service_externo_id": row.get("service_externo_id") or "",
-                        "motivo_service": motivo_service,
-                        "titulo": row["titulo"],
-                        "mantenimiento_usuario": row.get("mantenimiento_usuario") or "",
-                        "mantenimiento_fecha": row.get("mantenimiento_fecha") or "",
-                        "fecha_creacion": row["fecha_creacion"],
-                        "fecha_ultima_actualizacion": row["fecha_ultima_actualizacion"],
-                    }
-                )
+        ubicaciones = _split_position_parts(row.get("ubicaciones"))
+        for chuecopa in _rack_wms_chuecopas(ubicaciones, niveles, row.get("tipo_rack")):
+            locations.append(
+                {
+                    "key": _position_key(zona, pasillo_cara, chuecopa),
+                    "posicion": _position_label(zona, pasillo_cara, chuecopa),
+                    "czonalma": zona,
+                    "cpasillo": pasillo_cara,
+                    "chuecopa": chuecopa,
+                    "ticket_id": row["ticket_id"],
+                    "codigo_visible": row["codigo_visible"],
+                    "estado": row["estado"],
+                    "estado_codigo": row["estado_codigo"],
+                    "service_externo_id": row.get("service_externo_id") or "",
+                    "motivo_service": motivo_service,
+                    "titulo": row["titulo"],
+                    "mantenimiento_usuario": row.get("mantenimiento_usuario") or "",
+                    "mantenimiento_fecha": row.get("mantenimiento_fecha") or "",
+                    "fecha_creacion": row["fecha_creacion"],
+                    "fecha_ultima_actualizacion": row["fecha_ultima_actualizacion"],
+                }
+            )
     return locations
 
 
@@ -1248,7 +1257,7 @@ async def _apply_rack_transition_payload(
             """,
             (traspasos, auth["username"], now, ticket["id"]),
         )
-        notes.append(f"Observacion traspasos WMS: {traspasos}" if traspasos else "Traspasos WMS finalizados")
+        notes.append(f"Observacion traspasos WMS: {traspasos}" if traspasos else "Traspasos WMS generados")
 
     if current == "TRASPASOS_ASIGNADOS" and destino == "POSICION_BLOQUEADA":
         if not req.vaciado_confirmado:
@@ -2415,6 +2424,7 @@ async def listar(
     service_externo: str = "",
     ubicacion: str = "",
     sector_rack_id: int | None = None,
+    tipo_rack_id: int | None = None,
     estado_id: int | None = None,
     criticidad_id: int | None = None,
     fecha_desde: str = "",
@@ -2474,6 +2484,9 @@ async def listar(
         if sector_rack_id:
             where.append("d.sector_rack_id = ?")
             args.append(sector_rack_id)
+        if tipo_rack_id:
+            where.append("d.tipo_rack_id = ?")
+            args.append(tipo_rack_id)
         if estado_id:
             where.append("t.estado_id = ?")
             args.append(estado_id)
@@ -2509,13 +2522,14 @@ async def listar(
             SELECT t.id, t.codigo_visible, tt.nombre tipo, t.fecha_creacion, e.codigo estado_codigo, e.nombre estado, e.es_final,
                    c.nombre criticidad, c.codigo criticidad_codigo, c.color criticidad_color,
                    t.titulo, t.sector_creacion_id sector, t.perfil_asignado, t.sector_asignado, t.usuario_creacion_id creado_por,
-                   d.service_externo_id,
+                   d.service_externo_id, rt.nombre tipo_rack, rt.codigo tipo_rack_codigo,
                    t.fecha_ultima_actualizacion, t.sla_vencimiento
             FROM ticket t
             JOIN ticket_tipo tt ON tt.id = t.tipo_id
             JOIN ticket_estado e ON e.id = t.estado_id
             JOIN ticket_criticidad c ON c.id = t.criticidad_id
             LEFT JOIN ticket_rack_detalle d ON d.ticket_id = t.id
+            LEFT JOIN rack_tipo rt ON rt.id = d.tipo_rack_id
             WHERE {" AND ".join(where)}
             ORDER BY t.fecha_ultima_actualizacion DESC, t.id DESC
             LIMIT 500

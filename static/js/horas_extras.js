@@ -271,24 +271,49 @@
     $('cfg-jefe').innerHTML = personOptions(data.jefes, jefeSelected);
     $('cfg-gerente').innerHTML = personOptions(data.gerentes, gerenteSelected);
     renderResponsables();
+    syncSectorManager();
     msg(`Configuracion cargada: ${(data.sectores||[]).length} sectores, ${(data.jefes||[]).length} jefes, ${(data.gerentes||[]).length} gerentes.`);
   }
   function renderResponsables(){
     const rows = state.config?.rows || [];
     const personMap = new Map([...(state.config?.jefes || []), ...(state.config?.gerentes || [])].map(p=>[String(p.legajo), personLabel(p)]));
-    $('responsables-body').innerHTML = rows.map(row=>`
-      <tr>
-        <td>${esc(row.sector)}</td>
-        <td>${esc(personMap.get(String(row.jefe_username || '')) || row.jefe_username || '-')}</td>
-        <td>${esc(personMap.get(String(row.gerente_username || '')) || row.gerente_username || '-')}</td>
-        <td class="mono">${esc(row.vigencia_desde || '-') } / ${esc(row.vigencia_hasta || '-')}</td>
-        <td>${row.activo ? '<span class="state ok">Activo</span>' : '<span class="state bad">Inactivo</span>'}</td>
-        <td><button class="ghost-btn" data-delete-resp="${row.responsable_id}" type="button">Borrar</button></td>
-      </tr>
-    `).join('') || '<tr><td colspan="6">Sin responsables configurados.</td></tr>';
+    const sectors = new Map();
+    rows.forEach(row=>{const name=row.sector || 'Sin sector';if(!sectors.has(name))sectors.set(name,[]);sectors.get(name).push(row);});
+    const personName = username => personMap.get(String(username || '')) || username || 'Sin asignar';
+    $('responsables-body').innerHTML = [...sectors].sort(([a],[b])=>collator.compare(a,b)).map(([sector,items])=>{
+      const managers = new Map();
+      items.forEach(row=>{
+        const key = String(row.gerente_username || '');
+        if(!managers.has(key)) managers.set(key,[]);
+        managers.get(key).push(row);
+      });
+      return `
+      <details class="sector-branch" open>
+        <summary><strong>${esc(sector)}</strong><span>${items.length} ${items.length===1?'asociacion':'asociaciones'}</span></summary>
+        <ul class="responsibility-branches">${[...managers].sort(([a],[b])=>collator.compare(personName(a),personName(b))).map(([manager,assignments])=>`
+          <li class="responsibility-association">
+            <details open>
+              <summary><span>Gerente</span> <strong>${esc(personName(manager))}</strong></summary>
+              <ul class="responsibility-people">${assignments.sort((a,b)=>collator.compare(personName(a.jefe_username),personName(b.jefe_username))).map(row=>`<li><span>Jefe</span><strong>${esc(personName(row.jefe_username))}</strong>
+            <div class="association-meta"><span class="state ${row.activo?'ok':'bad'}">${row.activo?'Activo':'Inactivo'}</span><span>Vigencia: ${esc(row.vigencia_desde || 'Sin inicio')} / ${esc(row.vigencia_hasta || 'Sin fin')}</span><button class="ghost-btn" data-delete-resp="${esc(row.responsable_id)}" type="button" aria-label="Borrar asociacion de ${esc(sector)}">Borrar</button></div>
+              </li>`).join('')}</ul>
+            </details>
+          </li>`).join('')}</ul>
+      </details>`;}).join('') || '<p class="insight-empty">Sin responsables configurados.</p>';
   }
+  function syncSectorManager(){
+    const sector = $('cfg-sector').value;
+    const managers = [...new Set((state.config?.rows || []).filter(r=>r.sector===sector && r.activo && r.gerente_username).map(r=>String(r.gerente_username)))];
+    const select = $('cfg-gerente');
+    if(managers.length === 1){
+      if(![...select.options].some(o=>o.value===managers[0])) select.add(new Option(managers[0],managers[0]));
+      select.value = managers[0];
+    }else select.value = '';
+  }
+  $('cfg-sector').addEventListener('change',syncSectorManager);
   async function saveResponsable(event){
     event.preventDefault();
+    if(state.busy) return;
     const body = {
       sector:$('cfg-sector').value.trim(),
       jefe_username:$('cfg-jefe').value,
@@ -297,9 +322,16 @@
       vigencia_desde:$('cfg-desde').value || null,
       vigencia_hasta:$('cfg-hasta').value || null,
     };
-    await api('/api/horas-extras/config/responsables',{method:'POST',body:JSON.stringify(body)});
-    $('responsable-form').reset(); $('cfg-activo').checked = true;
-    msg('Responsable guardado. Presione Consultar para refrescar la configuracion.');
+    setBusy(true);
+    try{
+      const result = await api('/api/horas-extras/config/responsables',{method:'POST',body:JSON.stringify(body)});
+      if(!result) return;
+      $('cfg-jefe').value = '';
+      try{
+        await loadConfig();
+        msg('Responsable guardado. Arbol de responsables actualizado.');
+      }catch(error){msg(`Responsable guardado, pero no se pudo actualizar el arbol: ${error.message}. Presione Consultar.`,true);}
+    }finally{setBusy(false);}
   }
   document.querySelector('.segmented').addEventListener('click', e=>{
     const btn = e.target.closest('[data-view]'); if(!btn) return;

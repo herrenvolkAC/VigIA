@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/horas_extras.css?v=20260929-3">
+  <link rel="stylesheet" href="/css/horas_extras.css?v=20260929-4">
   <title>VigIA - Horas Extras</title>
 </head>
 <body>
@@ -100,12 +100,7 @@
           <label class="toggle-line"><input id="cfg-activo" type="checkbox" checked> Activo</label>
           <button class="primary-btn" type="submit">Guardar responsable</button>
         </form>
-        <div class="table-scroll small">
-          <table>
-            <thead><tr><th>Sector</th><th>Jefe</th><th>Gerente</th><th>Vigencia</th><th>Estado</th><th>Accion</th></tr></thead>
-            <tbody id="responsables-body"></tbody>
-          </table>
-        </div>
+        <div id="responsables-body" class="responsibility-tree" aria-label="Responsables por sector"></div>
       </section>
 
       <section class="table-panel" id="grid-panel">
@@ -175,7 +170,7 @@
     </div>
   </aside>
 
-  <script src="/js/horas_extras_indicadores.js?v=20260929-3"></script>
-  <script src="/js/horas_extras.js?v=20260929-3"></script>
+  <script src="/js/horas_extras_indicadores.js?v=20260929-4"></script>
+  <script src="/js/horas_extras.js?v=20260929-6"></script>
 </body>
 </html>
