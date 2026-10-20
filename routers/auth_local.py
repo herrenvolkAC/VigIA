@@ -1,6 +1,8 @@
 import base64
+import csv
 import hashlib
 import hmac
+import io
 import json
 import os
 import secrets
@@ -189,7 +191,7 @@ APP_MODULES = [
     {"id": "rendimiento_online", "label": "Rendimiento Online", "path": "/rendimiento-online.html"},
     {"id": "checklist_tareas", "label": "CheckList Tareas", "path": "/checklist-tareas"},
     {"id": "recepcion", "label": "Recepcion", "path": "/recepcion.html"},
-    {"id": "mapa", "label": "Mapa", "path": "http://130.93.104.192:8090/"},
+    {"id": "mapa", "label": "Mapa", "path": "http://10.93.104.250:8090/"},
     {"id": "control_procesos", "label": "Monitor Cargas", "path": "/monitor-cargas"},
     {"id": "generales", "label": "Herramientas Operativas", "path": "/herramientas.html"},
 ]
@@ -872,6 +874,77 @@ async def list_usage_events(
             tuple([*args, limit]),
         )
     return {"events": rows, "limit": limit}
+
+
+@router.get("/admin/usage-events/export.csv")
+async def export_usage_events(
+    request: Request,
+    username: str = Query(""),
+    module: str = Query(""),
+    action: str = Query(""),
+    fecha_desde: str = Query(""),
+    fecha_hasta: str = Query(""),
+):
+    """Exporta la auditoría filtrada por rango, sin limitar la cantidad de filas."""
+    await _require_admin(request)
+    ensure_usage_events_schema()
+    username = _normalize_username(str(username or ""))
+    module = str(module or "").strip()
+    action = str(action or "").strip()
+    fecha_desde = str(fecha_desde or "").strip()
+    fecha_hasta = str(fecha_hasta or "").strip()
+    if not fecha_desde or not fecha_hasta:
+        raise HTTPException(status_code=400, detail="Debe indicar fecha desde y fecha hasta.")
+    try:
+        desde = datetime.strptime(fecha_desde, "%Y-%m-%d").date()
+        hasta = datetime.strptime(fecha_hasta, "%Y-%m-%d").date()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="El rango de fechas no es válido.") from exc
+    if desde > hasta:
+        raise HTTPException(status_code=400, detail="La fecha desde no puede ser posterior a la fecha hasta.")
+
+    where = ["fecha >= ?", "fecha <= ?"]
+    args: list[Any] = [fecha_desde, fecha_hasta]
+    if username:
+        where.append("username = ?")
+        args.append(username)
+    if module:
+        where.append("module = ?")
+        args.append(module)
+    if action:
+        where.append("action = ?")
+        args.append(action)
+
+    async with auth_db() as db:
+        db.row_factory = aiosqlite.Row
+        rows = await _fetch_rows(
+            db,
+            f"""
+            SELECT created_at, fecha, hora, username, ip_address, module_label,
+                   action_label, path, method, status_code
+            FROM auth_usage_events
+            WHERE {' AND '.join(where)}
+            ORDER BY event_id ASC
+            """,
+            tuple(args),
+        )
+
+    output = io.StringIO(newline="")
+    writer = csv.writer(output)
+    writer.writerow(["Fecha y hora", "Fecha", "Hora", "Usuario", "IP", "Módulo", "Acción", "Ruta", "Método", "Estado"])
+    for row in rows:
+        writer.writerow([
+            row.get("created_at"), row.get("fecha"), row.get("hora"), row.get("username"),
+            row.get("ip_address"), row.get("module_label"), row.get("action_label"),
+            row.get("path"), row.get("method"), row.get("status_code"),
+        ])
+    content = "\ufeff" + output.getvalue()
+    filename = f"auditoria_vigia_{fecha_desde}_{fecha_hasta}.csv"
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/admin/usage-module-summary")

@@ -76,7 +76,7 @@
     <section class="band">
       <div class="band-head">
         <div><h2>Eventos</h2><div class="muted">Detalle tecnico de eventos registrados.</div></div>
-        <button class="primary" id="refresh-btn">Refrescar</button>
+        <div class="actions"><button class="primary" id="export-btn" type="button">Exportar CSV</button><button class="primary" id="refresh-btn" type="button">Refrescar</button></div>
       </div>
       <form class="filters" id="filters">
         <div><label for="f-user">Usuario</label><input id="f-user" autocomplete="off"></div>
@@ -131,6 +131,7 @@
     document.getElementById('summary-refresh-btn').onclick=()=>loadSummary(selectedModule).catch(e=>setSummaryMsg(e.message,true));
     document.getElementById('filters').addEventListener('submit',ev=>{ev.preventDefault();load().catch(e=>setMsg(e.message,true))});
     document.getElementById('refresh-btn').onclick=()=>load().catch(e=>setMsg(e.message,true));
+    document.getElementById('export-btn').onclick=()=>{const from=document.getElementById('f-from').value,to=document.getElementById('f-to').value;if(!from||!to){setMsg('Para exportar indique Desde y Hasta.',true);return}const q=params();location.href=`/api/auth/admin/usage-events/export.csv?${q}`};
     document.getElementById('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.href='/login'};
     loadSummary('').catch(e=>setSummaryMsg(e.message,true));
   </script>

@@ -1,0 +1,10 @@
+Use case: productivity-visual.
+Asset type: transparent 2 by 2 character expression sprite for an offline executive presentation.
+Reference image: supplied worker sheet is style and character reference only.
+Create one sprite sheet with FOUR distinct waist-up illustrations of the SAME warehouse worker, matching the reference: navy cap and work shirt, bright lime reflective vest, clean polished friendly editorial illustration. Transparent background, no text, no numbers, no grids or frames.
+Composition: canvas landscape ratio 5:4, split into four exactly equal quadrants in a 2x2 layout. Each quadrant contains one complete waist-up figure centered with identical scale, about 85% of its cell height, with transparent margins and no overlap of cell boundaries. Equal baseline and consistent head size. Each cell has aspect ratio 5:4.
+Top-left: concerned, thoughtful expression, eyebrows visibly worried, CLOSED unsmiling mouth, hand on chin, respectful professional expression (low success).
+Top-right: serious attentive expression, neutral mouth, slightly raised brows, arms gently folded (partial success).
+Bottom-left: modest satisfied CLOSED smile, relaxed brows, one open palm presenting (moderate success).
+Bottom-right: clearly happy confident warm smile with visible teeth, bright eyes, subtle thumbs up (frequent success).
+Faces must be visibly different even when reduced to 190 pixels wide. Preserve identity and clothing across all four. No exaggerated despair or caricature. No props, shadows outside character, words, diagrams, labels, watermarks or backdrop. Actual alpha transparency.

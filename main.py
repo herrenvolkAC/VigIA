@@ -75,6 +75,7 @@ from routers.picking_parquet import router as picking_parquet_router
 from db.torre_control import init_torre_control_db
 from routers.websocket import router as websocket_router
 from utils.db_backup import start_db_backup_scheduler, stop_db_backup_scheduler
+from utils.tnc_scheduler import start_tnc_scheduler, stop_tnc_scheduler
 from utils.usage_log import cleanup_old_usage_logs, ensure_usage_events_schema, request_action, write_usage_event, write_usage_log
 
 # ── Configuración ─────────────────────────────────────────────────────────────
@@ -125,6 +126,7 @@ async def lifespan(app: FastAPI):
     start_rendimiento_historico_scheduler()
     start_rrhh_folder_monitor()
     start_rrhh_oracle_activity_scheduler()
+    start_tnc_scheduler()
     start_forms_import_monitor()
     start_db_backup_scheduler()
     provider = os.getenv("AI_PROVIDER", "claude")
@@ -138,6 +140,7 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        await stop_tnc_scheduler()
         await stop_rrhh_folder_monitor()
         await stop_rrhh_oracle_activity_scheduler()
         await stop_panol_stock_cd_scheduler()

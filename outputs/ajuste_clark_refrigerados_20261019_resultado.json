@@ -1,0 +1,38 @@
+{
+  "ejecucion": "2026-10-19T16:14:27-03:00",
+  "periodo": [
+    "2026-08-01",
+    "2026-09-30"
+  ],
+  "recalculo": {
+    "grupos_diarios": 3111,
+    "legajo_dias": 22204,
+    "individual": {
+      "ok": true,
+      "filas_procesadas": 432782,
+      "filas_evaluadas": 9432,
+      "filas_pendientes": 423350,
+      "premio_individual_nuevo": 65645618.7,
+      "fecha_desde": "2026-08-01",
+      "fecha_hasta": "2026-09-30",
+      "cache_reemplazado": true,
+      "snapshot_tablas": "2026-08-01"
+    }
+  },
+  "perfil": {
+    "sector": "CD-REFRIGERADOS",
+    "funcion": "AUTOELEVADORISTA (REFRIG)",
+    "operacion": "CLARK",
+    "division": "2,4",
+    "umbral_uc": 165.0,
+    "premio_grupal": 5800.0,
+    "dias_con_base": 43,
+    "dias_que_cumple": 33,
+    "personas": 18,
+    "actual_centavos": 305130459,
+    "nuevo_centavos": 366020000,
+    "mas": 13,
+    "menos": 5,
+    "igual": 0
+  }
+}

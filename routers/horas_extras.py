@@ -32,6 +32,9 @@ SENSITIVE_TOKENS = tuple(
 HE_MIN_HOURS = float(os.getenv("VIGIA_HE_MIN_HOURS", "0.5"))
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS he_mail_destinatarios_legajos (
+    legajo TEXT PRIMARY KEY, nombre TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS he_eventos (
     evento_id INTEGER PRIMARY KEY AUTOINCREMENT,
     legajo TEXT NOT NULL,
@@ -115,10 +118,22 @@ class DecisionRequest(BaseModel):
     ]
     horas_autorizadas: float | None = Field(default=None, ge=0)
     observacion: str = Field(default="", max_length=800)
+    justificacion: str = Field(default="", max_length=800)
 
 
 class BulkDecisionRequest(BaseModel):
     rows: list[DecisionRequest] = Field(min_length=1, max_length=500)
+
+
+class AdjustmentRow(BaseModel):
+    legajo: str = Field(min_length=1, max_length=40)
+    fecha: date
+    horas_autorizadas: float = Field(ge=0)
+    motivo: str = Field(min_length=1, max_length=800)
+
+
+class BulkAdjustmentRequest(BaseModel):
+    rows: list[AdjustmentRow] = Field(min_length=1, max_length=500)
 
 
 class ResponsableRequest(BaseModel):
@@ -130,12 +145,99 @@ class ResponsableRequest(BaseModel):
     vigencia_hasta: date | None = None
 
 
+class DestinatarioRequest(BaseModel):
+    legajo: str = Field(min_length=1, max_length=40)
+
+
+def _mail_duration(value: float) -> str:
+    minutes = round(float(value or 0) * 60)
+    return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+
+def _approval_mail(rows: list[dict[str, Any]], approver: str, recipients: list[str]) -> dict[str, str] | None:
+    if not rows or not recipients:
+        return None
+    body = ["Resumen de horas extras aprobadas", f"Aprobado por: {approver}", ""]
+    by_sector: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        sector = str(row.get("sector") or "Sin sector").strip() or "Sin sector"
+        summary = by_sector.setdefault(sector, {"legajos": set(), "hours": 0.0})
+        summary["legajos"].add(str(row["legajo"]))
+        summary["hours"] += float(row.get("horas_autorizadas") or 0)
+    for sector, summary in sorted(by_sector.items(), key=lambda item: item[0].casefold()):
+        count = len(summary["legajos"])
+        body.append(f"{sector}: {count} {'legajo' if count == 1 else 'legajos'} | {_mail_duration(summary['hours'])} hs aprobadas")
+    total_hours = sum(float(row.get("horas_autorizadas") or 0) for row in rows)
+    total_legajos = len({str(row["legajo"]) for row in rows})
+    body.extend(("", f"Total: {total_legajos} {'legajo' if total_legajos == 1 else 'legajos'} | {_mail_duration(total_hours)} hs aprobadas"))
+    return {"to": ";".join(recipients), "subject": "VigIA - Resumen de horas extras aprobadas", "body": "\n".join(body)}
+
+
+async def _approver_legajero_name(auth: dict[str, Any]) -> str:
+    username = str(auth.get("username") or "").strip()
+    legajo = ""
+    async with aiosqlite.connect(AUTH_DB_PATH) as db:
+        row = await (await db.execute("SELECT legajo FROM auth_user_legajos WHERE username=?", (username,))).fetchone()
+        if row:
+            legajo = str(row[0] or "").strip()
+    if legajo:
+        async with aiosqlite.connect(OPERATIVA_DB_PATH) as db:
+            row = await (await db.execute("""
+                SELECT nombre FROM rrhh_legajero
+                WHERE legajo=? AND TRIM(COALESCE(nombre, ''))<>''
+                ORDER BY batch_id DESC, id DESC LIMIT 1
+            """, (legajo,))).fetchone()
+            if row and str(row[0] or "").strip():
+                return str(row[0]).strip()
+    return str(auth.get("display_name") or username or "Usuario")
+
+
+@router.get('/config/correos')
+async def listar_correos(request: Request):
+    auth = await _require_auth(request)
+    if not _can_admin_config(auth, await _access(auth)):
+        raise HTTPException(403, 'Requiere perfil RRHH o administrador.')
+    await init_horas_extras_db()
+    async with aiosqlite.connect(HORAS_EXTRAS_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        rows = await (await db.execute('SELECT legajo, nombre FROM he_mail_destinatarios_legajos ORDER BY nombre')).fetchall()
+    return {'rows': [dict(r) for r in rows]}
+
+
+@router.post('/config/correos')
+async def guardar_correo(request: Request, payload: DestinatarioRequest):
+    await listar_correos(request)
+    legajo = payload.legajo.strip()
+    async with aiosqlite.connect(OPERATIVA_DB_PATH) as db:
+        person = await (await db.execute('SELECT nombre FROM rrhh_personas WHERE legajo=? UNION ALL SELECT nombre FROM rrhh_legajero WHERE legajo=? LIMIT 1', (legajo, legajo))).fetchone()
+    if not person:
+        raise HTTPException(422, 'Legajo no encontrado en el legajero.')
+    async with aiosqlite.connect(HORAS_EXTRAS_DB_PATH) as db:
+        await db.execute('INSERT INTO he_mail_destinatarios_legajos VALUES (?,?) ON CONFLICT(legajo) DO UPDATE SET nombre=excluded.nombre', (legajo, person[0] or legajo))
+        await db.commit()
+    return {'ok': True}
+
+
+@router.delete('/config/correos/{legajo}')
+async def borrar_correo(legajo: str, request: Request):
+    await listar_correos(request)
+    async with aiosqlite.connect(HORAS_EXTRAS_DB_PATH) as db:
+        await db.execute('DELETE FROM he_mail_destinatarios_legajos WHERE legajo=?', (legajo,))
+        await db.commit()
+    return {'ok': True}
+
+
 async def init_horas_extras_db() -> None:
     HORAS_EXTRAS_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     async with aiosqlite.connect(HORAS_EXTRAS_DB_PATH) as db:
         await db.execute("PRAGMA busy_timeout = 10000")
         await db.execute("PRAGMA journal_mode = WAL")
         await db.executescript(SCHEMA)
+        async with db.execute("PRAGMA table_info(he_eventos)") as cur:
+            columns = {row[1] for row in await cur.fetchall()}
+        for name, definition in (("justificacion", "TEXT NOT NULL DEFAULT ''"), ("horas_preautorizadas", "REAL")):
+            if name not in columns:
+                await db.execute(f"ALTER TABLE he_eventos ADD COLUMN {name} {definition}")
         # Repair unassigned branches only when the sector has one active manager.
         await db.execute("""
             UPDATE he_responsables_sector AS orphan
@@ -189,6 +291,9 @@ async def _access(auth: dict[str, Any]) -> dict[str, Any]:
     data["sectors"] = metadata.get("sectors") or ([data["sector"]] if data.get("sector") else [])
     data["profile"] = (data.get("profile") or "CONSULTA").upper()
     data["scope"] = (data.get("scope") or "").lower()
+    if data["profile"] == "RRHH":
+        data["scope"] = "global"
+        data["sectors"] = []
     return data
 
 
@@ -376,8 +481,9 @@ def _normalize_row(row: dict[str, Any], decision: dict[str, Any] | None = None) 
     if horas_detectadas < HE_MIN_HOURS:
         horas_detectadas = 0.0
     estado = (decision or {}).get("estado_actual") or "detectada"
-    horas_autorizadas = float((decision or {}).get("horas_autorizadas") or 0)
-    if estado == "aprobada_gerente" and not horas_autorizadas:
+    saved_hours = (decision or {}).get("horas_autorizadas")
+    horas_autorizadas = float(saved_hours) if saved_hours is not None else 0.0
+    if estado == "aprobada_gerente" and saved_hours is None:
         horas_autorizadas = horas_detectadas
     return {
         "fecha": row.get("fecha") or "",
@@ -394,9 +500,12 @@ def _normalize_row(row: dict[str, Any], decision: dict[str, Any] | None = None) 
         "horas_extras_detectadas": horas_detectadas,
         "estado": estado,
         "horas_autorizadas": horas_autorizadas,
+        "justificacion": (decision or {}).get("justificacion") or "",
+        "horas_preautorizadas": (decision or {}).get("horas_preautorizadas"),
         "usuario_cambio": (decision or {}).get("usuario_cambio") or "",
         "fecha_cambio": (decision or {}).get("fecha_cambio") or "",
         "observacion": (decision or {}).get("observacion") or "",
+        "ajuste_motivo": (decision or {}).get("ajuste_motivo") or "",
         "cargado_sap": bool((decision or {}).get("cargado_sap") or 0),
         "sap_usuario": (decision or {}).get("sap_usuario") or "",
         "sap_at": (decision or {}).get("sap_at") or "",
@@ -469,8 +578,14 @@ async def _decisions(keys: list[tuple[str, str]]) -> dict[tuple[str, str], dict[
         async with db.execute(
             f"""
             SELECT e.legajo, e.fecha, e.estado_actual, e.horas_autorizadas, e.cargado_sap,
+                   e.justificacion, e.horas_preautorizadas,
                    e.sap_usuario, e.sap_at,
-                   last.usuario usuario_cambio, last.created_at fecha_cambio, last.observacion
+                   COALESCE(latest.usuario, last.usuario) usuario_cambio,
+                   COALESCE(latest.created_at, last.created_at) fecha_cambio,
+                   COALESCE(json_extract(latest.detalle_json, '$.observacion'), last.observacion) observacion,
+                   (SELECT ajuste.motivo FROM he_ajustes ajuste
+                    WHERE ajuste.evento_id=e.evento_id AND ajuste.estado='aplicado'
+                    ORDER BY ajuste.ajuste_id DESC LIMIT 1) ajuste_motivo
             FROM he_eventos e
             LEFT JOIN (
                 SELECT a.*
@@ -481,6 +596,16 @@ async def _decisions(keys: list[tuple[str, str]]) -> dict[tuple[str, str], dict[
                     GROUP BY evento_id
                 ) ult ON ult.aprobacion_id = a.aprobacion_id
             ) last ON last.evento_id = e.evento_id
+            LEFT JOIN (
+                SELECT h.*
+                FROM he_historial h
+                JOIN (
+                    SELECT evento_id, MAX(historial_id) historial_id
+                    FROM he_historial
+                    WHERE evento_id IS NOT NULL
+                    GROUP BY evento_id
+                ) ult ON ult.historial_id = h.historial_id
+            ) latest ON latest.evento_id = e.evento_id
             WHERE (e.legajo, e.fecha) IN ({placeholders})
             """,
             tuple(params),
@@ -627,6 +752,55 @@ async def registros(
     }
 
 
+@router.get("/historial")
+async def historial(request: Request, desde: date, hasta: date, sector: str = "", legajo: str = "", estado: str = ""):
+    """Consulta decisiones persistidas, aun si Actividad Diaria ya no conserva el periodo."""
+    auth = await _require_auth(request)
+    access = await _access(auth)
+    if desde > hasta or (hasta - desde).days > 3660:
+        raise HTTPException(400, "Seleccione un rango valido de hasta 10 anos.")
+    if sector and not _sector_allowed(auth, access, sector):
+        raise HTTPException(403, "Sector fuera de su alcance.")
+    await init_horas_extras_db()
+    where, params = ["fecha BETWEEN ? AND ?"], [desde.isoformat(), hasta.isoformat()]
+    if legajo.strip():
+        where.append("legajo=?"); params.append(legajo.strip())
+    if estado.strip():
+        where.append("estado_actual=?"); params.append(estado.strip())
+    async with aiosqlite.connect(HORAS_EXTRAS_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(f"SELECT legajo,fecha,snapshot_json,estado_actual,horas_detectadas,horas_autorizadas,horas_preautorizadas,justificacion,cargado_sap,updated_at FROM he_eventos WHERE {' AND '.join(where)} ORDER BY fecha DESC,legajo LIMIT 5000", tuple(params)) as cur:
+            stored = [dict(row) for row in await cur.fetchall()]
+    rows, can_sensitive = [], _can_see_sensitive(auth, access)
+    for event in stored:
+        try: snapshot = json.loads(event["snapshot_json"])
+        except (TypeError, json.JSONDecodeError): snapshot = {}
+        row_sector = str(snapshot.get("sector") or "")
+        if (sector and row_sector != sector) or not _sector_allowed(auth, access, row_sector):
+            continue
+        if _is_sensitive(snapshot.get("desc_area_personal")) and not can_sensitive:
+            continue
+        rows.append({
+            "fecha":event["fecha"], "legajo":event["legajo"], "empleado":snapshot.get("empleado") or "",
+            "sector":row_sector, "funcion":snapshot.get("funcion") or "", "ph":snapshot.get("ph") or "",
+            "horas_extras_detectadas":float(event["horas_detectadas"] or snapshot.get("horas_extras_detectadas") or 0),
+            "horas_preautorizadas":event["horas_preautorizadas"], "horas_autorizadas":float(event["horas_autorizadas"] or 0),
+            "justificacion":event["justificacion"] or "", "estado":event["estado_actual"],
+            "cargado_sap":bool(event["cargado_sap"]), "fecha_cambio":event["updated_at"] or "",
+        })
+    return {"rows":rows, "limit_reached":len(stored)==5000}
+
+
+@router.get("/historial/exportar.xlsx")
+async def exportar_historial(request: Request, desde: date, hasta: date, sector: str = "", legajo: str = "", estado: str = ""):
+    data = await historial(request, desde, hasta, sector, legajo, estado)
+    return StreamingResponse(
+        _excel(data["rows"]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="historial_horas_extras_{desde}_{hasta}.xlsx"'},
+    )
+
+
 def _snapshot(row: dict[str, Any]) -> tuple[str, str]:
     payload = {
         key: row.get(key)
@@ -660,23 +834,51 @@ async def _find_current_row(request: Request, legajo: str, fecha: str) -> dict[s
 async def decisiones(request: Request, payload: BulkDecisionRequest):
     auth = await _require_auth(request)
     await init_horas_extras_db()
+    current_rows = {}
+    approved_rows = []
+    mail = None
+    for item in payload.rows:
+        key = (item.legajo, item.fecha.isoformat())
+        if key in current_rows:
+            raise HTTPException(422, "No se puede decidir dos veces el mismo registro en un guardado.")
+        current_rows[key] = await _find_current_row(request, *key)
     async with aiosqlite.connect(HORAS_EXTRAS_DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         await db.execute("BEGIN IMMEDIATE")
         try:
             for item in payload.rows:
-                current = await _find_current_row(request, item.legajo, item.fecha.isoformat())
+                current = current_rows[(item.legajo, item.fecha.isoformat())]
                 snapshot, source_hash = _snapshot(current)
                 horas = current["horas_extras_detectadas"]
                 authorized = horas if item.estado in {"pre_autorizada", "aprobada_gerente", "cargada_sap"} else 0
                 if item.horas_autorizadas is not None:
-                    authorized = min(float(item.horas_autorizadas), horas)
+                    authorized = float(item.horas_autorizadas)
                 async with db.execute(
-                    "SELECT evento_id, estado_actual FROM he_eventos WHERE legajo=? AND fecha=?",
+                    "SELECT * FROM he_eventos WHERE legajo=? AND fecha=?",
                     (item.legajo, item.fecha.isoformat()),
                 ) as cur:
                     saved = await cur.fetchone()
                 previous = saved["estado_actual"] if saved else None
+                justification = saved["justificacion"] if saved else ""
+                pre_hours = saved["horas_preautorizadas"] if saved else None
+                if item.estado == "pre_autorizada":
+                    if previous not in {None, "detectada", "rechazada_jefe", "pre_autorizada"}:
+                        raise HTTPException(409, f"{item.legajo}: el registro avanzo de etapa; consulte nuevamente.")
+                    justification = item.justificacion.strip()
+                    if not justification:
+                        raise HTTPException(422, f"{item.legajo} / {item.fecha}: ingrese la justificacion de la hora extra.")
+                    if item.horas_autorizadas is None or not 0 < authorized <= horas:
+                        raise HTTPException(422, f"{item.legajo}: cantidad a autorizar invalida.")
+                    pre_hours = authorized
+                if item.estado == "aprobada_gerente":
+                    if previous != "pre_autorizada":
+                        raise HTTPException(409, f"{item.legajo}: requiere una preautorizacion vigente.")
+                    limit = pre_hours if pre_hours is not None else saved["horas_autorizadas"]
+                    authorized = limit if item.horas_autorizadas is None else authorized
+                    if not 0 < authorized <= min(horas, limit):
+                        raise HTTPException(422, f"{item.legajo}: no puede superar las horas preautorizadas por el jefe.")
+                if not 0 <= authorized <= horas:
+                    raise HTTPException(422, f"{item.legajo}: cantidad a autorizar invalida.")
                 await db.execute(
                     """
                     INSERT INTO he_eventos
@@ -715,6 +917,12 @@ async def decisiones(request: Request, payload: BulkDecisionRequest):
                 ) as cur:
                     evento = await cur.fetchone()
                 evento_id = evento["evento_id"]
+                if item.estado == 'aprobada_gerente':
+                    approved_rows.append({**current, 'horas_autorizadas': authorized, 'justificacion': justification})
+                await db.execute(
+                    "UPDATE he_eventos SET justificacion=?, horas_preautorizadas=? WHERE evento_id=?",
+                    (justification, pre_hours, evento_id),
+                )
                 await db.execute(
                     """
                     INSERT INTO he_aprobaciones
@@ -736,15 +944,105 @@ async def decisiones(request: Request, payload: BulkDecisionRequest):
                         item.etapa,
                         previous,
                         item.estado,
-                        json.dumps({"observacion": item.observacion, "horas_autorizadas": authorized}, ensure_ascii=True),
+                        json.dumps({"observacion": item.observacion, "horas_autorizadas": authorized, "justificacion": justification}, ensure_ascii=True),
                         auth["username"],
                     ),
                 )
+            if approved_rows:
+                recipients = [row[0] for row in await (await db.execute('SELECT legajo FROM he_mail_destinatarios_legajos ORDER BY legajo')).fetchall()]
+                mail = _approval_mail(approved_rows, await _approver_legajero_name(auth), recipients)
             await db.commit()
         except Exception:
             await db.rollback()
             raise
-    return {"guardadas": len(payload.rows)}
+    return {"guardadas": len(payload.rows), "mail": mail}
+
+
+@router.post("/ajustes")
+async def ajustar_registros(request: Request, payload: BulkAdjustmentRequest):
+    auth = await _require_auth(request)
+    access = await _access(auth)
+    if not _can_admin_config(auth, access):
+        raise HTTPException(403, "Los ajustes requieren perfil RRHH o administrador.")
+    await init_horas_extras_db()
+
+    current_rows: dict[tuple[str, str], dict[str, Any]] = {}
+    for item in payload.rows:
+        key = (item.legajo, item.fecha.isoformat())
+        if key in current_rows:
+            raise HTTPException(422, "No se puede ajustar dos veces el mismo registro en un guardado.")
+        current_rows[key] = await _find_current_row(request, *key)
+
+    updated_rows = []
+    async with aiosqlite.connect(HORAS_EXTRAS_DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await db.execute("BEGIN IMMEDIATE")
+        try:
+            for item in payload.rows:
+                key = (item.legajo, item.fecha.isoformat())
+                current = current_rows[key]
+                amount = float(item.horas_autorizadas)
+                detected = float(current["horas_extras_detectadas"] or 0)
+                reason = item.motivo.strip()
+                if not reason:
+                    raise HTTPException(422, f"{item.legajo}: indique el motivo del ajuste.")
+                if amount > detected:
+                    raise HTTPException(422, f"{item.legajo}: las horas ajustadas no pueden superar las horas extras detectadas.")
+
+                async with db.execute("SELECT * FROM he_eventos WHERE legajo=? AND fecha=?", key) as cur:
+                    saved = await cur.fetchone()
+                previous = saved["estado_actual"] if saved else "detectada"
+                was_in_sap = bool(saved and saved["cargado_sap"])
+                next_state = "aprobada_gerente" if was_in_sap else previous
+                snapshot, source_hash = _snapshot(current)
+                await db.execute("""
+                    INSERT INTO he_eventos
+                        (legajo, fecha, fuente_hash, snapshot_json, estado_actual, horas_detectadas,
+                         horas_autorizadas, cargado_sap, sap_usuario, sap_at, sap_observacion, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 0, NULL, NULL, NULL, CURRENT_TIMESTAMP)
+                    ON CONFLICT(legajo, fecha) DO UPDATE SET
+                        fuente_hash=excluded.fuente_hash,
+                        snapshot_json=excluded.snapshot_json,
+                        estado_actual=excluded.estado_actual,
+                        horas_detectadas=excluded.horas_detectadas,
+                        horas_autorizadas=excluded.horas_autorizadas,
+                        cargado_sap=CASE WHEN ? THEN 0 ELSE he_eventos.cargado_sap END,
+                        sap_usuario=CASE WHEN ? THEN NULL ELSE he_eventos.sap_usuario END,
+                        sap_at=CASE WHEN ? THEN NULL ELSE he_eventos.sap_at END,
+                        sap_observacion=CASE WHEN ? THEN NULL ELSE he_eventos.sap_observacion END,
+                        updated_at=CURRENT_TIMESTAMP
+                    """, (
+                    item.legajo, key[1], source_hash, snapshot, next_state, detected, amount,
+                    int(was_in_sap), int(was_in_sap), int(was_in_sap), int(was_in_sap),
+                ))
+                async with db.execute("SELECT evento_id FROM he_eventos WHERE legajo=? AND fecha=?", key) as cur:
+                    evento_id = (await cur.fetchone())["evento_id"]
+                await db.execute("""
+                    INSERT INTO he_ajustes
+                        (evento_id, estado, horas_solicitadas, motivo, usuario_solicita, usuario_resuelve, resuelto_at)
+                    VALUES (?, 'aplicado', ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """, (evento_id, amount, reason, auth["username"], auth["username"]))
+                await db.execute("""
+                    INSERT INTO he_historial
+                        (evento_id, legajo, fecha, accion, estado_desde, estado_hasta, detalle_json, usuario)
+                    VALUES (?, ?, ?, 'ajuste_rrhh', ?, ?, ?, ?)
+                """, (
+                    evento_id, item.legajo, key[1], previous, next_state,
+                    json.dumps({"horas_anteriores": float(saved["horas_autorizadas"] or 0) if saved else 0,
+                                "horas_ajustadas": amount, "motivo": reason,
+                                "requiere_recarga_sap": was_in_sap}, ensure_ascii=True),
+                    auth["username"],
+                ))
+                updated_rows.append({
+                    "legajo": item.legajo, "fecha": key[1], "estado": next_state,
+                    "horas_autorizadas": amount, "cargado_sap": False,
+                    "ajuste_motivo": reason,
+                })
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            raise
+    return {"guardadas": len(updated_rows), "rows": updated_rows}
 
 
 def _excel(rows: list[dict[str, Any]]) -> io.BytesIO:
@@ -754,14 +1052,14 @@ def _excel(rows: list[dict[str, Any]]) -> io.BytesIO:
     headers = [
         "Fecha", "Legajo", "Empleado", "Sector", "Funcion", "PH", "Inicio real", "Fin real",
         "Horas trabajadas", "Horas extras", "Estado", "Horas autorizadas", "Usuario cambio",
-        "Fecha cambio", "Observacion", "Cargado SAP",
+        "Fecha cambio", "Observacion", "Cargado SAP", "Justificacion", "Horas preautorizadas",
     ]
     ws.append(headers)
     for row in rows:
         ws.append([row.get(key, "") for key in (
             "fecha", "legajo", "empleado", "sector", "funcion", "ph", "inicio_real", "fin_real",
             "horas_trabajadas", "horas_extras_detectadas", "estado", "horas_autorizadas",
-            "usuario_cambio", "fecha_cambio", "observacion", "cargado_sap",
+            "usuario_cambio", "fecha_cambio", "observacion", "cargado_sap", "justificacion", "horas_preautorizadas",
         )])
         for cell in ws[ws.max_row]:
             cell.alignment = Alignment(vertical="top", wrap_text=True)

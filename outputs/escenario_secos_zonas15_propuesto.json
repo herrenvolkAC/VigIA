@@ -1,0 +1,144 @@
+{
+  "periodo": [
+    "2026-08-01",
+    "2026-09-30"
+  ],
+  "fuente_cache": "2026-10-19 17:17:36",
+  "objetivo_por_zona_pct": 15,
+  "premios": {
+    "perfil-1": {
+      "sector": "CD-SECOS - ZONA 1",
+      "funcion": "ARMADOR",
+      "operacion": "ARMADO",
+      "division": "1",
+      "grupal": 9900,
+      "individual": {
+        "1": 9100,
+        "2": 15100,
+        "3": 24600,
+        "4": 40800,
+        "5": 68200
+      },
+      "factor_sobre_escenario_familiar": 1.0
+    },
+    "perfil-2": {
+      "sector": "CD-SECOS - ZONA 1",
+      "funcion": "AUTOELEVADORISTA",
+      "operacion": "CLARK",
+      "division": "1",
+      "grupal": 6400,
+      "individual": {
+        "1": 3900,
+        "2": 5000,
+        "3": 6700,
+        "4": 9100,
+        "5": 12600
+      },
+      "factor_sobre_escenario_familiar": 1.088197053349231
+    },
+    "perfil-3": {
+      "sector": "CD-SECOS - ZONA 1",
+      "funcion": "CARGADOR DE SECOS",
+      "operacion": "PALETS OPERADOS",
+      "division": "1,6",
+      "grupal": 10700,
+      "individual": {
+        "1": 400,
+        "2": 700,
+        "3": 1000,
+        "4": 1400,
+        "5": 1800
+      },
+      "factor_sobre_escenario_familiar": 1.088197053349231
+    },
+    "perfil-5": {
+      "sector": "CD-SECOS - ZONA 2",
+      "funcion": "ARMADOR",
+      "operacion": "ARMADO",
+      "division": "1",
+      "grupal": 9900,
+      "individual": {
+        "1": 9100,
+        "2": 15100,
+        "3": 24600,
+        "4": 40800,
+        "5": 68200
+      },
+      "factor_sobre_escenario_familiar": 1.0
+    },
+    "perfil-6": {
+      "sector": "CD-SECOS - ZONA 2",
+      "funcion": "AUTOELEVADORISTA",
+      "operacion": "CLARK",
+      "division": "1",
+      "grupal": 6300,
+      "individual": {
+        "1": 3800,
+        "2": 4900,
+        "3": 6700,
+        "4": 9100,
+        "5": 12500
+      },
+      "factor_sobre_escenario_familiar": 0.9181336693315462
+    },
+    "perfil-7": {
+      "sector": "CD-SECOS - ZONA 2",
+      "funcion": "RECEPCIONISTA DE SECO",
+      "operacion": "RECEPCION",
+      "division": "1",
+      "grupal": 15100,
+      "individual": {
+        "1": 600,
+        "2": 800,
+        "3": 1200,
+        "4": 1700,
+        "5": 2200
+      },
+      "factor_sobre_escenario_familiar": 0.9181336693315462
+    }
+  },
+  "resultado_estimado": {
+    "CD-SECOS - ZONA 1": {
+      "actual": 35137233.66,
+      "new": 40404800.0,
+      "group_poly": 22303000.0,
+      "individual": 18101800.0,
+      "more": 80,
+      "less": 26,
+      "equal": 2,
+      "variation_pct": 14.99,
+      "target": 40407818.709,
+      "gap_to_target": -3018.7089999961854,
+      "group_poly_pct": 55.2,
+      "individual_pct": 44.8
+    },
+    "CD-SECOS - ZONA 2": {
+      "actual": 32314924.2,
+      "new": 37173900.0,
+      "group_poly": 21727300.0,
+      "individual": 15446600.0,
+      "more": 57,
+      "less": 16,
+      "equal": 0,
+      "variation_pct": 15.04,
+      "target": 37162162.83,
+      "gap_to_target": 11737.170000004768,
+      "group_poly_pct": 58.45,
+      "individual_pct": 41.55
+    }
+  },
+  "legajos_estimados_por_zona": {
+    "CD-SECOS - ZONA 1": {
+      "people": 108,
+      "more": 80,
+      "less": 26,
+      "equal": 2
+    },
+    "CD-SECOS - ZONA 2": {
+      "people": 73,
+      "more": 57,
+      "less": 16,
+      "equal": 0
+    }
+  }
+}

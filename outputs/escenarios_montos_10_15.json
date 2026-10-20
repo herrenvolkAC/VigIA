@@ -1,0 +1,1640 @@
+[
+  {
+    "objetivo": 1.1,
+    "criterio": "minimiza_bajas",
+    "familias": {
+      "ARMADO": {
+        "factor_grupal": 0.68,
+        "factor_individual": 0.6782770698331568,
+        "actual": 58994143.78,
+        "nuevo": 64805100.0,
+        "mas": 80,
+        "menos": 38,
+        "igual": 1,
+        "montos": {
+          "perfil-1": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "ARMADOR",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          },
+          "perfil-11": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          },
+          "perfil-12": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR T06",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          },
+          "perfil-5": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "ARMADOR",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          },
+          "perfil-8": {
+            "sector": "CD-NOA",
+            "funcion": "ARMADOR",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          }
+        }
+      },
+      "CLARK": {
+        "factor_grupal": 1.31,
+        "factor_individual": 2.145109343320457,
+        "actual": 23775577.4,
+        "nuevo": 26172100.0,
+        "mas": 65,
+        "menos": 34,
+        "igual": 0,
+        "montos": {
+          "perfil-13": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "AUTOELEVADORISTA (REFRIG)",
+            "grupal": 4200,
+            "individual": {
+              "1": 2100,
+              "2": 2800,
+              "3": 3600,
+              "4": 5100,
+              "5": 6900
+            }
+          },
+          "perfil-14": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CLARK CONGELADOS",
+            "grupal": 9200,
+            "individual": {
+              "1": 3200,
+              "2": 4300,
+              "3": 5800,
+              "4": 7900,
+              "5": 10900
+            }
+          },
+          "perfil-2": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 6300,
+            "individual": {
+              "1": 4300,
+              "2": 5600,
+              "3": 7500,
+              "4": 10100,
+              "5": 13900
+            }
+          },
+          "perfil-6": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 7300,
+            "individual": {
+              "1": 4900,
+              "2": 6400,
+              "3": 8800,
+              "4": 11800,
+              "5": 16300
+            }
+          },
+          "perfil-9": {
+            "sector": "CD-NOA",
+            "funcion": "AUTOELEVADORISTA ARMADO Y GUARDADO NOA",
+            "grupal": 8300,
+            "individual": {
+              "1": 6400,
+              "2": 8600,
+              "3": 11400,
+              "4": 15700,
+              "5": 21700
+            }
+          }
+        }
+      },
+      "RECEPCION": {
+        "factor_grupal": 0.8,
+        "factor_individual": 0.25975493254784426,
+        "actual": 17540251.75,
+        "nuevo": 19271700.0,
+        "mas": 44,
+        "menos": 20,
+        "igual": 0,
+        "montos": {
+          "perfil-10": {
+            "sector": "CD-NOA",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 7700,
+            "individual": {
+              "1": 700,
+              "2": 1000,
+              "3": 1300,
+              "4": 1700,
+              "5": 2400
+            }
+          },
+          "perfil-16": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "RECEPCIONISTA (REFRIG.)",
+            "grupal": 9400,
+            "individual": {
+              "1": 600,
+              "2": 900,
+              "3": 1200,
+              "4": 1600,
+              "5": 2200
+            }
+          },
+          "perfil-4": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 9600,
+            "individual": {
+              "1": 800,
+              "2": 1000,
+              "3": 1400,
+              "4": 1900,
+              "5": 2600
+            }
+          },
+          "perfil-7": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "RECEPCIONISTA DE SECO",
+            "grupal": 23400,
+            "individual": {
+              "1": 1000,
+              "2": 1300,
+              "3": 1800,
+              "4": 2500,
+              "5": 3400
+            }
+          }
+        }
+      },
+      "CARGA": {
+        "factor_grupal": 1.07,
+        "factor_individual": 0.23738445736504643,
+        "actual": 12442485.45,
+        "nuevo": 13689100.0,
+        "mas": 37,
+        "menos": 21,
+        "igual": 2,
+        "montos": {
+          "perfil-15": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CARGADOR (REFRIG)",
+            "grupal": 9600,
+            "individual": {
+              "1": 5000,
+              "2": 6500,
+              "3": 8700,
+              "4": 12000,
+              "5": 16500
+            }
+          },
+          "perfil-3": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "CARGADOR DE SECOS",
+            "grupal": 7500,
+            "individual": {
+              "1": 100,
+              "2": 200,
+              "3": 300,
+              "4": 300,
+              "5": 500
+            }
+          }
+        }
+      },
+      "CONTROL": {
+        "factor_grupal": 0.13,
+        "factor_individual": 1.9456686242227426,
+        "actual": 7769633.16,
+        "nuevo": 8530800.0,
+        "mas": 17,
+        "menos": 5,
+        "igual": 0,
+        "montos": {
+          "perfil-17": {
+            "sector": "CD-ADMINISTRACION",
+            "funcion": "CONTROLADOR DE STOCK SECOS NOA",
+            "grupal": 1700,
+            "individual": {
+              "1": 7600,
+              "2": 9700,
+              "3": 13200,
+              "4": 18100,
+              "5": 24900
+            }
+          }
+        }
+      }
+    },
+    "total": {
+      "actual": 120522091.54,
+      "nuevo": 132468800.0,
+      "variacion_pct": 9.912463605093524,
+      "mas": 243,
+      "menos": 118,
+      "igual": 3
+    }
+  },
+  {
+    "objetivo": 1.125,
+    "criterio": "minimiza_bajas",
+    "familias": {
+      "ARMADO": {
+        "factor_grupal": 0.74,
+        "factor_individual": 0.6362283711737768,
+        "actual": 58994143.78,
+        "nuevo": 66500100.0,
+        "mas": 82,
+        "menos": 36,
+        "igual": 1,
+        "montos": {
+          "perfil-1": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "ARMADOR",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          },
+          "perfil-11": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          },
+          "perfil-12": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR T06",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          },
+          "perfil-5": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "ARMADOR",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          },
+          "perfil-8": {
+            "sector": "CD-NOA",
+            "funcion": "ARMADOR",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          }
+        }
+      },
+      "CLARK": {
+        "factor_grupal": 1.36,
+        "factor_individual": 2.147801442185141,
+        "actual": 23775577.4,
+        "nuevo": 26752200.0,
+        "mas": 69,
+        "menos": 30,
+        "igual": 0,
+        "montos": {
+          "perfil-13": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "AUTOELEVADORISTA (REFRIG)",
+            "grupal": 4400,
+            "individual": {
+              "1": 2100,
+              "2": 2800,
+              "3": 3700,
+              "4": 5200,
+              "5": 6900
+            }
+          },
+          "perfil-14": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CLARK CONGELADOS",
+            "grupal": 9500,
+            "individual": {
+              "1": 3200,
+              "2": 4300,
+              "3": 5800,
+              "4": 7900,
+              "5": 11000
+            }
+          },
+          "perfil-2": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 6500,
+            "individual": {
+              "1": 4300,
+              "2": 5600,
+              "3": 7500,
+              "4": 10100,
+              "5": 14000
+            }
+          },
+          "perfil-6": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 7600,
+            "individual": {
+              "1": 4900,
+              "2": 6400,
+              "3": 8800,
+              "4": 11800,
+              "5": 16300
+            }
+          },
+          "perfil-9": {
+            "sector": "CD-NOA",
+            "funcion": "AUTOELEVADORISTA ARMADO Y GUARDADO NOA",
+            "grupal": 8600,
+            "individual": {
+              "1": 6400,
+              "2": 8600,
+              "3": 11400,
+              "4": 15700,
+              "5": 21700
+            }
+          }
+        }
+      },
+      "RECEPCION": {
+        "factor_grupal": 0.69,
+        "factor_individual": 0.5832570175515042,
+        "actual": 17540251.75,
+        "nuevo": 19689200.0,
+        "mas": 44,
+        "menos": 20,
+        "igual": 0,
+        "montos": {
+          "perfil-10": {
+            "sector": "CD-NOA",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 6600,
+            "individual": {
+              "1": 1600,
+              "2": 2200,
+              "3": 2900,
+              "4": 3900,
+              "5": 5400
+            }
+          },
+          "perfil-16": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "RECEPCIONISTA (REFRIG.)",
+            "grupal": 8100,
+            "individual": {
+              "1": 1500,
+              "2": 1900,
+              "3": 2600,
+              "4": 3600,
+              "5": 4900
+            }
+          },
+          "perfil-4": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 8300,
+            "individual": {
+              "1": 1700,
+              "2": 2300,
+              "3": 3100,
+              "4": 4300,
+              "5": 5900
+            }
+          },
+          "perfil-7": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "RECEPCIONISTA DE SECO",
+            "grupal": 20200,
+            "individual": {
+              "1": 2300,
+              "2": 3000,
+              "3": 4000,
+              "4": 5500,
+              "5": 7600
+            }
+          }
+        }
+      },
+      "CARGA": {
+        "factor_grupal": 1.07,
+        "factor_individual": 0.25625351866511376,
+        "actual": 12442485.45,
+        "nuevo": 14003200.0,
+        "mas": 37,
+        "menos": 21,
+        "igual": 2,
+        "montos": {
+          "perfil-15": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CARGADOR (REFRIG)",
+            "grupal": 9600,
+            "individual": {
+              "1": 5400,
+              "2": 7000,
+              "3": 9400,
+              "4": 12900,
+              "5": 17800
+            }
+          },
+          "perfil-3": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "CARGADOR DE SECOS",
+            "grupal": 7500,
+            "individual": {
+              "1": 200,
+              "2": 200,
+              "3": 300,
+              "4": 400,
+              "5": 500
+            }
+          }
+        }
+      },
+      "CONTROL": {
+        "factor_grupal": 0.25,
+        "factor_individual": 1.8045244077738338,
+        "actual": 7769633.16,
+        "nuevo": 8731200.0,
+        "mas": 19,
+        "menos": 3,
+        "igual": 0,
+        "montos": {
+          "perfil-17": {
+            "sector": "CD-ADMINISTRACION",
+            "funcion": "CONTROLADOR DE STOCK SECOS NOA",
+            "grupal": 3300,
+            "individual": {
+              "1": 7000,
+              "2": 9000,
+              "3": 12300,
+              "4": 16800,
+              "5": 23100
+            }
+          }
+        }
+      }
+    },
+    "total": {
+      "actual": 120522091.54,
+      "nuevo": 135675900.0,
+      "variacion_pct": 12.57346953273759,
+      "mas": 251,
+      "menos": 110,
+      "igual": 3
+    }
+  },
+  {
+    "objetivo": 1.15,
+    "criterio": "minimiza_bajas",
+    "familias": {
+      "ARMADO": {
+        "factor_grupal": 0.87,
+        "factor_individual": 0.5038789649841866,
+        "actual": 58994143.78,
+        "nuevo": 67747100.0,
+        "mas": 84,
+        "menos": 34,
+        "igual": 1,
+        "montos": {
+          "perfil-1": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "ARMADOR",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          },
+          "perfil-11": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          },
+          "perfil-12": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR T06",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          },
+          "perfil-5": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "ARMADOR",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          },
+          "perfil-8": {
+            "sector": "CD-NOA",
+            "funcion": "ARMADOR",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          }
+        }
+      },
+      "CLARK": {
+        "factor_grupal": 1.46,
+        "factor_individual": 2.036636406596208,
+        "actual": 23775577.4,
+        "nuevo": 27362600.0,
+        "mas": 72,
+        "menos": 27,
+        "igual": 0,
+        "montos": {
+          "perfil-13": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "AUTOELEVADORISTA (REFRIG)",
+            "grupal": 4700,
+            "individual": {
+              "1": 2000,
+              "2": 2600,
+              "3": 3500,
+              "4": 4900,
+              "5": 6500
+            }
+          },
+          "perfil-14": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CLARK CONGELADOS",
+            "grupal": 10200,
+            "individual": {
+              "1": 3100,
+              "2": 4100,
+              "3": 5500,
+              "4": 7500,
+              "5": 10400
+            }
+          },
+          "perfil-2": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 7000,
+            "individual": {
+              "1": 4100,
+              "2": 5300,
+              "3": 7100,
+              "4": 9600,
+              "5": 13200
+            }
+          },
+          "perfil-6": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 8200,
+            "individual": {
+              "1": 4700,
+              "2": 6100,
+              "3": 8400,
+              "4": 11200,
+              "5": 15500
+            }
+          },
+          "perfil-9": {
+            "sector": "CD-NOA",
+            "funcion": "AUTOELEVADORISTA ARMADO Y GUARDADO NOA",
+            "grupal": 9200,
+            "individual": {
+              "1": 6100,
+              "2": 8100,
+              "3": 10800,
+              "4": 14900,
+              "5": 20600
+            }
+          }
+        }
+      },
+      "RECEPCION": {
+        "factor_grupal": 0.69,
+        "factor_individual": 0.634209980420864,
+        "actual": 17540251.75,
+        "nuevo": 20134100.0,
+        "mas": 44,
+        "menos": 20,
+        "igual": 0,
+        "montos": {
+          "perfil-10": {
+            "sector": "CD-NOA",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 6600,
+            "individual": {
+              "1": 1800,
+              "2": 2300,
+              "3": 3100,
+              "4": 4200,
+              "5": 5900
+            }
+          },
+          "perfil-16": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "RECEPCIONISTA (REFRIG.)",
+            "grupal": 8100,
+            "individual": {
+              "1": 1600,
+              "2": 2100,
+              "3": 2900,
+              "4": 3900,
+              "5": 5300
+            }
+          },
+          "perfil-4": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 8300,
+            "individual": {
+              "1": 1900,
+              "2": 2500,
+              "3": 3400,
+              "4": 4700,
+              "5": 6500
+            }
+          },
+          "perfil-7": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "RECEPCIONISTA DE SECO",
+            "grupal": 20200,
+            "individual": {
+              "1": 2500,
+              "2": 3200,
+              "3": 4400,
+              "4": 6000,
+              "5": 8300
+            }
+          }
+        }
+      },
+      "CARGA": {
+        "factor_grupal": 1.06,
+        "factor_individual": 0.280663273795442,
+        "actual": 12442485.45,
+        "nuevo": 14268000.0,
+        "mas": 36,
+        "menos": 22,
+        "igual": 2,
+        "montos": {
+          "perfil-15": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CARGADOR (REFRIG)",
+            "grupal": 9500,
+            "individual": {
+              "1": 5900,
+              "2": 7700,
+              "3": 10300,
+              "4": 14100,
+              "5": 19400
+            }
+          },
+          "perfil-3": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "CARGADOR DE SECOS",
+            "grupal": 7400,
+            "individual": {
+              "1": 200,
+              "2": 200,
+              "3": 300,
+              "4": 400,
+              "5": 600
+            }
+          }
+        }
+      },
+      "CONTROL": {
+        "factor_grupal": 0.37,
+        "factor_individual": 1.663380191324925,
+        "actual": 7769633.16,
+        "nuevo": 8929200.0,
+        "mas": 19,
+        "menos": 3,
+        "igual": 0,
+        "montos": {
+          "perfil-17": {
+            "sector": "CD-ADMINISTRACION",
+            "funcion": "CONTROLADOR DE STOCK SECOS NOA",
+            "grupal": 4900,
+            "individual": {
+              "1": 6500,
+              "2": 8300,
+              "3": 11300,
+              "4": 15500,
+              "5": 21300
+            }
+          }
+        }
+      }
+    },
+    "total": {
+      "actual": 120522091.54,
+      "nuevo": 138441000.0,
+      "variacion_pct": 14.867737715996165,
+      "mas": 255,
+      "menos": 106,
+      "igual": 3
+    }
+  },
+  {
+    "objetivo": 1.1,
+    "criterio": "balanceado",
+    "familias": {
+      "ARMADO": {
+        "factor_grupal": 0.68,
+        "factor_individual": 0.6782770698331568,
+        "actual": 58994143.78,
+        "nuevo": 64805100.0,
+        "mas": 80,
+        "menos": 38,
+        "igual": 1,
+        "montos": {
+          "perfil-1": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "ARMADOR",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          },
+          "perfil-11": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          },
+          "perfil-12": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR T06",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          },
+          "perfil-5": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "ARMADOR",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          },
+          "perfil-8": {
+            "sector": "CD-NOA",
+            "funcion": "ARMADOR",
+            "grupal": 11800,
+            "individual": {
+              "1": 5100,
+              "2": 8300,
+              "3": 13500,
+              "4": 22600,
+              "5": 37700
+            }
+          }
+        }
+      },
+      "CLARK": {
+        "factor_grupal": 1.59,
+        "factor_individual": 1.5075093903802035,
+        "actual": 23775577.4,
+        "nuevo": 26122100.0,
+        "mas": 62,
+        "menos": 37,
+        "igual": 0,
+        "montos": {
+          "perfil-13": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "AUTOELEVADORISTA (REFRIG)",
+            "grupal": 5100,
+            "individual": {
+              "1": 1500,
+              "2": 2000,
+              "3": 2600,
+              "4": 3600,
+              "5": 4800
+            }
+          },
+          "perfil-14": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CLARK CONGELADOS",
+            "grupal": 11100,
+            "individual": {
+              "1": 2300,
+              "2": 3000,
+              "3": 4100,
+              "4": 5600,
+              "5": 7700
+            }
+          },
+          "perfil-2": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 7600,
+            "individual": {
+              "1": 3000,
+              "2": 3900,
+              "3": 5300,
+              "4": 7100,
+              "5": 9800
+            }
+          },
+          "perfil-6": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 8900,
+            "individual": {
+              "1": 3500,
+              "2": 4500,
+              "3": 6200,
+              "4": 8300,
+              "5": 11500
+            }
+          },
+          "perfil-9": {
+            "sector": "CD-NOA",
+            "funcion": "AUTOELEVADORISTA ARMADO Y GUARDADO NOA",
+            "grupal": 10000,
+            "individual": {
+              "1": 4500,
+              "2": 6000,
+              "3": 8000,
+              "4": 11000,
+              "5": 15200
+            }
+          }
+        }
+      },
+      "RECEPCION": {
+        "factor_grupal": 0.69,
+        "factor_individual": 0.5323040546821444,
+        "actual": 17540251.75,
+        "nuevo": 19285900.0,
+        "mas": 43,
+        "menos": 21,
+        "igual": 0,
+        "montos": {
+          "perfil-10": {
+            "sector": "CD-NOA",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 6600,
+            "individual": {
+              "1": 1500,
+              "2": 2000,
+              "3": 2600,
+              "4": 3600,
+              "5": 5000
+            }
+          },
+          "perfil-16": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "RECEPCIONISTA (REFRIG.)",
+            "grupal": 8100,
+            "individual": {
+              "1": 1300,
+              "2": 1800,
+              "3": 2400,
+              "4": 3200,
+              "5": 4500
+            }
+          },
+          "perfil-4": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 8300,
+            "individual": {
+              "1": 1600,
+              "2": 2100,
+              "3": 2900,
+              "4": 3900,
+              "5": 5400
+            }
+          },
+          "perfil-7": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "RECEPCIONISTA DE SECO",
+            "grupal": 20200,
+            "individual": {
+              "1": 2100,
+              "2": 2700,
+              "3": 3700,
+              "4": 5100,
+              "5": 7000
+            }
+          }
+        }
+      },
+      "CARGA": {
+        "factor_grupal": 0.78,
+        "factor_individual": 0.3980645784426125,
+        "actual": 12442485.45,
+        "nuevo": 13698700.0,
+        "mas": 31,
+        "menos": 27,
+        "igual": 2,
+        "montos": {
+          "perfil-15": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CARGADOR (REFRIG)",
+            "grupal": 7000,
+            "individual": {
+              "1": 8400,
+              "2": 10900,
+              "3": 14600,
+              "4": 20100,
+              "5": 27600
+            }
+          },
+          "perfil-3": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "CARGADOR DE SECOS",
+            "grupal": 5500,
+            "individual": {
+              "1": 200,
+              "2": 300,
+              "3": 400,
+              "4": 600,
+              "5": 800
+            }
+          }
+        }
+      },
+      "CONTROL": {
+        "factor_grupal": 0.83,
+        "factor_individual": 0.8370841769252071,
+        "actual": 7769633.16,
+        "nuevo": 8527600.0,
+        "mas": 15,
+        "menos": 7,
+        "igual": 0,
+        "montos": {
+          "perfil-17": {
+            "sector": "CD-ADMINISTRACION",
+            "funcion": "CONTROLADOR DE STOCK SECOS NOA",
+            "grupal": 11000,
+            "individual": {
+              "1": 3300,
+              "2": 4200,
+              "3": 5700,
+              "4": 7800,
+              "5": 10700
+            }
+          }
+        }
+      }
+    },
+    "total": {
+      "actual": 120522091.54,
+      "nuevo": 132439400.0,
+      "variacion_pct": 9.888069737028072,
+      "mas": 231,
+      "menos": 130,
+      "igual": 3
+    }
+  },
+  {
+    "objetivo": 1.125,
+    "criterio": "balanceado",
+    "familias": {
+      "ARMADO": {
+        "factor_grupal": 0.74,
+        "factor_individual": 0.6362283711737768,
+        "actual": 58994143.78,
+        "nuevo": 66500100.0,
+        "mas": 82,
+        "menos": 36,
+        "igual": 1,
+        "montos": {
+          "perfil-1": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "ARMADOR",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          },
+          "perfil-11": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          },
+          "perfil-12": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR T06",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          },
+          "perfil-5": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "ARMADOR",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          },
+          "perfil-8": {
+            "sector": "CD-NOA",
+            "funcion": "ARMADOR",
+            "grupal": 12900,
+            "individual": {
+              "1": 4800,
+              "2": 7800,
+              "3": 12700,
+              "4": 21200,
+              "5": 35400
+            }
+          }
+        }
+      },
+      "CLARK": {
+        "factor_grupal": 1.46,
+        "factor_individual": 1.9200871732779075,
+        "actual": 23775577.4,
+        "nuevo": 26770000.0,
+        "mas": 66,
+        "menos": 33,
+        "igual": 0,
+        "montos": {
+          "perfil-13": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "AUTOELEVADORISTA (REFRIG)",
+            "grupal": 4700,
+            "individual": {
+              "1": 1900,
+              "2": 2500,
+              "3": 3300,
+              "4": 4600,
+              "5": 6100
+            }
+          },
+          "perfil-14": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CLARK CONGELADOS",
+            "grupal": 10200,
+            "individual": {
+              "1": 2900,
+              "2": 3800,
+              "3": 5200,
+              "4": 7100,
+              "5": 9800
+            }
+          },
+          "perfil-2": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 7000,
+            "individual": {
+              "1": 3800,
+              "2": 5000,
+              "3": 6700,
+              "4": 9000,
+              "5": 12500
+            }
+          },
+          "perfil-6": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 8200,
+            "individual": {
+              "1": 4400,
+              "2": 5800,
+              "3": 7900,
+              "4": 10600,
+              "5": 14600
+            }
+          },
+          "perfil-9": {
+            "sector": "CD-NOA",
+            "funcion": "AUTOELEVADORISTA ARMADO Y GUARDADO NOA",
+            "grupal": 9200,
+            "individual": {
+              "1": 5800,
+              "2": 7700,
+              "3": 10200,
+              "4": 14000,
+              "5": 19400
+            }
+          }
+        }
+      },
+      "RECEPCION": {
+        "factor_grupal": 0.69,
+        "factor_individual": 0.5832570175515042,
+        "actual": 17540251.75,
+        "nuevo": 19689200.0,
+        "mas": 44,
+        "menos": 20,
+        "igual": 0,
+        "montos": {
+          "perfil-10": {
+            "sector": "CD-NOA",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 6600,
+            "individual": {
+              "1": 1600,
+              "2": 2200,
+              "3": 2900,
+              "4": 3900,
+              "5": 5400
+            }
+          },
+          "perfil-16": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "RECEPCIONISTA (REFRIG.)",
+            "grupal": 8100,
+            "individual": {
+              "1": 1500,
+              "2": 1900,
+              "3": 2600,
+              "4": 3600,
+              "5": 4900
+            }
+          },
+          "perfil-4": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 8300,
+            "individual": {
+              "1": 1700,
+              "2": 2300,
+              "3": 3100,
+              "4": 4300,
+              "5": 5900
+            }
+          },
+          "perfil-7": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "RECEPCIONISTA DE SECO",
+            "grupal": 20200,
+            "individual": {
+              "1": 2300,
+              "2": 3000,
+              "3": 4000,
+              "4": 5500,
+              "5": 7600
+            }
+          }
+        }
+      },
+      "CARGA": {
+        "factor_grupal": 0.78,
+        "factor_individual": 0.41693363974267983,
+        "actual": 12442485.45,
+        "nuevo": 14025200.0,
+        "mas": 32,
+        "menos": 26,
+        "igual": 2,
+        "montos": {
+          "perfil-15": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CARGADOR (REFRIG)",
+            "grupal": 7000,
+            "individual": {
+              "1": 8800,
+              "2": 11400,
+              "3": 15300,
+              "4": 21000,
+              "5": 28900
+            }
+          },
+          "perfil-3": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "CARGADOR DE SECOS",
+            "grupal": 5500,
+            "individual": {
+              "1": 300,
+              "2": 300,
+              "3": 500,
+              "4": 600,
+              "5": 800
+            }
+          }
+        }
+      },
+      "CONTROL": {
+        "factor_grupal": 0.85,
+        "factor_individual": 0.8543091672330891,
+        "actual": 7769633.16,
+        "nuevo": 8726700.0,
+        "mas": 16,
+        "menos": 6,
+        "igual": 0,
+        "montos": {
+          "perfil-17": {
+            "sector": "CD-ADMINISTRACION",
+            "funcion": "CONTROLADOR DE STOCK SECOS NOA",
+            "grupal": 11300,
+            "individual": {
+              "1": 3300,
+              "2": 4300,
+              "3": 5800,
+              "4": 7900,
+              "5": 10900
+            }
+          }
+        }
+      }
+    },
+    "total": {
+      "actual": 120522091.54,
+      "nuevo": 135711200.0,
+      "variacion_pct": 12.602758768884215,
+      "mas": 240,
+      "menos": 121,
+      "igual": 3
+    }
+  },
+  {
+    "objetivo": 1.15,
+    "criterio": "balanceado",
+    "familias": {
+      "ARMADO": {
+        "factor_grupal": 0.87,
+        "factor_individual": 0.5038789649841866,
+        "actual": 58994143.78,
+        "nuevo": 67747100.0,
+        "mas": 84,
+        "menos": 34,
+        "igual": 1,
+        "montos": {
+          "perfil-1": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "ARMADOR",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          },
+          "perfil-11": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          },
+          "perfil-12": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "ARMADOR T06",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          },
+          "perfil-5": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "ARMADOR",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          },
+          "perfil-8": {
+            "sector": "CD-NOA",
+            "funcion": "ARMADOR",
+            "grupal": 15100,
+            "individual": {
+              "1": 3800,
+              "2": 6200,
+              "3": 10000,
+              "4": 16800,
+              "5": 28000
+            }
+          }
+        }
+      },
+      "CLARK": {
+        "factor_grupal": 1.55,
+        "factor_individual": 1.8316935645796977,
+        "actual": 23775577.4,
+        "nuevo": 27355200.0,
+        "mas": 71,
+        "menos": 28,
+        "igual": 0,
+        "montos": {
+          "perfil-13": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "AUTOELEVADORISTA (REFRIG)",
+            "grupal": 5000,
+            "individual": {
+              "1": 1800,
+              "2": 2400,
+              "3": 3100,
+              "4": 4400,
+              "5": 5900
+            }
+          },
+          "perfil-14": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CLARK CONGELADOS",
+            "grupal": 10800,
+            "individual": {
+              "1": 2700,
+              "2": 3700,
+              "3": 4900,
+              "4": 6800,
+              "5": 9300
+            }
+          },
+          "perfil-2": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 7400,
+            "individual": {
+              "1": 3700,
+              "2": 4800,
+              "3": 6400,
+              "4": 8600,
+              "5": 11900
+            }
+          },
+          "perfil-6": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "AUTOELEVADORISTA",
+            "grupal": 8700,
+            "individual": {
+              "1": 4200,
+              "2": 5500,
+              "3": 7500,
+              "4": 10100,
+              "5": 13900
+            }
+          },
+          "perfil-9": {
+            "sector": "CD-NOA",
+            "funcion": "AUTOELEVADORISTA ARMADO Y GUARDADO NOA",
+            "grupal": 9800,
+            "individual": {
+              "1": 5500,
+              "2": 7300,
+              "3": 9700,
+              "4": 13400,
+              "5": 18500
+            }
+          }
+        }
+      },
+      "RECEPCION": {
+        "factor_grupal": 0.69,
+        "factor_individual": 0.634209980420864,
+        "actual": 17540251.75,
+        "nuevo": 20134100.0,
+        "mas": 44,
+        "menos": 20,
+        "igual": 0,
+        "montos": {
+          "perfil-10": {
+            "sector": "CD-NOA",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 6600,
+            "individual": {
+              "1": 1800,
+              "2": 2300,
+              "3": 3100,
+              "4": 4200,
+              "5": 5900
+            }
+          },
+          "perfil-16": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "RECEPCIONISTA (REFRIG.)",
+            "grupal": 8100,
+            "individual": {
+              "1": 1600,
+              "2": 2100,
+              "3": 2900,
+              "4": 3900,
+              "5": 5300
+            }
+          },
+          "perfil-4": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "RECEPCIONISTA",
+            "grupal": 8300,
+            "individual": {
+              "1": 1900,
+              "2": 2500,
+              "3": 3400,
+              "4": 4700,
+              "5": 6500
+            }
+          },
+          "perfil-7": {
+            "sector": "CD-SECOS - ZONA 2",
+            "funcion": "RECEPCIONISTA DE SECO",
+            "grupal": 20200,
+            "individual": {
+              "1": 2500,
+              "2": 3200,
+              "3": 4400,
+              "4": 6000,
+              "5": 8300
+            }
+          }
+        }
+      },
+      "CARGA": {
+        "factor_grupal": 0.81,
+        "factor_individual": 0.41918061955196445,
+        "actual": 12442485.45,
+        "nuevo": 14331200.0,
+        "mas": 33,
+        "menos": 25,
+        "igual": 2,
+        "montos": {
+          "perfil-15": {
+            "sector": "CD-REFRIGERADOS",
+            "funcion": "CARGADOR (REFRIG)",
+            "grupal": 7300,
+            "individual": {
+              "1": 8800,
+              "2": 11400,
+              "3": 15400,
+              "4": 21100,
+              "5": 29000
+            }
+          },
+          "perfil-3": {
+            "sector": "CD-SECOS - ZONA 1",
+            "funcion": "CARGADOR DE SECOS",
+            "grupal": 5700,
+            "individual": {
+              "1": 300,
+              "2": 300,
+              "3": 500,
+              "4": 600,
+              "5": 800
+            }
+          }
+        }
+      },
+      "CONTROL": {
+        "factor_grupal": 0.81,
+        "factor_individual": 0.9665556815950455,
+        "actual": 7769633.16,
+        "nuevo": 8955600.0,
+        "mas": 17,
+        "menos": 5,
+        "igual": 0,
+        "montos": {
+          "perfil-17": {
+            "sector": "CD-ADMINISTRACION",
+            "funcion": "CONTROLADOR DE STOCK SECOS NOA",
+            "grupal": 10800,
+            "individual": {
+              "1": 3800,
+              "2": 4800,
+              "3": 6600,
+              "4": 9000,
+              "5": 12400
+            }
+          }
+        }
+      }
+    },
+    "total": {
+      "actual": 120522091.54,
+      "nuevo": 138523200.0,
+      "variacion_pct": 14.935940979771022,
+      "mas": 249,
+      "menos": 112,
+      "igual": 3
+    }
+  }
+]

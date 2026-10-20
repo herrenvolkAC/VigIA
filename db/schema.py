@@ -640,6 +640,52 @@ CREATE TABLE IF NOT EXISTS tnc_eventos_cache (
 );
 """
 
+CREATE_TNC_RESUMEN_DIARIO = """
+CREATE TABLE IF NOT EXISTS tnc_resumen_diario (
+    fecha TEXT NOT NULL, empresa TEXT NOT NULL, almacen TEXT NOT NULL,
+    legajo TEXT NOT NULL, codigo_tnc TEXT NOT NULL,
+    descripcion_tnc TEXT, eventos INTEGER NOT NULL,
+    minutos_total INTEGER NOT NULL, activos INTEGER NOT NULL, finalizados INTEGER NOT NULL,
+    primer_inicio TEXT, ultimo_fin TEXT,
+    minutos_maximos REAL, ocurrencias_maximas INTEGER, tolerancia_minutos REAL,
+    tiene_tiempo_maximo TEXT, tiene_tolerancia TEXT,
+    sincronizado_at TEXT NOT NULL,
+    PRIMARY KEY (fecha, empresa, almacen, legajo, codigo_tnc)
+);
+"""
+
+CREATE_TNC_RESUMEN_SYNC = """
+CREATE TABLE IF NOT EXISTS tnc_resumen_sync (
+    fecha TEXT PRIMARY KEY, sincronizado_at TEXT NOT NULL,
+    eventos_origen INTEGER NOT NULL, filas_resumen INTEGER NOT NULL
+);
+"""
+
+# El exceso se evalúa por día, legajo y tipo, incluyendo todos sus almacenes.
+# NULL identifica días que no pueden evaluarse de forma confiable.
+CREATE_TNC_EXCESOS_DIARIOS = """
+CREATE VIEW IF NOT EXISTS tnc_excesos_diarios AS
+SELECT fecha, legajo, codigo_tnc,
+       SUM(minutos_total) AS minutos_total,
+       SUM(eventos) AS eventos,
+       SUM(activos) AS activos,
+       CASE WHEN COUNT(minutos_maximos) = COUNT(*)
+                  AND MIN(minutos_maximos) = MAX(minutos_maximos)
+                  AND MIN(minutos_maximos) > 0
+                  AND SUM(CASE WHEN UPPER(TRIM(COALESCE(tiene_tiempo_maximo, ''))) = 'SI' THEN 1 ELSE 0 END) = COUNT(*)
+                  AND SUM(activos) = 0
+            THEN MIN(minutos_maximos) ELSE NULL END AS minutos_maximos,
+       CASE WHEN COUNT(minutos_maximos) = COUNT(*)
+                  AND MIN(minutos_maximos) = MAX(minutos_maximos)
+                  AND MIN(minutos_maximos) > 0
+                  AND SUM(CASE WHEN UPPER(TRIM(COALESCE(tiene_tiempo_maximo, ''))) = 'SI' THEN 1 ELSE 0 END) = COUNT(*)
+                  AND SUM(activos) = 0
+            THEN CASE WHEN SUM(minutos_total) > MIN(minutos_maximos) THEN 1 ELSE 0 END
+            ELSE NULL END AS excedido
+FROM tnc_resumen_diario
+GROUP BY fecha, legajo, codigo_tnc
+"""
+
 CREATE_TNC_CACHE_SYNC = """
 CREATE TABLE IF NOT EXISTS tnc_cache_sync (
     dia_tnc                 DATE PRIMARY KEY,
@@ -1241,6 +1287,9 @@ async def init_db():
             await db.execute("DROP TABLE IF EXISTS historia_legajo_actividad_operaciones")
         await db.execute(CREATE_PRODUCTIVIDAD_HOURLY_IA_CACHE)
         await db.execute(CREATE_TNC_EVENTOS_CACHE)
+        await db.execute(CREATE_TNC_RESUMEN_DIARIO)
+        await db.execute(CREATE_TNC_RESUMEN_SYNC)
+        await db.execute(CREATE_TNC_EXCESOS_DIARIOS)
         await db.execute(CREATE_TNC_CACHE_SYNC)
         await db.execute(CREATE_RRHH_IMPORT_BATCHES)
         await db.execute(CREATE_RRHH_LEGAJERO)

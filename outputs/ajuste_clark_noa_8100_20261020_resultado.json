@@ -1,0 +1,178 @@
+{
+  "ejecucion": "2026-10-20T08:27:32-03:00",
+  "periodo": [
+    "2026-08-01",
+    "2026-09-30"
+  ],
+  "recalculo": {
+    "grupos_diarios": 3111,
+    "legajo_dias": 22204,
+    "individual": {
+      "ok": true,
+      "filas_procesadas": 432782,
+      "filas_evaluadas": 9432,
+      "filas_pendientes": 423350,
+      "premio_individual_nuevo": 65645618.7,
+      "fecha_desde": "2026-08-01",
+      "fecha_hasta": "2026-09-30",
+      "cache_reemplazado": true,
+      "snapshot_tablas": "2026-08-01"
+    }
+  },
+  "perfil": {
+    "sector": "CD-NOA",
+    "funcion": "AUTOELEVADORISTA ARMADO Y GUARDADO NOA",
+    "operacion": "CLARK",
+    "division": "6",
+    "umbral_uc": 155.0,
+    "premio_grupal": 8100.0,
+    "dias_con_base": 43,
+    "dias_que_cumple": 34,
+    "personas": 23,
+    "actual_centavos": 755730236,
+    "nuevo_centavos": 869210000,
+    "mas": 18,
+    "menos": 5,
+    "igual": 0,
+    "detalle_legajos": [
+      {
+        "legajo": "109225",
+        "actual_centavos": 52899418,
+        "nuevo_centavos": 63190000,
+        "diferencia_centavos": 10290582
+      },
+      {
+        "legajo": "118397",
+        "actual_centavos": 25410510,
+        "nuevo_centavos": 35800000,
+        "diferencia_centavos": 10389490
+      },
+      {
+        "legajo": "121565",
+        "actual_centavos": 26715881,
+        "nuevo_centavos": 26350000,
+        "diferencia_centavos": -365881
+      },
+      {
+        "legajo": "121613",
+        "actual_centavos": 63626013,
+        "nuevo_centavos": 50440000,
+        "diferencia_centavos": -13186013
+      },
+      {
+        "legajo": "121615",
+        "actual_centavos": 30976943,
+        "nuevo_centavos": 34690000,
+        "diferencia_centavos": 3713057
+      },
+      {
+        "legajo": "121616",
+        "actual_centavos": 14511581,
+        "nuevo_centavos": 27560000,
+        "diferencia_centavos": 13048419
+      },
+      {
+        "legajo": "135087",
+        "actual_centavos": 23478217,
+        "nuevo_centavos": 31080000,
+        "diferencia_centavos": 7601783
+      },
+      {
+        "legajo": "135092",
+        "actual_centavos": 56549319,
+        "nuevo_centavos": 56610000,
+        "diferencia_centavos": 60681
+      },
+      {
+        "legajo": "135095",
+        "actual_centavos": 23957593,
+        "nuevo_centavos": 30960000,
+        "diferencia_centavos": 7002407
+      },
+      {
+        "legajo": "135097",
+        "actual_centavos": 31889262,
+        "nuevo_centavos": 30010000,
+        "diferencia_centavos": -1879262
+      },
+      {
+        "legajo": "135104",
+        "actual_centavos": 38498162,
+        "nuevo_centavos": 41740000,
+        "diferencia_centavos": 3241838
+      },
+      {
+        "legajo": "135113",
+        "actual_centavos": 24752013,
+        "nuevo_centavos": 35020000,
+        "diferencia_centavos": 10267987
+      },
+      {
+        "legajo": "154401",
+        "actual_centavos": 17324840,
+        "nuevo_centavos": 25820000,
+        "diferencia_centavos": 8495160
+      },
+      {
+        "legajo": "161935",
+        "actual_centavos": 41072051,
+        "nuevo_centavos": 37780000,
+        "diferencia_centavos": -3292051
+      },
+      {
+        "legajo": "162303",
+        "actual_centavos": 31541784,
+        "nuevo_centavos": 38930000,
+        "diferencia_centavos": 7388216
+      },
+      {
+        "legajo": "170453",
+        "actual_centavos": 48988388,
+        "nuevo_centavos": 50750000,
+        "diferencia_centavos": 1761612
+      },
+      {
+        "legajo": "170556",
+        "actual_centavos": 19081604,
+        "nuevo_centavos": 29110000,
+        "diferencia_centavos": 10028396
+      },
+      {
+        "legajo": "173485",
+        "actual_centavos": 21905564,
+        "nuevo_centavos": 29220000,
+        "diferencia_centavos": 7314436
+      },
+      {
+        "legajo": "183034",
+        "actual_centavos": 23207150,
+        "nuevo_centavos": 32840000,
+        "diferencia_centavos": 9632850
+      },
+      {
+        "legajo": "183064",
+        "actual_centavos": 22572264,
+        "nuevo_centavos": 31420000,
+        "diferencia_centavos": 8847736
+      },
+      {
+        "legajo": "190888",
+        "actual_centavos": 7940077,
+        "nuevo_centavos": 25250000,
+        "diferencia_centavos": 17309923
+      },
+      {
+        "legajo": "65914",
+        "actual_centavos": 41461984,
+        "nuevo_centavos": 46640000,
+        "diferencia_centavos": 5178016
+      },
+      {
+        "legajo": "68061",
+        "actual_centavos": 67369618,
+        "nuevo_centavos": 58000000,
+        "diferencia_centavos": -9369618
+      }
+    ]
+  }
+}

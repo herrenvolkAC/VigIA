@@ -1,22 +1,37 @@
 (() => {
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const state = {meta:null,catalog:{},rows:[],selected:new Set(),dirty:new Map(),view:'pre',sort:'fecha',dir:-1,busy:false,detailKey:'',config:null};
+  const state = {meta:null,catalog:{},rows:[],history:[],historySort:'fecha',historyDir:-1,selected:new Set(),dirty:new Map(),view:'pre',pendingOnly:false,sort:'fecha',dir:-1,busy:false,config:null,openingMail:false};
   const collator = new Intl.Collator('es', {numeric:true, sensitivity:'base'});
   const labels = {
     detectada:'Detectada',pre_autorizada:'Pre autorizada',rechazada_jefe:'Rechazada jefe',
     aprobada_gerente:'Aprobada gerente',rechazada_gerente:'Rechazada gerente',
     ajuste_solicitado:'Ajuste solicitado',ajuste_aprobado:'Ajuste aprobado',cargada_sap:'Cargada SAP'
   };
-  const viewTitles = {pre:'Pre autorizacion jefe',gerencia:'Aprobacion gerente',ajustes:'Ajustes y seguimiento',config:'Configuracion'};
+  const viewTitles = {pre:'Pre autorizacion jefe',gerencia:'Aprobacion gerente',ajustes:'RRHH',config:'Configuracion'};
   const viewStates = {
     pre:new Set(['detectada','rechazada_jefe','pre_autorizada']),
     gerencia:new Set(['pre_autorizada','aprobada_gerente','rechazada_gerente']),
-    ajustes:new Set(['aprobada_gerente','ajuste_solicitado','ajuste_aprobado','cargada_sap'])
+    ajustes:new Set(['detectada','pre_autorizada','rechazada_jefe','aprobada_gerente','rechazada_gerente','ajuste_solicitado','ajuste_aprobado','cargada_sap'])
   };
   const DISPLAY_LIMIT = 800;
+  const MAX_BULK_DECISIONS = 500;
+  const drafts = new Map();
+  const editedDrafts = new Set();
+  const rowErrors = new Map();
+  function draftFor(row){
+    const key = `${row.legajo}|${row.fecha}`;
+    if(!drafts.has(key)) drafts.set(key,{
+      quantity:hours(row.horas_preautorizadas ?? (row.horas_autorizadas || Math.floor(Number(row.horas_extras_detectadas)*60)/60)),
+      managerQuantity:hours(row.horas_preautorizadas ?? row.horas_autorizadas ?? 0),
+      justificacion:row.justificacion || '',
+      adjustmentQuantity:hours(row.horas_autorizadas || 0),
+      adjustmentReason:row.ajuste_motivo || ''
+    });
+    return drafts.get(key);
+  }
   function msg(text, error=false){$('message').textContent=text;$('message').classList.toggle('error',error);}
-  function localDate(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.toISOString().slice(0,10);}
+  function localDate(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
   async function api(path, options={}){
     const res = await fetch(path, {credentials:'same-origin',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
     if(res.status===401){location.replace('/login?next=/horas-extras.html');return null}
@@ -24,7 +39,12 @@
     if(!res.ok) throw new Error(data.detail || 'No se pudo completar la operacion.');
     return data;
   }
-  function setBusy(value){state.busy=value;document.querySelectorAll('button,input,select').forEach(el=>{if(el.id!=='drawer-close')el.disabled=value});$('save-btn').disabled=value||!state.dirty.size;$('export-btn').disabled=value||!state.rows.length;}
+  function setBusy(value){
+    state.busy=value;
+    document.querySelectorAll('#filters button, #filters input, #filters select, #filters textarea, #history-filters button, #history-filters input, #history-filters select, #history-filters textarea, #bulk-bar button, #bulk-bar input, #rows-body .row-quantity, #rows-body [data-edit="justificacion"], #rows-body [data-edit="adjustment-quantity"], #rows-body [data-edit="adjustment-reason"], #rows-body [data-edit="manager-quantity"], #responsable-form button, #responsable-form input, #responsable-form select, #responsable-form textarea, #mail-form button, #mail-form input, #mail-form select, #save-btn, #export-btn, #history-export').forEach(el=>{el.disabled=value});
+    renderSelection();
+    $('history-export').disabled=value || !state.history.length;
+  }
   const hours = HEIndicators.duration;
   function selectedFunctions(){
     return [...document.querySelectorAll('[name="funcion"]:checked')].map(el=>el.value);
@@ -46,12 +66,41 @@
   function updateFunctionSummary(){
     const total = sectorFunctions().length;
     const count = selectedFunctions().length;
-    $('funciones-summary').textContent = !total || count===total ? 'Todas las funciones' : `${count} funciones`;
+    const label = !total || count===total ? 'Todas las funciones' : `${count} funciones`;
+    $('funciones-summary').textContent = label;
+    $('funciones-trigger').textContent = label;
   }
   function rowStageVisible(row){
     const stateOk = viewStates[state.view]?.has(row.estado) || false;
     const selectedState = $('estado-filter').value;
-    return stateOk && (!selectedState || row.estado === selectedState);
+    if(!stateOk) return false;
+    if(state.pendingOnly && !isPendingForView(row,state.view)) return false;
+    return !selectedState || row.estado === selectedState;
+  }
+  function isPendingForView(row,view){
+    if(view==='pre') return ['detectada','rechazada_jefe'].includes(row.estado);
+    if(view==='gerencia') return row.estado==='pre_autorizada';
+    if(view==='ajustes') return row.estado==='aprobada_gerente' && !row.cargado_sap;
+    return false;
+  }
+  function renderPendingBadges(){
+    const countPending=(view)=>state.rows.filter(row=>{
+      const key=`${row.legajo}|${row.fecha}`;
+      const dirty=state.dirty.get(key);
+      if(!dirty?.previousState) return isPendingForView(row,view);
+      return isPendingForView({...row,estado:dirty.previousState,cargado_sap:dirty.previousSap??row.cargado_sap},view);
+    }).length;
+    const counts={
+      pre:countPending('pre'),
+      gerencia:countPending('gerencia'),
+      ajustes:countPending('ajustes'),
+    };
+    document.querySelectorAll('[data-pending-badge]').forEach(badge=>{
+      const count=counts[badge.dataset.pendingBadge]||0;
+      badge.textContent=count;
+      badge.hidden=count===0;
+      badge.title=`${count} pendientes en el rango consultado`;
+    });
   }
   function visibleRows(){
     return state.rows.filter(rowStageVisible).sort((a,b)=>{
@@ -68,51 +117,69 @@
     if(['ajuste_solicitado'].includes(value)) return 'warn';
     return 'info';
   }
-  function renderKpis(){
-    const totals = {
-      Detectadas: state.rows.length,
-      Pendientes: state.rows.filter(r=>r.estado==='detectada').length,
-      Jefatura: state.rows.filter(r=>r.estado==='pre_autorizada').length,
-      Gerencia: state.rows.filter(r=>r.estado==='aprobada_gerente').length,
-      Rechazadas: state.rows.filter(r=>r.estado.includes('rechazada')).length,
-      SAP: state.rows.filter(r=>r.cargado_sap).length,
-    };
-    const tones = ['blue','','violet','green','red','amber'];
-    $('kpi-grid').innerHTML = Object.entries(totals).map(([label,value],i)=>`
-      <article class="kpi ${tones[i]||''}"><span>${label}</span><strong>${value}</strong><small>${hours(state.rows.filter(r=>label==='SAP'?r.cargado_sap:true).reduce((a,r)=>a+Number(r.horas_extras_detectadas||0),0))} hs detectadas</small></article>
-    `).join('');
-  }
   function renderRows(){
     const rows = visibleRows();
     const displayedRows = rows.slice(0, DISPLAY_LIMIT);
     const overflow = rows.length > DISPLAY_LIMIT
-      ? `<tr><td colspan="12">Se muestran ${DISPLAY_LIMIT} de ${rows.length} registros. Acote sector, funcion o fechas para trabajar con mayor fluidez.</td></tr>`
+      ? `<tr class="table-note"><td colspan="10">Se muestran ${DISPLAY_LIMIT} de ${rows.length} registros. Acote sector, funcion o fechas para trabajar con mayor fluidez.</td></tr>`
       : '';
     $('table-title').textContent = viewTitles[state.view];
+    const totalHours=rows.reduce((sum,row)=>sum+Number(row.horas_extras_detectadas||0),0);
+    $('queue-summary').textContent=`${rows.length} ${state.pendingOnly?'pendientes':'registros'} · ${hours(totalHours)} hs detectadas`;
     $('rows-body').innerHTML = displayedRows.map(row=>{
       const key = `${row.legajo}|${row.fecha}`;
+      const draft = draftFor(row);
       return `<tr data-key="${esc(key)}" class="${row.sensible?'sensitive':''}">
-        <td><input class="row-check" data-check="${esc(key)}" type="checkbox" ${state.selected.has(key)?'checked':''}></td>
-        <td class="mono">${esc(row.fecha)}</td><td class="mono">${esc(row.legajo)}</td>
-        <td><button class="link-row" data-detail="${esc(key)}" type="button">${esc(row.empleado)}</button></td>
-        <td>${esc(row.sector)}</td><td>${esc(row.funcion)}</td><td class="mono">${esc(row.ph||'-')}</td>
-        <td class="mono">${esc(row.inicio_real||'-')}</td><td class="mono">${esc(row.fin_real||'-')}</td>
-        <td class="mono">${hours(row.horas_extras_detectadas)}</td>
-        <td><span class="state ${stateTone(row.estado)}">${esc(labels[row.estado]||row.estado)}</span>${row.horas_autorizadas && row.horas_autorizadas < row.horas_extras_detectadas ? `<div class="mono">${hours(row.horas_autorizadas)} hs aut.</div>` : ''}</td>
-        <td>${row.cargado_sap?'<span class="sap">Si</span>':'-'}</td>
+        <td data-label="Seleccionar"><input class="row-check" data-check="${esc(key)}" type="checkbox" ${state.view==='gerencia'&&row.estado!=='pre_autorizada'?'disabled':''} ${state.selected.has(key)?'checked':''}></td>
+        <td data-label="Fecha" class="mono">${esc(row.fecha)}</td>
+        <td data-label="Empleado" class="employee-cell"><button class="link-row" data-detail="${esc(key)}" type="button">${esc(row.empleado)}</button><small>Legajo ${esc(row.legajo)}</small></td>
+        <td data-label="Sector / funcion" class="sector-cell"><strong>${esc(row.sector)}</strong><small>${esc(row.funcion)}</small></td>
+        <td data-label="Jornada" class="shift-cell"><small>PH ${esc(row.ph||'-')}</small><strong>${esc(row.inicio_real||'-')} - ${esc(row.fin_real||'-')}</strong></td>
+        <td data-label="Horas extra" class="mono hours-cell">${hours(row.horas_extras_detectadas)}</td>
+        <td data-label="Cantidad / preautorizadas" class="quantity-cell">${state.view==='pre'?`<input class="row-quantity mono" data-edit="quantity" data-row="${esc(key)}" aria-label="Cantidad a autorizar para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.quantity)}" placeholder="HH:MM"><small class="partial-label">${Number(draft.quantity.split(':')[0])*60+Number(draft.quantity.split(':')[1]) < Math.round(row.horas_extras_detectadas*60)?'Parcial':''}</small>`:state.view==='gerencia'?`<input class="row-quantity mono" data-edit="manager-quantity" data-row="${esc(key)}" aria-label="Cantidad a aprobar para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.managerQuantity)}" placeholder="HH:MM"><small class="partial-label">${minutesFromHours(draft.managerQuantity)<Math.round(Number(row.horas_preautorizadas ?? row.horas_autorizadas ?? 0)*60)?'Parcial':''}</small>`:state.view==='ajustes'?`<input class="row-quantity mono" data-edit="adjustment-quantity" data-row="${esc(key)}" aria-label="Horas autorizadas para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.adjustmentQuantity)}" placeholder="HH:MM">`:`<span class="mono">${hours(row.horas_preautorizadas ?? row.horas_autorizadas)}</span>`}<small class="row-error" role="status">${state.view==='gerencia'?esc(rowErrors.get(key)||''):''}</small></td>
+        <td data-label="Justificacion" class="justification-cell">${state.view==='pre'?`<textarea data-edit="justificacion" data-row="${esc(key)}" maxlength="800" rows="2" aria-label="Justificacion para ${esc(row.empleado)}">${esc(draft.justificacion)}</textarea>`:state.view==='ajustes'?`<textarea data-edit="adjustment-reason" data-row="${esc(key)}" maxlength="800" rows="2" aria-label="Motivo del ajuste para ${esc(row.empleado)}">${esc(draft.adjustmentReason)}</textarea>`:esc(row.justificacion || 'Sin justificacion registrada')}<small class="row-error" role="status">${state.view==='gerencia'?'':esc(rowErrors.get(key)||'')}</small></td>
+        <td data-label="Estado"><span class="state ${stateTone(row.estado)}">${esc(labels[row.estado]||row.estado)}</span>${row.horas_autorizadas && row.horas_autorizadas < row.horas_extras_detectadas ? `<div class="mono">${hours(row.horas_autorizadas)} hs aut.</div>` : ''}</td>
+        <td data-label="SAP">${row.cargado_sap?'<span class="sap">Si</span>':'-'}</td>
       </tr>`;
-    }).join('') + overflow || '<tr><td colspan="12">No hay registros para esta vista o filtros.</td></tr>';
+    }).join('') + overflow || '<tr class="empty-row"><td colspan="10">No hay registros para esta vista o filtros.</td></tr>';
+    document.querySelector('[data-bulk="aprobada_gerente"]').hidden = state.view!=='gerencia';
+    document.querySelector('[data-bulk="cargada_sap"]').hidden = state.view!=='ajustes';
+    renderPendingBadges();
     renderSelection();
-    renderKpis();
   }
   function renderSelection(){
+    document.querySelectorAll('#rows-body input[data-check]').forEach(check=>{
+      const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===check.dataset.check);
+      const selectable=state.view!=='gerencia'||row?.estado==='pre_autorizada';
+      if(check.checked && selectable) state.selected.add(check.dataset.check);
+      else state.selected.delete(check.dataset.check);
+    });
     const count = state.selected.size;
-    $('bulk-bar').classList.toggle('visible', count>0 || state.dirty.size>0);
-    $('selected-count').textContent = `${count} seleccionadas`;
-    $('select-all').checked = visibleRows().length>0 && visibleRows().every(r=>state.selected.has(`${r.legajo}|${r.fecha}`));
-    $('select-all').indeterminate = count>0 && !$('select-all').checked;
-    $('save-btn').disabled = state.busy || !state.dirty.size;
+    $('bulk-bar').classList.toggle('visible', count>0 || state.dirty.size>0 || (state.view==='gerencia' && editedDrafts.size>0));
+    $('selected-count').textContent = count>MAX_BULK_DECISIONS
+      ? `${count} seleccionadas · limite ${MAX_BULK_DECISIONS} por accion`
+      : `${count} seleccionadas`;
+    const selectableRows=visibleRows().filter(row=>state.view!=='gerencia'||row.estado==='pre_autorizada');
+    document.querySelectorAll('#rows-body input[data-check]').forEach(check=>{
+      const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===check.dataset.check);
+      check.disabled=state.busy || (state.view==='gerencia'&&row?.estado!=='pre_autorizada');
+    });
+    $('select-all').disabled=state.busy || !selectableRows.length;
+    $('select-all').checked = selectableRows.length>0 && selectableRows.every(r=>state.selected.has(`${r.legajo}|${r.fecha}`));
+    $('select-all').indeterminate = selectableRows.some(r=>state.selected.has(`${r.legajo}|${r.fecha}`)) && !$('select-all').checked;
+    $('save-btn').hidden = state.view==='gerencia';
+    const saveCount=state.view==='pre'?count:state.dirty.size;
+    $('save-btn').disabled = state.busy || !saveCount || saveCount>MAX_BULK_DECISIONS;
+    $('save-btn').textContent = state.view==='pre'?'Guardar decisiones':state.view==='ajustes'?'Guardar ajustes':'Guardar';
     $('export-btn').disabled = state.busy || !state.rows.length;
+    document.querySelectorAll('[data-bulk]').forEach(button=>{
+      const available = button.dataset.bulk==='aprobada_gerente' ? state.view==='gerencia' : button.dataset.bulk==='rechazada_jefe' ? ['pre','gerencia'].includes(state.view) : button.dataset.bulk==='cargada_sap' ? state.view==='ajustes' : state.view==='pre';
+      button.hidden=!available;
+      const eligibleCount=state.view==='gerencia'
+        ? [...state.selected].filter(key=>state.rows.some(row=>`${row.legajo}|${row.fecha}`===key&&row.estado==='pre_autorizada')).length
+        : count;
+      button.disabled=state.busy || !eligibleCount || eligibleCount>MAX_BULK_DECISIONS;
+    });
   }
   async function loadMeta(){
     const meta = await api('/api/horas-extras/meta');
@@ -122,6 +189,7 @@
     $('profile-label').textContent = `${meta.access.profile || meta.user.role || 'consulta'} · ${meta.access.scope || 'modulo'}`;
     const canConfig = ['admin','rrhh'].includes(meta.user.role) || String(meta.access.profile || '').toUpperCase() === 'RRHH';
     $('config-tab').hidden = !canConfig;
+    $('rrhh-tab').hidden = !canConfig;
   }
   async function loadFilters(){
     const selectedSector = $('sector-filter').value;
@@ -131,9 +199,12 @@
     const sectors = Object.keys(state.catalog).sort((a,b)=>collator.compare(a,b));
     const keepSelected = selectedSector && sectors.includes(selectedSector);
     $('sector-filter').innerHTML = '<option value="">Todos</option>' + sectors.map(s=>`<option value="${esc(s)}" ${keepSelected && s===selectedSector?'selected':''}>${esc(s)}</option>`).join('');
+    const historySector=$('history-sector').value;
+    $('history-sector').innerHTML = '<option value="">Todos</option>' + sectors.map(s=>`<option value="${esc(s)}" ${s===historySector?'selected':''}>${esc(s)}</option>`).join('');
     renderFunctions();
   }
   function queryParams(){
+    ensureOperationalDates();
     if($('fecha-desde').value>$('fecha-hasta').value) throw new Error('Revise el rango de fechas.');
     const p = new URLSearchParams({desde:$('fecha-desde').value,hasta:$('fecha-hasta').value});
     if($('sector-filter').value) p.set('sector',$('sector-filter').value);
@@ -142,7 +213,12 @@
     if(funcs.length && funcs.length !== all.length) funcs.forEach(f=>p.append('funcion',f));
     return p;
   }
+  function ensureOperationalDates(force=false){
+    if(force || !$('fecha-hasta').value)$('fecha-hasta').value=localDate();
+    if(force || !$('fecha-desde').value)$('fecha-desde').value=localDate(-7);
+  }
   async function loadRows(){
+    if((editedDrafts.size || state.dirty.size) && !confirm('Descartar las decisiones sin guardar y consultar nuevamente?')) return;
     setBusy(true);msg('Consultando Actividad Diaria y decisiones...');
     try{
       const params = queryParams();
@@ -150,6 +226,7 @@
       const data = await api('/api/horas-extras/registros?' + params.toString());
       if(!data) return;
       state.rows = data.rows || [];
+      drafts.clear();editedDrafts.clear();rowErrors.clear();
       HEIndicators.capture(state.rows, params, selectedState);
       $('indicadores-tab').hidden = false;
       state.selected.clear();state.dirty.clear();
@@ -157,19 +234,109 @@
       msg(data.quality?.message || `${state.rows.length} registros cargados.`);
     }catch(e){msg(e.message,true)}finally{setBusy(false)}
   }
+  function historyParams(){
+    ensureHistoryDates();
+    if(!$('history-desde').value || !$('history-hasta').value) throw new Error('Seleccione el rango del historial.');
+    if($('history-desde').value>$('history-hasta').value) throw new Error('Revise el rango de fechas del historial.');
+    const params=new URLSearchParams({desde:$('history-desde').value,hasta:$('history-hasta').value});
+    if($('history-sector').value)params.set('sector',$('history-sector').value);
+    if($('history-legajo').value.trim())params.set('legajo',$('history-legajo').value.trim());
+    if($('history-estado').value)params.set('estado',$('history-estado').value);
+    return params;
+  }
+  function ensureHistoryDates(force=false){
+    if(force || !$('history-hasta').value)$('history-hasta').value=localDate();
+    if(force || !$('history-desde').value)$('history-desde').value=localDate(-7);
+  }
+  function renderHistory(){
+    const rows=[...state.history].sort((a,b)=>{
+      const av=a[state.historySort],bv=b[state.historySort];
+      const diff=typeof av==='number'||typeof bv==='number'||typeof av==='boolean'||typeof bv==='boolean' ? Number(av||0)-Number(bv||0) : collator.compare(String(av||''),String(bv||''));
+      return state.historyDir*diff;
+    });
+    $('history-body').innerHTML=rows.map(row=>`<tr><td class="mono">${esc(row.fecha)}</td><td class="mono">${esc(row.legajo)}</td><td>${esc(row.empleado)}</td><td>${esc(row.sector)}</td><td class="mono">${hours(row.horas_extras_detectadas)}</td><td class="mono">${hours(row.horas_preautorizadas)}</td><td class="mono">${hours(row.horas_autorizadas)}</td><td><span class="state ${stateTone(row.estado)}">${esc(labels[row.estado]||row.estado)}</span></td><td>${esc(row.justificacion||'Sin justificacion registrada')}</td><td>${row.cargado_sap?'<span class="sap">Si</span>':'-'}</td><td class="mono">${esc(row.fecha_cambio||'-')}</td></tr>`).join('')||'<tr><td colspan="11">No hay decisiones guardadas para estos filtros.</td></tr>';
+    const total=rows.reduce((sum,row)=>sum+Number(row.horas_autorizadas||0),0);
+    $('history-summary').textContent=`${rows.length} registros | ${hours(total)} aprobadas`;
+    $('history-export').disabled=!rows.length;
+  }
+  async function loadHistory(){
+    setBusy(true);$('history-summary').textContent='Consultando historial...';
+    try{const data=await api('/api/horas-extras/historial?'+historyParams().toString());if(!data)return;state.history=data.rows||[];renderHistory();if(data.limit_reached)$('history-summary').textContent+=' | Se alcanzaron los primeros 5.000 registros.';}catch(error){$('history-summary').textContent=error.message;msg(error.message,true)}finally{setBusy(false)}
+  }
+  async function exportHistory(){
+    try{const response=await fetch('/api/horas-extras/historial/exportar.xlsx?'+historyParams().toString(),{credentials:'same-origin'});if(!response.ok)throw new Error('No se pudo exportar el historial.');const blob=await response.blob();const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`historial_horas_extras_${$('history-desde').value}_${$('history-hasta').value}.xlsx`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(link.href),30000);}catch(error){msg(error.message,true)}
+  }
   function applyBulk(nextState){
     if(!state.selected.size) return;
+    if(nextState==='rechazada_jefe' && state.view==='gerencia') nextState='rechazada_gerente';
     const note = $('bulk-note').value.trim();
     for(const key of state.selected){
       const row = state.rows.find(r=>`${r.legajo}|${r.fecha}`===key);
       if(!row) continue;
+      if(nextState==='aprobada_gerente' && row.estado!=='pre_autorizada') continue;
+      const previousState=row.estado;
+      const previousSap=row.cargado_sap;
       row.estado = nextState;
       row.observacion = note;
-      if(['pre_autorizada','aprobada_gerente','cargada_sap'].includes(nextState)) row.horas_autorizadas = row.horas_extras_detectadas;
-      state.dirty.set(key, {...row, nextState, note});
+      if(nextState==='aprobada_gerente') row.horas_autorizadas = row.horas_preautorizadas ?? row.horas_autorizadas;
+      state.dirty.set(key, {...row, nextState, note, previousState, previousSap});
     }
+    ensureOperationalDates();
     renderRows();
     msg(`${state.dirty.size} cambios preparados. Presione Guardar.`);
+  }
+  function applySaved(pending,result){
+    pending.forEach(saved=>{
+      const key = `${saved.legajo}|${saved.fecha}`;
+      const row = state.rows.find(r=>`${r.legajo}|${r.fecha}`===key);
+      if(!row) return;
+      Object.assign(row,saved);
+      if(saved.estado==='cargada_sap') row.cargado_sap=true;
+      if(saved.estado==='pre_autorizada') row.horas_preautorizadas=saved.horas_autorizadas;
+      state.dirty.delete(key);state.selected.delete(key);drafts.delete(key);editedDrafts.delete(key);
+    });
+    renderRows();
+    if(result.mail){
+      const url=`mailto:${encodeURIComponent(result.mail.to)}?subject=${encodeURIComponent(result.mail.subject)}&body=${encodeURIComponent(result.mail.body)}`;
+      state.openingMail=true;
+      window.location.href=url;
+      window.setTimeout(()=>{state.openingMail=false;},1500);
+      msg(`${result.guardadas} decisiones guardadas. Correo preparado para los legajos configurados.`);
+    }else msg(`${result.guardadas} decisiones guardadas.${state.view==='gerencia'?' No hay legajos destinatarios configurados.':''}`);
+  }
+  function minutesFromHours(value){
+    if(!/^\d{2,}:[0-5]\d$/.test(String(value||''))) return NaN;
+    const [hh,mm]=value.split(':').map(Number);
+    return hh*60+mm;
+  }
+  async function commitGerencia(nextState){
+    if(state.busy) return;
+    const note=$('bulk-note').value.trim();
+    const pending=[];
+    rowErrors.clear();
+    for(const key of state.selected){
+      const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===key);
+      if(row?.estado!=='pre_autorizada') continue;
+      let amount=0;
+      if(nextState==='aprobada_gerente'){
+        const draft=draftFor(row);
+        const minutes=minutesFromHours(draft.managerQuantity);
+        const maximum=Math.round(Number(row.horas_preautorizadas ?? row.horas_autorizadas ?? 0)*60);
+        if(!Number.isFinite(minutes)||minutes<=0||minutes>maximum){
+          rowErrors.set(key,`Use HH:MM, mayor a 00:00 y hasta ${hours(row.horas_preautorizadas ?? row.horas_autorizadas)}.`);
+          continue;
+        }
+        amount=minutes/60;
+      }
+      pending.push({...row,estado:nextState,horas_autorizadas:amount,observacion:note});
+    }
+    if(rowErrors.size){renderRows();msg('Revise las cantidades a aprobar en las filas marcadas.',true);return;}
+    if(!pending.length){msg('Seleccione registros preautorizados para decidir.',true);return;}
+    setBusy(true);msg(nextState==='aprobada_gerente'?'Aprobando decisiones...':'Rechazando decisiones...');
+    try{
+      const result=await api('/api/horas-extras/decisiones',{method:'POST',body:JSON.stringify({rows:pending.map(row=>({legajo:row.legajo,fecha:row.fecha,etapa:'gerencia',estado:row.estado,horas_autorizadas:row.horas_autorizadas,observacion:row.observacion||'',justificacion:row.justificacion||''}))})});
+      if(result) applySaved(pending,result);
+    }catch(error){msg(error.message,true)}finally{setBusy(false)}
   }
   function etapaFor(estado){
     if(estado === 'pre_autorizada' || estado === 'rechazada_jefe') return 'pre_autorizacion';
@@ -177,63 +344,104 @@
     if(estado === 'cargada_sap') return 'sap';
     return 'ajuste';
   }
-  function partialStateForView(){
-    if(state.view === 'gerencia') return 'aprobada_gerente';
-    return 'pre_autorizada';
+  async function saveAdjustments(){
+    const edits=[...state.dirty.entries()];
+    if(!edits.length) return;
+    if(edits.length>MAX_BULK_DECISIONS){msg(`Seleccione hasta ${MAX_BULK_DECISIONS} ajustes por guardado.`,true);return;}
+    if(edits.some(([,row])=>row.nextState)){
+      if(edits.some(([,row])=>row.nextState!=='cargada_sap')){msg('Guarde por separado los ajustes y el marcado SAP.',true);return;}
+      const pending=edits.map(([,row])=>row);
+      setBusy(true);msg('Actualizando estado SAP...');
+      try{
+        const result=await api('/api/horas-extras/decisiones',{method:'POST',body:JSON.stringify({rows:pending.map(row=>({legajo:row.legajo,fecha:row.fecha,etapa:'sap',estado:'cargada_sap',horas_autorizadas:row.horas_autorizadas,observacion:row.note||'',justificacion:row.justificacion||''}))})});
+        if(result) applySaved(pending,result);
+      }catch(error){msg(error.message,true)}finally{setBusy(false)}
+      return;
+    }
+    rowErrors.clear();
+    const pending=[];
+    for(const [key,edit] of edits){
+      const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===key);
+      const raw=String(edit.horas_autorizadas||'').trim();
+      const [hh,mm]=raw.split(':').map(Number);
+      const amount=hh+mm/60;
+      const error=!/^\d{2,}:[0-5]\d$/.test(raw)||!Number.isFinite(amount)||amount<0||amount>Number(row?.horas_extras_detectadas||0)
+        ? 'Ingrese horas validas, entre 00:00 y las HE detectadas.'
+        : !String(edit.motivo||'').trim() ? 'Indique el motivo del ajuste.' : '';
+      if(error) rowErrors.set(key,error);
+      else pending.push({legajo:edit.legajo,fecha:edit.fecha,horas_autorizadas:amount,motivo:String(edit.motivo).trim()});
+    }
+    if(rowErrors.size){renderRows();msg('Revise los ajustes marcados. No se guardo ningun cambio.',true);return;}
+    setBusy(true);msg('Guardando ajustes de RRHH...');
+    try{
+      const result=await api('/api/horas-extras/ajustes',{method:'POST',body:JSON.stringify({rows:pending})});
+      if(!result)return;
+      for(const saved of result.rows||[]){
+        const key=`${saved.legajo}|${saved.fecha}`;
+        const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===key);
+        if(row) Object.assign(row,saved);
+        const draft=row&&draftFor(row);
+        if(draft){draft.adjustmentQuantity=hours(saved.horas_autorizadas);draft.adjustmentReason=saved.ajuste_motivo||'';}
+        state.dirty.delete(key);state.selected.delete(key);editedDrafts.delete(key);
+      }
+      renderRows();msg(`${result.guardadas} ajustes guardados y registrados en el historial.`);
+    }catch(error){msg(error.message,true)}finally{setBusy(false)}
   }
   async function save(){
-    if(!state.dirty.size) return;
+    if(state.busy) return;
+    if(state.view==='ajustes'){await saveAdjustments();return;}
+    let pending = [...state.dirty.values()];
+    if(state.view==='pre'){
+      rowErrors.clear();
+      pending = [];
+      for(const key of state.selected){
+        const row = state.rows.find(r=>`${r.legajo}|${r.fecha}`===key);
+        if(!row || !viewStates.pre.has(row.estado)) continue;
+        if(state.dirty.get(key)?.estado==='rechazada_jefe'){pending.push(state.dirty.get(key));continue;}
+        const draft = draftFor(row);
+        const [hh,mm] = draft.quantity.split(':').map(Number);
+        const quantity = hh+mm/60;
+        const error = !/^\d{2,}:[0-5]\d$/.test(draft.quantity)||!Number.isFinite(quantity)||quantity<=0||quantity>row.horas_extras_detectadas
+          ? 'Ingrese una cantidad HH:MM mayor a cero y no superior a las HE.'
+          : !draft.justificacion.trim() ? 'Ingrese la justificacion de la hora extra.' : '';
+        if(error){rowErrors.set(key,error);continue;}
+        pending.push({...row,estado:'pre_autorizada',horas_autorizadas:quantity,justificacion:draft.justificacion.trim()});
+      }
+      if(rowErrors.size){renderRows();msg('Revise las filas marcadas. No se guardo ninguna decision.',true);return;}
+    }
+    if(!pending.length) return;
+    if(pending.length>500){msg('Seleccione hasta 500 registros por guardado.',true);return;}
     setBusy(true);msg('Guardando decisiones...');
     try{
-      const rows = [...state.dirty.values()].map(row=>({
+      const rows = pending.map(row=>({
         legajo:row.legajo,fecha:row.fecha,etapa:etapaFor(row.estado),estado:row.estado,
-        horas_autorizadas:row.horas_autorizadas,observacion:row.observacion || row.note || ''
+        horas_autorizadas:row.horas_autorizadas,observacion:row.observacion || row.note || '',justificacion:row.justificacion || ''
       }));
       const result = await api('/api/horas-extras/decisiones',{method:'POST',body:JSON.stringify({rows})});
       if(!result) return;
-      state.dirty.clear();state.selected.clear();
-      renderRows();
-      msg(`${result.guardadas} decisiones guardadas.`);
+      applySaved(pending,result);
     }catch(e){msg(e.message,true)}finally{setBusy(false)}
   }
   function openDetail(key){
     const row = state.rows.find(r=>`${r.legajo}|${r.fecha}`===key);
     if(!row) return;
-    state.detailKey = key;
     $('drawer-title').textContent = `${row.empleado} · ${row.fecha}`;
     const fields = [
       ['Legajo',row.legajo],['Sector',row.sector],['Funcion',row.funcion],['Area personal',row.desc_area_personal||'-'],
       ['PH',row.ph||'-'],['Inicio real',row.inicio_real||'-'],['Fin real',row.fin_real||'-'],['Horas trabajadas',hours(row.horas_trabajadas)],
-      ['HE detectadas',hours(row.horas_extras_detectadas)],['Estado',labels[row.estado]||row.estado],['SAP',row.cargado_sap?'Si':'No'],['Observacion',row.observacion||'-']
+      ['HE detectadas',hours(row.horas_extras_detectadas)],['Estado',labels[row.estado]||row.estado],['SAP',row.cargado_sap?'Si':'No'],['Observacion',row.observacion||'-'],['Ultimo ajuste RRHH',row.ajuste_motivo||'-']
     ];
     $('drawer-detail').innerHTML = fields.map(([k,v])=>`<div class="detail-item"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');
-    $('partial-hours').value = row.horas_autorizadas && row.horas_autorizadas < row.horas_extras_detectadas ? hours(row.horas_autorizadas) : '';
-    $('partial-note').value = row.observacion || '';
+    $('drawer-detail').insertAdjacentHTML('beforeend',`<div class="detail-item"><span>Justificacion</span><strong>${esc(row.justificacion||'Sin justificacion registrada')}</strong></div>`);
+    $('drawer-detail').insertAdjacentHTML('beforeend',`<button class="ghost-btn" id="open-employee-history" type="button">Ver historial del empleado</button>`);
+    $('open-employee-history').onclick=()=>{
+      $('history-legajo').value=row.legajo;
+      state.history=[];
+      document.querySelector('[data-view="historial"]').click();
+      $('drawer-close').click();
+    };
     $('drawer-trace').textContent = row.usuario_cambio ? `${row.usuario_cambio} · ${row.fecha_cambio}` : 'Sin movimientos guardados en esta vista.';
     $('drawer').classList.add('open');$('drawer').setAttribute('aria-hidden','false');
-  }
-  function preparePartial(event){
-    event.preventDefault();
-    const row = state.rows.find(r=>`${r.legajo}|${r.fecha}`===state.detailKey);
-    if(!row) return;
-    const input = $('partial-hours').value.trim();
-    if(!/^\d{2,}:[0-5]\d$/.test(input)){
-      msg('Ingrese las horas en formato HH:MM, por ejemplo 01:45.',true);
-      return;
-    }
-    const [hh,mm] = input.split(':').map(Number);
-    const value = hh + mm/60;
-    if(!Number.isFinite(value) || value <= 0 || value >= Number(row.horas_extras_detectadas || 0)){
-      msg('La aprobacion parcial requiere horas mayores a cero y menores a las detectadas.', true);
-      return;
-    }
-    row.estado = partialStateForView();
-    row.horas_autorizadas = value;
-    row.observacion = $('partial-note').value.trim() || `Aprobacion parcial por ${hours(value)} hs.`;
-    state.dirty.set(state.detailKey, {...row, note:row.observacion});
-    state.selected.add(state.detailKey);
-    renderRows();
-    msg(`Aprobacion parcial preparada para ${row.legajo}: ${hours(value)} hs. Presione Guardar.`);
   }
   async function exportExcel(){
     try{
@@ -272,6 +480,7 @@
     $('cfg-gerente').innerHTML = personOptions(data.gerentes, gerenteSelected);
     renderResponsables();
     syncSectorManager();
+    await loadMail();
     msg(`Configuracion cargada: ${(data.sectores||[]).length} sectores, ${(data.jefes||[]).length} jefes, ${(data.gerentes||[]).length} gerentes.`);
   }
   function renderResponsables(){
@@ -301,6 +510,22 @@
           </li>`).join('')}</ul>
       </details>`;}).join('') || '<p class="insight-empty">Sin responsables configurados.</p>';
   }
+  async function loadMail(){
+    const data=await api('/api/horas-extras/config/correos');if(!data)return;
+    $('mail-recipients').innerHTML=data.rows.map(r=>`<div class="association-meta"><strong>${esc(r.nombre)} (${esc(r.legajo)})</strong><button class="ghost-btn" type="button" data-delete-mail="${esc(r.legajo)}">Quitar</button></div>`).join('') || 'Sin destinatarios configurados.';
+  }
+  $('mail-form').addEventListener('submit',async e=>{
+    e.preventDefault();const button=e.submitter;button.disabled=true;
+    try{
+      await api('/api/horas-extras/config/correos',{method:'POST',body:JSON.stringify({legajo:$('mail-legajo').value.trim()})});
+      $('mail-form').reset();await loadMail();msg('Destinatario guardado.');
+    }catch(error){msg(error.message,true)}finally{button.disabled=false;}
+  });
+  $('mail-recipients').addEventListener('click',async e=>{
+    const button=e.target.closest('[data-delete-mail]');if(!button)return;
+    button.disabled=true;
+    try{await api('/api/horas-extras/config/correos/'+encodeURIComponent(button.dataset.deleteMail),{method:'DELETE'});await loadMail();}catch(error){msg(error.message,true);button.disabled=false;}
+  });
   function syncSectorManager(){
     const sector = $('cfg-sector').value;
     const managers = [...new Set((state.config?.rows || []).filter(r=>r.sector===sector && r.activo && r.gerente_username).map(r=>String(r.gerente_username)))];
@@ -333,43 +558,118 @@
       }catch(error){msg(`Responsable guardado, pero no se pudo actualizar el arbol: ${error.message}. Presione Consultar.`,true);}
     }finally{setBusy(false);}
   }
-  document.querySelector('.segmented').addEventListener('click', e=>{
-    const btn = e.target.closest('[data-view]'); if(!btn) return;
+  document.addEventListener('click', e=>{
+    const btn = e.target.closest('#workflow-nav [data-view], #module-nav [data-view]'); if(!btn) return;
+    const pendingBadge=e.target.closest('[data-pending-badge]');
+    if(state.view!==btn.dataset.view || pendingBadge) state.selected.clear();
     state.view = btn.dataset.view;
-    document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b===btn));
+    state.pendingOnly=Boolean(pendingBadge);
+    if(state.pendingOnly) $('estado-filter').value='';
+    document.querySelectorAll('#workflow-nav [data-view], #module-nav [data-view]').forEach(b=>{
+      const active=b.dataset.view===state.view;
+      b.classList.toggle('active',active);
+      if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+    });
     const config = state.view === 'config';
     const indicators = state.view === 'indicadores';
+    const history = state.view === 'historial';
+    $('filters').hidden = config || history;
     $('config-panel').hidden = !config;
     $('indicadores-panel').hidden = !indicators;
-    $('grid-panel').hidden = config || indicators;
-    $('kpi-grid').hidden = config || indicators;
-    document.querySelector('.flow-panel').hidden = config || indicators;
+    $('history-panel').hidden = !history;
+    $('grid-panel').hidden = config || indicators || history;
+    $('workflow-nav').hidden = config || indicators;
     if(indicators) return;
+    if(history){ensureHistoryDates();if(!state.history.length)loadHistory();return;}
     if(config){loadConfig().catch(err=>msg(err.message,true));return}
+    ensureOperationalDates();
     renderRows();
   });
   $('filters').addEventListener('submit', e=>{
     e.preventDefault();
-    (state.view === 'config' ? loadConfig() : loadRows()).catch(err=>msg(err.message,true));
+    (state.view === 'config' ? loadConfig() : state.view==='historial' ? loadHistory() : loadRows()).catch(err=>msg(err.message,true));
   });
+  $('history-filters').addEventListener('submit',event=>{event.preventDefault();loadHistory();});
+  $('history-export').onclick=exportHistory;
+  document.querySelector('#history-panel thead')?.addEventListener('click',event=>{const button=event.target.closest('[data-history-sort]');if(!button)return;if(state.historySort===button.dataset.historySort)state.historyDir*=-1;else{state.historySort=button.dataset.historySort;state.historyDir=1}renderHistory();});
   $('sector-filter').addEventListener('change',()=>{renderFunctions();});
   $('filters').addEventListener('change',()=>HEIndicators.markFilters());
   $('funcion-search').addEventListener('input',()=>HEIndicators.markFilters());
-  $('funciones-summary').onclick=()=>$('funciones-menu').classList.toggle('open');
+  $('funciones-trigger').onclick=()=>{
+    const open=$('funciones-menu').classList.toggle('open');
+    $('funciones-trigger').setAttribute('aria-expanded',String(open));
+  };
   $('funcion-search').addEventListener('input',renderFunctions);
   $('funciones-checks').addEventListener('change',updateFunctionSummary);
-  document.addEventListener('click', e=>{if(!$('funciones-menu').contains(e.target))$('funciones-menu').classList.remove('open');});
+  document.addEventListener('click', e=>{if(!$('funciones-menu').contains(e.target)){$('funciones-menu').classList.remove('open');$('funciones-trigger').setAttribute('aria-expanded','false');}});
   $('rows-body').addEventListener('click', e=>{
     const detail = e.target.closest('[data-detail]'); if(detail) openDetail(detail.dataset.detail);
-    const check = e.target.closest('[data-check]'); if(check){check.checked?state.selected.add(check.dataset.check):state.selected.delete(check.dataset.check);renderSelection();}
+  });
+  function syncRowCheckbox(check){
+    if(!check.isConnected)return;
+    const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===check.dataset.check);
+    if(state.view==='gerencia'&&row?.estado!=='pre_autorizada') state.selected.delete(check.dataset.check);
+    else if(check.checked) state.selected.add(check.dataset.check);
+    else state.selected.delete(check.dataset.check);
+    renderSelection();
+  }
+  document.addEventListener('change', e=>{
+    const check=e.target.closest?.('#rows-body input[data-check]');
+    if(check) syncRowCheckbox(check);
+  }, true);
+  document.addEventListener('click', e=>{
+    const check=e.target.closest('input[data-check]');
+    if(check) window.setTimeout(()=>syncRowCheckbox(check),0);
+  }, true);
+  $('rows-body').addEventListener('input', e=>{
+    const field=e.target.closest('[data-edit]');if(!field) return;
+    const row=state.rows.find(r=>`${r.legajo}|${r.fecha}`===field.dataset.row);
+    if(!row) return;
+    const draft=draftFor(row);
+    const fieldName=field.dataset.edit;
+    if(fieldName==='adjustment-quantity') draft.adjustmentQuantity=field.value;
+    else if(fieldName==='adjustment-reason') draft.adjustmentReason=field.value;
+    else draft[fieldName]=field.value;
+    editedDrafts.add(field.dataset.row);
+    rowErrors.delete(field.dataset.row);
+    const errorTarget=field.closest('tr').querySelector(state.view==='gerencia'?'.quantity-cell .row-error':'.justification-cell .row-error');
+    if(errorTarget) errorTarget.textContent='';
+    if(state.view==='ajustes'){
+      state.dirty.set(field.dataset.row,{legajo:row.legajo,fecha:row.fecha,horas_autorizadas:draft.adjustmentQuantity,motivo:draft.adjustmentReason});
+    }
+    if(fieldName==='quantity' || fieldName==='manager-quantity'){
+      const amount=fieldName==='manager-quantity'?minutesFromHours(draft.managerQuantity):minutesFromHours(draft.quantity);
+      const maximum=fieldName==='manager-quantity'
+        ? Math.round(Number(row.horas_preautorizadas ?? row.horas_autorizadas ?? 0)*60)
+        : Math.round(Number(row.horas_extras_detectadas||0)*60);
+      const partial=field.closest('tr').querySelector('.partial-label');
+      if(partial) partial.textContent=Number.isFinite(amount)&&amount<maximum?'Parcial':'';
+    }
+    renderSelection();
   });
   document.querySelector('#grid-panel thead').addEventListener('click', e=>{
     const btn = e.target.closest('[data-sort]'); if(!btn) return;
     if(state.sort===btn.dataset.sort) state.dir *= -1; else {state.sort=btn.dataset.sort;state.dir=1}
     renderRows();
   });
-  $('select-all').onchange=e=>{visibleRows().forEach(r=>{const k=`${r.legajo}|${r.fecha}`;e.target.checked?state.selected.add(k):state.selected.delete(k)});renderRows();};
-  $('bulk-bar').addEventListener('click', e=>{const btn=e.target.closest('[data-bulk]');if(btn)applyBulk(btn.dataset.bulk);});
+  function syncSelectAll(checked){
+    const rows=visibleRows().filter(r=>state.view!=='gerencia'||r.estado==='pre_autorizada');
+    rows.forEach(row=>{
+      const key=`${row.legajo}|${row.fecha}`;
+      checked?state.selected.add(key):state.selected.delete(key);
+    });
+    const keys=new Set(rows.map(row=>`${row.legajo}|${row.fecha}`));
+    document.querySelectorAll('#rows-body input[data-check]').forEach(check=>{
+      if(keys.has(check.dataset.check)) check.checked=checked;
+    });
+    renderSelection();
+  }
+  $('select-all').addEventListener('change',e=>syncSelectAll(e.target.checked));
+  $('select-all').addEventListener('click',e=>{
+    const checkbox=e.currentTarget;
+    window.setTimeout(()=>syncSelectAll(checkbox.checked),0);
+  });
+  $('bulk-bar').addEventListener('click', e=>{const btn=e.target.closest('[data-bulk]');if(!btn)return;if(state.view==='gerencia'&&['aprobada_gerente','rechazada_jefe'].includes(btn.dataset.bulk)){commitGerencia(btn.dataset.bulk==='rechazada_jefe'?'rechazada_gerente':'aprobada_gerente');return}applyBulk(btn.dataset.bulk);});
   $('responsable-form').addEventListener('submit', e=>saveResponsable(e).catch(err=>msg(err.message,true)));
   $('responsables-body').addEventListener('click', e=>{
     const btn = e.target.closest('[data-delete-resp]');
@@ -381,13 +681,18 @@
     }).catch(err=>msg(err.message,true));
   });
   $('save-btn').onclick=save;
-  $('partial-form').addEventListener('submit', preparePartial);
+  window.addEventListener('beforeunload',event=>{
+    if(state.openingMail) return;
+    if(!editedDrafts.size && !state.dirty.size) return;
+    event.preventDefault();event.returnValue='';
+  });
   $('export-btn').onclick=exportExcel;
-  $('drawer-close').onclick=()=>{$('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');state.detailKey='';};
+  $('drawer-close').onclick=()=>{$('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');};
   $('logout-btn').onclick=async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});location.replace('/login')};
-  $('fecha-hasta').value = localDate();
-  $('fecha-desde').value = localDate(-30);
-  $('sync-chip').textContent = 'Filtros';
+  ensureOperationalDates(true);
+  ensureHistoryDates(true);
+  window.addEventListener('pageshow',()=>window.setTimeout(()=>{ensureOperationalDates(true);ensureHistoryDates(true);},0));
+  $('sync-chip').textContent = 'Consulta manual';
   renderFunctions();
   renderRows();
   (async()=>{

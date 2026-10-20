@@ -100,6 +100,32 @@ class CalculationTests(unittest.TestCase):
         self.assertTrue(person['es_polivalencia'])
         self.assertTrue(person['cobra'])
 
+    def test_warehouse_polivalence_crosses_only_between_1_6_and_2_4(self):
+        person = [dict(legajo='1', nombre='Operario', active=1,
+                       desc_sector_generico='S', desc_funcion='F')]
+        attendance = [dict(LEGAJO='1', FECHA='20260801', TURNO='1', AUSENTE='NO',
+                           COD_AUSENTISMO='', DES_AUSENTISMO='')]
+        params = [dict(sector='S', funcion_legajero='F', turno='1', activo=1,
+                       operacion_medible='CLARK', division_madre='1', uc_por_operario=1,
+                       factor_ausentismo=0, premio_grupal=100)]
+        equivalences = {'CLARK': {'SECOS_NOA': {'1', '6'},
+                                  'REFRIGERADOS': {'2', '4'}}}
+
+        def is_poly(home, actual):
+            params[0]['division_madre'] = home
+            production = [dict(fecha='20260801', legajo='1', desc_funcion='CLARK',
+                               palets=1, cantidad=0, plus=0, division=actual)]
+            result = calcular_grupal(
+                person, attendance, production, params, {'CLARK': 'PALET'},
+                {('S', 'F', 'CLARK'): set()}, {}, '20260801', '20260801',
+                {'1': '1'}, equivalences)
+            return result['nivel_3'][0]['es_polivalencia']
+
+        self.assertFalse(is_poly('1', '6'))
+        self.assertFalse(is_poly('2,4', '4'))
+        self.assertTrue(is_poly('1', '2'))
+        self.assertTrue(is_poly('2,4', '6'))
+
     def test_unified_pallets_measure_charge_and_keep_charge_polivalence(self):
         self.operations = {'PALETS OPERADOS': 'PALET'}
         self.params[0]['operacion_medible'] = 'PALETS OPERADOS'
@@ -393,11 +419,12 @@ class EndpointTests(unittest.IsolatedAsyncioTestCase):
                 cache = json.loads((await cur.fetchone())['polivalencia_json'])
         self.assertEqual(len(eventos), 1)
         self.assertEqual(eventos[0]['legajo'], '4')
-        self.assertEqual(eventos[0]['premio_centavos'], 12345)
+        # Polivalencia se paga una vez por jornada al premio grupal del perfil.
+        self.assertEqual(eventos[0]['premio_centavos'], 50000)
         self.assertEqual(set(eventos[0]['operaciones_b'].split(',')), {'PICKIN', 'SURTIDO'})
         self.assertEqual(len(cache), 1)
         self.assertEqual(cache[0]['legajo'], '4')
-        self.assertEqual(cache[0]['premio_centavos'], 12345)
+        self.assertEqual(cache[0]['premio_centavos'], 50000)
         self.assertEqual(cache[0]['operaciones_b'], 'PICKIN · SURTIDO')
 
     async def test_invalid_group_rejected_without_changing_association(self):

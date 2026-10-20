@@ -26,6 +26,27 @@ def division_codigos(value):
     return {texto(item) for item in raw_items if texto(item)}
 
 
+def jornada_pv_no_computable(row):
+    estado = texto(row.get('ESTADO')).upper()
+    situacion = texto(row.get('SITUACION')).upper()
+    entrada_teorica = texto(row.get('ENTRADA_TEORICA'))
+    salida_teorica = texto(row.get('SALIDA_TEORICA'))
+    fichada_ingreso = texto(row.get('FICHADA_INGRESO'))
+    fichada_egreso = texto(row.get('FICHADA_EGRESO'))
+    ficho_ingreso = texto(row.get('FICHO_INGRESO')).upper()
+    ficho_egreso = texto(row.get('FICHO_EGRESO')).upper()
+    visible_desde_piso = texto(row.get('VISIBLE_DESDE_PISO')).upper()
+    try:
+        horas_trabajadas = Decimal(str(row.get('HORAS_TRABAJADAS') or 0))
+    except Exception:
+        horas_trabajadas = Decimal(0)
+    sin_horario = entrada_teorica in {'', '------'} and salida_teorica in {'', '------'}
+    sin_fichadas = fichada_ingreso in {'', '------'} and fichada_egreso in {'', '------'}
+    no_ficho = ficho_ingreso in {'', 'NO', '0', 'N'} and ficho_egreso in {'', 'NO', '0', 'N'}
+    no_visible = visible_desde_piso in {'', '0', 'NO', 'N'}
+    return (estado == 'INCONSISTENTE' or situacion == 'INCONSISTENCIA') and sin_horario and sin_fichadas and no_ficho and horas_trabajadas == 0 and no_visible
+
+
 def importe(value):
     return float(Decimal(str(value)).quantize(Decimal('.01'), rounding=ROUND_HALF_UP))
 
@@ -52,7 +73,7 @@ def inferir_turnos(jornadas):
 
 
 def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, relaciones,
-                    ausencias, desde, hasta, turnos_fijos):
+                    ausencias, desde, hasta, turnos_fijos, equivalencias_division=None):
     """Un resultado por sector/función/turno/día y un registro por legajo.
 
     El legajero y el turno fijo forman la nómina. PV determina asistencia;
@@ -78,7 +99,13 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
     for row in personas:
         if row.get('active'):
             nominas[texto(row['desc_sector_generico']), texto(row['desc_funcion'])].append(row)
-    alias = lambda op: 'CARGA' if op == 'CARGA CAMION' else op
+    def alias(op):
+        op = texto(op).upper()
+        if op in {'CARGA CAMION', 'CARGA REFRIGERADOS'}:
+            return 'CARGA'
+        if op in {'GUARDAD', 'SURTIDO P.C', 'UBICAC.REAPRO', 'EXTRAC.REAPRO', 'EXTRAC.TRASP', 'EXTRAC. TRASP.'}:
+            return 'CLARK'
+        return op
     # Las relaciones actuales se acotan al perfil de legajero. Se conserva la
     # forma anterior de pares sólo para no romper escenarios históricos.
     reglas_por_perfil = None
@@ -88,7 +115,49 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                               for key, value in relaciones.items()}
     else:
         relaciones = {(alias(a), alias(b)) for a, b in relaciones}
-    columnas = {'PALET': 'palets', 'BULTO': 'cantidad', 'PLU': 'plus'}
+    equivalencias_por_operacion = {}
+    for operacion_eq, grupos in (equivalencias_division or {}).items():
+        equivalencias_por_operacion[texto(operacion_eq).upper()] = [
+            division_codigos(divisiones) for divisiones in grupos.values()
+        ] if isinstance(grupos, dict) else [division_codigos(grupos)]
+
+    def division_equivalente(operacion_actual, divisiones_madre_actuales, division_real):
+        real = texto(division_real)
+        if not real:
+            return False
+        madres = division_codigos(divisiones_madre_actuales)
+        if not madres:
+            return False
+        for grupo in equivalencias_por_operacion.get(texto(operacion_actual).upper(), []):
+            if real in grupo and any(madre in grupo for madre in madres):
+                return True
+        return False
+
+    def division_operativa(operacion_actual, desc_funcion, division_real):
+        """Normaliza divisiones cuando la tarea WMS representa una operación
+        del almacén madre aunque venga codificada con otra división.
+        """
+        operacion_norm = texto(operacion_actual).upper()
+        funcion_norm = texto(desc_funcion).upper()
+        if operacion_norm == 'RECEPCION' and funcion_norm in {
+            'RECEPCION DE IMPORTADO NOA', 'REVISION NOA', 'REVISOR RECEPCION NOA',
+            'DESCARGA CAMION NOA'
+        }:
+            return '6'
+        return texto(division_real)
+    columnas = {'PALET': 'palets', 'BULTO': 'cantidad', 'PLU': 'plus', 'HUECO': 'plus'}
+    operaciones_sin_produccion = {
+        'FICHADA ENTRADA', 'FIN DEL TURNO', 'MENU RADIOFRECUENCIA',
+        'NECESIDADES FISIOLOGICAS', 'SIN DESC_FUNCION', '',
+        # Soporte operativo: registra actividad WMS, pero no aporta unidad
+        # computable ni debe transformar al legajo en polivalente.
+        'CAMBIO ANDEN', 'CAMBIO ANDEN ENTRADA', 'SUPERVISION R',
+        'BLOQ EXPEDI', 'CIERRE EXPED', 'CONS.PALLETS',
+        # Tareas auxiliares: no son UC productiva para armado/carga grupal.
+        # Si el legajo además tiene PICKIN u otra operación medible, esa
+        # operación sigue computando normalmente.
+        'ZUNCHADO PALLETS', 'TRASPASO ROTOS', 'ARMADO POLLOS'
+    }
     nivel_1, nivel_2, nivel_3 = [], [], []
     for par in parametros:
         if not par.get('activo'):
@@ -133,7 +202,9 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                 selected = records
                 signatures = {(texto(r.get('AUSENTE')).upper(), texto(r.get('COD_AUSENTISMO')),
                                texto(r.get('DES_AUSENTISMO'))) for r in selected}
-                confirmado = len(signatures) == 1
+                jornadas_no_computables = [r for r in selected if jornada_pv_no_computable(r)]
+                pv_no_computable = bool(selected) and len(jornadas_no_computables) == len(selected)
+                confirmado = len(signatures) == 1 and not pv_no_computable
                 flag, cod, descripcion = next(iter(signatures), ('', '', ''))
                 ausente = flag in {'SI', 'SÍ', '1', 'S'}
                 presente = flag in {'NO', '0', 'N'} and not cod and not descripcion
@@ -147,8 +218,11 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                 # división madre del día.
                 acts_productivos = [
                     r for r in acts
-                    if any(Decimal(str(r.get(columna, 0) or 0)) > 0 for columna in columnas.values())
+                    if alias(texto(r.get('desc_funcion')).upper()) not in operaciones_sin_produccion
+                    and any(Decimal(str(r.get(columna, 0) or 0)) > 0 for columna in columnas.values())
                 ]
+                presente_sin_actividad_productiva = confirmado and presente and not acts_productivos
+                sin_pv_ni_actividad_productiva = not records and not acts_productivos
                 ops = {alias(texto(r['desc_funcion']).upper()) for r in acts_productivos}
                 # La operación madre viene del parámetro del grupo. Puede haber
                 # polivalencia aun si ese día sólo trabajó en la otra operación.
@@ -159,22 +233,27 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                 if operacion.upper():
                     funciones_madre.add(alias(operacion.upper()))
                 if operacion.upper() == 'PALETS OPERADOS':
-                    funciones_madre.update({'PALETS OPERADOS', 'CARGA', 'TRASLADO'})
+                    funciones_madre.update({'PALETS OPERADOS', 'CARGA', 'TRASLADO', 'CARGA REFRIGERADOS'})
                 acts_madre_productivos = [
                     r for r in acts_productivos
                     if alias(texto(r.get('desc_funcion')).upper()) in funciones_madre
                 ]
                 cambios_funcion = []
                 cambios_division = sorted({
-                    texto(r.get('division')) for r in acts_madre_productivos
-                    if divisiones_madre and texto(r.get('division')) and texto(r.get('division')) not in divisiones_madre
+                    division_operativa(operacion, r.get('desc_funcion'), r.get('division'))
+                    for r in acts_madre_productivos
+                    if divisiones_madre
+                    and division_operativa(operacion, r.get('desc_funcion'), r.get('division'))
+                    and division_operativa(operacion, r.get('desc_funcion'), r.get('division')) not in divisiones_madre
+                    and not division_equivalente(operacion, divisiones_madre,
+                                                division_operativa(operacion, r.get('desc_funcion'), r.get('division')))
                 })
                 if reglas_por_perfil is not None:
                     clave_regla = (sector.upper(), funcion.upper(), operacion.upper())
                     ops_configuradas = sorted(ops & reglas_por_perfil.get(clave_regla, set()))
                     polivalente = bool(ops_configuradas or cambios_funcion or cambios_division)
                 else:
-                    madres = ({'CARGA', 'TRASLADO'} if operacion.upper() == 'PALETS OPERADOS'
+                    madres = ({'CARGA', 'TRASLADO', 'CARGA REFRIGERADOS'} if operacion.upper() == 'PALETS OPERADOS'
                               else {alias(item) for item in componentes})
                     ops_configuradas = sorted({b for a, b in relaciones if a in madres and b in ops and a != b})
                     polivalente = bool(ops_configuradas or cambios_funcion or cambios_division)
@@ -189,7 +268,12 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                                for r in acts if texto(r['desc_funcion']).upper() in componentes)
                 computable = producida if aplica_grupo and confirmado and presente and not polivalente else Decimal(0)
                 sin_registro = not records and not acts
+                if pv_no_computable or presente_sin_actividad_productiva or sin_pv_ni_actividad_productiva:
+                    aplica_grupo = False
                 motivo = ('Fuera de vigencia' if not vigente else
+                          'Jornada PV no computable' if pv_no_computable else
+                          'Presente sin actividad productiva' if presente_sin_actividad_productiva else
+                          'Sin PV ni actividad productiva' if sin_pv_ni_actividad_productiva else
                           'Sin asistencia ni actividad' if sin_registro else
                           'Asistencia sin confirmar' if not confirmado else
                           'Ausente permitido' if permitida else 'Polivalencia' if polivalente else
@@ -205,7 +289,7 @@ def calcular_grupal(personas, jornadas, produccion, parametros, operaciones, rel
                     polivalencia_operaciones=detalle_polivalencia,
                     integra_meta=aplica_grupo and not permitida and not polivalente,
                     uc_brutas=float(producida), uc_computables=float(computable),
-                    beneficiario=aplica_grupo and confirmado and presente, datos_completos=confirmado,
+                    beneficiario=aplica_grupo and confirmado and presente and not polivalente, datos_completos=confirmado,
                     pendiente_calculo=aplica_grupo and not confirmado))
             base = sum(p['integra_meta'] for p in people)
             target_decimal = Decimal(base) * Decimal(str(par['uc_por_operario'])) * (1 - Decimal(str(par['factor_ausentismo'])) / 100)

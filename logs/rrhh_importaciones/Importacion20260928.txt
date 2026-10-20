@@ -1,0 +1,2 @@
+fecha_hora	batch_key	importado_por	modo_importacion	tipo_archivo	archivo	filas_excel	filas_insertadas	estado	detalle
+2026-09-28 11:39:41	he_test_actividad_mayo_202605	admin	parcial_con_legajero_referencia	actividad	actividad al 18-05.xlsx	25816	25816	OK	formato_tabla

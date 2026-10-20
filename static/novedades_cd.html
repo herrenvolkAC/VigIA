@@ -54,7 +54,8 @@
     }
     .filters.presence-mode{grid-template-columns:minmax(280px,1fr) 178px 144px}
     .filters.presence-mode .check-grid{grid-template-columns:1fr 1fr}
-    .filters.presence-mode .filter-check-motivo{display:none}
+    .filters.presence-mode .filter-check-motivo,.filters.presence-mode .filter-check-grupo{display:none}
+    .filters.tnc-mode .filter-check-motivo{display:none}
     .range-note{
       grid-column:1 / -1;
       margin-top:-2px;
@@ -67,7 +68,7 @@
       text-overflow:ellipsis;
     }
     .filters > *,.import-line > *{min-width:0}
-    .filter-panel{grid-column:1 / -1;border:1px solid var(--rule);background:#F8FAF7;padding:12px;display:none}.filter-panel.open{display:block}.check-grid{display:grid;grid-template-columns:1.1fr 1.3fr 1fr;gap:12px}.check-box{border:1px solid var(--rule);background:var(--panel);padding:10px;min-height:230px}.check-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.check-title{display:flex;align-items:center;gap:8px;min-width:0}.check-summary{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green);background:var(--green-soft);border:1px solid #C8E2D0;padding:3px 6px;white-space:nowrap}.check-list{height:260px;overflow:auto;border-top:1px solid var(--rule);padding-top:6px}.check-item{display:flex;align-items:center;gap:8px;padding:4px 2px;font-family:'IBM Plex Mono',monospace;font-size:12px}.check-item input{width:14px;height:14px;min-height:14px}.check-actions{display:flex;gap:8px}.link-btn{border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;min-height:26px}.link-btn:disabled{opacity:.45;cursor:default}.filter-toggle{background:var(--panel);border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+    .filter-panel{grid-column:1 / -1;border:1px solid var(--rule);background:#F8FAF7;padding:12px;display:none}.filter-panel.open{display:block}.check-grid{display:grid;grid-template-columns:1.1fr 1.3fr 1fr 1fr;gap:12px}.check-box{border:1px solid var(--rule);background:var(--panel);padding:10px;min-height:230px}.check-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.check-title{display:flex;align-items:center;gap:8px;min-width:0}.check-summary{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green);background:var(--green-soft);border:1px solid #C8E2D0;padding:3px 6px;white-space:nowrap}.check-list{height:260px;overflow:auto;border-top:1px solid var(--rule);padding-top:6px}.check-item{display:flex;align-items:center;gap:8px;padding:4px 2px;font-family:'IBM Plex Mono',monospace;font-size:12px}.check-item input{width:14px;height:14px;min-height:14px}.check-actions{display:flex;gap:8px}.link-btn{border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;min-height:26px}.link-btn:disabled{opacity:.45;cursor:default}.filter-toggle{background:var(--panel);border:1px solid var(--rule);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
     .field{display:flex;flex-direction:column;gap:6px;min-width:0}.paper-input,.paper-select{height:34px;width:100%;min-width:0;border:1px solid var(--rule);border-radius:2px;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:0 10px}
     .primary-cta{height:34px;width:100%;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}.primary-cta:disabled{opacity:.55}
     .status{min-height:24px;padding:7px 12px;border:1px solid var(--rule);border-top:0;background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}.status.error{color:var(--red)}
@@ -95,13 +96,55 @@
     .import-line{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:end;background:var(--panel);border:1px solid var(--rule);border-top:0;padding:12px}
     .paper-table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--panel);border:1px solid var(--rule);border-top:0}.paper-table th{background:#F6F8F5;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);border-bottom:1px solid var(--rule);text-align:left;padding:9px 12px}.paper-table th.sortable{cursor:pointer;user-select:none}.paper-table th.sortable:hover{color:var(--ink);background:#EDF2EE}.paper-table th .sort-mark{float:right;color:var(--green);letter-spacing:0}.paper-table td{border-bottom:1px solid var(--rule);padding:9px 12px;font-size:13px;line-height:1.22;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}.paper-table tbody tr:nth-child(odd){background:#F8FAF7}
     .table-wrap{overflow:auto;max-height:540px}.hidden{display:none!important}.empty{padding:24px 12px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em}
-    .legajero-tools{display:grid;grid-template-columns:minmax(240px,1fr) minmax(180px,.7fr) minmax(180px,.7fr) auto auto auto auto;gap:10px;align-items:end;margin-top:14px;padding:12px;border:1px solid var(--rule);background:var(--panel)}
+    .legajero-tools{display:grid;grid-template-columns:minmax(240px,1fr) minmax(160px,.6fr) minmax(160px,.6fr) minmax(160px,.6fr) auto auto auto auto;gap:10px;align-items:end;margin-top:14px;padding:12px;border:1px solid var(--rule);background:var(--panel)}
     .selection-count{align-self:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);white-space:nowrap}.row-check{width:15px;height:15px;min-height:15px}.temp-pill{display:inline-block;padding:3px 6px;border:1px solid #C8E2D0;background:var(--green-soft);color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:10px}.temp-pill.none{border-color:var(--rule);background:#F6F8F5;color:var(--ink-soft)}
     .change-box{margin-top:12px;border:1px solid var(--green);background:#F8FAF7;padding:12px}.change-grid{display:grid;grid-template-columns:1.2fr .7fr .7fr 1.4fr .9fr auto;gap:10px;align-items:end}.change-summary{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft)}
     .danger-cta{height:34px;border:1px solid var(--red);background:var(--panel);color:var(--red);padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase}.small-btn{min-height:26px;border:1px solid var(--rule);background:var(--panel);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 7px}
     #legajero-table{min-width:1500px}#funcion-lotes-table{min-width:1250px}
     @media(max-width:1100px){.filters,.import-line,.change-grid,.legajero-tools{grid-template-columns:1fr 1fr}.check-grid{grid-template-columns:1fr}.dashboard-grid,.paired-grid,.presence-grid{grid-template-columns:1fr}.kpi-row,#presence-kpis{grid-template-columns:repeat(2,1fr)}.paper-header{grid-template-columns:1fr}.header-right{justify-content:flex-start;flex-wrap:wrap}}
     @media(max-width:700px){.paper-app{padding:0 14px 18px}.filters,.import-line,.kpi-row,#presence-kpis{grid-template-columns:1fr}.tab-list{overflow:auto}.tab-btn{min-width:120px;padding-left:12px;padding-right:12px}}
+    /* Presentación de TNC, alineada con Horas Extras y limitada a esta vista. */
+    .filters.tnc-mode{border-color:#D9E1DE;border-radius:0 0 7px 7px;box-shadow:0 4px 16px rgba(22,42,38,.055)}
+    .filters.tnc-mode .label,.filters.tnc-mode .range-note,.filters.tnc-mode .check-item{font-family:'IBM Plex Sans',system-ui,sans-serif;letter-spacing:0;text-transform:none;color:#637278}
+    .filters.tnc-mode .paper-input{height:37px;border-color:#CFD9D5;border-radius:4px;font:400 13px 'IBM Plex Sans',system-ui,sans-serif}
+    .filters.tnc-mode .filter-toggle,.filters.tnc-mode .link-btn{border-color:#D9E1DE;border-radius:5px;font:500 12px 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:0;text-transform:none}
+    .filters.tnc-mode .primary-cta{height:37px;border-color:#087F68;border-radius:5px;background:#087F68;color:#fff;font:600 12px 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:0;text-transform:none}
+    .filters.tnc-mode .filter-panel,.filters.tnc-mode .check-box{border-color:#D9E1DE;border-radius:5px}
+    .filters.tnc-mode .check-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    #panel-tnc{color:#18252A}
+    #panel-tnc #tnc-kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 12px}
+    #panel-tnc .kpi-cell{min-height:94px;padding:14px 16px;border:1px solid #D9E1DE;border-top:3px solid #087F68;border-radius:7px;background:#fff;box-shadow:0 4px 16px rgba(22,42,38,.055)}
+    #panel-tnc .kpi-cell:nth-child(2){border-top-color:#226D8A}#panel-tnc .kpi-cell:nth-child(3){border-top-color:#66558A}#panel-tnc .kpi-cell:nth-child(4){border-top-color:#9A5A0A}
+    #panel-tnc .kpi-cell .label{font:500 12px 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:0;text-transform:none;color:#637278}
+    #panel-tnc .kpi-number{font:650 27px 'IBM Plex Sans',system-ui,sans-serif;margin:8px 0 0}
+    #panel-tnc .tnc-kpi-note{margin-top:5px;color:#637278;font-size:12px;line-height:1.35}
+    #panel-tnc .chart-panel{min-height:0;padding:0;border-color:#D9E1DE;border-radius:7px;box-shadow:0 4px 16px rgba(22,42,38,.055);overflow:hidden}
+    #panel-tnc .chart-title{align-items:center;flex-wrap:wrap;margin:0;padding:13px 15px;border-bottom:1px solid #D9E1DE}
+    #panel-tnc .chart-title strong{font-size:17px;font-weight:650}#panel-tnc .chart-title label{display:flex;align-items:center;gap:8px;font-size:12px;color:#637278}
+    #tnc-tipo{min-width:180px;max-width:100%;min-height:37px;padding:7px 9px;border:1px solid #CFD9D5;border-radius:4px;background:#fff;color:#18252A;font-size:13px}
+    #tnc-coverage{margin:0;padding:10px 15px;border-bottom:1px solid #D9E1DE;color:#637278;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+    #tnc-coverage.incomplete{background:#FBF0D9;color:#75470A}
+    #panel-tnc .tnc-filters{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:11px 15px;border-bottom:1px solid #D9E1DE;color:#42545a;font-size:12px}
+    #panel-tnc .tnc-filters label{display:flex;align-items:center;gap:8px}
+    #panel-tnc .tnc-filters input{width:16px;height:16px;accent-color:#087F68}
+    #panel-tnc .tnc-filters select{min-height:36px;max-width:100%;padding:6px 9px;border:1px solid #CFD9D5;border-radius:4px;background:#fff;font-size:12px}
+    #panel-tnc .tnc-tabs{display:flex;gap:4px;margin-top:12px;padding:0 12px;background:#fff;border:1px solid #D9E1DE;border-radius:7px 7px 0 0}
+    #panel-tnc .tnc-tabs button{min-height:44px;padding:0 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:#637278;font-size:13px}
+    #panel-tnc .tnc-tabs button.active{border-bottom-color:#087F68;color:#18252A;font-weight:600}
+    #panel-tnc .tnc-charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    #panel-tnc .tnc-bars{display:grid;gap:5px;max-height:480px;overflow:auto;padding:12px 15px}
+    #panel-tnc .tnc-bar{display:grid;grid-template-columns:minmax(120px,1fr) minmax(80px,2fr) auto;align-items:center;gap:10px;width:100%;padding:6px;border:0;border-radius:4px;background:#fff;text-align:left;font-size:12px}
+    #panel-tnc .tnc-bar:hover,#panel-tnc .tnc-bar:focus-visible{background:#F0F8F4}
+    #panel-tnc .tnc-bar-track{height:10px;overflow:hidden;border-radius:4px;background:#EAF1EE}#panel-tnc .tnc-bar-fill{display:block;height:100%;border-radius:4px;background:#087F68}
+    #panel-tnc .tnc-drill{padding:8px 15px;background:#E6F1F5;color:#226D8A;font-size:12px}
+    #panel-tnc .table-wrap{max-height:62vh}#tnc-table{min-width:1050px;border:0;table-layout:auto;border-spacing:0}
+    #tnc-table th{position:sticky;top:0;z-index:2;background:#F7F9F8;color:#5A6A70;font:600 11px 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:0;text-transform:none;white-space:nowrap}
+    #tnc-table td{padding:10px 9px;border-color:#D9E1DE;font-size:12px;white-space:nowrap}#tnc-table tbody tr:nth-child(odd){background:#fff}#tnc-table tbody tr:hover td{background:#F7FAF8}
+    #panel-tnc .tnc-pagination{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 15px;border-top:1px solid #D9E1DE;color:#637278;font-size:12px}
+    #panel-tnc .tnc-pagination .link-btn{min-height:36px;padding:8px 12px;border-color:#D9E1DE;border-radius:5px;font:500 12px 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:0;text-transform:none}
+    #tnc-export{margin-left:auto}
+    @media(max-width:1100px){.filters.tnc-mode .check-grid{grid-template-columns:1fr}#panel-tnc #tnc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:700px){#panel-tnc .chart-title{align-items:flex-start;flex-direction:column}#tnc-export{margin-left:0}#panel-tnc .tnc-charts{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -129,6 +172,7 @@
     <div class="tab-list">
       <button class="tab-btn active" data-tab="indicadores">Indicadores</button>
       <button class="tab-btn" data-tab="presencias">Presencias</button>
+      <button class="tab-btn" data-tab="tnc">TNC</button>
       <button class="tab-btn" data-tab="datos">Datos</button>
       <button class="tab-btn" data-tab="francos">Francos</button>
       <button class="tab-btn" data-tab="legajero">Legajero</button>
@@ -151,6 +195,10 @@
         <div class="check-box filter-check-cargo">
           <div class="check-head"><div class="check-title"><span class="label">Cargo</span><span class="check-summary" id="summary-cargo">Todos</span></div><div class="check-actions"><button class="link-btn" data-select-filter="cargo">Todos</button><button class="link-btn" data-clear-filter="cargo">Ninguno</button></div></div>
           <div class="check-list" id="filter-cargo"></div>
+        </div>
+        <div class="check-box filter-check-grupo">
+          <div class="check-head"><div class="check-title"><span class="label">Grupo</span><span class="check-summary" id="summary-grupo">Todos</span></div><div class="check-actions"><button class="link-btn" data-select-filter="grupo">Todos</button><button class="link-btn" data-clear-filter="grupo">Ninguno</button></div></div>
+          <div class="check-list" id="filter-grupo"></div>
         </div>
         <div class="check-box filter-check-motivo presence-hide">
           <div class="check-head"><div class="check-title"><span class="label">Motivo</span><span class="check-summary" id="summary-motivo">Todos</span></div><div class="check-actions"><button class="link-btn" data-select-filter="motivo">Todos</button><button class="link-btn" data-clear-filter="motivo">Ninguno</button></div></div>
@@ -266,6 +314,18 @@
     </section>
   </section>
 
+  <section class="paper-panel" id="panel-tnc">
+    <section class="kpi-row" id="tnc-kpis"></section>
+    <nav class="tnc-tabs" aria-label="Vistas de TNC"><button type="button" id="tnc-tab-summary" class="active">Resumen</button><button type="button" id="tnc-tab-detail">Detalle por legajo</button></nav>
+    <section class="chart-panel" style="margin-top:12px">
+      <div class="chart-title"><strong>Excesos de TNC</strong><span>Días que superan el máximo diario, sin aplicar tolerancia</span></div>
+      <p id="tnc-coverage"></p>
+      <div class="tnc-filters"><label><input type="checkbox" id="tnc-only-excess"> Mostrar solo legajos con algún exceso</label><label for="tnc-excess-type">Exceso por tipo <select id="tnc-excess-type"><option value="">Todos los tipos</option><option value="fisiologicas">Necesidades fisiológicas</option><option value="comedor">Salida comedor</option><option value="jfs">JFS necesidades fisiológicas</option></select></label></div>
+    </section>
+    <div id="tnc-summary" class="tnc-charts"><section class="chart-panel"><div class="chart-title"><strong>Excesos por sector</strong></div><div class="tnc-bars" id="tnc-sector-bars"></div></section><section class="chart-panel"><div class="chart-title"><strong>Excesos por función</strong></div><div class="tnc-bars" id="tnc-function-bars"></div></section></div>
+    <section class="chart-panel hidden" id="tnc-detail" style="margin-top:12px"><div class="chart-title"><strong>Detalle por legajo</strong></div><div class="tnc-drill hidden" id="tnc-drill"></div><div class="table-wrap"><table class="paper-table" id="tnc-table"></table></div><div class="tnc-pagination"><button class="link-btn" id="tnc-prev">Anterior</button><span id="tnc-page"></span><button class="link-btn" id="tnc-next">Siguiente</button><button class="link-btn" id="tnc-export">Exportar todo</button></div></section>
+  </section>
+
   <section class="paper-panel" id="panel-datos">
     <div class="paper-tabs" style="margin-top:14px">
       <div class="tab-list">
@@ -311,6 +371,7 @@
     <section class="legajero-tools">
       <div class="field"><label class="label" for="legajero-search">Buscar en legajero</label><input class="paper-input" id="legajero-search" placeholder="Legajo, nombre, sector o funcion"></div>
       <div class="field"><label class="label" for="legajero-sector">Sector</label><select class="paper-select" id="legajero-sector"><option value="">Todos</option></select></div>
+      <div class="field"><label class="label" for="legajero-grupo">Grupo</label><select class="paper-select" id="legajero-grupo"><option value="">Todos</option></select></div>
       <div class="field"><label class="label" for="legajero-cargo">Cargo</label><select class="paper-select" id="legajero-cargo"><option value="">Todos</option></select></div>
       <button class="link-btn" id="legajero-exportar">Exportar Excel</button>
       <button class="link-btn" id="legajero-select-visible">Seleccionar visibles</button>
@@ -355,7 +416,7 @@
 </div>
 
 <script>
-  const state = { config:null, batches:[], filtersLoaded:false, importLoaded:false, legajeroLoaded:false, presenciasLoaded:false, presenceNeedsRefresh:false, presenceFiltersLoaded:false, presenceSectorOptions:[], presenceFunctionOptions:[], presenceSectorFunctionMap:{}, presencias:null, presenciaDrill:{sector:'',funcion:''}, presenceSort:{'presence-sector-table':{key:'dotacion',dir:'desc'},'presence-function-table':{key:'dotacion',dir:'desc'},'presence-detail-table':{key:'estado_label',dir:'asc'}}, legajeroRows:[], legajeroLotes:[], legajeroSelected:new Set(), legajeroExpanded:new Set(), legajeroSort:{key:'nombre',dir:'asc'}, legajeroLotesSort:{key:'created_at',dir:'desc'}, canEditFunciones:false, activeTab:'indicadores', indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], motivo:[]} };
+  const state = { config:null, batches:[], filtersLoaded:false, importLoaded:false, legajeroLoaded:false, presenciasLoaded:false, presenceNeedsRefresh:false, presenceFiltersLoaded:false, presenceSectorOptions:[], presenceFunctionOptions:[], presenceSectorFunctionMap:{}, presencias:null, presenciaDrill:{sector:'',funcion:''}, presenceSort:{'presence-sector-table':{key:'dotacion',dir:'desc'},'presence-function-table':{key:'dotacion',dir:'desc'},'presence-detail-table':{key:'estado_label',dir:'asc'}}, legajeroRows:[], legajeroLotes:[], legajeroSelected:new Set(), legajeroExpanded:new Set(), legajeroSort:{key:'nombre',dir:'asc'}, legajeroLotesSort:{key:'created_at',dir:'desc'}, canEditFunciones:false, activeTab:'indicadores', indicatorsLoading:false, tableSort:{}, detailMode:'aus_pct', selected:{sector:[], cargo:[], grupo:[], motivo:[]} };
   const STORAGE_KEY = 'vigia.novedades_cd.advanced_filters.v1';
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 });
@@ -397,7 +458,7 @@
       const value = $(id).value;
       if (value) p.set(key, value);
     });
-    [['sector','sector'],['cargo','cargo'],['motivo','motivo']].forEach(([key,id]) => {
+    [['sector','sector'],['cargo','cargo'],['grupo','grupo'],['motivo','motivo']].forEach(([key,id]) => {
       selectedValues(id).forEach(value => p.append(key, value));
     });
     return p.toString();
@@ -428,7 +489,7 @@
   function loadSavedFilters(){
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      ['sector','cargo','motivo'].forEach(key => {
+      ['sector','cargo','grupo','motivo'].forEach(key => {
         state.selected[key] = Array.isArray(saved[key]) ? saved[key].map(String) : [];
       });
       if (saved.panelOpen) $('filter-panel').classList.add('open');
@@ -439,6 +500,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         sector: state.selected.sector,
         cargo: state.selected.cargo,
+        grupo: state.selected.grupo,
         motivo: state.selected.motivo,
         panelOpen: $('filter-panel').classList.contains('open'),
       }));
@@ -1000,7 +1062,7 @@
       const active = sort.key === c.key;
       const mark = active ? `<span class="sort-mark">${sort.dir === 'desc' ? '▼' : '▲'}</span>` : '';
       return `<th class="sortable" data-table="${esc(id)}" data-key="${esc(c.key)}" title="Ordenar por ${esc(c.label)}">${esc(c.label)}${mark}</th>`;
-    }).join('')}</tr></thead><tbody>${data.map(row=>`<tr>${cols.map(c=>`<td class="${c.mono?'mono':''}" title="${esc(valueFor(row, c) ?? '')}">${id === 'sanciones-table' && c.key === 'fecha_hecho' && state.canEditSanciones ? `<button type="button" class="sancion-fecha-edit" data-key="${esc(row.sancion_key)}">${esc(row.fecha_hecho || 'Asignar fecha')}</button>` : esc(valueFor(row, c) ?? '')}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}">Sin datos.</td></tr>`}</tbody>`;
+    }).join('')}</tr></thead><tbody>${data.map(row=>`<tr>${cols.map(c=>`<td class="${c.mono?'mono':''}" title="${esc(valueFor(row, c) ?? '')}">${id === 'tnc-table' && c.key === 'ver_detalle' ? '<button type="button" class="link-btn">Ver días</button>' : id === 'sanciones-table' && c.key === 'fecha_hecho' && state.canEditSanciones ? `<button type="button" class="sancion-fecha-edit" data-key="${esc(row.sancion_key)}">${esc(row.fecha_hecho || 'Asignar fecha')}</button>` : esc(valueFor(row, c) ?? '')}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}">Sin datos.</td></tr>`}</tbody>`;
     $(id).__rows = rows || [];
     $(id).__cols = cols;
   }
@@ -1160,9 +1222,21 @@
       ? (sectorScope ? `Perfil con acceso a gerencia/jefatura en sectores habilitados: ${(state.config.data_sectors || []).join(', ')}` : 'Perfil con acceso completo a registros de gerencia/jefatura.')
       : 'Vista operativa: gerencia/jefatura se oculta desde el servidor.';
     $('access-note').classList.toggle('warn', !state.config.can_see_gerencia);
-    if (Array.isArray(state.config.data_sectors) && state.config.data_sectors.length) {
-      setChecklist('sector', state.config.data_sectors);
-    }
+  }
+  async function loadGeneralFilters(){
+    setStatus('Cargando filtros disponibles...');
+    ['sector','cargo','grupo','motivo'].forEach(key => {
+      const box = $(`filter-${key}`);
+      if (box && !box.querySelector('input')) box.innerHTML = '<div class="empty">Cargando...</div>';
+    });
+    const data = await api('/api/rrhh/filtros');
+    const range = data.data_range || {};
+    $('range-note').textContent = `El tablero cuenta con informacion entre ${range.fecha_desde || '-'} y ${range.fecha_hasta || '-'}`;
+    setChecklist('sector', data.filters?.sectores || []);
+    setChecklist('cargo', data.filters?.cargos || []);
+    setChecklist('grupo', data.filters?.grupos || []);
+    setChecklist('motivo', data.filters?.motivos || []);
+    state.filtersLoaded = true;
   }
   async function loadBatches(){
     const data = await api('/api/rrhh/batches');
@@ -1185,14 +1259,7 @@
       const data = await api(`/api/rrhh/indicadores?${params()}`);
       const range = data.data_range || {};
       $('range-note').textContent = `El tablero cuenta con informacion entre ${range.fecha_desde || '-'} y ${range.fecha_hasta || '-'}`;
-      if (!state.filtersLoaded) {
-        setChecklist('sector', data.filters.sectores);
-        setChecklist('cargo', data.filters.cargos);
-        setChecklist('motivo', data.filters.motivos);
-        state.filtersLoaded = true;
-      } else {
-        setChecklist('cargo', data.filters.cargos);
-      }
+      if (!state.filtersLoaded) await loadGeneralFilters();
       renderKpis(data.kpis || {});
       $('chart-diario').innerHTML = linePct(data.series.diario);
       $('chart-extra-dia').innerHTML = lineMetric(data.series.diario, 'horas_extra', 'blue', ' hs');
@@ -1217,12 +1284,14 @@
   function filteredLegajeroRows(){
     const text = $('legajero-search').value.trim().toUpperCase();
     const sector = $('legajero-sector').value;
+    const grupo = $('legajero-grupo').value;
     const cargo = $('legajero-cargo').value;
     return state.legajeroRows.filter(row => {
       if (sector && String(row.sector || '') !== sector) return false;
+      if (grupo && String(row.grupo_personal || '') !== grupo) return false;
       if (cargo && String(row.funcion_legajero || '') !== cargo) return false;
       if (!text) return true;
-      return [row.legajo, row.nombre, row.unidad, row.sector, row.funcion_legajero, row.funcion_temporal_vigente, row.proxima_funcion_temporal, temporalLoadedBy(row)]
+      return [row.legajo, row.nombre, row.unidad, row.sector, row.grupo_personal, row.funcion_legajero, row.funcion_temporal_vigente, row.proxima_funcion_temporal, temporalLoadedBy(row)]
         .some(value => String(value || '').toUpperCase().includes(text));
     });
   }
@@ -1234,9 +1303,12 @@
   }
   function updateLegajeroCargoCombo(){
     const sector = $('legajero-sector').value;
-    const rows = sector
-      ? state.legajeroRows.filter(row => String(row.sector || '') === sector)
-      : state.legajeroRows;
+    const grupo = $('legajero-grupo').value;
+    const rows = state.legajeroRows.filter(row => {
+      if (sector && String(row.sector || '') !== sector) return false;
+      if (grupo && String(row.grupo_personal || '') !== grupo) return false;
+      return true;
+    });
     const cargos = Array.from(new Set(rows.map(row => String(row.funcion_legajero || '').trim()).filter(Boolean)))
       .sort((a,b) => a.localeCompare(b, 'es'));
     setLegajeroCombo('legajero-cargo', cargos);
@@ -1297,6 +1369,7 @@
       ${sortableHeader('Nombre','legajero','nombre',state.legajeroSort)}
       ${sortableHeader('Sector','legajero','sector',state.legajeroSort)}
       ${sortableHeader('Unidad','legajero','unidad',state.legajeroSort)}
+      ${sortableHeader('Grupo','legajero','grupo_personal',state.legajeroSort)}
       ${sortableHeader('Funcion Legajero','legajero','funcion_legajero',state.legajeroSort)}
       ${sortableHeader('Funcion temporal','legajero','funcion_temporal',state.legajeroSort)}
       ${sortableHeader('Vigencia','legajero','fecha_inicio',state.legajeroSort)}
@@ -1310,9 +1383,9 @@
       return `<tr>
         <td><input class="row-check legajero-row-check" type="checkbox" value="${esc(row.legajo)}" ${checked}></td>
         <td class="mono">${esc(row.legajo)}</td><td>${esc(row.nombre)}</td><td>${esc(row.sector || '')}</td><td>${esc(row.unidad || '')}</td>
-        <td>${esc(row.funcion_legajero || '')}</td><td>${temp}</td><td class="mono">${vigencia}</td><td>${esc(row.motivo || '')}</td>
+        <td>${esc(row.grupo_personal || '')}</td><td>${esc(row.funcion_legajero || '')}</td><td>${temp}</td><td class="mono">${vigencia}</td><td>${esc(row.motivo || '')}</td>
       </tr>`;
-    }).join('') || '<tr><td colspan="9">Sin legajos.</td></tr>'}</tbody>`;
+    }).join('') || '<tr><td colspan="10">Sin legajos.</td></tr>'}</tbody>`;
     const all = $('legajero-check-all');
     if (all) {
       all.checked = rows.length > 0 && rows.every(row => state.legajeroSelected.has(String(row.legajo)));
@@ -1330,6 +1403,7 @@
       ${sortableHeader('Nombre','legajero','nombre',state.legajeroSort)}
       ${sortableHeader('Sector','legajero','sector',state.legajeroSort)}
       ${sortableHeader('Unidad','legajero','unidad',state.legajeroSort)}
+      ${sortableHeader('Grupo','legajero','grupo_personal',state.legajeroSort)}
       ${sortableHeader('Funcion Legajero','legajero','funcion_legajero',state.legajeroSort)}
       ${sortableHeader('Temporal vigente','legajero','funcion_temporal_vigente',state.legajeroSort)}
       ${sortableHeader('Proxima temporal','legajero','proxima_fecha_inicio',state.legajeroSort)}
@@ -1344,9 +1418,9 @@
       return `<tr>
         <td><input class="row-check legajero-row-check" type="checkbox" value="${esc(row.legajo)}" ${checked}></td>
         <td class="mono">${esc(row.legajo)}</td><td>${esc(row.nombre)}</td><td>${esc(row.sector || '')}</td><td>${esc(row.unidad || '')}</td>
-        <td>${esc(row.funcion_legajero || '')}</td><td>${temporalText(row.temporal_vigente)}</td><td>${temporalText(row.proxima_temporal)}</td><td>${esc(temporalLoadedBy(row))}</td><td>${more}</td>
-      </tr>${expanded ? `<tr><td></td><td colspan="9">${renderTemporalDetail(row)}</td></tr>` : ''}`;
-    }).join('') || '<tr><td colspan="10">Sin legajos.</td></tr>'}</tbody>`;
+        <td>${esc(row.grupo_personal || '')}</td><td>${esc(row.funcion_legajero || '')}</td><td>${temporalText(row.temporal_vigente)}</td><td>${temporalText(row.proxima_temporal)}</td><td>${esc(temporalLoadedBy(row))}</td><td>${more}</td>
+      </tr>${expanded ? `<tr><td></td><td colspan="10">${renderTemporalDetail(row)}</td></tr>` : ''}`;
+    }).join('') || '<tr><td colspan="11">Sin legajos.</td></tr>'}</tbody>`;
     const all = $('legajero-check-all');
     if (all) {
       all.checked = rows.length > 0 && rows.every(row => state.legajeroSelected.has(String(row.legajo)));
@@ -1383,6 +1457,7 @@
     state.canEditFunciones = Boolean(data.can_edit);
     state.legajeroLoaded = true;
     setLegajeroCombo('legajero-sector', Array.from(new Set(state.legajeroRows.map(row => String(row.sector || '').trim()).filter(Boolean))).sort((a,b) => a.localeCompare(b, 'es')));
+    setLegajeroCombo('legajero-grupo', Array.from(new Set(state.legajeroRows.map(row => String(row.grupo_personal || '').trim()).filter(Boolean))).sort((a,b) => a.localeCompare(b, 'es')));
     updateLegajeroCargoCombo();
     $('funciones-list').innerHTML = (data.funciones || []).map(item => `<option value="${esc(item.descripcion)}"></option>`).join('');
     $('funcion-desde').value = data.today || '';
@@ -1473,9 +1548,18 @@
   }
   function activateMainTab(tab){
     state.activeTab = tab;
+    if (tab === 'tnc' && !state.tncDateInitialized) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const lastCompletedDay = localDateInput(yesterday);
+      $('fecha-hasta').value = lastCompletedDay;
+      if (!$('fecha-desde').value || $('fecha-desde').value > lastCompletedDay) $('fecha-desde').value = lastCompletedDay;
+      state.tncDateInitialized = true;
+    }
     const filters = document.querySelector('.filters');
     filters?.classList.toggle('hidden', tab === 'legajero');
     filters?.classList.toggle('presence-mode', tab === 'presencias');
+    filters?.classList.toggle('tnc-mode', tab === 'tnc');
     $('access-note')?.classList.toggle('hidden', tab === 'legajero');
     document.querySelectorAll('.date-filter-field').forEach(field => field.classList.toggle('hidden', tab === 'presencias'));
     $('range-note')?.classList.toggle('hidden', tab === 'presencias');
@@ -1488,6 +1572,7 @@
     if (tab === 'importacion' && !state.importLoaded) loadBatches().catch(e => setStatus(e.message, true));
     if (tab === 'legajero' && !state.legajeroLoaded) loadLegajeroFunciones().catch(e => setStatus(e.message, true));
     if (tab === 'presencias') loadPresenceFilters().catch(e => setStatus(e.message, true));
+    if (tab === 'tnc') { state.tncOffset = 0; applyTnc().catch(e => setStatus(e.message, true)); }
   }
   function activateInnerTab(tab){
     document.querySelectorAll('.inner-tab').forEach(x => x.classList.remove('active'));
@@ -1563,6 +1648,62 @@
     ]);
     renderFrancos(data || {}, candidatos || {});
   }
+  async function applyTnc(){
+    if (state.applyLoading) return;
+    setApplyLoading(true);
+    setStatus('Consultando TNC...');
+    try {
+      const p = new URLSearchParams(params());
+      if ($('tnc-only-excess').checked) p.set('solo_excesos', 'true');
+      if ($('tnc-excess-type').value) p.set('tipo_exceso', $('tnc-excess-type').value);
+      if (state.tncDrill) { p.set(state.tncDrill.key === 'sector' ? 'detalle_sector' : 'detalle_cargo', state.tncDrill.value); p.set('ordenar_excesos', 'true'); }
+      const data = await api(`/api/rrhh/tnc/legajos?${p}`);
+      if (!data) return;
+      state.tncRows = data.rows;
+      state.tncQuery = p.toString();
+      const coverage = data.coverage;
+      const total = key => data.rows.reduce((sum,row) => sum + row[key], 0);
+      const people = key => data.rows.filter(row => row[key] > 0).length;
+      const singleDay = coverage.sincronizados === 1;
+      const cards = [
+        ['Legajos con TNC',data.rows.length,'Con registros en los días cargados'],
+        ['Legajos con exceso fisiológicas',people('fisiologicas'), (singleDay ? 'En el día cargado' : `${fmt(total('fisiologicas'))} excesos diarios en total`) + ' · JFS se muestra por separado'],
+        ['Legajos con exceso comedor',people('comedor'), singleDay ? 'En el día cargado' : `${fmt(total('comedor'))} excesos diarios en total`],
+        ['Registros diarios sin evaluar',total('sin_evaluar'),'Por legajo y tipo de TNC']
+      ];
+      $('tnc-kpis').innerHTML = cards.map(([label,value,note]) => `<div class="kpi-cell"><div class="label">${esc(label)}</div><div class="kpi-number">${coverage.sincronizados ? esc(fmt(value)) : '—'}</div><div class="tnc-kpi-note">${esc(note)}</div></div>`).join('');
+      const displayDate = value => value.split('-').reverse().join('/');
+      $('tnc-coverage').classList.toggle('incomplete', coverage.faltantes.length > 0);
+      $('tnc-coverage').textContent = `Período consultado: ${displayDate(p.get('fecha_desde'))} al ${displayDate(p.get('fecha_hasta'))}. ` + (coverage.sincronizados ? `Con datos cargados: ${coverage.sincronizados} día(s). ` : 'No hay días cargados. ') + (coverage.faltantes.length ? `Sin carga: ${coverage.faltantes.map(displayDate).join(', ')}. Los resultados solo incluyen los días cargados.` : 'Todos los días del período están cargados.');
+      if (!state.tncDrill) renderTncCharts(data.rows);
+      $('tnc-drill').classList.toggle('hidden', !state.tncDrill);
+      $('tnc-drill').textContent = state.tncDrill ? `${state.tncDrill.key === 'sector' ? 'Sector' : 'Función'}: ${state.tncDrill.value} · ordenado por total de excesos` : '';
+      renderTncPage();
+      setStatus('TNC actualizados.');
+    } finally { setApplyLoading(false); }
+  }
+  function renderTncCharts(rows){
+    for (const [key,id] of [['sector','tnc-sector-bars'],['cargo','tnc-function-bars']]) {
+      const groups = new Map();
+      for (const row of rows) { const name = row[key] || 'Sin datos'; groups.set(name, (groups.get(name) || 0) + row.total_excesos); }
+      const items = [...groups].filter(([,count]) => count > 0).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0], 'es'));
+      const max = items[0]?.[1] || 1;
+      $(id).innerHTML = items.map(([name,count]) => `<button type="button" class="tnc-bar" data-tnc-group="${esc(name)}" data-tnc-key="${key}"><span>${esc(name)}</span><span class="tnc-bar-track"><span class="tnc-bar-fill" style="width:${count/max*100}%"></span></span><strong>${esc(fmt(count))}</strong></button>`).join('') || '<p>No hay excesos para los filtros seleccionados.</p>';
+    }
+  }
+  function setTncView(view){
+    $('tnc-tab-summary').classList.toggle('active', view === 'summary');
+    $('tnc-tab-detail').classList.toggle('active', view === 'detail');
+    $('tnc-summary').classList.toggle('hidden', view !== 'summary');
+    $('tnc-detail').classList.toggle('hidden', view !== 'detail');
+  }
+  function renderTncPage(){
+    const rows = state.tncRows || [], offset = state.tncOffset || 0;
+    renderTable('tnc-table', [{key:'legajo',label:'Legajo'}, {key:'nombre',label:'Empleado'}, {key:'sector',label:'Sector'}, {key:'cargo',label:'Cargo'}, {key:'grupo',label:'Grupo'}, {key:'fisiologicas',label:'Necesidades fisiológicas'}, {key:'comedor',label:'Salida comedor'}, {key:'jfs',label:'JFS fisiológicas'}, {key:'total_excesos',label:'Total excesos'}, {key:'sin_evaluar',label:'Sin evaluar'}, {key:'ver_detalle',label:'Detalle'}], rows.slice(offset, offset + 100).map(row => ({...row, ver_detalle:'Ver días'})));
+    $('tnc-page').textContent = rows.length ? `${offset+1}–${Math.min(offset+100,rows.length)} de ${rows.length}` : 'Sin registros';
+    $('tnc-prev').disabled = offset === 0;
+    $('tnc-next').disabled = offset+100 >= rows.length;
+  }
   async function applyCurrentView(){
     if (state.activeTab === 'legajero') {
       await loadLegajeroFunciones();
@@ -1616,6 +1757,7 @@
       const data = await api(path, {method:'POST', body:JSON.stringify(body||{})});
       state.filtersLoaded=false;
       renderImportResult(data);
+      await loadGeneralFilters();
       setStatus(`Importacion completa: ${data.batch_key}.`);
       await loadBatches();
     }
@@ -1771,8 +1913,50 @@
   });
   $('toggle-filters').onclick = () => { $('filter-panel').classList.toggle('open'); saveFilters(); };
   $('apply-filters').onclick = () => {
+    if (state.activeTab === 'tnc') { state.tncOffset = 0; applyTnc().catch(e => setStatus(e.message, true)); return; }
     const fn = state.activeTab === 'presencias' ? applyCurrentView : applyAllTabs;
     fn().catch(e => setStatus(e.message || 'No se pudo consultar.', true));
+  };
+  $('tnc-prev').onclick = () => { state.tncOffset = Math.max(0, (state.tncOffset || 0) - 100); renderTncPage(); };
+  $('tnc-tab-summary').onclick = () => {
+    setTncView('summary');
+    if (state.tncDrill) { state.tncDrill = null; state.tncOffset = 0; delete state.tableSort['tnc-table']; applyTnc().catch(e => setStatus(e.message, true)); }
+  };
+  $('tnc-tab-detail').onclick = () => setTncView('detail');
+  $('tnc-summary').addEventListener('click', event => {
+    const bar = event.target.closest('button[data-tnc-key]');
+    if (!bar) return;
+    state.tncDrill = {key:bar.dataset.tncKey, value:bar.dataset.tncGroup};
+    state.tncOffset = 0;
+    state.tableSort['tnc-table'] = {key:'total_excesos', dir:'desc'};
+    setTncView('detail');
+    applyTnc().catch(e => setStatus(e.message, true));
+  });
+  $('tnc-only-excess').onchange = () => { state.tncOffset = 0; applyTnc().catch(e => setStatus(e.message, true)); };
+  $('tnc-excess-type').onchange = () => { state.tncOffset = 0; applyTnc().catch(e => setStatus(e.message, true)); };
+  $('tnc-next').onclick = () => { state.tncOffset = (state.tncOffset || 0) + 100; renderTncPage(); };
+  $('tnc-table').addEventListener('click', event => {
+    const cell = event.target.closest('td');
+    if (!cell || cell.cellIndex !== 10) return;
+    const person = (state.tncRows || []).find(row => row.legajo === cell.parentElement.cells[0].textContent);
+    if (!person) return;
+    const dialog = document.createElement('dialog');
+    dialog.style.cssText = 'width:min(900px,95vw);max-height:85vh;border:1px solid #D9E1DE;border-radius:7px;padding:18px';
+    dialog.innerHTML = `<h3>Detalle de ${esc(person.nombre)} · ${esc(person.legajo)}</h3><p>Días registrados en el período. Sin evaluar: límite no disponible o registro activo.</p><div class="table-wrap"><table class="paper-table"><thead><tr><th>Fecha</th><th>Tipo</th><th>Minutos</th><th>Máximo</th><th>Resultado</th></tr></thead><tbody>${person.detalle.map(item => `<tr><td>${esc(item.fecha)}</td><td>${esc(item.tipo)}</td><td>${esc(item.minutos)}</td><td>${esc(item.maximo ?? '—')}</td><td>${item.excedido === null ? 'Sin evaluar' : item.excedido ? 'Excedido' : 'Dentro del máximo'}</td></tr>`).join('')}</tbody></table></div><button class="link-btn" style="margin-top:12px" type="button">Cerrar</button>`;
+    document.body.appendChild(dialog);
+    dialog.querySelector('button').onclick = () => dialog.close();
+    dialog.addEventListener('close', () => dialog.remove());
+    dialog.showModal();
+  });
+  $('tnc-export').onclick = async () => {
+    if (!state.tncQuery) return;
+    try {
+      const response = await fetch(`/api/rrhh/tnc/legajos?${state.tncQuery}&exportar=true`, {credentials:'same-origin'});
+      if (!response.ok) throw new Error('No se pudo exportar TNC.');
+      const blob = await response.blob(), url = URL.createObjectURL(blob), link = document.createElement('a');
+      link.href = url; link.download = 'excesos_tnc.xlsx'; document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (e) { setStatus(e.message, true); }
   };
   $('actividad-exportar').onclick = () => {
     const desde = $('fecha-desde')?.value || 'desde';
@@ -1787,6 +1971,7 @@
   });
   $('legajero-search').oninput = renderLegajero;
   $('legajero-sector').onchange = () => { updateLegajeroCargoCombo(); renderLegajero(); };
+  $('legajero-grupo').onchange = () => { updateLegajeroCargoCombo(); renderLegajero(); };
   $('legajero-cargo').onchange = renderLegajero;
   $('legajero-exportar').onclick = () => exportLegajero().catch(e => setStatus(e.message, true));
   $('legajero-select-visible').onclick = () => {
@@ -1805,6 +1990,7 @@
       setDefaultDateRange();
       await loadAppInfo();
       await loadConfig();
+      await loadGeneralFilters();
       setStatus('Listo. Elegi filtros y presiona Aplicar para consultar.');
     } catch(e) {
       setStatus(e.message, true);

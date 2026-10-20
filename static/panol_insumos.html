@@ -43,6 +43,18 @@
     @media(max-width:1100px){.page-head{grid-template-columns:1fr}.filters,.form-grid,.kpis,.dashboard-charts,.indicator-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.indicator-board{grid-template-columns:1fr}.production-pair,.request-grid,.request-top-grid,.request-history-grid,.guide-grid{grid-template-columns:1fr}.chart-panel.wide{grid-column:span 2}.import-line{grid-template-columns:1fr 1fr}.request-chart-filters,.request-order-controls,.waste-card .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:850px){.dashboard-charts{grid-template-columns:1fr}.chart-panel.wide{grid-column:auto}.mini-kpis{grid-template-columns:1fr}.mini-kpi.value-card{grid-column:auto}.stock-location-chart .bar-row{grid-template-columns:minmax(0,42ch) minmax(90px,1fr) 48px}}
     @media(max-width:700px){.app{padding:0 10px 20px}.filters,.form-grid,.kpis,.import-line,.indicator-filters,.request-chart-filters,.request-order-controls,.waste-card .form-grid,.users-toolbar{grid-template-columns:1fr}.flow-canvas{padding:10px}.tab{min-width:112px}.head-actions{align-items:flex-start}}
+    /* Encabezado y navegacion principal del modulo. */
+    .page-head{grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:12px 14px;border-bottom-color:var(--rule);box-shadow:0 8px 20px rgba(14,22,32,.05)}
+    .brand img{height:42px}.brand-title{font-size:20px;font-weight:600;line-height:1.2}.brand .kicker{letter-spacing:0;text-transform:none;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:11px}
+    .head-actions{justify-content:flex-end;gap:8px}.head-actions .link,.head-actions .btn{min-height:34px;display:inline-flex;align-items:center;letter-spacing:0}
+    .module-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 2px 12px}.module-heading .kicker{font-family:"IBM Plex Sans",system-ui,sans-serif;letter-spacing:0;text-transform:none;font-size:12px}.module-heading h1{font-size:26px;line-height:1.15}
+    .module-context{display:flex;gap:24px;min-width:0}.context-item{min-width:0}.context-item span{display:block;color:var(--soft);font-size:11px}.context-item strong{display:block;font-size:13px;overflow-wrap:anywhere}
+    .tabs{display:block;margin:0;padding:0;background:transparent;border:0;overflow:visible}.nav-group{background:var(--panel);border:1px solid var(--rule);border-radius:7px;margin-bottom:10px;overflow:hidden}.nav-heading{margin:0;padding:11px 14px 8px;color:var(--soft);font-size:12px;font-weight:600}.nav-items{display:flex;flex-wrap:wrap;align-items:stretch;padding:0 6px;gap:0 4px}.tab{display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;min-height:44px;margin:0;padding:10px 12px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--soft);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13px;font-weight:500;letter-spacing:0;text-align:left;text-transform:none}.tab:hover{background:#f7faf8;color:var(--ink)}.tab.active{margin:0;border:0;border-bottom:3px solid var(--green);background:#f4faf7;color:var(--ink);font-weight:600}.tab.active::after{content:none}
+    .nav-operational .nav-items{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:0;border-top:1px solid var(--rule)}.nav-operational .tab{min-height:64px;padding:10px 14px;border-right:1px solid var(--rule)}.nav-operational .tab:last-child{border-right:0}.nav-copy{display:block;min-width:0}.nav-copy strong,.nav-copy small{display:block}.nav-copy strong{font-size:13px;font-weight:600}.nav-copy small{margin-top:3px;color:var(--soft);font-size:11px;line-height:1.3;font-weight:400}.nav-operational .badge{margin-left:auto;min-width:24px;height:24px;font-size:11px}.status{border:1px solid var(--rule);border-radius:4px;margin-bottom:10px;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:12px}
+    @media(max-width:1100px){.page-head{grid-template-columns:minmax(0,1fr) auto}.nav-operational .nav-items{grid-template-columns:repeat(2,minmax(0,1fr))}.nav-operational .tab{border-bottom:1px solid var(--rule)}.nav-operational .tab.active{border-bottom:3px solid var(--green)}}
+    @media(max-width:700px){.page-head{grid-template-columns:1fr}.head-actions{justify-content:flex-start}.module-heading{align-items:flex-start;flex-direction:column;gap:10px}.module-context{gap:18px;flex-wrap:wrap}.tab{min-width:0}.nav-items{padding:0 4px}.nav-operational .tab{padding:10px}.nav-heading{padding:10px 12px 7px}}
+    @media(max-width:380px){.nav-operational .nav-items{grid-template-columns:1fr}.nav-operational .tab{border-right:0}}
+    .nav-operational.request-only .nav-items{grid-template-columns:1fr}.nav-operational.request-only .tab{border-right:0}
   </style>
 </head>
 <body>
@@ -51,27 +63,48 @@
     <div class="brand">
       <img src="/resources/CotoLogo.svg" alt="Coto">
       <div class="brand-rule"></div>
-      <div><div class="kicker">Modulo operativo</div><h1>Panol <span class="amp">Insumos</span></h1></div>
+      <div><div class="kicker">VigIA</div><div class="brand-title">Operaciones</div></div>
     </div>
-    <div></div>
     <div class="head-actions">
-      <span class="chip" id="user-chip">Validando...</span>
       <a class="link" href="/selector">Selector</a>
-      <button class="btn danger" id="logout-btn">Salir</button>
+      <button class="btn" id="logout-btn" type="button">Salir</button>
     </div>
   </header>
 
-  <nav class="tabs">
-    <button class="tab active" data-tab="indicadores">Indicadores</button>
-    <button class="tab" data-tab="stock-insumos">Stock Insumos</button>
-    <button class="tab" data-tab="pedido-insumos">Pedido de Insumos y Carga de Mermas</button>
-    <button class="tab" data-tab="guia">Guia</button>
-    <button class="tab" data-tab="pedidos-pendientes">Pedidos Pendientes<span class="badge hidden" id="pending-badge">0</span></button>
-    <button class="tab" data-tab="produccion">Produccion</button>
-    <button class="tab" data-tab="historial">Historial</button>
-    <button class="tab" data-tab="importacion">Importacion CD</button>
-    <button class="tab" data-tab="articulos">Articulos</button>
-    <button class="tab" data-tab="usuarios-panol">Usuarios</button>
+  <section class="module-heading" aria-label="Contexto del modulo">
+    <div><div class="kicker">Operacion de insumos</div><h1>Pañol de Insumos</h1></div>
+    <div class="module-context">
+      <div class="context-item"><span>Usuario</span><strong id="user-chip">Validando...</strong></div>
+      <div class="context-item"><span>Perfil</span><strong id="user-profile">-</strong></div>
+    </div>
+  </section>
+
+  <nav class="tabs" aria-label="Navegacion de Panol de Insumos">
+    <div class="nav-group nav-operational">
+      <h2 class="nav-heading">Operacion</h2>
+      <div class="nav-items">
+        <button class="tab" type="button" data-tab="pedido-insumos"><span class="nav-copy"><strong>Pedido de insumos</strong><small>Pedidos, mermas y reimpresiones</small></span></button>
+        <button class="tab" type="button" data-tab="pedidos-pendientes"><span class="nav-copy"><strong>Pedidos pendientes</strong><small>Entregas y reimpresiones</small></span><span class="badge hidden" id="pending-badge">0</span></button>
+        <button class="tab" type="button" data-tab="stock-insumos"><span class="nav-copy"><strong>Stock de insumos</strong><small>Stock, inventario y movimientos</small></span></button>
+        <button class="tab" type="button" data-tab="produccion"><span class="nav-copy"><strong>Produccion</strong><small>Altas, entregas y ajustes</small></span></button>
+      </div>
+    </div>
+    <div class="nav-group">
+      <h2 class="nav-heading">Consultas</h2>
+      <div class="nav-items">
+        <button class="tab active" type="button" data-tab="indicadores" aria-current="page">Indicadores</button>
+        <button class="tab" type="button" data-tab="historial">Historial</button>
+        <button class="tab" type="button" data-tab="guia">Guia</button>
+      </div>
+    </div>
+    <div class="nav-group" id="admin-nav">
+      <h2 class="nav-heading">Administracion</h2>
+      <div class="nav-items">
+        <button class="tab" type="button" data-tab="importacion">Importacion CD</button>
+        <button class="tab" type="button" data-tab="articulos">Articulos</button>
+        <button class="tab" type="button" data-tab="usuarios-panol">Usuarios</button>
+      </div>
+    </div>
   </nav>
   <div class="status" id="status">Inicializando pantalla...</div>
 
@@ -1012,10 +1045,10 @@ async function refreshAllIndicators(){
   setStatus('Indicadores actualizados.');
 }
 function activateTab(tab){
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x=>{x.classList.remove('active');x.removeAttribute('aria-current')});
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
   const button=document.querySelector(`[data-tab="${tab}"]`);
-  if(button)button.classList.add('active');
+  if(button){button.classList.add('active');button.setAttribute('aria-current','page')}
   $(`panel-${tab}`)?.classList.add('active');
   if(tab==='stock-insumos')activateStockView(document.querySelector('[data-stock-view].active')?.dataset.stockView||'stock');
 }
@@ -1033,9 +1066,11 @@ function applyPanolPermissions(){
   });
   const usersTab=document.querySelector('[data-tab="usuarios-panol"]');
   if(usersTab)usersTab.classList.toggle('hidden',!ctx?.user?.can_full);
+  $('admin-nav').classList.toggle('hidden',!operate&&!ctx?.user?.can_full);
+  document.querySelector('.nav-operational').classList.toggle('request-only',!operate);
   if(!operate)activateTab('pedido-insumos');
 }
-async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=`${ctx.user.display_name||ctx.user.username} - ${ctx.user.panol_profile}`;$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=requestSectorOptions();$('user-sector-select').innerHTML=requestSectorOptions('Seleccionar sector');$('indicator-sector').innerHTML=requestSectorOptions('Todos');setDefaultReceivedDates();applyPanolPermissions();applyAssignedSector();if(!canOperate())return;setDefaultIndicatorDates();resetArticle();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-sector').innerHTML=locationOptions('Todos');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
+async function loadContext(){setStatus('Validando sesion y permisos...');ctx=await api('/panol-insumos/api/context');if(!ctx)return;$('user-chip').textContent=ctx.user.display_name||ctx.user.username||'-';$('user-profile').textContent=ctx.user.panol_profile||'-';$('article-note').textContent=ctx.user.can_full?'Perfil completo: puede crear articulos e importar CD.':'Perfil operacion: no puede crear articulos ni importar CD.';$('save-article').disabled=false;$('pedido-sector').innerHTML=requestSectorOptions();$('user-sector-select').innerHTML=requestSectorOptions('Seleccionar sector');$('indicator-sector').innerHTML=requestSectorOptions('Todos');setDefaultReceivedDates();applyPanolPermissions();applyAssignedSector();if(!canOperate())return;setDefaultIndicatorDates();resetArticle();$('inv-fecha').value=localDateInputValue(new Date());$('mov-origen').innerHTML=locationOptions('Sin origen');$('mov-destino').innerHTML=destinationOptions('Sin destino');$('deliv-destino').innerHTML=destinationOptions('Seleccionar destino');$('inv-ubicacion').innerHTML=locationOptions();$('hist-sector').innerHTML=locationOptions('Todos');setDefaultLocation('inv-ubicacion','OFICINA_ADO');$('inv-turno').innerHTML=turnOptions();$('hist-turno').innerHTML=turnOptions('Todos');}
 async function loadArticles(){const d=await api('/panol-insumos/api/articulos?include_inactive=1');articles=d.items||[];const active=articles.filter(a=>a.activo);$('mov-articulo').innerHTML=optionList(active);$('prod-articulo').innerHTML=optionList(active);$('adj-articulo').innerHTML=optionList(active);$('adj-motivo').innerHTML=productionAdjustReasonOptions();renderProductionUsageSelect();renderAdjustmentUsageSelect();$('deliv-articulo').innerHTML='<option value="">Sin PLU con stock producido</option>';renderDeliveryUsageSelect();$('hist-articulo').innerHTML=optionList(articles,'Todos');$('indicator-plu').innerHTML=optionList(active,'Todos');renderArticles();renderInventoryRows();}
 function renderArticles(){
   $('articles-body').innerHTML=articles.map(a=>`<tr><td>${esc(a.codigo)}</td><td>${esc(a.descripcion)}</td><td>${esc(a.categoria||'')}</td><td>${esc(unitStock(a))}</td><td>${esc(unitProduction(a))}</td><td>${esc(factorLabel(a))}</td><td>${esc(a.uso||'')}</td><td class="right">${fmt(a.stock_minimo)}</td><td class="right">${costLabel(a.costo_unitario)}</td><td>${esc(a.costo_fecha_desde||'-')}</td><td>${a.activo?'Si':'No'}</td><td><button class="btn" data-edit-article="${a.id}">Editar</button></td></tr>`).join('')||'<tr><td colspan="12">Sin articulos.</td></tr>';

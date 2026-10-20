@@ -1,0 +1,2 @@
+fecha_hora	batch_key	importado_por	modo_importacion	tipo_archivo	archivo	filas_excel	filas_insertadas	estado	detalle
+2026-09-08 10:30:50	local_legajero_20260831	codex_local	completo	legajero	legajero 31.08.xls	1367	1366	OK	

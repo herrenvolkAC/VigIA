@@ -1,0 +1,93 @@
+/* Láminas con composición estable: se ajusta el lienzo completo al espacio disponible. */
+html,body{max-width:100%;margin:0}body{overflow-x:clip}main,.sheet,.table-wrap{min-width:0}
+.slide-canvas{display:contents}
+.management-note{padding:10px 14px;border-left:3px solid #ba8c32;background:#fff8e9;margin:12px 0;color:#674f29}
+.management-note>span{display:block;font-size:10px;letter-spacing:.4px;font-weight:700}
+.management-note>p{font-size:13px;line-height:1.4;margin:4px 0}
+.management-note>small{font-size:10px;color:#8b7958}
+html.is-presenting,html.is-presenting body{width:100%;height:100%;overflow:hidden}
+.presentation main{width:100%;max-width:1800px;height:100dvh;overflow:hidden;padding:78px 16px 76px}
+.presentation .sheet{position:relative;display:none!important;width:100%;height:100%;padding:0!important;margin:0;overflow:hidden!important;min-width:0}
+.presentation .sheet.is-active{display:block!important}
+.presentation .slide-canvas{position:absolute;display:block;width:1280px;min-height:0;padding:28px 34px;box-sizing:border-box;transform-origin:top left;overflow:visible}
+.presentation .visual-cover .slide-canvas{padding:0}
+.presentation .cover-main,.presentation .visual-cover .cover-main{display:grid;grid-template-columns:1.05fr .95fr;min-height:0;height:400px}
+.presentation .cover-photo{order:initial;min-height:0}
+.presentation .cover-copy{padding:30px 40px 20px}
+.presentation .cover-copy h1{font-size:48px;line-height:1.05;margin:16px 0;letter-spacing:-1.7px}
+.presentation .cover-copy h1 br{display:initial}.presentation .cover-copy h1 span:before{content:none}
+.presentation .cover-deck{font-size:16px}.presentation .cover-period{margin-top:18px}
+.presentation .cover-process{display:flex;padding:20px 38px;gap:16px}
+.presentation .cover-process>div{margin:0;gap:12px}
+.presentation .cover-process strong{font-size:14px}.presentation .cover-process small{font-size:10px}
+.presentation .process-link{display:block}
+.presentation .cover-summary{grid-template-columns:repeat(4,1fr);padding:22px 36px;gap:20px}
+.presentation .cover-summary>div{border-right:1px solid #e1e9ee}
+.presentation .cover-summary>div:last-child{border:0}
+.presentation .cover-copy h1{white-space:normal}
+.presentation h2{font-size:26px}.presentation .profile-head{display:flex;flex-wrap:nowrap;gap:24px}
+.presentation .big-stat{text-align:right;margin:0}.presentation .big-stat strong{display:block;font-size:35px;margin:0}
+.presentation .profile-sub{font-size:13px;margin:8px 0 12px;overflow-wrap:normal}
+.presentation .profile .threshold-chart{height:290px;width:100%;max-height:none;min-height:0}
+.presentation .inside-refs{grid-template-columns:repeat(3,1fr);margin:0 24px 10px;gap:12px}
+.presentation .ref{padding:8px 12px}.presentation .ref strong{font-size:24px}
+.presentation .ref span{font-size:10px}.presentation .ref em{font-size:10px}
+.presentation .visual-profile-header{display:flex;margin-bottom:16px;gap:20px}
+.presentation .operation-title{gap:18px}.presentation .operation-title h2{font-size:31px}
+.presentation .operation-art{width:150px;height:84px}
+.presentation .profile-context{text-align:right;margin:0}
+.presentation .profile-context strong{display:block;font-size:24px}.presentation .profile-context small{display:block;font-size:10px;margin:0}
+.presentation .visual-analysis{grid-template-columns:29% 1fr;gap:28px}
+.presentation .access-panel{display:flex;padding:20px 24px;gap:0}
+.presentation .access-number>strong{font-size:76px}.presentation .access-number>b{font-size:24px}
+.presentation .day-matrix{gap:5px;margin:24px 0 10px}
+.presentation .visual-profile .figure .threshold-chart{height:290px;max-height:none;margin-top:0}
+.presentation .visual-alternatives{grid-template-columns:repeat(3,1fr);gap:12px;margin:0}
+.presentation .alternative{padding:10px 14px}.presentation .alternative strong{font-size:27px}
+.presentation .alternative small{display:inline;margin-left:5px}
+.presentation .visual-conclusion{flex-wrap:nowrap;gap:16px;margin:16px 0;padding:12px 16px}
+.presentation .visual-conclusion small{display:block}
+.presentation .people-labels{font-size:11px}.presentation .people-labels strong{display:inline;font-size:22px}
+.presentation .impact-heading b{display:inline;margin-left:14px}
+.presentation .methods{grid-template-columns:1fr 1fr}
+.presentation .table-wrap{overflow:visible}
+.presentation .sheet table{font-size:13px}
+.presentation .sheet th{font-size:10px;padding:12px 9px}
+.presentation .sheet td{padding:11px 9px}
+.presentation .slide-location{min-width:0;flex:1;justify-content:center}
+.presentation .slide-location select{width:auto;min-width:0;max-width:min(55vw,740px)}
+.presentation .presentation-nav{max-width:100%;gap:12px}
+.presentation .report-toolbar{max-width:100%;gap:10px}
+.print-layout .visual-details{display:none}
+.presentation .toolbar-actions{min-width:0}.presentation .brand{white-space:normal}
+/* Reduce espacios redundantes antes de escalar, para conservar la lectura. */
+.presentation .visual-profile .slide-canvas{padding:20px 30px}
+.presentation .visual-profile-header{margin-bottom:10px}
+.presentation .operation-art{width:112px;height:63px}
+.presentation .operation-art img{width:675.75px!important;left:-412.5px;top:-131.25px}
+.presentation .visual-profile .figure .threshold-chart{height:225px}
+.presentation .visual-profile .tick{font-size:18px}
+.presentation .visual-profile .access-panel{padding:14px 20px}
+.presentation .visual-profile .threshold-value{font-size:28px;margin:8px 0}
+.presentation .visual-profile .access-number>strong{font-size:64px}
+.presentation .visual-profile .access-number>span{font-size:16px}
+.presentation .visual-profile .day-matrix{grid-template-columns:repeat(11,1fr);gap:4px;margin:12px 0 8px}
+.presentation .visual-profile .access-takeaway{display:none}
+.presentation .visual-profile .visual-conclusion{margin:12px 0;padding:10px 14px}
+.presentation .visual-profile .visual-impact{margin-bottom:10px}
+.presentation .management-note{margin:10px 0;padding:8px 12px}
+.presentation .management-note>small{display:none}
+.presentation .management-note>span{font-size:11px}
+.presentation .management-note>p{font-size:14px;margin-bottom:0}
+@media(max-width:650px){.presentation main{padding-inline:8px}.presentation .slide-location select{max-width:42vw}.presentation-nav .control-button{white-space:nowrap}.presentation .report-toolbar{min-height:0}.report-toolbar{max-width:100%}.toolbar-actions{min-width:0}.mode-switch{flex-wrap:wrap}.brand{white-space:normal}.methods{grid-template-columns:1fr}.profile-head{flex-wrap:wrap}.sheet:not(.profile) .table-wrap{max-width:100%}}
+@media print{
+ @page{size:A4 landscape;margin:10mm}
+ html.is-presenting,html.is-presenting body,body.presentation{height:auto;overflow:visible}
+ body.presentation main{height:auto;max-width:none;width:277mm;margin:0;padding:0!important;overflow:visible}
+ body.print-layout .sheet,body.print-layout .sheet.is-active{position:relative;display:block!important;width:277mm;height:190mm!important;margin:0!important;padding:0!important;overflow:hidden!important;border:0;break-inside:avoid;break-before:page;box-sizing:border-box}
+ body.print-layout .sheet:first-of-type{break-before:auto}
+ body.print-layout .slide-canvas{display:block!important;position:absolute;transform-origin:top left;max-height:none}
+ .report-toolbar,.presentation-nav,.chart-tooltip,main>footer{display:none!important}
+ .visual-details{display:none}
+ .management-note{break-inside:avoid}
+}

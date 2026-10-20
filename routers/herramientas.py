@@ -212,7 +212,10 @@ def _premium_windows(start: datetime, end: datetime, holidays: dict[date, dict[s
 def _round_pay_percent(value: float) -> int:
     if value <= 0:
         return 0
-    return min(100, int(math.ceil(value / 5) * 5))
+    # Evita que errores de precisión (por ejemplo 5,0009%) salten al
+    # siguiente bloque de pago. La regla comercial trabaja con centésimas.
+    normalized = round(float(value), 2)
+    return min(100, int(math.ceil(normalized / 5) * 5))
 
 
 def _calculate_prorrateo(
@@ -1086,8 +1089,12 @@ def _apply_excel_km_payment(row: dict[str, Any], payment: dict[str, Any]) -> dic
     oracle_100 = float(result.get('km_oracle_al_100') or result.get('km_al_100') or 0)
     percent = _round_pay_percent((oracle_100 * 100 / oracle_total) if oracle_total else 0)
     result['porcentaje_global_100'] = percent
-    result['km_al_100'] = round(excel_km * percent / 100, 2)
-    result['km_base_liquidacion'] = 'excel'
+    if percent >= 100:
+        result['km_al_100'] = round(excel_km, 2)
+        result['km_base_liquidacion'] = 'excel'
+    else:
+        result['km_al_100'] = round(oracle_100, 2)
+        result['km_base_liquidacion'] = 'oracle_tramos'
     return result
 
 

@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Metodología de la base de datos | VigIA</title>
+  <style>
+    :root {
+      --ink: #17394d;
+      --teal: #137b8c;
+      --teal-soft: #e7f2f3;
+      --blue: #3978a5;
+      --gold: #bf9340;
+      --green: #388c76;
+      --red: #b86450;
+      --muted: #607786;
+      --line: #d7e2e6;
+      --paper: #fff;
+      --canvas: #eaf0f3;
+      --pale: #f4f8f9;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; color: var(--ink); background: var(--canvas); }
+    body { font-family: "Segoe UI", Arial, sans-serif; }
+    .toolbar {
+      height: 56px; padding: 0 26px; display: flex; align-items: center; justify-content: space-between;
+      background: #f8fbfc; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px;
+    }
+    .brand { color: var(--ink); font-weight: 700; letter-spacing: .02em; }
+    .toolbar-right { display: flex; align-items: center; gap: 10px; }
+    .counter { min-width: 60px; text-align: center; font-variant-numeric: tabular-nums; }
+    button {
+      border: 1px solid #c9d8de; border-radius: 5px; background: white; color: var(--ink);
+      padding: 8px 13px; font: inherit; cursor: pointer;
+    }
+    button:hover { border-color: var(--teal); color: var(--teal); }
+    button:disabled { opacity: .4; cursor: default; }
+    main { padding: 18px 20px 24px; }
+    .slide {
+      display: none; width: min(1500px, 100%); min-height: min(820px, calc(100vh - 98px)); margin: 0 auto;
+      padding: 42px 58px 36px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+      box-shadow: 0 12px 34px rgba(23,57,77,.07); overflow: hidden; position: relative;
+    }
+    .slide.active { display: flex; flex-direction: column; animation: enter .32s ease both; }
+    @keyframes enter { from { opacity: .55; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    .slide::before { content: ""; position: absolute; width: 7px; inset: 0 auto 0 0; background: var(--teal); }
+    .eyebrow { margin: 0 0 10px; color: var(--teal); font-size: 11px; font-weight: 750; letter-spacing: .15em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 930px; margin-bottom: 12px; font-size: clamp(34px, 4vw, 54px); line-height: 1.06; letter-spacing: -.035em; }
+    h2 { margin-bottom: 10px; font-size: clamp(28px, 3vw, 40px); letter-spacing: -.025em; }
+    h3 { margin-bottom: 9px; font-size: 18px; }
+    .dek { max-width: 930px; margin-bottom: 28px; color: var(--muted); font-size: 19px; line-height: 1.45; }
+    .scope { display: flex; flex-wrap: wrap; gap: 0; margin: 0 0 30px; border-block: 1px solid var(--line); }
+    .scope div { padding: 13px 22px 13px 0; margin-right: 22px; }
+    .scope strong { display: block; font-size: 18px; }
+    .scope span { color: var(--muted); font-size: 12px; }
+    .section-label { margin: 0 0 14px; color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+    .system-flow { display: grid; grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr); align-items: center; gap: 14px; margin: 0 0 22px; }
+    .system-lane { min-width: 0; min-height: 236px; padding: 15px; border: 1px solid var(--line); border-radius: 9px; }
+    .system-lane.upstream { background: #faf7ef; border-color: #e8dcc0; }
+    .system-lane.vigia { background: #eff6f7; border-color: #c9e0e3; }
+    .lane-head { display: flex; align-items: center; gap: 10px; margin: 0 0 13px; padding-bottom: 11px; border-bottom: 1px solid rgba(23,57,77,.12); }
+    .lane-head strong { display: block; font-size: 13px; }
+    .lane-head small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .lane-icon, .mini-icon, .rule-icon, .trace-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; font-weight: 750; }
+    .lane-icon { width: 30px; height: 30px; border-radius: 50%; background: var(--gold); color: white; font-size: 17px; }
+    .vigia .lane-icon { background: var(--teal); }
+    .node-row { display: grid; grid-template-columns: minmax(0,1fr) 22px minmax(0,1fr) 22px minmax(0,1fr); align-items: stretch; gap: 5px; }
+    .flow-node { min-width: 0; min-height: 156px; padding: 13px 11px; background: rgba(255,255,255,.84); border: 1px solid rgba(23,57,77,.12); border-radius: 6px; }
+    .flow-node h3 { margin: 8px 0 5px; font-size: 14px; }
+    .flow-node p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .mini-icon { width: 31px; height: 31px; border-radius: 8px; background: #f0e7d1; color: #8a6722; font-size: 12px; }
+    .vigia .mini-icon { background: #d8ebed; color: var(--teal); font-size: 17px; }
+    .node-arrow, .lane-arrow { display: flex; align-items: center; justify-content: center; color: var(--teal); font-size: 23px; font-weight: 700; }
+    .lane-arrow { flex-direction: column; font-size: 34px; }
+    .lane-arrow small { margin-top: -3px; color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+    .step { display: block; margin-bottom: 17px; color: var(--teal); font-size: 11px; font-weight: 750; letter-spacing: .12em; }
+    .note { padding: 14px 17px; border-left: 4px solid var(--gold); background: #faf6eb; color: #584b31; font-size: 14px; line-height: 1.45; }
+    .slide-foot { margin-top: auto; padding-top: 18px; color: #7a8d97; font-size: 11px; display: flex; justify-content: space-between; gap: 20px; }
+
+    .rules-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 36px; margin-top: 16px; flex: 1; }
+    .rules { counter-reset: rule; border-top: 1px solid var(--line); }
+    .rule { counter-increment: rule; display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .rule::before { content: counter(rule, decimal-leading-zero); color: var(--teal); font-size: 13px; font-weight: 800; padding-top: 2px; }
+    .rule h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 16px; }
+    .rule-icon { width: 24px; height: 24px; border-radius: 50%; background: var(--teal-soft); color: var(--teal); font-size: 14px; }
+    .rule p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.42; }
+    .side { padding: 21px 24px; background: var(--pale); border-radius: 8px; }
+    .side h3 { margin-bottom: 15px; }
+    .equation { padding: 14px 12px; margin: 0 0 14px; background: white; border: 1px solid var(--line); border-radius: 5px; text-align: center; font-size: 15px; line-height: 1.5; }
+    .equation strong { color: var(--teal); }
+    .side p { color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .key { display: flex; gap: 11px; align-items: flex-start; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .key b { flex: none; color: var(--ink); }
+
+    .trace { display: grid; grid-template-columns: repeat(5, 1fr); margin: 24px 0 25px; border-block: 1px solid var(--line); }
+    .trace article { min-height: 222px; padding: 20px 17px 18px 0; position: relative; }
+    .trace article + article { padding-left: 18px; border-left: 1px solid var(--line); }
+    .trace article:not(:last-child)::after { content: "→"; position: absolute; top: 21px; right: -11px; z-index: 1; color: var(--teal); background: white; font-size: 20px; font-weight: 700; }
+    .trace .step { margin: 10px 0 12px; }
+    .trace-icon { width: 34px; height: 34px; border-radius: 9px; background: var(--teal-soft); color: var(--teal); font-size: 17px; }
+    .trace h3 { font-size: 16px; }
+    .trace p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .trace strong { color: var(--ink); }
+    .audit-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: auto; }
+    .audit-box { padding: 18px 20px; background: var(--pale); border-top: 3px solid var(--blue); }
+    .audit-box.pending { border-color: var(--gold); background: #faf7ef; }
+    .audit-box h3 { font-size: 16px; }
+    .audit-box p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .tag { display: inline-block; margin-bottom: 8px; color: var(--blue); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .pending .tag { color: #8a6722; }
+    @media (max-width: 900px) {
+      .slide { padding: 30px 30px 25px; min-height: calc(100vh - 92px); }
+      .system-flow { grid-template-columns: 1fr; }
+      .lane-arrow { transform: rotate(90deg); height: 25px; }
+      .lane-arrow small { display: none; }
+      .rules-layout { grid-template-columns: 1fr; gap: 20px; }
+      .trace { grid-template-columns: repeat(2, 1fr); }
+      .trace article:nth-child(odd) { padding-left: 0; border-left: 0; }
+      .trace article { min-height: 160px; }
+      .audit-bottom { margin-top: 15px; }
+    }
+    @media (max-width: 560px) {
+      .toolbar { padding: 0 12px; }
+      .toolbar-right { gap: 5px; }
+      button { padding: 7px 9px; }
+      main { padding: 10px; }
+      .slide { padding: 25px 20px; border-radius: 8px; }
+      .system-flow, .trace, .audit-bottom { grid-template-columns: 1fr; }
+      .node-row { grid-template-columns: 1fr; }
+      .node-arrow { transform: rotate(90deg); height: 20px; }
+      .flow-node { min-height: auto; }
+      .scope div { min-width: 42%; }
+      .trace article, .trace article + article { min-height: auto; padding: 15px 0; border-left: 0; border-bottom: 1px solid var(--line); }
+      .trace article:not(:last-child)::after { content: "↓"; top: auto; right: 8px; bottom: -13px; }
+      .slide-foot { font-size: 10px; }
+    }
+    @media print {
+      @page { size: landscape; margin: 10mm; }
+      body { background: white; }
+      .toolbar { display: none; }
+      main { padding: 0; }
+      .slide, .slide.active { display: flex !important; width: 100%; height: 185mm; min-height: 0; margin: 0; padding: 14mm 16mm 10mm; border: 0; border-radius: 0; box-shadow: none; page-break-after: always; animation: none; }
+      .slide:last-child { page-break-after: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) { .slide.active { animation: none; } }
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <div><span class="brand">VigIA</span> · Base de datos y metodología</div>
+    <div class="toolbar-right">
+      <button id="prev" aria-label="Pantalla anterior">Anterior</button>
+      <span class="counter" id="counter" aria-live="polite">1 / 3</span>
+      <button id="next" aria-label="Pantalla siguiente">Siguiente</button>
+    </div>
+  </header>
+  <main>
+    <section class="slide active" aria-label="Base y recorrido del dato">
+      <p class="eyebrow">Método de cálculo · Piloto agosto–septiembre 2026</p>
+      <h1>Base de datos del nuevo esquema de premios</h1>
+      <p class="dek">El resultado parte de eventos operativos, los relaciona con la persona y su jornada, y aplica reglas visibles antes de calcular producción y pagos.</p>
+      <div class="scope" aria-label="Alcance del informe actual">
+        <div><strong>17 perfiles</strong><span>incluidos en el informe actual</span></div>
+        <div><strong>43 días</strong><span>lunes a viernes; sin filtro de feriados</span></div>
+        <div><strong>Solo propios</strong><span>población del escenario</span></div>
+      </div>
+      <p class="section-label">Recorrido del dato</p>
+      <div class="system-flow" aria-label="Flujo de WareFlow hacia los resultados VigIA">
+        <div class="system-lane upstream">
+          <div class="lane-head"><span class="lane-icon" aria-hidden="true">↗</span><div><strong>Origen e integración</strong><small>Tramo previo a VigIA · no relevado en esta instancia</small></div></div>
+          <div class="node-row">
+            <article class="flow-node"><span class="mini-icon" aria-hidden="true">WF</span><h3>WareFlow</h3><p>Origen de la actividad operativa.</p></article>
+            <span class="node-arrow" aria-hidden="true">→</span>
+            <article class="flow-node"><span class="mini-icon" aria-hidden="true">⚙</span><h3>Productividad</h3><p>El sistema interno procesa los datos recibidos de WF.</p></article>
+            <span class="node-arrow" aria-hidden="true">→</span>
+            <article class="flow-node"><span class="mini-icon" aria-hidden="true">PV</span><h3>Tablas PV</h3><p>Registra actividad en <strong>PV_ETAPA_CAB</strong> y <strong>PV_ETAPA_DET</strong>.</p></article>
+          </div>
+        </div>
+        <div class="lane-arrow" aria-hidden="true">⟶<small>lectura</small></div>
+        <div class="system-lane vigia">
+          <div class="lane-head"><span class="lane-icon" aria-hidden="true">V</span><div><strong>Proceso de análisis VigIA</strong><small>Lee PV, cruza contexto y calcula el escenario</small></div></div>
+          <div class="node-row">
+            <article class="flow-node"><span class="mini-icon" aria-hidden="true">⇄</span><h3>Lectura y cruces</h3><p>PV_DIA_LABORAL, legajero, asistencia y turnos.</p></article>
+            <span class="node-arrow" aria-hidden="true">→</span>
+            <article class="flow-node"><span class="mini-icon" aria-hidden="true">⌖</span><h3>Clasificación</h3><p>Operación medible, unidad, división y polivalencia.</p></article>
+            <span class="node-arrow" aria-hidden="true">→</span>
+            <article class="flow-node"><span class="mini-icon" aria-hidden="true">Σ</span><h3>Caches del escenario</h3><p>Cálculos grupales, individuales y comparación de pagos.</p></article>
+          </div>
+        </div>
+      </div>
+      <div class="note"><strong>Alcance y límite de esta revisión:</strong> VigIA no consulta el WMS crudo. En esta instancia no relevamos ni auditamos cómo el sistema interno de Productividad extrae, transforma y registra los datos de WF en las tablas PV. El análisis parte del contenido PV disponible; validar ese contenido no equivale a reconciliarlo con WareFlow. VigIA guarda sus extracciones y cálculos en caches propios y no actualiza las tablas productivas de Oracle.</div>
+      <footer class="slide-foot"><span>Período del informe vigente · 1 ago – 30 sep 2026</span><span>Marco metodológico para revisión gerencial</span></footer>
+    </section>
+
+    <section class="slide" aria-label="Reglas de depuración y cálculo">
+      <p class="eyebrow">Reglas aplicadas al escenario</p>
+      <h2>Cómo se depura y se calcula</h2>
+      <p class="dek">Cada legajo-día recibe una decisión explícita: qué actividad cuenta, si integra la meta y qué pagos puede generar.</p>
+      <div class="rules-layout">
+        <div class="rules">
+          <article class="rule"><div><h3><span class="rule-icon" aria-hidden="true">◎</span>Población incluida</h3><p>Se consideran personas propias activas del legajero disponible. La clasificación de sector y función corresponde al padrón vigente; no reconstruye por sí sola los movimientos históricos de puesto.</p></div></article>
+          <article class="rule"><div><h3><span class="rule-icon" aria-hidden="true">▦</span>Tareas y unidades</h3><p>Las operaciones medibles y sus componentes se parametrizan. El cálculo usa la unidad definida para cada operación: por ejemplo, bultos, palets o PLUs.</p></div></article>
+          <article class="rule"><div><h3><span class="rule-icon" aria-hidden="true">◷</span>Turno de referencia del escenario</h3><p>Durante el período analizado, cada legajo se asigna al turno en el que trabajó más veces. Toda su actividad del período se computa dentro de ese turno, aunque algún día haya trabajado en otro.</p></div></article>
+          <article class="rule"><div><h3><span class="rule-icon" aria-hidden="true">✓</span>Asistencia y nómina computable</h3><p>Las ausencias permitidas se excluyen de la meta. Las no permitidas permanecen en la meta con producción cero. En este MVP, jornadas presentes sin actividad productiva y jornadas PV no computables se excluyen del grupo y de su meta.</p></div></article>
+          <article class="rule"><div><h3><span class="rule-icon" aria-hidden="true">⇄</span>Polivalencia</h3><p>Se determina con reglas por operación, función y división. Quien tiene polivalencia queda fuera de la producción y del pago grupal de esa jornada; si está presente puede generar pago individual y de polivalencia.</p></div></article>
+          <article class="rule"><div><h3><span class="rule-icon" aria-hidden="true">∑</span>Unificaciones específicas</h3><p>Recepción y revisión se unifican por etiqueta física, fecha y división, atribuyendo una unidad al primer evento aplicable. Carga y traslado alimentan una única operación y una misma tabla de umbrales; su conteo sigue la regla operativa configurada para los movimientos válidos.</p></div></article>
+        </div>
+        <aside class="side">
+          <p class="section-label">Regla de meta grupal</p>
+          <div class="equation"><strong>Meta del día</strong><br>nómina computable × objetivo por operario<br>× (1 − factor de ausentismo)</div>
+          <p>La nómina computable descuenta ausencias permitidas y polivalentes sin duplicar personas. Las ausencias no permitidas permanecen en la meta.</p>
+          <div class="key"><b>Supera la meta</b><span>La producción computable debe ser mayor que la meta. Si la supera, cobran las personas presentes y beneficiarias del grupo.</span></div>
+          <div class="key"><b>Pago individual</b><span>Se determina por las UC del legajo y la escala individual configurada para su perfil.</span></div>
+          <div class="key"><b>Pago total nuevo</b><span>Puede sumar grupal, individual y polivalencia, según la elegibilidad de cada jornada.</span></div>
+        </aside>
+      </div>
+      <footer class="slide-foot"><span>Las reglas dependen de los parámetros vigentes del escenario.</span><span>2 / 3</span></footer>
+    </section>
+
+    <section class="slide" aria-label="Trazabilidad y controles pendientes">
+      <p class="eyebrow">Auditoría de punta a punta</p>
+      <h2>Un resultado debe poder explicarse</h2>
+      <p class="dek">Para revisar una diferencia de pago, se sigue el mismo legajo y fecha desde el registro de origen hasta el importe propuesto.</p>
+      <div class="trace">
+        <article><span class="trace-icon" aria-hidden="true">▤</span><span class="step">01 · EVIDENCIA DISPONIBLE</span><h3>Registro PV</h3><p>Fecha, legajo, etapa, tarea, división, etiqueta o unidades, e inicio y fin cuando esos campos están registrados en PV.</p></article>
+        <article><span class="trace-icon" aria-hidden="true">◎</span><span class="step">02 · ASIGNACIÓN</span><h3>Perfil del escenario</h3><p>Personal propio, sector, función, turno de referencia, operación medible y regla de división aplicada.</p></article>
+        <article><span class="trace-icon" aria-hidden="true">✓</span><span class="step">03 · DECISIÓN</span><h3>Incluido o excluido</h3><p>Asistencia, ausencia, vigencia y polivalencia. La decisión debe mostrar un motivo legible.</p></article>
+        <article><span class="trace-icon" aria-hidden="true">Σ</span><span class="step">04 · CÁLCULO</span><h3>Producción y premio</h3><p>UC brutas y computables, meta del grupo, resultado diario, nivel individual y pagos elegibles.</p></article>
+        <article><span class="trace-icon" aria-hidden="true">$</span><span class="step">05 · COMPARACIÓN</span><h3>Antes y propuesta</h3><p>Pago actual, pago grupal, individual y polivalencia nuevos, total nuevo y diferencia del legajo.</p></article>
+      </div>
+      <div class="audit-bottom">
+        <div class="audit-box">
+          <span class="tag">Controles disponibles en el cálculo</span>
+          <h3>Coherencia del escenario</h3>
+          <p>El cache conserva el detalle diario y por legajo para explicar inclusión, UC, meta y pago. La suma propuesta separa los componentes y la fuente del pago actual se mantiene identificada por su fotografía.</p>
+        </div>
+        <div class="audit-box pending">
+          <span class="tag">Alcance de esta revisión</span>
+          <h3>Integración WF → Productividad</h3>
+          <p>VigIA utiliza la información disponible en las tablas PV. Cómo se extrae y procesa WareFlow para alimentar esas tablas no fue objeto de este análisis. El tema queda abierto para evaluar más adelante; este documento no define responsable ni fecha para revisarlo.</p>
+        </div>
+      </div>
+      <footer class="slide-foot"><span>La base de análisis debe poder reconstruirse desde sus fuentes y reglas.</span><span>3 / 3</span></footer>
+    </section>
+  </main>
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    let current = 0;
+    const counter = document.getElementById('counter');
+    const prev = document.getElementById('prev');
+    const next = document.getElementById('next');
+    function show(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      prev.disabled = current === 0;
+      next.disabled = current === slides.length - 1;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    prev.addEventListener('click', () => show(current - 1));
+    next.addEventListener('click', () => show(current + 1));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') show(current + 1);
+      if (event.key === 'ArrowLeft' || event.key === 'PageUp') show(current - 1);
+    });
+  </script>
+</body>
+</html>
+

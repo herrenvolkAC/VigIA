@@ -1,0 +1,118 @@
+{
+  "ARMADO SECOS": {
+    "factor_grupal": 0.88,
+    "factor_individual": 1.9816309430374015,
+    "actual": 38207502.0,
+    "nuevo": 43938627.3,
+    "variacion_pct": 14.999999999999991,
+    "mas": 53,
+    "menos": 11,
+    "igual": 0,
+    "montos": {
+      "perfil-1": {
+        "grupal": 9900,
+        "individual": [
+          9100,
+          15100,
+          24600,
+          40800,
+          68200
+        ]
+      },
+      "perfil-5": {
+        "grupal": 9900,
+        "individual": [
+          9100,
+          15100,
+          24600,
+          40800,
+          68200
+        ]
+      }
+    }
+  },
+  "CLARK SECOS": {
+    "factor_grupal": 1.03,
+    "factor_individual": 0.9043452358676616,
+    "actual": 13087770.79,
+    "nuevo": 15050936.408499999,
+    "variacion_pct": 14.999999999999991,
+    "mas": 44,
+    "menos": 11,
+    "igual": 0,
+    "montos": {
+      "perfil-2": {
+        "grupal": 5900,
+        "individual": [
+          3600,
+          4600,
+          6200,
+          8400,
+          11600
+        ]
+      },
+      "perfil-6": {
+        "grupal": 6900,
+        "individual": [
+          4100,
+          5300,
+          7300,
+          9900,
+          13600
+        ]
+      }
+    }
+  },
+  "CARGA SECOS": {
+    "factor_grupal": 2.12,
+    "factor_individual": 2.1651796016129023,
+    "actual": 6850377.11,
+    "nuevo": 7877933.6765,
+    "variacion_pct": 14.999999999999991,
+    "mas": 22,
+    "menos": 13,
+    "igual": 2,
+    "montos": {
+      "perfil-3": {
+        "grupal": 9800,
+        "individual": [
+          400,
+          600,
+          900,
+          1300,
+          1700
+        ]
+      }
+    }
+  },
+  "RECEPCION SECOS": {
+    "factor_grupal": 1.0,
+    "factor_individual": 0.31956645792415767,
+    "actual": 9306507.96,
+    "nuevo": 10702484.154,
+    "variacion_pct": 14.999999999999991,
+    "mas": 21,
+    "menos": 4,
+    "igual": 0,
+    "montos": {
+      "perfil-7": {
+        "grupal": 16400,
+        "individual": [
+          700,
+          900,
+          1300,
+          1800,
+          2400
+        ]
+      }
+    }
+  },
+  "TOTAL": {
+    "actual": 67452157.86,
+    "nuevo": 77569981.53899999,
+    "variacion_pct": 14.999999999999991,
+    "mas": 140,
+    "menos": 39,
+    "igual": 2
+  }
+}

@@ -67,6 +67,7 @@ _rrhh_monitor_stop: asyncio.Event | None = None
 _rrhh_oracle_scheduler_task: asyncio.Task | None = None
 _rrhh_oracle_scheduler_stop: asyncio.Event | None = None
 _rrhh_oracle_scheduler_last_attempt: str | None = None
+_rrhh_oracle_scheduler_retry_after: datetime | None = None
 _rrhh_monitor_seen: dict[str, tuple[int, int, float]] = {}
 _rrhh_monitor_last_state: str | None = None
 RRHH_IMPORT_LOG_HEADERS = (
@@ -985,30 +986,40 @@ def _insert_actividad_payload(
         if not legajo or not fecha:
             continue
         if source == "oracle_auto":
-            cur.execute(
-                """
-                SELECT COUNT(*) c
-                FROM rrhh_actividad_diaria
-                WHERE LTRIM(legajo, '0') = ? AND fecha = ?
-                """,
-                (legajo, fecha),
-            )
-            existed = int(cur.fetchone()["c"] or 0)
-            cur.execute(
-                """
-                DELETE FROM rrhh_actividad_diaria
-                WHERE LTRIM(legajo, '0') = ? AND fecha = ?
-                """,
-                (legajo, fecha),
-            )
-            if existed:
-                updated += 1
+            data["updated_at"] = now_text
+            inserted_payload.append(tuple(data[column] for column in ACTIVIDAD_INSERT_COLUMNS))
         else:
             if (legajo, fecha) in oracle_keys:
                 skipped_existing_oracle += 1
                 continue
-        data["updated_at"] = now_text
-        inserted_payload.append(tuple(data[column] for column in ACTIVIDAD_INSERT_COLUMNS))
+            data["updated_at"] = now_text
+            inserted_payload.append(tuple(data[column] for column in ACTIVIDAD_INSERT_COLUMNS))
+    if source == "oracle_auto" and inserted_payload:
+        keys_by_date: dict[str, set[str]] = {}
+        for item in inserted_payload:
+            data = dict(zip(ACTIVIDAD_INSERT_COLUMNS, item))
+            keys_by_date.setdefault(_to_date(data["fecha"]) or "", set()).add(_norm_legajo(data["legajo"]))
+        for fecha, legajos in keys_by_date.items():
+            clean_keys = sorted(key for key in legajos if key)
+            for start in range(0, len(clean_keys), 800):
+                chunk = clean_keys[start:start + 800]
+                placeholders = ", ".join("?" for _ in chunk)
+                cur.execute(
+                    f"""
+                    SELECT DISTINCT LTRIM(legajo, '0') legajo
+                    FROM rrhh_actividad_diaria
+                    WHERE fecha = ? AND LTRIM(legajo, '0') IN ({placeholders})
+                    """,
+                    (fecha, *chunk),
+                )
+                updated += len({row["legajo"] for row in cur.fetchall() if row["legajo"]})
+                cur.execute(
+                    f"""
+                    DELETE FROM rrhh_actividad_diaria
+                    WHERE fecha = ? AND LTRIM(legajo, '0') IN ({placeholders})
+                    """,
+                    (fecha, *chunk),
+                )
     if inserted_payload:
         columns = ", ".join(ACTIVIDAD_INSERT_COLUMNS)
         cur.executemany(
@@ -2258,11 +2269,31 @@ def _rrhh_oracle_backfill_max_days() -> int:
     return _env_int("RRHH_ORACLE_ACTIVITY_BACKFILL_MAX_DAYS", 15, minimum=1, maximum=120)
 
 
+def _rrhh_oracle_max_days_per_run() -> int:
+    return _env_int("RRHH_ORACLE_ACTIVITY_MAX_DAYS_PER_RUN", 1, minimum=1, maximum=15)
+
+
+def _rrhh_oracle_retry_minutes() -> int:
+    return _env_int("RRHH_ORACLE_ACTIVITY_RETRY_MINUTES", 15, minimum=5, maximum=240)
+
+
 def _rrhh_oracle_last_imported_date_sync() -> str | None:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     try:
         cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT MAX(date(substr(batch_key, 18, 4) || '-' || substr(batch_key, 22, 2) || '-' || substr(batch_key, 24, 2))) fecha
+            FROM rrhh_import_batches
+            WHERE batch_key GLOB 'oracle_actividad_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+              AND status = 'complete'
+            """
+        )
+        row = cur.fetchone()
+        fecha = _to_date(row["fecha"] if row else None)
+        if fecha:
+            return fecha
         cur.execute(
             """
             SELECT MAX(fecha) fecha
@@ -2306,29 +2337,53 @@ async def _rrhh_oracle_pending_dates(hasta_fecha: str) -> list[str]:
 
 
 async def _rrhh_oracle_scheduler_loop() -> None:
-    global _rrhh_oracle_scheduler_last_attempt
+    global _rrhh_oracle_scheduler_last_attempt, _rrhh_oracle_scheduler_retry_after
     assert _rrhh_oracle_scheduler_stop is not None
-    logger.info("Scheduler RRHH Oracle iniciado. Hora diaria: %s.", _rrhh_oracle_scheduler_time().strftime("%H:%M"))
+    logger.info(
+        "Scheduler RRHH Oracle iniciado. Habilitado: %s. Hora diaria: %s. Dias por ciclo: %s. Reintento: %s min.",
+        _rrhh_oracle_scheduler_enabled(),
+        _rrhh_oracle_scheduler_time().strftime("%H:%M"),
+        _rrhh_oracle_max_days_per_run(),
+        _rrhh_oracle_retry_minutes(),
+    )
     while not _rrhh_oracle_scheduler_stop.is_set():
         try:
             if _rrhh_oracle_scheduler_enabled():
                 now = datetime.now()
                 today = now.strftime("%Y-%m-%d")
-                if now.time() >= _rrhh_oracle_scheduler_time() and _rrhh_oracle_scheduler_last_attempt != today:
-                    _rrhh_oracle_scheduler_last_attempt = today
+                retry_ready = _rrhh_oracle_scheduler_retry_after is None or now >= _rrhh_oracle_scheduler_retry_after
+                if now.time() >= _rrhh_oracle_scheduler_time() and retry_ready:
                     fecha_vencida = _rrhh_oracle_fecha_vencida(now)
                     pending_dates = await _rrhh_oracle_pending_dates(fecha_vencida)
                     if not pending_dates:
-                        logger.info("RRHH Oracle actividad: no hay fechas pendientes hasta %s.", fecha_vencida)
-                    for fecha_operativa in pending_dates:
-                        result = await _import_oracle_activity_locked(fecha_operativa, "rrhh_oracle_scheduler", True)
-                        logger.info(
-                            "RRHH Oracle actividad importada para %s: %s filas, %s actualizadas, %s sin Oracle.",
-                            fecha_operativa,
-                            result.get("actividad"),
-                            result.get("actividad_actualizada"),
-                            result.get("actividad_sin_oracle"),
-                        )
+                        if _rrhh_oracle_scheduler_last_attempt != today:
+                            logger.info("RRHH Oracle actividad: no hay fechas pendientes hasta %s.", fecha_vencida)
+                            _rrhh_oracle_scheduler_last_attempt = today
+                    else:
+                        _rrhh_oracle_scheduler_last_attempt = today
+                        _rrhh_oracle_scheduler_retry_after = None
+                        for fecha_operativa in pending_dates[:_rrhh_oracle_max_days_per_run()]:
+                            started = time_module.monotonic()
+                            logger.info("RRHH Oracle actividad: iniciando fecha %s.", fecha_operativa)
+                            try:
+                                result = await _import_oracle_activity_locked(fecha_operativa, "rrhh_oracle_scheduler", True)
+                            except Exception as exc:
+                                _rrhh_oracle_scheduler_retry_after = datetime.now() + timedelta(minutes=_rrhh_oracle_retry_minutes())
+                                logger.exception(
+                                    "No se pudo importar RRHH actividad para %s. Reintento despues de %s min: %s",
+                                    fecha_operativa,
+                                    _rrhh_oracle_retry_minutes(),
+                                    exc,
+                                )
+                                break
+                            logger.info(
+                                "RRHH Oracle actividad importada para %s: %s filas, %s actualizadas, %s sin Oracle. Duracion: %.1f s.",
+                                fecha_operativa,
+                                result.get("actividad"),
+                                result.get("actividad_actualizada"),
+                                result.get("actividad_sin_oracle"),
+                                time_module.monotonic() - started,
+                            )
         except asyncio.CancelledError:
             raise
         except Exception as exc:
@@ -2745,7 +2800,6 @@ def _import_oracle_activity_sync(fecha_operativa: str, imported_by: str = "rrhh_
     conn.execute("PRAGMA foreign_keys = ON")
     cur = conn.cursor()
     try:
-        _cleanup_rrhh_orphans(cur)
         legajero_rows = _latest_legajero_rows_for_oracle(cur)
         if not legajero_rows:
             raise RuntimeError("No hay legajero activo para consultar actividad Oracle.")
@@ -2753,14 +2807,8 @@ def _import_oracle_activity_sync(fecha_operativa: str, imported_by: str = "rrhh_
         existing = cur.fetchone()
         if existing and not force:
             raise RuntimeError(f"El lote {batch_key} ya existe. Usar force=true para reimportar.")
-        if existing:
-            existing_batch_id = int(existing["batch_id"])
-            _delete_rrhh_batch_children(cur, existing_batch_id)
-            cur.execute("DELETE FROM rrhh_import_batches WHERE batch_id = ?", (existing_batch_id,))
-        # No mantener una transacción SQLite abierta mientras Oracle responde.
-        # La consulta JDBC puede demorar varios minutos y bloquearía el arranque
-        # de la aplicación (init_db) y el resto de las lecturas locales.
-        conn.commit()
+        # Oracle se consulta antes de modificar el lote vigente. Si la conexion
+        # falla o vence el tiempo, la actividad previa queda disponible.
         legajos = [_norm_legajo(row.get("legajo")) for row in legajero_rows if _norm_legajo(row.get("legajo"))]
         oracle_rows: list[dict[str, Any]] = []
         oracle_dates = [
@@ -2769,7 +2817,34 @@ def _import_oracle_activity_sync(fecha_operativa: str, imported_by: str = "rrhh_
         ]
         for oracle_date in oracle_dates:
             for start in range(0, len(legajos), 850):
-                oracle_rows.extend(_query_rrhh_presencias_jdbc(oracle_date, legajos[start:start + 850]))
+                chunk = legajos[start:start + 850]
+                logger.info(
+                    "RRHH Oracle actividad: consultando fecha Oracle %s, legajos %s-%s de %s.",
+                    oracle_date,
+                    start + 1,
+                    start + len(chunk),
+                    len(legajos),
+                )
+                query_started = time_module.monotonic()
+                rows = _query_rrhh_presencias_jdbc(oracle_date, chunk)
+                oracle_rows.extend(rows)
+                logger.info(
+                    "RRHH Oracle actividad: consulta %s completada, %s filas en %.1f s.",
+                    oracle_date,
+                    len(rows),
+                    time_module.monotonic() - query_started,
+                )
+        logger.info(
+            "RRHH Oracle actividad: consultas finalizadas para %s (%s filas Oracle). Preparando reemplazo atomico.",
+            fecha_operativa,
+            len(oracle_rows),
+        )
+        if existing:
+            existing_batch_id = int(existing["batch_id"])
+        logger.info("RRHH Oracle actividad: aplicando lote %s en SQLite.", batch_key)
+        if existing:
+            _delete_rrhh_batch_children(cur, existing_batch_id)
+            cur.execute("DELETE FROM rrhh_import_batches WHERE batch_id = ?", (existing_batch_id,))
         cur.execute(
             """
             INSERT INTO rrhh_import_batches (batch_key, source_dir, imported_by, status, files_json)
@@ -2784,7 +2859,14 @@ def _import_oracle_activity_sync(fecha_operativa: str, imported_by: str = "rrhh_
         )
         batch_id = int(cur.lastrowid)
         codes, no_count_patterns = _load_ausentismo_classifier(cur, batch_id)
+        logger.info("RRHH Oracle actividad: clasificadores cargados para %s.", fecha_operativa)
         payload, matched = _oracle_activity_payload(batch_id, fecha_operativa, legajero_rows, oracle_rows, codes, no_count_patterns)
+        logger.info(
+            "RRHH Oracle actividad: payload preparado para %s (%s filas; %s legajos coincidentes). Guardando.",
+            fecha_operativa,
+            len(payload),
+            matched,
+        )
         stats = _insert_actividad_payload(cur, payload, source="oracle_auto")
         summary = {
             "modo_importacion": "oracle_auto",
@@ -2805,6 +2887,7 @@ def _import_oracle_activity_sync(fecha_operativa: str, imported_by: str = "rrhh_
             (json.dumps(summary, ensure_ascii=False), batch_id),
         )
         conn.commit()
+        logger.info("RRHH Oracle actividad: lote %s confirmado en SQLite.", batch_key)
         _write_rrhh_import_log([
             _import_log_entry(
                 batch_key,
@@ -3341,7 +3424,8 @@ async def list_legajero_funciones(request: Request):
             async with db.execute(
                 """
                 SELECT p.legajo, p.nombre, p.desc_unidad_organizativa unidad,
-                       p.desc_sector_generico sector, p.desc_funcion funcion_legajero
+                       p.desc_sector_generico sector, p.desc_grupo_personal grupo_personal,
+                       p.desc_funcion funcion_legajero
                 FROM rrhh_legajero p
                 WHERE p.batch_id = (
                     SELECT batch_id FROM rrhh_import_batches
@@ -3670,6 +3754,7 @@ async def export_legajero_funciones(req: LegajeroExportRequest, request: Request
         ("nombre", "Nombre"),
         ("sector", "Sector"),
         ("unidad", "Unidad"),
+        ("grupo_personal", "Grupo Personal"),
         ("funcion_legajero", "Funcion Legajero"),
         ("funcion_temporal_vigente", "Temporal vigente"),
         ("vigente_vigencia", "Vigencia vigente"),
@@ -3961,6 +4046,83 @@ async def get_rango_sugerido(request: Request, batch_id: int | None = None):
         "batch_id": None,
         "data_range": {"fecha_desde": fecha_min, "fecha_hasta": fecha_max},
         "suggested_range": {"fecha_desde": suggested_from, "fecha_hasta": fecha_max},
+    }
+
+
+@router.get("/filtros")
+async def get_filtros_novedades(request: Request):
+    auth = await _require_auth(request)
+    filter_vis = _visibility_sql(auth, "l", "l.desc_sector_generico")
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db)
+        async with db.execute(
+            f"""
+            {_with_consolidated()}
+            SELECT MIN(a.fecha) fecha_desde, MAX(a.fecha) fecha_hasta
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
+            WHERE {_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")}
+            """,
+            (),
+        ) as cur:
+            data_range = dict(await cur.fetchone())
+        async with db.execute(
+            f"""
+            {_with_consolidated()}
+            SELECT DISTINCT l.desc_sector_generico value
+            FROM latest_legajero l
+            WHERE {filter_vis} AND TRIM(COALESCE(l.desc_sector_generico,'')) <> ''
+            ORDER BY value
+            """,
+            (),
+        ) as cur:
+            sectores = [row["value"] for row in await cur.fetchall()]
+        async with db.execute(
+            f"""
+            {_with_consolidated()}
+            SELECT DISTINCT l.desc_funcion value
+            FROM latest_legajero l
+            WHERE {filter_vis} AND TRIM(COALESCE(l.desc_funcion,'')) <> ''
+            ORDER BY value
+            """,
+            (),
+        ) as cur:
+            cargos = [row["value"] for row in await cur.fetchall()]
+        async with db.execute(
+            f"""
+            {_with_consolidated()}
+            SELECT DISTINCT l.desc_grupo_personal value
+            FROM latest_legajero l
+            WHERE {filter_vis} AND TRIM(COALESCE(l.desc_grupo_personal,'')) <> ''
+            ORDER BY value
+            """,
+            (),
+        ) as cur:
+            grupos = [row["value"] for row in await cur.fetchall()]
+        async with db.execute(
+            f"""
+            {_with_consolidated()}
+            SELECT DISTINCT TRIM(a.motivo) value
+            FROM actividad_consolidada a
+            LEFT JOIN latest_legajero l ON l.legajo = a.legajo
+            WHERE {_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")}
+              AND COALESCE(a.ausentismo_contabiliza,0) = 1
+              AND TRIM(COALESCE(a.motivo,'')) <> ''
+            ORDER BY value
+            """,
+            (),
+        ) as cur:
+            motivos = [row["value"] for row in await cur.fetchall()]
+    return {
+        "restricted": not _can_see_all(auth),
+        "data_range": data_range,
+        "filters": {
+            "sectores": sectores,
+            "cargos": cargos,
+            "grupos": grupos,
+            "motivos": motivos,
+        },
     }
 
 
@@ -4627,11 +4789,13 @@ async def get_francos(
     persona: str = "",
     sector: str = "ALL",
     cargo: str = "ALL",
+    grupo: str = "ALL",
     limit: int = Query(500, ge=1, le=2000),
 ):
     auth = await _require_auth(request)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
+    grupos_sel = _multi_query_values(request, "grupo", grupo)
 
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
@@ -4652,6 +4816,7 @@ async def get_francos(
         _append_persona_filter(initial_where, initial_params, persona, record_alias="fi", legajero_alias="l", name_columns=("fi.nombre",))
         _append_multi_filter(initial_where, initial_params, "l.desc_sector_generico", sectores_sel)
         _append_multi_filter(initial_where, initial_params, "l.desc_funcion", cargos_sel)
+        _append_multi_filter(initial_where, initial_params, "l.desc_grupo_personal", grupos_sel)
         async with db.execute(
             f"""
             SELECT fi.legajo,
@@ -4682,6 +4847,7 @@ async def get_francos(
         _append_persona_filter(activity_where, activity_params, persona, record_alias="a", legajero_alias="l", name_columns=("a.empleado",))
         _append_multi_filter(activity_where, activity_params, "COALESCE(l.desc_sector_generico, a.sector)", sectores_sel)
         _append_multi_filter(activity_where, activity_params, "l.desc_funcion", cargos_sel)
+        _append_multi_filter(activity_where, activity_params, "l.desc_grupo_personal", grupos_sel)
         async with db.execute(
             f"""
             SELECT a.legajo, a.fecha, a.empleado, a.sector, a.motivo, a.horario,
@@ -4772,11 +4938,13 @@ async def get_francos_candidatos(
     persona: str = "",
     sector: str = "ALL",
     cargo: str = "ALL",
+    grupo: str = "ALL",
     limit: int = Query(1000, ge=1, le=3000),
 ):
     auth = await _require_auth(request)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
+    grupos_sel = _multi_query_values(request, "grupo", grupo)
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         await _ensure_consolidated_temp(db, actividad=True, sanciones=False, fichadas=False)
@@ -4801,6 +4969,7 @@ async def get_francos_candidatos(
         _append_persona_filter(where, params, persona, record_alias="a", legajero_alias="l", name_columns=("a.empleado",))
         _append_multi_filter(where, params, "COALESCE(l.desc_sector_generico, a.sector)", sectores_sel)
         _append_multi_filter(where, params, "l.desc_funcion", cargos_sel)
+        _append_multi_filter(where, params, "l.desc_grupo_personal", grupos_sel)
         async with db.execute(
             f"""
             SELECT a.legajo, a.fecha, a.empleado, a.sector, a.motivo, a.horario,
@@ -4857,6 +5026,126 @@ async def get_francos_candidatos(
     }
 
 
+@router.get("/tnc")
+async def get_tnc(
+    request: Request, fecha_desde: str = "", fecha_hasta: str = "",
+    sector: str = "ALL", cargo: str = "ALL", grupo: str = "ALL",
+    persona: str = "", tipo_tnc: str = "", offset: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+):
+    auth = await _require_auth(request)
+    try:
+        desde, hasta = date.fromisoformat(fecha_desde), date.fromisoformat(fecha_hasta)
+        if hasta < desde or (hasta - desde).days > 365:
+            raise ValueError()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Seleccione un rango de fechas válido de hasta 366 días.")
+
+    where = ["t.fecha >= ?", "t.fecha <= ?", _visibility_sql(auth, "l", "l.desc_sector_generico")]
+    args: list[Any] = [fecha_desde, fecha_hasta]
+    if not _can_see_all(auth):
+        where.append("l.legajo IS NOT NULL")
+    for key, fallback, column in (("sector", sector, "l.desc_sector_generico"),
+                                  ("cargo", cargo, "l.desc_funcion"),
+                                  ("grupo", grupo, "l.desc_grupo_personal")):
+        _append_multi_filter(where, args, column, _multi_query_values(request, key, fallback))
+    _append_persona_filter(where, args, persona, record_alias="t", name_columns=())
+    base_where, base_args = " AND ".join(where), list(args)
+    if tipo_tnc:
+        where.append("t.codigo_tnc = ?")
+        args.append(tipo_tnc)
+    filtered_where = " AND ".join(where)
+    source = "FROM tnc_resumen_diario t LEFT JOIN latest_legajero l ON l.legajo = t.legajo"
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db, actividad=False, sanciones=False, fichadas=False)
+        async with db.execute(f"SELECT COUNT(*) filas, COUNT(DISTINCT t.legajo) legajos, COALESCE(SUM(t.eventos), 0) eventos, COALESCE(SUM(t.minutos_total), 0) minutos, COALESCE(SUM(t.activos), 0) activos {source} WHERE {filtered_where}", args) as cursor:
+            summary = dict(await cursor.fetchone())
+        async with db.execute(f"SELECT t.*, l.nombre, l.desc_sector_generico sector, l.desc_funcion cargo, l.desc_grupo_personal grupo {source} WHERE {filtered_where} ORDER BY t.fecha DESC, t.legajo, t.codigo_tnc, t.empresa, t.almacen LIMIT ? OFFSET ?", [*args, limit, offset]) as cursor:
+            rows = [dict(row) for row in await cursor.fetchall()]
+        async with db.execute(f"SELECT t.codigo_tnc codigo, MAX(t.descripcion_tnc) descripcion {source} WHERE {base_where} GROUP BY t.codigo_tnc ORDER BY descripcion, codigo", base_args) as cursor:
+            tipos = [dict(row) for row in await cursor.fetchall()]
+        async with db.execute("SELECT fecha, sincronizado_at FROM tnc_resumen_sync WHERE fecha BETWEEN ? AND ? ORDER BY fecha", (fecha_desde, fecha_hasta)) as cursor:
+            synced = [dict(row) for row in await cursor.fetchall()]
+    synced_dates = {row["fecha"] for row in synced}
+    missing = [(desde + timedelta(days=i)).isoformat() for i in range((hasta - desde).days + 1) if (desde + timedelta(days=i)).isoformat() not in synced_dates]
+    return {"summary": summary, "rows": rows, "tipos": tipos, "offset": offset, "limit": limit,
+            "coverage": {"sincronizados": len(synced), "faltantes": missing,
+                         "ultima_sincronizacion": max((row["sincronizado_at"] for row in synced), default=None)}}
+
+
+@router.get("/tnc/legajos")
+async def get_tnc_legajos(request: Request, fecha_desde: str = "", fecha_hasta: str = "", sector: str = "ALL", cargo: str = "ALL", grupo: str = "ALL", persona: str = "", solo_excesos: bool = False, tipo_exceso: str = "", detalle_sector: str = "", detalle_cargo: str = "", ordenar_excesos: bool = False, exportar: bool = False):
+    auth = await _require_auth(request)
+    if tipo_exceso not in {'', 'fisiologicas', 'comedor', 'jfs'}:
+        raise HTTPException(status_code=400, detail="Tipo de exceso inválido.")
+    try:
+        desde, hasta = date.fromisoformat(fecha_desde), date.fromisoformat(fecha_hasta)
+        if hasta < desde or (hasta - desde).days > 365:
+            raise ValueError()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Seleccione un rango de fechas válido de hasta 366 días.")
+    where = ["t.fecha BETWEEN ? AND ?", "t.codigo_tnc IN ('0','16','79')", _visibility_sql(auth, "l", "l.desc_sector_generico")]
+    args: list[Any] = [fecha_desde, fecha_hasta]
+    if not _can_see_all(auth):
+        where.append("l.legajo IS NOT NULL")
+    for key, fallback, column in (("sector", sector, "l.desc_sector_generico"), ("cargo", cargo, "l.desc_funcion"), ("grupo", grupo, "l.desc_grupo_personal")):
+        _append_multi_filter(where, args, column, _multi_query_values(request, key, fallback))
+    _append_persona_filter(where, args, persona, record_alias="t", name_columns=())
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await _ensure_consolidated_temp(db, actividad=False, sanciones=False, fichadas=False)
+        async with db.execute(f"""SELECT t.*, l.nombre, l.desc_sector_generico sector, l.desc_funcion cargo, l.desc_grupo_personal grupo
+            FROM tnc_excesos_diarios t LEFT JOIN latest_legajero l ON l.legajo=t.legajo
+            WHERE {' AND '.join(where)} ORDER BY t.legajo, t.fecha, t.codigo_tnc""", args) as cur:
+            daily = [dict(row) for row in await cur.fetchall()]
+        async with db.execute('SELECT fecha, sincronizado_at FROM tnc_resumen_sync WHERE fecha BETWEEN ? AND ? ORDER BY fecha', (fecha_desde, fecha_hasta)) as cur:
+            synced = [dict(row) for row in await cur.fetchall()]
+    people = {}
+    for item in daily:
+        legajo = item['legajo']
+        person = people.setdefault(legajo, {'legajo': legajo, 'nombre': item['nombre'] or 'Sin datos', 'sector': item['sector'] or 'Sin datos', 'cargo': item['cargo'] or '', 'grupo': item['grupo'] or '', 'fisiologicas': 0, 'comedor': 0, 'jfs': 0, 'sin_evaluar': 0, 'detalle': []})
+        key = {'0': 'comedor', '16': 'fisiologicas', '79': 'jfs'}[item['codigo_tnc']]
+        if item['excedido'] is None:
+            person['sin_evaluar'] += 1
+        elif item['excedido']:
+            person[key] += 1
+        person['detalle'].append({'fecha': item['fecha'], 'tipo': {'0':'Salida comedor', '16':'Necesidades fisiológicas', '79':'JFS Necesidades fisiológicas'}[item['codigo_tnc']], 'minutos': item['minutos_total'], 'maximo': item['minutos_maximos'], 'excedido': item['excedido']})
+    rows = sorted(people.values(), key=lambda r: (r['nombre'].casefold(), r['legajo']))
+    if tipo_exceso:
+        rows = [row for row in rows if row[tipo_exceso] > 0]
+    elif solo_excesos:
+        rows = [row for row in rows if row['fisiologicas'] or row['comedor'] or row['jfs']]
+    if detalle_sector:
+        rows = [row for row in rows if row['sector'] == detalle_sector]
+    if detalle_cargo:
+        rows = [row for row in rows if (row['cargo'] or 'Sin datos') == detalle_cargo]
+    for row in rows:
+        row['total_excesos'] = row['fisiologicas'] + row['comedor'] + row['jfs']
+    if ordenar_excesos:
+        rows.sort(key=lambda row: (-row['total_excesos'], row['nombre'].casefold(), row['legajo']))
+    synced_dates = {item['fecha'] for item in synced}
+    missing = [(desde + timedelta(days=i)).isoformat() for i in range((hasta-desde).days+1) if (desde + timedelta(days=i)).isoformat() not in synced_dates]
+    if exportar:
+        from openpyxl import Workbook
+        from io import BytesIO
+        book = Workbook()
+        sheet = book.active
+        sheet.title = 'Excesos TNC'
+        sheet.append(['Legajo', 'Nombre', 'Sector', 'Cargo', 'Grupo', 'Necesidades fisiológicas', 'Salida comedor', 'JFS necesidades fisiológicas', 'Total excesos', 'Días sin evaluar'])
+        for item in rows:
+            values = [item[k] for k in ('legajo', 'nombre', 'sector', 'cargo', 'grupo', 'fisiologicas', 'comedor', 'jfs', 'total_excesos', 'sin_evaluar')]
+            sheet.append([("'" + v if isinstance(v, str) and v.startswith(('=', '+', '-', '@')) else v) for v in values])
+        sheet.freeze_panes = 'A2'
+        info = book.create_sheet('Cobertura')
+        info.append(['Desde', fecha_desde]); info.append(['Hasta', fecha_hasta]); info.append(['Días sin carga', ', '.join(missing) or 'Ninguno'])
+        info.append(['Criterio', 'Días con minutos superiores al máximo diario, sin aplicar tolerancia.'])
+        info.append(['Filtro de excesos', {'fisiologicas':'Necesidades fisiológicas', 'comedor':'Salida comedor', 'jfs':'JFS fisiológicas'}.get(tipo_exceso, 'Cualquier tipo' if solo_excesos else 'Todos los legajos')])
+        output = BytesIO(); book.save(output); output.seek(0)
+        return StreamingResponse(output, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', headers={'Content-Disposition': 'attachment; filename="excesos_tnc.xlsx"'})
+    return {'rows': rows, 'coverage': {'sincronizados': len(synced), 'faltantes': missing, 'ultima_sincronizacion': max((item['sincronizado_at'] for item in synced), default=None)}}
+
+
 @router.get("/actividad")
 async def get_actividad(
     request: Request,
@@ -4865,6 +5154,7 @@ async def get_actividad(
     fecha_hasta: str = "",
     sector: str = "ALL",
     cargo: str = "ALL",
+    grupo: str = "ALL",
     motivo: str = "ALL",
     persona: str = "",
     limit: int = Query(200, ge=1, le=1000),
@@ -4872,6 +5162,7 @@ async def get_actividad(
     auth = await _require_auth(request)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
+    grupos_sel = _multi_query_values(request, "grupo", grupo)
     motivos_sel = _multi_query_values(request, "motivo", motivo)
     where = [_visibility_sql(auth, "a", "COALESCE(l.desc_sector_generico, a.sector)")]
     params: list[Any] = []
@@ -4883,6 +5174,7 @@ async def get_actividad(
         params.append(fecha_hasta)
     _append_multi_filter(where, params, "COALESCE(l.desc_sector_generico, a.sector)", sectores_sel)
     _append_multi_filter(where, params, "COALESCE(l.desc_funcion, '')", cargos_sel)
+    _append_multi_filter(where, params, "COALESCE(l.desc_grupo_personal, '')", grupos_sel)
     _append_multi_filter(where, params, "COALESCE(NULLIF(TRIM(a.motivo), ''), 'Sin motivo')", motivos_sel)
     _append_persona_filter(where, params, persona, record_alias="a", name_columns=("a.empleado",))
     params.append(limit)
@@ -4926,6 +5218,7 @@ async def get_fichadas(
     fecha_hasta: str = "",
     sector: str = "ALL",
     cargo: str = "ALL",
+    grupo: str = "ALL",
     legajo: str = "",
     persona: str = "",
     limit: int = Query(200, ge=1, le=1000),
@@ -4933,6 +5226,7 @@ async def get_fichadas(
     auth = await _require_auth(request)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
+    grupos_sel = _multi_query_values(request, "grupo", grupo)
     where = [_visibility_sql(auth, "f", "COALESCE(l.desc_sector_generico, '')")]
     params: list[Any] = []
     if fecha_desde:
@@ -4943,6 +5237,7 @@ async def get_fichadas(
         params.append(fecha_hasta)
     _append_multi_filter(where, params, "COALESCE(l.desc_sector_generico, '')", sectores_sel)
     _append_multi_filter(where, params, "COALESCE(l.desc_funcion, '')", cargos_sel)
+    _append_multi_filter(where, params, "COALESCE(l.desc_grupo_personal, '')", grupos_sel)
     if legajo:
         where.append("f.legajo = ?")
         params.append(_norm_legajo(legajo))
@@ -5053,6 +5348,7 @@ async def get_sanciones(
     fecha_hasta: str = "",
     sector: str = "ALL",
     cargo: str = "ALL",
+    grupo: str = "ALL",
     motivo: str = "ALL",
     persona: str = "",
     solo_reales: bool = False,
@@ -5062,6 +5358,7 @@ async def get_sanciones(
     auth = await _require_auth(request)
     sectores_sel = _multi_query_values(request, "sector", sector)
     cargos_sel = _multi_query_values(request, "cargo", cargo)
+    grupos_sel = _multi_query_values(request, "grupo", grupo)
     motivos_sel = _multi_query_values(request, "motivo", motivo)
     where = [_visibility_sql(auth, "s", "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')")]
     params: list[Any] = []
@@ -5079,6 +5376,7 @@ async def get_sanciones(
         params.extend(REAL_SANCIONES)
     _append_multi_filter(where, params, "COALESCE(l.desc_sector_generico, s.desc_unidad_organizativa, '')", sectores_sel)
     _append_multi_filter(where, params, "COALESCE(l.desc_funcion, '')", cargos_sel)
+    _append_multi_filter(where, params, "COALESCE(l.desc_grupo_personal, '')", grupos_sel)
     if motivos_sel:
         placeholders = ", ".join("?" for _ in motivos_sel)
         where.append(f"(COALESCE(NULLIF(TRIM(s.descripcion), ''), 'Sin motivo') IN ({placeholders}) OR COALESCE(NULLIF(TRIM(s.descripcion_causa), ''), 'Sin motivo') IN ({placeholders}))")

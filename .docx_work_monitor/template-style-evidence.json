@@ -1,0 +1,98 @@
+{
+  "input": "C:\\Ingenieria\\VigIA\\Docs\\Manual_Usuario_Recepcion_Refrigerados.docx",
+  "fonts_by_char_count": {},
+  "direct_run_formatting_runs": 13,
+  "direct_paragraph_formatting_paragraphs": 32,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 1,
+      "text": "GU\u00cdA OPERATIVA",
+      "style": "Normal"
+    },
+    {
+      "para_index": 37,
+      "text": "3. Consultar registros",
+      "style": "Normal"
+    },
+    {
+      "para_index": 54,
+      "text": "Objetivo",
+      "style": "Normal"
+    },
+    {
+      "para_index": 56,
+      "text": "Situaci\u00f3n",
+      "style": "Normal"
+    },
+    {
+      "para_index": 57,
+      "text": "Recomendaci\u00f3n",
+      "style": "Normal"
+    },
+    {
+      "para_index": 66,
+      "text": "VigIA \u00b7 OPERACI\u00d3N",
+      "style": "Header"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "GU\u00cdA OPERATIVA",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "text": "Manual de usuario para ingreso, consulta y seguimiento de descargas",
+        "style": "Normal"
+      },
+      {
+        "para_index": 7,
+        "text": "Figura 1. Selector de aplicaciones de VigIA.",
+        "style": "Normal"
+      },
+      {
+        "para_index": 8,
+        "text": "",
+        "style": "Normal"
+      },
+      {
+        "para_index": 13,
+        "text": "Figura 2. Pantalla actual de ingreso de una descarga.",
+        "style": "Normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 1,
+        "run_text": "GU\u00cdA OPERATIVA",
+        "style": "Normal"
+      },
+      {
+        "para_index": 3,
+        "run_text": "Manual de usuario para ingreso, consulta y seguimiento de descargas",
+        "style": "Normal"
+      },
+      {
+        "para_index": 7,
+        "run_text": "Figura 1. Selector de aplicaciones de VigIA.",
+        "style": "Normal"
+      },
+      {
+        "para_index": 13,
+        "run_text": "Figura 2. Pantalla actual de ingreso de una descarga.",
+        "style": "Normal"
+      },
+      {
+        "para_index": 32,
+        "run_text": "Figura 2. Pantalla actual de ingreso de una descarga.",
+        "style": "Normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}

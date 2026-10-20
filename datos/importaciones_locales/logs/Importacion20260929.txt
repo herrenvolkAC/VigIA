@@ -1,0 +1,2 @@
+fecha_hora	batch_key	importado_por	modo_importacion	tipo_archivo	archivo	filas_excel	filas_insertadas	estado	detalle
+2026-09-29 11:53:53	test_sanciones_20260501_12	codex_local	parcial_con_legajero_referencia	sanciones	SANCIONES 01.05 a 12.05.XLSX	882	881	OK	

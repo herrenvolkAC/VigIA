@@ -20,6 +20,10 @@ LOCAL = ['pp_premio_foto_meta', 'pp_premio_foto_escala', 'pp_premio_foto_sector'
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--snapshot', required=True)
+    parser.add_argument('--desde', default='2026-08-01')
+    parser.add_argument('--hasta', default='2026-08-31')
+    parser.add_argument('--pausa-segundos', type=float, default=0.5,
+                        help='Pausa entre jornadas Oracle; evita concentrar consultas.')
     parser.add_argument('--payments', action='store_true')
     args = parser.parse_args()
     dest = ROOT / 'datos/laboratorio_premios.db'
@@ -36,9 +40,19 @@ def main():
         ''')
         def save(source, segment, query, fetch):
             key = (args.snapshot, source, segment)
-            if db.execute('SELECT 1 FROM lab_fuente_lote WHERE snapshot=? AND fuente=? AND segmento=?', key).fetchone():
+            lote = db.execute('SELECT filas FROM lab_fuente_lote WHERE snapshot=? AND fuente=? AND segmento=?', key).fetchone()
+            registros = db.execute('SELECT COUNT(*) FROM lab_fuente_registro WHERE snapshot=? AND fuente=? AND segmento=?', key).fetchone()[0]
+            if lote and int(lote[0] or 0) == int(registros or 0):
                 print(source, segment, 'YA CARGADO', flush=True)
                 return
+            # Un corte puede haber escrito registros sin confirmar el lote.
+            # Se eliminan sólo esos restos del mismo snapshot/fuente/día y la
+            # siguiente inserción queda en una única transacción SQLite.
+            if lote or registros:
+                with db:
+                    db.execute('DELETE FROM lab_fuente_registro WHERE snapshot=? AND fuente=? AND segmento=?', key)
+                    db.execute('DELETE FROM lab_fuente_lote WHERE snapshot=? AND fuente=? AND segmento=?', key)
+                print(source, segment, 'REPARANDO_LOTE_PARCIAL', flush=True)
             rows = fetch()
             payloads = [json.dumps(row, ensure_ascii=False, sort_keys=True, default=str) for row in rows]
             digest = hashlib.sha256('\n'.join(payloads).encode('utf-8')).hexdigest()
@@ -60,14 +74,21 @@ def main():
             query = 'SELECT * FROM ' + table
             save('oracle.'+table, 'snapshot', query, lambda q=query: _query_oracle(q, {}))
         if args.payments:
-            day = date(2026, 8, 1)
-            while day < date(2026, 9, 1):
+            desde = datetime.strptime(args.desde, '%Y-%m-%d').date()
+            hasta = datetime.strptime(args.hasta, '%Y-%m-%d').date()
+            if hasta < desde:
+                raise ValueError('--hasta no puede ser anterior a --desde.')
+            day = desde
+            while day <= hasta:
                 segment = day.strftime('%Y%m%d')
                 for table in ['PV_DIA_LABORAL', 'PV_LIQUIDAC_DIA_DET1', 'PV_LIQUIDAC_DIA_DET2']:
                     query = ('SELECT C.* FROM PV_DIA_LABORAL C WHERE C.FECHA=:fecha' if table == 'PV_DIA_LABORAL'
                              else f'SELECT B.* FROM {table} B JOIN PV_DIA_LABORAL C ON C.ID=B.ID_PV_DIA_LABORAL WHERE C.FECHA=:fecha')
                     save('oracle.'+table, segment, query,
                          lambda q=query, d=segment: _query_oracle(q, {'fecha': int(d)}))
+                if args.pausa_segundos > 0:
+                    import time
+                    time.sleep(args.pausa_segundos)
                 day += timedelta(days=1)
 
 if __name__ == '__main__':

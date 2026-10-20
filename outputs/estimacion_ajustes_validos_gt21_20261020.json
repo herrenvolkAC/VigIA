@@ -1,0 +1,327 @@
+{
+  "cache_calculado_at": "2026-10-20 11:27:44",
+  "period": [
+    "20260801",
+    "20260930"
+  ],
+  "snapshot": "estudio_20261014_agosep",
+  "target_increase_pct": [
+    20.0,
+    21.0
+  ],
+  "method": "Preserves individual award amounts; simulates objective, derived UC thresholds, group award, and polyvalence from cached facts.",
+  "profiles_above_21_adjusted": [
+    {
+      "profile": [
+        "CD-SECOS - ZONA 1",
+        "CARGADOR DE SECOS",
+        "PALETS OPERADOS",
+        "1,6"
+      ],
+      "current": {
+        "objective": 130.0,
+        "group_award": 10700.0,
+        "actual": 6850377.11,
+        "new": 8636700.0,
+        "increase_pct": 26.076270858028728,
+        "people": 37,
+        "more": 24,
+        "less": 11
+      },
+      "proposal": {
+        "objective": 100,
+        "group_award": 6100,
+        "thresholds": [
+          110,
+          116,
+          128,
+          147,
+          176
+        ],
+        "actual": 6850377.11,
+        "new": 8279500.0,
+        "increase_pct": 20.861959379050887,
+        "people": 37,
+        "more": 28,
+        "less": 9,
+        "group_and_poly": 6935700.0,
+        "individual": 1343800.0,
+        "losses": [
+          {
+            "legajo": "187155",
+            "difference": -30623.57
+          },
+          {
+            "legajo": "72971",
+            "difference": -82815.21
+          },
+          {
+            "legajo": "162304",
+            "difference": -100622.65
+          },
+          {
+            "legajo": "3134",
+            "difference": -22397.82
+          },
+          {
+            "legajo": "65552",
+            "difference": -195878.69
+          },
+          {
+            "legajo": "66355",
+            "difference": -174886.65
+          },
+          {
+            "legajo": "69703",
+            "difference": -59351.32
+          },
+          {
+            "legajo": "116693",
+            "difference": -94173.62
+          },
+          {
+            "legajo": "69630",
+            "difference": -152100.94
+          }
+        ]
+      }
+    },
+    {
+      "profile": [
+        "CD-SECOS - ZONA 1",
+        "AUTOELEVADORISTA",
+        "CLARK",
+        "1"
+      ],
+      "current": {
+        "objective": 150.0,
+        "group_award": 6400.0,
+        "actual": 7374941.87,
+        "new": 9157200.0,
+        "increase_pct": 24.166402412606413,
+        "people": 33,
+        "more": 29,
+        "less": 4
+      },
+      "proposal": {
+        "objective": 116,
+        "group_award": 1200,
+        "thresholds": [
+          128,
+          134,
+          148,
+          170,
+          204
+        ],
+        "actual": 7374941.87,
+        "new": 8918900.0,
+        "increase_pct": 20.93519050340664,
+        "people": 33,
+        "more": 29,
+        "less": 4,
+        "group_and_poly": 1370400.0,
+        "individual": 7548500.0,
+        "losses": [
+          {
+            "legajo": "66016",
+            "difference": -8436.51
+          },
+          {
+            "legajo": "134963",
+            "difference": -10209.31
+          },
+          {
+            "legajo": "138354",
+            "difference": -46371.43
+          },
+          {
+            "legajo": "158241",
+            "difference": -65359.49
+          }
+        ]
+      }
+    },
+    {
+      "profile": [
+        "CD-REFRIGERADOS",
+        "RECEPCIONISTA (REFRIG.)",
+        "RECEPCION",
+        "2,4"
+      ],
+      "current": {
+        "objective": 40.0,
+        "group_award": 6600.0,
+        "actual": 3105427.85,
+        "new": 4646000.0,
+        "increase_pct": 49.60901442292405,
+        "people": 22,
+        "more": 18,
+        "less": 4
+      },
+      "proposal": {
+        "objective": 31,
+        "group_award": 3500,
+        "thresholds": [
+          35,
+          36,
+          40,
+          46,
+          55
+        ],
+        "actual": 3105427.85,
+        "new": 3749200.0,
+        "increase_pct": 20.730546034099607,
+        "people": 22,
+        "more": 17,
+        "less": 5,
+        "group_and_poly": 2037000.0,
+        "individual": 1712200.0,
+        "losses": [
+          {
+            "legajo": "103998",
+            "difference": -132090.47
+          },
+          {
+            "legajo": "159318",
+            "difference": -49352.6
+          },
+          {
+            "legajo": "196368",
+            "difference": -65914.44
+          },
+          {
+            "legajo": "203572",
+            "difference": -7681.84
+          },
+          {
+            "legajo": "116685",
+            "difference": -113893.08
+          }
+        ]
+      }
+    },
+    {
+      "profile": [
+        "CD-SECOS - ZONA 2",
+        "ARMADOR",
+        "ARMADO",
+        "1"
+      ],
+      "current": {
+        "objective": 1090.0,
+        "group_award": 9900.0,
+        "actual": 17295587.32,
+        "new": 21267800.0,
+        "increase_pct": 22.96662499229891,
+        "people": 26,
+        "more": 26,
+        "less": 0
+      },
+      "proposal": {
+        "objective": 1053,
+        "group_award": 7000,
+        "thresholds": [
+          1159,
+          1217,
+          1338,
+          1539,
+          1847
+        ],
+        "actual": 17295587.32,
+        "new": 20840300.0,
+        "increase_pct": 20.494896266986085,
+        "people": 26,
+        "more": 26,
+        "less": 0,
+        "group_and_poly": 6503000.0,
+        "individual": 14337300.0,
+        "losses": []
+      }
+    },
+    {
+      "profile": [
+        "CD-REFRIGERADOS",
+        "CARGADOR (REFRIG)",
+        "PALETS OPERADOS",
+        "2,4"
+      ],
+      "current": {
+        "objective": 85.0,
+        "group_award": 5800.0,
+        "actual": 5592108.34,
+        "new": 10606900.0,
+        "increase_pct": 89.6762250496742,
+        "people": 23,
+        "more": 21,
+        "less": 2
+      },
+      "proposal": {
+        "objective": 94,
+        "group_award": 3800,
+        "thresholds": [
+          104,
+          109,
+          120,
+          138,
+          165
+        ],
+        "actual": 5592108.34,
+        "new": 6736500.0,
+        "increase_pct": 20.464404307302807,
+        "people": 23,
+        "more": 16,
+        "less": 7,
+        "group_and_poly": 1371800.0,
+        "individual": 5364700.0,
+        "losses": [
+          {
+            "legajo": "170079",
+            "difference": -47775.94
+          },
+          {
+            "legajo": "189717",
+            "difference": -27887.06
+          },
+          {
+            "legajo": "195582",
+            "difference": -205691.39
+          },
+          {
+            "legajo": "187264",
+            "difference": -31236.72
+          },
+          {
+            "legajo": "109220",
+            "difference": -70093.9
+          },
+          {
+            "legajo": "109224",
+            "difference": -6990.47
+          },
+          {
+            "legajo": "83830",
+            "difference": -128151.05
+          }
+        ]
+      }
+    }
+  ],
+  "known_exception": [
+    {
+      "profile": [
+        "CD-REFRIGERADOS",
+        "CLARK CONGELADOS",
+        "CLARK",
+        "2,4"
+      ],
+      "objective": 70.0,
+      "group_award": 8300.0,
+      "actual": 79199.66,
+      "new": 1036700.0,
+      "increase_pct": 1208.970265781444,
+      "people": 3,
+      "reason": "Known incoherent group roster: Clark Congelados can pay a group award with one beneficiary.",
+      "not_adjusted": true
+    }
+  ]
+}

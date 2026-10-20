@@ -1,0 +1,6 @@
+Pendientes para definición con gerencia operativa
+
+- ARMADO POLLOS: definir si debe computar como ARMADO o mantenerlo separado.
+- DESCARGA CON TOYOTA: tiene pallets físicos, pero queda pendiente definir si debe integrar RECEPCION.
+- DESCARGA CON TOYOTA SECOS: pendiente definir si debe integrar RECEPCION.
+- CONTROL DE CALIDAD FYV: tiene pallets físicos, pero queda pendiente definir si debe integrar RECEPCION o quedar como control/calidad.

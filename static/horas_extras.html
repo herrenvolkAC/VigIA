@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/horas_extras.css?v=20260929-4">
+  <link rel="stylesheet" href="/css/horas_extras.css?v=20261019-1">
   <title>VigIA - Horas Extras</title>
 </head>
 <body>
@@ -17,75 +17,102 @@
         <img src="/resources/CotoLogo.svg" alt="Coto">
         <span class="brand-rule"></span>
         <div>
-          <div class="eyebrow">Modulo RRHH</div>
-          <h1>Aprobacion de Horas Extras</h1>
+          <div class="eyebrow">VigIA · RRHH</div>
+          <h1>Operaciones</h1>
         </div>
       </div>
       <div class="top-actions">
-        <span class="sync-chip" id="sync-chip">Inicializando</span>
+        <span class="sync-chip" id="sync-chip">Consulta manual</span>
         <a class="ghost-btn" href="/selector">Selector</a>
         <button class="ghost-btn" id="logout-btn" type="button">Salir</button>
       </div>
     </header>
 
     <main class="workspace">
-      <section class="hero-panel">
+      <section class="module-heading">
         <div>
-          <div class="eyebrow">Circuito de control</div>
-          <h2>Pre autorizacion, gerencia, ajustes y SAP en un unico flujo trazable.</h2>
+          <div class="eyebrow">Personas · Operacion</div>
+          <h2>Horas extra</h2>
         </div>
-        <div class="hero-meta">
+        <div class="module-context">
           <div><span>Usuario</span><strong id="user-label">Validando...</strong></div>
           <div><span>Perfil</span><strong id="profile-label">-</strong></div>
         </div>
       </section>
 
-      <section class="kpi-grid" id="kpi-grid"></section>
-
-      <section class="flow-panel" aria-label="Estado del circuito">
-        <div class="flow-step active"><span>1</span><strong>Pre autorizacion</strong><small>Jefatura</small></div>
-        <div class="flow-line"></div>
-        <div class="flow-step"><span>2</span><strong>Aprobacion</strong><small>Gerencia</small></div>
-        <div class="flow-line"></div>
-        <div class="flow-step"><span>3</span><strong>Ajustes y SAP</strong><small>RRHH</small></div>
+      <section class="work-queue" id="workflow-nav" aria-label="Bandejas de trabajo">
+        <div class="queue-heading"><div><div class="eyebrow">Bandeja de trabajo</div><h3>Etapas del circuito</h3></div><span class="queue-range">Los pendientes corresponden al rango consultado</span></div>
+        <div class="workflow-steps">
+          <button class="workflow-step active" data-view="pre" type="button">
+            <span class="step-index">01</span><span class="step-copy"><strong>Jefatura</strong><small>Pre autorizacion</small></span>
+            <span class="pending-badge" data-pending-badge="pre" hidden>0</span><span class="step-arrow" aria-hidden="true">&gt;</span>
+          </button>
+          <button class="workflow-step" data-view="gerencia" type="button">
+            <span class="step-index">02</span><span class="step-copy"><strong>Gerencia</strong><small>Aprobacion</small></span>
+            <span class="pending-badge" data-pending-badge="gerencia" hidden>0</span><span class="step-arrow" aria-hidden="true">&gt;</span>
+          </button>
+          <button class="workflow-step" data-view="ajustes" id="rrhh-tab" type="button" hidden>
+            <span class="step-index">03</span><span class="step-copy"><strong>RRHH</strong><small>Gestion y SAP</small></span>
+            <span class="pending-badge" data-pending-badge="ajustes" hidden>0</span><span class="step-arrow" aria-hidden="true">&gt;</span>
+          </button>
+        </div>
       </section>
 
       <section class="control-panel">
-        <div class="segmented" role="tablist" aria-label="Vistas">
-          <button class="active" data-view="pre" type="button">Pre autorizacion jefe</button>
-          <button data-view="gerencia" type="button">Aprobacion gerente</button>
-          <button data-view="ajustes" type="button">Ajustes / seguimiento</button>
+        <nav class="secondary-nav" id="module-nav" aria-label="Vistas del modulo">
+          <span class="secondary-label">Vistas</span>
+          <button data-view="historial" type="button">Consultas</button>
           <button data-view="indicadores" id="indicadores-tab" type="button" hidden>Indicadores</button>
           <button data-view="config" id="config-tab" type="button" hidden>Configuracion</button>
-        </div>
+        </nav>
 
         <form class="filters" id="filters">
-          <label>Desde<input id="fecha-desde" type="date" required></label>
-          <label>Hasta<input id="fecha-hasta" type="date" required></label>
-          <label>Sector<select id="sector-filter"><option value="">Todos</option></select></label>
-          <div class="multi" id="funciones-menu">
-            <button type="button" id="funciones-summary">Todas las funciones</button>
-            <div class="multi-popover" id="funciones-popover">
-              <input id="funcion-search" placeholder="Buscar funcion" autocomplete="off">
-              <div id="funciones-checks"></div>
-            </div>
+          <div class="filters-primary">
+            <label>Desde<input id="fecha-desde" type="date" required></label>
+            <label>Hasta<input id="fecha-hasta" type="date" required></label>
+            <label>Sector<select id="sector-filter"><option value="">Todos</option></select></label>
+            <button class="primary-btn" type="submit">Consultar</button>
           </div>
-          <label>Estado<select id="estado-filter">
-            <option value="">Todos</option>
-            <option value="detectada">Detectada</option>
-            <option value="pre_autorizada">Pre autorizada</option>
-            <option value="rechazada_jefe">Rechazada jefe</option>
-            <option value="aprobada_gerente">Aprobada gerente</option>
-            <option value="rechazada_gerente">Rechazada gerente</option>
-            <option value="ajuste_solicitado">Ajuste solicitado</option>
-            <option value="cargada_sap">Cargada SAP</option>
-          </select></label>
-          <button class="primary-btn" type="submit">Consultar</button>
+          <details class="filters-more">
+            <summary>Mas filtros <span id="funciones-summary">Todas las funciones</span></summary>
+            <div class="filters-advanced">
+              <div class="multi" id="funciones-menu">
+                <button type="button" id="funciones-trigger" aria-expanded="false">Seleccionar funciones</button>
+                <div class="multi-popover" id="funciones-popover">
+                  <input id="funcion-search" placeholder="Buscar funcion" autocomplete="off">
+                  <div id="funciones-checks"></div>
+                </div>
+              </div>
+              <label>Estado<select id="estado-filter">
+                <option value="">Todos</option>
+                <option value="detectada">Detectada</option>
+                <option value="pre_autorizada">Pre autorizada</option>
+                <option value="rechazada_jefe">Rechazada jefe</option>
+                <option value="aprobada_gerente">Aprobada gerente</option>
+                <option value="rechazada_gerente">Rechazada gerente</option>
+                <option value="ajuste_solicitado">Ajuste solicitado</option>
+                <option value="cargada_sap">Cargada SAP</option>
+              </select></label>
+            </div>
+          </details>
         </form>
       </section>
 
       <div class="message" id="message" role="status">Cargando contexto del modulo...</div>
       <section id="indicadores-panel" class="analytics" aria-label="Indicadores de horas extras" hidden></section>
+      <section class="table-panel history-panel" id="history-panel" hidden>
+        <div class="table-headline"><div><div class="eyebrow">Consulta historica</div><h3>Decisiones y aprobaciones anteriores</h3></div><button class="ghost-btn" id="history-export" type="button" disabled>Exportar</button></div>
+        <form class="history-filters" id="history-filters">
+          <label>Desde<input id="history-desde" type="date" required></label>
+          <label>Hasta<input id="history-hasta" type="date" required></label>
+          <label>Sector<select id="history-sector"><option value="">Todos</option></select></label>
+          <label>Legajo<input id="history-legajo" maxlength="40" placeholder="Todos"></label>
+          <label>Estado<select id="history-estado"><option value="">Todos</option><option value="pre_autorizada">Pre autorizada</option><option value="aprobada_gerente">Aprobada gerente</option><option value="rechazada_jefe">Rechazada jefe</option><option value="rechazada_gerente">Rechazada gerente</option><option value="cargada_sap">Cargada SAP</option></select></label>
+          <button class="primary-btn" type="submit">Consultar</button>
+        </form>
+        <div class="history-summary" id="history-summary">Seleccione filtros y presione Consultar.</div>
+        <div class="table-scroll"><table><thead><tr><th><button data-history-sort="fecha" type="button">Fecha</button></th><th><button data-history-sort="legajo" type="button">Legajo</button></th><th><button data-history-sort="empleado" type="button">Empleado</button></th><th><button data-history-sort="sector" type="button">Sector</button></th><th><button data-history-sort="horas_extras_detectadas" type="button">HE</button></th><th><button data-history-sort="horas_preautorizadas" type="button">Preautorizadas</button></th><th><button data-history-sort="horas_autorizadas" type="button">Aprobadas</button></th><th><button data-history-sort="estado" type="button">Estado</button></th><th><button data-history-sort="justificacion" type="button">Justificacion</button></th><th><button data-history-sort="cargado_sap" type="button">SAP</button></th><th><button data-history-sort="fecha_cambio" type="button">Actualizado</button></th></tr></thead><tbody id="history-body"></tbody></table></div>
+      </section>
 
       <section class="table-panel config-panel" id="config-panel" hidden>
         <div class="table-headline">
@@ -101,13 +128,20 @@
           <button class="primary-btn" type="submit">Guardar responsable</button>
         </form>
         <div id="responsables-body" class="responsibility-tree" aria-label="Responsables por sector"></div>
+        <div class="table-headline"><h3>Destinatarios de aprobaciones</h3></div>
+        <form id="mail-form" class="config-form">
+          <label>Legajo<input id="mail-legajo" required maxlength="40"></label>
+          <button class="primary-btn" type="submit">Guardar destinatario</button>
+        </form>
+        <div class="responsibility-tree" id="mail-recipients"></div>
       </section>
 
       <section class="table-panel" id="grid-panel">
         <div class="table-headline">
           <div>
             <div class="eyebrow">Grilla operativa</div>
-            <h3 id="table-title">Horas extras detectadas</h3>
+            <h3 id="table-title">Pre autorizacion</h3>
+            <div class="queue-summary" id="queue-summary">Consulte para cargar los registros.</div>
           </div>
           <div class="table-actions">
             <button class="ghost-btn" id="export-btn" type="button" disabled>Exportar</button>
@@ -116,9 +150,8 @@
 
         <div class="bulk-bar" id="bulk-bar">
           <strong id="selected-count">0 seleccionadas</strong>
-          <button type="button" data-bulk="pre_autorizada">Pre autorizar</button>
-          <button type="button" data-bulk="aprobada_gerente">Aprobar gerente</button>
-          <button type="button" data-bulk="rechazada_jefe">Rechazar</button>
+          <button type="button" data-bulk="aprobada_gerente">Aprobar seleccionadas</button>
+          <button type="button" data-bulk="rechazada_jefe">Rechazar seleccionadas</button>
           <button type="button" data-bulk="cargada_sap">Marcar SAP</button>
           <input id="bulk-note" maxlength="800" placeholder="Observacion para la accion">
           <button class="primary-btn" id="save-btn" type="button" disabled>Guardar</button>
@@ -130,16 +163,14 @@
               <tr>
                 <th><input id="select-all" type="checkbox" aria-label="Seleccionar todo"></th>
                 <th><button data-sort="fecha" type="button">Fecha</button></th>
-                <th><button data-sort="legajo" type="button">Legajo</button></th>
                 <th><button data-sort="empleado" type="button">Empleado</button></th>
-                <th><button data-sort="sector" type="button">Sector</button></th>
-                <th><button data-sort="funcion" type="button">Funcion</button></th>
-                <th>PH</th>
-                <th>Inicio</th>
-                <th>Fin</th>
-                <th><button data-sort="horas_extras_detectadas" type="button">HE</button></th>
+                <th><button data-sort="sector" type="button">Sector / funcion</button></th>
+                <th><button data-sort="inicio_real" type="button">Jornada</button></th>
+                <th><button data-sort="horas_extras_detectadas" type="button">Horas extra</button></th>
+                <th><button data-sort="horas_preautorizadas" type="button">A autorizar</button></th>
+                <th><button data-sort="justificacion" type="button">Justificacion</button></th>
                 <th><button data-sort="estado" type="button">Estado</button></th>
-                <th>SAP</th>
+                <th><button data-sort="cargado_sap" type="button">SAP</button></th>
               </tr>
             </thead>
             <tbody id="rows-body"></tbody>
@@ -155,14 +186,6 @@
       <div class="eyebrow">Detalle</div>
       <h3 id="drawer-title">Seleccione un registro</h3>
       <div class="detail-grid" id="drawer-detail"></div>
-      <form class="partial-form" id="partial-form">
-        <h4>Aprobacion parcial</h4>
-        <label>Horas autorizadas (HH:MM)<input id="partial-hours" type="text" pattern="[0-9]{2,}:[0-5][0-9]" required placeholder="01:45"></label>
-        <label>Observacion<input id="partial-note" maxlength="800" placeholder="Motivo o aclaracion"></label>
-        <div class="partial-actions">
-          <button class="primary-btn" id="partial-save" type="submit">Preparar parcial</button>
-        </div>
-      </form>
       <div class="trace">
         <h4>Trazabilidad</h4>
         <div id="drawer-trace">Sin movimientos guardados en esta vista.</div>
@@ -171,6 +194,6 @@
   </aside>
 
   <script src="/js/horas_extras_indicadores.js?v=20260929-4"></script>
-  <script src="/js/horas_extras.js?v=20260929-6"></script>
+  <script src="/js/horas_extras.js?v=20261020-1"></script>
 </body>
 </html>

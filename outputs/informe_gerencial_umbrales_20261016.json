@@ -1,0 +1,6579 @@
+{
+  "desde": "2026-08-01",
+  "hasta": "2026-09-30",
+  "dias": 43,
+  "cache_grupal": "2026-10-16 13:51:55",
+  "snapshot_pagos": "estudio_20261014_agosep",
+  "generado": "2026-10-16T10:59:50.555149-03:00",
+  "perfiles": [
+    {
+      "id": "perfil-1",
+      "sector": "CD-SECOS - ZONA 1",
+      "funcion": "ARMADOR",
+      "operacion": "ARMADO",
+      "division": "1",
+      "camara": "",
+      "unidad": "bultos",
+      "objetivo": 1100.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 27,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 1267,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 1133,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 1069,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        2898.388750635209,
+        1368.0842105263157,
+        1362.1052631578948,
+        1337.1929824561403,
+        1321.5413533834587,
+        1320.0779727095517,
+        1290.2144249512671,
+        1288.7218045112784,
+        1280.9507640067911,
+        1275.8704453441296,
+        1267.300509337861,
+        1262.0000000000002,
+        1256.2962962962963,
+        1252.4561403508774,
+        1232.218045112782,
+        1204.701754385965,
+        1195.8823529411766,
+        1151.7813765182186,
+        1142.375939849624,
+        1139.6052631578948,
+        1136.6873065015482,
+        1133.2280701754387,
+        1125.7275541795666,
+        1120.8049535603716,
+        1120.5555555555557,
+        1109.3141945773525,
+        1103.0650154798764,
+        1091.907894736842,
+        1090.8049535603716,
+        1086.9132290184923,
+        1077.0897832817338,
+        1075.9709618874774,
+        1069.593984962406,
+        1067.3684210526317,
+        1047.5708502024293,
+        1039.8981324278438,
+        1039.4427244582043,
+        1017.384370015949,
+        1010.1052631578947,
+        1004.2105263157895,
+        987.7192982456141,
+        974.3034055727555,
+        949.0271132376396
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 24.7,
+          "produccion": 28449.0,
+          "uc": 1151.7813765182186,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 25.65,
+          "produccion": 34938.0,
+          "uc": 1362.1052631578948,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 23.75,
+          "produccion": 32492.0,
+          "uc": 1368.0842105263157,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 25.65,
+          "produccion": 33860.0,
+          "uc": 1320.0779727095517,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 24.7,
+          "produccion": 25875.0,
+          "uc": 1047.5708502024293,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 24.7,
+          "produccion": 31514.0,
+          "uc": 1275.8704453441296,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 25.65,
+          "produccion": 33094.0,
+          "uc": 1290.2144249512671,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 26.599999999999998,
+          "produccion": 35153.0,
+          "uc": 1321.5413533834587,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 26.599999999999998,
+          "produccion": 34280.0,
+          "uc": 1288.7218045112784,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 25.65,
+          "produccion": 32224.0,
+          "uc": 1256.2962962962963,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 9.499999999999998,
+          "produccion": 11989.0,
+          "uc": 1262.0000000000002,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 28.5,
+          "produccion": 38110.0,
+          "uc": 1337.1929824561403,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 29.45,
+          "produccion": 37724.0,
+          "uc": 1280.9507640067911,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 27.549999999999997,
+          "produccion": 29643.0,
+          "uc": 1075.9709618874774,
+          "cumple": false
+        },
+        {
+          "fecha": "20260821",
+          "base": 30.4,
+          "produccion": 33194.0,
+          "uc": 1091.907894736842,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 29.449999999999996,
+          "produccion": 37322.0,
+          "uc": 1267.300509337861,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 27.549999999999997,
+          "produccion": 79850.61008,
+          "uc": 2898.388750635209,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 26.599999999999998,
+          "produccion": 32777.0,
+          "uc": 1232.218045112782,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 28.5,
+          "produccion": 32297.0,
+          "uc": 1133.2280701754387,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 29.449999999999996,
+          "produccion": 30625.0,
+          "uc": 1039.8981324278438,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 17.099999999999998,
+          "produccion": 21417.0,
+          "uc": 1252.4561403508774,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 30.4,
+          "produccion": 32448.0,
+          "uc": 1067.3684210526317,
+          "cumple": false
+        },
+        {
+          "fecha": "20260902",
+          "base": 28.5,
+          "produccion": 34334.0,
+          "uc": 1204.701754385965,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 32.3,
+          "produccion": 38627.0,
+          "uc": 1195.8823529411766,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 32.3,
+          "produccion": 31470.0,
+          "uc": 974.3034055727555,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 32.3,
+          "produccion": 35629.0,
+          "uc": 1103.0650154798764,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 32.3,
+          "produccion": 36715.0,
+          "uc": 1136.6873065015482,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 32.3,
+          "produccion": 36202.0,
+          "uc": 1120.8049535603716,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 31.349999999999998,
+          "produccion": 34777.0,
+          "uc": 1109.3141945773525,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 31.349999999999998,
+          "produccion": 29752.0,
+          "uc": 949.0271132376396,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 31.349999999999998,
+          "produccion": 31895.0,
+          "uc": 1017.384370015949,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 32.3,
+          "produccion": 36361.0,
+          "uc": 1125.7275541795666,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 30.4,
+          "produccion": 34644.0,
+          "uc": 1139.6052631578948,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 33.25,
+          "produccion": 33586.0,
+          "uc": 1010.1052631578947,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 30.4,
+          "produccion": 30528.0,
+          "uc": 1004.2105263157895,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 35.15,
+          "produccion": 38205.0,
+          "uc": 1086.9132290184923,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 34.199999999999996,
+          "produccion": 38323.0,
+          "uc": 1120.5555555555557,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 33.25,
+          "produccion": 35564.0,
+          "uc": 1069.593984962406,
+          "cumple": false
+        },
+        {
+          "fecha": "20260924",
+          "base": 33.25,
+          "produccion": 37984.0,
+          "uc": 1142.375939849624,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 34.199999999999996,
+          "produccion": 33780.0,
+          "uc": 987.7192982456141,
+          "cumple": false
+        },
+        {
+          "fecha": "20260928",
+          "base": 32.3,
+          "produccion": 35233.0,
+          "uc": 1090.8049535603716,
+          "cumple": false
+        },
+        {
+          "fecha": "20260929",
+          "base": 32.3,
+          "produccion": 33574.0,
+          "uc": 1039.4427244582043,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 32.3,
+          "produccion": 34790.0,
+          "uc": 1077.0897832817338,
+          "cumple": false
+        }
+      ],
+      "personas": 38,
+      "mas": 28,
+      "menos": 10,
+      "igual": 0,
+      "actual_centavos": 2091191468,
+      "nuevo_centavos": 2526595100,
+      "inicial": false
+    },
+    {
+      "id": "perfil-2",
+      "sector": "CD-SECOS - ZONA 1",
+      "funcion": "AUTOELEVADORISTA",
+      "operacion": "CLARK",
+      "division": "1",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 118.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 42,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 173,
+          "dias_logrados": 12
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 162,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 151,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        220.4556036613272,
+        203.2842105263158,
+        188.03118908382066,
+        181.0916179337232,
+        180.84210526315792,
+        177.17391077694236,
+        176.8842105263158,
+        176.33684210526314,
+        175.26315789473685,
+        174.17004048582996,
+        173.9382940108893,
+        173.3638443935927,
+        171.91729323308272,
+        171.3684210526316,
+        169.87854251012146,
+        169.43738656987298,
+        169.17293233082708,
+        168.54251012145752,
+        166.57894736842107,
+        162.3684210526316,
+        162.31578947368422,
+        162.03508771929828,
+        161.39097744360905,
+        160.8,
+        160.16842105263157,
+        157.18045112781957,
+        155.6275303643725,
+        155.3846153846154,
+        155.38200339558574,
+        155.28130671506355,
+        154.2300194931774,
+        151.6515426497278,
+        151.29186602870814,
+        150.4887218045113,
+        146.81922196796341,
+        146.5182186234818,
+        144.49122807017545,
+        140.97165991902835,
+        129.59064327485382,
+        124.95755517826827,
+        124.8178137651822,
+        122.02429149797572,
+        110.75187969924814
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 21.849999999999998,
+          "produccion": 3788.0,
+          "uc": 173.3638443935927,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 23.75,
+          "produccion": 4201.0,
+          "uc": 176.8842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 23.75,
+          "produccion": 4070.0,
+          "uc": 171.3684210526316,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 22.799999999999997,
+          "produccion": 3798.0,
+          "uc": 166.57894736842107,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 24.699999999999996,
+          "produccion": 3014.0,
+          "uc": 122.02429149797572,
+          "cumple": true
+        },
+        {
+          "fecha": "20260810",
+          "base": 24.699999999999996,
+          "produccion": 3844.0,
+          "uc": 155.6275303643725,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 28.499999999999996,
+          "produccion": 4618.0,
+          "uc": 162.03508771929828,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 26.599999999999998,
+          "produccion": 4181.0,
+          "uc": 157.18045112781957,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 27.549999999999997,
+          "produccion": 4278.0,
+          "uc": 155.28130671506355,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 29.449999999999996,
+          "produccion": 3680.0,
+          "uc": 124.95755517826827,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 9.499999999999998,
+          "produccion": 1718.0,
+          "uc": 180.84210526315792,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 24.699999999999996,
+          "produccion": 4163.0,
+          "uc": 168.54251012145752,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 24.699999999999996,
+          "produccion": 3482.0,
+          "uc": 140.97165991902835,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 28.499999999999996,
+          "produccion": 4118.0,
+          "uc": 144.49122807017545,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 26.599999999999998,
+          "produccion": 2946.0,
+          "uc": 110.75187969924814,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 23.75,
+          "produccion": 3819.0,
+          "uc": 160.8,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 21.85,
+          "produccion": 4816.95494,
+          "uc": 220.4556036613272,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 26.599999999999998,
+          "produccion": 4003.0,
+          "uc": 150.4887218045113,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 21.849999999999998,
+          "produccion": 3208.0,
+          "uc": 146.81922196796341,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 24.7,
+          "produccion": 3083.0,
+          "uc": 124.8178137651822,
+          "cumple": true
+        },
+        {
+          "fecha": "20260831",
+          "base": 19.95,
+          "produccion": 3534.61952,
+          "uc": 177.17391077694236,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 28.5,
+          "produccion": 4626.0,
+          "uc": 162.31578947368422,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 26.599999999999998,
+          "produccion": 4573.0,
+          "uc": 171.91729323308272,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 26.599999999999998,
+          "produccion": 4293.0,
+          "uc": 161.39097744360905,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 24.699999999999996,
+          "produccion": 3619.0,
+          "uc": 146.5182186234818,
+          "cumple": true
+        },
+        {
+          "fecha": "20260907",
+          "base": 23.75,
+          "produccion": 3804.0,
+          "uc": 160.16842105263157,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 23.75,
+          "produccion": 4188.0,
+          "uc": 176.33684210526314,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 24.7,
+          "produccion": 3838.0,
+          "uc": 155.3846153846154,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 29.45,
+          "produccion": 4576.0,
+          "uc": 155.38200339558574,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 20.9,
+          "produccion": 3162.0,
+          "uc": 151.29186602870814,
+          "cumple": true
+        },
+        {
+          "fecha": "20260914",
+          "base": 25.65,
+          "produccion": 3956.0,
+          "uc": 154.2300194931774,
+          "cumple": true
+        },
+        {
+          "fecha": "20260915",
+          "base": 27.549999999999997,
+          "produccion": 4792.0,
+          "uc": 173.9382940108893,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 26.599999999999998,
+          "produccion": 4500.0,
+          "uc": 169.17293233082708,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 24.7,
+          "produccion": 4329.0,
+          "uc": 175.26315789473685,
+          "cumple": true
+        },
+        {
+          "fecha": "20260918",
+          "base": 25.65,
+          "produccion": 3324.0,
+          "uc": 129.59064327485382,
+          "cumple": true
+        },
+        {
+          "fecha": "20260921",
+          "base": 25.65,
+          "produccion": 4645.0,
+          "uc": 181.0916179337232,
+          "cumple": true
+        },
+        {
+          "fecha": "20260922",
+          "base": 23.75,
+          "produccion": 4828.0,
+          "uc": 203.2842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 27.549999999999997,
+          "produccion": 4668.0,
+          "uc": 169.43738656987298,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 25.65,
+          "produccion": 4823.0,
+          "uc": 188.03118908382066,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 27.549999999999997,
+          "produccion": 4178.0,
+          "uc": 151.6515426497278,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 24.7,
+          "produccion": 4302.0,
+          "uc": 174.17004048582996,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 22.799999999999997,
+          "produccion": 3702.0,
+          "uc": 162.3684210526316,
+          "cumple": true
+        },
+        {
+          "fecha": "20260930",
+          "base": 24.7,
+          "produccion": 4196.0,
+          "uc": 169.87854251012146,
+          "cumple": true
+        }
+      ],
+      "personas": 33,
+      "mas": 26,
+      "menos": 7,
+      "igual": 0,
+      "actual_centavos": 737494187,
+      "nuevo_centavos": 920150000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-3",
+      "sector": "CD-SECOS - ZONA 1",
+      "funcion": "CARGADOR DE SECOS",
+      "operacion": "PALETS OPERADOS",
+      "division": "1,6",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 110.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 40,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 155,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 137,
+          "dias_logrados": 25
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 128,
+          "dias_logrados": 34
+        }
+      ],
+      "valores": [
+        176.04355716878405,
+        175.12280701754386,
+        174.4464609800363,
+        168.10916179337232,
+        161.44736842105263,
+        161.27041742286752,
+        159.40350877192984,
+        158.54809437386572,
+        157.78195488721806,
+        155.88815789473685,
+        155.5388471177945,
+        152.21804511278197,
+        151.1513157894737,
+        149.11070780399277,
+        148.74773139745918,
+        147.53820033955859,
+        145.26315789473685,
+        142.83891547049444,
+        140.6315789473684,
+        140.6112054329372,
+        138.04511278195488,
+        137.859649122807,
+        137.4671052631579,
+        137.17105263157896,
+        137.1578947368421,
+        135.86206896551727,
+        133.5483870967742,
+        133.0030959752322,
+        132.5386996904025,
+        131.8341307814992,
+        130.6766917293233,
+        130.04784688995215,
+        128.8544891640867,
+        128.77192982456143,
+        125.32894736842105,
+        120.39097744360902,
+        119.3092105263158,
+        118.63157894736844,
+        114.69635627530364,
+        111.72932330827068,
+        107.82894736842105,
+        100.19138755980862,
+        95.41795665634676
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 27.549999999999997,
+          "produccion": 4002.0,
+          "uc": 145.26315789473685,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 26.599999999999998,
+          "produccion": 4197.0,
+          "uc": 157.78195488721806,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 27.549999999999997,
+          "produccion": 4368.0,
+          "uc": 158.54809437386572,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 27.549999999999997,
+          "produccion": 4443.0,
+          "uc": 161.27041742286752,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 28.5,
+          "produccion": 3909.0,
+          "uc": 137.1578947368421,
+          "cumple": true
+        },
+        {
+          "fecha": "20260810",
+          "base": 27.549999999999997,
+          "produccion": 4108.0,
+          "uc": 149.11070780399277,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 25.65,
+          "produccion": 4312.0,
+          "uc": 168.10916179337232,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 27.549999999999997,
+          "produccion": 4806.0,
+          "uc": 174.4464609800363,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 27.549999999999997,
+          "produccion": 4850.0,
+          "uc": 176.04355716878405,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 27.549999999999997,
+          "produccion": 3743.0,
+          "uc": 135.86206896551727,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 7.6,
+          "produccion": 1227.0,
+          "uc": 161.44736842105263,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 30.4,
+          "produccion": 4739.0,
+          "uc": 155.88815789473685,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 28.5,
+          "produccion": 4543.0,
+          "uc": 159.40350877192984,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 28.5,
+          "produccion": 4991.0,
+          "uc": 175.12280701754386,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 31.349999999999998,
+          "produccion": 4037.0,
+          "uc": 128.77192982456143,
+          "cumple": true
+        },
+        {
+          "fecha": "20260824",
+          "base": 27.549999999999997,
+          "produccion": 4098.0,
+          "uc": 148.74773139745918,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 6.6499999999999995,
+          "produccion": 743.0,
+          "uc": 111.72932330827068,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 26.599999999999998,
+          "produccion": 4049.0,
+          "uc": 152.21804511278197,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 26.599999999999998,
+          "produccion": 3672.0,
+          "uc": 138.04511278195488,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 24.7,
+          "produccion": 2833.0,
+          "uc": 114.69635627530364,
+          "cumple": true
+        },
+        {
+          "fecha": "20260831",
+          "base": 19.95,
+          "produccion": 3103.0,
+          "uc": 155.5388471177945,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 30.4,
+          "produccion": 3810.0,
+          "uc": 125.32894736842105,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 32.3,
+          "produccion": 4281.0,
+          "uc": 132.5386996904025,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 31.349999999999998,
+          "produccion": 4133.0,
+          "uc": 131.8341307814992,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 31.349999999999998,
+          "produccion": 3141.0,
+          "uc": 100.19138755980862,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 33.25,
+          "produccion": 4676.0,
+          "uc": 140.6315789473684,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 32.3,
+          "produccion": 4162.0,
+          "uc": 128.8544891640867,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 33.25,
+          "produccion": 4345.0,
+          "uc": 130.6766917293233,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 33.25,
+          "produccion": 4003.0,
+          "uc": 120.39097744360902,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 32.3,
+          "produccion": 3082.0,
+          "uc": 95.41795665634676,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 29.449999999999996,
+          "produccion": 3933.0,
+          "uc": 133.5483870967742,
+          "cumple": true
+        },
+        {
+          "fecha": "20260915",
+          "base": 31.349999999999998,
+          "produccion": 4077.0,
+          "uc": 130.04784688995215,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 31.349999999999998,
+          "produccion": 4478.0,
+          "uc": 142.83891547049444,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 32.3,
+          "produccion": 4296.0,
+          "uc": 133.0030959752322,
+          "cumple": true
+        },
+        {
+          "fecha": "20260918",
+          "base": 30.4,
+          "produccion": 3278.0,
+          "uc": 107.82894736842105,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 28.5,
+          "produccion": 3929.0,
+          "uc": 137.859649122807,
+          "cumple": true
+        },
+        {
+          "fecha": "20260922",
+          "base": 30.4,
+          "produccion": 4170.0,
+          "uc": 137.17105263157896,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 30.4,
+          "produccion": 4595.0,
+          "uc": 151.1513157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 30.4,
+          "produccion": 4179.0,
+          "uc": 137.4671052631579,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 30.4,
+          "produccion": 3627.0,
+          "uc": 119.3092105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 29.449999999999996,
+          "produccion": 4141.0,
+          "uc": 140.6112054329372,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 28.499999999999996,
+          "produccion": 3381.0,
+          "uc": 118.63157894736844,
+          "cumple": true
+        },
+        {
+          "fecha": "20260930",
+          "base": 29.45,
+          "produccion": 4345.0,
+          "uc": 147.53820033955859,
+          "cumple": true
+        }
+      ],
+      "personas": 37,
+      "mas": 29,
+      "menos": 8,
+      "igual": 0,
+      "actual_centavos": 685037711,
+      "nuevo_centavos": 855720000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-4",
+      "sector": "CD-SECOS - ZONA 1",
+      "funcion": "RECEPCIONISTA",
+      "operacion": "RECEPCION",
+      "division": "1",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 81.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 0,
+      "cumple": 0,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": null,
+          "dias_logrados": 0
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": null,
+          "dias_logrados": 0
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": null,
+          "dias_logrados": 0
+        }
+      ],
+      "valores": [],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260804",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260805",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260806",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260807",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260811",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260812",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260813",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260814",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260817",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260818",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260819",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260820",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260821",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260825",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260826",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260827",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260828",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260901",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260902",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260903",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260904",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260908",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260909",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260910",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260911",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260916",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260917",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260923",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260924",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260925",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260928",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260929",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 0,
+          "produccion": 0,
+          "uc": null,
+          "cumple": false
+        }
+      ],
+      "personas": 0,
+      "mas": 0,
+      "menos": 0,
+      "igual": 0,
+      "actual_centavos": 0,
+      "nuevo_centavos": 0,
+      "inicial": true
+    },
+    {
+      "id": "perfil-5",
+      "sector": "CD-SECOS - ZONA 2",
+      "funcion": "ARMADOR",
+      "operacion": "ARMADO",
+      "division": "1",
+      "camara": "",
+      "unidad": "bultos",
+      "objetivo": 1100.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 35,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 1324,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 1243,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 1170,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        2886.0759458646617,
+        1476.7251461988305,
+        1434.279176201373,
+        1430.755148741419,
+        1425.9496567505723,
+        1424.976076555024,
+        1387.2311212814645,
+        1358.90350877193,
+        1356.430205949657,
+        1343.7280701754387,
+        1324.7368421052633,
+        1322.049861495845,
+        1321.4473684210525,
+        1312.5837320574165,
+        1308.5167464114834,
+        1296.0964912280701,
+        1281.3473684210526,
+        1266.3157894736844,
+        1261.2356979405035,
+        1258.2151029748284,
+        1254.7922437673133,
+        1243.859649122807,
+        1235.0,
+        1233.4335839598998,
+        1220.861244019139,
+        1211.533180778032,
+        1207.0914127423825,
+        1205.6,
+        1205.5108359133128,
+        1204.5933014354068,
+        1193.2535885167465,
+        1192.2009569377992,
+        1170.3890160183066,
+        1115.1674641148327,
+        1107.9904306220096,
+        1088.6956521739132,
+        1084.3157894736842,
+        1074.9199084668194,
+        1067.8315789473684,
+        1053.2265446224258,
+        1051.1842105263158,
+        996.0087719298247,
+        919.1387559808613
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 20.9,
+          "produccion": 26466.0,
+          "uc": 1266.3157894736844,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 21.849999999999998,
+          "produccion": 31339.0,
+          "uc": 1434.279176201373,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 21.849999999999998,
+          "produccion": 31157.0,
+          "uc": 1425.9496567505723,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 21.849999999999998,
+          "produccion": 27558.0,
+          "uc": 1261.2356979405035,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 22.799999999999997,
+          "produccion": 22709.0,
+          "uc": 996.0087719298247,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 21.85,
+          "produccion": 27492.0,
+          "uc": 1258.2151029748284,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 20.9,
+          "produccion": 27687.0,
+          "uc": 1324.7368421052633,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 20.9,
+          "produccion": 29782.0,
+          "uc": 1424.976076555024,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 20.9,
+          "produccion": 27348.0,
+          "uc": 1308.5167464114834,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 20.9,
+          "produccion": 27433.0,
+          "uc": 1312.5837320574165,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 8.549999999999999,
+          "produccion": 12626.0,
+          "uc": 1476.7251461988305,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 21.849999999999998,
+          "produccion": 31262.0,
+          "uc": 1430.755148741419,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 22.799999999999997,
+          "produccion": 30637.0,
+          "uc": 1343.7280701754387,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 20.9,
+          "produccion": 25176.0,
+          "uc": 1204.5933014354068,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 21.85,
+          "produccion": 25573.0,
+          "uc": 1170.3890160183066,
+          "cumple": true
+        },
+        {
+          "fecha": "20260824",
+          "base": 20.9,
+          "produccion": 25516.0,
+          "uc": 1220.861244019139,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 19.95,
+          "produccion": 57577.21512,
+          "uc": 2886.0759458646617,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 18.049999999999997,
+          "produccion": 21788.0,
+          "uc": 1207.0914127423825,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 19.95,
+          "produccion": 24815.0,
+          "uc": 1243.859649122807,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 19.0,
+          "produccion": 20602.0,
+          "uc": 1084.3157894736842,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 16.15,
+          "produccion": 19469.0,
+          "uc": 1205.5108359133128,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 21.85,
+          "produccion": 26472.0,
+          "uc": 1211.533180778032,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 22.799999999999997,
+          "produccion": 30983.0,
+          "uc": 1358.90350877193,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 23.75,
+          "produccion": 30432.0,
+          "uc": 1281.3473684210526,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 23.75,
+          "produccion": 25361.0,
+          "uc": 1067.8315789473684,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 23.75,
+          "produccion": 28633.0,
+          "uc": 1205.6,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 22.8,
+          "produccion": 30129.0,
+          "uc": 1321.4473684210525,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 21.849999999999998,
+          "produccion": 29638.0,
+          "uc": 1356.430205949657,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 21.849999999999998,
+          "produccion": 23487.0,
+          "uc": 1074.9199084668194,
+          "cumple": false
+        },
+        {
+          "fecha": "20260911",
+          "base": 20.9,
+          "produccion": 19210.0,
+          "uc": 919.1387559808613,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 20.9,
+          "produccion": 24917.0,
+          "uc": 1192.2009569377992,
+          "cumple": true
+        },
+        {
+          "fecha": "20260915",
+          "base": 21.85,
+          "produccion": 30311.0,
+          "uc": 1387.2311212814645,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 22.8,
+          "produccion": 29551.0,
+          "uc": 1296.0964912280701,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 22.8,
+          "produccion": 28158.0,
+          "uc": 1235.0,
+          "cumple": true
+        },
+        {
+          "fecha": "20260918",
+          "base": 22.799999999999997,
+          "produccion": 23967.0,
+          "uc": 1051.1842105263158,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 20.9,
+          "produccion": 23157.0,
+          "uc": 1107.9904306220096,
+          "cumple": true
+        },
+        {
+          "fecha": "20260922",
+          "base": 19.95,
+          "produccion": 24607.0,
+          "uc": 1233.4335839598998,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 18.049999999999997,
+          "produccion": 23863.0,
+          "uc": 1322.049861495845,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 18.049999999999997,
+          "produccion": 22649.0,
+          "uc": 1254.7922437673133,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 20.9,
+          "produccion": 24939.0,
+          "uc": 1193.2535885167465,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 20.9,
+          "produccion": 23307.0,
+          "uc": 1115.1674641148327,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 21.849999999999998,
+          "produccion": 23013.0,
+          "uc": 1053.2265446224258,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 21.849999999999998,
+          "produccion": 23788.0,
+          "uc": 1088.6956521739132,
+          "cumple": false
+        }
+      ],
+      "personas": 26,
+      "mas": 26,
+      "menos": 0,
+      "igual": 0,
+      "actual_centavos": 1729558732,
+      "nuevo_centavos": 2479275700,
+      "inicial": false
+    },
+    {
+      "id": "perfil-6",
+      "sector": "CD-SECOS - ZONA 2",
+      "funcion": "AUTOELEVADORISTA",
+      "operacion": "CLARK",
+      "division": "1",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 118.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 43,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 173,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 160,
+          "dias_logrados": 23
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 150,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        222.96052631578948,
+        222.17478811145514,
+        198.6466165413534,
+        194.5029239766082,
+        190.23391812865495,
+        186.2573099415205,
+        178.94736842105266,
+        178.24561403508775,
+        178.21052631578948,
+        174.59649122807016,
+        173.06501547987617,
+        172.51461988304092,
+        170.30470914127426,
+        169.8245614035088,
+        169.59752321981426,
+        168.94736842105263,
+        167.98761609907123,
+        167.6315789473684,
+        165.68421052631578,
+        164.73684210526318,
+        163.65650969529088,
+        160.55401662049863,
+        160.29239766081872,
+        160.0,
+        159.8684210526316,
+        156.90058479532166,
+        156.79425837320576,
+        156.78362573099415,
+        156.66666666666669,
+        154.3653250773994,
+        153.28320802005015,
+        152.38866396761136,
+        150.11695906432746,
+        148.42105263157896,
+        146.80701754385964,
+        146.1578947368421,
+        143.93351800554018,
+        142.76315789473685,
+        142.4930747922438,
+        141.35338345864665,
+        140.4432132963989,
+        136.42105263157896,
+        127.78947368421052
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 15.2,
+          "produccion": 2430.0,
+          "uc": 159.8684210526316,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 13.299999999999999,
+          "produccion": 2642.0,
+          "uc": 198.6466165413534,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 17.099999999999998,
+          "produccion": 3048.0,
+          "uc": 178.24561403508775,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 16.15,
+          "produccion": 2795.0,
+          "uc": 173.06501547987617,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 16.15,
+          "produccion": 2739.0,
+          "uc": 169.59752321981426,
+          "cumple": true
+        },
+        {
+          "fecha": "20260810",
+          "base": 12.349999999999998,
+          "produccion": 1882.0,
+          "uc": 152.38866396761136,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 14.25,
+          "produccion": 2092.0,
+          "uc": 146.80701754385964,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 14.25,
+          "produccion": 2488.0,
+          "uc": 174.59649122807016,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 14.25,
+          "produccion": 2361.0,
+          "uc": 165.68421052631578,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 15.2,
+          "produccion": 2170.0,
+          "uc": 142.76315789473685,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 5.699999999999999,
+          "produccion": 893.0,
+          "uc": 156.66666666666669,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 19.949999999999996,
+          "produccion": 3058.0,
+          "uc": 153.28320802005015,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 19.0,
+          "produccion": 2592.0,
+          "uc": 136.42105263157896,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 19.0,
+          "produccion": 2777.0,
+          "uc": 146.1578947368421,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 19.0,
+          "produccion": 2428.0,
+          "uc": 127.78947368421052,
+          "cumple": true
+        },
+        {
+          "fecha": "20260824",
+          "base": 18.049999999999997,
+          "produccion": 2535.0,
+          "uc": 140.4432132963989,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 16.15,
+          "produccion": 3588.122828,
+          "uc": 222.17478811145514,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 19.949999999999996,
+          "produccion": 2820.0,
+          "uc": 141.35338345864665,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 17.099999999999998,
+          "produccion": 2817.0,
+          "uc": 164.73684210526318,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 16.15,
+          "produccion": 2397.0,
+          "uc": 148.42105263157896,
+          "cumple": true
+        },
+        {
+          "fecha": "20260831",
+          "base": 11.399999999999999,
+          "produccion": 2040.0,
+          "uc": 178.94736842105266,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 19.0,
+          "produccion": 3185.0,
+          "uc": 167.6315789473684,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 18.049999999999997,
+          "produccion": 2898.0,
+          "uc": 160.55401662049863,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 17.099999999999998,
+          "produccion": 3326.0,
+          "uc": 194.5029239766082,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 16.15,
+          "produccion": 2493.0,
+          "uc": 154.3653250773994,
+          "cumple": true
+        },
+        {
+          "fecha": "20260907",
+          "base": 15.2,
+          "produccion": 3389.0,
+          "uc": 222.96052631578948,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 17.099999999999998,
+          "produccion": 3185.0,
+          "uc": 186.2573099415205,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 17.099999999999998,
+          "produccion": 2904.0,
+          "uc": 169.8245614035088,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 18.049999999999997,
+          "produccion": 2954.0,
+          "uc": 163.65650969529088,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 17.099999999999998,
+          "produccion": 2683.0,
+          "uc": 156.90058479532166,
+          "cumple": true
+        },
+        {
+          "fecha": "20260914",
+          "base": 16.15,
+          "produccion": 2584.0,
+          "uc": 160.0,
+          "cumple": true
+        },
+        {
+          "fecha": "20260915",
+          "base": 18.049999999999997,
+          "produccion": 3074.0,
+          "uc": 170.30470914127426,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 20.9,
+          "produccion": 3277.0,
+          "uc": 156.79425837320576,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 19.0,
+          "produccion": 3386.0,
+          "uc": 178.21052631578948,
+          "cumple": true
+        },
+        {
+          "fecha": "20260918",
+          "base": 16.15,
+          "produccion": 2713.0,
+          "uc": 167.98761609907123,
+          "cumple": true
+        },
+        {
+          "fecha": "20260921",
+          "base": 18.049999999999997,
+          "produccion": 2572.0,
+          "uc": 142.4930747922438,
+          "cumple": true
+        },
+        {
+          "fecha": "20260922",
+          "base": 18.049999999999997,
+          "produccion": 2598.0,
+          "uc": 143.93351800554018,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 17.1,
+          "produccion": 3253.0,
+          "uc": 190.23391812865495,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 17.1,
+          "produccion": 2567.0,
+          "uc": 150.11695906432746,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 17.099999999999998,
+          "produccion": 2741.0,
+          "uc": 160.29239766081872,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 17.1,
+          "produccion": 2681.0,
+          "uc": 156.78362573099415,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 15.2,
+          "produccion": 2568.0,
+          "uc": 168.94736842105263,
+          "cumple": true
+        },
+        {
+          "fecha": "20260930",
+          "base": 17.1,
+          "produccion": 2950.0,
+          "uc": 172.51461988304092,
+          "cumple": true
+        }
+      ],
+      "personas": 22,
+      "mas": 19,
+      "menos": 3,
+      "igual": 0,
+      "actual_centavos": 571282892,
+      "nuevo_centavos": 745450000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-7",
+      "sector": "CD-SECOS - ZONA 2",
+      "funcion": "RECEPCIONISTA DE SECO",
+      "operacion": "RECEPCION",
+      "division": "1",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 81.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 13,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 83,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 71,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 60,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        105.36842105263158,
+        96.05263157894737,
+        94.44976076555025,
+        92.42105263157895,
+        89.88558352402747,
+        87.36842105263158,
+        86.5446224256293,
+        86.21052631578948,
+        85.02392344497608,
+        84.61152882205513,
+        83.35839598997494,
+        82.42562929061786,
+        81.6842105263158,
+        78.03203661327233,
+        77.84210526315789,
+        76.69856459330144,
+        75.1487414187643,
+        74.50800915331808,
+        73.59267734553777,
+        72.68170426065163,
+        71.2280701754386,
+        71.1842105263158,
+        70.26315789473685,
+        69.33014354066987,
+        67.86967418546367,
+        67.22488038277513,
+        66.45933014354067,
+        65.5263157894737,
+        65.21052631578948,
+        63.85964912280703,
+        62.04986149584489,
+        61.05263157894737,
+        60.78947368421053,
+        59.05263157894737,
+        57.84688995215311,
+        57.41626794258374,
+        56.578947368421055,
+        55.58897243107769,
+        51.357340720221615,
+        46.10526315789474,
+        44.86842105263158,
+        41.65413533834587,
+        38.05263157894737
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 20.9,
+          "produccion": 1777.0,
+          "uc": 85.02392344497608,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 20.9,
+          "produccion": 1405.0,
+          "uc": 67.22488038277513,
+          "cumple": false
+        },
+        {
+          "fecha": "20260805",
+          "base": 20.9,
+          "produccion": 1603.0,
+          "uc": 76.69856459330144,
+          "cumple": false
+        },
+        {
+          "fecha": "20260806",
+          "base": 20.9,
+          "produccion": 1389.0,
+          "uc": 66.45933014354067,
+          "cumple": false
+        },
+        {
+          "fecha": "20260807",
+          "base": 19.95,
+          "produccion": 1354.0,
+          "uc": 67.86967418546367,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 19.95,
+          "produccion": 1663.0,
+          "uc": 83.35839598997494,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 19.95,
+          "produccion": 1688.0,
+          "uc": 84.61152882205513,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 19.95,
+          "produccion": 1421.0,
+          "uc": 71.2280701754386,
+          "cumple": false
+        },
+        {
+          "fecha": "20260813",
+          "base": 19.95,
+          "produccion": 1450.0,
+          "uc": 72.68170426065163,
+          "cumple": false
+        },
+        {
+          "fecha": "20260814",
+          "base": 19.95,
+          "produccion": 1109.0,
+          "uc": 55.58897243107769,
+          "cumple": false
+        },
+        {
+          "fecha": "20260817",
+          "base": 7.6,
+          "produccion": 341.0,
+          "uc": 44.86842105263158,
+          "cumple": false
+        },
+        {
+          "fecha": "20260818",
+          "base": 22.799999999999997,
+          "produccion": 1602.0,
+          "uc": 70.26315789473685,
+          "cumple": false
+        },
+        {
+          "fecha": "20260819",
+          "base": 22.799999999999997,
+          "produccion": 1456.0,
+          "uc": 63.85964912280703,
+          "cumple": false
+        },
+        {
+          "fecha": "20260820",
+          "base": 22.799999999999997,
+          "produccion": 1623.0,
+          "uc": 71.1842105263158,
+          "cumple": false
+        },
+        {
+          "fecha": "20260821",
+          "base": 22.799999999999997,
+          "produccion": 1494.0,
+          "uc": 65.5263157894737,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 21.849999999999998,
+          "produccion": 1801.0,
+          "uc": 82.42562929061786,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 3.8,
+          "produccion": 365.0,
+          "uc": 96.05263157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 21.849999999999998,
+          "produccion": 1964.0,
+          "uc": 89.88558352402747,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 21.849999999999998,
+          "produccion": 1642.0,
+          "uc": 75.1487414187643,
+          "cumple": false
+        },
+        {
+          "fecha": "20260828",
+          "base": 21.849999999999998,
+          "produccion": 1608.0,
+          "uc": 73.59267734553777,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 10.45,
+          "produccion": 987.0,
+          "uc": 94.44976076555025,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 20.9,
+          "produccion": 1209.0,
+          "uc": 57.84688995215311,
+          "cumple": false
+        },
+        {
+          "fecha": "20260902",
+          "base": 20.9,
+          "produccion": 1200.0,
+          "uc": 57.41626794258374,
+          "cumple": false
+        },
+        {
+          "fecha": "20260903",
+          "base": 20.9,
+          "produccion": 1449.0,
+          "uc": 69.33014354066987,
+          "cumple": false
+        },
+        {
+          "fecha": "20260904",
+          "base": 19.95,
+          "produccion": 831.0,
+          "uc": 41.65413533834587,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 18.049999999999997,
+          "produccion": 1120.0,
+          "uc": 62.04986149584489,
+          "cumple": false
+        },
+        {
+          "fecha": "20260908",
+          "base": 19.0,
+          "produccion": 876.0,
+          "uc": 46.10526315789474,
+          "cumple": false
+        },
+        {
+          "fecha": "20260909",
+          "base": 18.049999999999997,
+          "produccion": 927.0,
+          "uc": 51.357340720221615,
+          "cumple": false
+        },
+        {
+          "fecha": "20260910",
+          "base": 19.0,
+          "produccion": 1075.0,
+          "uc": 56.578947368421055,
+          "cumple": false
+        },
+        {
+          "fecha": "20260911",
+          "base": 19.0,
+          "produccion": 723.0,
+          "uc": 38.05263157894737,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 19.0,
+          "produccion": 1122.0,
+          "uc": 59.05263157894737,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 19.0,
+          "produccion": 1155.0,
+          "uc": 60.78947368421053,
+          "cumple": false
+        },
+        {
+          "fecha": "20260916",
+          "base": 19.0,
+          "produccion": 1160.0,
+          "uc": 61.05263157894737,
+          "cumple": false
+        },
+        {
+          "fecha": "20260917",
+          "base": 19.0,
+          "produccion": 1638.0,
+          "uc": 86.21052631578948,
+          "cumple": true
+        },
+        {
+          "fecha": "20260918",
+          "base": 19.0,
+          "produccion": 1239.0,
+          "uc": 65.21052631578948,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 19.0,
+          "produccion": 1660.0,
+          "uc": 87.36842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260922",
+          "base": 19.0,
+          "produccion": 1479.0,
+          "uc": 77.84210526315789,
+          "cumple": false
+        },
+        {
+          "fecha": "20260923",
+          "base": 19.0,
+          "produccion": 2002.0,
+          "uc": 105.36842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 19.0,
+          "produccion": 1756.0,
+          "uc": 92.42105263157895,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 19.0,
+          "produccion": 1552.0,
+          "uc": 81.6842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 21.849999999999998,
+          "produccion": 1705.0,
+          "uc": 78.03203661327233,
+          "cumple": false
+        },
+        {
+          "fecha": "20260929",
+          "base": 21.849999999999998,
+          "produccion": 1628.0,
+          "uc": 74.50800915331808,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 21.849999999999998,
+          "produccion": 1891.0,
+          "uc": 86.5446224256293,
+          "cumple": true
+        }
+      ],
+      "personas": 25,
+      "mas": 12,
+      "menos": 13,
+      "igual": 0,
+      "actual_centavos": 930650796,
+      "nuevo_centavos": 970730000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-8",
+      "sector": "CD-NOA",
+      "funcion": "ARMADOR",
+      "operacion": "ARMADO",
+      "division": "6",
+      "camara": "",
+      "unidad": "bultos",
+      "objetivo": 833.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 18,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 904,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 809,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 730,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        3044.8061052631583,
+        1117.2807017543862,
+        1047.7777777777778,
+        1036.2880886426594,
+        1031.246537396122,
+        999.7229916897509,
+        994.7368421052633,
+        921.7174515235458,
+        920.4953560371517,
+        907.468671679198,
+        904.0443213296401,
+        877.4269005847955,
+        872.3391812865498,
+        857.5939849624061,
+        853.7396121883658,
+        850.0584795321638,
+        843.0470914127425,
+        833.0325814536341,
+        829.5238095238095,
+        827.3684210526317,
+        819.0909090909091,
+        809.2260061919505,
+        802.1052631578948,
+        789.4152046783627,
+        784.7368421052631,
+        781.704260651629,
+        771.3573407202217,
+        754.0669856459331,
+        748.4688995215312,
+        744.7846889952153,
+        743.1578947368422,
+        734.5454545454546,
+        730.9774436090225,
+        720.7894736842105,
+        716.0765550239234,
+        714.1626794258374,
+        695.5263157894736,
+        679.2982456140351,
+        623.1578947368422,
+        600.0478468899522,
+        587.177033492823,
+        577.9448621553885,
+        560.8864265927979
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 16.15,
+          "produccion": 13069.0,
+          "uc": 809.2260061919505,
+          "cumple": false
+        },
+        {
+          "fecha": "20260804",
+          "base": 17.099999999999998,
+          "produccion": 17917.0,
+          "uc": 1047.7777777777778,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 16.15,
+          "produccion": 14866.0,
+          "uc": 920.4953560371517,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 17.099999999999998,
+          "produccion": 14536.0,
+          "uc": 850.0584795321638,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 18.049999999999997,
+          "produccion": 14934.0,
+          "uc": 827.3684210526317,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 18.049999999999997,
+          "produccion": 15410.0,
+          "uc": 853.7396121883658,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 18.049999999999997,
+          "produccion": 16637.0,
+          "uc": 921.7174515235458,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 17.099999999999998,
+          "produccion": 14917.0,
+          "uc": 872.3391812865498,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 17.099999999999998,
+          "produccion": 15004.0,
+          "uc": 877.4269005847955,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 17.099999999999998,
+          "produccion": 13499.0,
+          "uc": 789.4152046783627,
+          "cumple": false
+        },
+        {
+          "fecha": "20260817",
+          "base": 6.6499999999999995,
+          "produccion": 5703.0,
+          "uc": 857.5939849624061,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 18.049999999999997,
+          "produccion": 18045.0,
+          "uc": 999.7229916897509,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 18.049999999999997,
+          "produccion": 18705.0,
+          "uc": 1036.2880886426594,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 18.049999999999997,
+          "produccion": 18614.0,
+          "uc": 1031.246537396122,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 18.049999999999997,
+          "produccion": 13923.0,
+          "uc": 771.3573407202217,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 19.95,
+          "produccion": 16619.0,
+          "uc": 833.0325814536341,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 16.15,
+          "produccion": 49173.6186,
+          "uc": 3044.8061052631583,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 18.049999999999997,
+          "produccion": 16318.0,
+          "uc": 904.0443213296401,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 18.049999999999997,
+          "produccion": 17955.0,
+          "uc": 994.7368421052633,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 17.099999999999998,
+          "produccion": 10656.0,
+          "uc": 623.1578947368422,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 11.399999999999999,
+          "produccion": 12737.0,
+          "uc": 1117.2807017543862,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 19.95,
+          "produccion": 18104.0,
+          "uc": 907.468671679198,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 19.95,
+          "produccion": 15595.0,
+          "uc": 781.704260651629,
+          "cumple": false
+        },
+        {
+          "fecha": "20260903",
+          "base": 19.95,
+          "produccion": 16549.0,
+          "uc": 829.5238095238095,
+          "cumple": false
+        },
+        {
+          "fecha": "20260904",
+          "base": 19.0,
+          "produccion": 13695.0,
+          "uc": 720.7894736842105,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 20.9,
+          "produccion": 17119.0,
+          "uc": 819.0909090909091,
+          "cumple": false
+        },
+        {
+          "fecha": "20260908",
+          "base": 20.9,
+          "produccion": 14926.0,
+          "uc": 714.1626794258374,
+          "cumple": false
+        },
+        {
+          "fecha": "20260909",
+          "base": 19.95,
+          "produccion": 14583.0,
+          "uc": 730.9774436090225,
+          "cumple": false
+        },
+        {
+          "fecha": "20260910",
+          "base": 19.95,
+          "produccion": 13552.0,
+          "uc": 679.2982456140351,
+          "cumple": false
+        },
+        {
+          "fecha": "20260911",
+          "base": 19.95,
+          "produccion": 11530.0,
+          "uc": 577.9448621553885,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 19.0,
+          "produccion": 13215.0,
+          "uc": 695.5263157894736,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 18.049999999999997,
+          "produccion": 15217.0,
+          "uc": 843.0470914127425,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 19.95,
+          "produccion": 16002.0,
+          "uc": 802.1052631578948,
+          "cumple": false
+        },
+        {
+          "fecha": "20260917",
+          "base": 19.0,
+          "produccion": 14910.0,
+          "uc": 784.7368421052631,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 18.049999999999997,
+          "produccion": 10124.0,
+          "uc": 560.8864265927979,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 20.9,
+          "produccion": 15760.0,
+          "uc": 754.0669856459331,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 20.9,
+          "produccion": 15532.0,
+          "uc": 743.1578947368422,
+          "cumple": false
+        },
+        {
+          "fecha": "20260923",
+          "base": 20.9,
+          "produccion": 15566.0,
+          "uc": 744.7846889952153,
+          "cumple": false
+        },
+        {
+          "fecha": "20260924",
+          "base": 20.9,
+          "produccion": 14966.0,
+          "uc": 716.0765550239234,
+          "cumple": false
+        },
+        {
+          "fecha": "20260925",
+          "base": 20.9,
+          "produccion": 12541.0,
+          "uc": 600.0478468899522,
+          "cumple": false
+        },
+        {
+          "fecha": "20260928",
+          "base": 20.9,
+          "produccion": 15352.0,
+          "uc": 734.5454545454546,
+          "cumple": false
+        },
+        {
+          "fecha": "20260929",
+          "base": 20.9,
+          "produccion": 15643.0,
+          "uc": 748.4688995215312,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 20.9,
+          "produccion": 12272.0,
+          "uc": 587.177033492823,
+          "cumple": false
+        }
+      ],
+      "personas": 23,
+      "mas": 22,
+      "menos": 0,
+      "igual": 1,
+      "actual_centavos": 1154986799,
+      "nuevo_centavos": 1409206900,
+      "inicial": false
+    },
+    {
+      "id": "perfil-9",
+      "sector": "CD-NOA",
+      "funcion": "AUTOELEVADORISTA ARMADO Y GUARDADO NOA",
+      "operacion": "CLARK",
+      "division": "6",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 118.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 43,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 180,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 165,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 156,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        231.67314526315792,
+        202.49311719298248,
+        199.8245614035088,
+        194.0720221606648,
+        193.0747922437673,
+        189.59752321981426,
+        186.7669172932331,
+        184.76780185758517,
+        181.44044321329642,
+        180.99722991689754,
+        180.72022160664824,
+        178.00554016620498,
+        177.6315789473684,
+        176.62049861495845,
+        176.60818713450294,
+        176.1772853185596,
+        173.74269005847952,
+        172.78947368421052,
+        171.75438596491227,
+        171.46198830409358,
+        166.48199445983383,
+        165.31578947368422,
+        164.10526315789474,
+        164.0997229916898,
+        162.31578947368422,
+        159.78947368421052,
+        158.64661654135338,
+        158.10526315789474,
+        157.8421052631579,
+        157.30994152046785,
+        157.2299168975069,
+        157.0083102493075,
+        156.54970760233917,
+        155.59808612440193,
+        154.48621553884712,
+        154.3684210526316,
+        153.50877192982458,
+        150.94736842105263,
+        148.1578947368421,
+        145.58352402745996,
+        136.6507177033493,
+        135.0,
+        129.1578947368421
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 18.049999999999997,
+          "produccion": 3180.0,
+          "uc": 176.1772853185596,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 18.049999999999997,
+          "produccion": 3275.0,
+          "uc": 181.44044321329642,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 19.0,
+          "produccion": 3283.0,
+          "uc": 172.78947368421052,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 19.0,
+          "produccion": 3036.0,
+          "uc": 159.78947368421052,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 19.0,
+          "produccion": 3084.0,
+          "uc": 162.31578947368422,
+          "cumple": true
+        },
+        {
+          "fecha": "20260810",
+          "base": 18.049999999999997,
+          "produccion": 3005.0,
+          "uc": 166.48199445983383,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 18.049999999999997,
+          "produccion": 2834.0,
+          "uc": 157.0083102493075,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 19.0,
+          "produccion": 2454.0,
+          "uc": 129.1578947368421,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 18.049999999999997,
+          "produccion": 3262.0,
+          "uc": 180.72022160664824,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 19.0,
+          "produccion": 2565.0,
+          "uc": 135.0,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 5.7,
+          "produccion": 979.0,
+          "uc": 171.75438596491227,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 20.9,
+          "produccion": 3252.0,
+          "uc": 155.59808612440193,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 19.0,
+          "produccion": 3004.0,
+          "uc": 158.10526315789474,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 21.849999999999998,
+          "produccion": 3181.0,
+          "uc": 145.58352402745996,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 20.9,
+          "produccion": 2856.0,
+          "uc": 136.6507177033493,
+          "cumple": true
+        },
+        {
+          "fecha": "20260824",
+          "base": 17.099999999999998,
+          "produccion": 2690.0,
+          "uc": 157.30994152046785,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 15.2,
+          "produccion": 3521.4318080000003,
+          "uc": 231.67314526315792,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 19.95,
+          "produccion": 3082.0,
+          "uc": 154.48621553884712,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 19.0,
+          "produccion": 3118.0,
+          "uc": 164.10526315789474,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 19.0,
+          "produccion": 2933.0,
+          "uc": 154.3684210526316,
+          "cumple": true
+        },
+        {
+          "fecha": "20260831",
+          "base": 14.25,
+          "produccion": 2885.5269200000002,
+          "uc": 202.49311719298248,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 19.95,
+          "produccion": 3165.0,
+          "uc": 158.64661654135338,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 19.95,
+          "produccion": 3726.0,
+          "uc": 186.7669172932331,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 19.0,
+          "produccion": 3375.0,
+          "uc": 177.6315789473684,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 19.0,
+          "produccion": 2815.0,
+          "uc": 148.1578947368421,
+          "cumple": true
+        },
+        {
+          "fecha": "20260907",
+          "base": 19.0,
+          "produccion": 2999.0,
+          "uc": 157.8421052631579,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 19.0,
+          "produccion": 2868.0,
+          "uc": 150.94736842105263,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 18.05,
+          "produccion": 3503.0,
+          "uc": 194.0720221606648,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 19.0,
+          "produccion": 3141.0,
+          "uc": 165.31578947368422,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 18.05,
+          "produccion": 2838.0,
+          "uc": 157.2299168975069,
+          "cumple": true
+        },
+        {
+          "fecha": "20260914",
+          "base": 18.049999999999997,
+          "produccion": 2962.0,
+          "uc": 164.0997229916898,
+          "cumple": true
+        },
+        {
+          "fecha": "20260915",
+          "base": 16.15,
+          "produccion": 2984.0,
+          "uc": 184.76780185758517,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 18.049999999999997,
+          "produccion": 3267.0,
+          "uc": 180.99722991689754,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 17.099999999999998,
+          "produccion": 3020.0,
+          "uc": 176.60818713450294,
+          "cumple": true
+        },
+        {
+          "fecha": "20260918",
+          "base": 17.099999999999998,
+          "produccion": 2625.0,
+          "uc": 153.50877192982458,
+          "cumple": true
+        },
+        {
+          "fecha": "20260921",
+          "base": 18.05,
+          "produccion": 3188.0,
+          "uc": 176.62049861495845,
+          "cumple": true
+        },
+        {
+          "fecha": "20260922",
+          "base": 18.05,
+          "produccion": 3213.0,
+          "uc": 178.00554016620498,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 17.1,
+          "produccion": 2971.0,
+          "uc": 173.74269005847952,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 18.05,
+          "produccion": 3485.0,
+          "uc": 193.0747922437673,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 17.1,
+          "produccion": 2677.0,
+          "uc": 156.54970760233917,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 16.15,
+          "produccion": 3062.0,
+          "uc": 189.59752321981426,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 17.099999999999998,
+          "produccion": 2932.0,
+          "uc": 171.46198830409358,
+          "cumple": true
+        },
+        {
+          "fecha": "20260930",
+          "base": 17.099999999999998,
+          "produccion": 3417.0,
+          "uc": 199.8245614035088,
+          "cumple": true
+        }
+      ],
+      "personas": 23,
+      "mas": 20,
+      "menos": 3,
+      "igual": 0,
+      "actual_centavos": 755730236,
+      "nuevo_centavos": 910040000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-10",
+      "sector": "CD-NOA",
+      "funcion": "RECEPCIONISTA",
+      "operacion": "RECEPCION",
+      "division": "6",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 70.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 36,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 109,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 89,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 73,
+          "dias_logrados": 35
+        }
+      ],
+      "valores": [
+        140.35087719298247,
+        132.21052631578948,
+        130.42105263157896,
+        125.02923976608189,
+        118.66028708133972,
+        112.63157894736844,
+        110.73684210526316,
+        110.5263157894737,
+        109.89473684210526,
+        109.73684210526316,
+        109.12280701754388,
+        107.71929824561406,
+        107.53036437246963,
+        105.00000000000001,
+        104.84210526315789,
+        104.28070175438597,
+        104.06015037593986,
+        103.64372469635627,
+        93.6842105263158,
+        91.2280701754386,
+        90.03508771929826,
+        89.03508771929826,
+        88.61244019138756,
+        87.77327935222672,
+        87.57894736842107,
+        84.28571428571429,
+        80.37593984962406,
+        80.11695906432749,
+        80.07017543859651,
+        79.92982456140352,
+        77.47368421052633,
+        76.98245614035089,
+        73.75438596491229,
+        73.6842105263158,
+        73.19298245614036,
+        70.82706766917293,
+        69.47368421052633,
+        66.87719298245615,
+        66.80701754385966,
+        65.82456140350878,
+        65.33333333333334,
+        62.736842105263165,
+        18.245614035087723
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 8.549999999999999,
+          "produccion": 945.0,
+          "uc": 110.5263157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 9.5,
+          "produccion": 1256.0,
+          "uc": 132.21052631578948,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 11.399999999999999,
+          "produccion": 1040.0,
+          "uc": 91.2280701754386,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 8.549999999999999,
+          "produccion": 685.0,
+          "uc": 80.11695906432749,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 9.5,
+          "produccion": 1044.0,
+          "uc": 109.89473684210526,
+          "cumple": true
+        },
+        {
+          "fecha": "20260810",
+          "base": 7.6,
+          "produccion": 834.0,
+          "uc": 109.73684210526316,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 11.399999999999999,
+          "produccion": 1015.0,
+          "uc": 89.03508771929826,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 8.549999999999999,
+          "produccion": 1069.0,
+          "uc": 125.02923976608189,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 10.45,
+          "produccion": 1240.0,
+          "uc": 118.66028708133972,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 9.5,
+          "produccion": 996.0,
+          "uc": 104.84210526315789,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 2.8499999999999996,
+          "produccion": 52.0,
+          "uc": 18.245614035087723,
+          "cumple": false
+        },
+        {
+          "fecha": "20260818",
+          "base": 10.45,
+          "produccion": 926.0,
+          "uc": 88.61244019138756,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 12.35,
+          "produccion": 1328.0,
+          "uc": 107.53036437246963,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 11.399999999999999,
+          "produccion": 1284.0,
+          "uc": 112.63157894736844,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 12.35,
+          "produccion": 1084.0,
+          "uc": 87.77327935222672,
+          "cumple": true
+        },
+        {
+          "fecha": "20260824",
+          "base": 11.399999999999999,
+          "produccion": 840.0,
+          "uc": 73.6842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 2.8499999999999996,
+          "produccion": 400.0,
+          "uc": 140.35087719298247,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 11.399999999999999,
+          "produccion": 1197.0,
+          "uc": 105.00000000000001,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 12.35,
+          "produccion": 1280.0,
+          "uc": 103.64372469635627,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 9.5,
+          "produccion": 1052.0,
+          "uc": 110.73684210526316,
+          "cumple": true
+        },
+        {
+          "fecha": "20260831",
+          "base": 9.499999999999998,
+          "produccion": 1239.0,
+          "uc": 130.42105263157896,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 14.249999999999998,
+          "produccion": 1535.0,
+          "uc": 107.71929824561406,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 14.249999999999998,
+          "produccion": 1139.0,
+          "uc": 79.92982456140352,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 14.249999999999998,
+          "produccion": 931.0,
+          "uc": 65.33333333333334,
+          "cumple": false
+        },
+        {
+          "fecha": "20260904",
+          "base": 14.249999999999998,
+          "produccion": 1104.0,
+          "uc": 77.47368421052633,
+          "cumple": true
+        },
+        {
+          "fecha": "20260907",
+          "base": 14.249999999999998,
+          "produccion": 894.0,
+          "uc": 62.736842105263165,
+          "cumple": false
+        },
+        {
+          "fecha": "20260908",
+          "base": 14.249999999999998,
+          "produccion": 1335.0,
+          "uc": 93.6842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 14.249999999999998,
+          "produccion": 1043.0,
+          "uc": 73.19298245614036,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 14.249999999999998,
+          "produccion": 938.0,
+          "uc": 65.82456140350878,
+          "cumple": false
+        },
+        {
+          "fecha": "20260911",
+          "base": 14.249999999999998,
+          "produccion": 1141.0,
+          "uc": 80.07017543859651,
+          "cumple": true
+        },
+        {
+          "fecha": "20260914",
+          "base": 14.249999999999998,
+          "produccion": 953.0,
+          "uc": 66.87719298245615,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 14.249999999999998,
+          "produccion": 1283.0,
+          "uc": 90.03508771929826,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 13.299999999999999,
+          "produccion": 942.0,
+          "uc": 70.82706766917293,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 14.249999999999998,
+          "produccion": 952.0,
+          "uc": 66.80701754385966,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 14.249999999999998,
+          "produccion": 1555.0,
+          "uc": 109.12280701754388,
+          "cumple": true
+        },
+        {
+          "fecha": "20260921",
+          "base": 14.249999999999998,
+          "produccion": 990.0,
+          "uc": 69.47368421052633,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 14.249999999999998,
+          "produccion": 1248.0,
+          "uc": 87.57894736842107,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 14.249999999999998,
+          "produccion": 1486.0,
+          "uc": 104.28070175438597,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 14.249999999999998,
+          "produccion": 1097.0,
+          "uc": 76.98245614035089,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 14.249999999999998,
+          "produccion": 1051.0,
+          "uc": 73.75438596491229,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 13.299999999999999,
+          "produccion": 1069.0,
+          "uc": 80.37593984962406,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 13.299999999999999,
+          "produccion": 1384.0,
+          "uc": 104.06015037593986,
+          "cumple": true
+        },
+        {
+          "fecha": "20260930",
+          "base": 13.299999999999999,
+          "produccion": 1121.0,
+          "uc": 84.28571428571429,
+          "cumple": true
+        }
+      ],
+      "personas": 17,
+      "mas": 11,
+      "menos": 6,
+      "igual": 0,
+      "actual_centavos": 512831594,
+      "nuevo_centavos": 558520000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-11",
+      "sector": "CD-REFRIGERADOS",
+      "funcion": "ARMADOR",
+      "operacion": "ARMADO",
+      "division": "2,4",
+      "camara": "Otras cámaras",
+      "unidad": "bultos",
+      "objetivo": 1000.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 20,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 1033,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 979,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 799,
+          "dias_logrados": 34
+        }
+      ],
+      "valores": [
+        2151.9194747922434,
+        1188.8596491228072,
+        1132.1329639889195,
+        1110.7739938080497,
+        1094.6260387811635,
+        1073.6363636363637,
+        1052.8320802005012,
+        1048.3102493074794,
+        1047.9532163742692,
+        1043.1024930747922,
+        1033.8596491228072,
+        1027.0,
+        1022.4122807017545,
+        1021.7174515235458,
+        1016.7048054919909,
+        1015.9210526315791,
+        1005.4293628808866,
+        1001.1528822055138,
+        1000.6315789473684,
+        1000.2216066481996,
+        987.3157894736842,
+        979.9561403508773,
+        978.201754385965,
+        963.6842105263158,
+        930.7368421052631,
+        904.8245614035089,
+        900.0526315789474,
+        898.5526315789475,
+        898.4210526315791,
+        895.506072874494,
+        892.171052631579,
+        800.9153318077804,
+        799.7894736842105,
+        799.0789473684212,
+        797.9757085020243,
+        761.6421052631579,
+        756.2280701754387,
+        747.4493927125507,
+        745.668016194332,
+        744.8054919908468,
+        742.1967963386728,
+        739.7473684210527,
+        682.6754385964913
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 18.049999999999997,
+          "produccion": 18922.0,
+          "uc": 1048.3102493074794,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 11.399999999999999,
+          "produccion": 11786.0,
+          "uc": 1033.8596491228072,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 16.15,
+          "produccion": 17939.0,
+          "uc": 1110.7739938080497,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 14.25,
+          "produccion": 13263.0,
+          "uc": 930.7368421052631,
+          "cumple": false
+        },
+        {
+          "fecha": "20260807",
+          "base": 15.2,
+          "produccion": 13561.0,
+          "uc": 892.171052631579,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 18.049999999999997,
+          "produccion": 18442.0,
+          "uc": 1021.7174515235458,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 17.099999999999998,
+          "produccion": 17920.0,
+          "uc": 1047.9532163742692,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 19.95,
+          "produccion": 21004.0,
+          "uc": 1052.8320802005012,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 18.049999999999997,
+          "produccion": 19758.0,
+          "uc": 1094.6260387811635,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 18.049999999999997,
+          "produccion": 18054.0,
+          "uc": 1000.2216066481996,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 18.049999999999997,
+          "produccion": 18148.0,
+          "uc": 1005.4293628808866,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 18.05,
+          "produccion": 20435.0,
+          "uc": 1132.1329639889195,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 19.0,
+          "produccion": 19513.0,
+          "uc": 1027.0,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 18.05,
+          "produccion": 18828.0,
+          "uc": 1043.1024930747922,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 19.0,
+          "produccion": 18759.0,
+          "uc": 987.3157894736842,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 19.0,
+          "produccion": 18310.0,
+          "uc": 963.6842105263158,
+          "cumple": false
+        },
+        {
+          "fecha": "20260825",
+          "base": 18.05,
+          "produccion": 38842.146519999995,
+          "uc": 2151.9194747922434,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 20.9,
+          "produccion": 22439.0,
+          "uc": 1073.6363636363637,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 19.95,
+          "produccion": 19973.0,
+          "uc": 1001.1528822055138,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 19.0,
+          "produccion": 17101.0,
+          "uc": 900.0526315789474,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 11.399999999999999,
+          "produccion": 13553.0,
+          "uc": 1188.8596491228072,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 22.799999999999997,
+          "produccion": 18219.0,
+          "uc": 799.0789473684212,
+          "cumple": false
+        },
+        {
+          "fecha": "20260902",
+          "base": 22.799999999999997,
+          "produccion": 15565.0,
+          "uc": 682.6754385964913,
+          "cumple": false
+        },
+        {
+          "fecha": "20260903",
+          "base": 22.799999999999997,
+          "produccion": 20630.0,
+          "uc": 904.8245614035089,
+          "cumple": false
+        },
+        {
+          "fecha": "20260904",
+          "base": 23.75,
+          "produccion": 18089.0,
+          "uc": 761.6421052631579,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 21.849999999999998,
+          "produccion": 22215.0,
+          "uc": 1016.7048054919909,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 23.75,
+          "produccion": 17569.0,
+          "uc": 739.7473684210527,
+          "cumple": false
+        },
+        {
+          "fecha": "20260909",
+          "base": 22.799999999999997,
+          "produccion": 23163.0,
+          "uc": 1015.9210526315791,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 21.849999999999998,
+          "produccion": 17500.0,
+          "uc": 800.9153318077804,
+          "cumple": false
+        },
+        {
+          "fecha": "20260911",
+          "base": 21.849999999999998,
+          "produccion": 16217.0,
+          "uc": 742.1967963386728,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 23.75,
+          "produccion": 18995.0,
+          "uc": 799.7894736842105,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 24.7,
+          "produccion": 18462.0,
+          "uc": 747.4493927125507,
+          "cumple": false
+        },
+        {
+          "fecha": "20260916",
+          "base": 24.7,
+          "produccion": 19710.0,
+          "uc": 797.9757085020243,
+          "cumple": false
+        },
+        {
+          "fecha": "20260917",
+          "base": 24.7,
+          "produccion": 22119.0,
+          "uc": 895.506072874494,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 24.7,
+          "produccion": 18418.0,
+          "uc": 745.668016194332,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 22.799999999999997,
+          "produccion": 20487.0,
+          "uc": 898.5526315789475,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 22.799999999999997,
+          "produccion": 20484.0,
+          "uc": 898.4210526315791,
+          "cumple": false
+        },
+        {
+          "fecha": "20260923",
+          "base": 22.799999999999997,
+          "produccion": 23311.0,
+          "uc": 1022.4122807017545,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 22.799999999999997,
+          "produccion": 22343.0,
+          "uc": 979.9561403508773,
+          "cumple": false
+        },
+        {
+          "fecha": "20260925",
+          "base": 21.849999999999998,
+          "produccion": 16274.0,
+          "uc": 744.8054919908468,
+          "cumple": false
+        },
+        {
+          "fecha": "20260928",
+          "base": 23.75,
+          "produccion": 23765.0,
+          "uc": 1000.6315789473684,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 22.799999999999997,
+          "produccion": 17242.0,
+          "uc": 756.2280701754387,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 22.799999999999997,
+          "produccion": 22303.0,
+          "uc": 978.201754385965,
+          "cumple": false
+        }
+      ],
+      "personas": 26,
+      "mas": 24,
+      "menos": 2,
+      "igual": 0,
+      "actual_centavos": 799434778,
+      "nuevo_centavos": 1142408600,
+      "inicial": false
+    },
+    {
+      "id": "perfil-12",
+      "sector": "CD-REFRIGERADOS",
+      "funcion": "ARMADOR T06",
+      "operacion": "ARMADO",
+      "division": "2,4",
+      "camara": "Congelados",
+      "unidad": "bultos",
+      "objetivo": 500.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 22,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 542,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 502,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 444,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        869.8274315789474,
+        600.7894736842105,
+        580.8421052631579,
+        579.6491228070176,
+        574.1052631578947,
+        569.8245614035088,
+        564.561403508772,
+        558.3157894736842,
+        555.1578947368421,
+        545.6842105263158,
+        542.1052631578947,
+        540.7017543859649,
+        537.6842105263158,
+        530.5263157894736,
+        522.3684210526316,
+        513.2631578947369,
+        511.75438596491233,
+        511.5789473684211,
+        509.2982456140351,
+        508.63157894736844,
+        508.2105263157895,
+        502.80701754385973,
+        500.0,
+        499.2982456140351,
+        498.7719298245615,
+        491.92982456140356,
+        485.2631578947368,
+        468.0,
+        466.7368421052632,
+        464.63157894736844,
+        464.42105263157896,
+        449.89473684210526,
+        444.21052631578954,
+        433.05263157894734,
+        431.7894736842105,
+        425.4385964912281,
+        423.85964912280707,
+        418.421052631579,
+        376.5789473684211,
+        350.52631578947376,
+        337.89473684210526,
+        299.57894736842104,
+        257.05263157894734
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 3.8,
+          "produccion": 2283.0,
+          "uc": 600.7894736842105,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 4.75,
+          "produccion": 2217.0,
+          "uc": 466.7368421052632,
+          "cumple": false
+        },
+        {
+          "fecha": "20260805",
+          "base": 4.75,
+          "produccion": 2592.0,
+          "uc": 545.6842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 4.75,
+          "produccion": 2652.0,
+          "uc": 558.3157894736842,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 4.75,
+          "produccion": 2305.0,
+          "uc": 485.2631578947368,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 5.699999999999999,
+          "produccion": 2385.0,
+          "uc": 418.421052631579,
+          "cumple": false
+        },
+        {
+          "fecha": "20260811",
+          "base": 5.699999999999999,
+          "produccion": 3248.0,
+          "uc": 569.8245614035088,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 5.699999999999999,
+          "produccion": 3218.0,
+          "uc": 564.561403508772,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 5.699999999999999,
+          "produccion": 2903.0,
+          "uc": 509.2982456140351,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 4.75,
+          "produccion": 2223.0,
+          "uc": 468.0,
+          "cumple": false
+        },
+        {
+          "fecha": "20260817",
+          "base": 4.75,
+          "produccion": 1423.0,
+          "uc": 299.57894736842104,
+          "cumple": false
+        },
+        {
+          "fecha": "20260818",
+          "base": 4.75,
+          "produccion": 2520.0,
+          "uc": 530.5263157894736,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 5.699999999999999,
+          "produccion": 2917.0,
+          "uc": 511.75438596491233,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 4.75,
+          "produccion": 2416.0,
+          "uc": 508.63157894736844,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 3.8,
+          "produccion": 1431.0,
+          "uc": 376.5789473684211,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 4.75,
+          "produccion": 2759.0,
+          "uc": 580.8421052631579,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 5.699999999999999,
+          "produccion": 4958.01636,
+          "uc": 869.8274315789474,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 5.699999999999999,
+          "produccion": 2843.0,
+          "uc": 498.7719298245615,
+          "cumple": false
+        },
+        {
+          "fecha": "20260827",
+          "base": 5.699999999999999,
+          "produccion": 2804.0,
+          "uc": 491.92982456140356,
+          "cumple": false
+        },
+        {
+          "fecha": "20260828",
+          "base": 5.699999999999999,
+          "produccion": 2425.0,
+          "uc": 425.4385964912281,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 4.75,
+          "produccion": 2727.0,
+          "uc": 574.1052631578947,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 4.75,
+          "produccion": 2637.0,
+          "uc": 555.1578947368421,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 4.75,
+          "produccion": 2414.0,
+          "uc": 508.2105263157895,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 5.699999999999999,
+          "produccion": 3082.0,
+          "uc": 540.7017543859649,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 5.699999999999999,
+          "produccion": 2416.0,
+          "uc": 423.85964912280707,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 5.699999999999999,
+          "produccion": 2866.0,
+          "uc": 502.80701754385973,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 5.699999999999999,
+          "produccion": 2532.0,
+          "uc": 444.21052631578954,
+          "cumple": false
+        },
+        {
+          "fecha": "20260909",
+          "base": 5.699999999999999,
+          "produccion": 2846.0,
+          "uc": 499.2982456140351,
+          "cumple": false
+        },
+        {
+          "fecha": "20260910",
+          "base": 5.699999999999999,
+          "produccion": 2916.0,
+          "uc": 511.5789473684211,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 5.699999999999999,
+          "produccion": 1998.0,
+          "uc": 350.52631578947376,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 4.75,
+          "produccion": 2051.0,
+          "uc": 431.7894736842105,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 4.75,
+          "produccion": 2137.0,
+          "uc": 449.89473684210526,
+          "cumple": false
+        },
+        {
+          "fecha": "20260916",
+          "base": 4.75,
+          "produccion": 2207.0,
+          "uc": 464.63157894736844,
+          "cumple": false
+        },
+        {
+          "fecha": "20260917",
+          "base": 4.75,
+          "produccion": 1605.0,
+          "uc": 337.89473684210526,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 4.75,
+          "produccion": 1221.0,
+          "uc": 257.05263157894734,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 4.75,
+          "produccion": 2206.0,
+          "uc": 464.42105263157896,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 3.8,
+          "produccion": 1985.0,
+          "uc": 522.3684210526316,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 4.75,
+          "produccion": 2575.0,
+          "uc": 542.1052631578947,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 4.75,
+          "produccion": 2554.0,
+          "uc": 537.6842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 4.75,
+          "produccion": 2057.0,
+          "uc": 433.05263157894734,
+          "cumple": false
+        },
+        {
+          "fecha": "20260928",
+          "base": 4.75,
+          "produccion": 2438.0,
+          "uc": 513.2631578947369,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 3.8,
+          "produccion": 1900.0,
+          "uc": 500.0,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 2.8499999999999996,
+          "produccion": 1652.0,
+          "uc": 579.6491228070176,
+          "cumple": true
+        }
+      ],
+      "personas": 6,
+      "mas": 6,
+      "menos": 0,
+      "igual": 0,
+      "actual_centavos": 124242601,
+      "nuevo_centavos": 318628000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-13",
+      "sector": "CD-REFRIGERADOS",
+      "funcion": "AUTOELEVADORISTA (REFRIG)",
+      "operacion": "CLARK",
+      "division": "2,4",
+      "camara": "Otras cámaras",
+      "unidad": "palets",
+      "objetivo": 118.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 43,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 194,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 177,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 165,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        274.82456140350877,
+        222.52631578947367,
+        221.244019138756,
+        217.12918660287082,
+        211.31578947368425,
+        208.31578947368425,
+        205.8373205741627,
+        205.34412955465586,
+        203.40080971659918,
+        201.66666666666669,
+        194.33198380566802,
+        192.3684210526316,
+        190.81339712918663,
+        188.6466165413534,
+        186.3157894736842,
+        186.2280701754386,
+        184.68899521531102,
+        181.7004048582996,
+        181.7004048582996,
+        180.32388663967612,
+        180.08097165991904,
+        177.30994152046785,
+        176.92307692307693,
+        175.78947368421055,
+        175.69377990430624,
+        173.83458646616543,
+        173.01435406698565,
+        172.35087719298247,
+        171.50375939849624,
+        171.14035087719301,
+        169.55465587044534,
+        167.56578947368422,
+        165.58704453441297,
+        162.63157894736844,
+        161.19298245614036,
+        159.47368421052633,
+        157.06766917293234,
+        156.6917293233083,
+        155.41353383458647,
+        153.68421052631578,
+        153.5964912280702,
+        149.3233082706767,
+        131.417004048583
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 9.5,
+          "produccion": 2114.0,
+          "uc": 222.52631578947367,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 12.35,
+          "produccion": 2244.0,
+          "uc": 181.7004048582996,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 11.399999999999999,
+          "produccion": 2409.0,
+          "uc": 211.31578947368425,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 10.45,
+          "produccion": 1930.0,
+          "uc": 184.68899521531102,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 13.299999999999999,
+          "produccion": 2121.0,
+          "uc": 159.47368421052633,
+          "cumple": true
+        },
+        {
+          "fecha": "20260810",
+          "base": 10.45,
+          "produccion": 1836.0,
+          "uc": 175.69377990430624,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 12.35,
+          "produccion": 2512.0,
+          "uc": 203.40080971659918,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 11.4,
+          "produccion": 2123.0,
+          "uc": 186.2280701754386,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 12.35,
+          "produccion": 2536.0,
+          "uc": 205.34412955465586,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 12.35,
+          "produccion": 2224.0,
+          "uc": 180.08097165991904,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 12.35,
+          "produccion": 1623.0,
+          "uc": 131.417004048583,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 11.4,
+          "produccion": 2124.0,
+          "uc": 186.3157894736842,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 10.45,
+          "produccion": 2312.0,
+          "uc": 221.244019138756,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 10.45,
+          "produccion": 2269.0,
+          "uc": 217.12918660287082,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 11.399999999999999,
+          "produccion": 1751.0,
+          "uc": 153.5964912280702,
+          "cumple": true
+        },
+        {
+          "fecha": "20260824",
+          "base": 10.45,
+          "produccion": 1808.0,
+          "uc": 173.01435406698565,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 11.4,
+          "produccion": 3133.0,
+          "uc": 274.82456140350877,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 10.45,
+          "produccion": 2151.0,
+          "uc": 205.8373205741627,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 13.299999999999999,
+          "produccion": 2089.0,
+          "uc": 157.06766917293234,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 13.299999999999999,
+          "produccion": 1986.0,
+          "uc": 149.3233082706767,
+          "cumple": true
+        },
+        {
+          "fecha": "20260831",
+          "base": 8.549999999999999,
+          "produccion": 1516.0,
+          "uc": 177.30994152046785,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 11.399999999999999,
+          "produccion": 2299.0,
+          "uc": 201.66666666666669,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 12.35,
+          "produccion": 2045.0,
+          "uc": 165.58704453441297,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 14.249999999999998,
+          "produccion": 2456.0,
+          "uc": 172.35087719298247,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 13.299999999999999,
+          "produccion": 2163.0,
+          "uc": 162.63157894736844,
+          "cumple": true
+        },
+        {
+          "fecha": "20260907",
+          "base": 10.45,
+          "produccion": 1994.0,
+          "uc": 190.81339712918663,
+          "cumple": true
+        },
+        {
+          "fecha": "20260908",
+          "base": 11.399999999999999,
+          "produccion": 2193.0,
+          "uc": 192.3684210526316,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 12.35,
+          "produccion": 2227.0,
+          "uc": 180.32388663967612,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 9.499999999999998,
+          "produccion": 1979.0,
+          "uc": 208.31578947368425,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 11.399999999999999,
+          "produccion": 2004.0,
+          "uc": 175.78947368421055,
+          "cumple": true
+        },
+        {
+          "fecha": "20260914",
+          "base": 13.299999999999999,
+          "produccion": 2067.0,
+          "uc": 155.41353383458647,
+          "cumple": true
+        },
+        {
+          "fecha": "20260915",
+          "base": 13.299999999999999,
+          "produccion": 2509.0,
+          "uc": 188.6466165413534,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 13.299999999999999,
+          "produccion": 2312.0,
+          "uc": 173.83458646616543,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 14.25,
+          "produccion": 2297.0,
+          "uc": 161.19298245614036,
+          "cumple": true
+        },
+        {
+          "fecha": "20260918",
+          "base": 13.299999999999999,
+          "produccion": 2084.0,
+          "uc": 156.6917293233083,
+          "cumple": true
+        },
+        {
+          "fecha": "20260921",
+          "base": 12.35,
+          "produccion": 1898.0,
+          "uc": 153.68421052631578,
+          "cumple": true
+        },
+        {
+          "fecha": "20260922",
+          "base": 11.399999999999999,
+          "produccion": 1951.0,
+          "uc": 171.14035087719301,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 12.35,
+          "produccion": 2400.0,
+          "uc": 194.33198380566802,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 12.35,
+          "produccion": 2185.0,
+          "uc": 176.92307692307693,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 12.35,
+          "produccion": 2094.0,
+          "uc": 169.55465587044534,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 13.299999999999999,
+          "produccion": 2281.0,
+          "uc": 171.50375939849624,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 12.35,
+          "produccion": 2244.0,
+          "uc": 181.7004048582996,
+          "cumple": true
+        },
+        {
+          "fecha": "20260930",
+          "base": 15.2,
+          "produccion": 2547.0,
+          "uc": 167.56578947368422,
+          "cumple": true
+        }
+      ],
+      "personas": 18,
+      "mas": 8,
+      "menos": 10,
+      "igual": 0,
+      "actual_centavos": 305130459,
+      "nuevo_centavos": 293690000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-14",
+      "sector": "CD-REFRIGERADOS",
+      "funcion": "CLARK CONGELADOS",
+      "operacion": "CLARK",
+      "division": "2,4",
+      "camara": "Congelados",
+      "unidad": "palets",
+      "objetivo": 70.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 34,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 96,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 80,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 70,
+          "dias_logrados": 34
+        }
+      ],
+      "valores": [
+        138.94736842105263,
+        131.05263157894737,
+        128.94736842105263,
+        127.36842105263159,
+        121.05263157894737,
+        118.59649122807019,
+        110.52631578947368,
+        108.07017543859651,
+        101.40350877192984,
+        101.05263157894737,
+        96.31578947368422,
+        95.78947368421053,
+        91.05263157894737,
+        91.05263157894737,
+        88.94736842105263,
+        87.71929824561404,
+        87.01754385964914,
+        85.78947368421053,
+        83.15789473684211,
+        82.10526315789475,
+        81.57894736842105,
+        80.35087719298247,
+        79.2982456140351,
+        77.89473684210527,
+        77.54385964912282,
+        74.03508771929826,
+        73.6842105263158,
+        73.6842105263158,
+        73.33333333333334,
+        72.63157894736842,
+        71.92982456140352,
+        70.87719298245615,
+        70.52631578947368,
+        70.17543859649123,
+        67.71929824561404,
+        67.71929824561404,
+        66.8421052631579,
+        63.85964912280703,
+        59.473684210526315,
+        59.473684210526315,
+        57.89473684210527,
+        48.0701754385965,
+        47.01754385964913
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 1.9,
+          "produccion": 173.0,
+          "uc": 91.05263157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 1.9,
+          "produccion": 210.0,
+          "uc": 110.52631578947368,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 1.9,
+          "produccion": 245.0,
+          "uc": 128.94736842105263,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 1.9,
+          "produccion": 249.0,
+          "uc": 131.05263157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 1.9,
+          "produccion": 183.0,
+          "uc": 96.31578947368422,
+          "cumple": true
+        },
+        {
+          "fecha": "20260810",
+          "base": 1.9,
+          "produccion": 182.0,
+          "uc": 95.78947368421053,
+          "cumple": true
+        },
+        {
+          "fecha": "20260811",
+          "base": 1.9,
+          "produccion": 242.0,
+          "uc": 127.36842105263159,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 1.9,
+          "produccion": 230.0,
+          "uc": 121.05263157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 1.9,
+          "produccion": 158.0,
+          "uc": 83.15789473684211,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 2.8499999999999996,
+          "produccion": 205.0,
+          "uc": 71.92982456140352,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 1.9,
+          "produccion": 140.0,
+          "uc": 73.6842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 1.9,
+          "produccion": 169.0,
+          "uc": 88.94736842105263,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 1.9,
+          "produccion": 134.0,
+          "uc": 70.52631578947368,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 1.9,
+          "produccion": 155.0,
+          "uc": 81.57894736842105,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 1.9,
+          "produccion": 127.0,
+          "uc": 66.8421052631579,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 1.9,
+          "produccion": 113.0,
+          "uc": 59.473684210526315,
+          "cumple": false
+        },
+        {
+          "fecha": "20260825",
+          "base": 0.95,
+          "produccion": 132.0,
+          "uc": 138.94736842105263,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 1.9,
+          "produccion": 173.0,
+          "uc": 91.05263157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 1.9,
+          "produccion": 192.0,
+          "uc": 101.05263157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 1.9,
+          "produccion": 113.0,
+          "uc": 59.473684210526315,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 1.9,
+          "produccion": 163.0,
+          "uc": 85.78947368421053,
+          "cumple": true
+        },
+        {
+          "fecha": "20260901",
+          "base": 2.8499999999999996,
+          "produccion": 308.0,
+          "uc": 108.07017543859651,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 2.8499999999999996,
+          "produccion": 338.0,
+          "uc": 118.59649122807019,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 2.8499999999999996,
+          "produccion": 289.0,
+          "uc": 101.40350877192984,
+          "cumple": true
+        },
+        {
+          "fecha": "20260904",
+          "base": 2.8499999999999996,
+          "produccion": 165.0,
+          "uc": 57.89473684210527,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 2.8499999999999996,
+          "produccion": 182.0,
+          "uc": 63.85964912280703,
+          "cumple": false
+        },
+        {
+          "fecha": "20260908",
+          "base": 2.8499999999999996,
+          "produccion": 234.0,
+          "uc": 82.10526315789475,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 2.8499999999999996,
+          "produccion": 210.0,
+          "uc": 73.6842105263158,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 2.8499999999999996,
+          "produccion": 229.0,
+          "uc": 80.35087719298247,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 2.8499999999999996,
+          "produccion": 211.0,
+          "uc": 74.03508771929826,
+          "cumple": true
+        },
+        {
+          "fecha": "20260914",
+          "base": 2.8499999999999996,
+          "produccion": 207.0,
+          "uc": 72.63157894736842,
+          "cumple": true
+        },
+        {
+          "fecha": "20260915",
+          "base": 2.8499999999999996,
+          "produccion": 222.0,
+          "uc": 77.89473684210527,
+          "cumple": true
+        },
+        {
+          "fecha": "20260916",
+          "base": 2.8499999999999996,
+          "produccion": 202.0,
+          "uc": 70.87719298245615,
+          "cumple": true
+        },
+        {
+          "fecha": "20260917",
+          "base": 2.8499999999999996,
+          "produccion": 193.0,
+          "uc": 67.71929824561404,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 2.8499999999999996,
+          "produccion": 193.0,
+          "uc": 67.71929824561404,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 2.8499999999999996,
+          "produccion": 250.0,
+          "uc": 87.71929824561404,
+          "cumple": true
+        },
+        {
+          "fecha": "20260922",
+          "base": 2.8499999999999996,
+          "produccion": 226.0,
+          "uc": 79.2982456140351,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 2.8499999999999996,
+          "produccion": 248.0,
+          "uc": 87.01754385964914,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 2.8499999999999996,
+          "produccion": 221.0,
+          "uc": 77.54385964912282,
+          "cumple": true
+        },
+        {
+          "fecha": "20260925",
+          "base": 2.8499999999999996,
+          "produccion": 209.0,
+          "uc": 73.33333333333334,
+          "cumple": true
+        },
+        {
+          "fecha": "20260928",
+          "base": 2.8499999999999996,
+          "produccion": 137.0,
+          "uc": 48.0701754385965,
+          "cumple": false
+        },
+        {
+          "fecha": "20260929",
+          "base": 2.8499999999999996,
+          "produccion": 200.0,
+          "uc": 70.17543859649123,
+          "cumple": true
+        },
+        {
+          "fecha": "20260930",
+          "base": 2.8499999999999996,
+          "produccion": 134.0,
+          "uc": 47.01754385964913,
+          "cumple": false
+        }
+      ],
+      "personas": 3,
+      "mas": 3,
+      "menos": 0,
+      "igual": 0,
+      "actual_centavos": 7919966,
+      "nuevo_centavos": 77360000,
+      "inicial": true
+    },
+    {
+      "id": "perfil-15",
+      "sector": "CD-REFRIGERADOS",
+      "funcion": "CARGADOR (REFRIG)",
+      "operacion": "PALETS OPERADOS",
+      "division": "2,4",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 120.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 2,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 98,
+          "dias_logrados": 13
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 91,
+          "dias_logrados": 23
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 84,
+          "dias_logrados": 34
+        }
+      ],
+      "valores": [
+        149.25207756232686,
+        124.10526315789474,
+        117.67313019390583,
+        116.52631578947368,
+        107.3157894736842,
+        105.15789473684211,
+        104.97076023391814,
+        103.8781163434903,
+        100.0,
+        99.52631578947368,
+        98.67276887871854,
+        98.1163434903047,
+        98.06094182825484,
+        96.0,
+        95.311004784689,
+        94.73684210526318,
+        94.73684210526316,
+        94.21052631578947,
+        93.62880886426592,
+        93.08924485125858,
+        92.797783933518,
+        91.96172248803829,
+        91.67464114832536,
+        90.97744360902256,
+        90.622009569378,
+        89.47368421052632,
+        88.57894736842105,
+        88.22966507177034,
+        87.9633867276888,
+        87.89473684210526,
+        86.79425837320575,
+        86.36363636363637,
+        84.11027568922306,
+        84.11027568922306,
+        82.80701754385966,
+        82.2488038277512,
+        82.20551378446116,
+        81.65413533834587,
+        79.0909090909091,
+        78.26315789473684,
+        77.79904306220097,
+        69.14473684210526,
+        61.73684210526316
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 18.05,
+          "produccion": 1675.0,
+          "uc": 92.797783933518,
+          "cumple": false
+        },
+        {
+          "fecha": "20260804",
+          "base": 18.05,
+          "produccion": 2694.0,
+          "uc": 149.25207756232686,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 18.05,
+          "produccion": 1770.0,
+          "uc": 98.06094182825484,
+          "cumple": false
+        },
+        {
+          "fecha": "20260806",
+          "base": 17.099999999999998,
+          "produccion": 1795.0,
+          "uc": 104.97076023391814,
+          "cumple": false
+        },
+        {
+          "fecha": "20260807",
+          "base": 18.05,
+          "produccion": 1690.0,
+          "uc": 93.62880886426592,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 18.05,
+          "produccion": 1771.0,
+          "uc": 98.1163434903047,
+          "cumple": false
+        },
+        {
+          "fecha": "20260811",
+          "base": 18.05,
+          "produccion": 1805.0,
+          "uc": 100.0,
+          "cumple": false
+        },
+        {
+          "fecha": "20260812",
+          "base": 18.05,
+          "produccion": 1875.0,
+          "uc": 103.8781163434903,
+          "cumple": false
+        },
+        {
+          "fecha": "20260813",
+          "base": 17.1,
+          "produccion": 1611.0,
+          "uc": 94.21052631578947,
+          "cumple": false
+        },
+        {
+          "fecha": "20260814",
+          "base": 19.0,
+          "produccion": 1891.0,
+          "uc": 99.52631578947368,
+          "cumple": false
+        },
+        {
+          "fecha": "20260817",
+          "base": 19.0,
+          "produccion": 1173.0,
+          "uc": 61.73684210526316,
+          "cumple": false
+        },
+        {
+          "fecha": "20260818",
+          "base": 19.0,
+          "produccion": 1487.0,
+          "uc": 78.26315789473684,
+          "cumple": false
+        },
+        {
+          "fecha": "20260819",
+          "base": 19.95,
+          "produccion": 1785.0,
+          "uc": 89.47368421052632,
+          "cumple": false
+        },
+        {
+          "fecha": "20260820",
+          "base": 18.049999999999997,
+          "produccion": 1710.0,
+          "uc": 94.73684210526318,
+          "cumple": false
+        },
+        {
+          "fecha": "20260821",
+          "base": 19.95,
+          "produccion": 1678.0,
+          "uc": 84.11027568922306,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 19.95,
+          "produccion": 1678.0,
+          "uc": 84.11027568922306,
+          "cumple": false
+        },
+        {
+          "fecha": "20260825",
+          "base": 9.5,
+          "produccion": 912.0,
+          "uc": 96.0,
+          "cumple": false
+        },
+        {
+          "fecha": "20260826",
+          "base": 19.95,
+          "produccion": 1640.0,
+          "uc": 82.20551378446116,
+          "cumple": false
+        },
+        {
+          "fecha": "20260827",
+          "base": 19.95,
+          "produccion": 1652.0,
+          "uc": 82.80701754385966,
+          "cumple": false
+        },
+        {
+          "fecha": "20260828",
+          "base": 19.0,
+          "produccion": 2039.0,
+          "uc": 107.3157894736842,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 15.2,
+          "produccion": 1051.0,
+          "uc": 69.14473684210526,
+          "cumple": false
+        },
+        {
+          "fecha": "20260901",
+          "base": 20.9,
+          "produccion": 1992.0,
+          "uc": 95.311004784689,
+          "cumple": false
+        },
+        {
+          "fecha": "20260902",
+          "base": 20.9,
+          "produccion": 1922.0,
+          "uc": 91.96172248803829,
+          "cumple": false
+        },
+        {
+          "fecha": "20260903",
+          "base": 20.9,
+          "produccion": 1894.0,
+          "uc": 90.622009569378,
+          "cumple": false
+        },
+        {
+          "fecha": "20260904",
+          "base": 20.9,
+          "produccion": 1719.0,
+          "uc": 82.2488038277512,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 21.849999999999998,
+          "produccion": 2156.0,
+          "uc": 98.67276887871854,
+          "cumple": false
+        },
+        {
+          "fecha": "20260908",
+          "base": 21.849999999999998,
+          "produccion": 2034.0,
+          "uc": 93.08924485125858,
+          "cumple": false
+        },
+        {
+          "fecha": "20260909",
+          "base": 20.9,
+          "produccion": 1844.0,
+          "uc": 88.22966507177034,
+          "cumple": false
+        },
+        {
+          "fecha": "20260910",
+          "base": 20.9,
+          "produccion": 1805.0,
+          "uc": 86.36363636363637,
+          "cumple": false
+        },
+        {
+          "fecha": "20260911",
+          "base": 21.849999999999998,
+          "produccion": 1922.0,
+          "uc": 87.9633867276888,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 20.9,
+          "produccion": 1814.0,
+          "uc": 86.79425837320575,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 20.9,
+          "produccion": 1916.0,
+          "uc": 91.67464114832536,
+          "cumple": false
+        },
+        {
+          "fecha": "20260916",
+          "base": 20.9,
+          "produccion": 1980.0,
+          "uc": 94.73684210526316,
+          "cumple": false
+        },
+        {
+          "fecha": "20260917",
+          "base": 20.9,
+          "produccion": 1653.0,
+          "uc": 79.0909090909091,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 20.9,
+          "produccion": 1626.0,
+          "uc": 77.79904306220097,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 18.049999999999997,
+          "produccion": 2124.0,
+          "uc": 117.67313019390583,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 19.0,
+          "produccion": 1998.0,
+          "uc": 105.15789473684211,
+          "cumple": false
+        },
+        {
+          "fecha": "20260923",
+          "base": 19.0,
+          "produccion": 1670.0,
+          "uc": 87.89473684210526,
+          "cumple": false
+        },
+        {
+          "fecha": "20260924",
+          "base": 19.95,
+          "produccion": 1629.0,
+          "uc": 81.65413533834587,
+          "cumple": false
+        },
+        {
+          "fecha": "20260925",
+          "base": 19.95,
+          "produccion": 1815.0,
+          "uc": 90.97744360902256,
+          "cumple": false
+        },
+        {
+          "fecha": "20260928",
+          "base": 19.0,
+          "produccion": 1683.0,
+          "uc": 88.57894736842105,
+          "cumple": false
+        },
+        {
+          "fecha": "20260929",
+          "base": 19.0,
+          "produccion": 2214.0,
+          "uc": 116.52631578947368,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 19.0,
+          "produccion": 2358.0,
+          "uc": 124.10526315789474,
+          "cumple": true
+        }
+      ],
+      "personas": 23,
+      "mas": 11,
+      "menos": 11,
+      "igual": 1,
+      "actual_centavos": 559210834,
+      "nuevo_centavos": 665990000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-16",
+      "sector": "CD-REFRIGERADOS",
+      "funcion": "RECEPCIONISTA (REFRIG.)",
+      "operacion": "RECEPCION",
+      "division": "2,4",
+      "camara": "",
+      "unidad": "palets",
+      "objetivo": 70.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 15,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 83,
+          "dias_logrados": 12
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 53,
+          "dias_logrados": 23
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 42,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        101.87134502923978,
+        100.10526315789474,
+        98.3157894736842,
+        97.36842105263159,
+        94.61988304093569,
+        93.55263157894737,
+        90.26315789473685,
+        86.40350877192984,
+        86.0,
+        84.63157894736842,
+        83.44497607655504,
+        83.0622009569378,
+        81.81818181818183,
+        76.17224880382776,
+        73.39712918660288,
+        69.00584795321639,
+        68.94736842105263,
+        66.43274853801171,
+        65.08771929824562,
+        62.29665071770335,
+        56.081871345029235,
+        53.45029239766082,
+        53.21052631578947,
+        50.93567251461989,
+        50.27568922305765,
+        49.75069252077563,
+        48.12865497076024,
+        48.0701754385965,
+        46.16541353383459,
+        45.473684210526315,
+        44.21052631578947,
+        42.36842105263158,
+        42.1578947368421,
+        41.46198830409357,
+        40.80200501253133,
+        40.75187969924812,
+        39.94736842105263,
+        39.89473684210526,
+        38.12865497076024,
+        35.26315789473684,
+        35.05263157894737,
+        32.21052631578947,
+        31.315789473684216
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 8.549999999999999,
+          "produccion": 871.0,
+          "uc": 101.87134502923978,
+          "cumple": true
+        },
+        {
+          "fecha": "20260804",
+          "base": 9.5,
+          "produccion": 817.0,
+          "uc": 86.0,
+          "cumple": true
+        },
+        {
+          "fecha": "20260805",
+          "base": 9.5,
+          "produccion": 934.0,
+          "uc": 98.3157894736842,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 9.5,
+          "produccion": 804.0,
+          "uc": 84.63157894736842,
+          "cumple": true
+        },
+        {
+          "fecha": "20260807",
+          "base": 10.45,
+          "produccion": 651.0,
+          "uc": 62.29665071770335,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 8.549999999999999,
+          "produccion": 590.0,
+          "uc": 69.00584795321639,
+          "cumple": false
+        },
+        {
+          "fecha": "20260811",
+          "base": 8.549999999999999,
+          "produccion": 809.0,
+          "uc": 94.61988304093569,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 7.6,
+          "produccion": 686.0,
+          "uc": 90.26315789473685,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 7.6,
+          "produccion": 711.0,
+          "uc": 93.55263157894737,
+          "cumple": true
+        },
+        {
+          "fecha": "20260814",
+          "base": 9.5,
+          "produccion": 951.0,
+          "uc": 100.10526315789474,
+          "cumple": true
+        },
+        {
+          "fecha": "20260817",
+          "base": 11.399999999999999,
+          "produccion": 357.0,
+          "uc": 31.315789473684216,
+          "cumple": false
+        },
+        {
+          "fecha": "20260818",
+          "base": 10.45,
+          "produccion": 872.0,
+          "uc": 83.44497607655504,
+          "cumple": true
+        },
+        {
+          "fecha": "20260819",
+          "base": 8.549999999999999,
+          "produccion": 568.0,
+          "uc": 66.43274853801171,
+          "cumple": false
+        },
+        {
+          "fecha": "20260820",
+          "base": 10.45,
+          "produccion": 868.0,
+          "uc": 83.0622009569378,
+          "cumple": true
+        },
+        {
+          "fecha": "20260821",
+          "base": 10.45,
+          "produccion": 796.0,
+          "uc": 76.17224880382776,
+          "cumple": true
+        },
+        {
+          "fecha": "20260824",
+          "base": 11.399999999999999,
+          "produccion": 1110.0,
+          "uc": 97.36842105263159,
+          "cumple": true
+        },
+        {
+          "fecha": "20260825",
+          "base": 2.8499999999999996,
+          "produccion": 137.0,
+          "uc": 48.0701754385965,
+          "cumple": false
+        },
+        {
+          "fecha": "20260826",
+          "base": 10.45,
+          "produccion": 767.0,
+          "uc": 73.39712918660288,
+          "cumple": true
+        },
+        {
+          "fecha": "20260827",
+          "base": 10.45,
+          "produccion": 855.0,
+          "uc": 81.81818181818183,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 11.399999999999999,
+          "produccion": 985.0,
+          "uc": 86.40350877192984,
+          "cumple": true
+        },
+        {
+          "fecha": "20260831",
+          "base": 7.6,
+          "produccion": 524.0,
+          "uc": 68.94736842105263,
+          "cumple": false
+        },
+        {
+          "fecha": "20260901",
+          "base": 19.0,
+          "produccion": 612.0,
+          "uc": 32.21052631578947,
+          "cumple": false
+        },
+        {
+          "fecha": "20260902",
+          "base": 19.0,
+          "produccion": 864.0,
+          "uc": 45.473684210526315,
+          "cumple": false
+        },
+        {
+          "fecha": "20260903",
+          "base": 19.0,
+          "produccion": 759.0,
+          "uc": 39.94736842105263,
+          "cumple": false
+        },
+        {
+          "fecha": "20260904",
+          "base": 19.0,
+          "produccion": 670.0,
+          "uc": 35.26315789473684,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 19.0,
+          "produccion": 1011.0,
+          "uc": 53.21052631578947,
+          "cumple": false
+        },
+        {
+          "fecha": "20260908",
+          "base": 19.0,
+          "produccion": 666.0,
+          "uc": 35.05263157894737,
+          "cumple": false
+        },
+        {
+          "fecha": "20260909",
+          "base": 19.0,
+          "produccion": 758.0,
+          "uc": 39.89473684210526,
+          "cumple": false
+        },
+        {
+          "fecha": "20260910",
+          "base": 19.0,
+          "produccion": 805.0,
+          "uc": 42.36842105263158,
+          "cumple": false
+        },
+        {
+          "fecha": "20260911",
+          "base": 19.0,
+          "produccion": 801.0,
+          "uc": 42.1578947368421,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 19.95,
+          "produccion": 1003.0,
+          "uc": 50.27568922305765,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 19.95,
+          "produccion": 813.0,
+          "uc": 40.75187969924812,
+          "cumple": false
+        },
+        {
+          "fecha": "20260916",
+          "base": 19.95,
+          "produccion": 882.0,
+          "uc": 44.21052631578947,
+          "cumple": false
+        },
+        {
+          "fecha": "20260917",
+          "base": 19.95,
+          "produccion": 921.0,
+          "uc": 46.16541353383459,
+          "cumple": false
+        },
+        {
+          "fecha": "20260918",
+          "base": 19.95,
+          "produccion": 814.0,
+          "uc": 40.80200501253133,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 17.099999999999998,
+          "produccion": 1113.0,
+          "uc": 65.08771929824562,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 17.099999999999998,
+          "produccion": 823.0,
+          "uc": 48.12865497076024,
+          "cumple": false
+        },
+        {
+          "fecha": "20260923",
+          "base": 17.099999999999998,
+          "produccion": 871.0,
+          "uc": 50.93567251461989,
+          "cumple": false
+        },
+        {
+          "fecha": "20260924",
+          "base": 17.099999999999998,
+          "produccion": 652.0,
+          "uc": 38.12865497076024,
+          "cumple": false
+        },
+        {
+          "fecha": "20260925",
+          "base": 17.099999999999998,
+          "produccion": 709.0,
+          "uc": 41.46198830409357,
+          "cumple": false
+        },
+        {
+          "fecha": "20260928",
+          "base": 17.1,
+          "produccion": 914.0,
+          "uc": 53.45029239766082,
+          "cumple": false
+        },
+        {
+          "fecha": "20260929",
+          "base": 18.049999999999997,
+          "produccion": 898.0,
+          "uc": 49.75069252077563,
+          "cumple": false
+        },
+        {
+          "fecha": "20260930",
+          "base": 17.1,
+          "produccion": 959.0,
+          "uc": 56.081871345029235,
+          "cumple": false
+        }
+      ],
+      "personas": 22,
+      "mas": 13,
+      "menos": 7,
+      "igual": 2,
+      "actual_centavos": 310542785,
+      "nuevo_centavos": 344680000,
+      "inicial": false
+    },
+    {
+      "id": "perfil-17",
+      "sector": "CD-ADMINISTRACION",
+      "funcion": "CONTROLADOR DE STOCK SECOS NOA",
+      "operacion": "CONTROL",
+      "division": "1,6",
+      "camara": "",
+      "unidad": "PLUs",
+      "objetivo": 1300.0,
+      "factor": 5.0,
+      "dias": 43,
+      "con_base": 43,
+      "cumple": 17,
+      "referencias": [
+        {
+          "pct": 25,
+          "dias_objetivo": 11,
+          "umbral": 1412,
+          "dias_logrados": 11
+        },
+        {
+          "pct": 50,
+          "dias_objetivo": 22,
+          "umbral": 1231,
+          "dias_logrados": 22
+        },
+        {
+          "pct": 75,
+          "dias_objetivo": 33,
+          "umbral": 1118,
+          "dias_logrados": 33
+        }
+      ],
+      "valores": [
+        1578.8516746411485,
+        1552.7368421052631,
+        1521.7174515235458,
+        1499.157894736842,
+        1472.5761772853189,
+        1457.8947368421054,
+        1455.2354570637121,
+        1431.1052631578948,
+        1425.7063711911358,
+        1412.6315789473686,
+        1412.465373961219,
+        1400.657894736842,
+        1398.2296650717703,
+        1393.9473684210527,
+        1318.157894736842,
+        1316.7368421052631,
+        1313.2535885167465,
+        1297.4162679425838,
+        1294.3157894736844,
+        1279.0877192982457,
+        1257.846889952153,
+        1231.1052631578948,
+        1216.6315789473683,
+        1211.3397129186603,
+        1181.1634349030471,
+        1168.3684210526317,
+        1162.3684210526317,
+        1158.1163434903049,
+        1155.1196172248804,
+        1141.3296398891969,
+        1131.0803324099722,
+        1122.684210526316,
+        1118.708133971292,
+        1113.4736842105262,
+        1113.1301939058174,
+        1076.731301939058,
+        1070.3601108033242,
+        1067.8670360110805,
+        1054.404432132964,
+        1052.6315789473683,
+        1032.421052631579,
+        1014.3684210526316,
+        960.0000000000002
+      ],
+      "diario": [
+        {
+          "fecha": "20260803",
+          "base": 18.05,
+          "produccion": 19000.0,
+          "uc": 1052.6315789473683,
+          "cumple": false
+        },
+        {
+          "fecha": "20260804",
+          "base": 18.05,
+          "produccion": 20416.0,
+          "uc": 1131.0803324099722,
+          "cumple": false
+        },
+        {
+          "fecha": "20260805",
+          "base": 18.05,
+          "produccion": 25734.0,
+          "uc": 1425.7063711911358,
+          "cumple": true
+        },
+        {
+          "fecha": "20260806",
+          "base": 18.05,
+          "produccion": 21320.0,
+          "uc": 1181.1634349030471,
+          "cumple": false
+        },
+        {
+          "fecha": "20260807",
+          "base": 18.05,
+          "produccion": 19435.0,
+          "uc": 1076.731301939058,
+          "cumple": false
+        },
+        {
+          "fecha": "20260810",
+          "base": 18.049999999999997,
+          "produccion": 19032.0,
+          "uc": 1054.404432132964,
+          "cumple": false
+        },
+        {
+          "fecha": "20260811",
+          "base": 18.049999999999997,
+          "produccion": 26580.0,
+          "uc": 1472.5761772853189,
+          "cumple": true
+        },
+        {
+          "fecha": "20260812",
+          "base": 18.049999999999997,
+          "produccion": 27467.0,
+          "uc": 1521.7174515235458,
+          "cumple": true
+        },
+        {
+          "fecha": "20260813",
+          "base": 18.049999999999997,
+          "produccion": 19275.0,
+          "uc": 1067.8670360110805,
+          "cumple": false
+        },
+        {
+          "fecha": "20260814",
+          "base": 18.049999999999997,
+          "produccion": 20904.0,
+          "uc": 1158.1163434903049,
+          "cumple": false
+        },
+        {
+          "fecha": "20260817",
+          "base": 7.6,
+          "produccion": 10645.0,
+          "uc": 1400.657894736842,
+          "cumple": true
+        },
+        {
+          "fecha": "20260818",
+          "base": 18.999999999999996,
+          "produccion": 21331.0,
+          "uc": 1122.684210526316,
+          "cumple": false
+        },
+        {
+          "fecha": "20260819",
+          "base": 18.999999999999996,
+          "produccion": 27700.0,
+          "uc": 1457.8947368421054,
+          "cumple": true
+        },
+        {
+          "fecha": "20260820",
+          "base": 18.999999999999996,
+          "produccion": 24592.0,
+          "uc": 1294.3157894736844,
+          "cumple": false
+        },
+        {
+          "fecha": "20260821",
+          "base": 18.999999999999996,
+          "produccion": 18240.0,
+          "uc": 960.0000000000002,
+          "cumple": false
+        },
+        {
+          "fecha": "20260824",
+          "base": 20.9,
+          "produccion": 24142.0,
+          "uc": 1155.1196172248804,
+          "cumple": false
+        },
+        {
+          "fecha": "20260825",
+          "base": 10.45,
+          "produccion": 16499.0,
+          "uc": 1578.8516746411485,
+          "cumple": true
+        },
+        {
+          "fecha": "20260826",
+          "base": 20.9,
+          "produccion": 26289.0,
+          "uc": 1257.846889952153,
+          "cumple": false
+        },
+        {
+          "fecha": "20260827",
+          "base": 20.9,
+          "produccion": 29223.0,
+          "uc": 1398.2296650717703,
+          "cumple": true
+        },
+        {
+          "fecha": "20260828",
+          "base": 20.9,
+          "produccion": 25317.0,
+          "uc": 1211.3397129186603,
+          "cumple": false
+        },
+        {
+          "fecha": "20260831",
+          "base": 14.249999999999998,
+          "produccion": 18227.0,
+          "uc": 1279.0877192982457,
+          "cumple": false
+        },
+        {
+          "fecha": "20260901",
+          "base": 20.9,
+          "produccion": 29524.0,
+          "uc": 1412.6315789473686,
+          "cumple": true
+        },
+        {
+          "fecha": "20260902",
+          "base": 20.9,
+          "produccion": 27447.0,
+          "uc": 1313.2535885167465,
+          "cumple": true
+        },
+        {
+          "fecha": "20260903",
+          "base": 20.9,
+          "produccion": 27116.0,
+          "uc": 1297.4162679425838,
+          "cumple": false
+        },
+        {
+          "fecha": "20260904",
+          "base": 20.9,
+          "produccion": 23381.0,
+          "uc": 1118.708133971292,
+          "cumple": false
+        },
+        {
+          "fecha": "20260907",
+          "base": 19.0,
+          "produccion": 22085.0,
+          "uc": 1162.3684210526317,
+          "cumple": false
+        },
+        {
+          "fecha": "20260908",
+          "base": 19.0,
+          "produccion": 27191.0,
+          "uc": 1431.1052631578948,
+          "cumple": true
+        },
+        {
+          "fecha": "20260909",
+          "base": 19.0,
+          "produccion": 28484.0,
+          "uc": 1499.157894736842,
+          "cumple": true
+        },
+        {
+          "fecha": "20260910",
+          "base": 19.0,
+          "produccion": 25045.0,
+          "uc": 1318.157894736842,
+          "cumple": true
+        },
+        {
+          "fecha": "20260911",
+          "base": 19.0,
+          "produccion": 19273.0,
+          "uc": 1014.3684210526316,
+          "cumple": false
+        },
+        {
+          "fecha": "20260914",
+          "base": 19.0,
+          "produccion": 19616.0,
+          "uc": 1032.421052631579,
+          "cumple": false
+        },
+        {
+          "fecha": "20260915",
+          "base": 19.0,
+          "produccion": 21156.0,
+          "uc": 1113.4736842105262,
+          "cumple": false
+        },
+        {
+          "fecha": "20260916",
+          "base": 19.0,
+          "produccion": 23391.0,
+          "uc": 1231.1052631578948,
+          "cumple": false
+        },
+        {
+          "fecha": "20260917",
+          "base": 19.0,
+          "produccion": 29502.0,
+          "uc": 1552.7368421052631,
+          "cumple": true
+        },
+        {
+          "fecha": "20260918",
+          "base": 19.0,
+          "produccion": 22199.0,
+          "uc": 1168.3684210526317,
+          "cumple": false
+        },
+        {
+          "fecha": "20260921",
+          "base": 18.049999999999997,
+          "produccion": 20092.0,
+          "uc": 1113.1301939058174,
+          "cumple": false
+        },
+        {
+          "fecha": "20260922",
+          "base": 18.049999999999997,
+          "produccion": 26267.0,
+          "uc": 1455.2354570637121,
+          "cumple": true
+        },
+        {
+          "fecha": "20260923",
+          "base": 18.049999999999997,
+          "produccion": 25495.0,
+          "uc": 1412.465373961219,
+          "cumple": true
+        },
+        {
+          "fecha": "20260924",
+          "base": 18.049999999999997,
+          "produccion": 19320.0,
+          "uc": 1070.3601108033242,
+          "cumple": false
+        },
+        {
+          "fecha": "20260925",
+          "base": 18.049999999999997,
+          "produccion": 20601.0,
+          "uc": 1141.3296398891969,
+          "cumple": false
+        },
+        {
+          "fecha": "20260928",
+          "base": 19.0,
+          "produccion": 26485.0,
+          "uc": 1393.9473684210527,
+          "cumple": true
+        },
+        {
+          "fecha": "20260929",
+          "base": 19.0,
+          "produccion": 25018.0,
+          "uc": 1316.7368421052631,
+          "cumple": true
+        },
+        {
+          "fecha": "20260930",
+          "base": 19.0,
+          "produccion": 23116.0,
+          "uc": 1216.6315789473683,
+          "cumple": false
+        }
+      ],
+      "personas": 22,
+      "mas": 16,
+      "menos": 6,
+      "igual": 0,
+      "actual_centavos": 776963316,
+      "nuevo_centavos": 843080000,
+      "inicial": false
+    }
+  ]
+}

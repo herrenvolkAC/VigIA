@@ -4,30 +4,171 @@
   const money = value => (Number(value || 0) / 100).toLocaleString('es-AR', {style:'currency', currency:'ARS'});
   const values = (rows, key) => [...new Set(rows.map(row => String(row[key] || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'es'));
   const select = (label, id) => `<label class="field">${label}<select class="input" id="${id}"><option value="">Todos</option></select></label>`;
+  const hms = value => { const total = Math.max(0, Math.round(Number(value || 0))); const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; };
   const installSummary = () => {
-    const view = $('view-resumen-legajos'); if (!view || $('rl-sector')) return;
-    const bar = document.createElement('div'); bar.style.cssText = 'display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:10px 0';
-    bar.innerHTML = select('Sector','rl-sector') + select('Función','rl-funcion') + select('Turno','rl-turno');
-    view.insertBefore(bar, view.querySelector('.table-wrap'));
-    let rows = [], note = '';
-    const paint = () => {
-      const sector=$('rl-sector').value, funcion=$('rl-funcion').value, turno=$('rl-turno').value;
-      const filtered=rows.filter(x=>(!sector||x.sector===sector)&&(!funcion||x.funcion===funcion)&&(!turno||String(x.turno_madre)===turno));
-      $('resumen-legajos-rows').innerHTML=filtered.map(x=>`<tr><td>${esc(x.legajo)}</td><td>${esc(x.nombre)}</td><td>${esc(x.sector)}</td><td>${esc(x.funcion)}</td><td>${esc(x.turno_madre)}</td><td>${money(x.pago_actual_centavos)}</td><td>${money(x.individual_nuevo_centavos)}</td><td>${money(x.polivalencia_nuevo_centavos)}</td><td>${money(x.grupal_nuevo_centavos)}</td><td>${money(x.total_nuevo_centavos)}</td><td>${money(x.diferencia_centavos)}</td></tr>`).join('') || '<tr><td colspan="11">Sin datos para los filtros elegidos.</td></tr>';
-      $('resumen-legajos-meta').textContent=`${filtered.length} de ${rows.length} legajos${note?` · ${note}`:''}`;
+    const view = $('view-resumen-legajos'); if (!view) return;
+    const oldDetail = $('resumen-legajo-detalle'); if (oldDetail) oldDetail.remove();
+    if (!view.dataset.actividadResumen) {
+      view.dataset.actividadResumen = '1';
+      const title = view.querySelector('.view-title strong'); if (title) title.textContent = 'Actividad productiva por legajo';
+      const table = view.querySelector('.table-wrap table');
+      if (table?.tHead?.rows?.[0]) {
+        table.tHead.rows[0].innerHTML = '<th>Fecha</th><th>Legajo</th><th>Nombre</th><th>Sector legajero</th><th>Función legajero</th><th>Funciones WMS agrupadas</th><th>Operación</th><th>Otras operaciones medibles</th><th>División</th><th>Producción real</th><th>Unidad</th><th>Tiempo</th><th>Bultos</th><th>Palets</th><th>Etapas</th><th>Tiempo inconsistente</th>';
+      }
+      const mainWrap = view.querySelector('.table-wrap');
+      const bar = document.createElement('div'); bar.style.cssText = 'display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:10px 0';
+      bar.innerHTML = '<label class="field">Fecha desde<input class="input" id="rl-desde" type="date"></label><label class="field">Fecha hasta<input class="input" id="rl-hasta" type="date"></label>' + select('Operación','rl-operacion') + '<label class="field">Filas por página<select class="input" id="rl-limit"><option value="500">500</option><option value="1000" selected>1000</option><option value="2000">2000</option><option value="5000">5000</option></select></label>' + select('Sector legajero','rl-sector') + select('Función legajero','rl-funcion') + select('División','rl-division') + '<button class="primary" id="rl-consultar" type="button">Consultar resumen</button><button class="secondary" id="rl-prev" type="button" disabled>Anterior</button><button class="secondary" id="rl-next" type="button" disabled>Siguiente</button>';
+      view.insertBefore(bar, mainWrap);
+      const summary = document.createElement('section');
+      summary.id = 'resumen-legajos-operaciones';
+      summary.innerHTML = '<div class="view-title"><strong>Resumen por operación y división</strong><span id="rl-resumen-meta">Elegí fechas y presioná Consultar resumen.</span></div><div class="table-wrap"><table><thead><tr><th>Operación</th><th>División</th><th>Días con actividad</th><th>Legajos con actividad</th><th>Unidad</th><th>Bultos</th><th>Palets</th><th>Producción real</th><th>Productividad promedio</th><th>Tiempo</th><th>Etapas</th><th>Tiempo inconsistente</th></tr></thead><tbody id="rl-resumen-rows"><tr><td colspan="12">Sin consulta ejecutada.</td></tr></tbody></table></div>';
+      view.insertBefore(summary, mainWrap);
+      const detail = document.createElement('section');
+      detail.id = 'resumen-legajos-dia-detalle';
+      detail.innerHTML = '<div class="view-title"><strong>Actividad completa del legajo/día</strong><span id="rl-dia-meta">Seleccioná una fila.</span></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Legajo</th><th>Funciones WMS agrupadas</th><th>Operación</th><th>División</th><th>Producción real</th><th>Unidad</th><th>Tiempo</th><th>Bultos</th><th>Palets</th><th>Etapas</th><th>Tiempo inconsistente</th></tr></thead><tbody id="rl-dia-rows"><tr><td colspan="12">Seleccioná una fila de la grilla superior.</td></tr></tbody></table></div>';
+      mainWrap.after(detail);
+      $('rl-desde').value = $('desde')?.value || '';
+      $('rl-hasta').value = $('hasta')?.value || '';
+      ['rl-sector','rl-funcion','rl-operacion','rl-division'].forEach(id => $(id).onchange = () => view.__resumenActividadPaint?.());
+      $('rl-consultar').onclick = () => { view.__resumenActividadOffset = 0; view.__resumenActividadDivisionConsulta = ''; view.__resumenOperacionesLoad?.(); };
+      $('rl-prev').onclick = () => { view.__resumenActividadOffset = Math.max(0, Number(view.__resumenActividadOffset || 0) - Number($('rl-limit').value || 1000)); view.__resumenActividadLoad?.(); };
+      $('rl-next').onclick = () => { view.__resumenActividadOffset = Number(view.__resumenActividadOffset || 0) + Number($('rl-limit').value || 1000); view.__resumenActividadLoad?.(); };
+      $('rl-resumen-rows').addEventListener('click', event => {
+        const row = event.target.closest('tr'); if (!row || row.cells.length < 2 || !row.dataset.operacion) return;
+        [...$('rl-resumen-rows').rows].forEach(item => item.classList.toggle('hierarchy-selected', item === row));
+        $('rl-operacion').value = row.dataset.operacion;
+        view.__resumenActividadDivisionConsulta = row.dataset.division || '';
+        view.__resumenActividadOffset = 0;
+        view.__resumenActividadLoad?.();
+      });
+      table?.tHead?.addEventListener('click', event => {
+        const th = event.target.closest('th'); if (!th) return;
+        const column = [...th.parentElement.cells].indexOf(th), direction = th.dataset.sortDir === '1' ? -1 : 1;
+        [...th.parentElement.cells].forEach(head => delete head.dataset.sortDir); th.dataset.sortDir = String(direction);
+        const numeric = value => Number(String(value || '').replace(/[^0-9,-]/g, '').replace(/\./g, '').replace(',', '.'));
+        [...$('resumen-legajos-rows').rows].filter(row => row.cells.length > 1).sort((a,b) => {
+          const av = a.cells[column]?.textContent.trim() || '', bv = b.cells[column]?.textContent.trim() || '', an = numeric(av), bn = numeric(bv);
+          return direction * (Number.isFinite(an) && Number.isFinite(bn) && String(av).match(/\d/) && String(bv).match(/\d/) ? an - bn : av.localeCompare(bv, 'es', {numeric:true, sensitivity:'base'}));
+        }).forEach(row => $('resumen-legajos-rows').appendChild(row));
+      });
+      $('resumen-legajos-rows').addEventListener('click', async event => {
+        const row = event.target.closest('tr'); if (!row || row.cells.length < 2) return;
+        const fecha = row.cells[0].textContent.trim(), legajo = row.cells[1].textContent.trim();
+        if (!fecha || !legajo) return;
+        [...$('resumen-legajos-rows').rows].forEach(item => item.classList.toggle('hierarchy-selected', item === row));
+        const meta = $('rl-dia-meta'), body = $('rl-dia-rows');
+        meta.textContent = `Legajo ${legajo} · ${fecha} · consultando actividad completa…`;
+        body.innerHTML = '<tr><td colspan="12">Consultando actividad completa del día…</td></tr>';
+        try {
+          const iso = `${fecha.slice(0,4)}-${fecha.slice(4,6)}-${fecha.slice(6,8)}`;
+          const q = new URLSearchParams({fecha_desde:iso, fecha_hasta:iso, legajo, limit:'5000', offset:'0'});
+          const response = await fetch('/api/estudio-premios-productividad/resumen-legajos/actividad?'+q,{credentials:'same-origin'});
+          const data = await response.json(); if (!response.ok) throw Error(data.detail || 'No se pudo cargar la actividad del día.');
+          body.innerHTML = (data.rows || []).map(item => `<tr><td class="mono">${esc(item.fecha)}</td><td class="mono">${esc(item.legajo)}</td><td>${esc(item.funcion_realizada)}</td><td>${esc(item.operacion_agrupada)}</td><td>${esc(division(item))}</td><td class="mono">${num(item.produccion_real)}</td><td>${esc(item.unidad||'')}</td><td class="mono">${hms(item.segundos_validos)}</td><td class="mono">${num(item.bultos)}</td><td class="mono">${num(item.palets)}</td><td class="mono">${num(item.etapas)}</td><td class="mono">${num(item.etapas_inconsistentes_tiempo)}</td></tr>`).join('') || '<tr><td colspan="12">No hay actividad productiva para ese legajo/día.</td></tr>';
+          meta.textContent = `Legajo ${legajo} · ${fecha} · ${(data.rows || []).length} filas de actividad`;
+        } catch (error) {
+          body.innerHTML = `<tr><td colspan="12">${esc(error.message)}</td></tr>`;
+          meta.textContent = error.message;
+        }
+      });
+      fetch('/api/estudio-premios-productividad/resumen-legajos/actividad/catalogo',{credentials:'same-origin'})
+        .then(r=>r.json().then(d=>({ok:r.ok,d})))
+        .then(({ok,d})=>{if(!ok)throw Error(d.detail||'No se pudo cargar operaciones.');$('rl-operacion').innerHTML='<option value="">Seleccioná operación</option>'+(d.operaciones||[]).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');})
+        .catch(e=>$('resumen-legajos-meta').textContent=e.message);
+    }
+    let rows = view.__resumenActividadRows || [], note = view.__resumenActividadNote || '';
+    const num = value => Number(value || 0).toLocaleString('es-AR', {maximumFractionDigits:2});
+    const division = item => item.division_desc ? `${item.division} · ${item.division_desc}` : (item.division || '—');
+    const sortTable = (tbody, header) => {
+      const column = [...header.parentElement.cells].indexOf(header), direction = header.dataset.sortDir === '1' ? -1 : 1;
+      [...header.parentElement.cells].forEach(head => delete head.dataset.sortDir); header.dataset.sortDir = String(direction);
+      const numeric = value => Number(String(value || '').replace(/[^0-9,-]/g, '').replace(/\./g, '').replace(',', '.'));
+      [...tbody.rows].filter(row => row.cells.length > 1).sort((a,b) => {
+        const av = a.cells[column]?.textContent.trim() || '', bv = b.cells[column]?.textContent.trim() || '', an = numeric(av), bn = numeric(bv);
+        return direction * (Number.isFinite(an) && Number.isFinite(bn) && String(av).match(/\d/) && String(bv).match(/\d/) ? an - bn : av.localeCompare(bv, 'es', {numeric:true, sensitivity:'base'}));
+      }).forEach(row => tbody.appendChild(row));
     };
-    async function load() { const r=await fetch('/api/estudio-premios-productividad/resumen-legajos?fecha_desde='+encodeURIComponent($('desde').value)+'&fecha_hasta='+encodeURIComponent($('hasta').value),{credentials:'same-origin'}); const d=await r.json(); if(!r.ok) throw Error(d.detail||'No se pudo cargar el resumen.'); rows=d.rows||[]; note=d.nota||''; [['rl-sector','sector'],['rl-funcion','funcion'],['rl-turno','turno_madre']].forEach(([id,key])=>$(id).innerHTML='<option value="">Todos</option>'+values(rows,key).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')); paint(); }
-    ['rl-sector','rl-funcion','rl-turno'].forEach(id=>$(id).onchange=paint);
-    document.querySelector('[data-view="resumen-legajos"]').addEventListener('click',()=>setTimeout(()=>load().catch(e=>$('resumen-legajos-meta').textContent=e.message),0));
-    load().catch(e=>$('resumen-legajos-meta').textContent=e.message);
+    if (!view.dataset.actividadResumenSort) {
+      view.dataset.actividadResumenSort = '1';
+      $('resumen-legajos-operaciones')?.querySelector('thead')?.addEventListener('click', event => {
+        const th = event.target.closest('th'); if (th) sortTable($('rl-resumen-rows'), th);
+      });
+    }
+    const paint = () => {
+      const sector=$('rl-sector')?.value || '', funcion=$('rl-funcion')?.value || '', div=$('rl-division')?.value || '';
+      const filtered=rows.filter(x=>(!sector||x.sector_legajero===sector)&&(!funcion||x.funcion_legajero===funcion)&&(!div||String(x.division)===div));
+      $('resumen-legajos-rows').innerHTML=filtered.map(x=>`<tr><td class="mono">${esc(x.fecha)}</td><td class="mono">${esc(x.legajo)}</td><td>${esc(x.nombre)}</td><td>${esc(x.sector_legajero)}</td><td>${esc(x.funcion_legajero)}</td><td>${esc(x.funcion_realizada)}</td><td>${esc(x.operacion_agrupada)}</td><td>${esc(x.otras_operaciones_medibles||'—')}</td><td>${esc(division(x))}</td><td class="mono">${num(x.produccion_real)}</td><td>${esc(x.unidad||'')}</td><td class="mono">${hms(x.segundos_validos)}</td><td class="mono">${num(x.bultos)}</td><td class="mono">${num(x.palets)}</td><td class="mono">${num(x.etapas)}</td><td class="mono">${num(x.etapas_inconsistentes_tiempo)}</td></tr>`).join('') || '<tr><td colspan="16">Sin actividad productiva para los filtros elegidos.</td></tr>';
+      const total=Number(view.__resumenActividadTotal || rows.length), offset=Number(view.__resumenActividadOffset || 0), limit=Number(view.__resumenActividadLimit || rows.length);
+      const pageEnd=Math.min(offset + rows.length, total);
+      $('resumen-legajos-meta').textContent=`Mostrando ${offset + 1}-${pageEnd} de ${total} filas totales · ${filtered.length} visibles en esta página${note?` · ${note}`:''}`;
+    };
+    view.__resumenActividadPaint = paint;
+    async function load() {
+      const ticket = String(Date.now()); view.dataset.actividadTicket = ticket;
+      const button = $('rl-consultar'); if (button) button.disabled = true;
+      const prev = $('rl-prev'), next = $('rl-next'); if (prev) prev.disabled = true; if (next) next.disabled = true;
+      $('resumen-legajos-meta').textContent='Consultando actividad productiva…';
+      try {
+        const limit=Number($('rl-limit').value || 1000), offset=Number(view.__resumenActividadOffset || 0), operacion=$('rl-operacion').value, divisionConsulta=view.__resumenActividadDivisionConsulta || $('rl-division').value || '';
+        if (!operacion) throw Error('Seleccioná una operación antes de consultar.');
+        const q = new URLSearchParams({fecha_desde:$('rl-desde').value || $('desde').value, fecha_hasta:$('rl-hasta').value || $('hasta').value, legajo:$('legajo').value.trim(), operacion, division:divisionConsulta, limit:String(limit), offset:String(offset)});
+        const r=await fetch('/api/estudio-premios-productividad/resumen-legajos/actividad?'+q,{credentials:'same-origin'}); const d=await r.json(); if(!r.ok) throw Error(d.detail||'No se pudo cargar la actividad productiva.');
+        if (view.dataset.actividadTicket !== ticket) return;
+        rows=d.rows||[]; note=d.nota||''; view.__resumenActividadRows=rows; view.__resumenActividadNote=note;
+        view.__resumenActividadTotal=Number(d.total || rows.length); view.__resumenActividadLimit=Number(d.limit || limit); view.__resumenActividadOffset=Number(d.offset || offset);
+        [['rl-sector','sector_legajero'],['rl-funcion','funcion_legajero'],['rl-division','division']].forEach(([id,key])=>$(id).innerHTML='<option value="">Todos</option>'+values(rows,key).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join(''));
+        paint();
+      } catch (e) {
+        if (view.dataset.actividadTicket === ticket) $('resumen-legajos-meta').textContent=e.message;
+      } finally {
+        if (view.dataset.actividadTicket === ticket && button) button.disabled = false;
+        if (view.dataset.actividadTicket === ticket && prev) prev.disabled = Number(view.__resumenActividadOffset || 0) <= 0;
+        if (view.dataset.actividadTicket === ticket && next) next.disabled = Number(view.__resumenActividadOffset || 0) + rows.length >= Number(view.__resumenActividadTotal || rows.length);
+      }
+    }
+    view.__resumenActividadLoad = load;
+    async function loadSummary() {
+      const button = $('rl-consultar'); if (button) button.disabled = true;
+      $('rl-resumen-meta').textContent = 'Consultando resumen de operaciones…';
+        $('rl-resumen-rows').innerHTML = '<tr><td colspan="12">Consultando resumen…</td></tr>';
+      try {
+        const q = new URLSearchParams({fecha_desde:$('rl-desde').value || $('desde').value, fecha_hasta:$('rl-hasta').value || $('hasta').value});
+        const r = await fetch('/api/estudio-premios-productividad/resumen-legajos/actividad/resumen?'+q,{credentials:'same-origin'});
+        const d = await r.json(); if(!r.ok) throw Error(d.detail || 'No se pudo cargar el resumen.');
+        $('rl-resumen-rows').innerHTML = (d.rows || []).map(item => `<tr data-operacion="${esc(item.operacion_agrupada)}" data-division="${esc(item.division)}"><td>${esc(item.operacion_agrupada)}</td><td>${esc(division(item))}</td><td class="mono">${num(item.dias_con_actividad)}</td><td class="mono">${num(item.legajos_con_actividad)}</td><td>${esc(item.unidad || '')}</td><td class="mono">${num(item.bultos)}</td><td class="mono">${num(item.palets)}</td><td class="mono">${num(item.produccion_real)}</td><td class="mono">${num(item.productividad_promedio)}</td><td class="mono">${hms(item.segundos_validos)}</td><td class="mono">${num(item.etapas)}</td><td class="mono">${num(item.etapas_inconsistentes_tiempo)}</td></tr>`).join('') || '<tr><td colspan="12">No hay actividad para el rango seleccionado.</td></tr>';
+        $('rl-resumen-meta').textContent = `${(d.rows || []).length} operaciones/divisiones · seleccioná una fila para ver el detalle por legajo/día.`;
+        $('resumen-legajos-meta').textContent = 'Seleccioná una fila del resumen superior para cargar el detalle.';
+        $('resumen-legajos-rows').innerHTML = '<tr><td colspan="16">Seleccioná una operación/división del resumen superior.</td></tr>';
+        $('rl-dia-meta').textContent = 'Seleccioná una fila del detalle por legajo/día.';
+        $('rl-dia-rows').innerHTML = '<tr><td colspan="12">Seleccioná una fila de la grilla de detalle.</td></tr>';
+      } catch (e) {
+        $('rl-resumen-meta').textContent = e.message;
+        $('rl-resumen-rows').innerHTML = `<tr><td colspan="12">${esc(e.message)}</td></tr>`;
+      } finally {
+        if (button) button.disabled = false;
+      }
+    }
+    view.__resumenOperacionesLoad = loadSummary;
+    if (!view.__resumenActividadRows) {
+      $('resumen-legajos-meta').textContent = 'Elegí fechas y presioná Consultar para cargar la actividad productiva.';
+      $('resumen-legajos-rows').innerHTML = '<tr><td colspan="16">Sin consulta ejecutada.</td></tr>';
+    } else {
+      paint();
+    }
   };
   const installSummaryDetail = () => {
-    const view=$('view-resumen-legajos'); if(!view||$('resumen-legajo-detalle-rows'))return;
-    const table=view.querySelector('.table-wrap'); if(!table)return;
-    const detail=document.createElement('section');detail.id='resumen-legajo-detalle';detail.innerHTML='<div class="view-title"><strong>Detalle diario por función</strong><span id="resumen-legajo-detalle-meta">Seleccioná un legajo.</span></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Función / operación</th><th>Grupo productivo</th><th>Pago actual Oracle</th><th>Individual nuevo</th><th>Polivalencia nueva</th><th>Grupal nuevo</th><th>Total nuevo</th><th>Diferencia</th></tr></thead><tbody id="resumen-legajo-detalle-rows"><tr><td colspan="9">Seleccioná un legajo.</td></tr></tbody></table></div>';
-    detail.addEventListener('click',event=>{const th=event.target.closest('th');if(!th)return;const table=th.closest('table'),column=[...th.parentElement.cells].indexOf(th),body=table.tBodies[0],direction=th.dataset.sortDir==='1'?-1:1;[...th.parentElement.cells].forEach(head=>delete head.dataset.sortDir);th.dataset.sortDir=String(direction);const numeric=value=>Number(String(value||'').replace(/[^0-9,-]/g,'').replace(/\./g,'').replace(',','.'));[...body.rows].filter(row=>row.cells.length>1).sort((a,b)=>{const av=a.cells[column]?.textContent.trim()||'',bv=b.cells[column]?.textContent.trim()||'',an=numeric(av),bn=numeric(bv);return direction*(Number.isFinite(an)&&Number.isFinite(bn)?an-bn:av.localeCompare(bv,'es',{numeric:true,sensitivity:'base'}));}).forEach(row=>body.appendChild(row));});
-    table.after(detail);
-    view.addEventListener('click',async event=>{const row=event.target.closest('#resumen-legajos-rows tr');if(!row||row.cells.length<11)return;const legajo=row.cells[0].textContent.trim();if(!legajo)return;[...$('resumen-legajos-rows').rows].forEach(item=>item.classList.toggle('hierarchy-selected',item===row));const meta=$('resumen-legajo-detalle-meta'),body=$('resumen-legajo-detalle-rows');meta.textContent=`Legajo ${legajo} · consultando detalle…`;body.innerHTML='<tr><td colspan="9">Consultando pagos por fecha y función…</td></tr>';try{const q=new URLSearchParams({legajo,fecha_desde:$('desde').value,fecha_hasta:$('hasta').value});const response=await fetch('/api/estudio-premios-productividad/resumen-legajos/detalle?'+q,{credentials:'same-origin'}),data=await response.json();if(!response.ok)throw Error(data.detail||'No se pudo cargar el detalle.');const money=value=>(Number(value||0)/100).toLocaleString('es-AR',{style:'currency',currency:'ARS'});body.innerHTML=(data.rows||[]).map(item=>`<tr><td class="mono">${esc(item.fecha)}</td><td>${esc(item.operacion)}</td><td>${esc(item.grupo_productivo||'—')}</td><td class="mono">${money(item.pago_actual_centavos)}</td><td class="mono">${money(item.individual_nuevo_centavos)}</td><td class="mono">${money(item.polivalencia_nuevo_centavos)}</td><td class="mono">${money(item.grupal_nuevo_centavos)}</td><td class="mono">${money(item.total_nuevo_centavos)}</td><td class="mono">${money(item.diferencia_centavos)}</td></tr>`).join('')||'<tr><td colspan="9">El legajo no tiene pagos para el período.</td></tr>';meta.textContent=`Legajo ${legajo} · ${(data.rows||[]).length} filas por fecha y función`;}catch(error){body.innerHTML=`<tr><td colspan="9">${esc(error.message)}</td></tr>`;meta.textContent=error.message;}});
+    const oldDetail = $('resumen-legajo-detalle'); if (oldDetail) oldDetail.remove();
+  };
+  window.loadResumenLegajos = async () => {
+    if (!$('resumen-legajos-rows')) {
+      const section = document.createElement('section');
+      section.className = 'view';
+      section.id = 'view-resumen-legajos';
+      section.innerHTML = '<div class="view-title"><strong>Actividad productiva por legajo</strong></div><div class="status" id="resumen-legajos-meta"></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Legajo</th><th>Nombre</th><th>Sector legajero</th><th>Función legajero</th><th>Funciones WMS agrupadas</th><th>Operación</th><th>Otras operaciones medibles</th><th>División</th><th>Producción real</th><th>Unidad</th><th>Tiempo</th><th>Bultos</th><th>Palets</th><th>Etapas</th><th>Tiempo inconsistente</th></tr></thead><tbody id="resumen-legajos-rows"></tbody></table></div>';
+      document.querySelector('main').appendChild(section);
+    }
+    document.querySelectorAll('.view').forEach(item => item.classList.toggle('active', item.id === 'view-resumen-legajos'));
+    installSummary();
   };
   const installPol = () => {
     const view=$('view-polivalencias-datos'); if(!view||$('pd-sector'))return;
