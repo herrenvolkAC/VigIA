@@ -47,14 +47,15 @@ def suggestion(p, number):
     return 'Mantener como referencia y validar el costo del escenario.'
 
 
-def profile(p, number, single=False):
+def profile(p, number, single=False, include_payroll=False):
     pose, status, label = access_level(p['cumple'], p['dias'], bool(p['con_base']))
     pct = p['cumple'] / p['dias'] * 100
     ref = p['referencias'][1]
     ref_pct = ref['dias_logrados'] / p['dias'] * 100 if ref['umbral'] is not None else 0
     name = p['sector'] if not p['camara'] else p['camara']
+    payroll_button = f'<button type="button" class="detail-button payroll-open" data-open-payroll="{p["id"]}" aria-haspopup="dialog">Nómina diaria</button>' if include_payroll else ''
     return f'''<article class="compact-profile {'solo-profile' if single else ''}" id="{p['id']}" style="{op_style(p)}" data-profile="{p['id']}">
-      <header class="compact-profile-title"><div><h3>{escape(name)} <span>{escape(operation_title(p)) if not p['camara'] else ''}</span></h3><p>{escape(p['funcion'])}</p></div><div class="profile-actions"><button type="button" class="detail-button" data-open-profile="poly-summary-{p['id']}" aria-haspopup="dialog">Polivalencias</button><button type="button" class="detail-button" data-open-profile="{p['id']}" aria-haspopup="dialog">Ver detalle</button></div></header>
+      <header class="compact-profile-title"><div><h3>{escape(name)} <span>{escape(operation_title(p)) if not p['camara'] else ''}</span></h3><p>{escape(p['funcion'])}</p></div><div class="profile-actions">{payroll_button}<button type="button" class="detail-button" data-open-profile="poly-summary-{p['id']}" aria-haspopup="dialog">Polivalencias</button><button type="button" class="detail-button" data-open-profile="{p['id']}" aria-haspopup="dialog">Ver detalle</button></div></header>
       <div class="compact-comparison">
         <div class="compact-character"><div class="worker-pose {pose}" data-access-level="{pose}" role="img" aria-label="{escape(label)}" title="{escape(label)}"></div><span>{status}</span></div>
         <div class="compact-access"><span class="metric-label">Umbral vigente <b>{number(p['objetivo'])} {p['unidad']}/op.</b></span><div class="access-figure"><strong>{p['cumple']}</strong><span>de {p['dias']} días<b>{number(pct,1)}%</b></span></div><div class="access-track" role="img" aria-label="Alcanza el grupal {p['cumple']} de {p['dias']} días"><i style="width:{pct:.5f}%"></i></div></div>
@@ -120,22 +121,33 @@ def dialog(p, chart, number, report):
     return f'''<dialog class="profile-dialog" id="detalle-{p['id']}" aria-labelledby="titulo-{p['id']}"><div class="dialog-heading"><div><span>{escape(p['sector'])} · {escape(p['funcion'])}</span><h2 id="titulo-{p['id']}">{escape(operation_title(p))}</h2></div><button type="button" class="control-button" data-close-profile aria-label="Cerrar detalle">Cerrar ×</button></div><div class="dialog-body">{chart(p)}<div class="dialog-refs">{refs}</div><div class="dialog-pay"><h3>Pago propuesto vigente</h3><p>Actual: $ {number(p['actual_centavos']/100)} · Propuesto: $ {number(p['nuevo_centavos']/100)} · Variación: {budget(p,number)}</p>{people_bar(p)}</div><h3>Calendario diario del umbral vigente</h3><div class="dialog-calendar">{''.join(f'<span class="{"hit" if d["cumple"] else ""}"><b>{d["fecha"][6:8]}/{d["fecha"][4:6]}</b>{"Alcanza" if d["cumple"] else ("Sin base" if not d["base"] else "No alcanza")}</span>' for d in p['diario'])}</div><div class="dialog-criteria"><h3>Alcance y criterios</h3><p>Umbral diario = producción computable / [nómina computable × (1 − factor de ausentismo)]. Factor de este perfil: {number(p['factor'])}%. Se exige superar estrictamente la meta. Las referencias enteras y los empates pueden producir más días que el porcentaje objetivo.</p><p>Calendario común de {report['dias']} días de lunes a viernes, sin excluir feriados. Los días sin base permanecen visibles. La curva consolida turnos. El pago comparado incluye grupal, individual y polivalencia con la liquidación vigente por turno. La referencia del 50% no tiene pagos recalculados.</p><p>Los perfiles y la nómina son actuales. No se reconstruyen transferencias históricas. Cache grupal: {escape(report['cache_grupal'])} UTC. Snapshot de pagos: {escape(report['snapshot_pagos'])}.</p></div></div></dialog>'''
 
 
-def slides(report, chart, number):
+def slides(report, chart, number, include_payroll=False, payroll_details=None):
     profiles = {p['id']: p for p in report['perfiles']}
     output = [cover(report,number), method(report)]
     for ident, title, subtitle, ids in PAGES:
         selected = [profiles[f'perfil-{i}'] for i in ids]
         if any(p.get('piloto_legajos') for p in selected):
-            output.append(piloto.integrated(report,selected,ident,title,number))
+            output.append(piloto.integrated(report,selected,ident,title,number,include_payroll=include_payroll,
+                                            payroll_details=payroll_details))
             continue
         note = '<div class="compact-pending"><b>Recepción Zona 1:</b> sin nómina asociada. <button type="button" data-open-profile="perfil-4">Ver pendiente</button></div>' if ident == 'secos-carga-recepcion' else ''
-        output.append(f'''<section class="sheet compact-sheet {'single-sheet' if len(ids)==1 else ''}" id="{ident}"><div class="compact-heading"><div><span class="eyebrow">{escape(subtitle)}</span><h2>{escape(title)}</h2></div><span class="compact-period">{report['dias']} días · Agosto y septiembre 2026</span></div><div class="compact-profiles">{''.join(profile(p,number,len(ids)==1) for p in selected)}</div>{note}<p class="compact-footnote">Acceso: sector consolidado. Pagos: escenario vigente por turno. La alternativa del 50% requiere simulación económica.</p></section>''')
+        output.append(f'''<section class="sheet compact-sheet {'single-sheet' if len(ids)==1 else ''}" id="{ident}"><div class="compact-heading"><div><span class="eyebrow">{escape(subtitle)}</span><h2>{escape(title)}</h2></div><span class="compact-period">{report['dias']} días · Agosto y septiembre 2026</span></div><div class="compact-profiles">{''.join(profile(p,number,len(ids)==1,include_payroll) for p in selected)}</div>{note}<p class="compact-footnote">Acceso: sector consolidado. Pagos: escenario vigente por turno. La alternativa del 50% requiere simulación económica.</p></section>''')
     output.append(economic_summary(report,number))
     output.append(conclusion(report,number))
     return ''.join(output)
 
 
-def dialogs(report, chart, number):
+def dialogs(report, chart, number, include_payroll=False, payroll_details=None):
     return (''.join(dialog(p,chart,number,report) for p in report['perfiles'])
             + ''.join(scale_dialog(p,number) for p in report['perfiles'])
-            + profiles_dialog(report) + piloto.dialogs(report,number))
+            + profiles_dialog(report) + piloto.dialogs(report,number,payroll_details)
+            + (payroll_dialogs(report) if include_payroll else ''))
+
+
+def payroll_dialogs(report):
+    return ''.join(f'''<dialog class="profile-dialog payroll-dialog" id="nomina-{p['id']}" aria-labelledby="nomina-title-{p['id']}">
+      <div class="dialog-heading"><div><span>{escape(p['sector'])} · {escape(p['funcion'])}</span><h2 id="nomina-title-{p['id']}">Nómina y actividad diaria · {escape(operation_title(p))}</h2></div><button type="button" class="control-button" data-close-profile>Cerrar ×</button></div>
+      <div class="dialog-body"><p class="payroll-scope">Agosto–septiembre 2026 · días de lunes a viernes · producción y pagos según el cálculo grupal vigente. Actividad leída del cache interno PV_ETAPA_CAB/DET; no consulta el WMS vivo.</p>
+        <div class="payroll-data" data-payroll-profile="{p['id']}"><p>Abriendo el detalle…</p></div>
+        <div class="payroll-activity-panel" hidden></div>
+      </div></dialog>''' for p in report['perfiles'])

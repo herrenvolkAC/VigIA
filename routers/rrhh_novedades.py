@@ -3428,8 +3428,12 @@ async def list_legajero_funciones(request: Request):
                        p.desc_funcion funcion_legajero
                 FROM rrhh_legajero p
                 WHERE p.batch_id = (
-                    SELECT batch_id FROM rrhh_import_batches
-                    WHERE status = 'complete'
+                    SELECT b.batch_id FROM rrhh_import_batches b
+                    WHERE b.status = 'complete'
+                      AND EXISTS (
+                          SELECT 1 FROM rrhh_legajero l
+                          WHERE l.batch_id = b.batch_id
+                      )
                     ORDER BY imported_at DESC, batch_id DESC LIMIT 1
                 )
                 ORDER BY p.nombre COLLATE NOCASE, p.legajo
@@ -3464,8 +3468,12 @@ async def list_legajero_funciones(request: Request):
                     SELECT NULL funcion_id, TRIM(l.desc_funcion) descripcion
                     FROM rrhh_legajero l
                     WHERE l.batch_id = (
-                        SELECT batch_id FROM rrhh_import_batches
-                        WHERE status = 'complete'
+                        SELECT b.batch_id FROM rrhh_import_batches b
+                        WHERE b.status = 'complete'
+                          AND EXISTS (
+                              SELECT 1 FROM rrhh_legajero l2
+                              WHERE l2.batch_id = b.batch_id
+                          )
                         ORDER BY imported_at DESC, batch_id DESC LIMIT 1
                     )
                       AND TRIM(COALESCE(l.desc_funcion, '')) <> ''

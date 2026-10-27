@@ -143,6 +143,21 @@
       .slide, .slide.active { display: flex !important; width: 100%; height: 185mm; min-height: 0; margin: 0; padding: 14mm 16mm 10mm; border: 0; border-radius: 0; box-shadow: none; page-break-after: always; animation: none; }
       .slide:last-child { page-break-after: auto; }
     }
+    .toolbar-divider { width: 1px; height: 24px; margin: 0 3px; background: var(--line); }
+    .presentation-mode .toolbar { position: fixed; inset: 0 0 auto; z-index: 20; height: 64px; background: rgba(248,251,252,.96); }
+    .presentation-mode main { height: 100dvh; overflow: hidden; padding: 76px 14px 12px; }
+    .presentation-mode .slide { width: 100%; height: calc(100dvh - 88px); min-height: 0; margin: 0 auto; padding: clamp(24px,3vh,42px) clamp(28px,4vw,64px) 30px; overflow-y: auto; overflow-x: hidden; }
+    .presentation-mode h1 { font-size: clamp(42px,4vw,62px); }
+    .presentation-mode h2 { font-size: clamp(34px,3.2vw,46px); }
+    .presentation-mode .eyebrow,.presentation-mode .section-label { font-size: 12px; }
+    .presentation-mode .dek { font-size: 21px; }
+    .presentation-mode .flow-node h3 { font-size: 16px; }
+    .presentation-mode .flow-node p,.presentation-mode .rule p,.presentation-mode .side p,.presentation-mode .trace p,.presentation-mode .audit-box p { font-size: 15px; }
+    .presentation-mode .rule h3,.presentation-mode .audit-box h3 { font-size: 18px; }
+    .presentation-mode .scope strong { font-size: 20px; }
+    .presentation-mode .scope span { font-size: 14px; }
+    @media (max-width: 900px) { .toolbar { height: auto; min-height: 56px; padding: 8px 12px; gap: 10px; flex-wrap: wrap; } .toolbar-right { flex-wrap: wrap; justify-content: flex-end; } .presentation-mode main { padding-top: 100px; } .presentation-mode .slide { height: calc(100dvh - 112px); } }
+    @media (max-width: 560px) { .toolbar-divider { display: none; } .toolbar-right { justify-content: flex-start; } .presentation-mode main { padding: 118px 8px 8px; } .presentation-mode .slide { height: calc(100dvh - 126px); padding: 24px 18px; } }
     @media (prefers-reduced-motion: reduce) { .slide.active { animation: none; } }
   </style>
 </head>
@@ -153,6 +168,10 @@
       <button id="prev" aria-label="Pantalla anterior">Anterior</button>
       <span class="counter" id="counter" aria-live="polite">1 / 3</span>
       <button id="next" aria-label="Pantalla siguiente">Siguiente</button>
+      <span class="toolbar-divider" aria-hidden="true"></span>
+      <button id="presentation-mode" aria-pressed="false">Modo presentación</button>
+      <button id="fullscreen">Pantalla completa</button>
+      <button id="print">Imprimir / PDF</button>
     </div>
   </header>
   <main>
@@ -250,6 +269,9 @@
     const counter = document.getElementById('counter');
     const prev = document.getElementById('prev');
     const next = document.getElementById('next');
+    const modeButton = document.getElementById('presentation-mode');
+    const fullscreenButton = document.getElementById('fullscreen');
+    const printButton = document.getElementById('print');
     function show(index) {
       current = Math.max(0, Math.min(slides.length - 1, index));
       slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
@@ -260,9 +282,27 @@
     }
     prev.addEventListener('click', () => show(current - 1));
     next.addEventListener('click', () => show(current + 1));
+    modeButton.addEventListener('click', () => {
+      const active = document.body.classList.toggle('presentation-mode');
+      modeButton.setAttribute('aria-pressed', String(active));
+      modeButton.textContent = active ? 'Salir de presentación' : 'Modo presentación';
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+    fullscreenButton.addEventListener('click', async () => {
+      try {
+        if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+        else await document.exitFullscreen();
+      } catch (error) { console.warn('No se pudo activar pantalla completa.', error); }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      fullscreenButton.textContent = document.fullscreenElement ? 'Salir de pantalla completa' : 'Pantalla completa';
+    });
+    printButton.addEventListener('click', () => window.print());
     document.addEventListener('keydown', event => {
       if (event.key === 'ArrowRight' || event.key === 'PageDown') show(current + 1);
       if (event.key === 'ArrowLeft' || event.key === 'PageUp') show(current - 1);
+      if (event.key === 'Home') show(0);
+      if (event.key === 'End') show(slides.length - 1);
     });
   </script>
 </body>

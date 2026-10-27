@@ -6,13 +6,13 @@
   const labels = {
     detectada:'Detectada',pre_autorizada:'Pre autorizada',rechazada_jefe:'Rechazada jefe',
     aprobada_gerente:'Aprobada gerente',rechazada_gerente:'Rechazada gerente',
-    ajuste_solicitado:'Ajuste solicitado',ajuste_aprobado:'Ajuste aprobado',cargada_sap:'Cargada SAP'
+    aprobada_automatica:'Aprobada Automático',ajuste_solicitado:'Ajuste solicitado',ajuste_aprobado:'Ajuste aprobado',cargada_sap:'Cargada SAP'
   };
   const viewTitles = {pre:'Pre autorizacion jefe',gerencia:'Aprobacion gerente',ajustes:'RRHH',config:'Configuracion'};
   const viewStates = {
-    pre:new Set(['detectada','rechazada_jefe','pre_autorizada']),
-    gerencia:new Set(['pre_autorizada','aprobada_gerente','rechazada_gerente']),
-    ajustes:new Set(['detectada','pre_autorizada','rechazada_jefe','aprobada_gerente','rechazada_gerente','ajuste_solicitado','ajuste_aprobado','cargada_sap'])
+    pre:new Set(['detectada','rechazada_jefe','pre_autorizada','aprobada_automatica']),
+    gerencia:new Set(['pre_autorizada','aprobada_gerente','rechazada_gerente','aprobada_automatica']),
+    ajustes:new Set(['detectada','pre_autorizada','rechazada_jefe','aprobada_gerente','rechazada_gerente','aprobada_automatica','ajuste_solicitado','ajuste_aprobado','cargada_sap'])
   };
   const DISPLAY_LIMIT = 800;
   const MAX_BULK_DECISIONS = 500;
@@ -80,7 +80,7 @@
   function isPendingForView(row,view){
     if(view==='pre') return ['detectada','rechazada_jefe'].includes(row.estado);
     if(view==='gerencia') return row.estado==='pre_autorizada';
-    if(view==='ajustes') return row.estado==='aprobada_gerente' && !row.cargado_sap;
+    if(view==='ajustes') return ['aprobada_gerente','aprobada_automatica'].includes(row.estado) && !row.cargado_sap;
     return false;
   }
   function renderPendingBadges(){
@@ -112,7 +112,7 @@
     });
   }
   function stateTone(value){
-    if(['aprobada_gerente','cargada_sap','pre_autorizada'].includes(value)) return 'ok';
+    if(['aprobada_gerente','aprobada_automatica','cargada_sap','pre_autorizada'].includes(value)) return 'ok';
     if(['rechazada_jefe','rechazada_gerente'].includes(value)) return 'bad';
     if(['ajuste_solicitado'].includes(value)) return 'warn';
     return 'info';
@@ -129,15 +129,18 @@
     $('rows-body').innerHTML = displayedRows.map(row=>{
       const key = `${row.legajo}|${row.fecha}`;
       const draft = draftFor(row);
+      const autoApproved = row.estado==='aprobada_automatica';
+      const approvalLocked = autoApproved && state.view!=='ajustes';
+      const selectable = !approvalLocked && (state.view!=='gerencia'||row.estado==='pre_autorizada');
       return `<tr data-key="${esc(key)}" class="${row.sensible?'sensitive':''}">
-        <td data-label="Seleccionar"><input class="row-check" data-check="${esc(key)}" type="checkbox" ${state.view==='gerencia'&&row.estado!=='pre_autorizada'?'disabled':''} ${state.selected.has(key)?'checked':''}></td>
-        <td data-label="Fecha" class="mono">${esc(row.fecha)}</td>
+        <td data-label="Seleccionar"><input class="row-check" data-check="${esc(key)}" type="checkbox" ${selectable?'':'disabled'} ${state.selected.has(key)?'checked':''}></td>
+        <td data-label="Fecha" class="date-cell"><strong class="mono">${esc(row.fecha)}</strong><small>${esc(row.dia_semana||'')}</small></td>
         <td data-label="Empleado" class="employee-cell"><button class="link-row" data-detail="${esc(key)}" type="button">${esc(row.empleado)}</button><small>Legajo ${esc(row.legajo)}</small></td>
         <td data-label="Sector / funcion" class="sector-cell"><strong>${esc(row.sector)}</strong><small>${esc(row.funcion)}</small></td>
         <td data-label="Jornada" class="shift-cell"><small>PH ${esc(row.ph||'-')}</small><strong>${esc(row.inicio_real||'-')} - ${esc(row.fin_real||'-')}</strong></td>
         <td data-label="Horas extra" class="mono hours-cell">${hours(row.horas_extras_detectadas)}</td>
-        <td data-label="Cantidad / preautorizadas" class="quantity-cell">${state.view==='pre'?`<input class="row-quantity mono" data-edit="quantity" data-row="${esc(key)}" aria-label="Cantidad a autorizar para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.quantity)}" placeholder="HH:MM"><small class="partial-label">${Number(draft.quantity.split(':')[0])*60+Number(draft.quantity.split(':')[1]) < Math.round(row.horas_extras_detectadas*60)?'Parcial':''}</small>`:state.view==='gerencia'?`<input class="row-quantity mono" data-edit="manager-quantity" data-row="${esc(key)}" aria-label="Cantidad a aprobar para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.managerQuantity)}" placeholder="HH:MM"><small class="partial-label">${minutesFromHours(draft.managerQuantity)<Math.round(Number(row.horas_preautorizadas ?? row.horas_autorizadas ?? 0)*60)?'Parcial':''}</small>`:state.view==='ajustes'?`<input class="row-quantity mono" data-edit="adjustment-quantity" data-row="${esc(key)}" aria-label="Horas autorizadas para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.adjustmentQuantity)}" placeholder="HH:MM">`:`<span class="mono">${hours(row.horas_preautorizadas ?? row.horas_autorizadas)}</span>`}<small class="row-error" role="status">${state.view==='gerencia'?esc(rowErrors.get(key)||''):''}</small></td>
-        <td data-label="Justificacion" class="justification-cell">${state.view==='pre'?`<textarea data-edit="justificacion" data-row="${esc(key)}" maxlength="800" rows="2" aria-label="Justificacion para ${esc(row.empleado)}">${esc(draft.justificacion)}</textarea>`:state.view==='ajustes'?`<textarea data-edit="adjustment-reason" data-row="${esc(key)}" maxlength="800" rows="2" aria-label="Motivo del ajuste para ${esc(row.empleado)}">${esc(draft.adjustmentReason)}</textarea>`:esc(row.justificacion || 'Sin justificacion registrada')}<small class="row-error" role="status">${state.view==='gerencia'?'':esc(rowErrors.get(key)||'')}</small></td>
+        <td data-label="Cantidad / preautorizadas" class="quantity-cell">${state.view==='pre'&&!autoApproved?`<input class="row-quantity mono" data-edit="quantity" data-row="${esc(key)}" aria-label="Cantidad a autorizar para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.quantity)}" placeholder="HH:MM"><small class="partial-label">${Number(draft.quantity.split(':')[0])*60+Number(draft.quantity.split(':')[1]) < Math.round(row.horas_extras_detectadas*60)?'Parcial':''}</small>`:state.view==='gerencia'&&!autoApproved?`<input class="row-quantity mono" data-edit="manager-quantity" data-row="${esc(key)}" aria-label="Cantidad a aprobar para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.managerQuantity)}" placeholder="HH:MM"><small class="partial-label">${minutesFromHours(draft.managerQuantity)<Math.round(Number(row.horas_preautorizadas ?? row.horas_autorizadas ?? 0)*60)?'Parcial':''}</small>`:state.view==='ajustes'?`<input class="row-quantity mono" data-edit="adjustment-quantity" data-row="${esc(key)}" aria-label="Horas autorizadas para ${esc(row.empleado)} (HH:MM)" value="${esc(draft.adjustmentQuantity)}" placeholder="HH:MM">`:`<span class="mono">${autoApproved?hours(row.horas_extras_detectadas):hours(row.horas_preautorizadas ?? row.horas_autorizadas)}</span>`}<small class="row-error" role="status">${state.view==='gerencia'?esc(rowErrors.get(key)||''):''}</small></td>
+        <td data-label="Justificacion" class="justification-cell">${state.view==='pre'&&!autoApproved?`<textarea data-edit="justificacion" data-row="${esc(key)}" maxlength="800" rows="2" aria-label="Justificacion para ${esc(row.empleado)}">${esc(draft.justificacion)}</textarea>`:state.view==='ajustes'?`<textarea data-edit="adjustment-reason" data-row="${esc(key)}" maxlength="800" rows="2" aria-label="Motivo del ajuste para ${esc(row.empleado)}">${esc(draft.adjustmentReason)}</textarea>`:autoApproved?'No requiere autorizacion':esc(row.justificacion || 'Sin justificacion registrada')}<small class="row-error" role="status">${state.view==='gerencia'?'':esc(rowErrors.get(key)||'')}</small></td>
         <td data-label="Estado"><span class="state ${stateTone(row.estado)}">${esc(labels[row.estado]||row.estado)}</span>${row.horas_autorizadas && row.horas_autorizadas < row.horas_extras_detectadas ? `<div class="mono">${hours(row.horas_autorizadas)} hs aut.</div>` : ''}</td>
         <td data-label="SAP">${row.cargado_sap?'<span class="sap">Si</span>':'-'}</td>
       </tr>`;
@@ -150,7 +153,7 @@
   function renderSelection(){
     document.querySelectorAll('#rows-body input[data-check]').forEach(check=>{
       const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===check.dataset.check);
-      const selectable=state.view!=='gerencia'||row?.estado==='pre_autorizada';
+      const selectable=!!row && (!(['pre','gerencia'].includes(state.view)&&row.estado==='aprobada_automatica')) && (state.view!=='gerencia'||row.estado==='pre_autorizada');
       if(check.checked && selectable) state.selected.add(check.dataset.check);
       else state.selected.delete(check.dataset.check);
     });
@@ -159,10 +162,10 @@
     $('selected-count').textContent = count>MAX_BULK_DECISIONS
       ? `${count} seleccionadas · limite ${MAX_BULK_DECISIONS} por accion`
       : `${count} seleccionadas`;
-    const selectableRows=visibleRows().filter(row=>state.view!=='gerencia'||row.estado==='pre_autorizada');
+    const selectableRows=visibleRows().filter(row=>!(['pre','gerencia'].includes(state.view)&&row.estado==='aprobada_automatica') && (state.view!=='gerencia'||row.estado==='pre_autorizada'));
     document.querySelectorAll('#rows-body input[data-check]').forEach(check=>{
       const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===check.dataset.check);
-      check.disabled=state.busy || (state.view==='gerencia'&&row?.estado!=='pre_autorizada');
+      check.disabled=state.busy || (['pre','gerencia'].includes(state.view)&&row?.estado==='aprobada_automatica') || (state.view==='gerencia'&&row?.estado!=='pre_autorizada');
     });
     $('select-all').disabled=state.busy || !selectableRows.length;
     $('select-all').checked = selectableRows.length>0 && selectableRows.every(r=>state.selected.has(`${r.legajo}|${r.fecha}`));
@@ -208,6 +211,7 @@
     if($('fecha-desde').value>$('fecha-hasta').value) throw new Error('Revise el rango de fechas.');
     const p = new URLSearchParams({desde:$('fecha-desde').value,hasta:$('fecha-hasta').value});
     if($('sector-filter').value) p.set('sector',$('sector-filter').value);
+    if($('legajo-filter').value.trim()) p.set('legajo',$('legajo-filter').value.trim());
     const funcs = selectedFunctions();
     const all = sectorFunctions();
     if(funcs.length && funcs.length !== all.length) funcs.forEach(f=>p.append('funcion',f));
@@ -273,6 +277,7 @@
     for(const key of state.selected){
       const row = state.rows.find(r=>`${r.legajo}|${r.fecha}`===key);
       if(!row) continue;
+      if(row.estado==='aprobada_automatica' && (state.view!=='ajustes'||nextState!=='cargada_sap')) continue;
       if(nextState==='aprobada_gerente' && row.estado!=='pre_autorizada') continue;
       const previousState=row.estado;
       const previousSap=row.cargado_sap;
@@ -608,7 +613,7 @@
   function syncRowCheckbox(check){
     if(!check.isConnected)return;
     const row=state.rows.find(item=>`${item.legajo}|${item.fecha}`===check.dataset.check);
-    if(state.view==='gerencia'&&row?.estado!=='pre_autorizada') state.selected.delete(check.dataset.check);
+    if((['pre','gerencia'].includes(state.view)&&row?.estado==='aprobada_automatica') || (state.view==='gerencia'&&row?.estado!=='pre_autorizada')) state.selected.delete(check.dataset.check);
     else if(check.checked) state.selected.add(check.dataset.check);
     else state.selected.delete(check.dataset.check);
     renderSelection();

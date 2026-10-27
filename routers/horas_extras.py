@@ -480,13 +480,23 @@ def _normalize_row(row: dict[str, Any], decision: dict[str, Any] | None = None) 
     horas_detectadas = sum(float(row.get(key) or 0) for key in ("hs_ext_realiz", "hs_50_autorizadas", "hs_100"))
     if horas_detectadas < HE_MIN_HOURS:
         horas_detectadas = 0.0
+    fecha_texto = str(row.get("fecha") or "")[:10]
+    try:
+        fecha_operativa = date.fromisoformat(fecha_texto)
+    except ValueError:
+        fecha_operativa = None
+    dias_semana = ("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
     estado = (decision or {}).get("estado_actual") or "detectada"
     saved_hours = (decision or {}).get("horas_autorizadas")
     horas_autorizadas = float(saved_hours) if saved_hours is not None else 0.0
     if estado == "aprobada_gerente" and saved_hours is None:
         horas_autorizadas = horas_detectadas
+    if fecha_operativa and fecha_operativa.weekday() == 6:
+        estado = "aprobada_automatica"
+        horas_autorizadas = horas_detectadas
     return {
         "fecha": row.get("fecha") or "",
+        "dia_semana": dias_semana[fecha_operativa.weekday()] if fecha_operativa else "",
         "legajo": row.get("legajo") or "",
         "empleado": row.get("empleado") or row.get("nombre") or "",
         "sector": row.get("sector") or "",
@@ -512,13 +522,16 @@ def _normalize_row(row: dict[str, Any], decision: dict[str, Any] | None = None) 
     }
 
 
-async def _activity_rows(desde: date, hasta: date, sector: str = "", funciones: list[str] | None = None) -> list[dict[str, Any]]:
+async def _activity_rows(desde: date, hasta: date, sector: str = "", funciones: list[str] | None = None, legajo: str = "") -> list[dict[str, Any]]:
     funciones = funciones or []
     where = ["a.fecha BETWEEN ? AND ?"]
     params: list[Any] = [desde.isoformat(), hasta.isoformat()]
     if sector:
         where.append("COALESCE(p.desc_sector_generico, l.desc_sector_generico, a.sector, '') = ?")
         params.append(sector)
+    if legajo.strip():
+        where.append("a.legajo = ?")
+        params.append(legajo.strip())
     if funciones:
         where.append("COALESCE(p.desc_funcion, l.desc_funcion, '') IN (" + ",".join("?" for _ in funciones) + ")")
         params.extend(funciones)
@@ -725,6 +738,7 @@ async def registros(
     hasta: date,
     sector: str = Query(""),
     funcion: list[str] = Query(default=[]),
+    legajo: str = Query("", max_length=40),
 ):
     auth = await _require_auth(request)
     access = await _access(auth)
@@ -732,7 +746,7 @@ async def registros(
         raise HTTPException(400, "Seleccione un rango valido de hasta 366 dias.")
     if sector and not _sector_allowed(auth, access, sector):
         raise HTTPException(403, "Sector fuera de su alcance.")
-    rows = await _activity_rows(desde, hasta, sector, funcion)
+    rows = await _activity_rows(desde, hasta, sector, funcion, legajo)
     decisions = await _decisions([(row["legajo"], row["fecha"]) for row in rows])
     can_sensitive = _can_see_sensitive(auth, access)
     normalized = []
@@ -838,6 +852,11 @@ async def decisiones(request: Request, payload: BulkDecisionRequest):
     approved_rows = []
     mail = None
     for item in payload.rows:
+        if item.fecha.weekday() == 6 and (
+            item.etapa in {"pre_autorizacion", "gerencia"}
+            or item.estado in {"pre_autorizada", "rechazada_jefe", "aprobada_gerente", "rechazada_gerente"}
+        ):
+            raise HTTPException(409, f"{item.legajo} / {item.fecha}: las horas extra de los domingos quedan aprobadas automaticamente y no admiten aprobacion manual.")
         key = (item.legajo, item.fecha.isoformat())
         if key in current_rows:
             raise HTTPException(422, "No se puede decidir dos veces el mismo registro en un guardado.")
@@ -1077,8 +1096,8 @@ def _excel(rows: list[dict[str, Any]]) -> io.BytesIO:
 
 
 @router.get("/exportar.xlsx")
-async def exportar(request: Request, desde: date, hasta: date, sector: str = "", funcion: list[str] = Query(default=[])):
-    data = await registros(request, desde, hasta, sector, funcion)
+async def exportar(request: Request, desde: date, hasta: date, sector: str = "", funcion: list[str] = Query(default=[]), legajo: str = Query("", max_length=40)):
+    data = await registros(request, desde, hasta, sector, funcion, legajo)
     return StreamingResponse(
         _excel(data["rows"]),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

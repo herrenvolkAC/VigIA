@@ -34,7 +34,7 @@
     const previousDisplay = slide.style.getPropertyValue('display');
     const previousPriority = slide.style.getPropertyPriority('display');
     if (paper) slide.style.setProperty('display', 'block', 'important');
-    const logicalWidth = slide.classList.contains('integrated-sheet') ? 2000 : 1280;
+    const logicalWidth = (slide.classList.contains('integrated-sheet') || slide.classList.contains('audit-sheet') || slide.classList.contains('productivity-base-sheet')) ? 2000 : 1280;
     canvas.style.width = `${logicalWidth}px`;
     canvas.style.height = 'auto';
     const naturalHeight = Math.max(canvas.scrollHeight, canvas.offsetHeight);

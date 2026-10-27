@@ -55,7 +55,34 @@
 .integrated-totals>span:nth-child(5){border-top:3px solid #168b83;background:#edf7f5}
 .integrated-totals b{white-space:nowrap}
 .integrated-totals small{display:block;margin-top:2px;color:#69808e;font-size:10px;font-weight:400}
+.roster-summary-button{margin-top:7px}
+.roster-summary-kpis{display:flex;gap:12px;margin:10px 0}.roster-summary-kpis>span{flex:1;padding:10px 14px;border-radius:7px;background:#edf5f7;color:#547080;font-size:12px}.roster-summary-kpis b{float:right;color:#234b60;font-size:18px}.roster-summary-note{font-size:13px;line-height:1.45;color:#5b7180}.roster-summary-table-wrap{max-height:65vh;overflow:auto}.roster-summary-dialog table{font-size:13px}.roster-summary-dialog th,.roster-summary-dialog td{padding:9px 11px}.roster-summary-dialog th:nth-child(2),.roster-summary-dialog td:nth-child(2){text-align:left}.roster-summary-dialog td:nth-child(3){white-space:nowrap}
+.pay-result{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:12px;font-weight:700}.pay-result>b{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;margin:0!important;border-radius:50%;font-size:15px!important}.pay-result>small{font-size:11px;font-weight:700}.pay-more{color:#14735e}.pay-more>b{background:#e2f3eb}.pay-less{color:#a14337}.pay-less>b{background:#fbe9e4}.pay-same,.pay-unavailable{color:#647985}.pay-same>b,.pay-unavailable>b{background:#edf2f4}
 .profile-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}.profile-actions .detail-button{padding:6px 9px}.poly-summary-button{display:block;margin-top:7px;padding:4px 7px;border:1px solid #b7d9d5;border-radius:5px;background:#fff;color:#176f6b;font:inherit;font-size:10px;cursor:pointer}.poly-summary-button:hover{background:#e2f3f0;border-color:#168b83}.poly-summary-button:focus-visible{outline:2px solid #168b83;outline-offset:2px}
 .poly-summary-dialog{width:min(820px,94vw)}.poly-summary-dialog .dialog-heading p{margin:1px 0 0;color:#617c89;font-size:12px}.poly-summary-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 23px}.poly-summary-kpis>div{min-width:0;padding:14px;background:#f0f6f7;border:1px solid #deeaed;border-top:3px solid #168b83;border-radius:6px}.poly-summary-kpis span{display:block;color:#617c89;font-size:11px;line-height:1.3;min-height:29px}.poly-summary-kpis b{display:block;color:#214e60;font-size:19px;margin-top:5px;white-space:nowrap}.poly-summary-lists{display:grid;grid-template-columns:1fr 1fr;gap:24px}.poly-summary-lists section{min-width:0}.poly-summary-lists h3{font-size:15px;margin:0 0 9px}.poly-summary-lists ul{list-style:none;margin:0;padding:0}.poly-summary-lists li{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:center;gap:5px;padding:8px 0;border-bottom:1px solid #e5edf0;font-size:12px}.poly-summary-lists li>b{text-align:right;font-variant-numeric:tabular-nums}.poly-summary-lists li>i{grid-column:1/-1;display:block;height:4px;border-radius:8px;background:#eaf0f1;overflow:hidden}.poly-summary-lists li>i>em{display:block;height:100%;border-radius:8px;background:#62aaa0}.poly-summary-lists .poly-empty{display:block;color:#778c96;font-style:italic}.poly-summary-note{margin:18px 0 0;padding:10px 12px;background:#f7f8f7;border-left:3px solid #c3a85d;color:#667b84;font-size:11px;line-height:1.45}
 @media(max-width:650px){.profile-actions{flex-wrap:wrap;justify-content:flex-end}.poly-summary-kpis{grid-template-columns:1fr 1fr}.poly-summary-lists{grid-template-columns:1fr;gap:16px}}
 @media print{.poly-summary-button,.profile-actions{display:none!important}.poly-summary-dialog{display:none!important}}
+
+.payroll-open{background:#eaf4f6;border-color:#a9cbd4;color:#174f64}
+.payroll-dialog{width:min(1440px,97vw);max-height:94dvh}
+.payroll-scope{margin:0 0 14px;color:#5e7888;font-size:12px}
+.payroll-day{margin:0 0 18px;padding:13px;border:1px solid #dce6eb;border-radius:9px;background:#fff}
+.payroll-day>header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:9px;padding-bottom:8px;border-bottom:1px solid #e1e9ed}
+.payroll-day>header h3{font-size:16px;margin:0;text-transform:capitalize}
+.payroll-day>header h3 span{margin-left:8px;color:#637b88;font-size:12px;font-weight:500;text-transform:none}
+.payroll-hit{color:#16745f;font-size:12px}.payroll-miss{color:#a4483f;font-size:12px}
+.payroll-day-kpis{display:grid;grid-template-columns:repeat(7,minmax(100px,1fr));gap:7px;margin:8px 0 12px}
+.payroll-day-kpis>span{display:block;padding:7px 8px;background:#f2f7f8;border-radius:5px;color:#617987;font-size:10px;line-height:1.35}
+.payroll-day-kpis b{display:block;margin-top:3px;color:#244c60;font-size:12px;font-variant-numeric:tabular-nums}
+.payroll-table,.payroll-activity-table{min-width:980px;font-size:11px}
+.payroll-table th,.payroll-activity-table th{padding:7px 6px;font-size:9px;white-space:normal}
+.payroll-table td,.payroll-activity-table td{padding:6px;vertical-align:top;font-variant-numeric:tabular-nums}
+.payroll-table td:first-child,.payroll-activity-table td:first-child{min-width:125px}
+.payroll-table td small,.payroll-activity-table td small{display:block;color:#718894;font-size:10px;margin-top:2px}
+.payroll-activity-toggle{padding:4px 7px;border:1px solid #c9dce2;border-radius:4px;background:#fff;color:#255b72;font:inherit;font-size:10px;white-space:nowrap;cursor:pointer}
+.payroll-activity-toggle:hover{background:#edf6f8}
+.payroll-activity-row>td{padding:8px 14px!important;background:#f4f8fa}
+.payroll-activity-table{min-width:800px;background:#fff}
+.payroll-no-activity{margin:4px 0;color:#697f89;font-size:11px;font-style:italic}
+@media(max-width:800px){.payroll-day-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.payroll-day{padding:8px}}
+@media print{.payroll-open,.payroll-dialog{display:none!important}}

@@ -156,7 +156,7 @@ body{background-image:none;color:var(--ink);font-family:'IBM Plex Sans',system-u
 .secondary-label{font-size:11px;color:var(--soft);padding:0 10px 0 2px}
 .secondary-nav button{min-height:44px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--soft);font-size:12px;transition:color .15s ease,border-color .15s ease}
 .secondary-nav button:hover,.secondary-nav button.active{color:var(--ink)}.secondary-nav button.active{border-bottom-color:var(--blue);font-weight:600}
-.filters{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.filters-primary{display:grid;grid-template-columns:155px 155px minmax(180px,1fr) auto;gap:10px;align-items:end}
+.filters{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.filters-primary{display:grid;grid-template-columns:145px 145px minmax(150px,190px) minmax(180px,1fr) auto;gap:10px;align-items:end}
 .filters-primary label,.filters-advanced label,.history-filters label,.config-form label{display:grid;gap:5px;font:500 11px 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:0;text-transform:none;color:var(--soft)}
 input,select,.multi>button{min-height:37px;border-radius:4px;border-color:#CFD9D5;padding:7px 9px;font-size:13px}
 .filters-primary .primary-btn{min-width:104px}
@@ -182,6 +182,7 @@ input,select,.multi>button{min-height:37px;border-radius:4px;border-color:#CFD9D
 #grid-panel th button{font:inherit;letter-spacing:0;text-transform:none}
 #grid-panel td{font-size:12px;line-height:1.35}
 .employee-cell,.sector-cell,.shift-cell{white-space:normal}.employee-cell small,.sector-cell small,.shift-cell small{display:block;margin-top:4px;color:var(--soft);font-size:11px}
+.date-cell strong,.date-cell small{display:block}.date-cell small{margin-top:4px;color:var(--soft);font:500 11px 'IBM Plex Sans',system-ui,sans-serif}
 .employee-cell .link-row{font:600 13px 'IBM Plex Sans',system-ui,sans-serif;color:var(--blue)}
 .sector-cell strong,.shift-cell strong{font-size:12px;font-weight:550}.hours-cell{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap}
 .quantity-cell{white-space:nowrap}.quantity-cell .row-quantity{width:96px;min-height:34px;text-align:center;font-weight:600}
@@ -198,7 +199,7 @@ input,select,.multi>button{min-height:37px;border-radius:4px;border-color:#CFD9D
 .hero-panel,.flow-panel,.segmented,.kpi-grid{display:none}
 @media(max-width:1000px){
   .app-shell{padding-left:14px;padding-right:14px}.module-context{gap:10px}.workflow-step{padding:9px;gap:7px}
-  .filters-primary{grid-template-columns:1fr 1fr minmax(160px,1.5fr) auto}.queue-range{max-width:240px;text-align:right}
+  .filters-primary{grid-template-columns:1fr 1fr minmax(140px,1.2fr) minmax(160px,1.5fr) auto}.queue-range{max-width:240px;text-align:right}
   #grid-panel th:nth-child(3){width:180px}#grid-panel th:nth-child(4){width:150px}#grid-panel th:nth-child(8){width:230px}
 }
 @media(max-width:700px){
@@ -207,7 +208,7 @@ input,select,.multi>button{min-height:37px;border-radius:4px;border-color:#CFD9D
   .work-queue{padding:11px 10px 0}.queue-heading{align-items:flex-start;flex-direction:column;gap:4px}.queue-range{max-width:none;text-align:left;font-size:10px}
   .workflow-steps{grid-template-columns:1fr}.workflow-step{grid-template-columns:34px minmax(0,1fr) auto 12px;min-height:58px;border-right:0;border-bottom:1px solid var(--rule)}.workflow-step.active{border-bottom:1px solid var(--rule);box-shadow:inset 3px 0 var(--green)}.workflow-step:last-child{border-bottom:0}.workflow-step:last-child .step-arrow{visibility:visible}
   .secondary-nav{overflow-x:auto;white-space:nowrap}.secondary-label{display:none}.secondary-nav button{padding:0 10px}
-  .control-panel{padding:0 10px 10px}.filters-primary{grid-template-columns:1fr 1fr}.filters-primary label:nth-child(3){grid-column:1/-1}.filters-primary .primary-btn{grid-column:1/-1;width:100%}
+  .control-panel{padding:0 10px 10px}.filters-primary{grid-template-columns:1fr 1fr}.filters-primary label:nth-child(3),.filters-primary label:nth-child(4){grid-column:1/-1}.filters-primary .primary-btn{grid-column:1/-1;width:100%}
   .filters-advanced{grid-template-columns:1fr}.filters-more>summary{width:100%;flex-wrap:wrap}
   .table-headline{align-items:flex-start;padding:11px 10px}.table-headline h3{font-size:16px}.queue-summary{font-size:11px}.table-actions .ghost-btn{min-height:32px;padding:6px 9px}
   #grid-panel .table-scroll{max-height:none;min-height:0;overflow:visible;padding:8px}

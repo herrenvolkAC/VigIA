@@ -218,6 +218,13 @@ def _round_pay_percent(value: float) -> int:
     return min(100, int(math.ceil(normalized / 5) * 5))
 
 
+def _exact_pay_percent(value: float) -> float:
+    """Percentage used by long-distance trips, without 5-point rounding."""
+    if value <= 0:
+        return 0.0
+    return min(100.0, round(float(value), 4))
+
+
 def _calculate_prorrateo(
     km_tramo: float,
     fecha_inicio: datetime,
@@ -450,12 +457,36 @@ async def _store_viajes_importacion(
             (filename or "modelo.xlsx", digest, username, len(rows)),
         )
         import_id = int(cur.lastrowid)
+        holidays = await _load_holidays()
         stored: list[dict[str, Any]] = []
         for row in rows:
-            values = _travel_db_values(row)
+            candidate = dict(row)
+            values = _travel_db_values(candidate)
             if not values["hoja_ruta"] or not values["fecha_viaje"]:
                 stored.append(row)
                 continue
+            async with db.execute(
+                "SELECT sucursales_json FROM herramientas_viajes WHERE hoja_ruta = ? AND legajo_excel = ? AND fecha_viaje = ?",
+                (values["hoja_ruta"], values["legajo_excel"], values["fecha_viaje"]),
+            ) as existing_cur:
+                existing = await existing_cur.fetchone()
+            if existing and existing["sucursales_json"]:
+                try:
+                    existing_stops = json.loads(existing["sucursales_json"])
+                except (TypeError, json.JSONDecodeError):
+                    existing_stops = []
+                merged_stops = _apply_saved_stop_edits(candidate.get("sucursales") or [], existing_stops)
+                if merged_stops:
+                    candidate["sucursales"] = merged_stops
+                    start = _parse_oracle_datetime(candidate.get('fesalida'))
+                    end = _parse_oracle_datetime(candidate.get('fevuelta'))
+                    if start and end and end > start:
+                        candidate.update(_apply_excel_km_payment(candidate, _calculate_route_payment(merged_stops, start, end, holidays)))
+                        if candidate.get('km_revision'):
+                            candidate['estado'] = 'Requiere revisión: ' + candidate['km_revision']
+                        elif candidate.get('nombre') and candidate.get('nrodoc'):
+                            candidate['estado'] = 'Validado'
+                    values = _travel_db_values(candidate)
             await db.execute(
                 """
                 INSERT INTO herramientas_viajes (
@@ -542,6 +573,16 @@ async def _store_viajes_importacion(
                         "fecha_modificacion": mark["fecha_modificacion"],
                     }
                 )
+            enriched.update({
+                "sucursales": candidate.get("sucursales") or [],
+                "km_al_100": candidate.get("km_al_100"),
+                "km_revision": candidate.get("km_revision", ""),
+                "km_tramos": candidate.get("km_tramos", []),
+                "km_oracle_al_100": candidate.get("km_oracle_al_100"),
+                "km_oracle_total": candidate.get("km_oracle_total"),
+                "porcentaje_global_100": candidate.get("porcentaje_global_100"),
+                "estado": candidate.get("estado", enriched.get("estado", "")),
+            })
             stored.append(enriched)
         await db.commit()
         return import_id, stored
@@ -615,6 +656,33 @@ async def _query_viajes_guardados(desde: date, hasta: date, legajo: str = "") ->
             params,
         ) as cur:
             return [_viaje_row_from_db(row) for row in await cur.fetchall()]
+
+
+async def _find_viaje_guardado(hoja_ruta: str, legajo_excel: str, fecha_viaje: Any) -> dict[str, Any] | None:
+    await _ensure_viajes_tables()
+    fecha = _parse_date_text(fecha_viaje)
+    if not hoja_ruta or not fecha:
+        return None
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            """
+            SELECT v.*, i.archivo_nombre, i.fecha_importacion,
+                   COALESCE(m.hoja_fisica_presente, 0) AS hoja_fisica_presente,
+                   COALESCE(m.estado_manual, '') AS estado_manual,
+                   COALESCE(m.observacion, '') AS observacion,
+                   COALESCE(m.usuario_modificacion, '') AS usuario_modificacion,
+                   COALESCE(m.fecha_modificacion, '') AS fecha_modificacion
+            FROM herramientas_viajes v
+            LEFT JOIN herramientas_viajes_importaciones i ON i.id = v.importacion_id
+            LEFT JOIN herramientas_viajes_marcas m ON m.viaje_id = v.id
+            WHERE v.hoja_ruta = ? AND v.legajo_excel = ? AND v.fecha_viaje = ?
+            ORDER BY v.actualizado_en DESC, v.id DESC LIMIT 1
+            """,
+            (str(hoja_ruta).strip(), str(legajo_excel or '').strip(), fecha),
+        ) as cur:
+            row = await cur.fetchone()
+    return _viaje_row_from_db(row) if row else None
 
 
 async def _update_viajes_guardados(rows: list[dict[str, Any]]) -> None:
@@ -907,17 +975,19 @@ def _build_excel_hojas_ruta_sql(hojas_ruta: list[str]) -> str:
     in_list = ", ".join(f"'{item}'" for item in hojas_ruta)
     return f"""
         WITH F922_SOURCE AS (
-            SELECT HOJARUTA, CLUGENTR, FESALIDA, FEVUELTA, DDNICOND, HORLLEGA, HORASALI
+            SELECT TRIM(TO_CHAR(HOJARUTA)) AS HOJARUTA, TRIM(TO_CHAR(CLUGENTR)) AS CLUGENTR,
+                   FESALIDA, FEVUELTA, DDNICOND, HORLLEGA, HORASALI
             FROM F922TRAF
-            WHERE HOJARUTA IN ({in_list})
+            WHERE TRIM(TO_CHAR(HOJARUTA)) IN ({in_list})
             UNION
-            SELECT HOJARUTA, CLUGENTR, FESALIDA, FEVUELTA, DDNICOND, HORLLEGA, HORASALI
+            SELECT TRIM(TO_CHAR(HOJARUTA)) AS HOJARUTA, TRIM(TO_CHAR(CLUGENTR)) AS CLUGENTR,
+                   FESALIDA, FEVUELTA, DDNICOND, HORLLEGA, HORASALI
             FROM F922TRAF_HIST
-            WHERE HOJARUTA IN ({in_list})
+            WHERE TRIM(TO_CHAR(HOJARUTA)) IN ({in_list})
         )
         SELECT
             TO_CHAR(C.HOJARUTA) AS HOJARUTA,
-            C.CLUGENTR AS SUCURSAL,
+            TRIM(C.CLUGENTR) AS SUCURSAL,
             C.FESALIDA AS FESALIDA,
             C.FEVUELTA AS FEVUELTA,
             NULL AS LEGAJO,
@@ -926,9 +996,9 @@ def _build_excel_hojas_ruta_sql(hojas_ruta: list[str]) -> str:
             C.HORLLEGA AS LLEGADA_SUCURSAL,
             C.HORASALI AS SALIDA_SUCURSAL,
             (SELECT CASE WHEN MIN(B.DISTANCIADIRECTA)=MAX(B.DISTANCIADIRECTA) THEN MIN(B.DISTANCIADIRECTA) END
-             FROM TR_TIEMPO_DE_VIAJE B WHERE B.CODIGODESITIO1=93 AND TO_CHAR(B.CODIGODESITIO2)=TRIM(C.CLUGENTR)) AS KM_IDA,
+             FROM TR_TIEMPO_DE_VIAJE B WHERE B.CODIGODESITIO1=93 AND TRIM(TO_CHAR(B.CODIGODESITIO2))=TRIM(C.CLUGENTR)) AS KM_IDA,
             (SELECT CASE WHEN MIN(B.DISTANCIADIRECTA)=MAX(B.DISTANCIADIRECTA) THEN MIN(B.DISTANCIADIRECTA) END
-             FROM TR_TIEMPO_DE_VIAJE B WHERE TO_CHAR(B.CODIGODESITIO1)=TRIM(C.CLUGENTR) AND B.CODIGODESITIO2=93) AS KM_REGRESO
+             FROM TR_TIEMPO_DE_VIAJE B WHERE TRIM(TO_CHAR(B.CODIGODESITIO1))=TRIM(C.CLUGENTR) AND B.CODIGODESITIO2=93) AS KM_REGRESO
         FROM F922_SOURCE C
         LEFT JOIN ACTIVE_EMPLOYEE D ON D.NRODOC = C.DDNICOND
         ORDER BY TO_NUMBER(C.HOJARUTA), C.HORLLEGA
@@ -956,6 +1026,7 @@ def _read_excel_rows(content: bytes) -> tuple[list[str], list[dict[str, Any]]]:
     if missing:
         raise ValueError(f"Faltan columnas obligatorias: {', '.join(missing)}")
     positions = {name: index for index, name in enumerate(headers)}
+    edited_stops_col = positions.get("Sucursales editadas")
     rows = []
     for row_number, cells in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
         if not any(value not in (None, "") for value in cells):
@@ -963,6 +1034,16 @@ def _read_excel_rows(content: bytes) -> tuple[list[str], list[dict[str, Any]]]:
         route = str(cells[positions["Num.Hoj.Ru"]] or "").strip()
         if not route:
             continue
+        edited_stops = []
+        if edited_stops_col is not None:
+            raw_edited_stops = cells[edited_stops_col]
+            if raw_edited_stops:
+                try:
+                    parsed = json.loads(str(raw_edited_stops))
+                    if isinstance(parsed, list):
+                        edited_stops = [item for item in parsed if isinstance(item, dict)]
+                except (TypeError, json.JSONDecodeError):
+                    edited_stops = []
         rows.append({
             "excel_row": row_number,
             "fecha_viaje": _excel_cell_value(cells[positions["Fecha viaj"]]),
@@ -970,6 +1051,7 @@ def _read_excel_rows(content: bytes) -> tuple[list[str], list[dict[str, Any]]]:
             "excel_legajo": str(cells[positions["Legajo"]] or "").strip(),
             "cantidad": float(cells[positions["Cantidad"]] or 0),
             "hojaruta": route,
+            "sucursales_editadas": edited_stops,
             "original": [_excel_cell_value(value) for value in cells],
         })
     return headers, rows
@@ -1036,39 +1118,42 @@ def _calculate_route_payment(stops, start, end, holidays, arrival_override=None,
     departure = departure_override or departures[last]
     if not start < arrival <= departure < end:
         return review('Los extremos de ida y regreso no forman tramos válidos.')
-    # No holiday-specific endpoint rule has been agreed yet: do not invent a payout.
+    # Los feriados se liquidan con el mismo criterio que un domingo: todo el
+    # tiempo comprendido entre las 00:00 y las 24:00 del feriado es al 100%.
     holiday_dates = _holiday_lookup([], holidays)
     segments = [('Ida', start, arrival, stops[first], 'km_ida'),
                 ('Regreso', departure, end, stops[last], 'km_regreso')]
     detail = []
     for label, left, right, stop, field in segments:
-        if any(_overlap_minutes(left,right,datetime.combine(day,time.min),datetime.combine(day+timedelta(days=1),time.min))>0 for day in holiday_dates):
-            return review('Tramo en feriado: falta definir el criterio de pago.')
         premium = 0.0
         for offset in range((right.date()-left.date()).days+3):
             day = left.date()-timedelta(days=1)+timedelta(days=offset)
-            if label == 'Ida' and day.weekday()==5 and left.date()==day:
+            if day in holiday_dates:
+                premium += _overlap_minutes(left, right, datetime.combine(day, time.min), datetime.combine(day + timedelta(days=1), time.min))
+            elif label == 'Ida' and day.weekday()==5 and left.date()==day:
                 premium += _overlap_minutes(left,right,datetime.combine(day,time(13)),datetime.combine(day+timedelta(days=2),time.min))
             elif label == 'Ida' and day.weekday()==6:
                 premium += _overlap_minutes(left,right,datetime.combine(day,time.min),datetime.combine(day+timedelta(days=1),time.min))
             elif label == 'Regreso' and day.weekday()==5:
                 premium += _overlap_minutes(left,right,datetime.combine(day,time(13)),datetime.combine(day+timedelta(days=2),time.min))
+            elif label == 'Regreso' and day.weekday()==6:
+                premium += _overlap_minutes(left, right, datetime.combine(day, time.min), datetime.combine(day + timedelta(days=1), time.min))
         km = stop.get(field)
         if premium and (km is None or not math.isfinite(float(km)) or float(km)<=0):
             return review('Falta una distancia Oracle única y positiva para ' + label.lower() + '.')
         duration_minutes = (right-left).total_seconds()/60
         premium = min(premium, duration_minutes)
         ratio = 100*premium/duration_minutes if duration_minutes else 0
-        percent = _round_pay_percent(ratio)
+        percent = _exact_pay_percent(ratio)
         amount = float(km or 0)*percent/100
         detail.append({'tramo':label,'sucursal':stop.get('sucursal'), 'desde':left.isoformat(),
                        'hasta':right.isoformat(),'km_oracle':km,'porcentaje_real':round(ratio,4),
-                       'porcentaje_pago':percent,'km_al_100':round(amount,2)})
+                       'porcentaje_pago':percent,'km_al_100':int(round(amount))})
     oracle_total = sum(float(r.get('km_oracle') or 0) for r in detail)
     oracle_100 = sum(r['km_al_100'] for r in detail)
-    global_percent = _round_pay_percent((oracle_100 * 100 / oracle_total) if oracle_total else 0)
+    global_percent = _exact_pay_percent((oracle_100 * 100 / oracle_total) if oracle_total else 0)
     return {
-        'km_al_100': round(oracle_100, 2),
+        'km_al_100': int(round(oracle_100)),
         'km_revision': '',
         'km_tramos': detail,
         'km_oracle_al_100': round(oracle_100, 2),
@@ -1087,14 +1172,84 @@ def _apply_excel_km_payment(row: dict[str, Any], payment: dict[str, Any]) -> dic
         excel_km = 0.0
     oracle_total = float(result.get('km_oracle_total') or 0)
     oracle_100 = float(result.get('km_oracle_al_100') or result.get('km_al_100') or 0)
-    percent = _round_pay_percent((oracle_100 * 100 / oracle_total) if oracle_total else 0)
+    percent = _exact_pay_percent((oracle_100 * 100 / oracle_total) if oracle_total else 0)
     result['porcentaje_global_100'] = percent
     if percent >= 100:
-        result['km_al_100'] = round(excel_km, 2)
+        result['km_al_100'] = int(round(excel_km))
         result['km_base_liquidacion'] = 'excel'
     else:
-        result['km_al_100'] = round(oracle_100, 2)
+        result['km_al_100'] = int(round(oracle_100))
         result['km_base_liquidacion'] = 'oracle_tramos'
+    return result
+
+
+def _apply_saved_stop_edits(stops: list[dict[str, Any]], saved_stops: Any) -> list[dict[str, Any]]:
+    if not isinstance(saved_stops, list):
+        return stops
+    edits = {str(item.get('sucursal') or '').strip(): item for item in saved_stops if isinstance(item, dict)}
+    if not edits:
+        return stops
+    merged = []
+    for stop in stops:
+        item = dict(stop)
+        edit = edits.get(str(item.get('sucursal') or '').strip())
+        if edit:
+            for field in ('llegada_sucursal', 'salida_sucursal'):
+                if str(edit.get(field) or '').strip():
+                    item[field] = edit[field]
+        merged.append(item)
+    return merged
+
+
+def _apply_excel_distance_fallback(stops: list[dict[str, Any]], excel_km: Any) -> list[dict[str, Any]]:
+    """Use the Excel KM when a single-stop route has no Oracle distance."""
+    if len(stops) != 1:
+        return stops
+    try:
+        distance = float(excel_km or 0)
+    except (TypeError, ValueError):
+        return stops
+    if distance <= 0:
+        return stops
+    result = [dict(stop) for stop in stops]
+    stop = result[0]
+    used_fallback = False
+    for field in ('km_ida', 'km_regreso'):
+        value = stop.get(field)
+        try:
+            valid = value is not None and float(value) > 0
+        except (TypeError, ValueError):
+            valid = False
+        if not valid:
+            stop[field] = distance
+            used_fallback = True
+    if used_fallback:
+        stop['distancia_origen'] = 'Excel'
+    elif stop.get('distancia_origen') is None:
+        stop['distancia_origen'] = 'Oracle'
+    return result
+
+
+def _deduplicate_oracle_stops(stops: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep one operational record per branch when active/history overlap."""
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    order: list[str] = []
+    for stop in stops:
+        key = str(stop.get('sucursal') or '').strip()
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        grouped[key].append(stop)
+    result = []
+    for key in order:
+        candidates = grouped[key]
+        complete = [item for item in candidates if item.get('llegada_sucursal') and item.get('salida_sucursal')]
+        pool = complete or candidates
+        # When active and historical rows overlap, the shorter/earlier
+        # completed visit is the operational one for the imported HDR.
+        chosen = min(pool, key=lambda item: (_parse_oracle_datetime(item.get('fevuelta')) or datetime.max,
+                                             _parse_oracle_datetime(item.get('salida_sucursal')) or datetime.max))
+        result.append(chosen)
     return result
 
 
@@ -1108,6 +1263,9 @@ async def _consolidate_excel_rows(excel_rows: list[dict[str, Any]], oracle_rows:
         source = source_rows[0]
         raw = by_route.get(route, [])
         normalized = [_normalize_oracle_excel_row(row) for row in raw]
+        normalized = _deduplicate_oracle_stops(normalized)
+        normalized = _apply_saved_stop_edits(normalized, source.get('sucursales_editadas'))
+        normalized = _apply_excel_distance_fallback(normalized, source.get('cantidad'))
         salida = min((row["fesalida"] for row in normalized if row["fesalida"]), default=None)
         vuelta = max((row["fevuelta"] for row in normalized if row["fevuelta"]), default=None)
         chosen = next((row for row in normalized if row["legajo"] or row["nombre"] or row["nrodoc"]), {})
@@ -1292,6 +1450,25 @@ async def leer_excel(req: ExcelConsultaRequest):
             "km_al_100": 0,
             "estado": "Pendiente de consulta Oracle.",
         })
+        saved = await _find_viaje_guardado(item.get('hojaruta', ''), item.get('excel_legajo', ''), item.get('fecha_viaje'))
+        if saved:
+            item.update({
+                'viaje_id': saved.get('viaje_id'),
+                'importacion_id': saved.get('importacion_id'),
+                'fesalida': saved.get('fesalida') or item.get('fesalida', ''),
+                'fevuelta': saved.get('fevuelta') or item.get('fevuelta', ''),
+                'legajo': saved.get('legajo') or item.get('legajo', ''),
+                'nombre': saved.get('nombre') or item.get('nombre', ''),
+                'nrodoc': saved.get('nrodoc') or item.get('nrodoc', ''),
+                'sucursales': saved.get('sucursales') or item.get('sucursales', []),
+                'km_al_100': saved.get('km_al_100'),
+                'km_revision': saved.get('km_revision', ''),
+                'km_tramos': saved.get('km_tramos', []),
+                'km_oracle_al_100': saved.get('km_oracle_al_100'),
+                'km_oracle_total': saved.get('km_oracle_total'),
+                'porcentaje_global_100': saved.get('porcentaje_global_100'),
+                'estado': saved.get('estado') or 'Edición guardada en histórico.',
+            })
         rows.append(item)
     return {"filename": req.filename, "headers": headers, "rows": rows, "total": len(rows)}
 
@@ -1302,9 +1479,19 @@ async def recalcular_excel(req: ExcelRecalcularRequest):
     recalculated = []
     for row in req.rows:
         item = dict(row)
+        if not item.get('sucursales'):
+            saved = await _find_viaje_guardado(item.get('hojaruta', ''), item.get('excel_legajo', ''), item.get('fecha_viaje'))
+            if saved and saved.get('sucursales'):
+                item['viaje_id'] = item.get('viaje_id') or saved.get('viaje_id')
+                item['sucursales'] = saved['sucursales']
+                for field in ('fesalida', 'fevuelta', 'legajo', 'nombre', 'nrodoc'):
+                    if not item.get(field) and saved.get(field):
+                        item[field] = saved[field]
         start = _parse_oracle_datetime(item.get("fesalida"))
         end = _parse_oracle_datetime(item.get("fevuelta"))
         stops = [dict(stop) for stop in (item.get('sucursales') or []) if isinstance(stop, dict)]
+        stops = _deduplicate_oracle_stops(stops)
+        stops = _apply_excel_distance_fallback(stops, item.get('cantidad'))
         # Compatibilidad con ediciones anteriores: esos dos campos siempre
         # representaron la única sucursal de la hoja de ruta.
         llegada_local = _parse_edit_datetime(item.get("llegada_local"))
@@ -1380,7 +1567,7 @@ async def exportar_excel(req: ExcelExportRequest):
         route_col = positions.get("Num.Hoj.Ru")
         if not route_col:
             raise ValueError("No existe la columna Num.Hoj.Ru")
-        extra_headers = ["KM al 100", "Pernocte", "Torito", "DNI", "Nombre del chofer", "Día Viaje", "Hoja Física Presente", "Estado cálculo KM 100", "KM Oracle ida", "KM Oracle regreso", "% global 100", "KM Oracle al 100", "KM Oracle total"]
+        extra_headers = ["KM al 100", "Pernocte", "Torito", "DNI", "Nombre del chofer", "Día Viaje", "Hoja Física Presente", "Estado cálculo KM 100", "KM Oracle ida", "KM Oracle regreso", "% global 100", "KM Oracle al 100", "KM Oracle total", "Sucursales editadas"]
         start_col = sheet.max_column + 1
         for offset, header in enumerate(extra_headers):
             sheet.cell(row=1, column=start_col + offset, value=header)
@@ -1410,6 +1597,7 @@ async def exportar_excel(req: ExcelExportRequest):
             sheet.cell(row_number, start_col + 10, value=row.get('porcentaje_global_100'))
             sheet.cell(row_number, start_col + 11, value=row.get('km_oracle_al_100'))
             sheet.cell(row_number, start_col + 12, value=row.get('km_oracle_total'))
+            sheet.cell(row_number, start_col + 13, value=json.dumps(row.get('sucursales') or [], ensure_ascii=False, default=str))
             for cell in sheet[row_number]:
                 cell.fill = PatternFill('solid', fgColor=color)
         output = io.BytesIO()

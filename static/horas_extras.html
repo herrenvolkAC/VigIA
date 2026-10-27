@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/horas_extras.css?v=20261019-1">
+  <link rel="stylesheet" href="/css/horas_extras.css?v=20261021-1">
   <title>VigIA - Horas Extras</title>
 </head>
 <body>
@@ -70,6 +70,7 @@
           <div class="filters-primary">
             <label>Desde<input id="fecha-desde" type="date" required></label>
             <label>Hasta<input id="fecha-hasta" type="date" required></label>
+            <label>Legajo<input id="legajo-filter" inputmode="numeric" maxlength="40" placeholder="Todos"></label>
             <label>Sector<select id="sector-filter"><option value="">Todos</option></select></label>
             <button class="primary-btn" type="submit">Consultar</button>
           </div>
@@ -89,6 +90,7 @@
                 <option value="pre_autorizada">Pre autorizada</option>
                 <option value="rechazada_jefe">Rechazada jefe</option>
                 <option value="aprobada_gerente">Aprobada gerente</option>
+                <option value="aprobada_automatica">Aprobada Automático</option>
                 <option value="rechazada_gerente">Rechazada gerente</option>
                 <option value="ajuste_solicitado">Ajuste solicitado</option>
                 <option value="cargada_sap">Cargada SAP</option>
@@ -194,6 +196,6 @@
   </aside>
 
   <script src="/js/horas_extras_indicadores.js?v=20260929-4"></script>
-  <script src="/js/horas_extras.js?v=20261020-1"></script>
+  <script src="/js/horas_extras.js?v=20261021-1"></script>
 </body>
 </html>

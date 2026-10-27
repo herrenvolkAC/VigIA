@@ -10,6 +10,8 @@ import argparse
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from html import escape
+import base64
+import gzip
 import json
 import math
 from pathlib import Path
@@ -48,6 +50,12 @@ def load(desde, hasta):
     db.execute('BEGIN')  # una única fotografía coherente durante toda la lectura
     fd, fh = desde.replace('-', ''), hasta.replace('-', '')
     cache = db.execute('SELECT * FROM lab_calculo_grupal_cache WHERE fecha_desde=? AND fecha_hasta=?', (fd, fh)).fetchone()
+    if not cache:
+        # A report may request a sub-period contained by the latest loaded cache
+        # (for example September from an August–September extraction). The
+        # analysis below filters every cached row to the requested dates.
+        cache = db.execute('''SELECT * FROM lab_calculo_grupal_cache
+            WHERE fecha_desde<=? AND fecha_hasta>=? ORDER BY calculado_at DESC LIMIT 1''', (fd, fh)).fetchone()
     if not cache:
         raise ValueError('Falta el cache grupal del período solicitado.')
     params = [dict(r) for r in db.execute('SELECT * FROM lab_parametro_grupal WHERE activo=1')]
@@ -205,7 +213,7 @@ def attach_polivalency_summaries(report):
     try:
         fd, fh = report['desde'].replace('-', ''), report['hasta'].replace('-', '')
         cache = db.execute('''SELECT calculado_at,nivel_3_json FROM lab_calculo_grupal_cache
-            WHERE fecha_desde=? AND fecha_hasta=? AND calculado_at=? LIMIT 1''',
+            WHERE fecha_desde<=? AND fecha_hasta>=? AND calculado_at=? LIMIT 1''',
             (fd, fh, report['cache_grupal'])).fetchone()
         if not cache:
             raise ValueError('El cache de polivalencias no coincide con la fecha del informe; no se genera un resumen potencialmente desactualizado.')
@@ -250,6 +258,124 @@ def attach_polivalency_summaries(report):
             'motivos': [{'nombre': name, 'eventos': count} for name, count in reasons.most_common(4)],
             '_eventos': sorted(event_keys),
         }
+
+
+def attach_payroll_activity(report):
+    """Builds a profile/day/shift payroll drilldown and cached PV activity summary.
+
+    The HTML remains self-contained. Activity is grouped by WMS function and
+    division to keep the drilldown readable while retaining stage, unit and
+    pallet/PLU counts for each employee-day.
+    """
+    dbpath = ROOT / 'datos/laboratorio_premios.db'
+    db = sqlite3.connect(dbpath.as_uri() + '?mode=ro', uri=True)
+    db.row_factory = sqlite3.Row
+    fd, fh = report['desde'].replace('-', ''), report['hasta'].replace('-', '')
+    cache = db.execute('''SELECT nivel_2_json,nivel_3_json,calculado_at
+        FROM lab_calculo_grupal_cache WHERE fecha_desde<=? AND fecha_hasta>=?
+        ORDER BY calculado_at DESC LIMIT 1''', (fd, fh)).fetchone()
+    if not cache or cache['calculado_at'] != report['cache_grupal']:
+        db.close()
+        raise ValueError('El cache grupal cambió; regenerá el resumen antes de adjuntar la nómina.')
+    daily, roster = json.loads(cache['nivel_2_json']), json.loads(cache['nivel_3_json'])
+    profile_by_key = {(p['sector'],p['funcion'],p['operacion'],p.get('division') or ''):p
+                      for p in report['perfiles']}
+
+    def rowkey(row):
+        return (row.get('sector'), row.get('funcion_legajero', row.get('funcion')),
+                row.get('operacion'), str(row.get('division_madre', row.get('division')) or ''))
+
+    allowed_dates = set()
+    day = datetime.fromisoformat(report['desde'])
+    end = datetime.fromisoformat(report['hasta'])
+    while day <= end:
+        if day.weekday() < 5:
+            allowed_dates.add(day.strftime('%Y%m%d'))
+        day += timedelta(days=1)
+
+    dmap = {(rowkey(r),str(r['turno']),r['fecha']):r for r in daily}
+    profiles = {p['id']:[] for p in report['perfiles']}
+    keyset = set()
+    roster_rows = []
+    for row in roster:
+        k = rowkey(row)
+        profile = profile_by_key.get(k)
+        if not profile or row.get('fecha') not in allowed_dates:
+            continue
+        roster_rows.append((profile,row))
+        keyset.add((row['fecha'],str(row['legajo'])))
+
+    db.execute('CREATE TEMP TABLE IF NOT EXISTS _gerencial_activity_keys(fecha TEXT,legajo TEXT,PRIMARY KEY(fecha,legajo))')
+    db.execute('DELETE FROM _gerencial_activity_keys')
+    db.executemany('INSERT OR IGNORE INTO _gerencial_activity_keys(fecha,legajo) VALUES(?,?)', sorted(keyset))
+    activity_map = defaultdict(list)
+    cursor = db.execute('''WITH deduplicated AS (
+          SELECT a.fecha,a.legajo,a.row_hash,MAX(a.id_etapa) id_etapa,
+                 MAX(a.cod_funcion) cod_funcion,MAX(a.desc_funcion) desc_funcion,
+                 MAX(a.division) division,MAX(a.sector) sector,MAX(a.pallet) pallet,
+                 MAX(a.plu) plu,MAX(COALESCE(a.cantidad,0)) cantidad,MAX(COALESCE(a.peso,0)) peso
+          FROM _gerencial_activity_keys k JOIN lab_etapa_detalle_raw a
+            ON a.fecha=k.fecha AND a.legajo=k.legajo
+          WHERE a.fecha BETWEEN ? AND ?
+          GROUP BY a.fecha,a.legajo,a.row_hash
+        )
+        SELECT fecha,legajo,cod_funcion,desc_funcion,division,sector,
+               COUNT(DISTINCT id_etapa) etapas,COUNT(*) lineas,SUM(cantidad) cantidad,
+               SUM(peso) peso,
+               COUNT(DISTINCT CASE WHEN TRIM(COALESCE(pallet,'')) NOT IN ('','*','0') THEN TRIM(pallet) END) palets,
+               COUNT(DISTINCT CASE WHEN TRIM(COALESCE(plu,'')) NOT IN ('','*','0') THEN TRIM(plu) END) plus
+        FROM deduplicated
+        GROUP BY fecha,legajo,cod_funcion,desc_funcion,division,sector
+        ORDER BY fecha,legajo,division,desc_funcion,cod_funcion''', (fd,fh))
+    for raw in cursor:
+        activity_map[(raw['fecha'],str(raw['legajo']))].append({
+            'codigo':str(raw['cod_funcion'] or ''),'funcion':str(raw['desc_funcion'] or 'Sin descripción'),
+            'division':str(raw['division'] or ''),'sector':str(raw['sector'] or ''),
+            'etapas':int(raw['etapas'] or 0),'lineas':int(raw['lineas'] or 0),
+            'cantidad':round(float(raw['cantidad'] or 0),3),'peso':round(float(raw['peso'] or 0),3),
+            'palets':int(raw['palets'] or 0),'plus':int(raw['plus'] or 0)})
+
+    evidence = {}
+    for profile in report['perfiles']:
+        for person in profile.get('piloto_legajos',[]):
+            for item in person.get('dias',[]):
+                evidence[(profile['id'],str(person['legajo']),item['fecha'],str(item.get('turno') or ''))] = item
+
+    for profile,row in roster_rows:
+        k = rowkey(row)
+        group = dmap.get((k,str(row['turno']),row['fecha']),{})
+        person_key = (str(row['fecha']),str(row['legajo']))
+        activities=activity_map.get(person_key,[])
+        ev=evidence.get((profile['id'],str(row['legajo']),row['fecha'],str(row['turno'])),{})
+        profiles[profile['id']].append({
+            'fecha':row['fecha'],'turno':str(row['turno']),'legajo':str(row['legajo']),
+            'nombre':row.get('nombre') or '', 'asistencia':row.get('asistencia') or '',
+            'inclusion':row.get('motivo_inclusion') or '', 'unidad':row.get('unidad_medida') or profile['unidad'],
+            'produccion':float(row.get('uc_brutas') or 0),
+            'produccion_computable':float(row.get('uc_computables') or 0),
+            'aplica_grupo':bool(row.get('aplica_grupo')),'polivalente':bool(row.get('es_polivalencia')),
+            'cobra_grupal':bool(row.get('cobra')),'pago_grupal_centavos':int(ev.get('grupal') or 0),
+            'nivel_individual':int(ev.get('nivel') or 0),'pago_individual_centavos':int(ev.get('individual') or 0),
+            'pago_polivalencia_centavos':int(ev.get('polivalencia') or 0),
+            'ausencia_permitida':bool(row.get('ausencia_permitida')),
+            'grupo':{
+                'nomina_total':int(group.get('nomina_total') or 0),
+                'nomina_computable':float(group.get('nomina_computable') or 0),
+                'presentes':int(group.get('presentes') or 0),
+                'ausentes_permitidos':int(group.get('ausentes_permitidos') or 0),
+                'polivalentes':int(group.get('polivalentes') or 0),
+                'produccion':float(group.get('uc_computables') or 0),
+                'meta':float(group.get('target') or 0),
+                'objetivo':float(group.get('objetivo_por_operario') or profile['objetivo']),
+                'cumple':bool(group.get('cumple')),'evaluable':bool(group.get('evaluable')),
+                'premio_beneficiario_centavos':int(round(float(group.get('premio_grupal') or 0)*100)),
+            },
+            'actividades':activities,
+        })
+    for entries in profiles.values():
+        entries.sort(key=lambda r:(r['fecha'],r['turno'].zfill(4),r['legajo'].zfill(12)))
+    db.close()
+    return profiles
 
 
 def chart(p):
@@ -302,7 +428,7 @@ STYLE = '''
 '''
 
 
-def render(report, compact=True):
+def render(report, compact=True, payroll_details=None):
     style_names = ('gerencial_umbrales_motion.css', 'gerencial_umbrales_visual.css',
                    'gerencial_umbrales_fit.css', 'gerencial_umbrales_layout.css', 'gerencial_umbrales_infografia.css')
     styles = STYLE + ''.join(Path(__file__).with_name(name).read_text(encoding='utf-8') for name in style_names) + sprite_css() + assets_css()
@@ -315,7 +441,8 @@ def render(report, compact=True):
     out = ['<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Premio grupal · Acceso al incentivo y umbrales</title><style>',
            styles, '</style></head><body><main>', toolbar]
     if compact:
-        out.append(compact_slides(report, chart, number))
+        out.append(compact_slides(report, chart, number, include_payroll=payroll_details is not None,
+                                  payroll_details=payroll_details))
     else:
         out.extend([visual_cover(report, number), thresholds_overview(report, number)])
         out.extend(visual_profile(p, chart, number) for p in report['perfiles'])
@@ -323,9 +450,15 @@ def render(report, compact=True):
     public_report = dict(report, perfiles=[{k:v for k,v in p.items() if k != 'polivalencia_resumen' or not isinstance(v,dict)} | {
         'polivalencia_resumen': {k:v for k,v in p['polivalencia_resumen'].items() if k != '_eventos'}
     } if isinstance(p.get('polivalencia_resumen'), dict) else dict(p) for p in report['perfiles']])
+    payroll_script = ('<script id="payroll-report-data" type="application/x-gzip-base64">'
+                      + base64.b64encode(gzip.compress(
+                          json.dumps(payroll_details, ensure_ascii=False, separators=(',', ':')).encode('utf-8'),
+                          compresslevel=6, mtime=0)).decode('ascii')
+                      + '</script>') if payroll_details is not None else ''
     out.extend([
                 '<footer>VigIA · Estudio de productividad · Documento de trabajo para validación gerencial</footer></main>',
-                navigation, compact_dialogs(report, chart, number) if compact else '', '<div class="chart-tooltip" id="chart-tooltip" role="status" hidden></div>',
+                navigation, compact_dialogs(report, chart, number, include_payroll=payroll_details is not None,
+                                             payroll_details=payroll_details) if compact else '', '<div class="chart-tooltip" id="chart-tooltip" role="status" hidden></div>', payroll_script,
                 '<script id="report-data" type="application/json">', json.dumps(public_report, ensure_ascii=False).replace('<', '\\u003c'),
                 '</script><script>', script, '</script></body></html>'])
     return ''.join(out)

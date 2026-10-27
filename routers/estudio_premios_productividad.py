@@ -979,7 +979,14 @@ async def calculo_grupal(request: Request, fecha_desde: str='2026-08-01', fecha_
                 FROM lab_cache_agrupado WHERE fecha>=? AND fecha<=?
                 UNION ALL
                 SELECT fecha,legajo,desc_funcion,division,sector,palets,plus,cantidad
-                FROM lab_cache_agrupado_ajuste WHERE fecha>=? AND fecha<=?''',
+                FROM (
+                    SELECT fecha,legajo,desc_funcion,division,sector,palets,plus,cantidad,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY fecha,legajo,desc_funcion,division,sector,origen
+                               ORDER BY created_at DESC,snapshot DESC
+                           ) AS rn
+                    FROM lab_cache_agrupado_ajuste WHERE fecha>=? AND fecha<=?
+                ) WHERE rn=1''',
                               (desde, hasta, desde, hasta)) as cur:
             produccion = [dict(r) for r in await cur.fetchall()]
         # PALETS OPERADOS es la única medición de Carga: cada contribución
@@ -1896,7 +1903,21 @@ async def cache_agrupado(
                 caches = [r[0] for r in await cur.fetchall()]
         if not caches: return {"total": 0, "limit": limit, "offset": offset, "has_more": False, "rows": [], "filters": {"grupo_productivo": grupo_productivo.strip()}}
         predicate += " AND division IN (" + ",".join("?" for _ in caches) + ")"; args.extend(caches)
-    grouped = f"""FROM lab_cache_agrupado WHERE {predicate}"""
+    desde_cache, hasta_cache = fecha_desde.replace('-', ''), fecha_hasta.replace('-', '')
+    rows_source = '''SELECT fecha,legajo,desc_funcion,division,sector,palets,plus,cantidad,peso,detalle_filas
+        FROM lab_cache_agrupado WHERE fecha>=? AND fecha<=?
+        UNION ALL
+        SELECT fecha,legajo,desc_funcion,division,sector,palets,plus,cantidad,peso,detalle_filas
+        FROM (
+            SELECT fecha,legajo,desc_funcion,division,sector,palets,plus,cantidad,peso,detalle_filas,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY fecha,legajo,desc_funcion,division,sector,origen
+                       ORDER BY created_at DESC,snapshot DESC
+                   ) AS rn
+            FROM lab_cache_agrupado_ajuste WHERE fecha>=? AND fecha<=?
+        ) WHERE rn=1'''
+    source_args = (desde_cache, hasta_cache, desde_cache, hasta_cache)
+    grouped = f"""FROM ({rows_source}) WHERE {predicate}"""
     # La evaluación se hace sobre la fila agrupada, pero las reglas se leen
     # desde la configuración local del estudio. El cache operativo queda intacto.
     escala_catalogo = await escalas_premios(request)
@@ -1907,7 +1928,7 @@ async def cache_agrupado(
         predicate_legajero = (predicate.replace('CAST(legajo AS TEXT)', 'CAST(w.legajo AS TEXT)')
                               .replace('desc_funcion', 'w.desc_funcion')
                               .replace('fecha', 'w.fecha').replace('division', 'w.division'))
-        grouped_legajero = f'''FROM lab_cache_agrupado w
+        grouped_legajero = f'''FROM ({rows_source}) w
             JOIN (SELECT CAST(legajo AS TEXT) legajo,MAX(nombre) nombre,
                               MAX(desc_sector_generico) sector_legajero,
                               MAX(desc_funcion) funcion_legajero
@@ -1922,11 +1943,11 @@ async def cache_agrupado(
         if consulta_sintetica:
             total, rows = 0, []
         else:
-            async with db.execute(f"SELECT COUNT(*) AS total {grouped}", tuple(args)) as cur:
+            async with db.execute(f"SELECT COUNT(*) AS total {grouped}", (*source_args, *args)) as cur:
                 total = int((await cur.fetchone())["total"] or 0)
             # Consolidar y evaluar siempre el conjunto completo antes de paginar.
             page_clause = ""
-            page_args = tuple(args)
+            page_args = (*source_args, *args)
             async with db.execute(f"""SELECT w.fecha, w.legajo, w.desc_funcion, w.division, w.sector,
                     w.palets, w.plus, w.cantidad, w.peso, w.detalle_filas,
                     COALESCE(pers.nombre,'') nombre,COALESCE(pers.sector_legajero,'') sector_legajero,
@@ -2102,6 +2123,15 @@ async def cache_agrupado(
         operacion = str(p.get("operacion_premio") or "").strip()
         if operacion.upper() == "TRASLADO":
             operacion = "TRASLADOS"
+        # Los ajustes de pago sin detalle WMS se guardan con el código PICKIN.
+        # Para Armado son una imputación de bultos, igual que en el cálculo
+        # grupal. No se habilita PICKIN como operación medible de forma global.
+        es_ajuste_armado_sin_wms = (
+            str(row.get("desc_funcion") or "").strip().upper() == "PICKIN"
+            and str(row.get("sector") or "").strip().upper() == "AJUSTE PAGO ACTUAL SIN WMS"
+        )
+        if es_ajuste_armado_sin_wms:
+            operacion, unidad = "ARMADO", "BULTO"
         grupo = str(p.get("grupo_premio") or "").strip()
         grupo_operativo = division_grupo.get(str(row.get("division") or "").strip(), "")
         grupo_escala = grupo or equivalencias.get(grupo_operativo.upper(), grupo_operativo)

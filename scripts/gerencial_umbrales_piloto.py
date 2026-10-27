@@ -80,7 +80,7 @@ def selected(report):
     return (sorted((c for c in allcases if c['diferencia']>0),key=lambda c:(-c['diferencia'],c['legajo']))[:5],sorted((c for c in allcases if c['diferencia']<0),key=lambda c:(c['diferencia'],c['legajo']))[:5])
 
 
-def integrated(report, profiles, ident, title, n):
+def integrated(report, profiles, ident, title, n, include_payroll=False, payroll_details=None):
     scoped=dict(report,perfiles=profiles)
     all_rows=[r for p in profiles for c in p.get('piloto_legajos',[]) for r in c['dias']]
     rows=[r for r in all_rows if r['evaluado']]
@@ -98,13 +98,20 @@ def integrated(report, profiles, ident, title, n):
     for p in profiles:
         ref=p['referencias'][1]
         if not p['con_base']:
-            metrics.append(f'<div class="integrated-access"><b>{escape(p["sector"])}</b><p>Sin nómina asociada / sin base evaluable.</p><button class="detail-button" data-open-profile="{p["id"]}">Ver pendiente</button></div>')
+            payroll_button = f'<button class="detail-button payroll-open" data-open-payroll="{p["id"]}" aria-haspopup="dialog">Nómina y actividad</button>' if include_payroll else ''
+            metrics.append(f'<div class="integrated-access"><b>{escape(p["sector"])}</b><p>Sin nómina asociada / sin base evaluable.</p><div class="integrated-actions">{payroll_button}<button class="detail-button" data-open-profile="{p["id"]}">Ver pendiente</button></div></div>')
             continue
-        metrics.append(f'<div class="integrated-access"><b>{escape(p["sector"])}{(" · "+escape(p["camara"])) if p.get("camara") else ""}</b><div><span>Umbral <strong>{n(p["objetivo"])} {escape(p["unidad"])}</strong></span><span>Cobra el grupo <strong>{p["cumple"]}/{p["dias"]} días · {n(100*p["cumple"]/p["dias"],1)}%</strong></span><span>Referencia 50% <strong>{n(ref["umbral"]) if ref["umbral"] is not None else "—"} {escape(p["unidad"])}</strong></span></div><div class="integrated-actions"><button class="detail-button" data-open-profile="{p["id"]}">Curva y detalle</button><button class="detail-button" data-open-profile="escala-{p["id"]}">Escala y montos</button></div></div>')
+        payroll_button = f'<button class="detail-button payroll-open" data-open-payroll="{p["id"]}" aria-haspopup="dialog">Nómina y actividad</button>' if include_payroll else ''
+        metrics.append(f'<div class="integrated-access"><b>{escape(p["sector"])}{(" · "+escape(p["camara"])) if p.get("camara") else ""}</b><div><span>Umbral <strong>{n(p["objetivo"])} {escape(p["unidad"])}</strong></span><span>Cobra el grupo <strong>{p["cumple"]}/{p["dias"]} días · {n(100*p["cumple"]/p["dias"],1)}%</strong></span><span>Referencia 50% <strong>{n(ref["umbral"]) if ref["umbral"] is not None else "—"} {escape(p["unidad"])}</strong></span></div><div class="integrated-actions">{payroll_button}<button class="detail-button" data-open-profile="{p["id"]}">Curva y detalle</button><button class="detail-button" data-open-profile="escala-{p["id"]}">Escala y montos</button></div></div>')
     old=sum(p['actual_centavos'] for p in profiles);new=sum(p['nuevo_centavos'] for p in profiles)
+    group=sum(r['grupal'] for p in profiles for person in p.get('piloto_legajos',[]) for r in person.get('dias',[]))
+    individual=sum(r['individual'] for p in profiles for person in p.get('piloto_legajos',[]) for r in person.get('dias',[]))
     poly=sum(r['polivalencia'] for p in profiles for person in p.get('piloto_legajos',[]) for r in person.get('dias',[]))
+    group_share=100*group/new if new else 0
+    individual_share=100*individual/new if new else 0
     poly_share=100*poly/new if new else 0
-    totals=f'<div class="integrated-totals"><span>Actual de la operación <b>$ {n(old/100)}</b></span><span>Nuevo completo <b>$ {n(new/100)}</b></span><span>Diferencia <b>{"+" if new>=old else "−"}$ {n(abs(new-old)/100)}</b></span><span>Legajos más / menos <b>{sum(p["mas"] for p in profiles)} / {sum(p["menos"] for p in profiles)}</b></span><span>Polivalencia <b>$ {n(poly/100)}</b><small>{n(poly_share,1)}% del pago nuevo</small><button type="button" class="poly-summary-button" data-open-profile="poly-summary-{ident}" aria-haspopup="dialog">Ver resumen</button></span></div>'
+    roster_button = f'<button type="button" class="poly-summary-button roster-summary-button" data-open-profile="nomina-resumen-{ident}" aria-haspopup="dialog">Ver nómina del legajero</button>' if payroll_details is not None else ''
+    totals=f'<div class="integrated-totals"><span>Actual de la operación <b>$ {n(old/100)}</b></span><span>Nuevo completo <b>$ {n(new/100)}</b></span><span>Diferencia <b>{"+" if new>=old else "−"}$ {n(abs(new-old)/100)}</b></span><span>Legajos más / menos <b>{sum(p["mas"] for p in profiles)} / {sum(p["menos"] for p in profiles)}</b>{roster_button}</span><span><span class="metric-title">Pago grupal</span><b>$ {n(group/100)}</b><small>{n(group_share,1)}% del pago nuevo total · ARS · agosto–septiembre</small></span><span><span class="metric-title">Pago individual</span><b>$ {n(individual/100)}</b><small>{n(individual_share,1)}% del pago nuevo total · ARS · agosto–septiembre</small></span><span><span class="metric-title">Polivalencia</span><b>$ {n(poly/100)}</b><small>{n(poly_share,1)}% del pago nuevo total · ARS · agosto–septiembre</small><button type="button" class="poly-summary-button" data-open-profile="poly-summary-{ident}" aria-haspopup="dialog">Ver resumen</button></span></div>'
     columns=[]
     for heading,items in zip(('Mayores aumentos','Mayores disminuciones'),selected(scoped)):
         cards=[]
@@ -135,7 +142,7 @@ def slides(report,n):
     return distribution+ranking
 
 
-def dialogs(report,n):
+def dialogs(report,n,payroll_details=None):
     out=[]
     groups=[]
     from gerencial_umbrales_compacto import PAGES
@@ -157,7 +164,70 @@ def dialogs(report,n):
         profiles = [by_id[f'perfil-{i}'] for i in ids if f'perfil-{i}' in by_id]
         if profiles:
             out.append(poly_summary_dialog(profiles, f'poly-summary-{ident}', title, n))
+            if payroll_details is not None and any(p.get('piloto_legajos') for p in profiles):
+                out.append(roster_summary_dialog(profiles, ident, title, payroll_details, n))
     return ''.join(out)
+
+
+def roster_summary_dialog(profiles, ident, title, payroll_details, n):
+    """Nómina de legajero con días que tienen actividad PV observada."""
+    people = {}
+    payments = {}
+    for profile in profiles:
+        for person in profile.get('piloto_legajos', []):
+            legajo = str(person.get('legajo') or '').strip()
+            if not legajo:
+                continue
+            totals = payments.setdefault(legajo, {'actual': 0, 'nuevo': 0})
+            for day in person.get('dias', []):
+                totals['actual'] += day.get('actual', 0)
+                totals['nuevo'] += day.get('grupal', 0) + day.get('individual', 0) + day.get('polivalencia', 0)
+    for profile in profiles:
+        for row in (payroll_details or {}).get(profile['id'], []):
+            legajo = str(row.get('legajo') or '').strip()
+            if not legajo:
+                continue
+            item = people.setdefault(legajo, {
+                'nombre': row.get('nombre') or '', 'sectores': set(), 'dias': {}, 'turnos': Counter()
+            })
+            if row.get('nombre'):
+                item['nombre'] = row['nombre']
+            item['sectores'].add(profile['sector'])
+            fecha = str(row.get('fecha') or '')
+            if not fecha:
+                continue
+            day = item['dias'].setdefault(fecha, {'actividad': False, 'turnos': set()})
+            day['actividad'] = day['actividad'] or bool(row.get('actividades'))
+            turno = str(row.get('turno') or '').strip()
+            if turno:
+                day['turnos'].add(turno)
+    body = []
+    for legajo, item in sorted(people.items(), key=lambda pair: (int(pair[0]) if pair[0].isdigit() else 0, pair[0])):
+        for day in item['dias'].values():
+            for turno in day['turnos']:
+                item['turnos'][turno] += 1
+        active = sum(day['actividad'] for day in item['dias'].values())
+        inactive = len(item['dias']) - active
+        shifts = ' · '.join(f'T{escape(turno)} ({n(count)} días)' for turno, count in sorted(item['turnos'].items())) or '—'
+        pay = payments.get(legajo)
+        if pay is None:
+            result = '<span class="pay-result pay-unavailable"><b aria-hidden="true">·</b><span>Sin comparación</span></span>'
+        else:
+            difference = pay['nuevo'] - pay['actual']
+            if difference > 0:
+                result = f'<span class="pay-result pay-more" aria-label="Cobra más: aumento de {n(difference/100)} pesos"><b aria-hidden="true">↑</b><span>Cobra más</span><small>+$ {n(difference/100)}</small></span>'
+            elif difference < 0:
+                result = f'<span class="pay-result pay-less" aria-label="Cobra menos: disminución de {n(abs(difference)/100)} pesos"><b aria-hidden="true">↓</b><span>Cobra menos</span><small>−$ {n(abs(difference)/100)}</small></span>'
+            else:
+                result = '<span class="pay-result pay-same" aria-label="Sin variación de pago"><b aria-hidden="true">=</b><span>Sin variación</span><small>$ 0</small></span>'
+        body.append(f'<tr><td>{escape(legajo)}</td><td>{escape(item["nombre"] or "—")}</td><td>{shifts}</td><td>{n(active)}</td><td>{n(inactive)}</td><td>{result}</td></tr>')
+    total = len(people)
+    return f'''<dialog class="profile-dialog roster-summary-dialog" id="detalle-nomina-resumen-{ident}" aria-labelledby="titulo-nomina-resumen-{ident}">
+      <div class="dialog-heading"><div><span>Nómina vigente del legajero · Agosto–septiembre 2026</span><h2 id="titulo-nomina-resumen-{ident}">{escape(title)} · Nómina y actividad</h2></div><button type="button" class="control-button" data-close-profile aria-label="Cerrar nómina">Cerrar ×</button></div>
+      <div class="dialog-body"><div class="roster-summary-kpis"><span>Legajos del alcance <b>{n(total)}</b></span><span>Días del período <b>{n(len(next(iter(people.values()))['dias']) if people else 0)}</b></span></div>
+        <p class="roster-summary-note">La nómina corresponde al legajero vigente. “Con actividad” y “sin actividad” cuentan jornadas del período. El resultado compara el pago nuevo completo con el actual; flecha verde: cobra más, flecha roja: cobra menos, gris: sin variación.</p>
+        <div class="table-wrap roster-summary-table-wrap"><table><thead><tr><th>Legajo</th><th>Nombre</th><th>Turno(s) observados</th><th>Días con actividad</th><th>Días sin actividad</th><th>Resultado · nuevo método</th></tr></thead><tbody>{''.join(body) or '<tr><td colspan="6">Sin filas de nómina disponibles para este alcance.</td></tr>'}</tbody></table></div>
+      </div></dialog>'''
 
 
 def poly_summary_dialog(profiles, ident, title, n):
